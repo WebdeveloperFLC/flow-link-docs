@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Wallet, Plus, Calculator, Zap } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { isStrategicWallet, walletScopeLabel } from "@/lib/walletScope";
 
 type WalletRow = Pick<
   Database["public"]["Tables"]["discount_wallets"]["Row"],
@@ -93,6 +94,7 @@ export default function WalletTopups() {
   const [busy, setBusy] = useState(false);
   const [graceUnit, setGraceUnit] = useState<"days" | "end_of_next_month">("days");
   const [graceDays, setGraceDays] = useState("30");
+  const [spendOrder, setSpendOrder] = useState<"strategic_first" | "personal_first" | "parallel">("strategic_first");
 
   const [cw, setCw] = useState({
     counselor_id: "",
@@ -128,7 +130,11 @@ export default function WalletTopups() {
         .eq("period_key", period)
         .order("created_at", { ascending: false }),
       import("@/lib/leads").then(({ fetchAllServiceCatalogue }) => fetchAllServiceCatalogue()),
-      supabase.from("wallet_settings").select("grace_unit, grace_days, target_base_pct, unlock_threshold_pct").eq("id", 1).maybeSingle(),
+      supabase
+        .from("wallet_settings")
+        .select("grace_unit, grace_days, target_base_pct, unlock_threshold_pct, spend_order")
+        .eq("id", 1)
+        .maybeSingle(),
     ]);
     setProfiles(((pr.data ?? []) as any[]).map((p) => ({ id: p.id, name: p.full_name ?? p.email ?? p.id })));
     setWallets((w.data ?? []) as WalletRow[]);
@@ -143,8 +149,14 @@ export default function WalletTopups() {
       })) as ServiceRow[],
     );
     if (ws.data) {
-      setGraceUnit((ws.data as any).grace_unit);
-      setGraceDays(String((ws.data as any).grace_days));
+      const row = ws.data as {
+        grace_unit: string;
+        grace_days: number;
+        spend_order?: "strategic_first" | "personal_first" | "parallel";
+      };
+      setGraceUnit(row.grace_unit as "days" | "end_of_next_month");
+      setGraceDays(String(row.grace_days));
+      if (row.spend_order) setSpendOrder(row.spend_order);
     }
     setLoading(false);
   }
@@ -176,14 +188,21 @@ export default function WalletTopups() {
   async function saveGrace() {
     const { error } = await supabase
       .from("wallet_settings")
-      .update({ grace_unit: graceUnit, grace_days: Number(graceDays) || 30, updated_at: new Date().toISOString() })
+      .update({
+        grace_unit: graceUnit,
+        grace_days: Number(graceDays) || 30,
+        spend_order: spendOrder,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", 1);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Grace policy saved" });
+    toast({ title: "Wallet policy saved" });
   }
+
+  const strategicWallets = useMemo(() => wallets.filter((w) => isStrategicWallet(w)), [wallets]);
 
   async function createWallet() {
     if (!cw.counselor_id) {
@@ -343,9 +362,9 @@ export default function WalletTopups() {
           </div>
         </div>
 
-        {/* Grace policy */}
+        {/* Policy */}
         <Card className="p-5">
-          <h2 className="text-lg font-semibold mb-3">Reinstate grace window</h2>
+          <h2 className="text-lg font-semibold mb-3">Wallet policy</h2>
           <div className="flex flex-wrap items-end gap-3">
             <div>
               <label className="text-xs text-muted-foreground">Policy</label>
@@ -360,11 +379,44 @@ export default function WalletTopups() {
                 <Input className="mt-1 w-24" value={graceDays} onChange={(e) => setGraceDays(e.target.value)} />
               </div>
             )}
+            <div>
+              <label className="text-xs text-muted-foreground">Spend order (Give Discount)</label>
+              <select className={sel} value={spendOrder} onChange={(e) => setSpendOrder(e.target.value as typeof spendOrder)}>
+                <option value="strategic_first">Strategic wallets first</option>
+                <option value="personal_first">Personal wallet first</option>
+                <option value="parallel">Counsellor picks wallet</option>
+              </select>
+            </div>
             <Button variant="outline" onClick={saveGrace}>
               Save policy
             </Button>
           </div>
         </Card>
+
+        {strategicWallets.length > 0 && (
+          <Card className="p-5">
+            <h2 className="text-lg font-semibold mb-2">Strategic wallets — {period}</h2>
+            <p className="text-xs text-muted-foreground mb-4">
+              Ring-fenced budgets (scoped/festive). Counsellors can only spend these on matching clients/leads.
+            </p>
+            <div className="grid gap-3 md:grid-cols-2">
+              {strategicWallets.map((w) => (
+                <div key={w.id} className="border rounded-lg p-3 text-sm">
+                  <div className="font-medium">{nameOf(w.counselor_id)}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{walletScopeLabel(w)}</div>
+                  <div className="mt-2 flex justify-between">
+                    <span>Balance</span>
+                    <span className="font-medium">{fmt(w.balance, w.currency)}</span>
+                  </div>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Unlocked</span>
+                    <span>{fmt(w.unlocked_amount, w.currency)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {/* Performance-linked sizing */}
         <Card className="p-5">

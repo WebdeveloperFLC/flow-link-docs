@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Wallet, Gift, RotateCcw, Lock } from "lucide-react";
 import { OFFER_FUNDING_LABELS, type OfferFundingSource } from "@/lib/offers/lifecycle";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
+import { walletScopeLabel } from "@/lib/walletScope";
 
 type AllocStatus = "reserved" | "applied" | "reversed";
 
@@ -19,6 +20,8 @@ function currentPeriodKey() {
 
 interface WalletRow {
   id: string;
+  name: string | null;
+  budget_kind: string;
   balance: number;
   currency: string;
   max_percent_per_client: number;
@@ -27,6 +30,9 @@ interface WalletRow {
   unlocked_amount: number;
   achievement_pct: number | null;
   assigned_target: number | null;
+  scope_country_tag: string | null;
+  scope_master_key: string | null;
+  scope_service_code: string | null;
 }
 
 interface Target {
@@ -40,10 +46,12 @@ interface OfferPick {
   title: string;
   funding_source: OfferFundingSource | null;
   fl_contribution_pct: number | null;
+  offer_category: string | null;
 }
 
 interface AllocRow {
   id: string;
+  wallet_id: string;
   client_id: string | null;
   lead_id: string | null;
   offer_id: string | null;
@@ -72,7 +80,9 @@ export default function GiveDiscount() {
   const { toast } = useToast();
   const period = currentPeriodKey();
 
-  const [wallet, setWallet] = useState<WalletRow | null>(null);
+  const [wallets, setWallets] = useState<WalletRow[]>([]);
+  const [walletId, setWalletId] = useState<string>("");
+  const [selfServeTypes, setSelfServeTypes] = useState<Set<string>>(new Set());
   const [targets, setTargets] = useState<Target[]>([]);
   const [allocs, setAllocs] = useState<AllocRow[]>([]);
   const [labels, setLabels] = useState<Record<string, string>>({});
@@ -87,23 +97,38 @@ export default function GiveDiscount() {
   const [amount, setAmount] = useState<string>("");
   const [busy, setBusy] = useState(false);
 
+  const wallet = useMemo(
+    () => wallets.find((w) => w.id === walletId) ?? wallets[0] ?? null,
+    [wallets, walletId],
+  );
+
+  async function loadWalletsForTarget(clientId: string | null, leadId: string | null) {
+    if (!user) return;
+    const { data, error } = await supabase.rpc("fn_counselor_wallets_for_period", {
+      _period_key: period,
+      _client_id: clientId,
+      _lead_id: leadId,
+    });
+    if (error) {
+      console.warn("fn_counselor_wallets_for_period", error.message);
+      return;
+    }
+    const rows = (data ?? []) as WalletRow[];
+    const synced: WalletRow[] = [];
+    for (const row of rows) {
+      const { data: s } = await supabase.rpc("fn_sync_wallet_metrics", { _wallet_id: row.id });
+      synced.push((s ?? row) as WalletRow);
+    }
+    setWallets(synced);
+    setWalletId((prev) => (synced.some((w) => w.id === prev) ? prev : (synced[0]?.id ?? "")));
+  }
+
   async function loadAll() {
     if (!user) return;
     setLoading(true);
 
-    const [w, clients, leads, myAllocs] = await Promise.all([
-      supabase
-        .from("discount_wallets")
-        .select(
-          "id, balance, currency, max_percent_per_client, max_amount_per_client, potential_wallet, unlocked_amount, achievement_pct, assigned_target",
-        )
-        .eq("counselor_id", user.id)
-        .eq("period_key", period)
-        .eq("budget_kind", "month_to_month")
-        .is("closed_at", null)
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
+    const [typesRes, clients, leads, myAllocs] = await Promise.all([
+      supabase.from("approved_offer_types").select("offer_type, counselor_self_serve"),
       supabase.from("clients").select("id, full_name").eq("assigned_counselor_id", user.id).limit(500),
       supabase.from("leads").select("id, first_name, last_name").eq("assigned_counselor_id", user.id).limit(500),
       supabase
@@ -115,6 +140,12 @@ export default function GiveDiscount() {
         .order("created_at", { ascending: false })
         .limit(50),
     ]);
+
+    const serve = new Set<string>();
+    for (const t of (typesRes.data ?? []) as { offer_type: string; counselor_self_serve: boolean }[]) {
+      if (t.counselor_self_serve) serve.add(t.offer_type);
+    }
+    setSelfServeTypes(serve);
 
     const t: Target[] = [];
     const lbl: Record<string, string> = {};
@@ -128,22 +159,10 @@ export default function GiveDiscount() {
       lbl[`lead:${l.id}`] = nm;
     }
 
-    let walletRow = (w.data ?? null) as WalletRow | null;
-    if (walletRow?.id) {
-      const { data: synced, error: syncErr } = await supabase.rpc("fn_sync_wallet_metrics", {
-        _wallet_id: walletRow.id,
-      });
-      if (!syncErr && synced) {
-        walletRow = synced as WalletRow;
-      }
-    }
-    setWallet(walletRow);
+    const [kind, id] = targetKey ? targetKey.split(":") : ["", ""];
+    await loadWalletsForTarget(kind === "client" ? id : null, kind === "lead" ? id : null);
     setTargets(t);
-    setAllocs(
-      ((myAllocs.data ?? []) as (AllocRow & { wallet_id: string })[]).filter(
-        (a) => !walletRow || a.wallet_id === walletRow.id,
-      ),
-    );
+    setAllocs((myAllocs.data ?? []) as AllocRow[]);
     setLabels(lbl);
     setLoading(false);
   }
@@ -152,6 +171,16 @@ export default function GiveDiscount() {
     loadAll();
     /* eslint-disable-next-line */
   }, [user?.id, period]);
+
+  useEffect(() => {
+    if (!user || !targetKey) {
+      if (user) loadWalletsForTarget(null, null);
+      return;
+    }
+    const [kind, id] = targetKey.split(":");
+    loadWalletsForTarget(kind === "client" ? id : null, kind === "lead" ? id : null);
+    /* eslint-disable-next-line */
+  }, [targetKey, user?.id, period]);
 
   useEffect(() => {
     if (!targetKey) {
@@ -169,22 +198,35 @@ export default function GiveDiscount() {
           if (error) throw error;
           if (!cancelled) {
             setOffers(
-              ((data ?? []) as OfferPick[]).map((o) => ({
-                id: o.id,
-                title: (o as OfferPick & { title: string }).title,
-                funding_source: (o as OfferPick).funding_source ?? "future_link",
-                fl_contribution_pct: (o as OfferPick).fl_contribution_pct ?? null,
-              })),
+              ((data ?? []) as (OfferPick & { title: string })[])
+                .filter((o) => {
+                  const cat = (o.offer_category ?? "standard").toLowerCase();
+                  return selfServeTypes.size === 0 || selfServeTypes.has(cat) || !o.offer_category;
+                })
+                .map((o) => ({
+                  id: o.id,
+                  title: o.title,
+                  funding_source: o.funding_source ?? "future_link",
+                  fl_contribution_pct: o.fl_contribution_pct ?? null,
+                  offer_category: o.offer_category ?? null,
+                })),
             );
           }
         } else {
           const { data, error } = await supabase
             .from("offers")
-            .select("id, title, funding_source, fl_contribution_pct")
+            .select("id, title, funding_source, fl_contribution_pct, offer_category")
             .in("status", ["active", "expiring_soon"])
             .order("title");
           if (error) throw error;
-          if (!cancelled) setOffers((data ?? []) as OfferPick[]);
+          if (!cancelled) {
+            setOffers(
+              ((data ?? []) as OfferPick[]).filter((o) => {
+                const cat = (o.offer_category ?? "standard").toLowerCase();
+                return selfServeTypes.size === 0 || selfServeTypes.has(cat) || !o.offer_category;
+              }),
+            );
+          }
         }
       } catch {
         if (!cancelled) setOffers([]);
@@ -195,15 +237,18 @@ export default function GiveDiscount() {
     return () => {
       cancelled = true;
     };
-  }, [targetKey]);
+  }, [targetKey, selfServeTypes]);
 
   const ccy = wallet?.currency ?? "INR";
   const cap = wallet?.max_percent_per_client ?? 0;
   const sizingActive = (wallet?.potential_wallet ?? 0) > 0 || wallet?.assigned_target != null;
 
   const spent = useMemo(
-    () => allocs.filter((a) => a.status === "applied").reduce((s, a) => s + Number(a.amount ?? 0), 0),
-    [allocs],
+    () =>
+      allocs
+        .filter((a) => a.status === "applied" && (!wallet || a.wallet_id === wallet.id))
+        .reduce((s, a) => s + Number(a.amount ?? 0), 0),
+    [allocs, wallet],
   );
 
   const remainingUnlocked = Math.max((wallet?.unlocked_amount ?? 0) - spent, 0);
@@ -250,6 +295,7 @@ export default function GiveDiscount() {
         _lead_id: kind === "lead" ? id : null,
         _amount: amtNum,
         _percent: mode === "percent" ? pctNum : null,
+        _wallet_id: wallet.id,
       });
       if (error) throw error;
 
@@ -336,12 +382,30 @@ export default function GiveDiscount() {
           <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
             <Wallet className="size-4" /> Your wallet
           </div>
+          {wallets.length > 1 && (
+            <div>
+              <label className="text-xs text-muted-foreground">Wallet to debit</label>
+              <select
+                className="w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm"
+                value={walletId}
+                onChange={(e) => setWalletId(e.target.value)}
+              >
+                {wallets.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {walletScopeLabel(w)} — {fmt(w.balance, w.currency)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="text-3xl font-semibold">
             {loading ? "…" : wallet ? fmt(wallet.balance, ccy) : "No wallet this period"}
           </div>
           {wallet && (
             <>
               <div className="text-xs text-muted-foreground">
+                {walletScopeLabel(wallet)}
+                {" · "}
                 Max {cap}% per client
                 {wallet.max_amount_per_client ? `, up to ${fmt(wallet.max_amount_per_client, ccy)} each` : ""}
                 {wallet.achievement_pct != null ? ` · Achievement ${wallet.achievement_pct}%` : ""}

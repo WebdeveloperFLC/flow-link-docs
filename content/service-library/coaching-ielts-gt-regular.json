@@ -1,7 +1,7 @@
 {
   "displayName": "IELTS General Regular (with books)",
   "shortDescription": "IDP India · General Training · 8–10 week batch · Books included",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated June 2026",
@@ -18,50 +18,159 @@
     "body": "Canada Express Entry, citizenship, and many settlement routes require IELTS GT (or Academic where IRCC states). University study requires Academic — do not enroll GT for study visas."
   },
   "tags": [
-    { "label": "Active program", "variant": "success" },
-    { "label": "Books included", "variant": "neutral" },
-    { "label": "8–10 weeks", "variant": "neutral" },
-    { "label": "General Training", "variant": "warning" }
+    {
+      "label": "Active program",
+      "variant": "success"
+    },
+    {
+      "label": "Books included",
+      "variant": "neutral"
+    },
+    {
+      "label": "8–10 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "General Training",
+      "variant": "warning"
+    }
   ],
   "chips": [
-    { "label": "Regular batch", "variant": "success" },
-    { "label": "Canada PR / CLB", "variant": "neutral" },
-    { "label": "GT Reading & Writing", "variant": "warning" },
-    { "label": "Exam fee separate", "variant": "neutral" }
+    {
+      "label": "Regular batch",
+      "variant": "success"
+    },
+    {
+      "label": "Canada PR / CLB",
+      "variant": "neutral"
+    },
+    {
+      "label": "GT Reading & Writing",
+      "variant": "warning"
+    },
+    {
+      "label": "Exam fee separate",
+      "variant": "neutral"
+    }
   ],
   "kpis": [
-    { "label": "Course duration", "value": "8–10w", "sub": "Regular GT batch", "tone": "primary" },
-    { "label": "IELTS exam fee", "value": "See IDP India", "sub": "Paid on ieltsidpindia.com", "tone": "warning" },
-    { "label": "Target achievement", "value": "80%", "sub": "Students hitting agreed CLB/band", "tone": "success" },
-    { "label": "Enrollment docs", "value": "6", "sub": "Agreement + pathway note", "tone": "violet" }
+    {
+      "label": "Course duration",
+      "value": "8–10w",
+      "sub": "Regular GT batch",
+      "tone": "primary"
+    },
+    {
+      "label": "IELTS exam fee",
+      "value": "See IDP India",
+      "sub": "Paid on ieltsidpindia.com",
+      "tone": "warning"
+    },
+    {
+      "label": "Target achievement",
+      "value": "80%",
+      "sub": "Students hitting agreed CLB/band",
+      "tone": "success"
+    },
+    {
+      "label": "Enrollment docs",
+      "value": "6",
+      "sub": "Agreement + pathway note",
+      "tone": "violet"
+    }
   ],
   "about": [
-    { "label": "Description", "value": "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT mocks." },
-    { "label": "Ideal for", "value": "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission." },
-    { "label": "Delivery", "value": "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment." },
-    { "label": "Exam authority (India)", "value": "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. Student selects General Training at registration." },
-    { "label": "After course", "value": "TRF handoff to visa team, CLB mapping for Canada files, retake plan if below pathway minimum." }
+    {
+      "label": "Description",
+      "value": "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT mocks."
+    },
+    {
+      "label": "Ideal for",
+      "value": "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission."
+    },
+    {
+      "label": "Delivery",
+      "value": "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+    },
+    {
+      "label": "Exam authority (India)",
+      "value": "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. Student selects General Training at registration."
+    },
+    {
+      "label": "After course",
+      "value": "TRF handoff to visa team, CLB mapping for Canada files, retake plan if below pathway minimum."
+    }
   ],
   "eligibility": [
-    { "criterion": "Migration / PR pathway confirmed — GT required (not Academic)", "met": true },
-    { "criterion": "Diagnostic or prior GT score on file", "met": true },
-    { "criterion": "Realistic CLB / band target vs current level", "met": true },
-    { "criterion": "Enrollment agreement signed", "met": true },
-    { "criterion": "Course fee collected", "met": true }
+    {
+      "criterion": "Migration / PR pathway confirmed — GT required (not Academic)",
+      "met": true
+    },
+    {
+      "criterion": "Diagnostic or prior GT score on file",
+      "met": true
+    },
+    {
+      "criterion": "Realistic CLB / band target vs current level",
+      "met": true
+    },
+    {
+      "criterion": "Enrollment agreement signed",
+      "met": true
+    },
+    {
+      "criterion": "Course fee collected",
+      "met": true
+    }
   ],
   "redFlagsBanner": "Study-abroad leads needing Academic must not stay in GT batch. Confirm IRCC accepts GT for the specific program before enrollment.",
   "redFlags": [
-    { "title": "University student in GT batch", "description": "Study visas need Academic.", "fix": "Transfer to Academic Regular", "severity": "High" },
-    { "title": "Wrong CLB target quoted", "description": "FSW needs CLB 7 = 6.0 each.", "fix": "Reconfirm IRCC requirements", "severity": "Common" },
-    { "title": "Academic booked at IDP by mistake", "description": "Module mismatch on TRF.", "fix": "Cancel and rebook GT before test", "severity": "High" },
-    { "title": "Guaranteed score promised", "description": "Compliance breach.", "fix": "Never guarantee bands", "severity": "High" }
+    {
+      "title": "University student in GT batch",
+      "description": "Study visas need Academic.",
+      "fix": "Transfer to Academic Regular",
+      "severity": "High"
+    },
+    {
+      "title": "Wrong CLB target quoted",
+      "description": "FSW needs CLB 7 = 6.0 each.",
+      "fix": "Reconfirm IRCC requirements",
+      "severity": "Common"
+    },
+    {
+      "title": "Academic booked at IDP by mistake",
+      "description": "Module mismatch on TRF.",
+      "fix": "Cancel and rebook GT before test",
+      "severity": "High"
+    },
+    {
+      "title": "Guaranteed score promised",
+      "description": "Compliance breach.",
+      "fix": "Never guarantee bands",
+      "severity": "High"
+    }
   ],
   "faqs": [
-    { "q": "GT vs Academic — quick rule?", "a": "Academic for university. GT for most Canada PR/citizenship and many work/settlement routes." },
-    { "q": "CLB 7 for Express Entry equals:", "a": "Approximately IELTS 6.0 in each skill (Listening, Reading, Writing, Speaking)." },
-    { "q": "Are books included?", "a": "Yes for Regular (with books) — issue at enrollment." },
-    { "q": "Who pays exam fee?", "a": "Student pays IDP on ieltsidpindia.com — separate from coaching fee." },
-    { "q": "Is TOEFL accepted for Canada PR?", "a": "No. IRCC accepts IELTS GT/Academic (per program) and CELPIP — not TOEFL." }
+    {
+      "q": "GT vs Academic — quick rule?",
+      "a": "Academic for university. GT for most Canada PR/citizenship and many work/settlement routes."
+    },
+    {
+      "q": "CLB 7 for Express Entry equals:",
+      "a": "Approximately IELTS 6.0 in each skill (Listening, Reading, Writing, Speaking)."
+    },
+    {
+      "q": "Are books included?",
+      "a": "Yes for Regular (with books) — issue at enrollment."
+    },
+    {
+      "q": "Who pays exam fee?",
+      "a": "Student pays IDP on ieltsidpindia.com — separate from coaching fee."
+    },
+    {
+      "q": "Is TOEFL accepted for Canada PR?",
+      "a": "No. IRCC accepts IELTS GT/Academic (per program) and CELPIP — not TOEFL."
+    }
   ],
   "compliance": [
     "Never guarantee an IELTS band score",
@@ -83,61 +192,1049 @@
     "ourRate": 80,
     "industryRate": 65,
     "stats": [
-      { "label": "GT enrollments (year)", "value": "142" },
-      { "label": "Hit CLB / band target", "value": "114" },
-      { "label": "Retake / booster", "value": "28" }
+      {
+        "label": "GT enrollments (year)",
+        "value": "142"
+      },
+      {
+        "label": "Hit CLB / band target",
+        "value": "114"
+      },
+      {
+        "label": "Retake / booster",
+        "value": "28"
+      }
     ]
   },
   "approvalFactors": [
-    { "label": "Pathway confirmed GT", "ours": 94, "benchmark": 78 },
-    { "label": "Attendance 80%+", "ours": 86, "benchmark": 72 },
-    { "label": "Mock completion", "ours": 89, "benchmark": 74 }
+    {
+      "label": "Pathway confirmed GT",
+      "ours": 94,
+      "benchmark": 78
+    },
+    {
+      "label": "Attendance 80%+",
+      "ours": 86,
+      "benchmark": 72
+    },
+    {
+      "label": "Mock completion",
+      "ours": 89,
+      "benchmark": 74
+    }
   ],
   "timeline": [
-    { "weeks": "1", "title": "Diagnostic, pathway check, enrollment & books" },
-    { "weeks": "2–7", "title": "GT classes, letter writing, reading drills" },
-    { "weeks": "6–8", "title": "Full GT mocks & readiness review" },
-    { "weeks": "8–10", "title": "IDP GT booking, test day, TRF to visa team" }
+    {
+      "weeks": "1",
+      "title": "Diagnostic, pathway check, enrollment & books"
+    },
+    {
+      "weeks": "2–7",
+      "title": "GT classes, letter writing, reading drills"
+    },
+    {
+      "weeks": "6–8",
+      "title": "Full GT mocks & readiness review"
+    },
+    {
+      "weeks": "8–10",
+      "title": "IDP GT booking, test day, TRF to visa team"
+    }
   ],
   "relatedServices": [
-    { "label": "IELTS — Test reference", "libraryId": "b2000001-0001-4000-8000-000000000071" },
-    { "label": "Canada — Express Entry PR", "libraryId": "b2000001-0001-4000-8000-000000000013" },
-    { "label": "IELTS Academic Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000072" },
-    { "label": "IELTS Academic Crash Course", "libraryId": "b2000001-0001-4000-8000-000000000073" }
+    {
+      "label": "IELTS — Test reference",
+      "libraryId": "b2000001-0001-4000-8000-000000000071"
+    },
+    {
+      "label": "Canada — Express Entry PR",
+      "libraryId": "b2000001-0001-4000-8000-000000000013"
+    },
+    {
+      "label": "IELTS Academic Regular (with books)",
+      "libraryId": "b2000001-0001-4000-8000-000000000072"
+    },
+    {
+      "label": "IELTS Academic Crash Course",
+      "libraryId": "b2000001-0001-4000-8000-000000000073"
+    }
   ],
   "changelog": [
-    { "version": "v1.0", "date": "June 2026", "author": "Service Library", "summary": "Initial IELTS General Regular coaching specimen." }
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
+      "version": "v1.0",
+      "date": "June 2026",
+      "author": "Service Library",
+      "summary": "Initial IELTS General Regular coaching specimen."
+    }
   ],
   "staffNotes": [
-    { "author": "Coaching team", "date": "June 2026", "text": "Do not place study-visa Academic inquiries in GT Regular — wrong module and wrong prep." }
+    {
+      "author": "Coaching team",
+      "date": "June 2026",
+      "text": "Do not place study-visa Academic inquiries in GT Regular — wrong module and wrong prep."
+    }
   ],
   "resources": [
-    { "title": "IELTS test reference (FLC specimen)", "url": "/specimens/coaching/ielts-test-reference.html", "description": "Acceptance matrix — GT vs Academic" },
-    { "title": "IDP IELTS India — Book test", "url": "https://www.ieltsidpindia.com/", "description": "Select General Training at registration" },
-    { "title": "IRCC — Language requirements", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/language-requirements.html", "description": "CLB and accepted tests" },
-    { "title": "Enrollment checklist — GT Regular", "url": "/specimens/coaching/ielts-gt-regular-checklist.html", "description": "Counselor GT enrollment checklist" }
+    {
+      "title": "IELTS test reference (FLC specimen)",
+      "url": "/specimens/coaching/ielts-test-reference.html",
+      "description": "Acceptance matrix — GT vs Academic"
+    },
+    {
+      "title": "IDP IELTS India — Book test",
+      "url": "https://www.ieltsidpindia.com/",
+      "description": "Select General Training at registration"
+    },
+    {
+      "title": "IRCC — Language requirements",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/language-requirements.html",
+      "description": "CLB and accepted tests"
+    },
+    {
+      "title": "Enrollment checklist — GT Regular",
+      "url": "/specimens/coaching/ielts-gt-regular-checklist.html",
+      "description": "Counselor GT enrollment checklist"
+    }
   ],
   "donts": {
-    "dos": ["Confirm GT pathway before enrollment", "Map CLB for Canada leads", "Issue books Day 1", "Keep exam fee separate"],
-    "donts": ["Enroll university leads in GT", "Guarantee CLB 9", "Book Academic exam for GT student", "Skip pathway documentation"],
-    "mistakes": ["Study visa in GT batch", "CLB 7 quoted as 7.0 overall only", "Visa team not updated when TRF arrives"]
+    "dos": [
+      "Confirm GT pathway before enrollment",
+      "Map CLB for Canada leads",
+      "Issue books Day 1",
+      "Keep exam fee separate"
+    ],
+    "donts": [
+      "Enroll university leads in GT",
+      "Guarantee CLB 9",
+      "Book Academic exam for GT student",
+      "Skip pathway documentation"
+    ],
+    "mistakes": [
+      "Study visa in GT batch",
+      "CLB 7 quoted as 7.0 overall only",
+      "Visa team not updated when TRF arrives"
+    ]
   },
   "sampleDocs": [
-    { "title": "CLB mapping sheet (mock)", "description": "IELTS GT score to CLB per skill.", "docKind": "assessment", "mimeType": "application/pdf" },
-    { "title": "GT Writing Task 1 letter sample (mock)", "description": "Formal letter structure for GT.", "docKind": "writing_sample", "mimeType": "application/pdf" }
+    {
+      "title": "CLB mapping sheet (mock)",
+      "description": "IELTS GT score to CLB per skill.",
+      "docKind": "assessment",
+      "mimeType": "application/pdf"
+    },
+    {
+      "title": "GT Writing Task 1 letter sample (mock)",
+      "description": "Formal letter structure for GT.",
+      "docKind": "writing_sample",
+      "mimeType": "application/pdf"
+    }
   ],
   "quiz": [
-    { "question": "IELTS General Training is typically required for:", "options": ["University PhD admission", "Canada Express Entry PR", "Medical licensing only", "Internal FLC diagnostic"], "correctIndex": 1, "explanation": "GT is standard for many Canadian immigration pathways.", "level": 1 },
-    { "question": "CLB 7 for Express Entry FSW equals approximately:", "options": ["IELTS 5.0 each", "IELTS 6.0 each", "IELTS 7.5 each", "IELTS 8.0 each"], "correctIndex": 1, "explanation": "CLB 7 maps to 6.0 in each skill.", "level": 2 },
-    { "question": "A student visa applicant should enroll in:", "options": ["IELTS GT Regular", "IELTS Academic Regular", "Spoken English only", "No IELTS needed"], "correctIndex": 1, "explanation": "Universities require Academic module.", "level": 1 },
-    { "question": "GT Writing Task 1 is typically:", "options": ["Graph description", "Letter writing", "Multiple choice", "Listening only"], "correctIndex": 1, "explanation": "GT Task 1 is a letter; Academic Task 1 is a report.", "level": 1 },
-    { "question": "IELTS exam fee in India is paid to:", "options": ["Future Link", "IDP IELTS India by student", "IRCC", "Embassy"], "correctIndex": 1, "explanation": "ieltsidpindia.com — separate from coaching.", "level": 1 },
-    { "question": "Counselors must never:", "options": ["Document pathway", "Guarantee band 8", "Track GT mocks", "Map CLB"], "correctIndex": 1, "explanation": "Band guarantees are prohibited.", "level": 1 },
-    { "question": "TOEFL is accepted by IRCC for Canadian PR:", "options": ["Yes", "No", "Only Quebec", "Only with LMIA"], "correctIndex": 1, "explanation": "IRCC does not accept TOEFL for immigration.", "level": 2 },
-    { "question": "At IDP registration, GT student must select:", "options": ["Academic", "General Training", "UKVI only", "Any module"], "correctIndex": 1, "explanation": "Module must match coaching and visa pathway.", "level": 1 },
-    { "question": "Before exam booking, GT Regular recommends:", "options": ["Zero mocks", "Two mocks within 0.5 of target", "Random date", "Guaranteed score"], "correctIndex": 1, "explanation": "Same readiness standard as Academic Regular.", "level": 2 },
-    { "question": "Books in GT Regular (with books) are:", "options": ["Never provided", "Issued at enrollment", "Sold separately always", "IDP provides them"], "correctIndex": 1, "explanation": "Issue and log books on Day 1.", "level": 1 },
-    { "question": "Listening and Speaking in GT vs Academic:", "options": ["Completely different tests", "Same test content", "GT has no Speaking", "Academic has no Listening"], "correctIndex": 1, "explanation": "L/S are the same; R/W differ.", "level": 2 },
-    { "question": "British Council India role for IELTS exam:", "options": ["Books all India tests", "Prep only — IDP books tests", "Issues TRF", "Sets CLB scores"], "correctIndex": 1, "explanation": "IDP is sole booking channel since July 2021.", "level": 2 }
+    {
+      "question": "IELTS General Training is typically required for:",
+      "options": [
+        "University PhD admission",
+        "Canada Express Entry PR",
+        "Medical licensing only",
+        "Internal FLC diagnostic"
+      ],
+      "correctIndex": 1,
+      "explanation": "GT is standard for many Canadian immigration pathways.",
+      "level": 1
+    },
+    {
+      "question": "A student visa applicant should enroll in:",
+      "options": [
+        "IELTS GT Regular",
+        "IELTS Academic Regular",
+        "Spoken English only",
+        "No IELTS needed"
+      ],
+      "correctIndex": 1,
+      "explanation": "Universities require Academic module.",
+      "level": 1
+    },
+    {
+      "question": "GT Writing Task 1 is typically:",
+      "options": [
+        "Graph description",
+        "Letter writing",
+        "Multiple choice",
+        "Listening only"
+      ],
+      "correctIndex": 1,
+      "explanation": "GT Task 1 is a letter; Academic Task 1 is a report.",
+      "level": 1
+    },
+    {
+      "question": "IELTS exam fee in India is paid to:",
+      "options": [
+        "Future Link",
+        "IDP IELTS India by student",
+        "IRCC",
+        "Embassy"
+      ],
+      "correctIndex": 1,
+      "explanation": "ieltsidpindia.com — separate from coaching.",
+      "level": 1
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Document pathway",
+        "Guarantee band 8",
+        "Track GT mocks",
+        "Map CLB"
+      ],
+      "correctIndex": 1,
+      "explanation": "Band guarantees are prohibited.",
+      "level": 1
+    },
+    {
+      "question": "At IDP registration, GT student must select:",
+      "options": [
+        "Academic",
+        "General Training",
+        "UKVI only",
+        "Any module"
+      ],
+      "correctIndex": 1,
+      "explanation": "Module must match coaching and visa pathway.",
+      "level": 1
+    },
+    {
+      "question": "Books in GT Regular (with books) are:",
+      "options": [
+        "Never provided",
+        "Issued at enrollment",
+        "Sold separately always",
+        "IDP provides them"
+      ],
+      "correctIndex": 1,
+      "explanation": "Issue and log books on Day 1.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For IELTS General Regular (with books), which statement about Description is correct?",
+      "options": [
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment.",
+        "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. Student selects General Training at registration."
+      ],
+      "correctIndex": 0,
+      "explanation": "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT mocks."
+    },
+    {
+      "level": 1,
+      "question": "IELTS General Regular (with books): what is true regarding Ideal for?",
+      "options": [
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment.",
+        "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. Student selects General Training at registration."
+      ],
+      "correctIndex": 0,
+      "explanation": "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS General Regular (with books) should state correctly about Delivery:",
+      "options": [
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. Student selects General Training at registration."
+      ],
+      "correctIndex": 0,
+      "explanation": "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+    },
+    {
+      "level": 1,
+      "question": "For IELTS General Regular (with books), which statement about Exam authority (India) is correct?",
+      "options": [
+        "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. Student selects General Training at registration.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. Student selects General Training at registration."
+    },
+    {
+      "level": 1,
+      "question": "IELTS General Regular (with books): what is true regarding After course?",
+      "options": [
+        "TRF handoff to visa team, CLB mapping for Canada files, retake plan if below pathway minimum.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "TRF handoff to visa team, CLB mapping for Canada files, retake plan if below pathway minimum."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS General Regular (with books) should state correctly about Migration / PR pathway confirmed — GT required (not Academic):",
+      "options": [
+        "Migration / PR pathway confirmed — GT required (not Academic) is a core requirement for this service.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Migration / PR pathway confirmed — GT required (not Academic)"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS General Regular (with books), which statement about Diagnostic or prior GT score on file is correct?",
+      "options": [
+        "Diagnostic or prior GT score on file is a core requirement for this service.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Diagnostic or prior GT score on file"
+    },
+    {
+      "level": 1,
+      "question": "IELTS General Regular (with books): what is true regarding Realistic CLB / band target vs current level?",
+      "options": [
+        "Realistic CLB / band target vs current level is a core requirement for this service.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Realistic CLB / band target vs current level"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS General Regular (with books) should state correctly about Enrollment agreement signed:",
+      "options": [
+        "Enrollment agreement signed is a core requirement for this service.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Enrollment agreement signed"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS General Regular (with books), which statement about Course fee collected is correct?",
+      "options": [
+        "Course fee collected is a core requirement for this service.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Course fee collected"
+    },
+    {
+      "level": 1,
+      "question": "IELTS General Regular (with books): what is true regarding Course duration?",
+      "options": [
+        "Course duration: 8–10w — Regular GT batch",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Regular GT batch"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS General Regular (with books) should state correctly about IELTS exam fee:",
+      "options": [
+        "IELTS exam fee: See IDP India — Paid on ieltsidpindia.com",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Paid on ieltsidpindia.com"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS General Regular (with books), which statement about Target achievement is correct?",
+      "options": [
+        "Target achievement: 80% — Students hitting agreed CLB/band",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Students hitting agreed CLB/band"
+    },
+    {
+      "level": 1,
+      "question": "IELTS General Regular (with books): what is true regarding Enrollment docs?",
+      "options": [
+        "Enrollment docs: 6 — Agreement + pathway note",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Agreement + pathway note"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS General Regular (with books) should state correctly about service summary:",
+      "options": [
+        "IDP India · General Training · 8–10 week batch · Books included",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "IDP India · General Training · 8–10 week batch · Books included"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS General Regular (with books), which statement about General Training module only is correct?",
+      "options": [
+        "Canada Express Entry, citizenship, and many settlement routes require IELTS GT (or Academic where IRCC states). University study requires Academic — do not enr…",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Canada Express Entry, citizenship, and many settlement routes require IELTS GT (or Academic where IRCC states). University study requires Academic — do not enroll GT for study visas."
+    },
+    {
+      "level": 1,
+      "question": "IELTS General Regular (with books): what is true regarding policy update?",
+      "options": [
+        "General Training only — not Academic. Confirm Canada PR / citizenship or other GT pathway before enrollment. Book exam on ieltsidpindia.com. Never guarantee a …",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "General Training only — not Academic. Confirm Canada PR / citizenship or other GT pathway before enrollment. Book exam on ieltsidpindia.com. Never guarantee a band score."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS General Regular (with books) should state correctly about GT vs Academic — quick rule:",
+      "options": [
+        "Academic for university. GT for most Canada PR/citizenship and many work/settlement routes.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Academic for university. GT for most Canada PR/citizenship and many work/settlement routes."
+    },
+    {
+      "question": "CLB 7 for Express Entry FSW equals approximately:",
+      "options": [
+        "IELTS 5.0 each",
+        "IELTS 6.0 each",
+        "IELTS 7.5 each",
+        "IELTS 8.0 each"
+      ],
+      "correctIndex": 1,
+      "explanation": "CLB 7 maps to 6.0 in each skill.",
+      "level": 2
+    },
+    {
+      "question": "TOEFL is accepted by IRCC for Canadian PR:",
+      "options": [
+        "Yes",
+        "No",
+        "Only Quebec",
+        "Only with LMIA"
+      ],
+      "correctIndex": 1,
+      "explanation": "IRCC does not accept TOEFL for immigration.",
+      "level": 2
+    },
+    {
+      "question": "Before exam booking, GT Regular recommends:",
+      "options": [
+        "Zero mocks",
+        "Two mocks within 0.5 of target",
+        "Random date",
+        "Guaranteed score"
+      ],
+      "correctIndex": 1,
+      "explanation": "Same readiness standard as Academic Regular.",
+      "level": 2
+    },
+    {
+      "question": "Listening and Speaking in GT vs Academic:",
+      "options": [
+        "Completely different tests",
+        "Same test content",
+        "GT has no Speaking",
+        "Academic has no Listening"
+      ],
+      "correctIndex": 1,
+      "explanation": "L/S are the same; R/W differ.",
+      "level": 2
+    },
+    {
+      "question": "British Council India role for IELTS exam:",
+      "options": [
+        "Books all India tests",
+        "Prep only — IDP books tests",
+        "Issues TRF",
+        "Sets CLB scores"
+      ],
+      "correctIndex": 1,
+      "explanation": "IDP is sole booking channel since July 2021.",
+      "level": 2
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS General Regular (with books) process, what is the correct approach to client question: GT vs Academic — quick rule?",
+      "options": [
+        "Academic for university. GT for most Canada PR/citizenship and many work/settlement routes.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Academic for university. GT for most Canada PR/citizenship and many work/settlement routes."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS General Regular (with books), what should happen during client question: CLB 7 for Express Entry equals:?",
+      "options": [
+        "Approximately IELTS 6.0 in each skill (Listening, Reading, Writing, Speaking).",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Approximately IELTS 6.0 in each skill (Listening, Reading, Writing, Speaking)."
+    },
+    {
+      "level": 2,
+      "question": "IELTS General Regular (with books) workflow — best practice for client question: Are books included:",
+      "options": [
+        "Yes for Regular (with books) — issue at enrollment.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes for Regular (with books) — issue at enrollment."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS General Regular (with books) process, what is the correct approach to client question: Who pays exam fee?",
+      "options": [
+        "Student pays IDP on ieltsidpindia.com — separate from coaching fee.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Student pays IDP on ieltsidpindia.com — separate from coaching fee."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS General Regular (with books), what should happen during client question: Is TOEFL accepted for Canada PR?",
+      "options": [
+        "No. IRCC accepts IELTS GT/Academic (per program) and CELPIP — not TOEFL.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. IRCC accepts IELTS GT/Academic (per program) and CELPIP — not TOEFL."
+    },
+    {
+      "level": 2,
+      "question": "IELTS General Regular (with books) workflow — best practice for CLB 7 for Express Entry FSW equals approximately::",
+      "options": [
+        "IELTS 6.0 each",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "CLB 7 maps to 6.0 in each skill."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS General Regular (with books) process, what is the correct approach to TOEFL is accepted by IRCC for Canadian PR:?",
+      "options": [
+        "No",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC does not accept TOEFL for immigration."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS General Regular (with books), what should happen during Before exam booking, GT Regular recommends:?",
+      "options": [
+        "Two mocks within 0.5 of target",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Same readiness standard as Academic Regular."
+    },
+    {
+      "level": 2,
+      "question": "IELTS General Regular (with books) workflow — best practice for Listening and Speaking in GT vs Academic::",
+      "options": [
+        "Same test content",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "L/S are the same; R/W differ."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS General Regular (with books) process, what is the correct approach to British Council India role for IELTS exam:?",
+      "options": [
+        "Prep only — IDP books tests",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "IDP is sole booking channel since July 2021."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS General Regular (with books), what should happen during timeline (1)?",
+      "options": [
+        "Diagnostic, pathway check, enrollment & books",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "1: Diagnostic, pathway check, enrollment & books"
+    },
+    {
+      "level": 2,
+      "question": "IELTS General Regular (with books) workflow — best practice for timeline (2–7):",
+      "options": [
+        "GT classes, letter writing, reading drills",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–7: GT classes, letter writing, reading drills"
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS General Regular (with books) process, what is the correct approach to timeline (6–8)?",
+      "options": [
+        "Full GT mocks & readiness review",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "6–8: Full GT mocks & readiness review"
+    },
+    {
+      "level": 2,
+      "question": "For IELTS General Regular (with books), what should happen during timeline (8–10)?",
+      "options": [
+        "IDP GT booking, test day, TRF to visa team",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "8–10: IDP GT booking, test day, TRF to visa team"
+    },
+    {
+      "level": 2,
+      "question": "IELTS General Regular (with books) workflow — best practice for counselor tip:",
+      "options": [
+        "Map every Canada lead to CLB before quoting timeline",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Map every Canada lead to CLB before quoting timeline"
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS General Regular (with books) process, what is the correct approach to counselor tip?",
+      "options": [
+        "Use GT letter-writing drills early — Task 1 differs from Academic",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Use GT letter-writing drills early — Task 1 differs from Academic"
+    },
+    {
+      "level": 2,
+      "question": "For IELTS General Regular (with books), what should happen during counselor tip?",
+      "options": [
+        "Link TRF to Express Entry file as soon as scores arrive",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Link TRF to Express Entry file as soon as scores arrive"
+    },
+    {
+      "level": 2,
+      "question": "IELTS General Regular (with books) workflow — best practice for post-approval step:",
+      "options": [
+        "Collect TRF with GT confirmation",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Collect TRF with GT confirmation"
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS General Regular (with books) process, what is the correct approach to post-approval step?",
+      "options": [
+        "Notify visa team with CLB breakdown",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Notify visa team with CLB breakdown"
+    },
+    {
+      "level": 2,
+      "question": "For IELTS General Regular (with books), what should happen during post-approval step?",
+      "options": [
+        "Plan retake if any skill below minimum",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Plan retake if any skill below minimum"
+    },
+    {
+      "level": 3,
+      "question": "IELTS General Regular (with books): what is the compliance risk with University student in GT batch?",
+      "options": [
+        "Transfer to Academic Regular",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Study visas need Academic."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS General Regular (with books) — key issue with University student in GT batch (detail):",
+      "options": [
+        "Study visas need Academic.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Transfer to Academic Regular"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS General Regular (with books), counselors must avoid this mistake related to Wrong CLB target quoted:",
+      "options": [
+        "Reconfirm IRCC requirements",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "FSW needs CLB 7 = 6.0 each."
+    },
+    {
+      "level": 3,
+      "question": "IELTS General Regular (with books): what is the compliance risk with Wrong CLB target quoted (detail)?",
+      "options": [
+        "FSW needs CLB 7 = 6.0 each.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Reconfirm IRCC requirements"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS General Regular (with books) — key issue with Academic booked at IDP by mistake:",
+      "options": [
+        "Cancel and rebook GT before test",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Module mismatch on TRF."
+    },
+    {
+      "level": 3,
+      "question": "For IELTS General Regular (with books), counselors must avoid this mistake related to Academic booked at IDP by mistake (detail):",
+      "options": [
+        "Module mismatch on TRF.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Cancel and rebook GT before test"
+    },
+    {
+      "level": 3,
+      "question": "IELTS General Regular (with books): what is the compliance risk with Guaranteed score promised?",
+      "options": [
+        "Never guarantee bands",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Compliance breach."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS General Regular (with books) — key issue with Guaranteed score promised (detail):",
+      "options": [
+        "Compliance breach.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee bands"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS General Regular (with books), counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Enroll university leads in GT",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Enroll university leads in GT"
+    },
+    {
+      "level": 3,
+      "question": "IELTS General Regular (with books): what is the compliance risk with counselor don't?",
+      "options": [
+        "Guarantee CLB 9",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Guarantee CLB 9"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS General Regular (with books) — key issue with counselor don't:",
+      "options": [
+        "Book Academic exam for GT student",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Book Academic exam for GT student"
+    },
+    {
+      "level": 3,
+      "question": "IELTS General Regular (with books): what is the compliance risk with common mistake?",
+      "options": [
+        "Study visa in GT batch",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Study visa in GT batch"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS General Regular (with books) — key issue with common mistake:",
+      "options": [
+        "CLB 7 quoted as 7.0 overall only",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: CLB 7 quoted as 7.0 overall only"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS General Regular (with books), counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Visa team not updated when TRF arrives",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Visa team not updated when TRF arrives"
+    },
+    {
+      "level": 3,
+      "question": "IELTS General Regular (with books): what is the compliance risk with compliance rule?",
+      "options": [
+        "Never guarantee an IELTS band score",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee an IELTS band score"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS General Regular (with books) — key issue with compliance rule:",
+      "options": [
+        "Confirm GT module and pathway before enrollment",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm GT module and pathway before enrollment"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS General Regular (with books), counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Separate coaching fee from IDP exam fee",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Separate coaching fee from IDP exam fee"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS General Regular (with books) — key issue with refusal handling:",
+      "options": [
+        "Study-abroad leads needing Academic must not stay in GT batch. Confirm IRCC accepts GT for the specific program before enrollment.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Study-abroad leads needing Academic must not stay in GT batch. Confirm IRCC accepts GT for the specific program before enrollment."
+    },
+    {
+      "level": 3,
+      "question": "For IELTS General Regular (with books), counselors must avoid this mistake related to Pathway confirmed GT:",
+      "options": [
+        "Our target: 94% vs benchmark 78%",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Pathway confirmed GT"
+    },
+    {
+      "level": 3,
+      "question": "IELTS General Regular (with books): what is the compliance risk with Attendance 80%+?",
+      "options": [
+        "Our target: 86% vs benchmark 72%",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Attendance 80%+"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS General Regular (with books) — key issue with Mock completion:",
+      "options": [
+        "Our target: 89% vs benchmark 74%",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Mock completion"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS General Regular (with books), counselors must avoid this mistake related to University student in GT batch:",
+      "options": [
+        "Transfer to Academic Regular",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Study visas need Academic."
+    },
+    {
+      "level": 3,
+      "question": "IELTS General Regular (with books): what is the compliance risk with University student in GT batch (detail)?",
+      "options": [
+        "Study visas need Academic.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Transfer to Academic Regular"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS General Regular (with books) — key issue with Wrong CLB target quoted:",
+      "options": [
+        "Reconfirm IRCC requirements",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "FSW needs CLB 7 = 6.0 each."
+    },
+    {
+      "level": 3,
+      "question": "For IELTS General Regular (with books), counselors must avoid this mistake related to Wrong CLB target quoted (detail):",
+      "options": [
+        "FSW needs CLB 7 = 6.0 each.",
+        "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT m…",
+        "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission.",
+        "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Reconfirm IRCC requirements"
+    }
   ]
 }

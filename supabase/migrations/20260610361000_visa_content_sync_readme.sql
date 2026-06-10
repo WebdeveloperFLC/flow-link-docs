@@ -1,0 +1,24 @@
+-- Visa content sync (metadata + eligibility) — run split seed files in SQL editor
+--
+-- The full sync exceeds Lovable "request entity too large". Use the split folders:
+--
+--   1. Eligibility questions (run all, ~7–19 KB each):
+--      supabase/migrations/eligibility-seed/01-canada.sql
+--      supabase/migrations/eligibility-seed/02-uk.sql
+--      … through 07-eu-*.sql and 06-nz.sql
+--
+--   2. Academy metadata — quiz, FAQs, red flags (run one file at a time, ~60–75 KB each):
+--      supabase/migrations/visa-metadata-seed/*.sql
+--      See visa-metadata-seed/README.md for full list (61 services)
+--
+--   3. Health check view (optional, small):
+--      Already in 20260610362000_visa_content_health_check.sql
+--
+-- Regenerate splits:
+--   node scripts/generate-eligibility-questions-sql-split.mjs
+--   node scripts/generate-visa-metadata-sql-split.mjs
+--
+-- Verify:
+--   SELECT * FROM v_visa_content_health WHERE status <> 'ok';
+
+SELECT 1;

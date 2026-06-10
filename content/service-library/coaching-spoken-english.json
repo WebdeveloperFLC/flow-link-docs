@@ -1,7 +1,7 @@
 {
   "displayName": "Spoken English (with books)",
   "shortDescription": "Fluency & confidence · Workplace / interview focus · Books included",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated June 2026",
@@ -193,6 +193,12 @@
   "relatedServices": [],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
       "version": "v1.0",
       "date": "June 2026",
       "author": "Service Library",
@@ -287,6 +293,246 @@
       "level": 1
     },
     {
+      "level": 1,
+      "question": "For Spoken English (with books), which statement about Description is correct?",
+      "options": [
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy.",
+        "Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."
+      ],
+      "correctIndex": 0,
+      "explanation": "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking."
+    },
+    {
+      "level": 1,
+      "question": "Spoken English (with books): what is true regarding Ideal for?",
+      "options": [
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Classroom or hybrid per branch schedule. Materials per program policy.",
+        "Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."
+      ],
+      "correctIndex": 0,
+      "explanation": "Students needing confidence, interview prep, or foundation before formal test prep."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Spoken English (with books) should state correctly about Delivery:",
+      "options": [
+        "Classroom or hybrid per branch schedule. Materials per program policy.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."
+      ],
+      "correctIndex": 0,
+      "explanation": "Classroom or hybrid per branch schedule. Materials per program policy."
+    },
+    {
+      "level": 1,
+      "question": "For Spoken English (with books), which statement about After course is correct?",
+      "options": [
+        "Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."
+    },
+    {
+      "level": 1,
+      "question": "Spoken English (with books): what is true regarding Diagnostic or prior score on file?",
+      "options": [
+        "Diagnostic or prior score on file is a core requirement for this service.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Diagnostic or prior score on file"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Spoken English (with books) should state correctly about Realistic target vs current level:",
+      "options": [
+        "Realistic target vs current level is a core requirement for this service.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Realistic target vs current level"
+    },
+    {
+      "level": 1,
+      "question": "For Spoken English (with books), which statement about Batch timing suits student schedule is correct?",
+      "options": [
+        "Batch timing suits student schedule is a core requirement for this service.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Batch timing suits student schedule"
+    },
+    {
+      "level": 1,
+      "question": "Spoken English (with books): what is true regarding Enrollment agreement signed?",
+      "options": [
+        "Enrollment agreement signed is a core requirement for this service.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Enrollment agreement signed"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Spoken English (with books) should state correctly about Course fee collected:",
+      "options": [
+        "Course fee collected is a core requirement for this service.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Course fee collected"
+    },
+    {
+      "level": 1,
+      "question": "For Spoken English (with books), which statement about Course duration is correct?",
+      "options": [
+        "Course duration: 8–10 weeks — Regular batch",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Regular batch"
+    },
+    {
+      "level": 1,
+      "question": "Spoken English (with books): what is true regarding Target achievement?",
+      "options": [
+        "Target achievement: — — Track on client file",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Track on client file"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Spoken English (with books) should state correctly about Enrollment docs:",
+      "options": [
+        "Enrollment docs: 6+ — Agreement + diagnostic",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Agreement + diagnostic"
+    },
+    {
+      "level": 1,
+      "question": "For Spoken English (with books), which statement about service summary is correct?",
+      "options": [
+        "Fluency & confidence · Workplace / interview focus · Books included",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fluency & confidence · Workplace / interview focus · Books included"
+    },
+    {
+      "level": 1,
+      "question": "Spoken English (with books): what is true regarding Not a visa substitute?",
+      "options": [
+        "Spoken English builds fluency and interview skills — it does not replace IELTS, PTE, or CELPIP for visa or university English requirements.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Spoken English builds fluency and interview skills — it does not replace IELTS, PTE, or CELPIP for visa or university English requirements."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Spoken English (with books) should state correctly about policy update:",
+      "options": [
+        "Spoken English builds fluency — not a substitute for IELTS/PTE for visa. Books included where stated.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Spoken English builds fluency — not a substitute for IELTS/PTE for visa. Books included where stated."
+    },
+    {
+      "level": 1,
+      "question": "For Spoken English (with books), which statement about Does Spoken English replace IELTS is correct?",
+      "options": [
+        "No. Formal tests are required for visas and most university offers.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Formal tests are required for visas and most university offers."
+    },
+    {
+      "level": 1,
+      "question": "Spoken English (with books): what is true regarding Are books included?",
+      "options": [
+        "Yes for Spoken English (with books) — issue and log at enrollment.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes for Spoken English (with books) — issue and log at enrollment."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Spoken English (with books) should state correctly about Ideal next step after Spoken English:",
+      "options": [
+        "Formal test prep (IELTS/PTE) once foundation is strong enough.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Formal test prep (IELTS/PTE) once foundation is strong enough."
+    },
+    {
+      "level": 1,
+      "question": "For Spoken English (with books), which statement about Counselors must never for Spoken English (with books): is correct?",
+      "options": [
+        "Guarantee exam scores",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Score guarantees are prohibited for all coaching programs."
+    },
+    {
+      "level": 1,
+      "question": "Spoken English (with books): what is true regarding Spoken English (with books) coaching fee and official exam fee should be:?",
+      "options": [
+        "Shown separately",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Coaching and exam fees must be quoted separately."
+    },
+    {
       "question": "Enrollment agreement for Spoken English (with books) should be signed:",
       "options": [
         "After course ends",
@@ -359,6 +605,234 @@
       "level": 2
     },
     {
+      "level": 2,
+      "question": "In the Spoken English (with books) process, what is the correct approach to client question: Does Spoken English replace IELTS?",
+      "options": [
+        "No. Formal tests are required for visas and most university offers.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Formal tests are required for visas and most university offers."
+    },
+    {
+      "level": 2,
+      "question": "For Spoken English (with books), what should happen during client question: Are books included?",
+      "options": [
+        "Yes for Spoken English (with books) — issue and log at enrollment.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes for Spoken English (with books) — issue and log at enrollment."
+    },
+    {
+      "level": 2,
+      "question": "Spoken English (with books) workflow — best practice for client question: Ideal next step after Spoken English:",
+      "options": [
+        "Formal test prep (IELTS/PTE) once foundation is strong enough.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Formal test prep (IELTS/PTE) once foundation is strong enough."
+    },
+    {
+      "level": 2,
+      "question": "In the Spoken English (with books) process, what is the correct approach to Enrollment agreement for Spoken English (with books) should be signed:?",
+      "options": [
+        "Before batch start",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Signed agreement before classes begin."
+    },
+    {
+      "level": 2,
+      "question": "For Spoken English (with books), what should happen during Before advising official exam booking for Spoken English (with books):?",
+      "options": [
+        "Mocks support agreed target",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Readiness should be based on mock performance."
+    },
+    {
+      "level": 2,
+      "question": "Spoken English (with books) workflow — best practice for When attendance drops below 80% in Spoken English (with books)::",
+      "options": [
+        "Counselor review and intervention",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Attendance issues require counselor follow-up."
+    },
+    {
+      "level": 2,
+      "question": "In the Spoken English (with books) process, what is the correct approach to Official score report for Spoken English (with books) should be:?",
+      "options": [
+        "Logged on client file and shared with visa/admissions team",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Score reports must be documented and handed off when relevant."
+    },
+    {
+      "level": 2,
+      "question": "For Spoken English (with books), what should happen during A student needing Canada PR should:?",
+      "options": [
+        "Take IELTS GT or CELPIP-General",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "PR requires accepted language tests."
+    },
+    {
+      "level": 2,
+      "question": "Spoken English (with books) workflow — best practice for Interview prep in Spoken English focuses on::",
+      "options": [
+        "Structure, fluency, and feedback",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Interview modules emphasize structured practice."
+    },
+    {
+      "level": 2,
+      "question": "In the Spoken English (with books) process, what is the correct approach to timeline (1)?",
+      "options": [
+        "Diagnostic, enrollment, batch allocation",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "1: Diagnostic, enrollment, batch allocation"
+    },
+    {
+      "level": 2,
+      "question": "For Spoken English (with books), what should happen during timeline (2–8)?",
+      "options": [
+        "Classes, homework, skill drills",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–8: Classes, homework, skill drills"
+    },
+    {
+      "level": 2,
+      "question": "Spoken English (with books) workflow — best practice for timeline (6–8):",
+      "options": [
+        "Mocks and readiness review",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "6–8: Mocks and readiness review"
+    },
+    {
+      "level": 2,
+      "question": "In the Spoken English (with books) process, what is the correct approach to timeline (8+)?",
+      "options": [
+        "Exam booking, test day prep, score follow-up",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "8+: Exam booking, test day prep, score follow-up"
+    },
+    {
+      "level": 2,
+      "question": "For Spoken English (with books), what should happen during counselor tip?",
+      "options": [
+        "Set target in writing at enrollment",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Set target in writing at enrollment"
+    },
+    {
+      "level": 2,
+      "question": "Spoken English (with books) workflow — best practice for counselor tip:",
+      "options": [
+        "Review mock trends weekly",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Review mock trends weekly"
+    },
+    {
+      "level": 2,
+      "question": "In the Spoken English (with books) process, what is the correct approach to counselor tip?",
+      "options": [
+        "Confirm correct test/module for student pathway",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm correct test/module for student pathway"
+    },
+    {
+      "level": 2,
+      "question": "Spoken English (with books) workflow — best practice for post-approval step:",
+      "options": [
+        "Collect official score report when released",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Collect official score report when released"
+    },
+    {
+      "level": 2,
+      "question": "In the Spoken English (with books) process, what is the correct approach to post-approval step?",
+      "options": [
+        "Update client record for admissions / visa team",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Update client record for admissions / visa team"
+    },
+    {
+      "level": 2,
+      "question": "For Spoken English (with books), what should happen during post-approval step?",
+      "options": [
+        "Plan retake or booster if below target",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Plan retake or booster if below target"
+    },
+    {
       "question": "A student with unrealistic target timeline for Spoken English (with books) should:",
       "options": [
         "Enroll in crash anyway",
@@ -417,6 +891,246 @@
       "correctIndex": 0,
       "explanation": "Foundation then formal prep is a common path.",
       "level": 3
+    },
+    {
+      "level": 3,
+      "question": "Spoken English (with books): what is the compliance risk with A student with unrealistic target timeline for Spoken English (with books) shou…?",
+      "options": [
+        "Reset timeline or program variant",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Unrealistic timelines must be corrected before enrollment."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Spoken English (with books) — key issue with Sales promising a guaranteed band/score for Spoken English (with books) is::",
+      "options": [
+        "A compliance violation",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee exam outcomes."
+    },
+    {
+      "level": 3,
+      "question": "For Spoken English (with books), counselors must avoid this mistake related to Retake planning for Spoken English (with books) should be based on::",
+      "options": [
+        "Skill-gap analysis from official results",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Retakes need structured gap analysis."
+    },
+    {
+      "level": 3,
+      "question": "Spoken English (with books): what is the compliance risk with Visa/admissions team handoff for Spoken English (with books) happens when:?",
+      "options": [
+        "Target met and official report available",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Hand off when target is met and documentation is on file."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Spoken English (with books) — key issue with Spoken English may pair with::",
+      "options": [
+        "Formal test prep once foundation is ready",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Foundation then formal prep is a common path."
+    },
+    {
+      "level": 3,
+      "question": "For Spoken English (with books), counselors must avoid this mistake related to Unrealistic target:",
+      "options": [
+        "Reset timeline or recommend appropriate program",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Large gap expected in very short timeline."
+    },
+    {
+      "level": 3,
+      "question": "Spoken English (with books): what is the compliance risk with Unrealistic target (detail)?",
+      "options": [
+        "Large gap expected in very short timeline.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Reset timeline or recommend appropriate program"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Spoken English (with books) — key issue with Chronic absenteeism:",
+      "options": [
+        "Counselor call, batch change, or pause",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Below 80% attendance."
+    },
+    {
+      "level": 3,
+      "question": "For Spoken English (with books), counselors must avoid this mistake related to Chronic absenteeism (detail):",
+      "options": [
+        "Below 80% attendance.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Counselor call, batch change, or pause"
+    },
+    {
+      "level": 3,
+      "question": "Spoken English (with books): what is the compliance risk with Guaranteed score promised?",
+      "options": [
+        "Compliance issue — never guarantee scores",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sales or counselor over-commitment."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Spoken English (with books) — key issue with Guaranteed score promised (detail):",
+      "options": [
+        "Sales or counselor over-commitment.",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Compliance issue — never guarantee scores"
+    },
+    {
+      "level": 3,
+      "question": "For Spoken English (with books), counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Guarantee scores",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Guarantee scores"
+    },
+    {
+      "level": 3,
+      "question": "Spoken English (with books): what is the compliance risk with counselor don't?",
+      "options": [
+        "Book exam before readiness",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Book exam before readiness"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Spoken English (with books) — key issue with counselor don't:",
+      "options": [
+        "Skip enrollment agreement",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Skip enrollment agreement"
+    },
+    {
+      "level": 3,
+      "question": "For Spoken English (with books), counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Unrealistic target timeline",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Unrealistic target timeline"
+    },
+    {
+      "level": 3,
+      "question": "Spoken English (with books): what is the compliance risk with common mistake?",
+      "options": [
+        "No mock before exam date",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: No mock before exam date"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Spoken English (with books) — key issue with common mistake:",
+      "options": [
+        "Visa team not updated when target met",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Visa team not updated when target met"
+    },
+    {
+      "level": 3,
+      "question": "For Spoken English (with books), counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Never guarantee exam scores or bands",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee exam scores or bands"
+    },
+    {
+      "level": 3,
+      "question": "Spoken English (with books): what is the compliance risk with compliance rule?",
+      "options": [
+        "Separate coaching fee from exam registration fee",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Separate coaching fee from exam registration fee"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Spoken English (with books) — key issue with compliance rule:",
+      "options": [
+        "Signed enrollment agreement before batch start",
+        "Structured Spoken English (with books) preparation with trainer-led classes, homework, and progress tracking.",
+        "Students needing confidence, interview prep, or foundation before formal test prep.",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Signed enrollment agreement before batch start"
     }
   ]
 }
