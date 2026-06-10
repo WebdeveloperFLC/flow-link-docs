@@ -119,9 +119,7 @@ export function resolveAcademyTabs(
 ): AcademyTabId[] {
   if (view.isMbbs) {
     let tabs = MBBS_TABS;
-    const hasFees = view.feeBreakdown?.govt || view.feeBreakdown?.consultancy;
     const hasInsights = view.countryInsights != null;
-    if (!hasFees) tabs = tabs.filter((t) => t !== "fees");
     if (!hasInsights) tabs = tabs.filter((t) => t !== "countryinsights");
     if (!view.mbbsMeta?.practicePathways) tabs = tabs.filter((t) => t !== "practice");
     if (!view.mbbsMeta?.relatedPrograms?.length) tabs = tabs.filter((t) => t !== "programs");

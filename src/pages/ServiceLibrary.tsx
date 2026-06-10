@@ -314,7 +314,14 @@ export default function ServiceLibrary() {
   };
 
   const openEligibilityDialog = () => setEligibilityDialogOpen(true);
+  const openMbbsEligibility = () => setActiveTab("eligibility");
   const isVisaService = detail.data?.master.service_category === "visa_immigration";
+  const isMbbsService = detail.data?.master.service_category === "mbbs_services";
+  const onStartEligibility = isVisaService
+    ? openEligibilityDialog
+    : isMbbsService
+      ? openMbbsEligibility
+      : undefined;
 
   const userName = user?.email?.split("@")[0] ?? "Counselor";
   const userInitials = userName.slice(0, 2).toUpperCase();
@@ -375,7 +382,7 @@ export default function ServiceLibrary() {
                   onOpenTab={setActiveTab as (tab: string) => void}
                   onOpenResources={() => setActiveTab("downloads")}
                   onNewApplication={() => openClientDialog("application")}
-                  onStartEligibility={isVisaService ? openEligibilityDialog : undefined}
+                  onStartEligibility={onStartEligibility}
                   policyDismissed={policyDismissed}
                   canManage={canManage}
                 />
@@ -391,7 +398,7 @@ export default function ServiceLibrary() {
                   onPushChecklist={() => openClientDialog("push")}
                   onDownloadFile={downloadFile}
                   onOpenSampleDoc={openSampleDoc}
-                  onStartEligibility={isVisaService ? openEligibilityDialog : undefined}
+                  onStartEligibility={onStartEligibility}
                 />
               </div>
             </div>
@@ -402,7 +409,7 @@ export default function ServiceLibrary() {
                 onSelectRelated={(id) => setSelectedId(id)}
                 onDownloadChecklist={downloadFirstChecklist}
                 onNewApplication={() => openClientDialog("application")}
-                onStartEligibility={isVisaService ? openEligibilityDialog : undefined}
+                onStartEligibility={onStartEligibility}
               />
             </div>
           </div>

@@ -157,7 +157,7 @@ export function ServiceLibraryRightRail({
         {!view.isCoaching && onStartEligibility && (
           <Button variant="outline" size="sm" className="w-full" onClick={onStartEligibility}>
             <ClipboardCheck className="size-4 mr-1.5" />
-            Eligibility Assessment
+            {view.isMbbs ? "Eligibility check" : "Eligibility Assessment"}
           </Button>
         )}
       </Card>
