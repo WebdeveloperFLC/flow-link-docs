@@ -39,6 +39,8 @@ export interface UpiInstitution {
   is_active: boolean;
   is_partner: boolean;
   partner_since: string | null;
+  catalog_status: "promoted" | "hidden" | "archived";
+  promotion_notes: string | null;
   notes: string | null;
   metadata: Record<string, unknown>;
   created_at: string;

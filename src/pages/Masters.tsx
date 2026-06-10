@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Database, ArrowUp, ArrowDown, Building2, Users2, Workflow, BookOpen } from "lucide-react";
+import { Plus, Pencil, Trash2, Database, ArrowUp, ArrowDown, Building2, Users2, Workflow, BookOpen, Network } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { refreshMaster, type MasterListKey, type MasterItem } from "@/lib/masters";
@@ -19,6 +19,7 @@ import { BranchesSection } from "@/components/masters/BranchesSection";
 import { DepartmentsSection } from "@/components/masters/DepartmentsSection";
 import { ServiceLibraryMastersSection } from "@/components/masters/ServiceLibraryMastersSection";
 import { StagePipelinesSection } from "@/components/masters/StagePipelinesSection";
+import { AggregatorsSection } from "@/components/masters/AggregatorsSection";
 
 interface MasterList {
   key: string;
@@ -31,6 +32,7 @@ const SPECIAL_SECTIONS = [
   { key: "__departments", label: "Departments", icon: Users2 },
   { key: "__service_library", label: "Service Library", icon: BookOpen },
   { key: "__stage_pipelines", label: "Stage pipelines", icon: Workflow },
+  { key: "__aggregators", label: "Aggregators", icon: Network },
 ] as const;
 
 type SpecialKey = (typeof SPECIAL_SECTIONS)[number]["key"];
@@ -208,6 +210,7 @@ const Masters = () => {
           {activeKey === "__departments" && <DepartmentsSection />}
           {activeKey === "__service_library" && <ServiceLibraryMastersSection />}
           {activeKey === "__stage_pipelines" && <StagePipelinesSection />}
+          {activeKey === "__aggregators" && <AggregatorsSection />}
 
           {!isSpecial(activeKey) && activeList && (
             <div>
