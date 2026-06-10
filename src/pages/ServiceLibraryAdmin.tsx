@@ -46,11 +46,10 @@ export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 const CATEGORY_OPTIONS = [
   { key: "coaching_services", label: "Coaching" },
   { key: "visa_immigration", label: "Visa & Immigration" },
+  { key: "mbbs_services", label: "MBBS" },
   { key: "allied_services", label: "Allied" },
   { key: "travel_financial", label: "Travel & Financial" },
 ];
-
-const COUNTRY_BOUND_CATEGORIES = new Set(["visa_immigration"]);
 
 const DEFAULT_SUBMISSION_ITEMS = [
   { item_key: "documents_verified", item_label: "Documents verified" },
@@ -64,15 +63,16 @@ const DEFAULT_SUBMISSION_ITEMS = [
 const ADMIN_CATEGORY_TABS: { key: AdminCategoryTab; label: string; dbKey?: string }[] = [
   { key: "visa", label: "Visa & Immigration" },
   { key: "coaching", label: "Coaching" },
+  { key: "mbbs", label: "MBBS", dbKey: "mbbs_services" },
   { key: "allied", label: "Allied", dbKey: "allied_services" },
   { key: "travel", label: "Travel & Financial", dbKey: "travel_financial" },
   { key: "admission", label: "Admissions (legacy)", dbKey: "admission_services" },
 ];
 
-type AdminCategoryTab = "visa" | "coaching" | "allied" | "travel" | "admission";
+type AdminCategoryTab = "visa" | "coaching" | "mbbs" | "allied" | "travel" | "admission";
 
 function parseAdminCategory(raw: string | null): AdminCategoryTab {
-  if (raw === "coaching" || raw === "allied" || raw === "travel" || raw === "admission") return raw;
+  if (raw === "coaching" || raw === "mbbs" || raw === "allied" || raw === "travel" || raw === "admission") return raw;
   return "visa";
 }
 
@@ -123,11 +123,11 @@ export default function ServiceLibraryAdmin() {
   }, [selectedId, adminCategory, countryFilter, coachingFamily, coachingVariant, adminTab, setSearchParams]);
 
   const academyCategory: AcademyCategoryFilter =
-    adminCategory === "coaching" ? "coaching" : "visa";
+    adminCategory === "coaching" ? "coaching" : adminCategory === "mbbs" ? "mbbs" : "visa";
 
   const { group: navGroup } = useMemo(
     () =>
-      adminCategory === "visa" || adminCategory === "coaching"
+      adminCategory === "visa" || adminCategory === "coaching" || adminCategory === "mbbs"
         ? buildAcademyNav(masters.data ?? [], {
             categoryFilter: academyCategory,
             countryFilter: adminCategory === "visa" ? countryFilter : "ALL",

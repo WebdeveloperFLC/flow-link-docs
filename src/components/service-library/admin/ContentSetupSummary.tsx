@@ -99,6 +99,40 @@ function buildChecks(meta: ServiceAcademyMetadata, master: Props["master"]): Che
           },
         ]
       : []),
+    ...(master.service_category === "mbbs_services"
+      ? [
+          {
+            id: "institution",
+            label: "Institution profile",
+            ok: !!(meta.mbbs?.institutionName && meta.mbbs?.website),
+            detail: meta.mbbs?.institutionName ?? "Missing mbbs block",
+          },
+          {
+            id: "programs",
+            label: "Related programs",
+            ok: (meta.mbbs?.relatedPrograms?.length ?? 0) >= 1,
+            detail: `${meta.mbbs?.relatedPrograms?.length ?? 0} programs`,
+          },
+          {
+            id: "practice",
+            label: "Practice pathways",
+            ok: !!meta.mbbs?.practicePathways?.summary,
+            detail: meta.mbbs?.practicePathways ? "Configured" : "Missing practicePathways",
+          },
+          {
+            id: "family",
+            label: "Family & dependants",
+            ok: !!meta.mbbs?.familyOptions?.spouseCanAccompany,
+            detail: meta.mbbs?.familyOptions ? "Configured" : "Missing familyOptions",
+          },
+          {
+            id: "docchecklist",
+            label: "Document checklist sections",
+            ok: (meta.mbbs?.documentChecklistSections?.length ?? 0) >= 3,
+            detail: `${meta.mbbs?.documentChecklistSections?.length ?? 0} sections`,
+          },
+        ]
+      : []),
   ];
 }
 

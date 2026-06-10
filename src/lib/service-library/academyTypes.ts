@@ -48,7 +48,9 @@ export type ServiceAcademyMetadata = {
     /** 1 = fundamentals, 2 = process & documents, 3 = advanced / compliance */
     level?: 1 | 2 | 3;
   }[];
-  navBucket?: "visa" | "immigration" | "coaching";
+  navBucket?: "visa" | "immigration" | "coaching" | "mbbs";
+  /** International medical school / MBBS section institution block. */
+  mbbs?: import("./mbbs/types").MbbsInstitutionMeta;
   /** Coaching test family label, e.g. IELTS, PTE */
   testFamily?: string;
   /** Exam-day briefing for coaching tests */
