@@ -5,6 +5,7 @@ import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotif
 
 type PaymentUpdate = {
   payment_status: string;
+  payment_proof_status: string;
   verified_by: string | null;
   verified_at: string;
   verification_rejected_reason?: string;
@@ -30,18 +31,27 @@ export async function verifyPayment(
     .from("client_invoice_payments")
     .update({
       payment_status: "verified",
+      payment_proof_status: "verified",
       verified_by: u?.user?.id ?? null,
       verified_at: new Date().toISOString(),
     } satisfies PaymentUpdate)
     .eq("id", payment.id);
-  if (error) { toast.error(error.message); return false; }
+  if (error) {
+    toast.error(error.message);
+    return false;
+  }
   toast.success("Payment verified");
   try {
     await appendTimeline({
       clientId: payment.client_id,
       eventType: "payment_verified",
       summary: `Payment of ${payment.currency} ${Number(payment.amount).toFixed(2)} verified${note?.trim() ? ` — ${note.trim()}` : ""}`,
-      metadata: { payment_id: payment.id, amount: payment.amount, currency: payment.currency, note: note?.trim() || null },
+      metadata: {
+        payment_id: payment.id,
+        amount: payment.amount,
+        currency: payment.currency,
+        note: note?.trim() || null,
+      },
     });
   } catch {
     // Timeline is best-effort; payment verification already succeeded.
@@ -81,7 +91,10 @@ export async function rejectPayment(
   payment: { id: string; client_id: string; amount: number; currency: string },
   reason: string,
 ) {
-  if (!reason.trim()) { toast.error("Enter a reason"); return false; }
+  if (!reason.trim()) {
+    toast.error("Enter a reason");
+    return false;
+  }
   const { data: u } = await supabase.auth.getUser();
   const { error } = await supabase
     .from("client_invoice_payments")
@@ -92,7 +105,10 @@ export async function rejectPayment(
       verified_at: new Date().toISOString(),
     } satisfies PaymentUpdate)
     .eq("id", payment.id);
-  if (error) { toast.error(error.message); return false; }
+  if (error) {
+    toast.error(error.message);
+    return false;
+  }
   toast.success("Payment rejected");
   try {
     await appendTimeline({
@@ -109,15 +125,24 @@ export async function rejectPayment(
 
 /** Opens the proof attached to a payment in a new tab via signed URL. */
 export async function openPaymentProof(proofDocId: string | null | undefined) {
-  if (!proofDocId) { toast.info("No proof attached"); return; }
+  if (!proofDocId) {
+    toast.info("No proof attached");
+    return;
+  }
   const { data, error } = await supabase
     .from("client_documents")
     .select("storage_path")
     .eq("id", proofDocId)
     .maybeSingle();
-  if (error || !data) { toast.error("Proof not found"); return; }
+  if (error || !data) {
+    toast.error("Proof not found");
+    return;
+  }
   const path = (data as ClientDocumentPathRow).storage_path;
-  if (!path) { toast.info("No file path on proof"); return; }
+  if (!path) {
+    toast.info("No file path on proof");
+    return;
+  }
   const { data: signed } = await supabase.storage.from("client-documents").createSignedUrl(path, 300);
   if (signed?.signedUrl) window.open(signed.signedUrl, "_blank", "noopener,noreferrer");
   else toast.error("Could not open proof");
