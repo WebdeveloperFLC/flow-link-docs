@@ -166,7 +166,7 @@ const meta = {
         who: "NVAO is recognised by WFME; SUSOM states European accreditation comparable to US standards via NCFMEA.",
         nmc: "Counselors must verify current NMC eligible colleges list — status can change; check before each intake.",
         sourceUrls: [
-          "https://www.saba.edu/why-saba/accreditation-and-approvals/",
+          "https://www.saba.edu/why-saba/",
           "https://www.nmc.org.in/",
           "https://www.wdoms.org/",
         ],
@@ -333,7 +333,7 @@ const meta = {
   ],
   faqs: Array.from({ length: 30 }, (_, i) => {
     const pairs = [
-      ["Is SUSOM accredited?", "NVAO accredited; WFME recognised; US NCFMEA comparable standards — see saba.edu/why-saba/accreditation-and-approvals/"],
+      ["Is SUSOM accredited?", "NVAO accredited; WFME recognised; US NCFMEA comparable standards — see saba.edu/why-saba/"],
       ["Program duration?", "4 years (10 semesters): 5 basic science on Saba + 5 clinical in US."],
       ["Intakes?", "January, May, and September per saba.edu."],
       ["Can Indian students apply after NEET?", "Verify current NMC rules for foreign medical study — NEET qualification may be required."],
@@ -395,7 +395,7 @@ const meta = {
   resources: [
     { title: "Saba University — Home", url: "https://www.saba.edu/", description: "Official website" },
     { title: "MD Program", url: "https://www.saba.edu/academics/programs/doctor-of-medicine-md-program/", description: "Program structure" },
-    { title: "Accreditation & Approvals", url: "https://www.saba.edu/why-saba/accreditation-and-approvals/", description: "NVAO, WFME, NCFMEA" },
+    { title: "Accreditation & Approvals", url: "https://www.saba.edu/why-saba/", description: "NVAO, WFME, NCFMEA" },
     { title: "Tuition and Fees", url: "https://www.saba.edu/admissions/tuition-and-fees/", description: "Official fee schedule" },
     { title: "Admissions Requirements", url: "https://www.saba.edu/admissions/admissions-requirements/", description: "Entry criteria" },
     { title: "International Applicants", url: "https://www.saba.edu/admissions/international-applicants/", description: "Including Indian context" },

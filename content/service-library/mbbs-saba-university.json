@@ -204,7 +204,7 @@
         "who": "NVAO is recognised by WFME; SUSOM states European accreditation comparable to US standards via NCFMEA.",
         "nmc": "Counselors must verify current NMC eligible colleges list — status can change; check before each intake.",
         "sourceUrls": [
-          "https://www.saba.edu/why-saba/accreditation-and-approvals/",
+          "https://www.saba.edu/why-saba/",
           "https://www.nmc.org.in/",
           "https://www.wdoms.org/"
         ]
@@ -478,7 +478,7 @@
   "faqs": [
     {
       "q": "Is SUSOM accredited?",
-      "a": "NVAO accredited; WFME recognised; US NCFMEA comparable standards — see saba.edu/why-saba/accreditation-and-approvals/"
+      "a": "NVAO accredited; WFME recognised; US NCFMEA comparable standards — see saba.edu/why-saba/"
     },
     {
       "q": "Program duration?",
@@ -650,7 +650,7 @@
     },
     {
       "title": "Accreditation & Approvals",
-      "url": "https://www.saba.edu/why-saba/accreditation-and-approvals/",
+      "url": "https://www.saba.edu/why-saba/",
       "description": "NVAO, WFME, NCFMEA"
     },
     {

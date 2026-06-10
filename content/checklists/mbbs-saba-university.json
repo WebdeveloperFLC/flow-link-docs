@@ -1,0 +1,83 @@
+{
+  "slug": "mbbs-saba-university",
+  "displayName": "Saba University School of Medicine — Caribbean",
+  "title": "Document Checklist",
+  "subtitle": "SUSOM MD program · Admission, visa & clinical years",
+  "streamLabel": "MD program · NVAO accredited",
+  "updatedLabel": "Updated June 2026",
+  "verifyUrl": "saba.edu",
+  "website": "futurelinkconsultants.com",
+  "policyBanner": "Verify current tuition, intake dates, and admission requirements on saba.edu before quoting clients. Indian students: confirm NEET eligibility and NMC guidance separately. MD is not Indian-style MBBS — counsel FMGE/NExT pathway.",
+  "metaFields": [
+    { "key": "client_name", "label": "Client name", "placeholder": "Full name as on passport" },
+    { "key": "file_id", "label": "File ID", "placeholder": "FLC-2026-XXXX" },
+    { "key": "intake", "label": "Target intake", "placeholder": "January · May · September" },
+    { "key": "pathway", "label": "Applicant pathway", "placeholder": "Direct MD · Gateway · Indian NEET" },
+    { "key": "institution", "label": "Institution", "placeholder": "Saba University School of Medicine" },
+    { "key": "submission_date", "label": "Submission date", "placeholder": "yyyy-mm-dd" }
+  ],
+  "sections": [
+    {
+      "id": "A",
+      "title": "Admission documents",
+      "items": [
+        { "title": "Completed SUSOM online application (Common Application portal)", "note": "Apply via saba.edu/admissions/how-to-apply/ — save progress and submit supporting docs as received.", "badge": "REQUIRED" },
+        { "title": "Official transcripts (10th, 12th, bachelor's / pre-med)", "note": "Unofficial acceptable for initial review; official required if admitted.", "badge": "REQUIRED" },
+        { "title": "NEET scorecard (Indian applicants — if required under current NMC rules)", "note": "Verify NMC foreign medical study notification for admission year.", "badge": "IF APPLICABLE" },
+        { "title": "English proficiency evidence (TOEFL/IELTS if requested)", "badge": "IF APPLICABLE" },
+        { "title": "Personal statement / essays per application", "badge": "REQUIRED" },
+        { "title": "Letters of recommendation (per SUSOM requirements)", "badge": "REQUIRED" },
+        { "title": "CV / resume", "badge": "REQUIRED" },
+        { "title": "Passport copy — valid 6+ months beyond program", "badge": "REQUIRED" },
+        { "title": "Application fee payment proof (if applicable)", "badge": "IF APPLICABLE" }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Visa & immigration (basic science — Saba)",
+      "items": [
+        { "title": "University admission / enrollment letter", "badge": "REQUIRED" },
+        { "title": "Proof of tuition payment or financial guarantee", "note": "Seasoned funds — verify amount on official tuition page.", "badge": "REQUIRED" },
+        { "title": "Bank statements / sponsor affidavit", "badge": "REQUIRED" },
+        { "title": "Medical insurance proof", "badge": "REQUIRED" },
+        { "title": "Police clearance (if required by consulate)", "badge": "IF APPLICABLE" },
+        { "title": "Visa application per Dutch Caribbean / Netherlands consulate guidance", "note": "Verify current student residence rules for Saba (Caribbean Netherlands).", "badge": "REQUIRED" },
+        { "title": "Passport photographs per consulate specs", "badge": "REQUIRED" },
+        { "title": "Accommodation confirmation on Saba", "badge": "REQUIRED" }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "US clinical years (additional)",
+      "items": [
+        { "title": "US visa strategy documented (typically F-1 or as advised by university)", "badge": "REQUIRED" },
+        { "title": "SEVIS / I-20 if applicable for US clinical portion", "badge": "IF APPLICABLE" },
+        { "title": "Health insurance for US clinical sites", "badge": "REQUIRED" },
+        { "title": "Background checks for hospital affiliations", "badge": "IF APPLICABLE" },
+        { "title": "Updated financial proof for US rotation city living costs", "badge": "REQUIRED" }
+      ]
+    },
+    {
+      "id": "D",
+      "title": "Family dependants (if applicable)",
+      "items": [
+        { "title": "Marriage certificate (spouse)", "badge": "IF APPLICABLE" },
+        { "title": "Birth certificates (children)", "badge": "IF APPLICABLE" },
+        { "title": "Additional funds proof for dependants", "badge": "IF APPLICABLE" },
+        { "title": "Dependant visa applications per jurisdiction", "badge": "IF APPLICABLE" },
+        { "title": "Health insurance for dependants", "badge": "IF APPLICABLE" }
+      ]
+    },
+    {
+      "id": "E",
+      "title": "Fees & submission",
+      "items": [
+        { "title": "Tuition quote verified on saba.edu/admissions/tuition-and-fees/", "note": "Never quote from agent brochures alone.", "badge": "REQUIRED" },
+        { "title": "Consultancy fee invoice separate from university payment", "badge": "REQUIRED" },
+        { "title": "Client reviewed, signed, and dated this checklist", "badge": "REQUIRED" },
+        { "title": "NMC foreign medical institutions list checked (Indian clients)", "note": "Verify on nmc.org.in at time of enrollment.", "badge": "RECOMMENDED" },
+        { "title": "Application lodged; confirmation saved on client file", "badge": "REQUIRED" }
+      ]
+    }
+  ]
+}

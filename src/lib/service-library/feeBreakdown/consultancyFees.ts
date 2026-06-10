@@ -144,6 +144,13 @@ export const CONSULTANCY_FEE_BREAKDOWNS: ConsultancyFeeBreakdownSource[] = [
   // —— Ireland ——
   single("b2000001-0001-4000-8000-0000000000a3", "Stamp 2 student permission", 30000, "Admission · funds · IRP guidance"),
   single("b2000001-0001-4000-8000-0000000000a4", "Short stay visit visa (C)", 12000, "Visit purpose · ties · VFS filing"),
+
+  // —— MBBS ——
+  consult("b2000001-0001-4000-8000-0000000000d1", [
+    pkg("md-admission", "SUSOM MD — admission & visa file (India)", 85000, "Application · docs · Saba visa guidance · clinical-year planning"),
+    pkg("md-gateway", "SUSOM Gateway + MD pathway", 95000, "Gateway prep + MD admission support"),
+    pkg("family-dependants", "Family dependant visa add-on", 35000, "Per dependant strategy — case assessment"),
+  ]),
 ];
 
 export const CONSULTANCY_BY_LIBRARY_ID = new Map(

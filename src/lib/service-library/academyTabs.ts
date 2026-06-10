@@ -39,6 +39,8 @@ const MBBS_TABS: AcademyTabId[] = [
   "practice",
   "eligibility",
   "checklist",
+  "binder",
+  "visaforms",
   "process",
   "dos",
   "redflags",
@@ -150,6 +152,16 @@ export function tabLabel(
         return "Practice pathways";
       case "countryinsights":
         return "Country & costs";
+      case "fees":
+        return "Fees";
+      case "checklist":
+        return "Checklist";
+      case "binder":
+        return "Document binder";
+      case "visaforms":
+        return "Application forms";
+      case "process":
+        return "Process";
       case "eligibility":
         return "Eligibility";
       case "dos":
