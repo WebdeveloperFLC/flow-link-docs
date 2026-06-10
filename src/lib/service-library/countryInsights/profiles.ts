@@ -266,6 +266,102 @@ export const COUNTRY_PROFILES: Record<string, CountryProfile> = {
       ],
     },
   },
+  Russia: {
+    country: "Russia",
+    facts: [
+      { label: "Capital", value: "Moscow" },
+      { label: "Currency", value: "Russian ruble (RUB)" },
+      { label: "Immigration authority", value: "Ministry of Internal Affairs (MVD) — student visa & migration registration" },
+      { label: "Student visa", value: "Single-entry student visa → migration registration within 7 days of arrival" },
+      { label: "Language", value: "Russian primary; English programmes available at some universities — verify track" },
+      { label: "Indian student note", value: "Verify NMC foreign medical institutions list and FMGE/NExT pathway before advising" },
+    ],
+    costOfLiving: {
+      currency: "RUB",
+      lastVerified: "Jun 2026",
+      summary: "Moscow living costs exceed regional Russian cities. Budget dormitory vs private rental separately.",
+      sourceUrl: "https://synergy.ru/",
+      items: [
+        { label: "University dormitory (Moscow)", range: "Varies", unit: "per month", notes: "Verify with Synergy / university housing office" },
+        { label: "Private shared room (Moscow)", range: "25,000–50,000", unit: "per month", notes: "Indicative — verify locally" },
+        { label: "Food & personal", range: "15,000–30,000", unit: "per month", notes: "Student budget estimate" },
+        { label: "Health insurance", range: "Mandatory", notes: "Required for visa and enrollment" },
+      ],
+      notes: ["Migration registration is mandatory after arrival — late registration can affect visa status."],
+    },
+  },
+  Georgia: {
+    country: "Georgia",
+    facts: [
+      { label: "Capital", value: "Tbilisi" },
+      { label: "Currency", value: "Georgian lari (GEL); tuition often quoted in USD" },
+      { label: "Immigration authority", value: "Ministry of Foreign Affairs / Public Service Development Agency" },
+      { label: "Student visa", value: "Long-stay D5 immigration visa for study programmes over 90 days" },
+      { label: "Language", value: "Georgian official; medical programmes often English-taught" },
+      { label: "Indian student note", value: "6-year MD programmes — verify NMC list and FMGE/NExT requirements" },
+    ],
+    costOfLiving: {
+      currency: "USD",
+      lastVerified: "Jun 2026",
+      summary: "Tbilisi and Batumi costs differ. Batumi coastal city — verify housing near campus.",
+      sourceUrl: "https://www.geoconsul.gov.ge/en",
+      items: [
+        { label: "Shared room (Tbilisi)", range: "200–450", unit: "per month", notes: "USD equivalent estimate" },
+        { label: "Shared room (Batumi)", range: "180–400", unit: "per month", notes: "USD equivalent estimate" },
+        { label: "Food & personal", range: "150–300", unit: "per month", notes: "Student budget" },
+        { label: "Health insurance", range: "Mandatory", notes: "Verify university requirements" },
+      ],
+      notes: ["Proof of funds required for Georgia student visa — verify current consulate amount."],
+    },
+  },
+  Nevis: {
+    country: "Nevis (St Kitts & Nevis)",
+    facts: [
+      { label: "Location", value: "Island of Nevis, Federation of St Kitts & Nevis, Caribbean" },
+      { label: "Currency", value: "East Caribbean dollar (XCD); USD widely accepted" },
+      { label: "Campus", value: "Medical University of the Americas — Charlestown, Nevis" },
+      { label: "Language", value: "English — instruction and campus life" },
+      { label: "Programme structure", value: "5 semesters basic science on Nevis + 5 clinical in US/Canada" },
+      { label: "Indian student note", value: "MD degree — verify FMGE/NExT and NMC guidance" },
+    ],
+    costOfLiving: {
+      currency: "USD",
+      lastVerified: "Jun 2026",
+      summary: "Small island living during basic science; budget US clinical-year costs separately.",
+      sourceUrl: "https://www.mua.edu/",
+      items: [
+        { label: "Housing (Nevis)", range: "Varies", unit: "per semester", notes: "Verify on mua.edu" },
+        { label: "Food & personal (island)", range: "400–700", unit: "per month", notes: "Island cost of living" },
+        { label: "Clinical years (US)", range: "Varies by rotation city", unit: "per month", notes: "Budget per US rotation site" },
+        { label: "Health insurance", range: "Mandatory", notes: "Verify MUA requirements" },
+      ],
+      notes: ["Tuition quoted on mua.edu — always use official fee page."],
+    },
+  },
+  "Cayman Islands": {
+    country: "Cayman Islands",
+    facts: [
+      { label: "Location", value: "Grand Cayman, British Overseas Territory, Caribbean" },
+      { label: "Currency", value: "Cayman Islands dollar (KYD); USD widely used" },
+      { label: "Campus", value: "St. Matthew's University School of Medicine — Grand Cayman" },
+      { label: "Language", value: "English" },
+      { label: "Programme structure", value: "5 semesters basic science on Grand Cayman + 5 clinical in US/Canada" },
+      { label: "Indian student note", value: "MD degree — verify FMGE/NExT and NMC guidance" },
+    ],
+    costOfLiving: {
+      currency: "USD",
+      lastVerified: "Jun 2026",
+      summary: "Grand Cayman has higher living costs than many Caribbean islands. Budget US clinical years separately.",
+      sourceUrl: "https://medicine.stmatthews.edu/",
+      items: [
+        { label: "Housing (Grand Cayman)", range: "Varies", unit: "per semester", notes: "Verify with SMUSOM" },
+        { label: "Food & personal", range: "500–900", unit: "per month", notes: "Higher than regional average" },
+        { label: "Clinical years (US)", range: "Varies by rotation city", unit: "per month", notes: "Budget per US rotation site" },
+        { label: "Health insurance", range: "Mandatory", notes: "Verify SMUSOM requirements" },
+      ],
+      notes: ["Student work permit rules apply — verify Cayman Islands immigration guidance."],
+    },
+  },
 };
 
 export function resolveCountryProfile(country: string | null | undefined): CountryProfile | null {

@@ -1,0 +1,208 @@
+{
+  "slug": "mbbs-medical-university-americas",
+  "displayName": "Medical University of the Americas — Caribbean",
+  "title": "Document Checklist",
+  "subtitle": "MUA · Admission, visa & enrollment",
+  "streamLabel": "Doctor of Medicine (MD)",
+  "updatedLabel": "Updated June 2026",
+  "verifyUrl": "www.mua.edu",
+  "website": "futurelinkconsultants.com",
+  "policyBanner": "Verify current tuition, intake dates, and admission requirements on www.mua.edu/ before quoting clients. Indian students: confirm NEET eligibility and NMC guidance separately.",
+  "metaFields": [
+    {
+      "key": "client_name",
+      "label": "Client name",
+      "placeholder": "Full name as on passport"
+    },
+    {
+      "key": "file_id",
+      "label": "File ID",
+      "placeholder": "FLC-2026-XXXX"
+    },
+    {
+      "key": "intake",
+      "label": "Target intake",
+      "placeholder": "January · May · September"
+    },
+    {
+      "key": "pathway",
+      "label": "Applicant pathway",
+      "placeholder": "Direct · NEET · Transfer"
+    },
+    {
+      "key": "institution",
+      "label": "Institution",
+      "placeholder": "Medical University of the Americas"
+    },
+    {
+      "key": "submission_date",
+      "label": "Submission date",
+      "placeholder": "yyyy-mm-dd"
+    }
+  ],
+  "sections": [
+    {
+      "id": "A",
+      "title": "Admission documents",
+      "items": [
+        {
+          "title": "Completed online application (MUA portal)",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Official transcripts (10th, 12th, bachelor's / pre-med as required)",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "NEET scorecard (Indian applicants — if required under current NMC rules)",
+          "badge": "IF APPLICABLE"
+        },
+        {
+          "title": "English proficiency evidence (if requested)",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Personal statement / motivation letter",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Letters of recommendation (per university requirements)",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "CV / resume",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Passport copy — valid 6+ months beyond program",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Application fee payment proof (if applicable)",
+          "badge": "IF APPLICABLE"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Visa & immigration (Charlestown — basic science years)",
+      "items": [
+        {
+          "title": "University admission / enrollment letter",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Proof of tuition payment or financial guarantee",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Bank statements / sponsor affidavit",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Medical insurance proof",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Police clearance (if required)",
+          "badge": "IF APPLICABLE"
+        },
+        {
+          "title": "Passport valid 6+ months",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Student visa / permit for Nevis",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Passport photographs per consulate specs",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Accommodation confirmation",
+          "badge": "REQUIRED"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "US clinical years (additional)",
+      "items": [
+        {
+          "title": "US visa strategy documented (typically F-1 or as advised by university)",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "SEVIS / I-20 if applicable for US clinical portion",
+          "badge": "IF APPLICABLE"
+        },
+        {
+          "title": "Health insurance for US clinical sites",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Background checks for hospital affiliations",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Updated financial proof for US rotation city living costs",
+          "badge": "REQUIRED"
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "title": "Family dependants (if applicable)",
+      "items": [
+        {
+          "title": "Marriage certificate (spouse)",
+          "badge": "IF APPLICABLE"
+        },
+        {
+          "title": "Birth certificates (children)",
+          "badge": "IF APPLICABLE"
+        },
+        {
+          "title": "Additional funds proof for dependants",
+          "badge": "IF APPLICABLE"
+        },
+        {
+          "title": "Dependant visa applications per jurisdiction",
+          "badge": "IF APPLICABLE"
+        },
+        {
+          "title": "Health insurance for dependants",
+          "badge": "IF APPLICABLE"
+        }
+      ]
+    },
+    {
+      "id": "E",
+      "title": "Fees & submission",
+      "items": [
+        {
+          "title": "Tuition quote verified on https://www.mua.edu/admissions/tuition-and-fees",
+          "note": "Never quote from agent brochures alone.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Consultancy fee invoice separate from university payment",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Client reviewed, signed, and dated this checklist",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "NMC foreign medical institutions list checked (Indian clients)",
+          "badge": "RECOMMENDED"
+        },
+        {
+          "title": "Application lodged; confirmation saved on client file",
+          "badge": "REQUIRED"
+        }
+      ]
+    }
+  ]
+}

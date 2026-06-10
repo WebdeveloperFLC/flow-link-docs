@@ -98,8 +98,13 @@ export const LIBRARY_IDS = {
   "coaching-gmat.json": "b2000001-0001-4000-8000-0000000000cb",
   "coaching-sat.json": "b2000001-0001-4000-8000-0000000000cc",
   "coaching-german-language-a1-crash.json": "b2000001-0001-4000-8000-0000000000c6",
-  "mbbs-saba-university.json": "b2000001-0001-4000-8000-0000000000d1",
 
+  "mbbs-synergy-university.json": "b2000001-0001-4000-8000-0000000000d2",
+  "mbbs-medical-university-americas.json": "b2000001-0001-4000-8000-0000000000d3",
+  "mbbs-st-matthews-university.json": "b2000001-0001-4000-8000-0000000000d4",
+  "mbbs-georgian-national-university-seu.json": "b2000001-0001-4000-8000-0000000000d5",
+  "mbbs-international-black-sea-university.json": "b2000001-0001-4000-8000-0000000000d6",
+  "mbbs-avicenna-batumi.json": "b2000001-0001-4000-8000-0000000000d7",
 export function slugFromJsonFile(file) {
   return file.replace(/\.json$/, "");
 }
