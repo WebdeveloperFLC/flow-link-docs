@@ -76,6 +76,30 @@ function normalizeCountry(country: string): string {
 
 // Canonicalize a printed program title for dedup. Strips AI-added suffixes
 // such as "(Master)" or "@ Oshawa", collapses whitespace, and lowercases.
+function parseCampusList(value: unknown): string[] {
+  if (!value) return [];
+  const text = String(value).trim();
+  if (!text) return [];
+  return [...new Set(text.split(/[,;|]/).map((s) => s.trim()).filter(Boolean))].sort();
+}
+
+function campusNamesFromRow(row: { campus_name?: unknown; metadata?: Record<string, unknown> | null }): string[] {
+  const fromMeta = row.metadata?.campus_names;
+  if (Array.isArray(fromMeta) && fromMeta.length) {
+    return [...new Set(fromMeta.map(String).map((s) => s.trim()).filter(Boolean))].sort();
+  }
+  return parseCampusList(row.campus_name);
+}
+
+function mergeCampusLists(...sources: (unknown)[]): string[] {
+  const set = new Set<string>();
+  for (const source of sources) {
+    if (Array.isArray(source)) source.forEach((c) => { const t = String(c).trim(); if (t) set.add(t); });
+    else parseCampusList(source).forEach((c) => set.add(c));
+  }
+  return [...set].sort();
+}
+
 function canonicalTitle(title: string, level?: string): string {
   let s = String(title || "").trim();
   s = s.replace(/\s*@\s*[A-Za-z][\w\s.&'-]+$/, "");
@@ -146,18 +170,28 @@ Deno.serve(async (req) => {
         const levelRaw = resolveText(metadata, known.program_level_id);
         const levelText = levelRaw.toLowerCase().trim();
         const titleKey = canonicalTitle(String(known.course_title), levelRaw);
-        const campusKey = String(known.campus_name ?? "").toLowerCase().trim();
-        // Dedup by institution + canonical title + level + campus (not source_url).
+        // Dedup by institution + canonical title + level (campuses merged onto one row).
         const dedup = await sha256Hex(
-          `${known.institution_id ?? ""}||${titleKey}||${known.program_level_id ?? ""}||${levelText}||${campusKey}`,
+          `${known.institution_id ?? ""}||${titleKey}||${known.program_level_id ?? ""}||${levelText}`,
         );
 
         const { data: existing } = await supabase.from("upi_courses_staging")
-          .select("id, review_status, metadata").eq("dedup_hash", dedup).maybeSingle();
+          .select("id, review_status, metadata, campus_name").eq("dedup_hash", dedup).maybeSingle();
 
         const review_status = existing?.review_status === "published" ? "needs_update" : "pending_review";
+        const mergedCampuses = mergeCampusLists(
+          campusNamesFromRow(existing ?? {}),
+          known.campus_name,
+        );
+        if (mergedCampuses.length) {
+          known.campus_name = mergedCampuses.join(", ");
+        }
         // Merge metadata: keep prior keys, overwrite with new non-null values.
-        const mergedMeta = { ...((existing?.metadata as any) ?? {}), ...metadata };
+        const mergedMeta = {
+          ...((existing?.metadata as any) ?? {}),
+          ...metadata,
+          campus_names: mergedCampuses,
+        };
         const payload = { ...known, dedup_hash: dedup, metadata: mergedMeta, review_status, updated_at: new Date().toISOString() };
 
         const { error } = await supabase.from("upi_courses_staging").upsert(payload, { onConflict: "dedup_hash" });
