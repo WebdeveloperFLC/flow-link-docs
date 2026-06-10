@@ -239,16 +239,46 @@ Deno.serve(async (req: Request) => {
         .is("archived_at", null)
         .gte("paid_at", start).lt("paid_at", end);
 
+      const invoiceIds = [...new Set((pays ?? []).map((p: any) => p.invoice_id).filter(Boolean))] as string[];
+      const invoiceMap: Record<string, { amount: number; currency: string }> = {};
+      const walletDiscByInvoice: Record<string, number> = {};
+
+      if (useNet && invoiceIds.length) {
+        const [{ data: invs }, { data: allocs }] = await Promise.all([
+          svc.from("client_invoices").select("id, amount, currency").in("id", invoiceIds),
+          svc.from("wallet_allocations")
+            .select("invoice_id, amount, currency, status")
+            .in("invoice_id", invoiceIds)
+            .eq("status", "applied"),
+        ]);
+        for (const inv of (invs ?? []) as any[]) {
+          invoiceMap[inv.id] = { amount: Number(inv.amount ?? 0), currency: inv.currency ?? "INR" };
+        }
+        for (const a of (allocs ?? []) as any[]) {
+          if (!a.invoice_id) continue;
+          const conv = convert(Number(a.amount ?? 0), a.currency ?? "INR", settlement, snap) ?? 0;
+          walletDiscByInvoice[a.invoice_id] = (walletDiscByInvoice[a.invoice_id] ?? 0) + conv;
+        }
+      }
+
       for (const p of (pays ?? []) as any[]) {
         if (p.is_refund) continue;
         const cid = clientToCounselor[p.client_id];
         if (!cid) continue;
-        // convert payment to settlement currency for the period
-        const inSettlement = convert(Number(p.amount), p.currency ?? "INR", settlement, snap);
+        let inSettlement = convert(Number(p.amount), p.currency ?? "INR", settlement, snap);
         if (inSettlement == null) continue;
-        // (net vs gross discount adjustment would subtract applied wallet
-        //  allocations on the invoice here when useNet is true)
-        const src = "service_revenue"; // ancillary split by service_filter handled at slab stage
+
+        if (useNet && p.invoice_id && invoiceMap[p.invoice_id]) {
+          const inv = invoiceMap[p.invoice_id];
+          const invTotal = convert(inv.amount, inv.currency, settlement, snap);
+          if (invTotal != null && invTotal > 0) {
+            const share = inSettlement / invTotal;
+            const walletDisc = (walletDiscByInvoice[p.invoice_id] ?? 0) * share;
+            inSettlement = Math.max(0, inSettlement - walletDisc);
+          }
+        }
+
+        const src = "service_revenue";
         const b = ensure(cid, src);
         b.count += 1;
         b.revenue += inSettlement;

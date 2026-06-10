@@ -17,6 +17,9 @@ export const CRM_MODULES: ModuleDef[] = [
   { key: "commissions", label: "Commissions & Claims", description: "Partner commissions, claims, agreements, invoicing." },
   { key: "incentives", label: "Incentives", description: "Counselor incentive runs, targets, payouts." },
   { key: "discount_wallet", label: "Discount Wallet", description: "Per-counselor monthly discount budget." },
+  { key: "offers", label: "Offers & Promotions", description: "Offer library, campaigns, MarCom catalogue." },
+  { key: "offers_analytics", label: "Offer Analytics", description: "Redemption and ROI reporting." },
+  { key: "offers_ai", label: "AI Offer Studio", description: "AI-assisted offer drafting (MarCom/Digital only)." },
   { key: "assessments", label: "Assessments", description: "Assessment sessions and PDFs." },
   { key: "reports", label: "Reports & Analytics", description: "Dashboards and reports (UI-gated)." },
   { key: "letter_templates", label: "Letter Templates", description: "Manage letter templates." },
@@ -48,6 +51,7 @@ export const ROLE_DEFAULTS: Record<RoleKey, PermissionMap> = {
     institutions: VIEW, commissions: NONE, assessments: EDIT,
     reports: VIEW, letter_templates: EDIT, settings: NONE,
     incentives: VIEW, discount_wallet: VIEW,
+    offers: VIEW, offers_analytics: NONE, offers_ai: NONE,
   },
   documentation: {
     clients: EDIT, documents: EDIT, tasks: EDIT, telephony: NONE,
