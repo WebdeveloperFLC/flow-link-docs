@@ -221,6 +221,17 @@ ALTER TABLE public.upi_aggregators ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.upi_partnership_routes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.upi_commission_snapshots ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS upi_aggregators_catalog_select ON public.upi_aggregators;
+DROP POLICY IF EXISTS upi_aggregators_catalog_insert ON public.upi_aggregators;
+DROP POLICY IF EXISTS upi_aggregators_catalog_update ON public.upi_aggregators;
+DROP POLICY IF EXISTS upi_aggregators_catalog_delete ON public.upi_aggregators;
+DROP POLICY IF EXISTS upi_partnership_routes_catalog_select ON public.upi_partnership_routes;
+DROP POLICY IF EXISTS upi_partnership_routes_catalog_insert ON public.upi_partnership_routes;
+DROP POLICY IF EXISTS upi_partnership_routes_catalog_update ON public.upi_partnership_routes;
+DROP POLICY IF EXISTS upi_partnership_routes_catalog_delete ON public.upi_partnership_routes;
+DROP POLICY IF EXISTS upi_commission_snapshots_confidential_select ON public.upi_commission_snapshots;
+DROP POLICY IF EXISTS upi_commission_snapshots_confidential_insert ON public.upi_commission_snapshots;
+
 CREATE POLICY upi_aggregators_catalog_select ON public.upi_aggregators
   FOR SELECT TO authenticated
   USING (public.can_view_upi_catalog(auth.uid()) OR public.can_view_upi_confidential(auth.uid()));
@@ -263,10 +274,12 @@ CREATE POLICY upi_commission_snapshots_confidential_insert ON public.upi_commiss
   FOR INSERT TO authenticated
   WITH CHECK (public.can_manage_upi_confidential(auth.uid()));
 
+DROP TRIGGER IF EXISTS upi_aggregators_updated_at ON public.upi_aggregators;
 CREATE TRIGGER upi_aggregators_updated_at
   BEFORE UPDATE ON public.upi_aggregators
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
 
+DROP TRIGGER IF EXISTS upi_partnership_routes_updated_at ON public.upi_partnership_routes;
 CREATE TRIGGER upi_partnership_routes_updated_at
   BEFORE UPDATE ON public.upi_partnership_routes
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();

@@ -29,6 +29,7 @@ import { SampleDocSpecimenDialog } from "@/components/service-library/design/Sam
 import { ServiceBinderTab } from "@/components/service-library/ServiceBinderTab";
 import { ServiceEligibilityPanel } from "@/components/service-library/ServiceEligibilityPanel";
 import { ServiceFeeBreakdownPanel } from "@/components/service-library/design/ServiceFeeBreakdownPanel";
+import { ServiceCountryInsightsPanel } from "@/components/service-library/design/ServiceCountryInsightsPanel";
 import {
   resolveAcademyTabs,
   tabLabel,
@@ -168,6 +169,18 @@ export function ServiceLibraryTabs({
           <Card className="p-5 shadow-elev-sm">
             <p className="text-sm text-muted-foreground">
               Fee breakdown not yet available for this service. Check Government fee KPI or official authority website.
+            </p>
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="countryinsights" className="mt-0">
+        {view.countryInsights ? (
+          <ServiceCountryInsightsPanel insights={view.countryInsights} />
+        ) : (
+          <Card className="p-5 shadow-elev-sm">
+            <p className="text-sm text-muted-foreground">
+              Country facts, living costs, and work rights are not configured for this service yet.
             </p>
           </Card>
         )}

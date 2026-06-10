@@ -1455,5 +1455,158 @@
       "Uploading blurry scans or inconsistent names across documents",
       "Missing BIL deadline for biometrics"
     ]
+  },
+  "workingRights": {
+    "applicant": {
+      "summary": "Study permit holders may work on-campus anytime. Off-campus work is allowed up to 24 hours per week during regular academic sessions and full-time during scheduled breaks, subject to permit conditions.",
+      "details": [
+        "Co-op work requires a co-op work permit in addition to study permit.",
+        "Work must not start before permit conditions allow — verify printed remarks.",
+        "PGWP is a separate application after eligible program completion."
+      ],
+      "restrictions": [
+        "Cannot work for ineligible employers if restricted on permit",
+        "Must remain enrolled and making progress at DLI"
+      ],
+      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work.html",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Spouse/common-law partner may qualify for an open work permit (SOWP) when the student is in an eligible program at a designated learning institution in Canada.",
+      "details": [
+        "Eligibility depends on program level, duration, and current IRCC policy for SOWP.",
+        "Partner applies separately; relationship and principal status must be documented."
+      ],
+      "restrictions": [
+        "Not automatic — assess program eligibility before promising spouse work rights"
+      ],
+      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/special-instructions/spousal.html",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — Canada – Student Visa (Study Permit — Outside Canada)",
+    "currency": "CAD",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "Study permit application",
+            "amount": 235,
+            "unit": "per applicant",
+            "currency": "CAD",
+            "applicable": true
+          },
+          {
+            "label": "Biometrics",
+            "amount": 85,
+            "unit": "per applicant",
+            "currency": "CAD",
+            "applicable": true
+          },
+          {
+            "label": "Medical exam (if required)",
+            "range": "INR 5,000–8,000",
+            "notes": "Panel physician",
+            "currency": "CAD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition (undergraduate, indicative)",
+            "range": "Mid-range for destination",
+            "notes": "Use offer letter amount",
+            "currency": "CAD",
+            "applicable": true
+          },
+          {
+            "label": "Tuition deposit already paid",
+            "range": "Per LOA/CAS",
+            "notes": "Deduct from total funds",
+            "currency": "CAD",
+            "applicable": true
+          },
+          {
+            "label": "Books & materials",
+            "range": "500–1,500",
+            "unit": "per year",
+            "notes": "Program dependent",
+            "currency": "CAD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Living funds (IRCC guideline, 1 person)",
+            "amount": 20635,
+            "unit": "per year",
+            "notes": "Outside Quebec",
+            "currency": "CAD"
+          },
+          {
+            "label": "Accommodation",
+            "range": "700–1,400",
+            "unit": "per month",
+            "currency": "CAD"
+          },
+          {
+            "label": "Food & personal",
+            "range": "300–550",
+            "unit": "per month",
+            "currency": "CAD"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
   }
 }

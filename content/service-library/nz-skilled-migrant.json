@@ -1416,5 +1416,118 @@
       "docKind": "financial"
     }
   ],
-  "navBucket": "immigration"
+  "navBucket": "immigration",
+  "workingRights": {
+    "applicant": {
+      "summary": "Skilled Migrant Category and Accredited Employer Work Visa (AEWV) authorize employment with the nominated employer and role.",
+      "details": [
+        "AEWV tied to accredited employer and job description on offer.",
+        "Skilled Migrant uses points-based selection — job offer and salary thresholds apply.",
+        "Must comply with visa conditions including employer and occupation."
+      ],
+      "restrictions": [
+        "Working outside approved role may breach visa conditions"
+      ],
+      "sourceUrl": "https://www.immigration.govt.nz/",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Partner of AEWV or skilled worker may apply for Partner of a Worker work visa with open work rights when eligible.",
+      "details": [
+        "Partner included in SMC residence application receives work rights with resident visa when granted."
+      ],
+      "restrictions": [],
+      "sourceUrl": "https://www.immigration.govt.nz/",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — New Zealand – Skilled Migrant Category (SMC)",
+    "currency": "NZD",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.immigration.govt.nz/",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "Skilled Migrant / AEWV",
+            "range": "585–4,890",
+            "notes": "Stream dependent",
+            "currency": "NZD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Credential recognition / skills assessment",
+            "range": "Varies",
+            "notes": "If required for license",
+            "currency": "NZD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Living funds (INZ typical)",
+            "amount": 20000,
+            "unit": "per year",
+            "currency": "NZD"
+          },
+          {
+            "label": "Rent",
+            "range": "150–350",
+            "unit": "per week",
+            "currency": "NZD"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

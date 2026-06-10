@@ -1411,5 +1411,152 @@
       "docKind": "insurance"
     }
   ],
-  "navBucket": "visa"
+  "navBucket": "visa",
+  "workingRights": {
+    "applicant": {
+      "summary": "Long-stay national student visa for Netherlands allows limited part-time work (typically up to 20 hours/week or per local law) after residence permit is issued.",
+      "details": [
+        "Verify exact hours with local immigration office after arrival.",
+        "Cannot rely on work income alone for residence renewal."
+      ],
+      "restrictions": [
+        "Work not allowed until residence permit issued in many cases"
+      ],
+      "sourceUrl": "https://ind.nl/",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Spouse/partner may apply for family reunion; work rights depend on Netherlands residence permit conditions.",
+      "details": [
+        "Often requires proof of accommodation, integration, and sufficient income of sponsor."
+      ],
+      "restrictions": [],
+      "sourceUrl": "https://ind.nl/",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — Netherlands – Student Visa (MVV + Residence Permit)",
+    "currency": "EUR",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://ind.nl/",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "Study permit application",
+            "amount": 235,
+            "unit": "per applicant",
+            "currency": "EUR",
+            "applicable": true
+          },
+          {
+            "label": "Biometrics",
+            "amount": 85,
+            "unit": "per applicant",
+            "currency": "EUR",
+            "applicable": true
+          },
+          {
+            "label": "Medical exam (if required)",
+            "range": "INR 5,000–8,000",
+            "notes": "Panel physician",
+            "currency": "EUR",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition (undergraduate, indicative)",
+            "range": "Mid-range for destination",
+            "notes": "Use offer letter amount",
+            "currency": "EUR",
+            "applicable": true
+          },
+          {
+            "label": "Tuition deposit already paid",
+            "range": "Per LOA/CAS",
+            "notes": "Deduct from total funds",
+            "currency": "EUR",
+            "applicable": true
+          },
+          {
+            "label": "Books & materials",
+            "range": "500–1,500",
+            "unit": "per year",
+            "notes": "Program dependent",
+            "currency": "EUR",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Living funds (embassy guideline)",
+            "range": "€9,000–12,000",
+            "unit": "per year",
+            "currency": "EUR"
+          },
+          {
+            "label": "Accommodation",
+            "range": "€350–900",
+            "unit": "per month",
+            "currency": "EUR"
+          },
+          {
+            "label": "Food & transport",
+            "range": "€250–450",
+            "unit": "per month",
+            "currency": "EUR"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

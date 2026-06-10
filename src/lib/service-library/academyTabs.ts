@@ -4,6 +4,7 @@ import type { AcademyViewModel } from "./buildAcademyViewModel";
 export const ACADEMY_TAB_IDS = [
   "overview",
   "fees",
+  "countryinsights",
   "eligibility",
   "acceptance",
   "testday",
@@ -29,6 +30,7 @@ export type CoachingProfile = "test_reference" | "program";
 const VISA_TABS: AcademyTabId[] = [
   "overview",
   "fees",
+  "countryinsights",
   "eligibility",
   "checklist",
   "binder",
@@ -84,11 +86,15 @@ export function coachingProfileFromSubService(subService: string): CoachingProfi
 }
 
 export function resolveAcademyTabs(
-  view: Pick<AcademyViewModel, "isCoaching" | "coachingProfile" | "feeBreakdown">,
+  view: Pick<AcademyViewModel, "isCoaching" | "coachingProfile" | "feeBreakdown" | "countryInsights">,
 ): AcademyTabId[] {
   if (!view.isCoaching) {
     const hasFees = view.feeBreakdown?.govt || view.feeBreakdown?.consultancy;
-    return hasFees ? VISA_TABS : VISA_TABS.filter((t) => t !== "fees");
+    const hasInsights = view.countryInsights != null;
+    let tabs = VISA_TABS;
+    if (!hasFees) tabs = tabs.filter((t) => t !== "fees");
+    if (!hasInsights) tabs = tabs.filter((t) => t !== "countryinsights");
+    return tabs;
   }
   return view.coachingProfile === "test_reference" ? COACHING_TEST_TABS : COACHING_PROGRAM_TABS;
 }
@@ -123,6 +129,8 @@ export function tabLabel(
   switch (id) {
     case "fees":
       return "Fees";
+    case "countryinsights":
+      return "Country & costs";
     case "eligibility":
       return "Eligibility Assessment";
     case "binder":

@@ -1406,5 +1406,118 @@
       "docKind": "language"
     }
   ],
-  "navBucket": "immigration"
+  "navBucket": "immigration",
+  "workingRights": {
+    "applicant": {
+      "summary": "Skilled worker (§18a/§18b), EU Blue Card, Opportunity Card, and Job Seeker have distinct work/search rights — follow permit type.",
+      "details": [
+        "Blue Card tied to salary threshold and employer.",
+        "Opportunity Card allows job search, not automatic employment."
+      ],
+      "restrictions": [],
+      "sourceUrl": "https://www.make-it-in-germany.com/",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Spouse of skilled worker typically receives residence with labor market access after arrival registration.",
+      "details": [],
+      "restrictions": [],
+      "sourceUrl": "https://www.make-it-in-germany.com/",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — Germany – Skilled Worker Visa (§18a/§18b)",
+    "currency": "EUR",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.make-it-in-germany.com/",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "National visa / Blue Card",
+            "amount": 75,
+            "currency": "EUR",
+            "applicable": true
+          },
+          {
+            "label": "Recognition of qualifications",
+            "range": "Varies",
+            "currency": "EUR",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Credential recognition / skills assessment",
+            "range": "Varies",
+            "notes": "If required for license",
+            "currency": "EUR",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Blocked account",
+            "amount": 11904,
+            "unit": "per year",
+            "currency": "EUR"
+          },
+          {
+            "label": "Rent & utilities",
+            "range": "400–750",
+            "unit": "per month",
+            "currency": "EUR"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

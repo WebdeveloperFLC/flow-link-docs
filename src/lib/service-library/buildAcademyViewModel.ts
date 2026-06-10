@@ -25,6 +25,11 @@ import {
 import { coachingFamilyLabel } from "./serviceNavClassification";
 import { resolveServiceFeeBreakdown } from "./feeBreakdown";
 import type { ServiceFeeBreakdownView } from "./feeBreakdown/types";
+import {
+  hasCountryInsightsContent,
+  resolveCountryInsights,
+} from "./countryInsights/resolveCountryInsights";
+import type { CountryInsightsView } from "./countryInsights/types";
 
 export type AcademyViewModel = {
   masterId: string;
@@ -59,6 +64,7 @@ export type AcademyViewModel = {
   timeline: { weeks: string; title: string }[];
   fees: { consultancy: string; govt: string; thirdParty: string };
   feeBreakdown: ServiceFeeBreakdownView | null;
+  countryInsights: CountryInsightsView | null;
   checklist: {
     completed: number;
     total: number;
@@ -392,6 +398,11 @@ export function buildAcademyViewModel(args: {
       thirdParty: "Varies",
     },
     feeBreakdown: isCoaching ? null : resolveServiceFeeBreakdown(master.id, meta, feesScoped),
+    countryInsights: (() => {
+      if (isCoaching || !displayCountry) return null;
+      const insights = resolveCountryInsights(displayCountry, meta);
+      return insights && hasCountryInsightsContent(insights) ? insights : null;
+    })(),
     checklist: {
       completed,
       total: checklistTotal,

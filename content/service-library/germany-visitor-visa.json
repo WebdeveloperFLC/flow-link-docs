@@ -1410,5 +1410,108 @@
       "docKind": "financial"
     }
   ],
-  "navBucket": "visa"
+  "navBucket": "visa",
+  "workingRights": {
+    "applicant": {
+      "summary": "Schengen Type C visa does not permit employment in Germany.",
+      "details": [],
+      "restrictions": [],
+      "sourceUrl": "https://www.make-it-in-germany.com/",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Spouse on Schengen short stay cannot work.",
+      "details": [],
+      "restrictions": [],
+      "sourceUrl": "https://www.make-it-in-germany.com/",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — Germany – Visitor / Schengen Visa (Type C)",
+    "currency": "EUR",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.make-it-in-germany.com/",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "Schengen Type C",
+            "amount": 80,
+            "currency": "EUR",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition",
+            "applicable": false,
+            "notes": "Not applicable for visitor visa",
+            "currency": "EUR"
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Blocked account",
+            "amount": 11904,
+            "unit": "per year",
+            "currency": "EUR"
+          },
+          {
+            "label": "Rent & utilities",
+            "range": "400–750",
+            "unit": "per month",
+            "currency": "EUR"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }
