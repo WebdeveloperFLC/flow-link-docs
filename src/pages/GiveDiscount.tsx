@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Wallet, Gift, RotateCcw, Lock } from "lucide-react";
 import { OFFER_FUNDING_LABELS, type OfferFundingSource } from "@/lib/offers/lifecycle";
+import { formatSupabaseError } from "@/lib/formatSupabaseError";
 
 type AllocStatus = "reserved" | "applied" | "reversed";
 
@@ -254,7 +255,13 @@ export default function GiveDiscount() {
 
       const result = data as ApplyResult;
       if (!result?.ok) {
-        throw new Error(result.reason ?? "Could not apply discount");
+        const reason =
+          typeof result.reason === "string"
+            ? result.reason
+            : result.reason != null
+              ? JSON.stringify(result.reason)
+              : "Could not apply discount";
+        throw new Error(reason);
       }
 
       const debited = result.debited ?? 0;
@@ -273,7 +280,7 @@ export default function GiveDiscount() {
     } catch (e: unknown) {
       toast({
         title: "Could not apply",
-        description: e instanceof Error ? e.message : String(e),
+        description: formatSupabaseError(e, "Could not apply discount"),
         variant: "destructive",
       });
     } finally {
