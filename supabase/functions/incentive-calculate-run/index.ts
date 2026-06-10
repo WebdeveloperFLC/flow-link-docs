@@ -233,9 +233,10 @@ Deno.serve(async (req: Request) => {
     if (clientIds.length) {
       const { data: pays } = await svc
         .from("client_invoice_payments")
-        .select("id, client_id, invoice_id, currency, amount, amount_in_inr, paid_at, payment_proof_status, archived_at, is_refund")
+        .select("id, client_id, invoice_id, currency, amount, amount_in_inr, paid_at, payment_status, payment_proof_status, archived_at, is_refund")
         .in("client_id", clientIds)
-        .eq("payment_proof_status", "verified")
+        .or("payment_status.eq.verified,payment_proof_status.eq.verified")
+        .neq("payment_status", "rejected")
         .is("archived_at", null)
         .gte("paid_at", start).lt("paid_at", end);
 

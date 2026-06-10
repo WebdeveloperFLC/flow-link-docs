@@ -5,6 +5,7 @@ import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotif
 
 type PaymentUpdate = {
   payment_status: string;
+  payment_proof_status: string;
   verified_by: string | null;
   verified_at: string;
   verification_rejected_reason?: string;
@@ -30,6 +31,7 @@ export async function verifyPayment(
     .from("client_invoice_payments")
     .update({
       payment_status: "verified",
+      payment_proof_status: "verified",
       verified_by: u?.user?.id ?? null,
       verified_at: new Date().toISOString(),
     } satisfies PaymentUpdate)
