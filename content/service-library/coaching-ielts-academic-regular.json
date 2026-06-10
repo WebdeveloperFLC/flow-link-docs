@@ -1,7 +1,7 @@
 {
   "displayName": "IELTS Academic Regular (with books)",
   "shortDescription": "IDP India · Academic module · 8–10 week regular batch · Books included",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated June 2026",
@@ -18,54 +18,179 @@
     "body": "University and student visa pathways require IELTS Academic. Confirm module before enrollment — not General Training."
   },
   "tags": [
-    { "label": "Active program", "variant": "success" },
-    { "label": "Books included", "variant": "neutral" },
-    { "label": "8–10 weeks", "variant": "neutral" },
-    { "label": "Academic module", "variant": "warning" }
+    {
+      "label": "Active program",
+      "variant": "success"
+    },
+    {
+      "label": "Books included",
+      "variant": "neutral"
+    },
+    {
+      "label": "8–10 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Academic module",
+      "variant": "warning"
+    }
   ],
   "chips": [
-    { "label": "Regular batch", "variant": "success" },
-    { "label": "4+ full mocks", "variant": "neutral" },
-    { "label": "Target band agreed", "variant": "warning" },
-    { "label": "Exam fee separate", "variant": "neutral" }
+    {
+      "label": "Regular batch",
+      "variant": "success"
+    },
+    {
+      "label": "4+ full mocks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Target band agreed",
+      "variant": "warning"
+    },
+    {
+      "label": "Exam fee separate",
+      "variant": "neutral"
+    }
   ],
   "kpis": [
-    { "label": "Course duration", "value": "8–10w", "sub": "Regular batch", "tone": "primary" },
-    { "label": "IELTS exam fee", "value": "See IDP India", "sub": "Paid on ieltsidpindia.com", "tone": "warning" },
-    { "label": "Target achievement", "value": "82%", "sub": "Students hitting agreed target", "tone": "success" },
-    { "label": "Enrollment docs", "value": "6", "sub": "Agreement + diagnostic", "tone": "violet" },
-    { "label": "Course fee", "value": "See fee tab", "sub": "Books included", "tone": "primary" }
+    {
+      "label": "Course duration",
+      "value": "8–10w",
+      "sub": "Regular batch",
+      "tone": "primary"
+    },
+    {
+      "label": "IELTS exam fee",
+      "value": "See IDP India",
+      "sub": "Paid on ieltsidpindia.com",
+      "tone": "warning"
+    },
+    {
+      "label": "Target achievement",
+      "value": "82%",
+      "sub": "Students hitting agreed target",
+      "tone": "success"
+    },
+    {
+      "label": "Enrollment docs",
+      "value": "6",
+      "sub": "Agreement + diagnostic",
+      "tone": "violet"
+    },
+    {
+      "label": "Course fee",
+      "value": "See fee tab",
+      "sub": "Books included",
+      "tone": "primary"
+    }
   ],
   "about": [
-    { "label": "Description", "value": "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests." },
-    { "label": "Ideal for", "value": "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers." },
-    { "label": "Delivery", "value": "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment." },
-    { "label": "Exam authority (India)", "value": "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately." },
-    { "label": "After course", "value": "Exam booking support, score tracking, retake/booster recommendation if needed, handoff to admissions when target met." }
+    {
+      "label": "Description",
+      "value": "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests."
+    },
+    {
+      "label": "Ideal for",
+      "value": "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers."
+    },
+    {
+      "label": "Delivery",
+      "value": "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+    },
+    {
+      "label": "Exam authority (India)",
+      "value": "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately."
+    },
+    {
+      "label": "After course",
+      "value": "Exam booking support, score tracking, retake/booster recommendation if needed, handoff to admissions when target met."
+    }
   ],
   "eligibility": [
-    { "criterion": "Diagnostic or prior score on file", "met": true },
-    { "criterion": "Realistic target band vs current level", "met": true },
-    { "criterion": "Academic module requirement confirmed", "met": true },
-    { "criterion": "Batch timing suits student schedule", "met": true },
-    { "criterion": "Enrollment agreement signed", "met": true },
-    { "criterion": "Course fee collected", "met": true }
+    {
+      "criterion": "Diagnostic or prior score on file",
+      "met": true
+    },
+    {
+      "criterion": "Realistic target band vs current level",
+      "met": true
+    },
+    {
+      "criterion": "Academic module requirement confirmed",
+      "met": true
+    },
+    {
+      "criterion": "Batch timing suits student schedule",
+      "met": true
+    },
+    {
+      "criterion": "Enrollment agreement signed",
+      "met": true
+    },
+    {
+      "criterion": "Course fee collected",
+      "met": true
+    }
   ],
   "redFlagsBanner": "If attendance drops or mocks stay far below target, pause exam booking and reset the study plan — do not push unprepared students to test.",
   "redFlags": [
-    { "title": "Unrealistic target band", "description": "Jump of 2+ bands in 4 weeks expected.", "fix": "Reset timeline or recommend crash/booster realistically", "severity": "Very common" },
-    { "title": "Chronic absenteeism", "description": "Below 80% attendance.", "fix": "Counselor call, batch change, or pause", "severity": "Common" },
-    { "title": "Wrong module enrolled", "description": "GT student in Academic batch.", "fix": "Move to correct program before exam", "severity": "High" },
-    { "title": "Exam booked too early", "description": "Mocks not near target.", "fix": "Reschedule exam; extra mocks", "severity": "Common" },
-    { "title": "Guaranteed score promised", "description": "Sales or counselor over-commitment.", "fix": "Compliance issue — never guarantee bands", "severity": "High" }
+    {
+      "title": "Unrealistic target band",
+      "description": "Jump of 2+ bands in 4 weeks expected.",
+      "fix": "Reset timeline or recommend crash/booster realistically",
+      "severity": "Very common"
+    },
+    {
+      "title": "Chronic absenteeism",
+      "description": "Below 80% attendance.",
+      "fix": "Counselor call, batch change, or pause",
+      "severity": "Common"
+    },
+    {
+      "title": "Wrong module enrolled",
+      "description": "GT student in Academic batch.",
+      "fix": "Move to correct program before exam",
+      "severity": "High"
+    },
+    {
+      "title": "Exam booked too early",
+      "description": "Mocks not near target.",
+      "fix": "Reschedule exam; extra mocks",
+      "severity": "Common"
+    },
+    {
+      "title": "Guaranteed score promised",
+      "description": "Sales or counselor over-commitment.",
+      "fix": "Compliance issue — never guarantee bands",
+      "severity": "High"
+    }
   ],
   "faqs": [
-    { "q": "Academic vs General Training?", "a": "Academic is for university and most study visas. GT is for migration/work — different prep and tests." },
-    { "q": "Are books included?", "a": "Yes for this Regular (with books) program — issue at enrollment and log on file." },
-    { "q": "Who pays the IELTS exam fee?", "a": "In India, the student pays IDP IELTS India on ieltsidpindia.com. FLC course fee is separate." },
-    { "q": "Can we guarantee band 7?", "a": "No. We set targets from diagnostic data and track mocks — outcomes depend on student effort and attendance." },
-    { "q": "How many mock tests?", "a": "Minimum four full mocks under exam conditions; more if below target before booking." },
-    { "q": "Retake if score is low?", "a": "Booster or skill-specific sessions based on weakest band; new enrollment as per fee policy." }
+    {
+      "q": "Academic vs General Training?",
+      "a": "Academic is for university and most study visas. GT is for migration/work — different prep and tests."
+    },
+    {
+      "q": "Are books included?",
+      "a": "Yes for this Regular (with books) program — issue at enrollment and log on file."
+    },
+    {
+      "q": "Who pays the IELTS exam fee?",
+      "a": "In India, the student pays IDP IELTS India on ieltsidpindia.com. FLC course fee is separate."
+    },
+    {
+      "q": "Can we guarantee band 7?",
+      "a": "No. We set targets from diagnostic data and track mocks — outcomes depend on student effort and attendance."
+    },
+    {
+      "q": "How many mock tests?",
+      "a": "Minimum four full mocks under exam conditions; more if below target before booking."
+    },
+    {
+      "q": "Retake if score is low?",
+      "a": "Booster or skill-specific sessions based on weakest band; new enrollment as per fee policy."
+    }
   ],
   "compliance": [
     "Never guarantee an IELTS band score",
@@ -88,65 +213,1056 @@
     "ourRate": 82,
     "industryRate": 68,
     "stats": [
-      { "label": "Enrollments this year", "value": "214" },
-      { "label": "Hit target band", "value": "176" },
-      { "label": "Retake / booster", "value": "38" }
+      {
+        "label": "Enrollments this year",
+        "value": "214"
+      },
+      {
+        "label": "Hit target band",
+        "value": "176"
+      },
+      {
+        "label": "Retake / booster",
+        "value": "38"
+      }
     ]
   },
   "approvalFactors": [
-    { "label": "Attendance 80%+", "ours": 88, "benchmark": 72 },
-    { "label": "Mock completion", "ours": 91, "benchmark": 75 },
-    { "label": "Exam-ready booking", "ours": 85, "benchmark": 70 }
+    {
+      "label": "Attendance 80%+",
+      "ours": 88,
+      "benchmark": 72
+    },
+    {
+      "label": "Mock completion",
+      "ours": 91,
+      "benchmark": 75
+    },
+    {
+      "label": "Exam-ready booking",
+      "ours": 85,
+      "benchmark": 70
+    }
   ],
   "timeline": [
-    { "weeks": "1", "title": "Diagnostic, enrollment, batch & books" },
-    { "weeks": "2–7", "title": "Classes, homework, skill drills, speaking mocks" },
-    { "weeks": "6–8", "title": "Full mock tests & exam readiness review" },
-    { "weeks": "8–10", "title": "Exam booking, test day prep, score follow-up" }
+    {
+      "weeks": "1",
+      "title": "Diagnostic, enrollment, batch & books"
+    },
+    {
+      "weeks": "2–7",
+      "title": "Classes, homework, skill drills, speaking mocks"
+    },
+    {
+      "weeks": "6–8",
+      "title": "Full mock tests & exam readiness review"
+    },
+    {
+      "weeks": "8–10",
+      "title": "Exam booking, test day prep, score follow-up"
+    }
   ],
   "relatedServices": [
-    { "label": "IELTS — Test reference (official test guide)", "libraryId": "b2000001-0001-4000-8000-000000000071" },
-    { "label": "IELTS Academic Crash Course", "libraryId": "b2000001-0001-4000-8000-000000000073" },
-    { "label": "IELTS General Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000074" },
-    { "label": "PTE Academic Regular", "libraryId": "" }
+    {
+      "label": "IELTS — Test reference (official test guide)",
+      "libraryId": "b2000001-0001-4000-8000-000000000071"
+    },
+    {
+      "label": "IELTS Academic Crash Course",
+      "libraryId": "b2000001-0001-4000-8000-000000000073"
+    },
+    {
+      "label": "IELTS General Regular (with books)",
+      "libraryId": "b2000001-0001-4000-8000-000000000074"
+    },
+    {
+      "label": "PTE Academic Regular",
+      "libraryId": ""
+    }
   ],
   "changelog": [
-    { "version": "v1.0", "date": "June 2026", "author": "Service Library", "summary": "Initial IELTS Academic Regular coaching specimen." }
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
+      "version": "v1.0",
+      "date": "June 2026",
+      "author": "Service Library",
+      "summary": "Initial IELTS Academic Regular coaching specimen."
+    }
   ],
   "staffNotes": [
-    { "author": "Coaching team", "date": "June 2026", "text": "Do not move GT inquiries into Academic Regular — offer GT program or refer." }
+    {
+      "author": "Coaching team",
+      "date": "June 2026",
+      "text": "Do not move GT inquiries into Academic Regular — offer GT program or refer."
+    }
   ],
   "resources": [
-    { "title": "IELTS test reference (FLC specimen)", "url": "/specimens/coaching/ielts-test-reference.html", "description": "Full test guide — acceptance matrix, test day, module samples" },
-    { "title": "IELTS — Official site", "url": "https://www.ielts.org/", "description": "Academic vs GT, test format" },
-    { "title": "IDP IELTS India — Book test", "url": "https://www.ieltsidpindia.com/", "description": "Sole booking channel in India" },
-    { "title": "British Council India — IELTS prep", "url": "https://www.britishcouncil.in/exam/ielts/faqs", "description": "Prep only — BC does not deliver IELTS tests in India" }
+    {
+      "title": "IELTS test reference (FLC specimen)",
+      "url": "/specimens/coaching/ielts-test-reference.html",
+      "description": "Full test guide — acceptance matrix, test day, module samples"
+    },
+    {
+      "title": "IELTS — Official site",
+      "url": "https://www.ielts.org/",
+      "description": "Academic vs GT, test format"
+    },
+    {
+      "title": "IDP IELTS India — Book test",
+      "url": "https://www.ieltsidpindia.com/",
+      "description": "Sole booking channel in India"
+    },
+    {
+      "title": "British Council India — IELTS prep",
+      "url": "https://www.britishcouncil.in/exam/ielts/faqs",
+      "description": "Prep only — BC does not deliver IELTS tests in India"
+    }
   ],
   "donts": {
-    "dos": ["Run diagnostic before quoting timeline", "Track attendance and mocks", "Confirm Academic module", "Keep exam fee separate on invoice"],
-    "donts": ["Guarantee a band score", "Book exam before readiness", "Mix GT and Academic in same batch narrative", "Skip enrollment agreement"],
-    "mistakes": ["Target 7 from diagnostic 5 in 4 weeks", "No mock before exam date", "Books not logged", "Visa team not updated when target met"]
+    "dos": [
+      "Run diagnostic before quoting timeline",
+      "Track attendance and mocks",
+      "Confirm Academic module",
+      "Keep exam fee separate on invoice"
+    ],
+    "donts": [
+      "Guarantee a band score",
+      "Book exam before readiness",
+      "Mix GT and Academic in same batch narrative",
+      "Skip enrollment agreement"
+    ],
+    "mistakes": [
+      "Target 7 from diagnostic 5 in 4 weeks",
+      "No mock before exam date",
+      "Books not logged",
+      "Visa team not updated when target met"
+    ]
   },
   "sampleDocs": [
-    { "title": "Sample diagnostic score sheet (mock)", "description": "L/R/W/S breakdown template for intake.", "docKind": "assessment", "mimeType": "application/pdf" },
-    { "title": "Sample 4-week study plan (mock)", "description": "Skill rotation for Academic Writing Task 2.", "docKind": "study_plan", "mimeType": "application/pdf" },
-    { "title": "Sample mock test feedback form (mock)", "description": "Trainer band-style comments per section.", "docKind": "feedback", "mimeType": "application/pdf" }
+    {
+      "title": "Sample diagnostic score sheet (mock)",
+      "description": "L/R/W/S breakdown template for intake.",
+      "docKind": "assessment",
+      "mimeType": "application/pdf"
+    },
+    {
+      "title": "Sample 4-week study plan (mock)",
+      "description": "Skill rotation for Academic Writing Task 2.",
+      "docKind": "study_plan",
+      "mimeType": "application/pdf"
+    },
+    {
+      "title": "Sample mock test feedback form (mock)",
+      "description": "Trainer band-style comments per section.",
+      "docKind": "feedback",
+      "mimeType": "application/pdf"
+    }
   ],
   "quiz": [
-    { "question": "IELTS Academic is required for:", "options": ["Most university study visas", "Only Canada PR", "Driving licence", "Tourist visa only"], "correctIndex": 0, "explanation": "Universities and most study pathways need Academic.", "level": 1 },
-    { "question": "Counselors must never:", "options": ["Track mocks", "Guarantee band 7", "Issue books", "Run diagnostic"], "correctIndex": 1, "explanation": "Band guarantees are prohibited.", "level": 1 },
-    { "question": "IELTS exam fee in India is paid to:", "options": ["Future Link only", "IDP IELTS India by student", "University", "Embassy"], "correctIndex": 1, "explanation": "Book and pay on ieltsidpindia.com — separate from coaching fee.", "level": 1 },
-    { "question": "Minimum full mocks before exam booking (Regular):", "options": ["0", "4", "20", "None required"], "correctIndex": 1, "explanation": "At least four full mocks under exam conditions.", "level": 1 },
-    { "question": "Attendance below this triggers counselor review:", "options": ["50%", "80%", "100%", "Never tracked"], "correctIndex": 1, "explanation": "Review dips below 80% attendance.", "level": 1 },
-    { "question": "A Canada PR lead needing GT should go to:", "options": ["Academic Regular", "General Regular program", "This Academic batch", "No coaching"], "correctIndex": 1, "explanation": "Do not mix GT students into Academic Regular.", "level": 2 },
-    { "question": "Books in Academic Regular (with books) are:", "options": ["Optional extra fee", "Issued at enrollment", "Provided by IDP", "Not used"], "correctIndex": 1, "explanation": "Issue and log books on Day 1.", "level": 1 },
-    { "question": "Mock readiness rule before IDP booking:", "options": ["Any single mock", "Two mocks within 0.5 of target", "No mocks needed", "Trainer guess"], "correctIndex": 1, "explanation": "Two consecutive mocks near target.", "level": 2 },
-    { "question": "Regular batch typical duration:", "options": ["1 week", "8–10 weeks", "12 months", "1 day"], "correctIndex": 1, "explanation": "Regular pace over 8–10 weeks.", "level": 1 },
-    { "question": "IDP India booking URL:", "options": ["britishcouncil.in/exam/ielts", "ieltsidpindia.com", "ielts.org only", "futurelinkconsultants.com"], "correctIndex": 1, "explanation": "Sole India booking channel since July 2021.", "level": 1 },
-    { "question": "Coaching fee and exam fee on invoice should be:", "options": ["Combined as one line", "Shown separately", "Exam fee included in coaching", "Hidden"], "correctIndex": 1, "explanation": "Compliance — separate fees on all quotes.", "level": 1 },
-    { "question": "When target band is met, next step is often:", "options": ["Ignore TRF", "Hand off to admissions / visa team", "Guarantee retake", "Cancel enrollment"], "correctIndex": 1, "explanation": "Update file and notify downstream team.", "level": 2 },
-    { "question": "Unrealistic enrollment example:", "options": ["5.5 → 6.0 in 10 weeks", "5.0 → 7.0 in 4 weeks", "6.0 → 6.5 in 8 weeks", "Retake 6.5 → 7.0 crash"], "correctIndex": 1, "explanation": "Large gap in short time — reset timeline.", "level": 2 },
-    { "question": "British Council India for IELTS exam:", "options": ["Books all tests", "Prep only — IDP books", "Issues TRF", "Sets band scores"], "correctIndex": 1, "explanation": "BC does not deliver IELTS tests in India.", "level": 2 },
-    { "question": "Enrollment agreement should be signed:", "options": ["After batch ends", "Before batch start", "Never", "Only if student asks"], "correctIndex": 1, "explanation": "Signed agreement before classes begin.", "level": 1 }
+    {
+      "question": "IELTS Academic is required for:",
+      "options": [
+        "Most university study visas",
+        "Only Canada PR",
+        "Driving licence",
+        "Tourist visa only"
+      ],
+      "correctIndex": 0,
+      "explanation": "Universities and most study pathways need Academic.",
+      "level": 1
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Track mocks",
+        "Guarantee band 7",
+        "Issue books",
+        "Run diagnostic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Band guarantees are prohibited.",
+      "level": 1
+    },
+    {
+      "question": "IELTS exam fee in India is paid to:",
+      "options": [
+        "Future Link only",
+        "IDP IELTS India by student",
+        "University",
+        "Embassy"
+      ],
+      "correctIndex": 1,
+      "explanation": "Book and pay on ieltsidpindia.com — separate from coaching fee.",
+      "level": 1
+    },
+    {
+      "question": "Minimum full mocks before exam booking (Regular):",
+      "options": [
+        "0",
+        "4",
+        "20",
+        "None required"
+      ],
+      "correctIndex": 1,
+      "explanation": "At least four full mocks under exam conditions.",
+      "level": 1
+    },
+    {
+      "question": "Attendance below this triggers counselor review:",
+      "options": [
+        "50%",
+        "80%",
+        "100%",
+        "Never tracked"
+      ],
+      "correctIndex": 1,
+      "explanation": "Review dips below 80% attendance.",
+      "level": 1
+    },
+    {
+      "question": "Books in Academic Regular (with books) are:",
+      "options": [
+        "Optional extra fee",
+        "Issued at enrollment",
+        "Provided by IDP",
+        "Not used"
+      ],
+      "correctIndex": 1,
+      "explanation": "Issue and log books on Day 1.",
+      "level": 1
+    },
+    {
+      "question": "Regular batch typical duration:",
+      "options": [
+        "1 week",
+        "8–10 weeks",
+        "12 months",
+        "1 day"
+      ],
+      "correctIndex": 1,
+      "explanation": "Regular pace over 8–10 weeks.",
+      "level": 1
+    },
+    {
+      "question": "IDP India booking URL:",
+      "options": [
+        "britishcouncil.in/exam/ielts",
+        "ieltsidpindia.com",
+        "ielts.org only",
+        "futurelinkconsultants.com"
+      ],
+      "correctIndex": 1,
+      "explanation": "Sole India booking channel since July 2021.",
+      "level": 1
+    },
+    {
+      "question": "Coaching fee and exam fee on invoice should be:",
+      "options": [
+        "Combined as one line",
+        "Shown separately",
+        "Exam fee included in coaching",
+        "Hidden"
+      ],
+      "correctIndex": 1,
+      "explanation": "Compliance — separate fees on all quotes.",
+      "level": 1
+    },
+    {
+      "question": "Enrollment agreement should be signed:",
+      "options": [
+        "After batch ends",
+        "Before batch start",
+        "Never",
+        "Only if student asks"
+      ],
+      "correctIndex": 1,
+      "explanation": "Signed agreement before classes begin.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For IELTS Academic Regular (with books), which statement about Description is correct?",
+      "options": [
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment.",
+        "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately."
+      ],
+      "correctIndex": 0,
+      "explanation": "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests."
+    },
+    {
+      "level": 1,
+      "question": "IELTS Academic Regular (with books): what is true regarding Ideal for?",
+      "options": [
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment.",
+        "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately."
+      ],
+      "correctIndex": 0,
+      "explanation": "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS Academic Regular (with books) should state correctly about Delivery:",
+      "options": [
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately."
+      ],
+      "correctIndex": 0,
+      "explanation": "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+    },
+    {
+      "level": 1,
+      "question": "For IELTS Academic Regular (with books), which statement about Exam authority (India) is correct?",
+      "options": [
+        "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately."
+    },
+    {
+      "level": 1,
+      "question": "IELTS Academic Regular (with books): what is true regarding After course?",
+      "options": [
+        "Exam booking support, score tracking, retake/booster recommendation if needed, handoff to admissions when target met.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Exam booking support, score tracking, retake/booster recommendation if needed, handoff to admissions when target met."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS Academic Regular (with books) should state correctly about Diagnostic or prior score on file:",
+      "options": [
+        "Diagnostic or prior score on file is a core requirement for this service.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Diagnostic or prior score on file"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS Academic Regular (with books), which statement about Realistic target band vs current level is correct?",
+      "options": [
+        "Realistic target band vs current level is a core requirement for this service.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Realistic target band vs current level"
+    },
+    {
+      "level": 1,
+      "question": "IELTS Academic Regular (with books): what is true regarding Academic module requirement confirmed?",
+      "options": [
+        "Academic module requirement confirmed is a core requirement for this service.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Academic module requirement confirmed"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS Academic Regular (with books) should state correctly about Batch timing suits student schedule:",
+      "options": [
+        "Batch timing suits student schedule is a core requirement for this service.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Batch timing suits student schedule"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS Academic Regular (with books), which statement about Enrollment agreement signed is correct?",
+      "options": [
+        "Enrollment agreement signed is a core requirement for this service.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Enrollment agreement signed"
+    },
+    {
+      "level": 1,
+      "question": "IELTS Academic Regular (with books): what is true regarding Course fee collected?",
+      "options": [
+        "Course fee collected is a core requirement for this service.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Course fee collected"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS Academic Regular (with books) should state correctly about Course duration:",
+      "options": [
+        "Course duration: 8–10w — Regular batch",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Regular batch"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS Academic Regular (with books), which statement about IELTS exam fee is correct?",
+      "options": [
+        "IELTS exam fee: See IDP India — Paid on ieltsidpindia.com",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Paid on ieltsidpindia.com"
+    },
+    {
+      "level": 1,
+      "question": "IELTS Academic Regular (with books): what is true regarding Target achievement?",
+      "options": [
+        "Target achievement: 82% — Students hitting agreed target",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Students hitting agreed target"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS Academic Regular (with books) should state correctly about Enrollment docs:",
+      "options": [
+        "Enrollment docs: 6 — Agreement + diagnostic",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Agreement + diagnostic"
+    },
+    {
+      "question": "A Canada PR lead needing GT should go to:",
+      "options": [
+        "Academic Regular",
+        "General Regular program",
+        "This Academic batch",
+        "No coaching"
+      ],
+      "correctIndex": 1,
+      "explanation": "Do not mix GT students into Academic Regular.",
+      "level": 2
+    },
+    {
+      "question": "Mock readiness rule before IDP booking:",
+      "options": [
+        "Any single mock",
+        "Two mocks within 0.5 of target",
+        "No mocks needed",
+        "Trainer guess"
+      ],
+      "correctIndex": 1,
+      "explanation": "Two consecutive mocks near target.",
+      "level": 2
+    },
+    {
+      "question": "When target band is met, next step is often:",
+      "options": [
+        "Ignore TRF",
+        "Hand off to admissions / visa team",
+        "Guarantee retake",
+        "Cancel enrollment"
+      ],
+      "correctIndex": 1,
+      "explanation": "Update file and notify downstream team.",
+      "level": 2
+    },
+    {
+      "question": "Unrealistic enrollment example:",
+      "options": [
+        "5.5 → 6.0 in 10 weeks",
+        "5.0 → 7.0 in 4 weeks",
+        "6.0 → 6.5 in 8 weeks",
+        "Retake 6.5 → 7.0 crash"
+      ],
+      "correctIndex": 1,
+      "explanation": "Large gap in short time — reset timeline.",
+      "level": 2
+    },
+    {
+      "question": "British Council India for IELTS exam:",
+      "options": [
+        "Books all tests",
+        "Prep only — IDP books",
+        "Issues TRF",
+        "Sets band scores"
+      ],
+      "correctIndex": 1,
+      "explanation": "BC does not deliver IELTS tests in India.",
+      "level": 2
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS Academic Regular (with books) process, what is the correct approach to client question: Academic vs General Training?",
+      "options": [
+        "Academic is for university and most study visas. GT is for migration/work — different prep and tests.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Academic is for university and most study visas. GT is for migration/work — different prep and tests."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Regular (with books), what should happen during client question: Are books included?",
+      "options": [
+        "Yes for this Regular (with books) program — issue at enrollment and log on file.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes for this Regular (with books) program — issue at enrollment and log on file."
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Regular (with books) workflow — best practice for client question: Who pays the IELTS exam fee:",
+      "options": [
+        "In India, the student pays IDP IELTS India on ieltsidpindia.com. FLC course fee is separate.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "In India, the student pays IDP IELTS India on ieltsidpindia.com. FLC course fee is separate."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS Academic Regular (with books) process, what is the correct approach to client question: Can we guarantee band 7?",
+      "options": [
+        "No. We set targets from diagnostic data and track mocks — outcomes depend on student effort and attendance.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. We set targets from diagnostic data and track mocks — outcomes depend on student effort and attendance."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Regular (with books), what should happen during client question: How many mock tests?",
+      "options": [
+        "Minimum four full mocks under exam conditions; more if below target before booking.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Minimum four full mocks under exam conditions; more if below target before booking."
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Regular (with books) workflow — best practice for client question: Retake if score is low:",
+      "options": [
+        "Booster or skill-specific sessions based on weakest band; new enrollment as per fee policy.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Booster or skill-specific sessions based on weakest band; new enrollment as per fee policy."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS Academic Regular (with books) process, what is the correct approach to A Canada PR lead needing GT should go to:?",
+      "options": [
+        "General Regular program",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not mix GT students into Academic Regular."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Regular (with books), what should happen during Mock readiness rule before IDP booking:?",
+      "options": [
+        "Two mocks within 0.5 of target",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Two consecutive mocks near target."
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Regular (with books) workflow — best practice for When target band is met, next step is often::",
+      "options": [
+        "Hand off to admissions / visa team",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Update file and notify downstream team."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS Academic Regular (with books) process, what is the correct approach to Unrealistic enrollment example:?",
+      "options": [
+        "5.0 → 7.0 in 4 weeks",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Large gap in short time — reset timeline."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Regular (with books), what should happen during British Council India for IELTS exam:?",
+      "options": [
+        "Prep only — IDP books",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "BC does not deliver IELTS tests in India."
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Regular (with books) workflow — best practice for timeline (1):",
+      "options": [
+        "Diagnostic, enrollment, batch & books",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "1: Diagnostic, enrollment, batch & books"
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS Academic Regular (with books) process, what is the correct approach to timeline (2–7)?",
+      "options": [
+        "Classes, homework, skill drills, speaking mocks",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–7: Classes, homework, skill drills, speaking mocks"
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Regular (with books), what should happen during timeline (6–8)?",
+      "options": [
+        "Full mock tests & exam readiness review",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "6–8: Full mock tests & exam readiness review"
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Regular (with books) workflow — best practice for timeline (8–10):",
+      "options": [
+        "Exam booking, test day prep, score follow-up",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "8–10: Exam booking, test day prep, score follow-up"
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS Academic Regular (with books) process, what is the correct approach to counselor tip?",
+      "options": [
+        "Set target band in writing at enrollment",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Set target band in writing at enrollment"
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Regular (with books), what should happen during counselor tip?",
+      "options": [
+        "Review mock trends weekly — not just overall average",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Review mock trends weekly — not just overall average"
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Regular (with books) workflow — best practice for counselor tip:",
+      "options": [
+        "Confirm Academic module for every study-abroad lead",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm Academic module for every study-abroad lead"
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Regular (with books), what should happen during post-approval step?",
+      "options": [
+        "Collect official TRF when released",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Collect official TRF when released"
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Regular (with books) workflow — best practice for post-approval step:",
+      "options": [
+        "Update client record for admissions / visa team",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Update client record for admissions / visa team"
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Regular (with books): what is the compliance risk with Unrealistic target band?",
+      "options": [
+        "Reset timeline or recommend crash/booster realistically",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Jump of 2+ bands in 4 weeks expected."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Regular (with books) — key issue with Unrealistic target band (detail):",
+      "options": [
+        "Jump of 2+ bands in 4 weeks expected.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Reset timeline or recommend crash/booster realistically"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Regular (with books), counselors must avoid this mistake related to Chronic absenteeism:",
+      "options": [
+        "Counselor call, batch change, or pause",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Below 80% attendance."
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Regular (with books): what is the compliance risk with Chronic absenteeism (detail)?",
+      "options": [
+        "Below 80% attendance.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Counselor call, batch change, or pause"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Regular (with books) — key issue with Wrong module enrolled:",
+      "options": [
+        "Move to correct program before exam",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "GT student in Academic batch."
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Regular (with books), counselors must avoid this mistake related to Wrong module enrolled (detail):",
+      "options": [
+        "GT student in Academic batch.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Move to correct program before exam"
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Regular (with books): what is the compliance risk with Exam booked too early?",
+      "options": [
+        "Reschedule exam; extra mocks",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Mocks not near target."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Regular (with books) — key issue with Exam booked too early (detail):",
+      "options": [
+        "Mocks not near target.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Reschedule exam; extra mocks"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Regular (with books), counselors must avoid this mistake related to Guaranteed score promised:",
+      "options": [
+        "Compliance issue — never guarantee bands",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sales or counselor over-commitment."
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Regular (with books): what is the compliance risk with Guaranteed score promised (detail)?",
+      "options": [
+        "Sales or counselor over-commitment.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Compliance issue — never guarantee bands"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Regular (with books) — key issue with counselor don't:",
+      "options": [
+        "Guarantee a band score",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Guarantee a band score"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Regular (with books), counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Book exam before readiness",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Book exam before readiness"
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Regular (with books): what is the compliance risk with counselor don't?",
+      "options": [
+        "Mix GT and Academic in same batch narrative",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Mix GT and Academic in same batch narrative"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Regular (with books), counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Target 7 from diagnostic 5 in 4 weeks",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Target 7 from diagnostic 5 in 4 weeks"
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Regular (with books): what is the compliance risk with common mistake?",
+      "options": [
+        "No mock before exam date",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: No mock before exam date"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Regular (with books) — key issue with common mistake:",
+      "options": [
+        "Books not logged",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Books not logged"
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Regular (with books): what is the compliance risk with compliance rule?",
+      "options": [
+        "Never guarantee an IELTS band score",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee an IELTS band score"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Regular (with books) — key issue with compliance rule:",
+      "options": [
+        "Separate coaching fee from exam registration fee",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Separate coaching fee from exam registration fee"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Regular (with books), counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Signed enrollment agreement before batch start",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Signed enrollment agreement before batch start"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Regular (with books) — key issue with refusal handling:",
+      "options": [
+        "If attendance drops or mocks stay far below target, pause exam booking and reset the study plan — do not push unprepared students to test.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "If attendance drops or mocks stay far below target, pause exam booking and reset the study plan — do not push unprepared students to test."
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Regular (with books), counselors must avoid this mistake related to Attendance 80%+:",
+      "options": [
+        "Our target: 88% vs benchmark 72%",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Attendance 80%+"
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Regular (with books): what is the compliance risk with Mock completion?",
+      "options": [
+        "Our target: 91% vs benchmark 75%",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Mock completion"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Regular (with books) — key issue with Exam-ready booking:",
+      "options": [
+        "Our target: 85% vs benchmark 70%",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Exam-ready booking"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Regular (with books), counselors must avoid this mistake related to Unrealistic target band:",
+      "options": [
+        "Reset timeline or recommend crash/booster realistically",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Jump of 2+ bands in 4 weeks expected."
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Regular (with books): what is the compliance risk with Unrealistic target band (detail)?",
+      "options": [
+        "Jump of 2+ bands in 4 weeks expected.",
+        "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests.",
+        "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers.",
+        "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment."
+      ],
+      "correctIndex": 0,
+      "explanation": "Reset timeline or recommend crash/booster realistically"
+    }
   ]
 }

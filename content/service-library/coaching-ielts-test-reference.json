@@ -1,7 +1,7 @@
 {
   "displayName": "IELTS — International English Language Testing System",
   "shortDescription": "IDP India · Academic & General Training · Band 0–9 · 2-year validity",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated June 2026",
@@ -19,53 +19,209 @@
     "body": "University and most study visas require IELTS Academic. Canada PR and UK settlement typically require General Training (or Academic where stated). Confirm module before enrollment and exam registration."
   },
   "tags": [
-    { "label": "Active test", "variant": "success" },
-    { "label": "Most accepted globally", "variant": "neutral" },
-    { "label": "Academic & GT", "variant": "warning" },
-    { "label": "Band scored 0–9", "variant": "neutral" }
+    {
+      "label": "Active test",
+      "variant": "success"
+    },
+    {
+      "label": "Most accepted globally",
+      "variant": "neutral"
+    },
+    {
+      "label": "Academic & GT",
+      "variant": "warning"
+    },
+    {
+      "label": "Band scored 0–9",
+      "variant": "neutral"
+    }
   ],
   "chips": [
-    { "label": "~2h 45m exam", "variant": "neutral" },
-    { "label": "2-year validity", "variant": "success" },
-    { "label": "IDP India booking", "variant": "neutral" },
-    { "label": "Exam fee separate", "variant": "warning" }
+    {
+      "label": "~2h 45m exam",
+      "variant": "neutral"
+    },
+    {
+      "label": "2-year validity",
+      "variant": "success"
+    },
+    {
+      "label": "IDP India booking",
+      "variant": "neutral"
+    },
+    {
+      "label": "Exam fee separate",
+      "variant": "warning"
+    }
   ],
   "kpis": [
-    { "label": "Exam duration", "value": "~2h 45m", "sub": "4 modules + speaking slot", "tone": "primary" },
-    { "label": "Exam fee (India)", "value": "Verify IDP", "sub": "Paid on ieltsidpindia.com", "tone": "warning" },
-    { "label": "Score validity", "value": "2 years", "sub": "From test date", "tone": "success" },
-    { "label": "Results", "value": "3–13 days", "sub": "CD-IELTS faster", "tone": "violet" }
+    {
+      "label": "Exam duration",
+      "value": "~2h 45m",
+      "sub": "4 modules + speaking slot",
+      "tone": "primary"
+    },
+    {
+      "label": "Exam fee (India)",
+      "value": "Verify IDP",
+      "sub": "Paid on ieltsidpindia.com",
+      "tone": "warning"
+    },
+    {
+      "label": "Score validity",
+      "value": "2 years",
+      "sub": "From test date",
+      "tone": "success"
+    },
+    {
+      "label": "Results",
+      "value": "3–13 days",
+      "sub": "CD-IELTS faster",
+      "tone": "violet"
+    }
   ],
   "about": [
-    { "label": "Description", "value": "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study, work, and migration worldwide." },
-    { "label": "Modules", "value": "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after." },
-    { "label": "Academic vs GT", "value": "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading & Writing.", "warning": true },
-    { "label": "Test authority (India)", "value": "IDP IELTS India — book at ieltsidpindia.com only (sole distributor since July 2021). British Council India offers prep courses, not exam registration. FLC coaching fee is separate from exam fee." },
-    { "label": "Delivery modes", "value": "Paper-based, Computer-delivered (CD-IELTS), IELTS UKVI (SELT for UK visas), One Skill Retake (OSR) where available." },
-    { "label": "India test centers", "value": "Ahmedabad, Bengaluru, Chandigarh, Chennai, Delhi, Hyderabad, Kolkata, Mumbai, Pune, and other cities — verify current list on booking portal." },
-    { "label": "After the test", "value": "TRF (Test Report Form) issued; up to 5 free electronic sends to institutions. Hand TRF to admissions or visa team when target met." }
+    {
+      "label": "Description",
+      "value": "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study, work, and migration worldwide."
+    },
+    {
+      "label": "Modules",
+      "value": "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after."
+    },
+    {
+      "label": "Academic vs GT",
+      "value": "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading & Writing.",
+      "warning": true
+    },
+    {
+      "label": "Test authority (India)",
+      "value": "IDP IELTS India — book at ieltsidpindia.com only (sole distributor since July 2021). British Council India offers prep courses, not exam registration. FLC coaching fee is separate from exam fee."
+    },
+    {
+      "label": "Delivery modes",
+      "value": "Paper-based, Computer-delivered (CD-IELTS), IELTS UKVI (SELT for UK visas), One Skill Retake (OSR) where available."
+    },
+    {
+      "label": "India test centers",
+      "value": "Ahmedabad, Bengaluru, Chandigarh, Chennai, Delhi, Hyderabad, Kolkata, Mumbai, Pune, and other cities — verify current list on booking portal."
+    },
+    {
+      "label": "After the test",
+      "value": "TRF (Test Report Form) issued; up to 5 free electronic sends to institutions. Hand TRF to admissions or visa team when target met."
+    }
   ],
   "compare": {
-    "columns": ["Country / pathway", "Module", "Minimum", "Notes"],
+    "columns": [
+      "Country / pathway",
+      "Module",
+      "Minimum",
+      "Notes"
+    ],
     "rows": [
-      { "label": "Canada — Express Entry (FSW)", "values": ["GT or Academic", "CLB 7 = 6.0 each", "TOEFL not accepted by IRCC"] },
-      { "label": "Canada — Study permit (SDS)", "values": ["Academic", "6.0 each", "Verify IRCC SDS list"] },
-      { "label": "Canada — Citizenship", "values": ["GT or Academic", "CLB 4", "Lower threshold"] },
-      { "label": "Australia — Student (500)", "values": ["Academic", "5.5–6.0+ (level-dependent)", "CRICOS course level sets minimum"] },
-      { "label": "Australia — Skilled (Competent)", "values": ["Academic", "6.0 each", "PTE also accepted"] },
-      { "label": "UK — Student Route", "values": ["IELTS UKVI Academic", "B2 (~5.5–6.5)", "Standard IELTS may not suffice"] },
-      { "label": "UK — Skilled Worker", "values": ["IELTS UKVI", "B1", "Check approved SELT list"] },
-      { "label": "USA — F-1 admission", "values": ["Academic", "Uni-specific", "TOEFL more common; many accept IELTS"] },
-      { "label": "New Zealand — SMC", "values": ["Academic", "6.5 average", "Verify immigration NZ"] },
-      { "label": "NOT for Canada IRCC", "values": ["—", "—", "TOEFL, Duolingo, PTE Academic"] }
+      {
+        "label": "Canada — Express Entry (FSW)",
+        "values": [
+          "GT or Academic",
+          "CLB 7 = 6.0 each",
+          "TOEFL not accepted by IRCC"
+        ]
+      },
+      {
+        "label": "Canada — Study permit (SDS)",
+        "values": [
+          "Academic",
+          "6.0 each",
+          "Verify IRCC SDS list"
+        ]
+      },
+      {
+        "label": "Canada — Citizenship",
+        "values": [
+          "GT or Academic",
+          "CLB 4",
+          "Lower threshold"
+        ]
+      },
+      {
+        "label": "Australia — Student (500)",
+        "values": [
+          "Academic",
+          "5.5–6.0+ (level-dependent)",
+          "CRICOS course level sets minimum"
+        ]
+      },
+      {
+        "label": "Australia — Skilled (Competent)",
+        "values": [
+          "Academic",
+          "6.0 each",
+          "PTE also accepted"
+        ]
+      },
+      {
+        "label": "UK — Student Route",
+        "values": [
+          "IELTS UKVI Academic",
+          "B2 (~5.5–6.5)",
+          "Standard IELTS may not suffice"
+        ]
+      },
+      {
+        "label": "UK — Skilled Worker",
+        "values": [
+          "IELTS UKVI",
+          "B1",
+          "Check approved SELT list"
+        ]
+      },
+      {
+        "label": "USA — F-1 admission",
+        "values": [
+          "Academic",
+          "Uni-specific",
+          "TOEFL more common; many accept IELTS"
+        ]
+      },
+      {
+        "label": "New Zealand — SMC",
+        "values": [
+          "Academic",
+          "6.5 average",
+          "Verify immigration NZ"
+        ]
+      },
+      {
+        "label": "NOT for Canada IRCC",
+        "values": [
+          "—",
+          "—",
+          "TOEFL, Duolingo, PTE Academic"
+        ]
+      }
     ]
   },
   "eligibility": [
-    { "criterion": "Valid passport for registration and test day", "met": true },
-    { "criterion": "Correct module selected (Academic / GT / UKVI)", "met": true },
-    { "criterion": "Name on registration matches passport exactly", "met": true },
-    { "criterion": "Test date allows TRF before visa / uni deadline", "met": true },
-    { "criterion": "Minimum age — no upper limit; minors need guardian consent per center", "met": true }
+    {
+      "criterion": "Valid passport for registration and test day",
+      "met": true
+    },
+    {
+      "criterion": "Correct module selected (Academic / GT / UKVI)",
+      "met": true
+    },
+    {
+      "criterion": "Name on registration matches passport exactly",
+      "met": true
+    },
+    {
+      "criterion": "Test date allows TRF before visa / uni deadline",
+      "met": true
+    },
+    {
+      "criterion": "Minimum age — no upper limit; minors need guardian consent per center",
+      "met": true
+    }
   ],
   "testDayGuide": {
     "dos": [
@@ -98,24 +254,84 @@
   },
   "redFlagsBanner": "Wrong module, name mismatch, or mocks far below target — pause exam booking and fix before test day. Never guarantee a band score.",
   "redFlags": [
-    { "title": "GT student booked Academic (or reverse)", "description": "Module does not match migration or study pathway.", "fix": "Cancel and rebook correct module before test day", "severity": "High" },
-    { "title": "UK visa but standard IELTS booked", "description": "UKVI SELT required for many UK visa routes.", "fix": "Rebook IELTS UKVI at approved center", "severity": "High" },
-    { "title": "Name ≠ passport", "description": "Registration name mismatch.", "fix": "Contact IDP IELTS India to correct before test day", "severity": "High" },
-    { "title": "Mocks far below target", "description": "Student not exam-ready.", "fix": "Postpone exam; extra mocks and skill work", "severity": "Common" },
-    { "title": "Expired passport at booking", "description": "Cannot test or TRF may be invalid.", "fix": "Renew passport before registering", "severity": "Very common" },
-    { "title": "Guaranteed score promised", "description": "Sales or counselor over-commitment.", "fix": "Compliance issue — never guarantee bands", "severity": "High" }
+    {
+      "title": "GT student booked Academic (or reverse)",
+      "description": "Module does not match migration or study pathway.",
+      "fix": "Cancel and rebook correct module before test day",
+      "severity": "High"
+    },
+    {
+      "title": "UK visa but standard IELTS booked",
+      "description": "UKVI SELT required for many UK visa routes.",
+      "fix": "Rebook IELTS UKVI at approved center",
+      "severity": "High"
+    },
+    {
+      "title": "Name ≠ passport",
+      "description": "Registration name mismatch.",
+      "fix": "Contact IDP IELTS India to correct before test day",
+      "severity": "High"
+    },
+    {
+      "title": "Mocks far below target",
+      "description": "Student not exam-ready.",
+      "fix": "Postpone exam; extra mocks and skill work",
+      "severity": "Common"
+    },
+    {
+      "title": "Expired passport at booking",
+      "description": "Cannot test or TRF may be invalid.",
+      "fix": "Renew passport before registering",
+      "severity": "Very common"
+    },
+    {
+      "title": "Guaranteed score promised",
+      "description": "Sales or counselor over-commitment.",
+      "fix": "Compliance issue — never guarantee bands",
+      "severity": "High"
+    }
   ],
   "faqs": [
-    { "q": "Academic vs General Training — which one?", "a": "Academic for university and most study visas. GT for Canada PR, citizenship, and many work/settlement routes. Confirm with destination country rules." },
-    { "q": "Who pays the IELTS exam fee?", "a": "In India, the student pays IDP IELTS India directly when registering on ieltsidpindia.com. FLC coaching fee is separate." },
-    { "q": "CD-IELTS vs paper — any difference?", "a": "Same content and scoring. CD-IELTS usually has faster results (3–5 days). Speaking is still face-to-face with examiner." },
-    { "q": "Can Future Link guarantee band 7?", "a": "No. We set targets from diagnostics and mocks. Outcomes depend on student effort, attendance, and exam performance." },
-    { "q": "Is TOEFL accepted for Canada PR?", "a": "No. IRCC accepts IELTS (GT or Academic per program) and CELPIP-General — not TOEFL or Duolingo for immigration." },
-    { "q": "What is IELTS UKVI?", "a": "Secure English Language Test format required for many UK visa applications. Book UKVI at an approved SELT center — standard IELTS may not count." },
-    { "q": "How long is IELTS valid?", "a": "Two years from the test date for most immigration and university purposes." },
-    { "q": "What is One Skill Retake (OSR)?", "a": "Retake one section within 60 days of a full test where offered. Confirm eligibility on ielts.org before advising." },
-    { "q": "How many free TRF sends?", "a": "Up to five institutions included; additional sends may incur a fee." },
-    { "q": "Speaking on a different day — is that normal?", "a": "Yes. Speaking may be scheduled up to 7 days before or after L/R/W." }
+    {
+      "q": "Academic vs General Training — which one?",
+      "a": "Academic for university and most study visas. GT for Canada PR, citizenship, and many work/settlement routes. Confirm with destination country rules."
+    },
+    {
+      "q": "Who pays the IELTS exam fee?",
+      "a": "In India, the student pays IDP IELTS India directly when registering on ieltsidpindia.com. FLC coaching fee is separate."
+    },
+    {
+      "q": "CD-IELTS vs paper — any difference?",
+      "a": "Same content and scoring. CD-IELTS usually has faster results (3–5 days). Speaking is still face-to-face with examiner."
+    },
+    {
+      "q": "Can Future Link guarantee band 7?",
+      "a": "No. We set targets from diagnostics and mocks. Outcomes depend on student effort, attendance, and exam performance."
+    },
+    {
+      "q": "Is TOEFL accepted for Canada PR?",
+      "a": "No. IRCC accepts IELTS (GT or Academic per program) and CELPIP-General — not TOEFL or Duolingo for immigration."
+    },
+    {
+      "q": "What is IELTS UKVI?",
+      "a": "Secure English Language Test format required for many UK visa applications. Book UKVI at an approved SELT center — standard IELTS may not count."
+    },
+    {
+      "q": "How long is IELTS valid?",
+      "a": "Two years from the test date for most immigration and university purposes."
+    },
+    {
+      "q": "What is One Skill Retake (OSR)?",
+      "a": "Retake one section within 60 days of a full test where offered. Confirm eligibility on ielts.org before advising."
+    },
+    {
+      "q": "How many free TRF sends?",
+      "a": "Up to five institutions included; additional sends may incur a fee."
+    },
+    {
+      "q": "Speaking on a different day — is that normal?",
+      "a": "Yes. Speaking may be scheduled up to 7 days before or after L/R/W."
+    }
   ],
   "compliance": [
     "Never guarantee an IELTS band score",
@@ -141,41 +357,124 @@
     "ourRate": 84,
     "industryRate": 68,
     "stats": [
-      { "label": "FLC enrollments (IELTS)", "value": "380+" },
-      { "label": "Hit agreed target", "value": "84%" },
-      { "label": "Retake / OSR", "value": "16%" }
+      {
+        "label": "FLC enrollments (IELTS)",
+        "value": "380+"
+      },
+      {
+        "label": "Hit agreed target",
+        "value": "84%"
+      },
+      {
+        "label": "Retake / OSR",
+        "value": "16%"
+      }
     ]
   },
   "approvalFactors": [
-    { "label": "Client satisfaction", "ours": 88, "benchmark": 74 },
-    { "label": "Score improvement", "ours": 82, "benchmark": 68 },
-    { "label": "Test pass / target met", "ours": 84, "benchmark": 70 }
+    {
+      "label": "Client satisfaction",
+      "ours": 88,
+      "benchmark": 74
+    },
+    {
+      "label": "Score improvement",
+      "ours": 82,
+      "benchmark": 68
+    },
+    {
+      "label": "Test pass / target met",
+      "ours": 84,
+      "benchmark": 70
+    }
   ],
   "timeline": [
-    { "weeks": "1", "title": "Diagnostic, target band, module confirmation" },
-    { "weeks": "2–8", "title": "Coaching, homework, skill drills, speaking mocks" },
-    { "weeks": "6–8", "title": "Full mocks under exam conditions" },
-    { "weeks": "8–10", "title": "Exam registration, test day briefing, TRF follow-up" }
+    {
+      "weeks": "1",
+      "title": "Diagnostic, target band, module confirmation"
+    },
+    {
+      "weeks": "2–8",
+      "title": "Coaching, homework, skill drills, speaking mocks"
+    },
+    {
+      "weeks": "6–8",
+      "title": "Full mocks under exam conditions"
+    },
+    {
+      "weeks": "8–10",
+      "title": "Exam registration, test day briefing, TRF follow-up"
+    }
   ],
   "relatedServices": [
-    { "label": "IELTS Academic Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000072" },
-    { "label": "IELTS Academic Crash Course", "libraryId": "b2000001-0001-4000-8000-000000000073" },
-    { "label": "IELTS General Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000074" },
-    { "label": "Canada — Express Entry PR", "libraryId": "b2000001-0001-4000-8000-000000000013" },
-    { "label": "Canada — Study Permit", "libraryId": "c35e6051-f40f-47bf-9cac-0a386c47a336" }
+    {
+      "label": "IELTS Academic Regular (with books)",
+      "libraryId": "b2000001-0001-4000-8000-000000000072"
+    },
+    {
+      "label": "IELTS Academic Crash Course",
+      "libraryId": "b2000001-0001-4000-8000-000000000073"
+    },
+    {
+      "label": "IELTS General Regular (with books)",
+      "libraryId": "b2000001-0001-4000-8000-000000000074"
+    },
+    {
+      "label": "Canada — Express Entry PR",
+      "libraryId": "b2000001-0001-4000-8000-000000000013"
+    },
+    {
+      "label": "Canada — Study Permit",
+      "libraryId": "c35e6051-f40f-47bf-9cac-0a386c47a336"
+    }
   ],
   "changelog": [
-    { "version": "v1.0", "date": "June 2026", "author": "Service Library", "summary": "Initial IELTS test reference — acceptance matrix, test day guide, module samples." }
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
+      "version": "v1.0",
+      "date": "June 2026",
+      "author": "Service Library",
+      "summary": "Initial IELTS test reference — acceptance matrix, test day guide, module samples."
+    }
   ],
   "staffNotes": [
-    { "author": "Coaching team", "date": "June 2026", "text": "This is the shared IELTS test reference. Program-specific batches (Regular, Crash, GT) link here for official test facts." }
+    {
+      "author": "Coaching team",
+      "date": "June 2026",
+      "text": "This is the shared IELTS test reference. Program-specific batches (Regular, Crash, GT) link here for official test facts."
+    }
   ],
   "resources": [
-    { "title": "IELTS — Official site", "url": "https://www.ielts.org/", "description": "Format, Academic vs GT, OSR" },
-    { "title": "IDP IELTS India — Book test", "url": "https://www.ieltsidpindia.com/", "description": "Sole IELTS booking channel in India — fees, dates, centers" },
-    { "title": "British Council India — IELTS prep", "url": "https://www.britishcouncil.in/exam/ielts/faqs", "description": "Prep courses only — BC does not deliver IELTS tests in India" },
-    { "title": "IRCC — Language requirements", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/language-requirements.html", "description": "CLB and accepted tests" },
-    { "title": "UKVI — Approved SELT tests", "url": "https://www.gov.uk/guidance/prove-your-english-language-abilities-with-a-secure-english-language-test-selt", "description": "UK visa English tests" }
+    {
+      "title": "IELTS — Official site",
+      "url": "https://www.ielts.org/",
+      "description": "Format, Academic vs GT, OSR"
+    },
+    {
+      "title": "IDP IELTS India — Book test",
+      "url": "https://www.ieltsidpindia.com/",
+      "description": "Sole IELTS booking channel in India — fees, dates, centers"
+    },
+    {
+      "title": "British Council India — IELTS prep",
+      "url": "https://www.britishcouncil.in/exam/ielts/faqs",
+      "description": "Prep courses only — BC does not deliver IELTS tests in India"
+    },
+    {
+      "title": "IRCC — Language requirements",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/language-requirements.html",
+      "description": "CLB and accepted tests"
+    },
+    {
+      "title": "UKVI — Approved SELT tests",
+      "url": "https://www.gov.uk/guidance/prove-your-english-language-abilities-with-a-secure-english-language-test-selt",
+      "description": "UK visa English tests"
+    }
   ],
   "donts": {
     "dos": [
@@ -244,20 +543,905 @@
     }
   ],
   "quiz": [
-    { "question": "IELTS Academic is typically required for:", "options": ["University study visas", "Canada citizenship only", "Driving licence", "Tourist visas only"], "correctIndex": 0, "explanation": "Universities and most study pathways require Academic.", "level": 1 },
-    { "question": "IELTS score validity is generally:", "options": ["6 months", "1 year", "2 years", "Lifetime"], "correctIndex": 2, "explanation": "Two years from test date for most uses.", "level": 1 },
-    { "question": "For Canada Express Entry FSW, CLB 7 equals approximately:", "options": ["IELTS 5.0 each", "IELTS 6.0 each", "IELTS 7.5 each", "IELTS 8.0 each"], "correctIndex": 1, "explanation": "CLB 7 maps to IELTS 6.0 in each skill.", "level": 2 },
-    { "question": "TOEFL iBT is accepted by IRCC for Canadian PR:", "options": ["Yes, always", "No", "Only for Quebec", "Only with job offer"], "correctIndex": 1, "explanation": "IRCC does not accept TOEFL for immigration.", "level": 2 },
-    { "question": "On test day, the student must bring:", "options": ["Passport photocopy", "Same valid passport as registration", "Aadhaar card", "Driving licence"], "correctIndex": 1, "explanation": "Original passport matching registration.", "level": 1 },
-    { "question": "Which item is prohibited in the IELTS test room?", "options": ["Transparent water bottle (if allowed)", "Mobile phone", "Passport", "Confirmation email printout (before check-in)"], "correctIndex": 1, "explanation": "Phones and smartwatches must be stored outside.", "level": 1 },
-    { "question": "UK Student Route often requires:", "options": ["Standard IELTS only", "IELTS UKVI Academic", "No English test", "CELPIP-General"], "correctIndex": 1, "explanation": "Many UK visas require UKVI SELT format.", "level": 2 },
-    { "question": "Counselors must never:", "options": ["Track mock scores", "Guarantee band 7", "Confirm module type", "Link TRF to visa file"], "correctIndex": 1, "explanation": "Band guarantees are prohibited.", "level": 1 },
-    { "question": "IELTS exam fee in India is paid to:", "options": ["Future Link only", "IDP IELTS India by student", "University", "Embassy"], "correctIndex": 1, "explanation": "Book and pay on ieltsidpindia.com — separate from coaching fee.", "level": 1 },
-    { "question": "Speaking test duration is approximately:", "options": ["5 minutes", "11–14 minutes", "30 minutes", "60 minutes"], "correctIndex": 1, "explanation": "Speaking is 11–14 minutes face-to-face.", "level": 1 },
-    { "question": "CD-IELTS results typically arrive in:", "options": ["Same day", "3–5 days", "8 weeks", "6 months"], "correctIndex": 1, "explanation": "Computer-delivered tests usually score faster.", "level": 2 },
-    { "question": "General Training is commonly used for:", "options": ["Canada PR and citizenship", "PhD research admission only", "Medical licensing only", "Internal FLC diagnostic"], "correctIndex": 0, "explanation": "GT is standard for many migration pathways.", "level": 2 },
-    { "question": "The correct order on test day for L/R/W is:", "options": ["Writing → Reading → Listening", "Listening → Reading → Writing", "Reading → Listening → Writing", "Random"], "correctIndex": 1, "explanation": "Fixed order: Listening, Reading, Writing.", "level": 2 },
-    { "question": "One Skill Retake (OSR) allows:", "options": ["Retaking one section within 60 days", "Free unlimited retakes", "Skipping Speaking", "Changing Academic to GT"], "correctIndex": 0, "explanation": "OSR retakes one section where offered.", "level": 3 },
-    { "question": "Before booking the exam, FLC policy recommends:", "options": ["Two mocks within 0.5 of target", "No mocks needed", "Guarantee band 8", "Book earliest date always"], "correctIndex": 0, "explanation": "Readiness based on mock performance.", "level": 2 }
+    {
+      "question": "IELTS Academic is typically required for:",
+      "options": [
+        "University study visas",
+        "Canada citizenship only",
+        "Driving licence",
+        "Tourist visas only"
+      ],
+      "correctIndex": 0,
+      "explanation": "Universities and most study pathways require Academic.",
+      "level": 1
+    },
+    {
+      "question": "IELTS score validity is generally:",
+      "options": [
+        "6 months",
+        "1 year",
+        "2 years",
+        "Lifetime"
+      ],
+      "correctIndex": 2,
+      "explanation": "Two years from test date for most uses.",
+      "level": 1
+    },
+    {
+      "question": "On test day, the student must bring:",
+      "options": [
+        "Passport photocopy",
+        "Same valid passport as registration",
+        "Aadhaar card",
+        "Driving licence"
+      ],
+      "correctIndex": 1,
+      "explanation": "Original passport matching registration.",
+      "level": 1
+    },
+    {
+      "question": "Which item is prohibited in the IELTS test room?",
+      "options": [
+        "Transparent water bottle (if allowed)",
+        "Mobile phone",
+        "Passport",
+        "Confirmation email printout (before check-in)"
+      ],
+      "correctIndex": 1,
+      "explanation": "Phones and smartwatches must be stored outside.",
+      "level": 1
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Track mock scores",
+        "Guarantee band 7",
+        "Confirm module type",
+        "Link TRF to visa file"
+      ],
+      "correctIndex": 1,
+      "explanation": "Band guarantees are prohibited.",
+      "level": 1
+    },
+    {
+      "question": "IELTS exam fee in India is paid to:",
+      "options": [
+        "Future Link only",
+        "IDP IELTS India by student",
+        "University",
+        "Embassy"
+      ],
+      "correctIndex": 1,
+      "explanation": "Book and pay on ieltsidpindia.com — separate from coaching fee.",
+      "level": 1
+    },
+    {
+      "question": "Speaking test duration is approximately:",
+      "options": [
+        "5 minutes",
+        "11–14 minutes",
+        "30 minutes",
+        "60 minutes"
+      ],
+      "correctIndex": 1,
+      "explanation": "Speaking is 11–14 minutes face-to-face.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For IELTS — International English Language Testing System, which statement about Description is correct?",
+      "options": [
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…",
+        "IDP IELTS India — book at ieltsidpindia.com only (sole distributor since July 2021). British Council India offers prep courses, not exam registration. FLC coac…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study, work, and migration worldwide."
+    },
+    {
+      "level": 1,
+      "question": "IELTS — International English Language Testing System: what is true regarding Modules?",
+      "options": [
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…",
+        "IDP IELTS India — book at ieltsidpindia.com only (sole distributor since July 2021). British Council India offers prep courses, not exam registration. FLC coac…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS — International English Language Testing System should state correctly about Academic vs GT:",
+      "options": [
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "IDP IELTS India — book at ieltsidpindia.com only (sole distributor since July 2021). British Council India offers prep courses, not exam registration. FLC coac…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading & Writing. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For IELTS — International English Language Testing System, which statement about Test authority (India) is correct?",
+      "options": [
+        "IDP IELTS India — book at ieltsidpindia.com only (sole distributor since July 2021). British Council India offers prep courses, not exam registration. FLC coac…",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "IDP IELTS India — book at ieltsidpindia.com only (sole distributor since July 2021). British Council India offers prep courses, not exam registration. FLC coaching fee is separate from exam fee."
+    },
+    {
+      "level": 1,
+      "question": "IELTS — International English Language Testing System: what is true regarding Delivery modes?",
+      "options": [
+        "Paper-based, Computer-delivered (CD-IELTS), IELTS UKVI (SELT for UK visas), One Skill Retake (OSR) where available.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Paper-based, Computer-delivered (CD-IELTS), IELTS UKVI (SELT for UK visas), One Skill Retake (OSR) where available."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS — International English Language Testing System should state correctly about India test centers:",
+      "options": [
+        "Ahmedabad, Bengaluru, Chandigarh, Chennai, Delhi, Hyderabad, Kolkata, Mumbai, Pune, and other cities — verify current list on booking portal.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Ahmedabad, Bengaluru, Chandigarh, Chennai, Delhi, Hyderabad, Kolkata, Mumbai, Pune, and other cities — verify current list on booking portal."
+    },
+    {
+      "level": 1,
+      "question": "For IELTS — International English Language Testing System, which statement about After the test is correct?",
+      "options": [
+        "TRF (Test Report Form) issued; up to 5 free electronic sends to institutions. Hand TRF to admissions or visa team when target met.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "TRF (Test Report Form) issued; up to 5 free electronic sends to institutions. Hand TRF to admissions or visa team when target met."
+    },
+    {
+      "level": 1,
+      "question": "IELTS — International English Language Testing System: what is true regarding Valid passport for registration and test day?",
+      "options": [
+        "Valid passport for registration and test day is a core requirement for this service.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Valid passport for registration and test day"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS — International English Language Testing System should state correctly about Correct module selected (Academic / GT / UKVI):",
+      "options": [
+        "Correct module selected (Academic / GT / UKVI) is a core requirement for this service.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Correct module selected (Academic / GT / UKVI)"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS — International English Language Testing System, which statement about Name on registration matches passport exactly is correct?",
+      "options": [
+        "Name on registration matches passport exactly is a core requirement for this service.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Name on registration matches passport exactly"
+    },
+    {
+      "level": 1,
+      "question": "IELTS — International English Language Testing System: what is true regarding Test date allows TRF before visa / uni deadline?",
+      "options": [
+        "Test date allows TRF before visa / uni deadline is a core requirement for this service.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Test date allows TRF before visa / uni deadline"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS — International English Language Testing System should state correctly about Minimum age — no upper limit; minors need guardian consent per center:",
+      "options": [
+        "Minimum age — no upper limit; minors need guardian consent per center is a core requirement for this service.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Minimum age — no upper limit; minors need guardian consent per center"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS — International English Language Testing System, which statement about Exam duration is correct?",
+      "options": [
+        "Exam duration: ~2h 45m — 4 modules + speaking slot",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "4 modules + speaking slot"
+    },
+    {
+      "level": 1,
+      "question": "IELTS — International English Language Testing System: what is true regarding Exam fee (India)?",
+      "options": [
+        "Exam fee (India): Verify IDP — Paid on ieltsidpindia.com",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Paid on ieltsidpindia.com"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS — International English Language Testing System should state correctly about Score validity:",
+      "options": [
+        "Score validity: 2 years — From test date",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "From test date"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS — International English Language Testing System, which statement about Results is correct?",
+      "options": [
+        "Results: 3–13 days — CD-IELTS faster",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "CD-IELTS faster"
+    },
+    {
+      "level": 1,
+      "question": "IELTS — International English Language Testing System: what is true regarding service summary?",
+      "options": [
+        "IDP India · Academic & General Training · Band 0–9 · 2-year validity",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "IDP India · Academic & General Training · Band 0–9 · 2-year validity"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS — International English Language Testing System should state correctly about Academic vs General Training:",
+      "options": [
+        "University and most study visas require IELTS Academic. Canada PR and UK settlement typically require General Training (or Academic where stated). Confirm modu…",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "University and most study visas require IELTS Academic. Canada PR and UK settlement typically require General Training (or Academic where stated). Confirm module before enrollment and exam registration."
+    },
+    {
+      "question": "For Canada Express Entry FSW, CLB 7 equals approximately:",
+      "options": [
+        "IELTS 5.0 each",
+        "IELTS 6.0 each",
+        "IELTS 7.5 each",
+        "IELTS 8.0 each"
+      ],
+      "correctIndex": 1,
+      "explanation": "CLB 7 maps to IELTS 6.0 in each skill.",
+      "level": 2
+    },
+    {
+      "question": "TOEFL iBT is accepted by IRCC for Canadian PR:",
+      "options": [
+        "Yes, always",
+        "No",
+        "Only for Quebec",
+        "Only with job offer"
+      ],
+      "correctIndex": 1,
+      "explanation": "IRCC does not accept TOEFL for immigration.",
+      "level": 2
+    },
+    {
+      "question": "UK Student Route often requires:",
+      "options": [
+        "Standard IELTS only",
+        "IELTS UKVI Academic",
+        "No English test",
+        "CELPIP-General"
+      ],
+      "correctIndex": 1,
+      "explanation": "Many UK visas require UKVI SELT format.",
+      "level": 2
+    },
+    {
+      "question": "CD-IELTS results typically arrive in:",
+      "options": [
+        "Same day",
+        "3–5 days",
+        "8 weeks",
+        "6 months"
+      ],
+      "correctIndex": 1,
+      "explanation": "Computer-delivered tests usually score faster.",
+      "level": 2
+    },
+    {
+      "question": "General Training is commonly used for:",
+      "options": [
+        "Canada PR and citizenship",
+        "PhD research admission only",
+        "Medical licensing only",
+        "Internal FLC diagnostic"
+      ],
+      "correctIndex": 0,
+      "explanation": "GT is standard for many migration pathways.",
+      "level": 2
+    },
+    {
+      "question": "The correct order on test day for L/R/W is:",
+      "options": [
+        "Writing → Reading → Listening",
+        "Listening → Reading → Writing",
+        "Reading → Listening → Writing",
+        "Random"
+      ],
+      "correctIndex": 1,
+      "explanation": "Fixed order: Listening, Reading, Writing.",
+      "level": 2
+    },
+    {
+      "question": "Before booking the exam, FLC policy recommends:",
+      "options": [
+        "Two mocks within 0.5 of target",
+        "No mocks needed",
+        "Guarantee band 8",
+        "Book earliest date always"
+      ],
+      "correctIndex": 0,
+      "explanation": "Readiness based on mock performance.",
+      "level": 2
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS — International English Language Testing System process, what is the correct approach to client question: Academic vs General Training — which one?",
+      "options": [
+        "Academic for university and most study visas. GT for Canada PR, citizenship, and many work/settlement routes. Confirm with destination country rules.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Academic for university and most study visas. GT for Canada PR, citizenship, and many work/settlement routes. Confirm with destination country rules."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS — International English Language Testing System, what should happen during client question: Who pays the IELTS exam fee?",
+      "options": [
+        "In India, the student pays IDP IELTS India directly when registering on ieltsidpindia.com. FLC coaching fee is separate.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "In India, the student pays IDP IELTS India directly when registering on ieltsidpindia.com. FLC coaching fee is separate."
+    },
+    {
+      "level": 2,
+      "question": "IELTS — International English Language Testing System workflow — best practice for client question: CD-IELTS vs paper — any difference:",
+      "options": [
+        "Same content and scoring. CD-IELTS usually has faster results (3–5 days). Speaking is still face-to-face with examiner.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Same content and scoring. CD-IELTS usually has faster results (3–5 days). Speaking is still face-to-face with examiner."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS — International English Language Testing System process, what is the correct approach to client question: Can Future Link guarantee band 7?",
+      "options": [
+        "No. We set targets from diagnostics and mocks. Outcomes depend on student effort, attendance, and exam performance.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "No. We set targets from diagnostics and mocks. Outcomes depend on student effort, attendance, and exam performance."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS — International English Language Testing System, what should happen during client question: Is TOEFL accepted for Canada PR?",
+      "options": [
+        "No. IRCC accepts IELTS (GT or Academic per program) and CELPIP-General — not TOEFL or Duolingo for immigration.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "No. IRCC accepts IELTS (GT or Academic per program) and CELPIP-General — not TOEFL or Duolingo for immigration."
+    },
+    {
+      "level": 2,
+      "question": "IELTS — International English Language Testing System workflow — best practice for client question: What is IELTS UKVI:",
+      "options": [
+        "Secure English Language Test format required for many UK visa applications. Book UKVI at an approved SELT center — standard IELTS may not count.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Secure English Language Test format required for many UK visa applications. Book UKVI at an approved SELT center — standard IELTS may not count."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS — International English Language Testing System process, what is the correct approach to client question: How long is IELTS valid?",
+      "options": [
+        "Two years from the test date for most immigration and university purposes.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Two years from the test date for most immigration and university purposes."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS — International English Language Testing System, what should happen during client question: What is One Skill Retake (OSR)?",
+      "options": [
+        "Retake one section within 60 days of a full test where offered. Confirm eligibility on ielts.org before advising.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Retake one section within 60 days of a full test where offered. Confirm eligibility on ielts.org before advising."
+    },
+    {
+      "level": 2,
+      "question": "IELTS — International English Language Testing System workflow — best practice for client question: How many free TRF sends:",
+      "options": [
+        "Up to five institutions included; additional sends may incur a fee.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Up to five institutions included; additional sends may incur a fee."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS — International English Language Testing System process, what is the correct approach to client question: Speaking on a different day — is that normal?",
+      "options": [
+        "Yes. Speaking may be scheduled up to 7 days before or after L/R/W.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes. Speaking may be scheduled up to 7 days before or after L/R/W."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS — International English Language Testing System, what should happen during For Canada Express Entry FSW, CLB 7 equals approximately:?",
+      "options": [
+        "IELTS 6.0 each",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "CLB 7 maps to IELTS 6.0 in each skill."
+    },
+    {
+      "level": 2,
+      "question": "IELTS — International English Language Testing System workflow — best practice for TOEFL iBT is accepted by IRCC for Canadian PR::",
+      "options": [
+        "No",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC does not accept TOEFL for immigration."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS — International English Language Testing System process, what is the correct approach to UK Student Route often requires:?",
+      "options": [
+        "IELTS UKVI Academic",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Many UK visas require UKVI SELT format."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS — International English Language Testing System, what should happen during CD-IELTS results typically arrive in:?",
+      "options": [
+        "3–5 days",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Computer-delivered tests usually score faster."
+    },
+    {
+      "level": 2,
+      "question": "IELTS — International English Language Testing System workflow — best practice for General Training is commonly used for::",
+      "options": [
+        "Canada PR and citizenship",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "GT is standard for many migration pathways."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS — International English Language Testing System process, what is the correct approach to The correct order on test day for L/R/W is:?",
+      "options": [
+        "Listening → Reading → Writing",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Fixed order: Listening, Reading, Writing."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS — International English Language Testing System, what should happen during Before booking the exam, FLC policy recommends:?",
+      "options": [
+        "Two mocks within 0.5 of target",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Readiness based on mock performance."
+    },
+    {
+      "level": 2,
+      "question": "IELTS — International English Language Testing System workflow — best practice for timeline (1):",
+      "options": [
+        "Diagnostic, target band, module confirmation",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "1: Diagnostic, target band, module confirmation"
+    },
+    {
+      "question": "One Skill Retake (OSR) allows:",
+      "options": [
+        "Retaking one section within 60 days",
+        "Free unlimited retakes",
+        "Skipping Speaking",
+        "Changing Academic to GT"
+      ],
+      "correctIndex": 0,
+      "explanation": "OSR retakes one section where offered.",
+      "level": 3
+    },
+    {
+      "level": 3,
+      "question": "IELTS — International English Language Testing System: what is the compliance risk with One Skill Retake (OSR) allows:?",
+      "options": [
+        "Retaking one section within 60 days",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "OSR retakes one section where offered."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS — International English Language Testing System — key issue with GT student booked Academic (or reverse):",
+      "options": [
+        "Cancel and rebook correct module before test day",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Module does not match migration or study pathway."
+    },
+    {
+      "level": 3,
+      "question": "For IELTS — International English Language Testing System, counselors must avoid this mistake related to GT student booked Academic (or reverse) (detail):",
+      "options": [
+        "Module does not match migration or study pathway.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Cancel and rebook correct module before test day"
+    },
+    {
+      "level": 3,
+      "question": "IELTS — International English Language Testing System: what is the compliance risk with UK visa but standard IELTS booked?",
+      "options": [
+        "Rebook IELTS UKVI at approved center",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "UKVI SELT required for many UK visa routes."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS — International English Language Testing System — key issue with UK visa but standard IELTS booked (detail):",
+      "options": [
+        "UKVI SELT required for many UK visa routes.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Rebook IELTS UKVI at approved center"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS — International English Language Testing System, counselors must avoid this mistake related to Name ≠ passport:",
+      "options": [
+        "Contact IDP IELTS India to correct before test day",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Registration name mismatch."
+    },
+    {
+      "level": 3,
+      "question": "IELTS — International English Language Testing System: what is the compliance risk with Name ≠ passport (detail)?",
+      "options": [
+        "Registration name mismatch.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Contact IDP IELTS India to correct before test day"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS — International English Language Testing System — key issue with Mocks far below target:",
+      "options": [
+        "Postpone exam; extra mocks and skill work",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Student not exam-ready."
+    },
+    {
+      "level": 3,
+      "question": "For IELTS — International English Language Testing System, counselors must avoid this mistake related to Mocks far below target (detail):",
+      "options": [
+        "Student not exam-ready.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Postpone exam; extra mocks and skill work"
+    },
+    {
+      "level": 3,
+      "question": "IELTS — International English Language Testing System: what is the compliance risk with Expired passport at booking?",
+      "options": [
+        "Renew passport before registering",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Cannot test or TRF may be invalid."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS — International English Language Testing System — key issue with Expired passport at booking (detail):",
+      "options": [
+        "Cannot test or TRF may be invalid.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Renew passport before registering"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS — International English Language Testing System, counselors must avoid this mistake related to Guaranteed score promised:",
+      "options": [
+        "Compliance issue — never guarantee bands",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Sales or counselor over-commitment."
+    },
+    {
+      "level": 3,
+      "question": "IELTS — International English Language Testing System: what is the compliance risk with Guaranteed score promised (detail)?",
+      "options": [
+        "Sales or counselor over-commitment.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Compliance issue — never guarantee bands"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS — International English Language Testing System — key issue with counselor don't:",
+      "options": [
+        "Guarantee a band score",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Guarantee a band score"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS — International English Language Testing System, counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Quote exam fee without verifying on ieltsidpindia.com",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Quote exam fee without verifying on ieltsidpindia.com"
+    },
+    {
+      "level": 3,
+      "question": "IELTS — International English Language Testing System: what is the compliance risk with counselor don't?",
+      "options": [
+        "Book exam before mocks support target",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Book exam before mocks support target"
+    },
+    {
+      "level": 3,
+      "question": "IELTS — International English Language Testing System: what is the compliance risk with common mistake?",
+      "options": [
+        "Target 7.0 from diagnostic 5.0 in 4 weeks",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Target 7.0 from diagnostic 5.0 in 4 weeks"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS — International English Language Testing System — key issue with common mistake:",
+      "options": [
+        "Wrong name on registration vs passport",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Wrong name on registration vs passport"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS — International English Language Testing System, counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Standard IELTS for UK Student Route when UKVI required",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Standard IELTS for UK Student Route when UKVI required"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS — International English Language Testing System — key issue with compliance rule:",
+      "options": [
+        "Never guarantee an IELTS band score",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee an IELTS band score"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS — International English Language Testing System, counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Separate coaching fee from exam registration fee on all quotes",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Separate coaching fee from exam registration fee on all quotes"
+    },
+    {
+      "level": 3,
+      "question": "IELTS — International English Language Testing System: what is the compliance risk with compliance rule?",
+      "options": [
+        "Verify exam fee on ieltsidpindia.com before quoting",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify exam fee on ieltsidpindia.com before quoting"
+    },
+    {
+      "level": 3,
+      "question": "IELTS — International English Language Testing System: what is the compliance risk with refusal handling?",
+      "options": [
+        "Wrong module, name mismatch, or mocks far below target — pause exam booking and fix before test day. Never guarantee a band score.",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Wrong module, name mismatch, or mocks far below target — pause exam booking and fix before test day. Never guarantee a band score."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS — International English Language Testing System — key issue with Client satisfaction:",
+      "options": [
+        "Our target: 88% vs benchmark 74%",
+        "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study…",
+        "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after.",
+        "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading &…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Client satisfaction"
+    }
   ]
 }

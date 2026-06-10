@@ -49,6 +49,7 @@ Guides
 | **Sprint 0 Readiness Report** | [SPRINT_0_READINESS_REPORT.md](./SPRINT_0_READINESS_REPORT.md) | Engineering |
 | **Sprint 1 Complete** | [SPRINT_1_COMPLETE.md](./SPRINT_1_COMPLETE.md) | Engineering |
 | **Sprint 2 Complete** | [SPRINT_2_COMPLETE.md](./SPRINT_2_COMPLETE.md) | Engineering |
+| **Sprint 5 Complete** | [SPRINT_5_COMPLETE.md](./SPRINT_5_COMPLETE.md) | Engineering |
 | Schema manifest (wallet/incentive) | [OFFERS_WALLET_INCENTIVE_MANIFEST.md](../supabase/schema-export/OFFERS_WALLET_INCENTIVE_MANIFEST.md) | Engineering |
 
 ## Adding a guide

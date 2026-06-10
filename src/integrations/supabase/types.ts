@@ -15153,11 +15153,42 @@ export type Database = {
         }
         Relationships: []
       }
+      approved_offer_types: {
+        Row: {
+          counselor_self_serve: boolean
+          created_at: string
+          label: string
+          offer_type: string
+          requires_admin: boolean
+          requires_manager_approval: boolean
+          sort_order: number
+        }
+        Insert: {
+          counselor_self_serve?: boolean
+          created_at?: string
+          label: string
+          offer_type: string
+          requires_admin?: boolean
+          requires_manager_approval?: boolean
+          sort_order?: number
+        }
+        Update: {
+          counselor_self_serve?: boolean
+          created_at?: string
+          label?: string
+          offer_type?: string
+          requires_admin?: boolean
+          requires_manager_approval?: boolean
+          sort_order?: number
+        }
+        Relationships: []
+      }
       wallet_settings: {
         Row: {
           grace_days: number
           grace_unit: string
           id: number
+          spend_order: Database["public"]["Enums"]["wallet_spend_order"]
           target_base_pct: number
           unlock_threshold_pct: number
           updated_at: string
@@ -15166,6 +15197,7 @@ export type Database = {
           grace_days?: number
           grace_unit?: string
           id?: number
+          spend_order?: Database["public"]["Enums"]["wallet_spend_order"]
           target_base_pct?: number
           unlock_threshold_pct?: number
           updated_at?: string
@@ -15174,6 +15206,7 @@ export type Database = {
           grace_days?: number
           grace_unit?: string
           id?: number
+          spend_order?: Database["public"]["Enums"]["wallet_spend_order"]
           target_base_pct?: number
           unlock_threshold_pct?: number
           updated_at?: string
@@ -16367,8 +16400,17 @@ export type Database = {
           _lead_id?: string
           _offer_id?: string
           _percent?: number
+          _wallet_id?: string
         }
         Returns: Json
+      }
+      fn_counselor_wallets_for_period: {
+        Args: {
+          _client_id?: string
+          _lead_id?: string
+          _period_key?: string
+        }
+        Returns: Database["public"]["Tables"]["discount_wallets"]["Row"][]
       }
       fn_clone_offer: { Args: { _offer_id: string }; Returns: string }
       fn_compute_performance_score: {
@@ -16856,6 +16898,7 @@ export type Database = {
         | "client"
       wallet_alloc_status: "reserved" | "applied" | "reversed"
       wallet_budget_kind: "month_to_month" | "festive" | "scoped"
+      wallet_spend_order: "strategic_first" | "personal_first" | "parallel"
       wallet_rollover_policy: "expire" | "partial" | "full"
     }
     CompositeTypes: {
@@ -17132,6 +17175,7 @@ export const Constants = {
       ],
       wallet_alloc_status: ["reserved", "applied", "reversed"],
       wallet_budget_kind: ["month_to_month", "festive", "scoped"],
+      wallet_spend_order: ["strategic_first", "personal_first", "parallel"],
       wallet_rollover_policy: ["expire", "partial", "full"],
     },
   },

@@ -1,7 +1,7 @@
 {
   "displayName": "CELPIP General",
   "shortDescription": "Canada IRCC · CLB scored · Express Entry & citizenship pathways",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated June 2026",
@@ -213,6 +213,12 @@
   "relatedServices": [],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
       "version": "v1.0",
       "date": "June 2026",
       "author": "Service Library",
@@ -321,6 +327,246 @@
       "level": 1
     },
     {
+      "level": 1,
+      "question": "For CELPIP General, which statement about Description is correct?",
+      "options": [
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy.",
+        "Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."
+      ],
+      "correctIndex": 0,
+      "explanation": "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking."
+    },
+    {
+      "level": 1,
+      "question": "CELPIP General: what is true regarding Ideal for?",
+      "options": [
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Classroom or hybrid per branch schedule. Materials per program policy.",
+        "Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."
+      ],
+      "correctIndex": 0,
+      "explanation": "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic)."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining CELPIP General should state correctly about Delivery:",
+      "options": [
+        "Classroom or hybrid per branch schedule. Materials per program policy.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."
+      ],
+      "correctIndex": 0,
+      "explanation": "Classroom or hybrid per branch schedule. Materials per program policy."
+    },
+    {
+      "level": 1,
+      "question": "For CELPIP General, which statement about After course is correct?",
+      "options": [
+        "Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."
+    },
+    {
+      "level": 1,
+      "question": "CELPIP General: what is true regarding Diagnostic or prior score on file?",
+      "options": [
+        "Diagnostic or prior score on file is a core requirement for this service.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Diagnostic or prior score on file"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining CELPIP General should state correctly about Realistic target vs current level:",
+      "options": [
+        "Realistic target vs current level is a core requirement for this service.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Realistic target vs current level"
+    },
+    {
+      "level": 1,
+      "question": "For CELPIP General, which statement about Batch timing suits student schedule is correct?",
+      "options": [
+        "Batch timing suits student schedule is a core requirement for this service.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Batch timing suits student schedule"
+    },
+    {
+      "level": 1,
+      "question": "CELPIP General: what is true regarding Enrollment agreement signed?",
+      "options": [
+        "Enrollment agreement signed is a core requirement for this service.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Enrollment agreement signed"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining CELPIP General should state correctly about Course fee collected:",
+      "options": [
+        "Course fee collected is a core requirement for this service.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Course fee collected"
+    },
+    {
+      "level": 1,
+      "question": "For CELPIP General, which statement about Course duration is correct?",
+      "options": [
+        "Course duration: 6–8 weeks — Regular batch",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Regular batch"
+    },
+    {
+      "level": 1,
+      "question": "CELPIP General: what is true regarding Target achievement?",
+      "options": [
+        "Target achievement: — — Track on client file",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Track on client file"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining CELPIP General should state correctly about Enrollment docs:",
+      "options": [
+        "Enrollment docs: 6+ — Agreement + diagnostic",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Agreement + diagnostic"
+    },
+    {
+      "level": 1,
+      "question": "For CELPIP General, which statement about service summary is correct?",
+      "options": [
+        "Canada IRCC · CLB scored · Express Entry & citizenship pathways",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Canada IRCC · CLB scored · Express Entry & citizenship pathways"
+    },
+    {
+      "level": 1,
+      "question": "CELPIP General: what is true regarding CELPIP-General for Canada only?",
+      "options": [
+        "CELPIP-General is accepted by IRCC for Canadian immigration and citizenship — not for USA, UK, or Australia study visas. Confirm pathway before enrollment.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "CELPIP-General is accepted by IRCC for Canadian immigration and citizenship — not for USA, UK, or Australia study visas. Confirm pathway before enrollment."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining CELPIP General should state correctly about policy update:",
+      "options": [
+        "Verify CELPIP-General exam fee and dates on the official booking portal before quoting. Coaching fee is separate. Never guarantee a score.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify CELPIP-General exam fee and dates on the official booking portal before quoting. Coaching fee is separate. Never guarantee a score."
+    },
+    {
+      "level": 1,
+      "question": "For CELPIP General, which statement about CELPIP vs IELTS for Canada PR is correct?",
+      "options": [
+        "Both accepted by IRCC when taken in the correct format (CELPIP-General; IELTS GT or Academic per program). Choose based on student strength and seat availabili…",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Both accepted by IRCC when taken in the correct format (CELPIP-General; IELTS GT or Academic per program). Choose based on student strength and seat availability."
+    },
+    {
+      "level": 1,
+      "question": "CELPIP General: what is true regarding CELPIP-General vs CELPIP Academic?",
+      "options": [
+        "IRCC immigration uses CELPIP-General. Academic is for select professional designations — not standard Express Entry.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC immigration uses CELPIP-General. Academic is for select professional designations — not standard Express Entry."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining CELPIP General should state correctly about How does CELPIP map to CLB:",
+      "options": [
+        "CELPIP levels map directly to CLB (e.g. CELPIP 7 = CLB 7 in each skill).",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "CELPIP levels map directly to CLB (e.g. CELPIP 7 = CLB 7 in each skill)."
+    },
+    {
+      "level": 1,
+      "question": "For CELPIP General, which statement about Who pays the CELPIP exam fee is correct?",
+      "options": [
+        "Student pays Paragon/celpip.ca directly. FLC coaching fee is separate.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Student pays Paragon/celpip.ca directly. FLC coaching fee is separate."
+    },
+    {
+      "level": 1,
+      "question": "CELPIP General: what is true regarding Can Future Link guarantee CLB 9?",
+      "options": [
+        "No. Targets come from diagnostics and mocks — never guarantee scores.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Targets come from diagnostics and mocks — never guarantee scores."
+    },
+    {
       "question": "Enrollment agreement for CELPIP General should be signed:",
       "options": [
         "After course ends",
@@ -417,6 +663,210 @@
       "level": 2
     },
     {
+      "level": 2,
+      "question": "In the CELPIP General process, what is the correct approach to client question: CELPIP vs IELTS for Canada PR?",
+      "options": [
+        "Both accepted by IRCC when taken in the correct format (CELPIP-General; IELTS GT or Academic per program). Choose based on student strength and seat availabili…",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Both accepted by IRCC when taken in the correct format (CELPIP-General; IELTS GT or Academic per program). Choose based on student strength and seat availability."
+    },
+    {
+      "level": 2,
+      "question": "For CELPIP General, what should happen during client question: CELPIP-General vs CELPIP Academic?",
+      "options": [
+        "IRCC immigration uses CELPIP-General. Academic is for select professional designations — not standard Express Entry.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC immigration uses CELPIP-General. Academic is for select professional designations — not standard Express Entry."
+    },
+    {
+      "level": 2,
+      "question": "CELPIP General workflow — best practice for client question: How does CELPIP map to CLB:",
+      "options": [
+        "CELPIP levels map directly to CLB (e.g. CELPIP 7 = CLB 7 in each skill).",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "CELPIP levels map directly to CLB (e.g. CELPIP 7 = CLB 7 in each skill)."
+    },
+    {
+      "level": 2,
+      "question": "In the CELPIP General process, what is the correct approach to client question: Who pays the CELPIP exam fee?",
+      "options": [
+        "Student pays Paragon/celpip.ca directly. FLC coaching fee is separate.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Student pays Paragon/celpip.ca directly. FLC coaching fee is separate."
+    },
+    {
+      "level": 2,
+      "question": "For CELPIP General, what should happen during client question: Can Future Link guarantee CLB 9?",
+      "options": [
+        "No. Targets come from diagnostics and mocks — never guarantee scores.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Targets come from diagnostics and mocks — never guarantee scores."
+    },
+    {
+      "level": 2,
+      "question": "CELPIP General workflow — best practice for client question: Is TOEFL accepted for Canada PR:",
+      "options": [
+        "No. IRCC accepts IELTS and CELPIP-General (and CELPIP per program rules) — not TOEFL.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. IRCC accepts IELTS and CELPIP-General (and CELPIP per program rules) — not TOEFL."
+    },
+    {
+      "level": 2,
+      "question": "In the CELPIP General process, what is the correct approach to client question: How long is CELPIP valid?",
+      "options": [
+        "Two years from test date for most IRCC purposes.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Two years from test date for most IRCC purposes."
+    },
+    {
+      "level": 2,
+      "question": "For CELPIP General, what should happen during client question: Where is CELPIP taken?",
+      "options": [
+        "At Paragon test centers — verify celpip.ca for India/Canada availability.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "At Paragon test centers — verify celpip.ca for India/Canada availability."
+    },
+    {
+      "level": 2,
+      "question": "CELPIP General workflow — best practice for Enrollment agreement for CELPIP General should be signed::",
+      "options": [
+        "Before batch start",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Signed agreement before classes begin."
+    },
+    {
+      "level": 2,
+      "question": "In the CELPIP General process, what is the correct approach to Before advising official exam booking for CELPIP General:?",
+      "options": [
+        "Mocks support agreed target",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Readiness should be based on mock performance."
+    },
+    {
+      "level": 2,
+      "question": "For CELPIP General, what should happen during When attendance drops below 80% in CELPIP General:?",
+      "options": [
+        "Counselor review and intervention",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Attendance issues require counselor follow-up."
+    },
+    {
+      "level": 2,
+      "question": "CELPIP General workflow — best practice for Official score report for CELPIP General should be::",
+      "options": [
+        "Logged on client file and shared with visa/admissions team",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Score reports must be documented and handed off when relevant."
+    },
+    {
+      "level": 2,
+      "question": "In the CELPIP General process, what is the correct approach to CELPIP level 7 equals approximately:?",
+      "options": [
+        "CLB 7",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "CELPIP scores map 1:1 to CLB levels."
+    },
+    {
+      "level": 2,
+      "question": "For CELPIP General, what should happen during For Canada Express Entry FSW, CLB 7 typically requires:?",
+      "options": [
+        "CELPIP 7 each skill",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "CLB 7 = CELPIP 7 in each skill."
+    },
+    {
+      "level": 2,
+      "question": "CELPIP General workflow — best practice for TOEFL iBT is accepted by IRCC for Canadian PR::",
+      "options": [
+        "No",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC does not accept TOEFL for immigration."
+    },
+    {
+      "level": 2,
+      "question": "In the CELPIP General process, what is the correct approach to CELPIP score validity for immigration is generally:?",
+      "options": [
+        "2 years",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Two years from test date for most IRCC uses."
+    },
+    {
+      "level": 2,
+      "question": "For CELPIP General, what should happen during timeline (1)?",
+      "options": [
+        "Diagnostic, enrollment, batch allocation",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "1: Diagnostic, enrollment, batch allocation"
+    },
+    {
       "question": "A student with unrealistic target timeline for CELPIP General should:",
       "options": [
         "Enroll in crash anyway",
@@ -499,6 +949,222 @@
       "correctIndex": 1,
       "explanation": "US admissions rarely use CELPIP — confirm university list.",
       "level": 3
+    },
+    {
+      "level": 3,
+      "question": "CELPIP General: what is the compliance risk with A student with unrealistic target timeline for CELPIP General should:?",
+      "options": [
+        "Reset timeline or program variant",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Unrealistic timelines must be corrected before enrollment."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on CELPIP General — key issue with Sales promising a guaranteed band/score for CELPIP General is::",
+      "options": [
+        "A compliance violation",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee exam outcomes."
+    },
+    {
+      "level": 3,
+      "question": "For CELPIP General, counselors must avoid this mistake related to Retake planning for CELPIP General should be based on::",
+      "options": [
+        "Skill-gap analysis from official results",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Retakes need structured gap analysis."
+    },
+    {
+      "level": 3,
+      "question": "CELPIP General: what is the compliance risk with Visa/admissions team handoff for CELPIP General happens when:?",
+      "options": [
+        "Target met and official report available",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Hand off when target is met and documentation is on file."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on CELPIP General — key issue with CELPIP Academic is suitable for most IRCC PR applications::",
+      "options": [
+        "No — IRCC accepts CELPIP-General for most PR",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC immigration generally requires CELPIP-General, not Academic."
+    },
+    {
+      "level": 3,
+      "question": "For CELPIP General, counselors must avoid this mistake related to CELPIP is administered by::",
+      "options": [
+        "Paragon Testing / celpip.ca",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Paragon Testing Enterprises administers CELPIP in Canada."
+    },
+    {
+      "level": 3,
+      "question": "CELPIP General: what is the compliance risk with A student needing USA F-1 admission should typically consider:?",
+      "options": [
+        "TOEFL or IELTS Academic per university",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "US admissions rarely use CELPIP — confirm university list."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on CELPIP General — key issue with Unrealistic target:",
+      "options": [
+        "Reset timeline or recommend appropriate program",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Large gap expected in very short timeline."
+    },
+    {
+      "level": 3,
+      "question": "For CELPIP General, counselors must avoid this mistake related to Unrealistic target (detail):",
+      "options": [
+        "Large gap expected in very short timeline.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Reset timeline or recommend appropriate program"
+    },
+    {
+      "level": 3,
+      "question": "CELPIP General: what is the compliance risk with Chronic absenteeism?",
+      "options": [
+        "Counselor call, batch change, or pause",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Below 80% attendance."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on CELPIP General — key issue with Chronic absenteeism (detail):",
+      "options": [
+        "Below 80% attendance.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Counselor call, batch change, or pause"
+    },
+    {
+      "level": 3,
+      "question": "For CELPIP General, counselors must avoid this mistake related to Guaranteed score promised:",
+      "options": [
+        "Compliance issue — never guarantee scores",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sales or counselor over-commitment."
+    },
+    {
+      "level": 3,
+      "question": "CELPIP General: what is the compliance risk with Guaranteed score promised (detail)?",
+      "options": [
+        "Sales or counselor over-commitment.",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Compliance issue — never guarantee scores"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on CELPIP General — key issue with counselor don't:",
+      "options": [
+        "Guarantee scores",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Guarantee scores"
+    },
+    {
+      "level": 3,
+      "question": "For CELPIP General, counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Book exam before readiness",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Book exam before readiness"
+    },
+    {
+      "level": 3,
+      "question": "CELPIP General: what is the compliance risk with counselor don't?",
+      "options": [
+        "Skip enrollment agreement",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Skip enrollment agreement"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on CELPIP General — key issue with common mistake:",
+      "options": [
+        "Unrealistic target timeline",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Unrealistic target timeline"
+    },
+    {
+      "level": 3,
+      "question": "For CELPIP General, counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "No mock before exam date",
+        "Structured CELPIP General preparation with trainer-led classes, homework, and progress tracking.",
+        "Canada PR, citizenship, and pathways accepting CELPIP-General (not Academic).",
+        "Classroom or hybrid per branch schedule. Materials per program policy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: No mock before exam date"
     }
   ],
   "compare": {

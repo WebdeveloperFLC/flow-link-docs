@@ -1,7 +1,7 @@
 {
   "displayName": "IELTS Academic Crash Course",
   "shortDescription": "IDP India · Academic module · 4–6 week intensive · Exam deadline focus",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated June 2026",
@@ -18,49 +18,155 @@
     "body": "Crash suits retakes, near-target students, or hard deadlines. Diagnostic 5.0 → target 7.0 in 4 weeks is not crash-eligible. Academic module only."
   },
   "tags": [
-    { "label": "Active program", "variant": "success" },
-    { "label": "4–6 weeks", "variant": "warning" },
-    { "label": "Intensive", "variant": "neutral" },
-    { "label": "Academic module", "variant": "warning" }
+    {
+      "label": "Active program",
+      "variant": "success"
+    },
+    {
+      "label": "4–6 weeks",
+      "variant": "warning"
+    },
+    {
+      "label": "Intensive",
+      "variant": "neutral"
+    },
+    {
+      "label": "Academic module",
+      "variant": "warning"
+    }
   ],
   "chips": [
-    { "label": "Crash batch", "variant": "warning" },
-    { "label": "2+ full mocks", "variant": "neutral" },
-    { "label": "Deadline-driven", "variant": "neutral" },
-    { "label": "Exam fee separate", "variant": "neutral" }
+    {
+      "label": "Crash batch",
+      "variant": "warning"
+    },
+    {
+      "label": "2+ full mocks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Deadline-driven",
+      "variant": "neutral"
+    },
+    {
+      "label": "Exam fee separate",
+      "variant": "neutral"
+    }
   ],
   "kpis": [
-    { "label": "Course duration", "value": "4–6w", "sub": "Intensive batch", "tone": "primary" },
-    { "label": "IELTS exam fee", "value": "See IDP India", "sub": "Paid on ieltsidpindia.com", "tone": "warning" },
-    { "label": "Target achievement", "value": "76%", "sub": "Crash-eligible enrollments", "tone": "success" },
-    { "label": "Min attendance", "value": "85%", "sub": "Crash standard", "tone": "violet" }
+    {
+      "label": "Course duration",
+      "value": "4–6w",
+      "sub": "Intensive batch",
+      "tone": "primary"
+    },
+    {
+      "label": "IELTS exam fee",
+      "value": "See IDP India",
+      "sub": "Paid on ieltsidpindia.com",
+      "tone": "warning"
+    },
+    {
+      "label": "Target achievement",
+      "value": "76%",
+      "sub": "Crash-eligible enrollments",
+      "tone": "success"
+    },
+    {
+      "label": "Min attendance",
+      "value": "85%",
+      "sub": "Crash standard",
+      "tone": "violet"
+    }
   ],
   "about": [
-    { "label": "Description", "value": "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks." },
-    { "label": "Ideal for", "value": "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target." },
-    { "label": "Delivery", "value": "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular." },
-    { "label": "Exam authority (India)", "value": "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately." },
-    { "label": "After course", "value": "Exam booking support, TRF tracking, booster or Regular recommendation if crash timeline insufficient." }
+    {
+      "label": "Description",
+      "value": "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks."
+    },
+    {
+      "label": "Ideal for",
+      "value": "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target."
+    },
+    {
+      "label": "Delivery",
+      "value": "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+    },
+    {
+      "label": "Exam authority (India)",
+      "value": "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately."
+    },
+    {
+      "label": "After course",
+      "value": "Exam booking support, TRF tracking, booster or Regular recommendation if crash timeline insufficient."
+    }
   ],
   "eligibility": [
-    { "criterion": "Diagnostic shows gap ≤ 1.0 band to agreed target (or skill retake)", "met": true },
-    { "criterion": "Exam or university deadline documented", "met": true },
-    { "criterion": "Academic module requirement confirmed", "met": true },
-    { "criterion": "Student accepts intensive schedule (≥ 85% attendance)", "met": true },
-    { "criterion": "Enrollment agreement signed", "met": true }
+    {
+      "criterion": "Diagnostic shows gap ≤ 1.0 band to agreed target (or skill retake)",
+      "met": true
+    },
+    {
+      "criterion": "Exam or university deadline documented",
+      "met": true
+    },
+    {
+      "criterion": "Academic module requirement confirmed",
+      "met": true
+    },
+    {
+      "criterion": "Student accepts intensive schedule (≥ 85% attendance)",
+      "met": true
+    },
+    {
+      "criterion": "Enrollment agreement signed",
+      "met": true
+    }
   ],
   "redFlagsBanner": "If mocks stay far below target mid-crash, pause exam booking — offer Regular extension or realistic retake date.",
   "redFlags": [
-    { "title": "Not crash-eligible", "description": "Large band gap or weak foundation.", "fix": "Offer Academic Regular instead", "severity": "Very common" },
-    { "title": "Missed classes in week 1", "description": "Crash pace cannot be recovered.", "fix": "Pause or switch to Regular", "severity": "Common" },
-    { "title": "GT student in Academic crash", "description": "Wrong module.", "fix": "Move to GT program", "severity": "High" },
-    { "title": "Guaranteed score promised", "description": "Compliance breach.", "fix": "Never guarantee bands", "severity": "High" }
+    {
+      "title": "Not crash-eligible",
+      "description": "Large band gap or weak foundation.",
+      "fix": "Offer Academic Regular instead",
+      "severity": "Very common"
+    },
+    {
+      "title": "Missed classes in week 1",
+      "description": "Crash pace cannot be recovered.",
+      "fix": "Pause or switch to Regular",
+      "severity": "Common"
+    },
+    {
+      "title": "GT student in Academic crash",
+      "description": "Wrong module.",
+      "fix": "Move to GT program",
+      "severity": "High"
+    },
+    {
+      "title": "Guaranteed score promised",
+      "description": "Compliance breach.",
+      "fix": "Never guarantee bands",
+      "severity": "High"
+    }
   ],
   "faqs": [
-    { "q": "Crash vs Regular — when to choose?", "a": "Regular for 1.0+ band improvement over 8–10 weeks. Crash when diagnostic is near target and deadline is tight." },
-    { "q": "How many mocks in crash?", "a": "Minimum two full mocks; book exam only when latest mock is within 0.5 of target." },
-    { "q": "Who pays exam fee?", "a": "Student pays IDP on ieltsidpindia.com — separate from crash course fee." },
-    { "q": "Can we guarantee band 7 in crash?", "a": "No. Outcomes depend on starting level, attendance, and exam performance." }
+    {
+      "q": "Crash vs Regular — when to choose?",
+      "a": "Regular for 1.0+ band improvement over 8–10 weeks. Crash when diagnostic is near target and deadline is tight."
+    },
+    {
+      "q": "How many mocks in crash?",
+      "a": "Minimum two full mocks; book exam only when latest mock is within 0.5 of target."
+    },
+    {
+      "q": "Who pays exam fee?",
+      "a": "Student pays IDP on ieltsidpindia.com — separate from crash course fee."
+    },
+    {
+      "q": "Can we guarantee band 7 in crash?",
+      "a": "No. Outcomes depend on starting level, attendance, and exam performance."
+    }
   ],
   "compliance": [
     "Never guarantee an IELTS band score",
@@ -82,56 +188,1034 @@
     "ourRate": 76,
     "industryRate": 62,
     "stats": [
-      { "label": "Crash enrollments (year)", "value": "98" },
-      { "label": "Hit target", "value": "74" },
-      { "label": "Extended to Regular", "value": "24" }
+      {
+        "label": "Crash enrollments (year)",
+        "value": "98"
+      },
+      {
+        "label": "Hit target",
+        "value": "74"
+      },
+      {
+        "label": "Extended to Regular",
+        "value": "24"
+      }
     ]
   },
   "approvalFactors": [
-    { "label": "Attendance 85%+", "ours": 82, "benchmark": 68 },
-    { "label": "Mock on schedule", "ours": 88, "benchmark": 70 },
-    { "label": "Exam booked when ready", "ours": 79, "benchmark": 65 }
+    {
+      "label": "Attendance 85%+",
+      "ours": 82,
+      "benchmark": 68
+    },
+    {
+      "label": "Mock on schedule",
+      "ours": 88,
+      "benchmark": 70
+    },
+    {
+      "label": "Exam booked when ready",
+      "ours": 79,
+      "benchmark": 65
+    }
   ],
   "timeline": [
-    { "weeks": "1", "title": "Diagnostic, eligibility check, enrollment" },
-    { "weeks": "2–4", "title": "Daily classes, drills, weekly speaking mocks" },
-    { "weeks": "3–5", "title": "Full mocks & readiness review" },
-    { "weeks": "4–6", "title": "IDP booking, test day prep, TRF follow-up" }
+    {
+      "weeks": "1",
+      "title": "Diagnostic, eligibility check, enrollment"
+    },
+    {
+      "weeks": "2–4",
+      "title": "Daily classes, drills, weekly speaking mocks"
+    },
+    {
+      "weeks": "3–5",
+      "title": "Full mocks & readiness review"
+    },
+    {
+      "weeks": "4–6",
+      "title": "IDP booking, test day prep, TRF follow-up"
+    }
   ],
   "relatedServices": [
-    { "label": "IELTS — Test reference", "libraryId": "b2000001-0001-4000-8000-000000000071" },
-    { "label": "IELTS Academic Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000072" },
-    { "label": "IELTS General Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000074" }
+    {
+      "label": "IELTS — Test reference",
+      "libraryId": "b2000001-0001-4000-8000-000000000071"
+    },
+    {
+      "label": "IELTS Academic Regular (with books)",
+      "libraryId": "b2000001-0001-4000-8000-000000000072"
+    },
+    {
+      "label": "IELTS General Regular (with books)",
+      "libraryId": "b2000001-0001-4000-8000-000000000074"
+    }
   ],
   "changelog": [
-    { "version": "v1.0", "date": "June 2026", "author": "Service Library", "summary": "Initial IELTS Academic Crash coaching specimen." }
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
+      "version": "v1.0",
+      "date": "June 2026",
+      "author": "Service Library",
+      "summary": "Initial IELTS Academic Crash coaching specimen."
+    }
   ],
   "staffNotes": [
-    { "author": "Coaching team", "date": "June 2026", "text": "Decline crash if gap > 1 band unless skill-specific retake with manager approval." }
+    {
+      "author": "Coaching team",
+      "date": "June 2026",
+      "text": "Decline crash if gap > 1 band unless skill-specific retake with manager approval."
+    }
   ],
   "resources": [
-    { "title": "IELTS test reference (FLC specimen)", "url": "/specimens/coaching/ielts-test-reference.html", "description": "Full test guide" },
-    { "title": "IDP IELTS India — Book test", "url": "https://www.ieltsidpindia.com/", "description": "Sole booking channel in India" },
-    { "title": "Enrollment checklist — Academic Crash", "url": "/specimens/coaching/ielts-academic-crash-checklist.html", "description": "Counselor crash enrollment checklist" }
+    {
+      "title": "IELTS test reference (FLC specimen)",
+      "url": "/specimens/coaching/ielts-test-reference.html",
+      "description": "Full test guide"
+    },
+    {
+      "title": "IDP IELTS India — Book test",
+      "url": "https://www.ieltsidpindia.com/",
+      "description": "Sole booking channel in India"
+    },
+    {
+      "title": "Enrollment checklist — Academic Crash",
+      "url": "/specimens/coaching/ielts-academic-crash-checklist.html",
+      "description": "Counselor crash enrollment checklist"
+    }
   ],
   "donts": {
-    "dos": ["Verify crash eligibility before quoting", "Track daily attendance", "Confirm Academic module", "Keep exam fee separate"],
-    "donts": ["Enroll large band-gap students in crash", "Guarantee a band score", "Skip mocks before booking", "Mix GT leads into Academic crash"],
-    "mistakes": ["Diagnostic 5 → target 7 in 4 weeks", "Exam booked in week 1", "No deadline on file"]
+    "dos": [
+      "Verify crash eligibility before quoting",
+      "Track daily attendance",
+      "Confirm Academic module",
+      "Keep exam fee separate"
+    ],
+    "donts": [
+      "Enroll large band-gap students in crash",
+      "Guarantee a band score",
+      "Skip mocks before booking",
+      "Mix GT leads into Academic crash"
+    ],
+    "mistakes": [
+      "Diagnostic 5 → target 7 in 4 weeks",
+      "Exam booked in week 1",
+      "No deadline on file"
+    ]
   },
   "sampleDocs": [
-    { "title": "Crash eligibility form (mock)", "description": "Gap-to-target and deadline sign-off.", "docKind": "assessment", "mimeType": "application/pdf" }
+    {
+      "title": "Crash eligibility form (mock)",
+      "description": "Gap-to-target and deadline sign-off.",
+      "docKind": "assessment",
+      "mimeType": "application/pdf"
+    }
   ],
   "quiz": [
-    { "question": "IELTS Academic Crash is best suited when:", "options": ["Student is 2+ bands below target", "Diagnostic gap to target is typically ≤ 1 band", "Student needs GT for Canada PR", "No exam date exists"], "correctIndex": 1, "explanation": "Crash is for near-target or retake students with a deadline.", "level": 1 },
-    { "question": "Minimum attendance standard for crash is approximately:", "options": ["50%", "70%", "85%", "100%"], "correctIndex": 2, "explanation": "Intensive pace requires higher attendance than Regular.", "level": 1 },
-    { "question": "IELTS exam fee in India is paid to:", "options": ["Future Link only", "IDP IELTS India by student", "University", "Embassy"], "correctIndex": 1, "explanation": "Book and pay on ieltsidpindia.com.", "level": 1 },
-    { "question": "Counselors must never:", "options": ["Track mocks", "Guarantee band 7", "Confirm module", "Share test day checklist"], "correctIndex": 1, "explanation": "Band guarantees are prohibited.", "level": 1 },
-    { "question": "Before booking the exam, crash policy recommends:", "options": ["No mocks", "Latest mock within 0.5 of target", "Earliest IDP date always", "Wait until after test"], "correctIndex": 1, "explanation": "Readiness based on mock performance.", "level": 2 },
-    { "question": "A GT student should be enrolled in:", "options": ["Academic Crash", "General Regular or GT crash", "PTE only", "Spoken English"], "correctIndex": 1, "explanation": "Module must match migration or study pathway.", "level": 1 },
-    { "question": "Typical crash duration is:", "options": ["1 week", "4–6 weeks", "6 months", "1 year"], "correctIndex": 1, "explanation": "Intensive 4–6 week batch.", "level": 1 },
-    { "question": "If student misses multiple classes in week 1:", "options": ["Continue crash unchanged", "Pause or switch to Regular", "Guarantee target", "Skip mocks"], "correctIndex": 1, "explanation": "Crash pace cannot be recovered after early absenteeism.", "level": 2 },
-    { "question": "Minimum full mocks in crash course:", "options": ["0", "2", "10", "20"], "correctIndex": 1, "explanation": "At least two full timed mocks.", "level": 1 },
-    { "question": "IDP India became sole IELTS distributor in India in:", "options": ["2010", "July 2021", "2024", "Never"], "correctIndex": 1, "explanation": "Book only on ieltsidpindia.com since July 2021.", "level": 2 }
+    {
+      "question": "IELTS Academic Crash is best suited when:",
+      "options": [
+        "Student is 2+ bands below target",
+        "Diagnostic gap to target is typically ≤ 1 band",
+        "Student needs GT for Canada PR",
+        "No exam date exists"
+      ],
+      "correctIndex": 1,
+      "explanation": "Crash is for near-target or retake students with a deadline.",
+      "level": 1
+    },
+    {
+      "question": "Minimum attendance standard for crash is approximately:",
+      "options": [
+        "50%",
+        "70%",
+        "85%",
+        "100%"
+      ],
+      "correctIndex": 2,
+      "explanation": "Intensive pace requires higher attendance than Regular.",
+      "level": 1
+    },
+    {
+      "question": "IELTS exam fee in India is paid to:",
+      "options": [
+        "Future Link only",
+        "IDP IELTS India by student",
+        "University",
+        "Embassy"
+      ],
+      "correctIndex": 1,
+      "explanation": "Book and pay on ieltsidpindia.com.",
+      "level": 1
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Track mocks",
+        "Guarantee band 7",
+        "Confirm module",
+        "Share test day checklist"
+      ],
+      "correctIndex": 1,
+      "explanation": "Band guarantees are prohibited.",
+      "level": 1
+    },
+    {
+      "question": "A GT student should be enrolled in:",
+      "options": [
+        "Academic Crash",
+        "General Regular or GT crash",
+        "PTE only",
+        "Spoken English"
+      ],
+      "correctIndex": 1,
+      "explanation": "Module must match migration or study pathway.",
+      "level": 1
+    },
+    {
+      "question": "Typical crash duration is:",
+      "options": [
+        "1 week",
+        "4–6 weeks",
+        "6 months",
+        "1 year"
+      ],
+      "correctIndex": 1,
+      "explanation": "Intensive 4–6 week batch.",
+      "level": 1
+    },
+    {
+      "question": "Minimum full mocks in crash course:",
+      "options": [
+        "0",
+        "2",
+        "10",
+        "20"
+      ],
+      "correctIndex": 1,
+      "explanation": "At least two full timed mocks.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For IELTS Academic Crash Course, which statement about Description is correct?",
+      "options": [
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular.",
+        "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks."
+    },
+    {
+      "level": 1,
+      "question": "IELTS Academic Crash Course: what is true regarding Ideal for?",
+      "options": [
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular.",
+        "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately."
+      ],
+      "correctIndex": 0,
+      "explanation": "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS Academic Crash Course should state correctly about Delivery:",
+      "options": [
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately."
+      ],
+      "correctIndex": 0,
+      "explanation": "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+    },
+    {
+      "level": 1,
+      "question": "For IELTS Academic Crash Course, which statement about Exam authority (India) is correct?",
+      "options": [
+        "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately."
+    },
+    {
+      "level": 1,
+      "question": "IELTS Academic Crash Course: what is true regarding After course?",
+      "options": [
+        "Exam booking support, TRF tracking, booster or Regular recommendation if crash timeline insufficient.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Exam booking support, TRF tracking, booster or Regular recommendation if crash timeline insufficient."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS Academic Crash Course should state correctly about Diagnostic shows gap ≤ 1.0 band to agreed target (or skill retake):",
+      "options": [
+        "Diagnostic shows gap ≤ 1.0 band to agreed target (or skill retake) is a core requirement for this service.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Diagnostic shows gap ≤ 1.0 band to agreed target (or skill retake)"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS Academic Crash Course, which statement about Exam or university deadline documented is correct?",
+      "options": [
+        "Exam or university deadline documented is a core requirement for this service.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Exam or university deadline documented"
+    },
+    {
+      "level": 1,
+      "question": "IELTS Academic Crash Course: what is true regarding Academic module requirement confirmed?",
+      "options": [
+        "Academic module requirement confirmed is a core requirement for this service.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Academic module requirement confirmed"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS Academic Crash Course should state correctly about Student accepts intensive schedule (≥ 85% attendance):",
+      "options": [
+        "Student accepts intensive schedule (≥ 85% attendance) is a core requirement for this service.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Student accepts intensive schedule (≥ 85% attendance)"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS Academic Crash Course, which statement about Enrollment agreement signed is correct?",
+      "options": [
+        "Enrollment agreement signed is a core requirement for this service.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Enrollment agreement signed"
+    },
+    {
+      "level": 1,
+      "question": "IELTS Academic Crash Course: what is true regarding Course duration?",
+      "options": [
+        "Course duration: 4–6w — Intensive batch",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Intensive batch"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS Academic Crash Course should state correctly about IELTS exam fee:",
+      "options": [
+        "IELTS exam fee: See IDP India — Paid on ieltsidpindia.com",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Paid on ieltsidpindia.com"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS Academic Crash Course, which statement about Target achievement is correct?",
+      "options": [
+        "Target achievement: 76% — Crash-eligible enrollments",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Crash-eligible enrollments"
+    },
+    {
+      "level": 1,
+      "question": "IELTS Academic Crash Course: what is true regarding Min attendance?",
+      "options": [
+        "Min attendance: 85% — Crash standard",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Crash standard"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS Academic Crash Course should state correctly about service summary:",
+      "options": [
+        "IDP India · Academic module · 4–6 week intensive · Exam deadline focus",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "IDP India · Academic module · 4–6 week intensive · Exam deadline focus"
+    },
+    {
+      "level": 1,
+      "question": "For IELTS Academic Crash Course, which statement about Intensive pace — not for beginners is correct?",
+      "options": [
+        "Crash suits retakes, near-target students, or hard deadlines. Diagnostic 5.0 → target 7.0 in 4 weeks is not crash-eligible. Academic module only.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Crash suits retakes, near-target students, or hard deadlines. Diagnostic 5.0 → target 7.0 in 4 weeks is not crash-eligible. Academic module only."
+    },
+    {
+      "level": 1,
+      "question": "IELTS Academic Crash Course: what is true regarding policy update?",
+      "options": [
+        "Crash enrollment only when diagnostic gap to target is realistic (typically ≤ 1 band). Book IELTS via ieltsidpindia.com only. Never guarantee a band score.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Crash enrollment only when diagnostic gap to target is realistic (typically ≤ 1 band). Book IELTS via ieltsidpindia.com only. Never guarantee a band score."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining IELTS Academic Crash Course should state correctly about Crash vs Regular — when to choose:",
+      "options": [
+        "Regular for 1.0+ band improvement over 8–10 weeks. Crash when diagnostic is near target and deadline is tight.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Regular for 1.0+ band improvement over 8–10 weeks. Crash when diagnostic is near target and deadline is tight."
+    },
+    {
+      "question": "Before booking the exam, crash policy recommends:",
+      "options": [
+        "No mocks",
+        "Latest mock within 0.5 of target",
+        "Earliest IDP date always",
+        "Wait until after test"
+      ],
+      "correctIndex": 1,
+      "explanation": "Readiness based on mock performance.",
+      "level": 2
+    },
+    {
+      "question": "If student misses multiple classes in week 1:",
+      "options": [
+        "Continue crash unchanged",
+        "Pause or switch to Regular",
+        "Guarantee target",
+        "Skip mocks"
+      ],
+      "correctIndex": 1,
+      "explanation": "Crash pace cannot be recovered after early absenteeism.",
+      "level": 2
+    },
+    {
+      "question": "IDP India became sole IELTS distributor in India in:",
+      "options": [
+        "2010",
+        "July 2021",
+        "2024",
+        "Never"
+      ],
+      "correctIndex": 1,
+      "explanation": "Book only on ieltsidpindia.com since July 2021.",
+      "level": 2
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS Academic Crash Course process, what is the correct approach to client question: Crash vs Regular — when to choose?",
+      "options": [
+        "Regular for 1.0+ band improvement over 8–10 weeks. Crash when diagnostic is near target and deadline is tight.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Regular for 1.0+ band improvement over 8–10 weeks. Crash when diagnostic is near target and deadline is tight."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Crash Course, what should happen during client question: How many mocks in crash?",
+      "options": [
+        "Minimum two full mocks; book exam only when latest mock is within 0.5 of target.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Minimum two full mocks; book exam only when latest mock is within 0.5 of target."
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Crash Course workflow — best practice for client question: Who pays exam fee:",
+      "options": [
+        "Student pays IDP on ieltsidpindia.com — separate from crash course fee.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Student pays IDP on ieltsidpindia.com — separate from crash course fee."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS Academic Crash Course process, what is the correct approach to client question: Can we guarantee band 7 in crash?",
+      "options": [
+        "No. Outcomes depend on starting level, attendance, and exam performance.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Outcomes depend on starting level, attendance, and exam performance."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Crash Course, what should happen during Before booking the exam, crash policy recommends:?",
+      "options": [
+        "Latest mock within 0.5 of target",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Readiness based on mock performance."
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Crash Course workflow — best practice for If student misses multiple classes in week 1::",
+      "options": [
+        "Pause or switch to Regular",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Crash pace cannot be recovered after early absenteeism."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS Academic Crash Course process, what is the correct approach to IDP India became sole IELTS distributor in India in:?",
+      "options": [
+        "July 2021",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Book only on ieltsidpindia.com since July 2021."
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Crash Course, what should happen during timeline (1)?",
+      "options": [
+        "Diagnostic, eligibility check, enrollment",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "1: Diagnostic, eligibility check, enrollment"
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Crash Course workflow — best practice for timeline (2–4):",
+      "options": [
+        "Daily classes, drills, weekly speaking mocks",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–4: Daily classes, drills, weekly speaking mocks"
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS Academic Crash Course process, what is the correct approach to timeline (3–5)?",
+      "options": [
+        "Full mocks & readiness review",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "3–5: Full mocks & readiness review"
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Crash Course, what should happen during timeline (4–6)?",
+      "options": [
+        "IDP booking, test day prep, TRF follow-up",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "4–6: IDP booking, test day prep, TRF follow-up"
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Crash Course workflow — best practice for counselor tip:",
+      "options": [
+        "Use crash only after Regular incomplete or retake with clear skill gap",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Use crash only after Regular incomplete or retake with clear skill gap"
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS Academic Crash Course process, what is the correct approach to counselor tip?",
+      "options": [
+        "Book IDP slot only after second mock confirms readiness",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Book IDP slot only after second mock confirms readiness"
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Crash Course, what should happen during counselor tip?",
+      "options": [
+        "Brief on test day checklist in final week",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Brief on test day checklist in final week"
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Crash Course workflow — best practice for post-approval step:",
+      "options": [
+        "Collect TRF when released",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Collect TRF when released"
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS Academic Crash Course process, what is the correct approach to post-approval step?",
+      "options": [
+        "Update admissions / visa file",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Update admissions / visa file"
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Crash Course, what should happen during post-approval step?",
+      "options": [
+        "Plan retake or OSR if one skill below target",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Plan retake or OSR if one skill below target"
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Crash Course workflow — best practice for Crash eligibility form (mock):",
+      "options": [
+        "Gap-to-target and deadline sign-off.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Gap-to-target and deadline sign-off."
+    },
+    {
+      "level": 2,
+      "question": "In the IELTS Academic Crash Course process, what is the correct approach to recommended practice?",
+      "options": [
+        "Verify crash eligibility before quoting",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify crash eligibility before quoting"
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Crash Course, what should happen during recommended practice?",
+      "options": [
+        "Track daily attendance",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Track daily attendance"
+    },
+    {
+      "level": 2,
+      "question": "IELTS Academic Crash Course workflow — best practice for recommended practice:",
+      "options": [
+        "Confirm Academic module",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm Academic module"
+    },
+    {
+      "level": 2,
+      "question": "For IELTS Academic Crash Course, what should happen during IELTS test reference (FLC specimen)?",
+      "options": [
+        "Full test guide",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Full test guide"
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Crash Course: what is the compliance risk with Not crash-eligible?",
+      "options": [
+        "Offer Academic Regular instead",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Large band gap or weak foundation."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Crash Course — key issue with Not crash-eligible (detail):",
+      "options": [
+        "Large band gap or weak foundation.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Offer Academic Regular instead"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Crash Course, counselors must avoid this mistake related to Missed classes in week 1:",
+      "options": [
+        "Pause or switch to Regular",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Crash pace cannot be recovered."
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Crash Course: what is the compliance risk with Missed classes in week 1 (detail)?",
+      "options": [
+        "Crash pace cannot be recovered.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Pause or switch to Regular"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Crash Course — key issue with GT student in Academic crash:",
+      "options": [
+        "Move to GT program",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Wrong module."
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Crash Course, counselors must avoid this mistake related to GT student in Academic crash (detail):",
+      "options": [
+        "Wrong module.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Move to GT program"
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Crash Course: what is the compliance risk with Guaranteed score promised?",
+      "options": [
+        "Never guarantee bands",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Compliance breach."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Crash Course — key issue with Guaranteed score promised (detail):",
+      "options": [
+        "Compliance breach.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee bands"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Crash Course, counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Enroll large band-gap students in crash",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Enroll large band-gap students in crash"
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Crash Course: what is the compliance risk with counselor don't?",
+      "options": [
+        "Guarantee a band score",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Guarantee a band score"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Crash Course — key issue with counselor don't:",
+      "options": [
+        "Skip mocks before booking",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Skip mocks before booking"
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Crash Course: what is the compliance risk with common mistake?",
+      "options": [
+        "Diagnostic 5 → target 7 in 4 weeks",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Diagnostic 5 → target 7 in 4 weeks"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Crash Course — key issue with common mistake:",
+      "options": [
+        "Exam booked in week 1",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Exam booked in week 1"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Crash Course, counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "No deadline on file",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: No deadline on file"
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Crash Course: what is the compliance risk with compliance rule?",
+      "options": [
+        "Never guarantee an IELTS band score",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee an IELTS band score"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Crash Course — key issue with compliance rule:",
+      "options": [
+        "Document crash eligibility on enrollment form",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Document crash eligibility on enrollment form"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Crash Course, counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Separate coaching fee from IDP exam fee",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Separate coaching fee from IDP exam fee"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Crash Course — key issue with refusal handling:",
+      "options": [
+        "If mocks stay far below target mid-crash, pause exam booking — offer Regular extension or realistic retake date.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "If mocks stay far below target mid-crash, pause exam booking — offer Regular extension or realistic retake date."
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Crash Course, counselors must avoid this mistake related to Attendance 85%+:",
+      "options": [
+        "Our target: 82% vs benchmark 68%",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Attendance 85%+"
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Crash Course: what is the compliance risk with Mock on schedule?",
+      "options": [
+        "Our target: 88% vs benchmark 70%",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Mock on schedule"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Crash Course — key issue with Exam booked when ready:",
+      "options": [
+        "Our target: 79% vs benchmark 65%",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Exam booked when ready"
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Crash Course, counselors must avoid this mistake related to Not crash-eligible:",
+      "options": [
+        "Offer Academic Regular instead",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Large band gap or weak foundation."
+    },
+    {
+      "level": 3,
+      "question": "IELTS Academic Crash Course: what is the compliance risk with Not crash-eligible (detail)?",
+      "options": [
+        "Large band gap or weak foundation.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Offer Academic Regular instead"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on IELTS Academic Crash Course — key issue with Missed classes in week 1:",
+      "options": [
+        "Pause or switch to Regular",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Crash pace cannot be recovered."
+    },
+    {
+      "level": 3,
+      "question": "For IELTS Academic Crash Course, counselors must avoid this mistake related to Missed classes in week 1 (detail):",
+      "options": [
+        "Crash pace cannot be recovered.",
+        "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks.",
+        "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target.",
+        "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular."
+      ],
+      "correctIndex": 0,
+      "explanation": "Pause or switch to Regular"
+    }
   ]
 }
