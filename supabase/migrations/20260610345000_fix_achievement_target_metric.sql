@@ -33,7 +33,7 @@ BEGIN
   ),
   pay_rev AS (
     SELECT
-      c.assigned_counselor_id AS cid,
+      COALESCE(c.assigned_counselor_id, c.owner_id) AS cid,
       SUM(COALESCE(p.amount_in_inr, p.amount, 0))::numeric AS rev
     FROM public.client_invoice_payments p
     JOIN public.clients c ON c.id = p.client_id
@@ -42,8 +42,8 @@ BEGIN
       AND COALESCE(p.is_refund, false) = false
       AND p.paid_at >= v_start
       AND p.paid_at < v_end
-      AND c.assigned_counselor_id IS NOT NULL
-    GROUP BY c.assigned_counselor_id
+      AND COALESCE(c.assigned_counselor_id, c.owner_id) IS NOT NULL
+    GROUP BY COALESCE(c.assigned_counselor_id, c.owner_id)
   ),
   combined AS (
     SELECT
