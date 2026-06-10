@@ -8,9 +8,14 @@ import type { AcademyViewModel } from "@/lib/service-library/buildAcademyViewMod
 import { splitServiceTitle } from "@/lib/service-library/serviceDisplayLabels";
 import { copyToClipboard } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
+import { MbbsInstitutionSwitcher } from "@/components/service-library/design/MbbsInstitutionSwitcher";
+import type { MbbsInstitutionOption } from "@/lib/service-library/mbbs/types";
 
 type Props = {
   view: AcademyViewModel;
+  mbbsInstitutionOptions?: MbbsInstitutionOption[];
+  selectedInstitutionId?: string | null;
+  onInstitutionChange?: (id: string) => void;
   onOpenTab?: (tab: string) => void;
   onOpenResources?: () => void;
   onNewApplication?: () => void;
@@ -21,6 +26,9 @@ type Props = {
 
 export function ServiceAcademyHero({
   view,
+  mbbsInstitutionOptions,
+  selectedInstitutionId,
+  onInstitutionChange,
   onOpenTab,
   onOpenResources,
   onNewApplication,
@@ -29,10 +37,13 @@ export function ServiceAcademyHero({
   canManage,
 }: Props) {
   const showPolicy = !policyDismissed && view.policyAlert;
-  const { country: titleCountry, name: titleName } = splitServiceTitle(view.title, view.country);
+  const regionLabel = view.mbbsMeta?.regionLabel ?? view.country;
+  const { country: titleCountry, name: titleName } = view.isMbbs
+    ? { country: regionLabel, name: view.mbbsMeta?.institutionName ?? view.title }
+    : splitServiceTitle(view.title, view.country);
 
   return (
-    <div className="space-y-4 border-b bg-card pb-4">
+    <div className={cn("space-y-4 border-b bg-card pb-4", view.isMbbs && "border-rose-500/20")}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <nav className="text-sm text-muted-foreground flex flex-wrap items-center gap-1.5">
           <span>Future Link Consultants</span>
@@ -78,8 +89,20 @@ export function ServiceAcademyHero({
       </div>
 
       <div className="space-y-4">
+        {view.isMbbs && mbbsInstitutionOptions && selectedInstitutionId && onInstitutionChange && (
+          <MbbsInstitutionSwitcher
+            options={mbbsInstitutionOptions}
+            selectedId={selectedInstitutionId}
+            onSelect={onInstitutionChange}
+          />
+        )}
         <div className="flex gap-4 items-start">
-          <div className="size-14 rounded-xl bg-white flex items-center justify-center shrink-0 border border-border shadow-sm p-2">
+          <div
+            className={cn(
+              "size-14 rounded-xl bg-white flex items-center justify-center shrink-0 border shadow-sm p-2",
+              view.isMbbs ? "border-rose-500/30" : "border-border",
+            )}
+          >
             <img src={flcLogo} alt="Future Link Consultants" className="h-full w-full object-contain" />
           </div>
           <div className="min-w-0 flex-1">
@@ -126,7 +149,7 @@ export function ServiceAcademyHero({
             <Brain className="size-4 mr-1.5" />
             Take quiz
           </Button>
-          {!view.isCoaching && onStartEligibility && (
+          {!view.isCoaching && !view.isMbbs && onStartEligibility && (
             <Button variant="outline" size="sm" onClick={onStartEligibility}>
               <ClipboardCheck className="size-4 mr-1.5" />
               Eligibility Assessment

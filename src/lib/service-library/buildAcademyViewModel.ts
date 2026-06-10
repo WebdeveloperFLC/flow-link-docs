@@ -30,6 +30,8 @@ import {
   resolveCountryInsights,
 } from "./countryInsights/resolveCountryInsights";
 import type { CountryInsightsView } from "./countryInsights/types";
+import type { MbbsInstitutionMeta } from "./mbbs/types";
+import { isMbbsServiceRow } from "./mbbs/resolveMbbsInstitutions";
 
 export type AcademyViewModel = {
   masterId: string;
@@ -107,6 +109,8 @@ export type AcademyViewModel = {
   needsReview: boolean;
   learningMinutes: number;
   isCoaching: boolean;
+  isMbbs: boolean;
+  mbbsMeta: MbbsInstitutionMeta | null;
   coachingProfile: "test_reference" | "program" | null;
   testDayGuide: {
     dos: string[];
@@ -117,7 +121,7 @@ export type AcademyViewModel = {
 
 const CATEGORY_LABELS: Record<string, string> = {
   visa_immigration: "Visa & Immigration",
-  coaching_services: "Coaching",
+  mbbs_services: "MBBS",
   allied_services: "Education Services",
   travel_financial: "Financial",
 };
@@ -261,9 +265,14 @@ export function buildAcademyViewModel(args: {
 
   const isCoaching =
     master.service_category === "coaching_services" || meta.navBucket === "coaching";
+  const isMbbs = isMbbsServiceRow(master) || meta.navBucket === "mbbs";
 
   // Coaching rows may carry legacy country mappings — never prefix with a destination country.
-  const displayCountry = isCoaching ? null : country ?? countries[0] ?? null;
+  const displayCountry = isCoaching
+    ? null
+    : isMbbs
+      ? meta.mbbs?.country ?? country ?? countries[0] ?? null
+      : country ?? countries[0] ?? null;
   const countryFlag = displayCountry ? "" : "";
   const defaultTitle = displayCountry
     ? `${displayCountry} – ${master.sub_service}`
@@ -347,7 +356,9 @@ export function buildAcademyViewModel(args: {
     masterId: master.id,
     country: displayCountry,
     categoryLabel: CATEGORY_LABELS[master.service_category] ?? master.service_category,
-    breadcrumbTitle: isCoaching
+    breadcrumbTitle: isMbbs
+      ? meta.mbbs?.institutionName ?? meta.displayName ?? master.sub_service
+      : isCoaching
       ? coachingFamily ?? master.service
       : meta.displayName?.split("–")[0]?.trim() ??
         defaultTitle.split("–")[0]?.trim() ??
@@ -403,6 +414,7 @@ export function buildAcademyViewModel(args: {
       const insights = resolveCountryInsights(displayCountry, meta);
       return insights && hasCountryInsightsContent(insights) ? insights : null;
     })(),
+    mbbsMeta: isMbbs ? meta.mbbs ?? null : null,
     checklist: {
       completed,
       total: checklistTotal,
@@ -484,12 +496,14 @@ export function buildAcademyViewModel(args: {
       );
       url.pathname = "/service-library";
       url.searchParams.set("id", master.id);
-      if (displayCountry) url.searchParams.set("country", displayCountry);
+      if (isMbbs) url.searchParams.set("cat", "mbbs");
+      else if (displayCountry) url.searchParams.set("country", displayCountry);
       return url.toString();
     })(),
     needsReview: meta.reviewStatus === "needs_review",
     learningMinutes: meta.learningMinutes ?? 0,
     isCoaching,
+    isMbbs,
     coachingProfile,
     testDayGuide,
   };

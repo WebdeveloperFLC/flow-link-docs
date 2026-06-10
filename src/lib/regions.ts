@@ -34,17 +34,14 @@ export const REGIONS: Region[] = [
     countries: ["United Arab Emirates"],
   },
   {
-    key: "asia",
-    label: "Asia",
-    countries: [
-      "Singapore", "Malaysia", "Japan", "South Korea", "Uzbekistan",
-      "Kazakhstan", "Kyrgyzstan", "Philippines", "China",
-    ],
+    key: "caribbean",
+    label: "Caribbean",
+    countries: ["Saba", "Caribbean", "Nevis", "Cayman Islands"],
   },
 ];
 
 export const MBBS_PRIORITY: string[] = [
-  "Russia", "Georgia", "Uzbekistan", "Kazakhstan", "Kyrgyzstan",
+  "Russia", "Georgia", "Saba", "Caribbean", "Uzbekistan", "Kazakhstan", "Kyrgyzstan",
   "Philippines", "China",
 ];
 

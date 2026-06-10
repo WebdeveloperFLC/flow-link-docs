@@ -30,6 +30,10 @@ import { ServiceBinderTab } from "@/components/service-library/ServiceBinderTab"
 import { ServiceEligibilityPanel } from "@/components/service-library/ServiceEligibilityPanel";
 import { ServiceFeeBreakdownPanel } from "@/components/service-library/design/ServiceFeeBreakdownPanel";
 import { ServiceCountryInsightsPanel } from "@/components/service-library/design/ServiceCountryInsightsPanel";
+import { ServiceMbbsInstitutionPanel } from "@/components/service-library/design/ServiceMbbsInstitutionPanel";
+import { ServiceMbbsProgramsPanel } from "@/components/service-library/design/ServiceMbbsProgramsPanel";
+import { ServiceMbbsPracticePanel } from "@/components/service-library/design/ServiceMbbsPracticePanel";
+import { ServiceMbbsFamilyPanel } from "@/components/service-library/design/ServiceMbbsFamilyPanel";
 import {
   resolveAcademyTabs,
   tabLabel,
@@ -174,14 +178,55 @@ export function ServiceLibraryTabs({
         )}
       </TabsContent>
 
-      <TabsContent value="countryinsights" className="mt-0">
-        {view.countryInsights ? (
-          <ServiceCountryInsightsPanel insights={view.countryInsights} />
+      <TabsContent value="institution" className="mt-0">
+        {view.mbbsMeta ? (
+          <ServiceMbbsInstitutionPanel meta={view.mbbsMeta} />
         ) : (
           <Card className="p-5 shadow-elev-sm">
-            <p className="text-sm text-muted-foreground">
-              Country facts, living costs, and work rights are not configured for this service yet.
-            </p>
+            <p className="text-sm text-muted-foreground">Institution profile not configured yet.</p>
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="programs" className="mt-0">
+        {view.mbbsMeta?.relatedPrograms?.length ? (
+          <ServiceMbbsProgramsPanel
+            programs={view.mbbsMeta.relatedPrograms}
+            institutionName={view.mbbsMeta.institutionName}
+          />
+        ) : (
+          <Card className="p-5 shadow-elev-sm">
+            <p className="text-sm text-muted-foreground">No related programs listed yet.</p>
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="countryinsights" className="mt-0">
+        <div className="space-y-4">
+          {view.countryInsights ? (
+            <ServiceCountryInsightsPanel insights={view.countryInsights} />
+          ) : (
+            <Card className="p-5 shadow-elev-sm">
+              <p className="text-sm text-muted-foreground">
+                Country facts, living costs, and work rights are not configured for this service yet.
+              </p>
+            </Card>
+          )}
+          {view.mbbsMeta?.familyOptions && (
+            <ServiceMbbsFamilyPanel family={view.mbbsMeta.familyOptions} />
+          )}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="practice" className="mt-0">
+        {view.mbbsMeta?.practicePathways ? (
+          <ServiceMbbsPracticePanel
+            pathways={view.mbbsMeta.practicePathways}
+            institutionName={view.mbbsMeta.institutionName}
+          />
+        ) : (
+          <Card className="p-5 shadow-elev-sm">
+            <p className="text-sm text-muted-foreground">Practice pathways not configured yet.</p>
           </Card>
         )}
       </TabsContent>
@@ -316,6 +361,28 @@ export function ServiceLibraryTabs({
       </TabsContent>
 
       <TabsContent value="checklist" className="space-y-4 mt-0">
+        {view.isMbbs && view.mbbsMeta?.documentChecklistSections?.length ? (
+          <Card className="p-5 shadow-elev-sm border-rose-500/10">
+            <h3 className="font-semibold mb-4">Document checklist (admission & visa)</h3>
+            <div className="space-y-5">
+              {view.mbbsMeta.documentChecklistSections.map((section) => (
+                <div key={section.id}>
+                  <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                    {section.label}
+                  </h4>
+                  <ul className="space-y-1.5 text-sm">
+                    {section.items.map((item) => (
+                      <li key={item} className="flex gap-2">
+                        <span className="text-rose-500 shrink-0">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </Card>
+        ) : null}
         {view.isCoaching && view.downloads.length > 0 && (
           <Card className="p-5 shadow-elev-sm">
             <h3 className="font-semibold mb-3">Downloadable checklists</h3>

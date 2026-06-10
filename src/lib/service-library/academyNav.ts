@@ -12,9 +12,10 @@ import {
   resolveCoachingFamilyKey,
   resolveCoachingVariantLabel,
 } from "@/lib/leads/servicePickerGroups";
+import { isMbbsServiceRow, mbbsInstitutionLabel } from "./mbbs/resolveMbbsInstitutions";
 import { stripCountryPrefix } from "@/lib/service-library/serviceDisplayLabels";
 
-export type AcademyCategoryFilter = "visa" | "coaching";
+export type AcademyCategoryFilter = "visa" | "coaching" | "mbbs";
 
 export type AcademyNavStep =
   | "countries"
@@ -68,6 +69,7 @@ export type AcademyNavGroup = {
 export const ACADEMY_CATEGORY_TABS: { key: AcademyCategoryFilter; label: string }[] = [
   { key: "visa", label: "Visa & Immigration" },
   { key: "coaching", label: "Coaching" },
+  { key: "mbbs", label: "MBBS" },
 ];
 
 type MasterRow = Master & {
@@ -181,6 +183,8 @@ function itemLabel(m: MasterRow, activeCountry?: string): string {
     label = meta.displayName;
   } else if (activeCountry && activeCountry !== "ALL") {
     label = m.sub_service;
+  } else if (m.service_category === "mbbs_services") {
+    label = meta?.displayName ?? mbbsInstitutionLabel(m);
   } else if (m.service_category === "coaching_services") {
     label = resolveCoachingVariantLabel(m.service, m.sub_service, meta?.displayName);
   } else {
@@ -267,6 +271,7 @@ export function buildAcademyNav(
 
   const visaByCountry: Record<string, MasterRow[]> = {};
   const coachingRows: MasterRow[] = [];
+  const mbbsRows: MasterRow[] = [];
 
   const includeInactive = !!opts.includeInactive;
 
@@ -305,7 +310,33 @@ export function buildAcademyNav(
     if (m.service_category === "coaching_services") {
       if (opts.categoryFilter !== "coaching") continue;
       coachingRows.push(m);
+      continue;
     }
+
+    if (m.service_category === "mbbs_services") {
+      if (opts.categoryFilter !== "mbbs") continue;
+      mbbsRows.push(m);
+    }
+  }
+
+  if (opts.categoryFilter === "mbbs") {
+    if (mbbsRows.length === 0) {
+      return { group: null, activeCount, reviewCount };
+    }
+    return {
+      group: {
+        key: "mbbs",
+        label: "MBBS",
+        step: "services",
+        items: sortItems(
+          mbbsRows.map((m) =>
+            toItem(m, metaOf(m)?.reviewStatus === "needs_review", undefined, undefined, includeInactive),
+          ),
+        ),
+      },
+      activeCount,
+      reviewCount,
+    };
   }
 
   if (opts.categoryFilter === "visa") {
@@ -458,6 +489,15 @@ export function resolveAcademyDeepLinkContext(
 } | null {
   const m = masters.find((row) => row.id === libraryId);
   if (!m) return null;
+
+  if (m.service_category === "mbbs_services") {
+    return {
+      category: "mbbs",
+      country: null,
+      coachingFamily: null,
+      coachingVariant: null,
+    };
+  }
 
   if (m.service_category === "coaching_services") {
     const family = coachingFamilyKey(m);

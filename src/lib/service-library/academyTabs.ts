@@ -3,8 +3,11 @@ import type { AcademyViewModel } from "./buildAcademyViewModel";
 /** All tab ids used across visa + coaching profiles. */
 export const ACADEMY_TAB_IDS = [
   "overview",
+  "institution",
+  "programs",
   "fees",
   "countryinsights",
+  "practice",
   "eligibility",
   "acceptance",
   "testday",
@@ -26,6 +29,27 @@ export const ACADEMY_TAB_IDS = [
 export type AcademyTabId = (typeof ACADEMY_TAB_IDS)[number];
 
 export type CoachingProfile = "test_reference" | "program";
+
+const MBBS_TABS: AcademyTabId[] = [
+  "overview",
+  "institution",
+  "programs",
+  "fees",
+  "countryinsights",
+  "practice",
+  "eligibility",
+  "checklist",
+  "process",
+  "dos",
+  "redflags",
+  "faqs",
+  "compliance",
+  "downloads",
+  "sampledocs",
+  "quiz",
+  "notes",
+  "changelog",
+];
 
 const VISA_TABS: AcademyTabId[] = [
   "overview",
@@ -86,8 +110,21 @@ export function coachingProfileFromSubService(subService: string): CoachingProfi
 }
 
 export function resolveAcademyTabs(
-  view: Pick<AcademyViewModel, "isCoaching" | "coachingProfile" | "feeBreakdown" | "countryInsights">,
+  view: Pick<
+    AcademyViewModel,
+    "isCoaching" | "isMbbs" | "coachingProfile" | "feeBreakdown" | "countryInsights" | "mbbsMeta"
+  >,
 ): AcademyTabId[] {
+  if (view.isMbbs) {
+    let tabs = MBBS_TABS;
+    const hasFees = view.feeBreakdown?.govt || view.feeBreakdown?.consultancy;
+    const hasInsights = view.countryInsights != null;
+    if (!hasFees) tabs = tabs.filter((t) => t !== "fees");
+    if (!hasInsights) tabs = tabs.filter((t) => t !== "countryinsights");
+    if (!view.mbbsMeta?.practicePathways) tabs = tabs.filter((t) => t !== "practice");
+    if (!view.mbbsMeta?.relatedPrograms?.length) tabs = tabs.filter((t) => t !== "programs");
+    return tabs;
+  }
   if (!view.isCoaching) {
     const hasFees = view.feeBreakdown?.govt || view.feeBreakdown?.consultancy;
     const hasInsights = view.countryInsights != null;
@@ -101,8 +138,34 @@ export function resolveAcademyTabs(
 
 export function tabLabel(
   id: AcademyTabId,
-  view: Pick<AcademyViewModel, "isCoaching" | "coachingProfile">,
+  view: Pick<AcademyViewModel, "isCoaching" | "isMbbs" | "coachingProfile">,
 ): string {
+  if (view.isMbbs) {
+    switch (id) {
+      case "institution":
+        return "Institution";
+      case "programs":
+        return "Programs";
+      case "practice":
+        return "Practice pathways";
+      case "countryinsights":
+        return "Country & costs";
+      case "eligibility":
+        return "Eligibility";
+      case "dos":
+        return "Do's & don'ts";
+      case "redflags":
+        return "Red flags";
+      case "downloads":
+        return "Resources";
+      case "sampledocs":
+        return "Sample docs";
+      case "changelog":
+        return "Change log";
+      default:
+        return id.charAt(0).toUpperCase() + id.slice(1);
+    }
+  }
   if (view.isCoaching) {
     switch (id) {
       case "eligibility":
@@ -150,6 +213,9 @@ export function tabLabel(
   }
 }
 
-export function defaultAcademyTab(view: Pick<AcademyViewModel, "isCoaching">): AcademyTabId {
+export function defaultAcademyTab(
+  view: Pick<AcademyViewModel, "isCoaching" | "isMbbs">,
+): AcademyTabId {
+  if (view.isMbbs) return "overview";
   return view.isCoaching ? "overview" : "redflags";
 }

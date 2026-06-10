@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import flcLogo from "@/assets/flc-logo.png";
-import { Plane, GraduationCap, BookOpen, ChevronLeft, Search } from "lucide-react";
+import { Plane, GraduationCap, BookOpen, ChevronLeft, Search, Stethoscope } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
@@ -15,6 +15,7 @@ import type { CoachingVariant } from "@/lib/service-library/serviceNavClassifica
 const iconMap: Record<AcademyCategoryFilter, typeof Plane> = {
   visa: Plane,
   coaching: GraduationCap,
+  mbbs: Stethoscope,
 };
 
 type Props = {
@@ -150,7 +151,7 @@ export function ServiceAcademySidebar({
             className="w-full h-[4.5rem] object-contain object-center p-2"
           />
         </div>
-        <p className="mt-2 text-center text-[11px] font-bold uppercase tracking-[0.2em] bg-gradient-to-r from-sky-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+        <p className="mt-2 text-center text-[11px] font-bold uppercase tracking-[0.2em] bg-gradient-to-r from-sky-400 via-violet-400 to-rose-400 bg-clip-text text-transparent">
           Service Library
         </p>
       </div>
@@ -169,7 +170,9 @@ export function ServiceAcademySidebar({
                   active
                     ? tab.key === "visa"
                       ? "bg-gradient-to-r from-sky-500 to-violet-600 text-white shadow-md shadow-violet-900/25"
-                      : "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-900/25"
+                      : tab.key === "mbbs"
+                        ? "bg-gradient-to-r from-rose-500 to-amber-600 text-white shadow-md shadow-rose-900/25"
+                        : "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-900/25"
                     : "bg-slate-800/80 text-slate-200 hover:bg-slate-800 hover:text-white border border-slate-700/50",
                 )}
               >
@@ -178,6 +181,12 @@ export function ServiceAcademySidebar({
             );
           })}
         </div>
+
+        {categoryFilter === "mbbs" && (
+          <div className="rounded-lg border border-rose-500/35 bg-rose-950/40 px-3 py-2 text-xs font-medium text-rose-100">
+            <span className="text-rose-300">International medical schools</span>
+          </div>
+        )}
 
         {categoryFilter === "visa" && country !== "ALL" && (
           <div className="rounded-lg border border-sky-500/35 bg-sky-950/40 px-3 py-2 text-xs font-medium text-sky-100">

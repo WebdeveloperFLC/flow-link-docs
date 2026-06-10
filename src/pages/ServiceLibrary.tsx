@@ -17,6 +17,11 @@ import {
   resolveAcademyDeepLinkContext,
   type AcademyCategoryFilter,
 } from "@/lib/service-library/academyNav";
+import {
+  resolveDefaultMbbsInstitutionId,
+  resolveMbbsInstitutionOptions,
+} from "@/lib/service-library/mbbs/resolveMbbsInstitutions";
+import { MbbsInstitutionSwitcher } from "@/components/service-library/design/MbbsInstitutionSwitcher";
 import type { CoachingVariant } from "@/lib/service-library/serviceNavClassification";
 import { type Master } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
@@ -32,7 +37,9 @@ import {
 export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
 function parseCategory(raw: string | null): AcademyCategoryFilter {
-  return raw === "coaching" ? "coaching" : "visa";
+  if (raw === "coaching") return "coaching";
+  if (raw === "mbbs") return "mbbs";
+  return "visa";
 }
 
 function parseCoachingVariant(raw: string | null): CoachingVariant | null {
@@ -73,7 +80,7 @@ export default function ServiceLibrary() {
     if (categoryFilter === "visa" && countryFilter) p.set("country", countryFilter);
     if (coachingFamily) p.set("family", coachingFamily);
     if (coachingVariant) p.set("variant", coachingVariant);
-    if (activeTab !== defaultAcademyTab({ isCoaching: categoryFilter === "coaching" })) {
+    if (activeTab !== defaultAcademyTab({ isCoaching: categoryFilter === "coaching", isMbbs: categoryFilter === "mbbs" })) {
       p.set("tab", activeTab);
     }
     setParams(p, { replace: true });
@@ -97,6 +104,11 @@ export default function ServiceLibrary() {
     },
   });
 
+  const mbbsInstitutionOptions = useMemo(
+    () => resolveMbbsInstitutionOptions(masters.data ?? []),
+    [masters.data],
+  );
+
   const { group, activeCount, reviewCount } = useMemo(
     () =>
       buildAcademyNav(masters.data ?? [], {
@@ -116,6 +128,11 @@ export default function ServiceLibrary() {
     if (!masters.data || !selectedId) return;
     const ctx = resolveAcademyDeepLinkContext(masters.data, selectedId);
     if (!ctx) return;
+
+    if (ctx.category === "mbbs") {
+      if (categoryFilter !== "mbbs") setCategoryFilter("mbbs");
+      return;
+    }
 
     if (ctx.category === "coaching") {
       if (categoryFilter !== "coaching") setCategoryFilter("coaching");
@@ -154,13 +171,20 @@ export default function ServiceLibrary() {
 
   const handleCategoryChange = (cat: AcademyCategoryFilter) => {
     setCategoryFilter(cat);
-    setSelectedId(null);
     setTreeSearch("");
     setCoachingFamily(null);
     setCoachingVariant(null);
     if (cat === "visa") {
       setCountryFilter("ALL");
+      setSelectedId(null);
+      setDetailCountry("");
+    } else if (cat === "mbbs") {
+      setCountryFilter("ALL");
+      setDetailCountry("");
+      const defaultId = resolveDefaultMbbsInstitutionId(masters.data ?? []);
+      setSelectedId(defaultId);
     } else {
+      setSelectedId(null);
       setDetailCountry("");
     }
   };
@@ -182,10 +206,26 @@ export default function ServiceLibrary() {
     setSelectedId(null);
   };
 
+  useEffect(() => {
+    if (categoryFilter !== "mbbs" || selectedId || !masters.data?.length) return;
+    const defaultId = resolveDefaultMbbsInstitutionId(masters.data);
+    if (defaultId) setSelectedId(defaultId);
+  }, [categoryFilter, selectedId, masters.data]);
+
+  const mbbsCountryForDetail = useMemo(() => {
+    if (categoryFilter !== "mbbs" || !selectedId || !masters.data) return null;
+    const row = masters.data.find((m) => m.id === selectedId);
+    if (!row?.academy_metadata || typeof row.academy_metadata !== "object") return "Saba";
+    const meta = row.academy_metadata as { mbbs?: { country?: string } };
+    return meta.mbbs?.country ?? "Saba";
+  }, [categoryFilter, selectedId, masters.data]);
+
   const detailCountryParam =
     categoryFilter === "visa"
       ? detailCountry || (countryFilter !== "ALL" ? countryFilter : null)
-      : null;
+      : categoryFilter === "mbbs"
+        ? mbbsCountryForDetail
+        : null;
 
   const detail = useServiceAcademyDetail(selectedId, detailCountryParam);
 
@@ -195,7 +235,7 @@ export default function ServiceLibrary() {
     if (!allowed.includes(activeTab)) {
       setActiveTab(defaultAcademyTab(detail.data.view));
     }
-  }, [detail.data?.view.masterId, detail.data?.view.isCoaching, detail.data?.view.coachingProfile, activeTab]);
+  }, [detail.data?.view.masterId, detail.data?.view.isCoaching, detail.data?.view.isMbbs, detail.data?.view.coachingProfile, activeTab]);
 
   useEffect(() => {
     if (!detail.data || categoryFilter !== "visa") return;
@@ -204,7 +244,10 @@ export default function ServiceLibrary() {
     if (next && next !== detailCountry) setDetailCountry(next);
   }, [detail.data?.master.id, detail.data?.detailCountry, detailCountry, categoryFilter]);
 
-  const showNavPanel = !selectedId || !navReadyForSelection;
+  const showNavPanel =
+    categoryFilter === "mbbs"
+      ? !selectedId
+      : !selectedId || !navReadyForSelection;
 
   const toggleSub = async (itemId: string) => {
     if (!user?.id) {
@@ -326,6 +369,9 @@ export default function ServiceLibrary() {
               <div className="px-4 md:px-6 pt-4 md:pt-6">
                 <ServiceAcademyHero
                   view={detail.data.view}
+                  mbbsInstitutionOptions={categoryFilter === "mbbs" ? mbbsInstitutionOptions : undefined}
+                  selectedInstitutionId={selectedId}
+                  onInstitutionChange={setSelectedId}
                   onOpenTab={setActiveTab as (tab: string) => void}
                   onOpenResources={() => setActiveTab("downloads")}
                   onNewApplication={() => openClientDialog("application")}

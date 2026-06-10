@@ -238,6 +238,34 @@ export const COUNTRY_PROFILES: Record<string, CountryProfile> = {
   Belgium: { country: "Belgium", facts: [{ label: "Capital", value: "Brussels" }, { label: "Currency", value: "Euro (EUR)" }], costOfLiving: { currency: "EUR", lastVerified: "Jun 2026", items: [{ label: "Student living estimate", amount: "11,500", unit: "per year" }, { label: "Room (Brussels)", range: "450–750", unit: "per month" }], notes: [] } },
   Denmark: { country: "Denmark", facts: [{ label: "Capital", value: "Copenhagen" }, { label: "Currency", value: "Danish krone (DKK)" }], costOfLiving: { currency: "DKK", lastVerified: "Jun 2026", items: [{ label: "Student funds (Danish Agency)", amount: "72,000", unit: "per year", notes: "Verify current DKK amount" }], notes: [] } },
   Portugal: { country: "Portugal", facts: [{ label: "Capital", value: "Lisbon" }, { label: "Currency", value: "Euro (EUR)" }], costOfLiving: { currency: "EUR", lastVerified: "Jun 2026", items: [{ label: "Student living estimate", amount: "9,120", unit: "per year" }, { label: "Room (Lisbon)", range: "400–650", unit: "per month" }], notes: [] } },
+  Saba: {
+    country: "Saba (Dutch Caribbean)",
+    facts: [
+      { label: "Location", value: "Island of Saba, Caribbean Netherlands (special municipality of the Netherlands)" },
+      { label: "Currency", value: "US dollar (USD) — widely used on island" },
+      { label: "Campus", value: "Saba University School of Medicine — The Bottom, Saba" },
+      { label: "Language", value: "English — instruction and daily campus life" },
+      { label: "Basic science", value: "5 semesters on Saba island campus" },
+      { label: "Clinical rotations", value: "5 semesters at affiliated US hospitals; select elective sites in Canada" },
+      { label: "Indian student note", value: "MD (Doctor of Medicine) — verify FMGE/NExT and NMC recognition guidance before advising" },
+    ],
+    costOfLiving: {
+      currency: "USD",
+      lastVerified: "Jun 2026",
+      summary: "Small island — housing and imports affect living costs. Budget separately for basic science (Saba) and clinical years (US).",
+      sourceUrl: "https://www.saba.edu/student-experience/housing/",
+      items: [
+        { label: "Housing (on-campus / island)", range: "Varies", unit: "per semester", notes: "See SUSOM housing page — verify current rates" },
+        { label: "Food & personal (island)", range: "400–700", unit: "per month", notes: "Island imports increase grocery costs" },
+        { label: "Clinical years (US)", range: "Varies by rotation city", unit: "per month", notes: "Budget per clinical site location" },
+        { label: "Health insurance", range: "Mandatory", notes: "Verify SUSOM student health requirements" },
+      ],
+      notes: [
+        "Tuition and fees are published on saba.edu — quote from official tuition page only.",
+        "Clinical rotation years typically involve higher living costs in US cities.",
+      ],
+    },
+  },
 };
 
 export function resolveCountryProfile(country: string | null | undefined): CountryProfile | null {
