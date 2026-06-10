@@ -209,7 +209,7 @@ export default function InstitutionsListPage() {
                     <div className="font-semibold truncate">{i.name}</div>
                     <div className="text-xs text-muted-foreground truncate">{i.country_name ?? "—"} · {i.institution_type ?? "—"}</div>
                     <div className="flex gap-1 mt-2 flex-wrap">
-                      {i.is_partner && <Badge variant="default" className="text-[10px]">Partner</Badge>}
+                      {i.is_partner && <Badge variant="default" className="text-[10px]">Direct partner</Badge>}
                       {!i.is_active && <Badge variant="secondary" className="text-[10px]">Inactive</Badge>}
                       {i.website_url && <Badge variant="outline" className="text-[10px] gap-1"><Globe className="size-3" /> Web</Badge>}
                     </div>

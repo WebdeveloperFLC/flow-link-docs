@@ -31,6 +31,8 @@ import { isSupabaseNotFound } from "../lib/scope";
 import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
 import { InstitutionLogoField } from "../components/InstitutionLogoField";
 import { InstitutionLogo } from "../components/InstitutionLogo";
+import { PartnershipRoutesPanel } from "../components/PartnershipRoutesPanel";
+import type { CatalogStatus } from "../types/partnership";
 
 // Sanitize a filename for use as a Supabase Storage object key.
 // Storage path must round-trip through createSignedUrl, which percent-encodes the
@@ -521,10 +523,16 @@ export default function InstitutionDetailPage() {
                 </Select>
               </div>
               <Textarea placeholder="Notes" disabled={!canEdit} value={inst.notes ?? ""} onChange={(e) => setInst({ ...inst, notes: e.target.value })} onBlur={(e) => canEdit && saveInst({ notes: e.target.value })} />
-              <div className="flex items-center gap-3">
-                <Switch disabled={!canEdit} checked={inst.is_partner} onCheckedChange={(v) => saveInst({ is_partner: v })} />
-                <span className="text-sm">Partner institution</span>
-              </div>
+              <PartnershipRoutesPanel
+                institutionId={id}
+                catalogStatus={(inst.catalog_status ?? "promoted") as CatalogStatus}
+                promotionNotes={inst.promotion_notes ?? null}
+                canEdit={canEdit}
+                onCatalogChange={(patch) => {
+                  setInst({ ...inst, ...patch });
+                  saveInst(patch);
+                }}
+              />
               {Object.keys(inst.metadata ?? {}).length > 0 && (
                 <div className="border-t pt-3">
                   <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Discovered fields (metadata)</div>

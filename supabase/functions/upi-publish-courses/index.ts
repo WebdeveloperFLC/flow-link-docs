@@ -95,13 +95,21 @@ Deno.serve(async (req) => {
             .ilike("name", inst.name).maybeSingle();
           if (existingUni?.id) {
             uniId = existingUni.id;
+            await supabase.from("cf_universities").update({
+              is_partner: inst.is_partner ?? false,
+              upi_institution_id: r.institution_id,
+              logo_url: inst.logo_url,
+              updated_at: new Date().toISOString(),
+            }).eq("id", existingUni.id);
           } else {
             const { data: newUni, error: uniErr } = await supabase
               .from("cf_universities").insert({
                 name: inst.name, slug: slugify(inst.name + "-" + code),
                 country_code: code, city: inst.city, province: inst.state_province,
                 logo_url: inst.logo_url, institution_type: inst.institution_type ?? "public",
-                is_partner: inst.is_partner ?? false, description: inst.notes,
+                is_partner: inst.is_partner ?? false,
+                description: inst.notes,
+                upi_institution_id: r.institution_id,
               }).select("id").single();
             if (uniErr) throw uniErr;
             uniId = newUni!.id;

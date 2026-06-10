@@ -1,22 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
+import { syncInstitutionToCourseFinder } from "./syncCourseFinderInstitution";
 
 export const INSTITUTION_LOGOS_BUCKET = "institution-logos";
-
-const COUNTRY_MAP: Record<string, string> = {
-  canada: "CA",
-  "united states": "US",
-  usa: "US",
-  uk: "GB",
-  "united kingdom": "GB",
-  australia: "AU",
-  "new zealand": "NZ",
-  ireland: "IE",
-};
-
-function countryCode(name: string | null | undefined): string {
-  const t = (name ?? "").toLowerCase().trim();
-  return COUNTRY_MAP[t] ?? "CA";
-}
 
 export function institutionLogoPublicUrl(storagePath: string): string {
   const { data } = supabase.storage.from(INSTITUTION_LOGOS_BUCKET).getPublicUrl(storagePath);
@@ -28,18 +13,7 @@ export async function syncInstitutionLogoToCourseFinder(
   institutionId: string,
   logoUrl: string | null,
 ): Promise<void> {
-  const { data: inst } = await supabase
-    .from("upi_institutions")
-    .select("name, country_name")
-    .eq("id", institutionId)
-    .maybeSingle();
-  if (!inst?.name) return;
-  const code = countryCode(inst.country_name);
-  await supabase
-    .from("cf_universities")
-    .update({ logo_url: logoUrl, updated_at: new Date().toISOString() })
-    .eq("country_code", code)
-    .ilike("name", inst.name);
+  await syncInstitutionToCourseFinder(institutionId, { logo_url: logoUrl });
 }
 
 export async function uploadInstitutionLogo(
