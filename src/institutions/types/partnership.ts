@@ -1,6 +1,15 @@
 export type PartnershipChannelType = "direct" | "indirect" | "student_direct";
 export type PartnershipRouteStatus = "draft" | "active" | "expired" | "suspended";
 export type CatalogStatus = "promoted" | "hidden" | "archived";
+export type CommissionModel = "percentage" | "fixed" | "slab";
+
+/** Volume-based commission tier (e.g. 1–4 students → $900). */
+export interface CommissionSlab {
+  min_students: number;
+  /** null = open-ended (e.g. 9 and more). */
+  max_students: number | null;
+  amount: number;
+}
 
 export interface UpiAggregator {
   id: string;
@@ -34,14 +43,18 @@ export interface UpiPartnershipRoute {
   aggregator_institution_code: string | null;
   is_default_route: boolean;
   priority_rank: number;
-  commission_model: string | null;
+  commission_model: CommissionModel | string | null;
   commission_rate: number | null;
+  commission_slabs: CommissionSlab[] | null;
   commission_currency: string | null;
   bonus_notes: string | null;
   payment_terms: string | null;
   estimated_payout_days: number | null;
   processing_sla_days: number | null;
   application_fee: number | null;
+  application_fee_waiver: boolean;
+  application_fee_waiver_from: string | null;
+  application_fee_waiver_to: string | null;
   notes: string | null;
   metadata: Record<string, unknown>;
   created_at: string;
@@ -52,6 +65,8 @@ export interface UpiPartnershipRoute {
 export interface RouteCompareInput {
   tuition?: number;
   intake?: string;
+  /** YTD enrolled students for slab commission estimate. */
+  studentCount?: number;
 }
 
 export interface RouteCompareScore {

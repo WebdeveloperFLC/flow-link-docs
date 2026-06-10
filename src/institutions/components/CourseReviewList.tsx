@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import { Check, X, Pencil, Trash2, Upload, ExternalLink } from "lucide-react";
 import type { UpiCourseStaging } from "../types/upi";
+import { formatCampusDisplay } from "../lib/courseDedup";
 import { InstitutionLogo } from "./InstitutionLogo";
 
 type ColumnId =
@@ -207,7 +208,7 @@ export function CourseReviewList({
       case "level":
         return levelName(r.program_level_id);
       case "campus":
-        return r.campus_name ?? "—";
+        return <span className="max-w-[220px] inline-block">{formatCampusDisplay(r)}</span>;
       case "duration":
         return formatDuration(r);
       case "tuition":
@@ -295,7 +296,9 @@ export function CourseReviewList({
         {rows.length === 0 && (
           <Card className="p-8 col-span-full text-center text-muted-foreground text-sm">{emptyMsg}</Card>
         )}
-        {rows.map((r) => (
+        {rows.map((r) => {
+          const campusLabel = formatCampusDisplay(r);
+          return (
           <Card key={r.id} className="p-4 space-y-3">
             <div className="flex items-start gap-3">
               {canEdit && <Checkbox checked={selected.has(r.id)} onCheckedChange={() => onToggle(r.id)} className="mt-1" />}
@@ -308,7 +311,7 @@ export function CourseReviewList({
                 <div className="font-medium leading-snug">{r.course_title}</div>
                 <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5 flex-wrap">
                   <span>{instName(r.institution_id)}</span>
-                  {r.campus_name ? <span>· {r.campus_name}</span> : null}
+                  {campusLabel !== "—" ? <span>· {campusLabel}</span> : null}
                 </div>
               </div>
               <StatusBadge status={r.review_status} />
@@ -349,7 +352,8 @@ export function CourseReviewList({
               onPublish={() => onPublish(r.id)}
             />
           </Card>
-        ))}
+        );
+        })}
       </div>
     );
   }

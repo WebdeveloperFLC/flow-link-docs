@@ -28,7 +28,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { UpiCourseStaging } from "../types/upi";
-import { buildCourseDedupKey, computeCourseDedupHash, resolveCourseDedupLevel } from "../lib/courseDedup";
+import {
+  buildCourseDedupKey,
+  campusNamesFromRow,
+  computeCourseDedupHash,
+  normalizeCampusFields,
+  resolveCourseDedupLevel,
+  rowMatchesCampus,
+} from "../lib/courseDedup";
 import { normalizeInstitutionName } from "../lib/programSheetImport";
 
 const STATUSES = ["pending_review", "approved", "rejected", "published", "needs_update"];
@@ -266,8 +273,7 @@ export default function CourseReviewPage() {
   const campuses = useMemo(() => {
     const set = new Set<string>();
     for (const r of rows) {
-      const c = r.campus_name?.trim();
-      if (c) set.add(c);
+      campusNamesFromRow(r).forEach((c) => set.add(c));
     }
     return Array.from(set).sort();
   }, [rows]);
@@ -319,7 +325,7 @@ export default function CourseReviewPage() {
       list = list.filter((r) => r.institution_id === instFilter);
     }
     if (campusFilter !== "all") {
-      list = list.filter((r) => (r.campus_name ?? "").trim() === campusFilter);
+      list = list.filter((r) => rowMatchesCampus(r, campusFilter));
     }
     if (pgwpFilter === "yes") list = list.filter((r) => r.is_pgwp_eligible === true);
     else if (pgwpFilter === "no") list = list.filter((r) => r.is_pgwp_eligible === false);
@@ -336,6 +342,7 @@ export default function CourseReviewPage() {
         const parts: (string | number | null | undefined)[] = [
           r.course_title,
           r.course_description,
+          campusNamesFromRow(r).join(" "),
           r.campus_name,
           r.city,
           r.state_province,
@@ -774,16 +781,21 @@ function EditSheet({
     }
     const levelName = levels.find((l) => l.id === draft.program_level_id)?.name ?? null;
     const programLevel = resolveCourseDedupLevel(metadata, levelName);
+    const campusFields = normalizeCampusFields(draft.campus_name, metadata);
     const dedup_hash = await computeCourseDedupHash(
       buildCourseDedupKey({
         institution_id: draft.institution_id,
         course_title: draft.course_title,
         program_level_id: draft.program_level_id,
         program_level: programLevel,
-        campus_name: draft.campus_name,
       }),
     );
-    const patch: any = { ...draft, metadata, dedup_hash };
+    const patch: any = {
+      ...draft,
+      campus_name: campusFields.campus_name,
+      metadata: campusFields.metadata,
+      dedup_hash,
+    };
     delete patch.id;
     delete patch.extracted_at;
     delete patch.updated_at;
@@ -874,7 +886,7 @@ function EditSheet({
                 </SelectContent>
               </Select>
             </div>
-            {field("campus_name", "Campus")}
+            {field("campus_name", "Campuses (comma-separated)")}
             {field("city", "City")}
             {field("country_name", "Country")}
             {field("currency", "Currency")}

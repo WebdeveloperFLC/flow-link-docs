@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { formatCampusDisplay } from "../lib/courseDedup";
 
 interface Props {
   open: boolean;
@@ -246,7 +247,7 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
                           <td className="px-2 py-1">{c.duration_value ? `${c.duration_value} ${c.duration_unit ?? ""}` : "—"}</td>
                           <td className="px-2 py-1">{c.tuition_fee ? `${c.tuition_fee} ${c.currency ?? ""}` : "—"}</td>
                           <td className="px-2 py-1">{Array.isArray(c.intake_months) && c.intake_months.length ? c.intake_months.join(", ") : "—"}</td>
-                          <td className="px-2 py-1">{c.campus_name || c.city || "—"}</td>
+                          <td className="px-2 py-1">{formatCampusDisplay(c) !== "—" ? formatCampusDisplay(c) : c.city || "—"}</td>
                         </tr>
                       ))}
                     </tbody>

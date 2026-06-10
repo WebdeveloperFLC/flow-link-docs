@@ -15,15 +15,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, GitCompare, Star } from "lucide-react";
+import { Plus, Pencil, Trash2, GitCompare, Star, X } from "lucide-react";
 import { toast } from "sonner";
 import type {
   CatalogStatus,
+  CommissionSlab,
   PartnershipChannelType,
   UpiAggregator,
   UpiPartnershipRoute,
 } from "../types/partnership";
-import { channelLabel, scorePartnershipRoutes, syncInstitutionPartnershipToCourseFinder } from "../lib/partnershipRoutes";
+import {
+  channelLabel,
+  expireStaleFeeWaivers,
+  formatCommissionSummary,
+  formatFeeWaiverSummary,
+  isApplicationFeeWaiverActive,
+  parseCommissionSlabs,
+  scorePartnershipRoutes,
+  syncInstitutionPartnershipToCourseFinder,
+  validateCommissionSlabs,
+} from "../lib/partnershipRoutes";
+
+type SlabRow = { min_students: string; max_students: string; amount: string };
 
 type RouteForm = {
   channel_type: PartnershipChannelType;
@@ -37,14 +50,24 @@ type RouteForm = {
   commission_model: string;
   commission_rate: string;
   commission_currency: string;
+  commission_slabs: SlabRow[];
   bonus_notes: string;
   payment_terms: string;
   estimated_payout_days: string;
   processing_sla_days: string;
   application_fee: string;
+  application_fee_waiver: boolean;
+  application_fee_waiver_from: string;
+  application_fee_waiver_to: string;
   is_default_route: boolean;
   notes: string;
 };
+
+const defaultSlabRows = (): SlabRow[] => [
+  { min_students: "1", max_students: "4", amount: "900" },
+  { min_students: "5", max_students: "8", amount: "1100" },
+  { min_students: "9", max_students: "", amount: "1500" },
+];
 
 const emptyRouteForm = (): RouteForm => ({
   channel_type: "indirect",
@@ -58,14 +81,38 @@ const emptyRouteForm = (): RouteForm => ({
   commission_model: "percentage",
   commission_rate: "",
   commission_currency: "CAD",
+  commission_slabs: defaultSlabRows(),
   bonus_notes: "",
   payment_terms: "",
   estimated_payout_days: "",
   processing_sla_days: "",
   application_fee: "",
+  application_fee_waiver: false,
+  application_fee_waiver_from: "",
+  application_fee_waiver_to: "",
   is_default_route: false,
   notes: "",
 });
+
+function slabsFromRoute(route: UpiPartnershipRoute): SlabRow[] {
+  const parsed = parseCommissionSlabs(route);
+  if (!parsed.length) return defaultSlabRows();
+  return parsed.map((s) => ({
+    min_students: String(s.min_students),
+    max_students: s.max_students == null ? "" : String(s.max_students),
+    amount: String(s.amount),
+  }));
+}
+
+function parseSlabRows(rows: SlabRow[]): CommissionSlab[] {
+  return rows
+    .filter((r) => r.min_students.trim() || r.amount.trim())
+    .map((r) => ({
+      min_students: Number(r.min_students),
+      max_students: r.max_students.trim() ? Number(r.max_students) : null,
+      amount: Number(r.amount),
+    }));
+}
 
 export function PartnershipRoutesPanel({
   institutionId,
@@ -91,6 +138,7 @@ export function PartnershipRoutesPanel({
 
   const load = async () => {
     setLoading(true);
+    await expireStaleFeeWaivers((fn) => supabase.rpc(fn));
     const [r, a] = await Promise.all([
       supabase
         .from("upi_partnership_routes")
@@ -145,11 +193,15 @@ export function PartnershipRoutesPanel({
       commission_model: route.commission_model ?? "percentage",
       commission_rate: route.commission_rate != null ? String(route.commission_rate) : "",
       commission_currency: route.commission_currency ?? "CAD",
+      commission_slabs: slabsFromRoute(route),
       bonus_notes: route.bonus_notes ?? "",
       payment_terms: route.payment_terms ?? "",
       estimated_payout_days: route.estimated_payout_days != null ? String(route.estimated_payout_days) : "",
       processing_sla_days: route.processing_sla_days != null ? String(route.processing_sla_days) : "",
       application_fee: route.application_fee != null ? String(route.application_fee) : "",
+      application_fee_waiver: route.application_fee_waiver ?? false,
+      application_fee_waiver_from: route.application_fee_waiver_from ?? "",
+      application_fee_waiver_to: route.application_fee_waiver_to ?? "",
       is_default_route: route.is_default_route,
       notes: route.notes ?? "",
     });
@@ -164,6 +216,21 @@ export function PartnershipRoutesPanel({
     }
 
     const agg = aggregators.find((x) => x.id === form.aggregator_id);
+    const isSlab = form.commission_model === "slab";
+    const slabs = isSlab ? parseSlabRows(form.commission_slabs) : [];
+    if (isSlab) {
+      const slabErr = validateCommissionSlabs(slabs);
+      if (slabErr) return toast.error(slabErr);
+    }
+    if (form.application_fee_waiver) {
+      if (!form.application_fee_waiver_from || !form.application_fee_waiver_to) {
+        return toast.error("Set both waiver start and end dates");
+      }
+      if (form.application_fee_waiver_from > form.application_fee_waiver_to) {
+        return toast.error("Waiver end date must be on or after start date");
+      }
+    }
+
     const payload = {
       institution_id: institutionId,
       channel_type: form.channel_type,
@@ -175,13 +242,17 @@ export function PartnershipRoutesPanel({
       application_portal_url: form.application_portal_url.trim() || agg?.default_portal_url || null,
       aggregator_institution_code: form.aggregator_institution_code.trim() || null,
       commission_model: form.commission_model || null,
-      commission_rate: form.commission_rate ? Number(form.commission_rate) : null,
+      commission_rate: isSlab ? null : form.commission_rate ? Number(form.commission_rate) : null,
+      commission_slabs: isSlab ? slabs : [],
       commission_currency: form.commission_currency || "CAD",
       bonus_notes: form.bonus_notes.trim() || null,
       payment_terms: form.payment_terms.trim() || agg?.default_payment_terms || null,
       estimated_payout_days: form.estimated_payout_days ? Number(form.estimated_payout_days) : null,
       processing_sla_days: form.processing_sla_days ? Number(form.processing_sla_days) : null,
       application_fee: form.application_fee ? Number(form.application_fee) : null,
+      application_fee_waiver: form.application_fee_waiver,
+      application_fee_waiver_from: form.application_fee_waiver ? form.application_fee_waiver_from : null,
+      application_fee_waiver_to: form.application_fee_waiver ? form.application_fee_waiver_to : null,
       is_default_route: form.is_default_route,
       notes: form.notes.trim() || null,
     };
@@ -310,11 +381,14 @@ export function PartnershipRoutesPanel({
                   )}
                 </div>
                 <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3 gap-y-1">
-                  {route.commission_rate != null && (
-                    <span>
-                      {route.commission_rate}
-                      {route.commission_model?.includes("fixed") ? ` ${route.commission_currency}` : "%"}
-                    </span>
+                  {formatCommissionSummary(route) && <span>{formatCommissionSummary(route)}</span>}
+                  {isApplicationFeeWaiverActive(route) && (
+                    <Badge variant="outline" className="text-[10px] text-success border-success/40">
+                      App fee waived
+                    </Badge>
+                  )}
+                  {route.application_fee_waiver && !isApplicationFeeWaiverActive(route) && (
+                    <span className="text-amber-600">{formatFeeWaiverSummary(route)}</span>
                   )}
                   {route.valid_to && <span>Valid until {route.valid_to}</span>}
                   {route.estimated_payout_days != null && <span>Payout ~{route.estimated_payout_days}d</span>}
@@ -399,27 +473,127 @@ export function PartnershipRoutesPanel({
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label>Commission rate</Label>
-                <Input
-                  type="number"
-                  value={form.commission_rate}
-                  onChange={(e) => setForm({ ...form, commission_rate: e.target.value })}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label>Model</Label>
-                <Select value={form.commission_model} onValueChange={(v) => setForm({ ...form, commission_model: v })}>
+              {form.commission_model !== "slab" && (
+                <div className="space-y-1">
+                  <Label>Commission rate</Label>
+                  <Input
+                    type="number"
+                    value={form.commission_rate}
+                    onChange={(e) => setForm({ ...form, commission_rate: e.target.value })}
+                  />
+                </div>
+              )}
+              <div className={`space-y-1 ${form.commission_model === "slab" ? "col-span-2" : ""}`}>
+                <Label>Commission model</Label>
+                <Select
+                  value={form.commission_model}
+                  onValueChange={(v) =>
+                    setForm({
+                      ...form,
+                      commission_model: v,
+                      commission_slabs:
+                        v === "slab" && !form.commission_slabs.length ? defaultSlabRows() : form.commission_slabs,
+                    })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="percentage">Percentage</SelectItem>
                     <SelectItem value="fixed">Fixed amount</SelectItem>
+                    <SelectItem value="slab">Slab (volume tiers)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
+            {form.commission_model === "slab" && (
+              <div className="space-y-2 border rounded-lg p-3 bg-muted/20">
+                <div className="flex items-center justify-between gap-2">
+                  <Label className="text-sm">Commission slabs (students enrolled)</Label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      setForm({
+                        ...form,
+                        commission_slabs: [
+                          ...form.commission_slabs,
+                          { min_students: "", max_students: "", amount: "" },
+                        ],
+                      })
+                    }
+                  >
+                    <Plus className="size-3 mr-1" /> Add tier
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Example: 1–4 → $900, 5–8 → $1,100, 9+ → $1,500. Leave max empty for &quot;and more&quot;.
+                </p>
+                <div className="space-y-2">
+                  {form.commission_slabs.map((row, idx) => (
+                    <div key={idx} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Min students</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={row.min_students}
+                          onChange={(e) => {
+                            const next = [...form.commission_slabs];
+                            next[idx] = { ...next[idx], min_students: e.target.value };
+                            setForm({ ...form, commission_slabs: next });
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Max (blank = 9+)</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder="and more"
+                          value={row.max_students}
+                          onChange={(e) => {
+                            const next = [...form.commission_slabs];
+                            next[idx] = { ...next[idx], max_students: e.target.value };
+                            setForm({ ...form, commission_slabs: next });
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Amount ({form.commission_currency})</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={row.amount}
+                          onChange={(e) => {
+                            const next = [...form.commission_slabs];
+                            next[idx] = { ...next[idx], amount: e.target.value };
+                            setForm({ ...form, commission_slabs: next });
+                          }}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="shrink-0 text-destructive"
+                        disabled={form.commission_slabs.length <= 1}
+                        onClick={() =>
+                          setForm({
+                            ...form,
+                            commission_slabs: form.commission_slabs.filter((_, i) => i !== idx),
+                          })
+                        }
+                      >
+                        <X className="size-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label>Payout days</Label>
@@ -444,6 +618,56 @@ export function PartnershipRoutesPanel({
                 value={form.application_portal_url}
                 onChange={(e) => setForm({ ...form, application_portal_url: e.target.value })}
               />
+            </div>
+            <div className="space-y-1">
+              <Label>Application fee (standard)</Label>
+              <Input
+                type="number"
+                placeholder="e.g. 100"
+                value={form.application_fee}
+                onChange={(e) => setForm({ ...form, application_fee: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2 border rounded-lg p-3 bg-muted/20">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={form.application_fee_waiver}
+                  onCheckedChange={(v) =>
+                    setForm({
+                      ...form,
+                      application_fee_waiver: v,
+                      application_fee_waiver_from: v ? form.application_fee_waiver_from : "",
+                      application_fee_waiver_to: v ? form.application_fee_waiver_to : "",
+                    })
+                  }
+                />
+                <Label>Application fee waiver</Label>
+              </div>
+              {form.application_fee_waiver && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Waiver from *</Label>
+                    <Input
+                      type="date"
+                      value={form.application_fee_waiver_from}
+                      onChange={(e) => setForm({ ...form, application_fee_waiver_from: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Waiver until *</Label>
+                    <Input
+                      type="date"
+                      value={form.application_fee_waiver_to}
+                      onChange={(e) => setForm({ ...form, application_fee_waiver_to: e.target.value })}
+                    />
+                  </div>
+                </div>
+              )}
+              {form.application_fee_waiver && (
+                <p className="text-xs text-muted-foreground">
+                  Waiver turns off automatically after the end date.
+                </p>
+              )}
             </div>
             <div className="space-y-1">
               <Label>Bonus / offer notes</Label>
@@ -497,9 +721,7 @@ export function PartnershipRoutesPanel({
                           <Badge className="ml-2 bg-success/15 text-success border-0 text-[10px]">Best</Badge>
                         )}
                       </td>
-                      <td className="py-2 pr-3">
-                        {row.route.commission_rate != null ? `${row.route.commission_rate}%` : "—"}
-                      </td>
+                      <td className="py-2 pr-3">{formatCommissionSummary(row.route) ?? "—"}</td>
                       <td className="py-2 pr-3">
                         {row.commissionEstimate != null
                           ? `${Math.round(row.commissionEstimate).toLocaleString()} ${row.route.commission_currency ?? "CAD"}`
