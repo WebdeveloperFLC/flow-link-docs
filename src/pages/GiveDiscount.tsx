@@ -98,6 +98,10 @@ export default function GiveDiscount() {
         )
         .eq("counselor_id", user.id)
         .eq("period_key", period)
+        .eq("budget_kind", "month_to_month")
+        .is("closed_at", null)
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle(),
       supabase.from("clients").select("id, full_name").eq("assigned_counselor_id", user.id).limit(500),
       supabase.from("leads").select("id, first_name, last_name").eq("assigned_counselor_id", user.id).limit(500),
@@ -123,7 +127,15 @@ export default function GiveDiscount() {
       lbl[`lead:${l.id}`] = nm;
     }
 
-    const walletRow = (w.data ?? null) as WalletRow | null;
+    let walletRow = (w.data ?? null) as WalletRow | null;
+    if (walletRow?.id) {
+      const { data: synced, error: syncErr } = await supabase.rpc("fn_sync_wallet_metrics", {
+        _wallet_id: walletRow.id,
+      });
+      if (!syncErr && synced) {
+        walletRow = synced as WalletRow;
+      }
+    }
     setWallet(walletRow);
     setTargets(t);
     setAllocs(
