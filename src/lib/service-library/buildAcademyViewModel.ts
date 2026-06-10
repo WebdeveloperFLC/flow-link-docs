@@ -136,7 +136,13 @@ function parseProcessFlow(raw: unknown): { title: string; duration?: string; own
       const o = item as Record<string, unknown>;
       return {
         title: String(o.title ?? o.step ?? `Step ${i + 1}`),
-        duration: o.duration ? String(o.duration) : o.weeks ? String(o.weeks) : "",
+        duration: o.duration
+          ? String(o.duration)
+          : o.weeks
+            ? String(o.weeks).match(/^\d/)
+              ? `Weeks ${o.weeks}`
+              : String(o.weeks)
+            : "",
         owner: o.owner ? String(o.owner) : "Counselor",
         notes: o.notes ? String(o.notes) : undefined,
       };

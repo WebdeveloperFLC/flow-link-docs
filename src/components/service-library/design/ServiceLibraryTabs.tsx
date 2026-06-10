@@ -103,7 +103,19 @@ export function ServiceLibraryTabs({
                   <dt className="text-muted-foreground font-medium mb-0.5">{row.label}</dt>
                   <dd className="flex items-start gap-1.5">
                     {row.warning && <AlertTriangle className="size-4 text-warning shrink-0" />}
-                    {row.value}
+                    <span className="flex-1">
+                      {row.value}
+                      {row.link && (
+                        <a
+                          href={row.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block text-xs text-primary hover:underline mt-1"
+                        >
+                          Official source →
+                        </a>
+                      )}
+                    </span>
                   </dd>
                 </div>
               ))}
@@ -383,7 +395,7 @@ export function ServiceLibraryTabs({
             </div>
           </Card>
         ) : null}
-        {view.isCoaching && view.downloads.length > 0 && (
+        {(view.isCoaching || view.isMbbs) && view.downloads.length > 0 && (
           <Card className="p-5 shadow-elev-sm">
             <h3 className="font-semibold mb-3">Downloadable checklists</h3>
             <div className="space-y-2">
@@ -472,8 +484,9 @@ export function ServiceLibraryTabs({
       <TabsContent value="visaforms" className="mt-0 space-y-4">
         <Card className="p-4 shadow-elev-sm bg-muted/20 border-dashed">
           <p className="text-sm text-muted-foreground">
-            Official government application forms and online portals for this service. Always verify the current form
-            version on the issuing authority website before client use.
+            {view.isMbbs
+              ? "Official university application portals and immigration forms for admission, Saba basic-science years, and US clinical rotations. Always verify the current version before client use."
+              : "Official government application forms and online portals for this service. Always verify the current form version on the issuing authority website before client use."}
           </p>
         </Card>
         {view.visaForms.length > 0 ? (
@@ -516,7 +529,9 @@ export function ServiceLibraryTabs({
           </div>
         ) : (
           <Card className="p-5 text-sm text-muted-foreground">
-            No official forms linked yet. Add them in Service Library Admin → Visa forms tab.
+            {view.isMbbs
+              ? "No application forms linked yet. Add them in Service Library Admin → Application forms tab."
+              : "No official forms linked yet. Add them in Service Library Admin → Visa forms tab."}
           </Card>
         )}
       </TabsContent>

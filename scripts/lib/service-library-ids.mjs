@@ -49,6 +49,7 @@ export const LIBRARY_IDS = {
   "coaching-ielts-academic-regular.json": "b2000001-0001-4000-8000-000000000072",
   "coaching-ielts-academic-crash.json": "b2000001-0001-4000-8000-000000000073",
   "coaching-ielts-gt-regular.json": "b2000001-0001-4000-8000-000000000074",
+  "mbbs-saba-university.json": "b2000001-0001-4000-8000-0000000000d1",
   "france-student-visa.json": "b2000001-0001-4000-8000-000000000081",
   "france-visitor-visa.json": "b2000001-0001-4000-8000-000000000082",
   "italy-student-visa.json": "b2000001-0001-4000-8000-000000000091",

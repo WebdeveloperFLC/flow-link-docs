@@ -172,6 +172,19 @@ export function ServiceAcademyHero({
           <span>
             <span className="font-medium text-warning">Policy — {view.policyAlert.date}:</span>{" "}
             {view.policyAlert.summary}
+            {view.isMbbs && view.mbbsMeta?.website && (
+              <>
+                {" "}
+                <a
+                  href={view.mbbsMeta.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  {view.mbbsMeta.website.replace(/^https?:\/\//, "")}
+                </a>
+              </>
+            )}
           </span>
         </p>
       )}

@@ -8,6 +8,7 @@ import { GERMANY_FEE_BREAKDOWNS } from "./germany";
 import { NZ_FEE_BREAKDOWNS } from "./nz";
 import { SCHENGEN_FEE_BREAKDOWNS } from "./schengen";
 import { IRELAND_FEE_BREAKDOWNS } from "./ireland";
+import { MBBS_FEE_BREAKDOWNS } from "./mbbs";
 import { CONSULTANCY_BY_LIBRARY_ID } from "./consultancyFees";
 import { buildFeeBreakdownView } from "./formatFeeBreakdown";
 import type {
@@ -26,6 +27,7 @@ const ALL_GOVT_BREAKDOWNS: GovtFeeBreakdownSource[] = [
   ...NZ_FEE_BREAKDOWNS,
   ...SCHENGEN_FEE_BREAKDOWNS,
   ...IRELAND_FEE_BREAKDOWNS,
+  ...MBBS_FEE_BREAKDOWNS,
 ];
 
 const GOVT_BY_LIBRARY_ID = new Map(ALL_GOVT_BREAKDOWNS.map((b) => [b.libraryId, b]));
