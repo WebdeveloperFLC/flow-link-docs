@@ -1418,5 +1418,137 @@
       "docKind": "financial"
     }
   ],
-  "navBucket": "immigration"
+  "navBucket": "immigration",
+  "workingRights": {
+    "applicant": {
+      "summary": "Employer-specific or open work permits authorize work per conditions on the permit (employer, occupation, location, expiry).",
+      "details": [
+        "LMIA-exempt streams (IEC, PGWP, BOWP, IEC, intra-company) have specific rules.",
+        "PR applicants with maintained status may qualify for BOWP."
+      ],
+      "restrictions": [
+        "Working outside permit conditions is unauthorized employment"
+      ],
+      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada.html",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Spouse/partner of skilled worker or PR applicant often eligible for open work permit (SOWP) during processing or after PR stage.",
+      "details": [
+        "PNP nominations may include employment restrictions affecting open permits — verify nomination letter."
+      ],
+      "restrictions": [],
+      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — Canada – Temporary Resident to PR Pathway",
+    "currency": "CAD",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "PR / work permit fees",
+            "range": "155–650",
+            "notes": "Varies by stream",
+            "currency": "CAD",
+            "applicable": true
+          },
+          {
+            "label": "Biometrics",
+            "amount": 85,
+            "currency": "CAD",
+            "applicable": true
+          },
+          {
+            "label": "Medical & police",
+            "range": "Varies",
+            "notes": "Third party",
+            "currency": "CAD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Credential recognition / skills assessment",
+            "range": "Varies",
+            "notes": "If required for license",
+            "currency": "CAD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Living funds (IRCC guideline, 1 person)",
+            "amount": 20635,
+            "unit": "per year",
+            "notes": "Outside Quebec",
+            "currency": "CAD"
+          },
+          {
+            "label": "Accommodation",
+            "range": "700–1,400",
+            "unit": "per month",
+            "currency": "CAD"
+          },
+          {
+            "label": "Food & personal",
+            "range": "300–550",
+            "unit": "per month",
+            "currency": "CAD"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

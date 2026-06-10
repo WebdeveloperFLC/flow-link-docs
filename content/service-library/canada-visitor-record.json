@@ -1444,5 +1444,140 @@
       "docKind": "travel"
     }
   ],
-  "navBucket": "visa"
+  "navBucket": "visa",
+  "workingRights": {
+    "applicant": {
+      "summary": "Visitor visa (TRV) / super visa generally does not authorize work in Canada. Super visa allows extended stays with parents/grandparents of citizens/PRs but still no employment.",
+      "details": [
+        "Business visitor activities are limited — distinguish from work requiring work permit.",
+        "Super visa requires medical insurance and sponsor income proof."
+      ],
+      "restrictions": [
+        "Employment without authorization is illegal",
+        "Study beyond short course may need study permit"
+      ],
+      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Spouse accompanying on visitor status cannot work unless they separately obtain an eligible work permit or change status.",
+      "details": [
+        "If spouse intends to work, assess study permit + SOWP or work permit pathways instead of visitor."
+      ],
+      "restrictions": [
+        "Visitor record does not grant work rights"
+      ],
+      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — Canada – Visitor Record (In-Canada Extension)",
+    "currency": "CAD",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "Visitor visa (TRV)",
+            "amount": 100,
+            "unit": "per applicant",
+            "currency": "CAD",
+            "applicable": true
+          },
+          {
+            "label": "Biometrics",
+            "amount": 85,
+            "unit": "per applicant",
+            "currency": "CAD",
+            "applicable": true
+          },
+          {
+            "label": "Super visa (if applicable)",
+            "amount": 100,
+            "notes": "Plus medical insurance",
+            "currency": "CAD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition",
+            "applicable": false,
+            "notes": "Not applicable for visitor visa",
+            "currency": "CAD"
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Living funds (IRCC guideline, 1 person)",
+            "amount": 20635,
+            "unit": "per year",
+            "notes": "Outside Quebec",
+            "currency": "CAD"
+          },
+          {
+            "label": "Accommodation",
+            "range": "700–1,400",
+            "unit": "per month",
+            "currency": "CAD"
+          },
+          {
+            "label": "Food & personal",
+            "range": "300–550",
+            "unit": "per month",
+            "currency": "CAD"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

@@ -1405,5 +1405,111 @@
       "docKind": "financial"
     }
   ],
-  "navBucket": "immigration"
+  "navBucket": "immigration",
+  "workingRights": {
+    "applicant": {
+      "summary": "Subclass 485 temporary graduate visa provides full work rights after eligible Australian study.",
+      "details": [
+        "Apply within completion window.",
+        "Stream depends on qualification and location."
+      ],
+      "restrictions": [],
+      "sourceUrl": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/temporary-graduate-485",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Dependants included in 485 application have same work rights.",
+      "details": [],
+      "restrictions": [],
+      "sourceUrl": "https://immi.homeaffairs.gov.au/",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — Australia – Temporary Graduate Visa (Subclass 485)",
+    "currency": "AUD",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://immi.homeaffairs.gov.au/",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "Subclass 485",
+            "amount": 1930,
+            "currency": "AUD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition",
+            "applicable": false,
+            "notes": "Program already completed",
+            "currency": "AUD"
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Living costs (Home Affairs)",
+            "amount": 29710,
+            "unit": "per year",
+            "currency": "AUD"
+          },
+          {
+            "label": "OSHC",
+            "range": "500–700",
+            "unit": "per year",
+            "currency": "AUD"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

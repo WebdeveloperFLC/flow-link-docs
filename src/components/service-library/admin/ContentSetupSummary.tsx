@@ -79,6 +79,26 @@ function buildChecks(meta: ServiceAcademyMetadata, master: Props["master"]): Che
       ok: (meta.resources?.length ?? 0) > 0,
       detail: `${meta.resources?.length ?? 0} links`,
     },
+    ...(master.service_category === "visa_immigration"
+      ? [
+          {
+            id: "workingrights",
+            label: "Working rights (applicant & spouse)",
+            ok: !!(meta.workingRights?.applicant?.summary && meta.workingRights?.spouse?.summary),
+            detail: meta.workingRights?.applicant?.summary
+              ? "Applicant + spouse blocks configured"
+              : "Add in academy_metadata or run inject-country-insights",
+          },
+          {
+            id: "costbreakdown",
+            label: "Full cost breakdown",
+            ok: (meta.fullCostBreakdown?.sections?.length ?? 0) >= 4,
+            detail: meta.fullCostBreakdown?.sections?.length
+              ? `${meta.fullCostBreakdown.sections.length} sections (fees, tuition, living, misc)`
+              : "Missing fullCostBreakdown sections",
+          },
+        ]
+      : []),
   ];
 }
 
@@ -108,7 +128,7 @@ export function ContentSetupSummary({ master, compact }: Props) {
         <div>
           <h3 className="text-sm font-semibold">Counselor content setup</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Matches what counselors see in Service Library tabs (Overview, Red flags, Quiz, Sample docs, etc.)
+            Matches what counselors see in Service Library tabs (Overview, Fees, Country & costs, Red flags, Quiz, etc.)
           </p>
         </div>
         <Badge variant={complete ? "default" : "outline"} className="shrink-0 tabular-nums">

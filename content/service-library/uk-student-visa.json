@@ -85,19 +85,36 @@
     }
   ],
   "compare": {
-    "columns": ["Service tier", "Government fee", "Processing time", "Notes"],
+    "columns": [
+      "Service tier",
+      "Government fee",
+      "Processing time",
+      "Notes"
+    ],
     "rows": [
       {
         "label": "Standard Student Visa",
-        "values": ["£558", "Usually ~3 weeks", "Outside UK standard processing"]
+        "values": [
+          "£558",
+          "Usually ~3 weeks",
+          "Outside UK standard processing"
+        ]
       },
       {
         "label": "Priority Visa Service",
-        "values": ["£1,058 (£558 + £500)", "Usually within 5 working days", "VAC must offer priority"]
+        "values": [
+          "£1,058 (£558 + £500)",
+          "Usually within 5 working days",
+          "VAC must offer priority"
+        ]
       },
       {
         "label": "Super Priority Visa Service",
-        "values": ["£1,558 (£558 + £1,000)", "Usually by end of next working day after biometrics", "1 working day decision target"]
+        "values": [
+          "£1,558 (£558 + £1,000)",
+          "Usually by end of next working day after biometrics",
+          "1 working day decision target"
+        ]
       }
     ]
   },
@@ -1447,5 +1464,146 @@
       "docKind": "supporting"
     }
   ],
-  "navBucket": "visa"
+  "navBucket": "visa",
+  "workingRights": {
+    "applicant": {
+      "summary": "Student Route visa allows limited work during term (typically 20 hours/week) and full-time in vacations for degree-level courses; rules vary by course level and sponsor.",
+      "details": [
+        "Check CAS and visa vignette for exact work conditions.",
+        "Cannot work as professional sportsperson or doctor/dentist in training unless permitted."
+      ],
+      "restrictions": [
+        "Self-employment and business activity restricted"
+      ],
+      "sourceUrl": "https://www.gov.uk/student-visa",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Dependants (partner/children) may apply if course meets postgraduate level/duration thresholds; dependants can usually work without hourly cap.",
+      "details": [
+        "Verify current dependant eligibility rules before quoting spouse work rights."
+      ],
+      "restrictions": [],
+      "sourceUrl": "https://www.gov.uk/visa-to-remain-in-the-uk-partner",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — UK – Student Visa (Student Route)",
+    "currency": "GBP",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.gov.uk/browse/visas-immigration",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "Student visa application",
+            "amount": 490,
+            "unit": "per applicant",
+            "currency": "GBP",
+            "applicable": true
+          },
+          {
+            "label": "Immigration Health Surcharge",
+            "range": "£776/year",
+            "notes": "Per year of visa",
+            "currency": "GBP",
+            "applicable": true
+          },
+          {
+            "label": "Priority/VFS services",
+            "range": "Optional",
+            "notes": "VAC surcharge",
+            "currency": "GBP",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition (undergraduate, indicative)",
+            "range": "Mid-range for destination",
+            "notes": "Use offer letter amount",
+            "currency": "GBP",
+            "applicable": true
+          },
+          {
+            "label": "Tuition deposit already paid",
+            "range": "Per LOA/CAS",
+            "notes": "Deduct from total funds",
+            "currency": "GBP",
+            "applicable": true
+          },
+          {
+            "label": "Books & materials",
+            "range": "500–1,500",
+            "unit": "per year",
+            "notes": "Program dependent",
+            "currency": "GBP",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Maintenance funds (London)",
+            "amount": 1334,
+            "unit": "per month × 9",
+            "currency": "GBP"
+          },
+          {
+            "label": "Maintenance funds (outside London)",
+            "amount": 1023,
+            "unit": "per month × 9",
+            "currency": "GBP"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

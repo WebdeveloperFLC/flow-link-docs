@@ -86,6 +86,45 @@ export type ServiceAcademyMetadata = {
       notes?: string;
     }[];
   };
+  /** Per-visa work rights — applicant and spouse/partner. */
+  workingRights?: {
+    applicant: {
+      summary: string;
+      details: string[];
+      restrictions?: string[];
+      sourceUrl?: string;
+      lastVerified?: string;
+    };
+    spouse: {
+      summary: string;
+      details: string[];
+      restrictions?: string[];
+      sourceUrl?: string;
+      lastVerified?: string;
+    };
+  };
+  /** Full cost breakdown: government fees, tuition, living, miscellaneous. */
+  fullCostBreakdown?: {
+    title?: string;
+    currency: string;
+    lastVerified: string;
+    disclaimer: string;
+    sourceUrl?: string;
+    sections: {
+      id: string;
+      label: string;
+      items: {
+        label: string;
+        amount?: number | null;
+        range?: string | null;
+        currency?: string;
+        unit?: string;
+        notes?: string;
+        applicable?: boolean;
+      }[];
+    }[];
+    totals?: { label: string; value: string; notes?: string }[];
+  };
   /** Mock / sample documents counselors can show clients (Sample docs tab). */
   sampleDocs?: {
     title: string;

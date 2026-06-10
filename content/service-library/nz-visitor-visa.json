@@ -1408,5 +1408,108 @@
       "docKind": "financial"
     }
   ],
-  "navBucket": "visa"
+  "navBucket": "visa",
+  "workingRights": {
+    "applicant": {
+      "summary": "Visitor visa does not allow employment.",
+      "details": [],
+      "restrictions": [],
+      "sourceUrl": "https://www.immigration.govt.nz/",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Partner on visitor visa cannot work.",
+      "details": [],
+      "restrictions": [],
+      "sourceUrl": "https://www.immigration.govt.nz/",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — New Zealand – Visitor Visa",
+    "currency": "NZD",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.immigration.govt.nz/",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "Visitor visa",
+            "amount": 211,
+            "currency": "NZD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition",
+            "applicable": false,
+            "notes": "Not applicable for visitor visa",
+            "currency": "NZD"
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Living funds (INZ typical)",
+            "amount": 20000,
+            "unit": "per year",
+            "currency": "NZD"
+          },
+          {
+            "label": "Rent",
+            "range": "150–350",
+            "unit": "per week",
+            "currency": "NZD"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

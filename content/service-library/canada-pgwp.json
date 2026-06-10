@@ -1405,5 +1405,126 @@
       "docKind": "financial"
     }
   ],
-  "navBucket": "immigration"
+  "navBucket": "immigration",
+  "workingRights": {
+    "applicant": {
+      "summary": "Post-graduation work permit (PGWP) or post-study pathways authorize open work in Canada for a fixed period after eligible study.",
+      "details": [
+        "PGWP length tied to program duration; apply within 180 days of program completion letter.",
+        "Maintain legal status while applying."
+      ],
+      "restrictions": [
+        "Cannot extend PGWP beyond maximum allowed length except in limited policy windows"
+      ],
+      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work/after-graduation.html",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Spouse may apply for open work permit while principal holds valid PGWP, subject to current SOWP policy.",
+      "details": [],
+      "restrictions": [],
+      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — Canada – Post-Graduation Work Permit (PGWP)",
+    "currency": "CAD",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "PGWP application",
+            "amount": 255,
+            "currency": "CAD",
+            "applicable": true
+          },
+          {
+            "label": "Biometrics (if required)",
+            "amount": 85,
+            "currency": "CAD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition",
+            "applicable": false,
+            "notes": "Program already completed",
+            "currency": "CAD"
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Living funds (IRCC guideline, 1 person)",
+            "amount": 20635,
+            "unit": "per year",
+            "notes": "Outside Quebec",
+            "currency": "CAD"
+          },
+          {
+            "label": "Accommodation",
+            "range": "700–1,400",
+            "unit": "per month",
+            "currency": "CAD"
+          },
+          {
+            "label": "Food & personal",
+            "range": "300–550",
+            "unit": "per month",
+            "currency": "CAD"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

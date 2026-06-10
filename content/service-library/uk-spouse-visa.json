@@ -1424,5 +1424,123 @@
       "docKind": "relationship"
     }
   ],
-  "navBucket": "visa"
+  "navBucket": "visa",
+  "workingRights": {
+    "applicant": {
+      "summary": "Partner visa (Spouse/FLR) allows work and study without restriction once granted.",
+      "details": [
+        "Initial entry may be on route to ILR after qualifying period."
+      ],
+      "restrictions": [],
+      "sourceUrl": "https://www.gov.uk/uk-family-visa",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "British/settled sponsor already has full work rights in UK.",
+      "details": [],
+      "restrictions": [],
+      "sourceUrl": "https://www.gov.uk/browse/visas-immigration",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — UK – Spouse / Partner Visa (Family)",
+    "currency": "GBP",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.gov.uk/browse/visas-immigration",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "Partner visa",
+            "amount": 1840,
+            "notes": "Plus IHS",
+            "currency": "GBP",
+            "applicable": true
+          },
+          {
+            "label": "IHS",
+            "range": "£1,035/year",
+            "currency": "GBP",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition",
+            "applicable": false,
+            "currency": "GBP"
+          },
+          {
+            "label": "Settlement / integration costs",
+            "range": "Varies",
+            "notes": "Language tests, document legalisation",
+            "currency": "GBP",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Maintenance funds (London)",
+            "amount": 1334,
+            "unit": "per month × 9",
+            "currency": "GBP"
+          },
+          {
+            "label": "Maintenance funds (outside London)",
+            "amount": 1023,
+            "unit": "per month × 9",
+            "currency": "GBP"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

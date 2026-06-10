@@ -1431,5 +1431,146 @@
       "docKind": "financial"
     }
   ],
-  "navBucket": "visa"
+  "navBucket": "visa",
+  "workingRights": {
+    "applicant": {
+      "summary": "F-1 students may work on-campus up to 20 hours/week while school is in session; CPT/OPT require authorization.",
+      "details": [
+        "OPT: 12 months standard; STEM extension possible.",
+        "Must maintain full course load and valid I-20."
+      ],
+      "restrictions": [
+        "Off-campus work without CPT/OPT is unauthorized"
+      ],
+      "sourceUrl": "https://studyinthestates.dhs.gov/",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "F-2 spouse cannot work in the United States. May study part-time recreationally only.",
+      "details": [
+        "F-2 children cannot work."
+      ],
+      "restrictions": [
+        "No employment authorization for F-2"
+      ],
+      "sourceUrl": "https://travel.state.gov/",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — USA – Student Visa (F-1)",
+    "currency": "USD",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://travel.state.gov/",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "MRV visa fee (F-1)",
+            "amount": 185,
+            "currency": "USD",
+            "applicable": true
+          },
+          {
+            "label": "SEVIS I-901",
+            "amount": 350,
+            "currency": "USD",
+            "applicable": true
+          },
+          {
+            "label": "Visa issuance (if applicable)",
+            "range": "Reciprocity",
+            "notes": "Country-specific",
+            "currency": "USD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition (undergraduate, indicative)",
+            "range": "Mid-range for destination",
+            "notes": "Use offer letter amount",
+            "currency": "USD",
+            "applicable": true
+          },
+          {
+            "label": "Tuition deposit already paid",
+            "range": "Per LOA/CAS",
+            "notes": "Deduct from total funds",
+            "currency": "USD",
+            "applicable": true
+          },
+          {
+            "label": "Books & materials",
+            "range": "500–1,500",
+            "unit": "per year",
+            "notes": "Program dependent",
+            "currency": "USD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Living expenses (I-20 line)",
+            "range": "12,000–25,000",
+            "unit": "per year",
+            "currency": "USD"
+          },
+          {
+            "label": "Health insurance",
+            "range": "1,500–3,500",
+            "unit": "per year",
+            "currency": "USD"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

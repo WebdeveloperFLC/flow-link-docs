@@ -1433,5 +1433,143 @@
       "docKind": "financial"
     }
   ],
-  "navBucket": "immigration"
+  "navBucket": "immigration",
+  "workingRights": {
+    "applicant": {
+      "summary": "Inland/outland spousal sponsorship leads to open work permit (SOWP) options while application is in processing, if eligible.",
+      "details": [
+        "Principal applicant may receive bridging open work permit in eligible inland cases.",
+        "Conditions printed on permit must be followed."
+      ],
+      "restrictions": [
+        "Work only after valid permit issued — not during unauthorized status"
+      ],
+      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/family-sponsorship.html",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Canadian citizen/permanent resident sponsor does not need work authorization in Canada. Foreign partner receives open work permit when SOWP approved.",
+      "details": [
+        "Dependent children may have separate study/work rules — assess age and status."
+      ],
+      "restrictions": [],
+      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — Canada – Spouse / Dependent Status Extension",
+    "currency": "CAD",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "Spousal sponsorship processing",
+            "amount": 1080,
+            "notes": "Principal applicant",
+            "currency": "CAD",
+            "applicable": true
+          },
+          {
+            "label": "Right of permanent residence fee",
+            "amount": 575,
+            "notes": "If not yet paid",
+            "currency": "CAD",
+            "applicable": true
+          },
+          {
+            "label": "Biometrics",
+            "amount": 85,
+            "unit": "per person",
+            "currency": "CAD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition",
+            "applicable": false,
+            "currency": "CAD"
+          },
+          {
+            "label": "Settlement / integration costs",
+            "range": "Varies",
+            "notes": "Language tests, document legalisation",
+            "currency": "CAD",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Living funds (IRCC guideline, 1 person)",
+            "amount": 20635,
+            "unit": "per year",
+            "notes": "Outside Quebec",
+            "currency": "CAD"
+          },
+          {
+            "label": "Accommodation",
+            "range": "700–1,400",
+            "unit": "per month",
+            "currency": "CAD"
+          },
+          {
+            "label": "Food & personal",
+            "range": "300–550",
+            "unit": "per month",
+            "currency": "CAD"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

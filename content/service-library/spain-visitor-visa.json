@@ -1402,5 +1402,133 @@
       "docKind": "financial"
     }
   ],
-  "navBucket": "visa"
+  "navBucket": "visa",
+  "workingRights": {
+    "applicant": {
+      "summary": "Schengen Type C short-stay visa does not permit employment in Spain.",
+      "details": [
+        "Tourism and limited business meetings only."
+      ],
+      "restrictions": [
+        "Paid work prohibited"
+      ],
+      "sourceUrl": "https://www.exteriores.gob.es/",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Spouse on Schengen visitor cannot work.",
+      "details": [],
+      "restrictions": [],
+      "sourceUrl": "https://www.exteriores.gob.es/",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — Spain – Schengen Visitor Visa (Type C)",
+    "currency": "EUR",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.exteriores.gob.es/",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "Visitor visa (TRV)",
+            "amount": 100,
+            "unit": "per applicant",
+            "currency": "EUR",
+            "applicable": true
+          },
+          {
+            "label": "Biometrics",
+            "amount": 85,
+            "unit": "per applicant",
+            "currency": "EUR",
+            "applicable": true
+          },
+          {
+            "label": "Super visa (if applicable)",
+            "amount": 100,
+            "notes": "Plus medical insurance",
+            "currency": "EUR",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition",
+            "applicable": false,
+            "notes": "Not applicable for visitor visa",
+            "currency": "EUR"
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Living funds (embassy guideline)",
+            "range": "€9,000–12,000",
+            "unit": "per year",
+            "currency": "EUR"
+          },
+          {
+            "label": "Accommodation",
+            "range": "€350–900",
+            "unit": "per month",
+            "currency": "EUR"
+          },
+          {
+            "label": "Food & transport",
+            "range": "€250–450",
+            "unit": "per month",
+            "currency": "EUR"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

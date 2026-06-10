@@ -1418,5 +1418,141 @@
       "docKind": "insurance"
     }
   ],
-  "navBucket": "visa"
+  "navBucket": "visa",
+  "workingRights": {
+    "applicant": {
+      "summary": "Student residence permit allows 140 full days or 280 half days of work per year; mini-jobs may have separate rules.",
+      "details": [
+        "Must notify Ausländerbehörde for some employment changes.",
+        "Internships tied to studies may be exempt from day counts."
+      ],
+      "restrictions": [],
+      "sourceUrl": "https://www.make-it-in-germany.com/en/visa-residence/procedure/student-visa",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Spouse on family reunion residence permit may work after approval; labor market access depends on permit wording and qualifications.",
+      "details": [],
+      "restrictions": [],
+      "sourceUrl": "https://www.make-it-in-germany.com/",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — Germany – Ausbildung (Vocational Training)",
+    "currency": "EUR",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.make-it-in-germany.com/",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "National visa fee",
+            "amount": 75,
+            "currency": "EUR",
+            "applicable": true
+          },
+          {
+            "label": "Blocked account setup",
+            "range": "€11,904/year",
+            "notes": "Living funds",
+            "currency": "EUR",
+            "applicable": true
+          },
+          {
+            "label": "Semester contribution",
+            "range": "€150–400",
+            "notes": "University",
+            "currency": "EUR",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition (undergraduate, indicative)",
+            "range": "Mid-range for destination",
+            "notes": "Use offer letter amount",
+            "currency": "EUR",
+            "applicable": true
+          },
+          {
+            "label": "Tuition deposit already paid",
+            "range": "Per LOA/CAS",
+            "notes": "Deduct from total funds",
+            "currency": "EUR",
+            "applicable": true
+          },
+          {
+            "label": "Books & materials",
+            "range": "500–1,500",
+            "unit": "per year",
+            "notes": "Program dependent",
+            "currency": "EUR",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Blocked account",
+            "amount": 11904,
+            "unit": "per year",
+            "currency": "EUR"
+          },
+          {
+            "label": "Rent & utilities",
+            "range": "400–750",
+            "unit": "per month",
+            "currency": "EUR"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }

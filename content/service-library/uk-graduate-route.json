@@ -1405,5 +1405,117 @@
       "docKind": "financial"
     }
   ],
-  "navBucket": "immigration"
+  "navBucket": "immigration",
+  "workingRights": {
+    "applicant": {
+      "summary": "Graduate Route provides 2 years (3 for PhD) open work after eligible UK study.",
+      "details": [
+        "Must apply before student visa expires.",
+        "No sponsorship required during Graduate Route."
+      ],
+      "restrictions": [],
+      "sourceUrl": "https://www.gov.uk/graduate-visa",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Dependants who already hold dependant visa may continue subject to Graduate Route rules.",
+      "details": [],
+      "restrictions": [],
+      "sourceUrl": "https://www.gov.uk/browse/visas-immigration",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — UK – Graduate Route Visa",
+    "currency": "GBP",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "sourceUrl": "https://www.gov.uk/browse/visas-immigration",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "Graduate Route",
+            "amount": 822,
+            "currency": "GBP",
+            "applicable": true
+          },
+          {
+            "label": "IHS",
+            "range": "If applicable",
+            "currency": "GBP",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education costs",
+        "items": [
+          {
+            "label": "Tuition",
+            "applicable": false,
+            "notes": "Program already completed",
+            "currency": "GBP"
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Maintenance funds (London)",
+            "amount": 1334,
+            "unit": "per month × 9",
+            "currency": "GBP"
+          },
+          {
+            "label": "Maintenance funds (outside London)",
+            "amount": 1023,
+            "unit": "per month × 9",
+            "currency": "GBP"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab",
+            "notes": "Service package dependent"
+          },
+          {
+            "label": "Flight / travel",
+            "range": "₹40,000–1,20,000",
+            "notes": "Season and route"
+          },
+          {
+            "label": "Document translation / notary",
+            "range": "₹2,000–15,000"
+          },
+          {
+            "label": "Courier & VFS premium services",
+            "range": "Optional"
+          },
+          {
+            "label": "Forex / transfer charges",
+            "range": "Bank dependent",
+            "notes": "GIC, blocked account, tuition transfers"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first-year budget (excl. tuition band)",
+        "value": "Counselor to calculate from sections above",
+        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+      }
+    ]
+  }
 }
