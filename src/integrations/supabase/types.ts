@@ -2064,6 +2064,36 @@ export type Database = {
         }
         Relationships: []
       }
+      approved_offer_types: {
+        Row: {
+          counselor_self_serve: boolean
+          created_at: string
+          label: string
+          offer_type: string
+          requires_admin: boolean
+          requires_manager_approval: boolean
+          sort_order: number
+        }
+        Insert: {
+          counselor_self_serve?: boolean
+          created_at?: string
+          label: string
+          offer_type: string
+          requires_admin?: boolean
+          requires_manager_approval?: boolean
+          sort_order?: number
+        }
+        Update: {
+          counselor_self_serve?: boolean
+          created_at?: string
+          label?: string
+          offer_type?: string
+          requires_admin?: boolean
+          requires_manager_approval?: boolean
+          sort_order?: number
+        }
+        Relationships: []
+      }
       ar_invoice_line_items: {
         Row: {
           created_at: string
@@ -2603,6 +2633,13 @@ export type Database = {
             columns: ["library_id"]
             isOneToOne: false
             referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_sessions_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "v_visa_content_health"
             referencedColumns: ["id"]
           },
         ]
@@ -4086,6 +4123,7 @@ export type Database = {
           ranking: number | null
           slug: string | null
           updated_at: string
+          upi_institution_id: string | null
         }
         Insert: {
           city?: string | null
@@ -4102,6 +4140,7 @@ export type Database = {
           ranking?: number | null
           slug?: string | null
           updated_at?: string
+          upi_institution_id?: string | null
         }
         Update: {
           city?: string | null
@@ -4118,6 +4157,7 @@ export type Database = {
           ranking?: number | null
           slug?: string | null
           updated_at?: string
+          upi_institution_id?: string | null
         }
         Relationships: [
           {
@@ -4126,6 +4166,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cf_countries"
             referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "cf_universities_upi_institution_id_fkey"
+            columns: ["upi_institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -7176,6 +7223,54 @@ export type Database = {
           },
         ]
       }
+      counselor_performance_scores: {
+        Row: {
+          client_satisfaction: number
+          collections_received: number
+          conversion_rate: number
+          counselor_id: string
+          created_at: string
+          id: string
+          period_key: string
+          revenue_achievement: number
+          total_score: number
+          updated_at: string
+          wallet_impact_revenue: number
+          wallet_roi: number
+          wallet_used: number
+        }
+        Insert: {
+          client_satisfaction?: number
+          collections_received?: number
+          conversion_rate?: number
+          counselor_id: string
+          created_at?: string
+          id?: string
+          period_key: string
+          revenue_achievement?: number
+          total_score?: number
+          updated_at?: string
+          wallet_impact_revenue?: number
+          wallet_roi?: number
+          wallet_used?: number
+        }
+        Update: {
+          client_satisfaction?: number
+          collections_received?: number
+          conversion_rate?: number
+          counselor_id?: string
+          created_at?: string
+          id?: string
+          period_key?: string
+          revenue_achievement?: number
+          total_score?: number
+          updated_at?: string
+          wallet_impact_revenue?: number
+          wallet_roi?: number
+          wallet_used?: number
+        }
+        Relationships: []
+      }
       countries: {
         Row: {
           code: string
@@ -7464,58 +7559,10 @@ export type Database = {
         }
         Relationships: []
       }
-      counselor_performance_scores: {
-        Row: {
-          client_satisfaction: number
-          collections_received: number
-          conversion_rate: number
-          counselor_id: string
-          created_at: string
-          id: string
-          period_key: string
-          revenue_achievement: number
-          total_score: number
-          updated_at: string
-          wallet_impact_revenue: number
-          wallet_roi: number
-          wallet_used: number
-        }
-        Insert: {
-          client_satisfaction?: number
-          collections_received?: number
-          conversion_rate?: number
-          counselor_id: string
-          created_at?: string
-          id?: string
-          period_key: string
-          revenue_achievement?: number
-          total_score?: number
-          updated_at?: string
-          wallet_impact_revenue?: number
-          wallet_roi?: number
-          wallet_used?: number
-        }
-        Update: {
-          client_satisfaction?: number
-          collections_received?: number
-          conversion_rate?: number
-          counselor_id?: string
-          created_at?: string
-          id?: string
-          period_key?: string
-          revenue_achievement?: number
-          total_score?: number
-          updated_at?: string
-          wallet_impact_revenue?: number
-          wallet_roi?: number
-          wallet_used?: number
-        }
-        Relationships: []
-      }
       discount_wallets: {
         Row: {
-          achievement_pct: number | null
           achieved_revenue: number
+          achievement_pct: number | null
           allow_negative: boolean
           assigned_target: number | null
           balance: number
@@ -7548,8 +7595,8 @@ export type Database = {
           valid_to: string | null
         }
         Insert: {
-          achievement_pct?: number | null
           achieved_revenue?: number
+          achievement_pct?: number | null
           allow_negative?: boolean
           assigned_target?: number | null
           balance?: number
@@ -7582,8 +7629,8 @@ export type Database = {
           valid_to?: string | null
         }
         Update: {
-          achievement_pct?: number | null
           achieved_revenue?: number
+          achievement_pct?: number | null
           allow_negative?: boolean
           assigned_target?: number | null
           balance?: number
@@ -10131,6 +10178,44 @@ export type Database = {
         }
         Relationships: []
       }
+      offer_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          from_status: Database["public"]["Enums"]["offer_status"] | null
+          id: string
+          note: string | null
+          offer_id: string
+          to_status: Database["public"]["Enums"]["offer_status"]
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["offer_status"] | null
+          id?: string
+          note?: string | null
+          offer_id: string
+          to_status: Database["public"]["Enums"]["offer_status"]
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["offer_status"] | null
+          id?: string
+          note?: string | null
+          offer_id?: string
+          to_status?: Database["public"]["Enums"]["offer_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_status_history_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offer_templates: {
         Row: {
           applicable_services: string[]
@@ -10216,44 +10301,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "offer_tracking_codes_offer_id_fkey"
-            columns: ["offer_id"]
-            isOneToOne: false
-            referencedRelation: "offers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      offer_status_history: {
-        Row: {
-          changed_by: string | null
-          created_at: string
-          from_status: Database["public"]["Enums"]["offer_status"] | null
-          id: string
-          note: string | null
-          offer_id: string
-          to_status: Database["public"]["Enums"]["offer_status"]
-        }
-        Insert: {
-          changed_by?: string | null
-          created_at?: string
-          from_status?: Database["public"]["Enums"]["offer_status"] | null
-          id?: string
-          note?: string | null
-          offer_id: string
-          to_status: Database["public"]["Enums"]["offer_status"]
-        }
-        Update: {
-          changed_by?: string | null
-          created_at?: string
-          from_status?: Database["public"]["Enums"]["offer_status"] | null
-          id?: string
-          note?: string | null
-          offer_id?: string
-          to_status?: Database["public"]["Enums"]["offer_status"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "offer_status_history_offer_id_fkey"
             columns: ["offer_id"]
             isOneToOne: false
             referencedRelation: "offers"
@@ -11280,6 +11327,13 @@ export type Database = {
             referencedRelation: "service_library"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "service_eligibility_questions_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "v_visa_content_health"
+            referencedColumns: ["id"]
+          },
         ]
       }
       service_library: {
@@ -11393,6 +11447,13 @@ export type Database = {
             referencedRelation: "service_library"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "service_library_attachments_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "v_visa_content_health"
+            referencedColumns: ["id"]
+          },
         ]
       }
       service_library_checklist_files: {
@@ -11452,6 +11513,13 @@ export type Database = {
             referencedRelation: "service_library"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "service_library_checklist_files_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "v_visa_content_health"
+            referencedColumns: ["id"]
+          },
         ]
       }
       service_library_countries: {
@@ -11479,6 +11547,13 @@ export type Database = {
             columns: ["library_id"]
             isOneToOne: false
             referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_library_countries_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "v_visa_content_health"
             referencedColumns: ["id"]
           },
         ]
@@ -11526,6 +11601,13 @@ export type Database = {
             columns: ["library_id"]
             isOneToOne: false
             referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_library_fee_items_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "v_visa_content_health"
             referencedColumns: ["id"]
           },
         ]
@@ -11614,6 +11696,13 @@ export type Database = {
             referencedRelation: "service_library"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "service_library_overrides_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "v_visa_content_health"
+            referencedColumns: ["id"]
+          },
         ]
       }
       service_library_picker_variants: {
@@ -11677,6 +11766,13 @@ export type Database = {
             columns: ["library_id"]
             isOneToOne: false
             referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_library_picker_variants_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "v_visa_content_health"
             referencedColumns: ["id"]
           },
         ]
@@ -11758,6 +11854,13 @@ export type Database = {
             referencedRelation: "service_library"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "service_library_sop_tasks_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "v_visa_content_health"
+            referencedColumns: ["id"]
+          },
         ]
       }
       service_library_submission_checklist: {
@@ -11803,6 +11906,13 @@ export type Database = {
             columns: ["library_id"]
             isOneToOne: false
             referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_library_submission_checklist_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "v_visa_content_health"
             referencedColumns: ["id"]
           },
         ]
@@ -11906,6 +12016,13 @@ export type Database = {
             columns: ["library_id"]
             isOneToOne: false
             referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_library_visa_form_files_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "v_visa_content_health"
             referencedColumns: ["id"]
           },
         ]
@@ -12346,6 +12463,96 @@ export type Database = {
         }
         Relationships: []
       }
+      upi_aggregators: {
+        Row: {
+          address: string | null
+          agreement_reference: string | null
+          agreement_status: string | null
+          agreement_valid_from: string | null
+          agreement_valid_to: string | null
+          billing_email: string | null
+          city: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          contact_whatsapp: string | null
+          countries_served: string[] | null
+          country_name: string | null
+          created_at: string
+          default_currency: string | null
+          default_payment_terms: string | null
+          default_portal_url: string | null
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          metadata: Json
+          name: string
+          notes: string | null
+          short_code: string | null
+          tax_id: string | null
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          address?: string | null
+          agreement_reference?: string | null
+          agreement_status?: string | null
+          agreement_valid_from?: string | null
+          agreement_valid_to?: string | null
+          billing_email?: string | null
+          city?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contact_whatsapp?: string | null
+          countries_served?: string[] | null
+          country_name?: string | null
+          created_at?: string
+          default_currency?: string | null
+          default_payment_terms?: string | null
+          default_portal_url?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          metadata?: Json
+          name: string
+          notes?: string | null
+          short_code?: string | null
+          tax_id?: string | null
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          address?: string | null
+          agreement_reference?: string | null
+          agreement_status?: string | null
+          agreement_valid_from?: string | null
+          agreement_valid_to?: string | null
+          billing_email?: string | null
+          city?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contact_whatsapp?: string | null
+          countries_served?: string[] | null
+          country_name?: string | null
+          created_at?: string
+          default_currency?: string | null
+          default_payment_terms?: string | null
+          default_portal_url?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          metadata?: Json
+          name?: string
+          notes?: string | null
+          short_code?: string | null
+          tax_id?: string | null
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       upi_agreement_versions: {
         Row: {
           agreement_id: string
@@ -12638,6 +12845,7 @@ export type Database = {
       }
       upi_claim_cycles: {
         Row: {
+          aggregator_id: string | null
           claim_due_date: string | null
           created_at: string
           currency: string | null
@@ -12647,6 +12855,8 @@ export type Database = {
           invoice_due_date: string | null
           metadata: Json | null
           notes: string | null
+          partnership_route_id: string | null
+          payer_type: string | null
           period_label: string
           status: string | null
           total_expected: number | null
@@ -12654,6 +12864,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          aggregator_id?: string | null
           claim_due_date?: string | null
           created_at?: string
           currency?: string | null
@@ -12663,6 +12874,8 @@ export type Database = {
           invoice_due_date?: string | null
           metadata?: Json | null
           notes?: string | null
+          partnership_route_id?: string | null
+          payer_type?: string | null
           period_label: string
           status?: string | null
           total_expected?: number | null
@@ -12670,6 +12883,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          aggregator_id?: string | null
           claim_due_date?: string | null
           created_at?: string
           currency?: string | null
@@ -12679,6 +12893,8 @@ export type Database = {
           invoice_due_date?: string | null
           metadata?: Json | null
           notes?: string | null
+          partnership_route_id?: string | null
+          payer_type?: string | null
           period_label?: string
           status?: string | null
           total_expected?: number | null
@@ -12687,10 +12903,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "upi_claim_cycles_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_claim_cycles_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_claim_cycles_partnership_route_id_fkey"
+            columns: ["partnership_route_id"]
+            isOneToOne: false
+            referencedRelation: "upi_partnership_routes"
             referencedColumns: ["id"]
           },
         ]
@@ -12908,8 +13138,86 @@ export type Database = {
           },
         ]
       }
+      upi_commission_snapshots: {
+        Row: {
+          aggregator_id: string | null
+          breakdown_json: Json
+          calculated_at: string
+          channel_type: string | null
+          commission_id: string | null
+          currency: string | null
+          id: string
+          input_json: Json
+          institution_id: string | null
+          metadata: Json
+          partnership_route_id: string | null
+          rules_json: Json
+          total_amount: number | null
+        }
+        Insert: {
+          aggregator_id?: string | null
+          breakdown_json?: Json
+          calculated_at?: string
+          channel_type?: string | null
+          commission_id?: string | null
+          currency?: string | null
+          id?: string
+          input_json?: Json
+          institution_id?: string | null
+          metadata?: Json
+          partnership_route_id?: string | null
+          rules_json?: Json
+          total_amount?: number | null
+        }
+        Update: {
+          aggregator_id?: string | null
+          breakdown_json?: Json
+          calculated_at?: string
+          channel_type?: string | null
+          commission_id?: string | null
+          currency?: string | null
+          id?: string
+          input_json?: Json
+          institution_id?: string | null
+          metadata?: Json
+          partnership_route_id?: string | null
+          rules_json?: Json
+          total_amount?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_snapshots_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_snapshots_commission_id_fkey"
+            columns: ["commission_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_snapshots_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_snapshots_partnership_route_id_fkey"
+            columns: ["partnership_route_id"]
+            isOneToOne: false
+            referencedRelation: "upi_partnership_routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upi_commission_students: {
         Row: {
+          aggregator_id: string | null
           block_notes: string | null
           block_reason: string | null
           campus: string | null
@@ -12917,6 +13225,7 @@ export type Database = {
           carry_forward_reason: string | null
           carry_forward_to_cycle_id: string | null
           cas_issued_date: string | null
+          channel_type: string | null
           claim_cycle_id: string
           client_id: string | null
           commission_amount: number | null
@@ -12924,6 +13233,7 @@ export type Database = {
           commission_id: string | null
           commission_paid_date: string | null
           commission_rate_applied: number | null
+          commission_snapshot_id: string | null
           commission_status: string | null
           consent_form_date: string | null
           consent_form_submitted: boolean | null
@@ -12945,6 +13255,7 @@ export type Database = {
           is_full_time: boolean | null
           metadata: Json | null
           nationality: string | null
+          partnership_route_id: string | null
           passport_number: string | null
           program_duration: string | null
           program_level: string | null
@@ -12967,6 +13278,7 @@ export type Database = {
           validated_by_institution_date: string | null
         }
         Insert: {
+          aggregator_id?: string | null
           block_notes?: string | null
           block_reason?: string | null
           campus?: string | null
@@ -12974,6 +13286,7 @@ export type Database = {
           carry_forward_reason?: string | null
           carry_forward_to_cycle_id?: string | null
           cas_issued_date?: string | null
+          channel_type?: string | null
           claim_cycle_id: string
           client_id?: string | null
           commission_amount?: number | null
@@ -12981,6 +13294,7 @@ export type Database = {
           commission_id?: string | null
           commission_paid_date?: string | null
           commission_rate_applied?: number | null
+          commission_snapshot_id?: string | null
           commission_status?: string | null
           consent_form_date?: string | null
           consent_form_submitted?: boolean | null
@@ -13002,6 +13316,7 @@ export type Database = {
           is_full_time?: boolean | null
           metadata?: Json | null
           nationality?: string | null
+          partnership_route_id?: string | null
           passport_number?: string | null
           program_duration?: string | null
           program_level?: string | null
@@ -13024,6 +13339,7 @@ export type Database = {
           validated_by_institution_date?: string | null
         }
         Update: {
+          aggregator_id?: string | null
           block_notes?: string | null
           block_reason?: string | null
           campus?: string | null
@@ -13031,6 +13347,7 @@ export type Database = {
           carry_forward_reason?: string | null
           carry_forward_to_cycle_id?: string | null
           cas_issued_date?: string | null
+          channel_type?: string | null
           claim_cycle_id?: string
           client_id?: string | null
           commission_amount?: number | null
@@ -13038,6 +13355,7 @@ export type Database = {
           commission_id?: string | null
           commission_paid_date?: string | null
           commission_rate_applied?: number | null
+          commission_snapshot_id?: string | null
           commission_status?: string | null
           consent_form_date?: string | null
           consent_form_submitted?: boolean | null
@@ -13059,6 +13377,7 @@ export type Database = {
           is_full_time?: boolean | null
           metadata?: Json | null
           nationality?: string | null
+          partnership_route_id?: string | null
           passport_number?: string | null
           program_duration?: string | null
           program_level?: string | null
@@ -13082,6 +13401,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "upi_commission_students_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_commission_students_claim_cycle_id_fkey"
             columns: ["claim_cycle_id"]
             isOneToOne: false
@@ -13096,16 +13422,31 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "upi_commission_students_commission_snapshot_id_fkey"
+            columns: ["commission_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_snapshots"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_commission_students_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "upi_commission_students_partnership_route_id_fkey"
+            columns: ["partnership_route_id"]
+            isOneToOne: false
+            referencedRelation: "upi_partnership_routes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       upi_commissions: {
         Row: {
+          aggregator_id: string | null
           agreement_id: string | null
           created_at: string | null
           currency: string | null
@@ -13120,11 +13461,13 @@ export type Database = {
           model_type: string
           name: string
           notes: string | null
+          partnership_route_id: string | null
           source: string | null
           updated_at: string | null
           version: number | null
         }
         Insert: {
+          aggregator_id?: string | null
           agreement_id?: string | null
           created_at?: string | null
           currency?: string | null
@@ -13139,11 +13482,13 @@ export type Database = {
           model_type: string
           name: string
           notes?: string | null
+          partnership_route_id?: string | null
           source?: string | null
           updated_at?: string | null
           version?: number | null
         }
         Update: {
+          aggregator_id?: string | null
           agreement_id?: string | null
           created_at?: string | null
           currency?: string | null
@@ -13158,11 +13503,19 @@ export type Database = {
           model_type?: string
           name?: string
           notes?: string | null
+          partnership_route_id?: string | null
           source?: string | null
           updated_at?: string | null
           version?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "upi_commissions_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "upi_commissions_agreement_id_fkey"
             columns: ["agreement_id"]
@@ -13175,6 +13528,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commissions_partnership_route_id_fkey"
+            columns: ["partnership_route_id"]
+            isOneToOne: false
+            referencedRelation: "upi_partnership_routes"
             referencedColumns: ["id"]
           },
         ]
@@ -13799,6 +14159,7 @@ export type Database = {
         Row: {
           accreditation: string | null
           address: string | null
+          catalog_status: string
           city: string | null
           country_id: string | null
           country_name: string | null
@@ -13815,6 +14176,7 @@ export type Database = {
           notes: string | null
           partner_since: string | null
           phone: string | null
+          promotion_notes: string | null
           ranking_info: string | null
           slug: string | null
           state_province: string | null
@@ -13825,6 +14187,7 @@ export type Database = {
         Insert: {
           accreditation?: string | null
           address?: string | null
+          catalog_status?: string
           city?: string | null
           country_id?: string | null
           country_name?: string | null
@@ -13841,6 +14204,7 @@ export type Database = {
           notes?: string | null
           partner_since?: string | null
           phone?: string | null
+          promotion_notes?: string | null
           ranking_info?: string | null
           slug?: string | null
           state_province?: string | null
@@ -13851,6 +14215,7 @@ export type Database = {
         Update: {
           accreditation?: string | null
           address?: string | null
+          catalog_status?: string
           city?: string | null
           country_id?: string | null
           country_name?: string | null
@@ -13867,6 +14232,7 @@ export type Database = {
           notes?: string | null
           partner_since?: string | null
           phone?: string | null
+          promotion_notes?: string | null
           ranking_info?: string | null
           slug?: string | null
           state_province?: string | null
@@ -14110,6 +14476,121 @@ export type Database = {
             columns: ["promotion_id"]
             isOneToOne: false
             referencedRelation: "upi_promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_partnership_routes: {
+        Row: {
+          aggregator_id: string | null
+          aggregator_institution_code: string | null
+          agreement_id: string | null
+          application_fee: number | null
+          application_portal_url: string | null
+          bonus_notes: string | null
+          channel_type: string
+          commission_currency: string | null
+          commission_model: string | null
+          commission_rate: number | null
+          created_at: string
+          display_name: string
+          estimated_payout_days: number | null
+          id: string
+          institution_id: string
+          intakes_covered: string[] | null
+          is_default_route: boolean
+          metadata: Json
+          notes: string | null
+          payment_terms: string | null
+          priority_rank: number
+          processing_sla_days: number | null
+          program_levels_covered: string[] | null
+          route_code: string | null
+          status: string
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          aggregator_id?: string | null
+          aggregator_institution_code?: string | null
+          agreement_id?: string | null
+          application_fee?: number | null
+          application_portal_url?: string | null
+          bonus_notes?: string | null
+          channel_type: string
+          commission_currency?: string | null
+          commission_model?: string | null
+          commission_rate?: number | null
+          created_at?: string
+          display_name: string
+          estimated_payout_days?: number | null
+          id?: string
+          institution_id: string
+          intakes_covered?: string[] | null
+          is_default_route?: boolean
+          metadata?: Json
+          notes?: string | null
+          payment_terms?: string | null
+          priority_rank?: number
+          processing_sla_days?: number | null
+          program_levels_covered?: string[] | null
+          route_code?: string | null
+          status?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          aggregator_id?: string | null
+          aggregator_institution_code?: string | null
+          agreement_id?: string | null
+          application_fee?: number | null
+          application_portal_url?: string | null
+          bonus_notes?: string | null
+          channel_type?: string
+          commission_currency?: string | null
+          commission_model?: string | null
+          commission_rate?: number | null
+          created_at?: string
+          display_name?: string
+          estimated_payout_days?: number | null
+          id?: string
+          institution_id?: string
+          intakes_covered?: string[] | null
+          is_default_route?: boolean
+          metadata?: Json
+          notes?: string | null
+          payment_terms?: string | null
+          priority_rank?: number
+          processing_sla_days?: number | null
+          program_levels_covered?: string[] | null
+          route_code?: string | null
+          status?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_partnership_routes_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_partnership_routes_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "upi_agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_partnership_routes_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
             referencedColumns: ["id"]
           },
         ]
@@ -15153,36 +15634,6 @@ export type Database = {
         }
         Relationships: []
       }
-      approved_offer_types: {
-        Row: {
-          counselor_self_serve: boolean
-          created_at: string
-          label: string
-          offer_type: string
-          requires_admin: boolean
-          requires_manager_approval: boolean
-          sort_order: number
-        }
-        Insert: {
-          counselor_self_serve?: boolean
-          created_at?: string
-          label: string
-          offer_type: string
-          requires_admin?: boolean
-          requires_manager_approval?: boolean
-          sort_order?: number
-        }
-        Update: {
-          counselor_self_serve?: boolean
-          created_at?: string
-          label?: string
-          offer_type?: string
-          requires_admin?: boolean
-          requires_manager_approval?: boolean
-          sort_order?: number
-        }
-        Relationships: []
-      }
       wallet_settings: {
         Row: {
           grace_days: number
@@ -15907,6 +16358,25 @@ export type Database = {
         }
         Relationships: []
       }
+      v_visa_content_health: {
+        Row: {
+          cost_breakdown_sections: number | null
+          eligibility_questions: number | null
+          faqs: number | null
+          has_applicant_rights: boolean | null
+          has_spouse_rights: boolean | null
+          id: string | null
+          quiz_l1: number | null
+          quiz_l2: number | null
+          quiz_l3: number | null
+          quiz_total: number | null
+          red_flags: number | null
+          service_name: string | null
+          status: string | null
+          uses_settle_abroad: boolean | null
+        }
+        Relationships: []
+      }
       vw_call_stats_daily: {
         Row: {
           agent_id: string | null
@@ -16140,6 +16610,7 @@ export type Database = {
         Args: { _cid: string; _uid: string }
         Returns: boolean
       }
+      can_view_service_library: { Args: { _user_id: string }; Returns: boolean }
       can_view_upi_catalog: { Args: { _uid: string }; Returns: boolean }
       can_view_upi_confidential: { Args: { _uid: string }; Returns: boolean }
       claim_next_queue_item: {
@@ -16312,18 +16783,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      create_invoice_from_services: {
-        Args: {
-          p_branch_id?: string
-          p_client_id: string
-          p_currency?: string
-          p_due_date?: string
-          p_firm_entity_id?: string
-          p_installments?: Json
-          p_service_codes: string[]
-        }
-        Returns: string
-      }
       create_lead_from_family_member: {
         Args: { _family_member_id: string }
         Returns: {
@@ -16391,44 +16850,60 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      fn_apply_offer_discount:
+        | {
+            Args: {
+              _amount?: number
+              _client_id?: string
+              _lead_id?: string
+              _offer_id?: string
+              _percent?: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _amount?: number
+              _client_id?: string
+              _lead_id?: string
+              _offer_id?: string
+              _percent?: number
+              _wallet_id?: string
+            }
+            Returns: Json
+          }
       fn_auto_fund_wallet: { Args: { _wallet_id: string }; Returns: Json }
-      fn_auto_fund_wallets_for_period: { Args: { _period_key: string }; Returns: Json }
-      fn_apply_offer_discount: {
-        Args: {
-          _amount?: number
-          _client_id?: string
-          _lead_id?: string
-          _offer_id?: string
-          _percent?: number
-          _wallet_id?: string
-        }
+      fn_auto_fund_wallets_for_period: {
+        Args: { _period_key: string }
         Returns: Json
       }
-      fn_counselor_wallets_for_period: {
-        Args: {
-          _client_id?: string
-          _lead_id?: string
-          _period_key?: string
-        }
-        Returns: Database["public"]["Tables"]["discount_wallets"]["Row"][]
-      }
       fn_clone_offer: { Args: { _offer_id: string }; Returns: string }
-      fn_compute_performance_score: {
-        Args: { _counselor_id: string; _period_key: string }
-        Returns: Database["public"]["Tables"]["counselor_performance_scores"]["Row"]
-      }
-      fn_counselor_period_achievement: {
-        Args: { _period_key: string }
-        Returns: {
-          achievement_pct: number | null
-          achieved_revenue: number
-          counselor_id: string
-          revenue_source: string
-          target_value: number
-        }[]
-      }
       fn_close_due_wallets: { Args: never; Returns: number }
       fn_close_wallet: { Args: { _wallet_id: string }; Returns: string }
+      fn_compute_performance_score: {
+        Args: { _counselor_id: string; _period_key: string }
+        Returns: {
+          client_satisfaction: number
+          collections_received: number
+          conversion_rate: number
+          counselor_id: string
+          created_at: string
+          id: string
+          period_key: string
+          revenue_achievement: number
+          total_score: number
+          updated_at: string
+          wallet_impact_revenue: number
+          wallet_roi: number
+          wallet_used: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "counselor_performance_scores"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fn_convert: {
         Args: {
           _amount: number
@@ -16437,6 +16912,63 @@ export type Database = {
           _to: string
         }
         Returns: number
+      }
+      fn_counselor_can_use_offer_type: {
+        Args: { _offer_category: string; _uid?: string }
+        Returns: boolean
+      }
+      fn_counselor_period_achievement: {
+        Args: { _period_key: string }
+        Returns: {
+          achieved_revenue: number
+          achievement_pct: number
+          counselor_id: string
+          revenue_source: string
+          target_value: number
+        }[]
+      }
+      fn_counselor_wallets_for_period: {
+        Args: { _client_id?: string; _lead_id?: string; _period_key?: string }
+        Returns: {
+          achieved_revenue: number
+          achievement_pct: number | null
+          allow_negative: boolean
+          assigned_target: number | null
+          balance: number
+          base_wallet: number
+          branch_id: string | null
+          budget_kind: Database["public"]["Enums"]["wallet_budget_kind"]
+          carried_to_wallet: string | null
+          carry_to_period: string | null
+          close_outcome: string | null
+          closed_at: string | null
+          counselor_id: string
+          created_at: string
+          currency: string
+          id: string
+          max_amount_per_client: number | null
+          max_percent_per_client: number
+          name: string | null
+          performance_multiplier: number
+          period_key: string
+          potential_wallet: number
+          rollover_cap: number | null
+          rollover_policy: Database["public"]["Enums"]["wallet_rollover_policy"]
+          scope_country_tag: string | null
+          scope_master_key: string | null
+          scope_service_code: string | null
+          scope_sub_category: string | null
+          unlocked_amount: number
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "discount_wallets"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       fn_fx_rate: {
         Args: { _ccy: string; _period_key: string }
@@ -16463,7 +16995,51 @@ export type Database = {
           _offer_id: string
           _to_status: Database["public"]["Enums"]["offer_status"]
         }
-        Returns: Database["public"]["Tables"]["offers"]["Row"]
+        Returns: {
+          applicable_services: string[] | null
+          approved_at: string | null
+          approved_by: string | null
+          archived_at: string | null
+          audience: string
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          fl_contribution_pct: number | null
+          funding_source: Database["public"]["Enums"]["offer_funding_source"]
+          id: string
+          is_active: boolean
+          max_discount_amount: number | null
+          max_redemptions: number | null
+          offer_category: string | null
+          per_client_limit: number
+          promo_code: string | null
+          redemption_count: number
+          requires_approval: boolean
+          status: Database["public"]["Enums"]["offer_status"]
+          target_countries: string[]
+          template_id: string | null
+          terms_conditions: string | null
+          title: string
+          university_contribution_pct: number | null
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "offers"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_payment_is_verified: {
+        Args: { _payment_proof_status: string; _payment_status: string }
+        Returns: boolean
       }
       fn_performance_leaderboard: {
         Args: { _limit?: number; _period_key: string }
@@ -16476,23 +17052,191 @@ export type Database = {
           wallet_impact_revenue: number
         }[]
       }
-      fn_period_close_and_reseed: { Args: { _period_key: string }; Returns: Json }
+      fn_period_close_and_reseed: {
+        Args: { _period_key: string }
+        Returns: Json
+      }
+      fn_pick_discount_wallet: {
+        Args: {
+          _client_id?: string
+          _counselor_id: string
+          _debit?: number
+          _lead_id?: string
+          _period_key: string
+          _wallet_id?: string
+        }
+        Returns: {
+          achieved_revenue: number
+          achievement_pct: number | null
+          allow_negative: boolean
+          assigned_target: number | null
+          balance: number
+          base_wallet: number
+          branch_id: string | null
+          budget_kind: Database["public"]["Enums"]["wallet_budget_kind"]
+          carried_to_wallet: string | null
+          carry_to_period: string | null
+          close_outcome: string | null
+          closed_at: string | null
+          counselor_id: string
+          created_at: string
+          currency: string
+          id: string
+          max_amount_per_client: number | null
+          max_percent_per_client: number
+          name: string | null
+          performance_multiplier: number
+          period_key: string
+          potential_wallet: number
+          rollover_cap: number | null
+          rollover_policy: Database["public"]["Enums"]["wallet_rollover_policy"]
+          scope_country_tag: string | null
+          scope_master_key: string | null
+          scope_service_code: string | null
+          scope_sub_category: string | null
+          unlocked_amount: number
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "discount_wallets"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fn_reinstate_wallet: {
         Args: { _to_period?: string; _wallet_id: string }
         Returns: string
       }
       fn_release_expired_reservations: { Args: never; Returns: number }
-      fn_size_wallet: { Args: { _wallet_id: string }; Returns: Database["public"]["Tables"]["discount_wallets"]["Row"] }
-      fn_size_wallets_for_period: { Args: { _period_key: string }; Returns: number }
-      fn_sync_wallet_metrics: { Args: { _wallet_id: string }; Returns: Database["public"]["Tables"]["discount_wallets"]["Row"] }
-      fn_sync_performance_scores_for_period: { Args: { _period_key: string }; Returns: number }
+      fn_size_wallet: {
+        Args: { _wallet_id: string }
+        Returns: {
+          achieved_revenue: number
+          achievement_pct: number | null
+          allow_negative: boolean
+          assigned_target: number | null
+          balance: number
+          base_wallet: number
+          branch_id: string | null
+          budget_kind: Database["public"]["Enums"]["wallet_budget_kind"]
+          carried_to_wallet: string | null
+          carry_to_period: string | null
+          close_outcome: string | null
+          closed_at: string | null
+          counselor_id: string
+          created_at: string
+          currency: string
+          id: string
+          max_amount_per_client: number | null
+          max_percent_per_client: number
+          name: string | null
+          performance_multiplier: number
+          period_key: string
+          potential_wallet: number
+          rollover_cap: number | null
+          rollover_policy: Database["public"]["Enums"]["wallet_rollover_policy"]
+          scope_country_tag: string | null
+          scope_master_key: string | null
+          scope_service_code: string | null
+          scope_sub_category: string | null
+          unlocked_amount: number
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "discount_wallets"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_size_wallets_for_period: {
+        Args: { _period_key: string }
+        Returns: number
+      }
       fn_suggest_meeting_slug: {
         Args: { _base: string; _user: string }
         Returns: string
       }
       fn_suggest_profile_slug: { Args: { _base: string }; Returns: string }
+      fn_sync_performance_scores_for_period: {
+        Args: { _period_key: string }
+        Returns: number
+      }
+      fn_sync_wallet_metrics: {
+        Args: { _wallet_id: string }
+        Returns: {
+          achieved_revenue: number
+          achievement_pct: number | null
+          allow_negative: boolean
+          assigned_target: number | null
+          balance: number
+          base_wallet: number
+          branch_id: string | null
+          budget_kind: Database["public"]["Enums"]["wallet_budget_kind"]
+          carried_to_wallet: string | null
+          carry_to_period: string | null
+          close_outcome: string | null
+          closed_at: string | null
+          counselor_id: string
+          created_at: string
+          currency: string
+          id: string
+          max_amount_per_client: number | null
+          max_percent_per_client: number
+          name: string | null
+          performance_multiplier: number
+          period_key: string
+          potential_wallet: number
+          rollover_cap: number | null
+          rollover_policy: Database["public"]["Enums"]["wallet_rollover_policy"]
+          scope_country_tag: string | null
+          scope_master_key: string | null
+          scope_service_code: string | null
+          scope_sub_category: string | null
+          unlocked_amount: number
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "discount_wallets"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fn_user_manages_user: {
         Args: { _manager: string; _target: string }
+        Returns: boolean
+      }
+      fn_wallet_base_from_rules: {
+        Args: {
+          _achievement_pct: number
+          _assigned_target: number
+          _branch_id?: string
+          _currency?: string
+        }
+        Returns: number
+      }
+      fn_wallet_multiplier_for_achievement: {
+        Args: { _achievement_pct: number }
+        Returns: number
+      }
+      fn_wallet_prior_period_key: {
+        Args: { _period_key: string }
+        Returns: string
+      }
+      fn_wallet_scope_matches: {
+        Args: {
+          _client_id?: string
+          _lead_id?: string
+          _wallet: Database["public"]["Tables"]["discount_wallets"]["Row"]
+        }
         Returns: boolean
       }
       generate_client_registration_number: { Args: never; Returns: string }
@@ -16648,27 +17392,38 @@ export type Database = {
         Args: { _client_id: string; _service_codes?: string[] }
         Returns: {
           applicable_services: string[] | null
+          approved_at: string | null
+          approved_by: string | null
+          archived_at: string | null
           audience: string
+          branch_id: string | null
           created_at: string
           created_by: string | null
           currency: string
           description: string | null
           discount_type: string
           discount_value: number
+          fl_contribution_pct: number | null
+          funding_source: Database["public"]["Enums"]["offer_funding_source"]
           id: string
           is_active: boolean
           max_discount_amount: number | null
           max_redemptions: number | null
+          offer_category: string | null
           per_client_limit: number
           promo_code: string | null
           redemption_count: number
+          requires_approval: boolean
+          status: Database["public"]["Enums"]["offer_status"]
           target_countries: string[]
           template_id: string | null
           terms_conditions: string | null
           title: string
+          university_contribution_pct: number | null
           updated_at: string
           valid_from: string | null
           valid_to: string | null
+          version: number
         }[]
         SetofOptions: {
           from: "*"
@@ -16703,7 +17458,7 @@ export type Database = {
       }
       upi_course_dedup_hash: {
         Args: {
-          _campus_name: string
+          _campus_name?: string
           _course_title: string
           _institution_id: string
           _program_level: string
@@ -16713,7 +17468,7 @@ export type Database = {
       }
       upi_course_dedup_key: {
         Args: {
-          _campus_name: string
+          _campus_name?: string
           _course_title: string
           _institution_id: string
           _program_level: string
@@ -16726,14 +17481,22 @@ export type Database = {
         Returns: string
       }
       upi_course_review_counts: { Args: never; Returns: Json }
+      upi_institution_dedup_key: {
+        Args: { _country: string; _name: string }
+        Returns: string
+      }
       upi_normalize_country: { Args: { country: string }; Returns: string }
       upi_normalize_institution_name: {
         Args: { name: string }
         Returns: string
       }
+      upi_row_campus_names: {
+        Args: { _campus_name: string; _metadata: Json }
+        Returns: string[]
+      }
       upi_staging_row_dedup_hash: {
         Args: {
-          _campus_name: string
+          _campus_name?: string
           _course_title: string
           _institution_id: string
           _metadata: Json
@@ -16859,16 +17622,6 @@ export type Database = {
       dsh_status: "active" | "archived"
       dsh_upload_source: "upload" | "onedrive" | "google_drive" | "external_url"
       incentive_period_type: "monthly" | "quarterly" | "half_yearly" | "yearly"
-      offer_funding_source: "future_link" | "university" | "joint"
-      offer_status:
-        | "draft"
-        | "pending_review"
-        | "approved"
-        | "scheduled"
-        | "active"
-        | "expiring_soon"
-        | "expired"
-        | "archived"
       incentive_rate_type: "flat" | "per_unit" | "percent" | "slab"
       incentive_run_status:
         | "draft"
@@ -16882,6 +17635,16 @@ export type Database = {
         | "ancillary"
         | "direct_visa_commission"
         | "b2b_admission_commission"
+      offer_funding_source: "future_link" | "university" | "joint"
+      offer_status:
+        | "draft"
+        | "pending_review"
+        | "approved"
+        | "scheduled"
+        | "active"
+        | "expiring_soon"
+        | "expired"
+        | "archived"
       payout_status: "pending" | "approved" | "processed" | "paid" | "cancelled"
       person_role:
         | "applicant"
@@ -16898,8 +17661,8 @@ export type Database = {
         | "client"
       wallet_alloc_status: "reserved" | "applied" | "reversed"
       wallet_budget_kind: "month_to_month" | "festive" | "scoped"
-      wallet_spend_order: "strategic_first" | "personal_first" | "parallel"
       wallet_rollover_policy: "expire" | "partial" | "full"
+      wallet_spend_order: "strategic_first" | "personal_first" | "parallel"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -17131,17 +17894,6 @@ export const Constants = {
       dsh_status: ["active", "archived"],
       dsh_upload_source: ["upload", "onedrive", "google_drive", "external_url"],
       incentive_period_type: ["monthly", "quarterly", "half_yearly", "yearly"],
-      offer_funding_source: ["future_link", "university", "joint"],
-      offer_status: [
-        "draft",
-        "pending_review",
-        "approved",
-        "scheduled",
-        "active",
-        "expiring_soon",
-        "expired",
-        "archived",
-      ],
       incentive_rate_type: ["flat", "per_unit", "percent", "slab"],
       incentive_run_status: [
         "draft",
@@ -17156,6 +17908,17 @@ export const Constants = {
         "ancillary",
         "direct_visa_commission",
         "b2b_admission_commission",
+      ],
+      offer_funding_source: ["future_link", "university", "joint"],
+      offer_status: [
+        "draft",
+        "pending_review",
+        "approved",
+        "scheduled",
+        "active",
+        "expiring_soon",
+        "expired",
+        "archived",
       ],
       payout_status: ["pending", "approved", "processed", "paid", "cancelled"],
       person_role: [
@@ -17175,8 +17938,8 @@ export const Constants = {
       ],
       wallet_alloc_status: ["reserved", "applied", "reversed"],
       wallet_budget_kind: ["month_to_month", "festive", "scoped"],
-      wallet_spend_order: ["strategic_first", "personal_first", "parallel"],
       wallet_rollover_policy: ["expire", "partial", "full"],
+      wallet_spend_order: ["strategic_first", "personal_first", "parallel"],
     },
   },
 } as const
