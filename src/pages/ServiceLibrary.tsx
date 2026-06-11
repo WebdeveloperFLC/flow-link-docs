@@ -30,6 +30,7 @@ import { ServiceEligibilityStartDialog } from "@/components/service-library/Serv
 import {
   defaultAcademyTab,
   resolveAcademyTabs,
+  tabLabel,
   ACADEMY_TAB_IDS,
   type AcademyTabId,
 } from "@/lib/service-library/academyTabs";
@@ -120,6 +121,24 @@ export default function ServiceLibrary() {
         statusFilter,
       }),
     [masters.data, categoryFilter, countryFilter, coachingFamily, coachingVariant, treeSearch, statusFilter],
+  );
+
+  const { group: unfilteredServiceGroup } = useMemo(
+    () =>
+      buildAcademyNav(masters.data ?? [], {
+        categoryFilter,
+        countryFilter: categoryFilter === "visa" ? countryFilter : "ALL",
+        coachingFamily,
+        coachingVariant,
+        search: "",
+        statusFilter,
+      }),
+    [masters.data, categoryFilter, countryFilter, coachingFamily, coachingVariant, statusFilter],
+  );
+
+  const heroSearchServices = useMemo(
+    () => unfilteredServiceGroup?.items?.map((i) => ({ id: i.id, label: i.label })) ?? [],
+    [unfilteredServiceGroup],
   );
 
   const navReadyForSelection = group?.step === "services";
@@ -243,6 +262,15 @@ export default function ServiceLibrary() {
     const next = dc ?? countries[0] ?? "";
     if (next && next !== detailCountry) setDetailCountry(next);
   }, [detail.data?.master.id, detail.data?.detailCountry, detailCountry, categoryFilter]);
+
+  const heroSearchTabs = useMemo(() => {
+    if (!detail.data?.view) return [];
+    const view = detail.data.view;
+    return resolveAcademyTabs(view).map((id) => ({
+      id,
+      label: tabLabel(id, view),
+    }));
+  }, [detail.data?.view]);
 
   const showNavPanel =
     categoryFilter === "mbbs"
@@ -385,6 +413,11 @@ export default function ServiceLibrary() {
                   onStartEligibility={onStartEligibility}
                   policyDismissed={policyDismissed}
                   canManage={canManage}
+                  searchQuery={treeSearch}
+                  onSearchChange={setTreeSearch}
+                  searchTabs={heroSearchTabs}
+                  searchServices={heroSearchServices}
+                  onSelectService={setSelectedId}
                 />
               </div>
               <div className="px-4 md:px-6 pb-8 space-y-4">

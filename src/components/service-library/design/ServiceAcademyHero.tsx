@@ -1,8 +1,13 @@
-import { Bell, Share2, Search, BookOpen, Brain, Plus, Link as LinkIcon, ClipboardCheck } from "lucide-react";
+import { Share2, BookOpen, Brain, Plus, Link as LinkIcon, ClipboardCheck } from "lucide-react";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import {
+  ServiceAcademyHeroSearch,
+  type HeroSearchService,
+  type HeroSearchTab,
+} from "@/components/service-library/design/ServiceAcademyHeroSearch";
 import flcLogo from "@/assets/flc-logo.png";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { AcademyViewModel } from "@/lib/service-library/buildAcademyViewModel";
 import { splitServiceTitle } from "@/lib/service-library/serviceDisplayLabels";
@@ -23,6 +28,11 @@ type Props = {
   onStartEligibility?: () => void;
   policyDismissed?: boolean;
   canManage?: boolean;
+  searchQuery?: string;
+  onSearchChange?: (q: string) => void;
+  searchTabs?: HeroSearchTab[];
+  searchServices?: HeroSearchService[];
+  onSelectService?: (id: string) => void;
 };
 
 export function ServiceAcademyHero({
@@ -36,6 +46,11 @@ export function ServiceAcademyHero({
   onStartEligibility,
   policyDismissed,
   canManage,
+  searchQuery = "",
+  onSearchChange,
+  searchTabs = [],
+  searchServices = [],
+  onSelectService,
 }: Props) {
   const showPolicy = !policyDismissed && view.policyAlert;
   const regionLabel = view.mbbsMeta?.regionLabel ?? view.country;
@@ -69,13 +84,17 @@ export function ServiceAcademyHero({
               Policy update
             </Badge>
           )}
-          <div className="relative hidden sm:block w-48 md:w-56">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-            <Input placeholder="Search services…" className="h-8 pl-8 text-sm" />
-          </div>
-          <Button variant="ghost" size="icon" className="size-8 relative">
-            <Bell className="size-4" />
-          </Button>
+          {onSearchChange && onSelectService ? (
+            <ServiceAcademyHeroSearch
+              value={searchQuery}
+              onChange={onSearchChange}
+              tabs={searchTabs}
+              services={searchServices}
+              onOpenTab={(tab) => onOpenTab?.(tab)}
+              onSelectService={onSelectService}
+            />
+          ) : null}
+          <NotificationCenter />
           <Button
             variant="ghost"
             size="icon"
