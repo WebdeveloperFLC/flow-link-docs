@@ -30,10 +30,10 @@ import { ServiceEligibilityStartDialog } from "@/components/service-library/Serv
 import {
   defaultAcademyTab,
   resolveAcademyTabs,
-  tabLabel,
   ACADEMY_TAB_IDS,
   type AcademyTabId,
 } from "@/lib/service-library/academyTabs";
+import { buildPageSearchIndex } from "@/lib/service-library/buildPageSearchIndex";
 
 export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
@@ -67,6 +67,7 @@ export default function ServiceLibrary() {
   );
   const [detailCountry, setDetailCountry] = useState<string>("");
   const [treeSearch, setTreeSearch] = useState("");
+  const [pageSearch, setPageSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "review">("all");
   const [activeTab, setActiveTab] = useState<AcademyTabId>(() => parseAcademyTab(params.get("tab")) ?? "redflags");
   const [policyDismissed] = useState(false);
@@ -121,24 +122,6 @@ export default function ServiceLibrary() {
         statusFilter,
       }),
     [masters.data, categoryFilter, countryFilter, coachingFamily, coachingVariant, treeSearch, statusFilter],
-  );
-
-  const { group: unfilteredServiceGroup } = useMemo(
-    () =>
-      buildAcademyNav(masters.data ?? [], {
-        categoryFilter,
-        countryFilter: categoryFilter === "visa" ? countryFilter : "ALL",
-        coachingFamily,
-        coachingVariant,
-        search: "",
-        statusFilter,
-      }),
-    [masters.data, categoryFilter, countryFilter, coachingFamily, coachingVariant, statusFilter],
-  );
-
-  const heroSearchServices = useMemo(
-    () => unfilteredServiceGroup?.items?.map((i) => ({ id: i.id, label: i.label })) ?? [],
-    [unfilteredServiceGroup],
   );
 
   const navReadyForSelection = group?.step === "services";
@@ -263,14 +246,14 @@ export default function ServiceLibrary() {
     if (next && next !== detailCountry) setDetailCountry(next);
   }, [detail.data?.master.id, detail.data?.detailCountry, detailCountry, categoryFilter]);
 
-  const heroSearchTabs = useMemo(() => {
-    if (!detail.data?.view) return [];
-    const view = detail.data.view;
-    return resolveAcademyTabs(view).map((id) => ({
-      id,
-      label: tabLabel(id, view),
-    }));
-  }, [detail.data?.view]);
+  const pageSearchEntries = useMemo(
+    () => (detail.data?.view ? buildPageSearchIndex(detail.data.view) : []),
+    [detail.data?.view],
+  );
+
+  useEffect(() => {
+    setPageSearch("");
+  }, [selectedId]);
 
   const showNavPanel =
     categoryFilter === "mbbs"
@@ -413,11 +396,9 @@ export default function ServiceLibrary() {
                   onStartEligibility={onStartEligibility}
                   policyDismissed={policyDismissed}
                   canManage={canManage}
-                  searchQuery={treeSearch}
-                  onSearchChange={setTreeSearch}
-                  searchTabs={heroSearchTabs}
-                  searchServices={heroSearchServices}
-                  onSelectService={setSelectedId}
+                  pageSearch={pageSearch}
+                  onPageSearchChange={setPageSearch}
+                  pageSearchEntries={pageSearchEntries}
                 />
               </div>
               <div className="px-4 md:px-6 pb-8 space-y-4">
