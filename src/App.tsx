@@ -42,6 +42,7 @@ import Messages from "./pages/Messages";
 import WhatsAppInbox from "./pages/WhatsAppInbox";
 import ServiceLibrary from "./pages/ServiceLibrary";
 import ServiceLibraryAdmin from "./pages/ServiceLibraryAdmin";
+import { ServiceLibraryProtectedRoute } from "@/components/service-library/ServiceLibraryProtectedRoute";
 import Telecaller from "./pages/Telecaller";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
@@ -189,17 +190,17 @@ const App = () => (
                   <Route
                     path="/service-library"
                     element={
-                      <ProtectedRoute>
+                      <ServiceLibraryProtectedRoute>
                         <ServiceLibrary />
-                      </ProtectedRoute>
+                      </ServiceLibraryProtectedRoute>
                     }
                   />
                   <Route
                     path="/service-library-admin"
                     element={
-                      <ProtectedRoute>
+                      <ServiceLibraryProtectedRoute requireManage>
                         <ServiceLibraryAdmin />
-                      </ProtectedRoute>
+                      </ServiceLibraryProtectedRoute>
                     }
                   />
                   <Route path="/portal/auth" element={<PortalAuth />} />
