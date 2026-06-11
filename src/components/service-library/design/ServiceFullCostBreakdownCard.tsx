@@ -2,18 +2,7 @@ import { ExternalLink, Info, Wallet } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { FullCostBreakdown } from "@/lib/service-library/countryInsights/types";
-
-function formatAmount(item: {
-  amount?: number | null;
-  range?: string | null;
-  currency?: string;
-  unit?: string;
-}): string {
-  const cur = item.currency ?? "";
-  if (item.range) return `${cur ? `${cur} ` : ""}${item.range}${item.unit ? ` ${item.unit}` : ""}`.trim();
-  if (item.amount != null) return `${cur ? `${cur} ` : ""}${item.amount.toLocaleString()}${item.unit ? ` ${item.unit}` : ""}`.trim();
-  return "Varies — verify official source";
-}
+import { formatFullCostAmount } from "@/lib/service-library/countryInsights/formatFullCostAmount";
 
 type Props = {
   breakdown: FullCostBreakdown;
@@ -54,7 +43,7 @@ export function ServiceFullCostBreakdownCard({ breakdown, emphasizeTuition }: Pr
                   >
                     <td className="py-2.5 px-2 align-top font-medium w-[40%]">{item.label}</td>
                     <td className="py-2.5 px-2 text-right tabular-nums align-top whitespace-nowrap">
-                      {formatAmount({ ...item, currency: item.currency ?? breakdown.currency })}
+                      {formatFullCostAmount(item, breakdown.currency)}
                     </td>
                     <td className="py-2.5 px-2 align-top text-xs text-muted-foreground max-w-sm">
                       {item.notes ?? (item.applicable === false ? "Not applicable" : "—")}
