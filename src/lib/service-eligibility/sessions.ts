@@ -184,6 +184,83 @@ export async function createStaffEligibilitySession(params: {
   return { sessionId: ses.id, clientId };
 }
 
+/** Public prospect — full Settle Abroad questionnaire (Express Entry CRS, etc.). */
+export async function createPublicSettleAbroadSession(params: {
+  libraryId: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  phone_country_code?: string | null;
+}): Promise<{ sessionId: string; publicToken: string }> {
+  const mapping = resolveSettleAbroadMapping(params.libraryId);
+  if (!mapping) throw new Error("This service does not use the full eligibility assessment");
+
+  const phone = formatPhone(params.phone_country_code, params.phone);
+  const edgeBody = {
+    action: "public_create_settle_abroad",
+    libraryId: params.libraryId,
+    name: params.name.trim(),
+    email: params.email.trim().toLowerCase(),
+    phone,
+  };
+
+  const { data, error } = await supabase.functions.invoke("service-eligibility-session", { body: edgeBody });
+  if (!error && data?.sessionId && data?.publicToken) {
+    return { sessionId: data.sessionId, publicToken: data.publicToken };
+  }
+
+  const token = crypto.randomUUID();
+  const { data: ses, error: insErr } = await supabase
+    .from("assessment_sessions")
+    .insert({
+      library_id: params.libraryId,
+      assessment_kind: "settle_abroad",
+      source: "public_link",
+      public_token: token,
+      prospect_name: params.name.trim(),
+      prospect_email: params.email.trim().toLowerCase(),
+      prospect_phone: phone,
+      country: mapping.country,
+      goal: mapping.goal,
+      status: "draft",
+      answers: {},
+    } as never)
+    .select("id, public_token")
+    .single();
+
+  if (insErr || !ses) {
+    const msg = insErr?.message ?? error?.message ?? "Could not start assessment";
+    throw new Error(msg);
+  }
+  return { sessionId: ses.id, publicToken: (ses as { public_token: string }).public_token };
+}
+
+export async function savePublicSettleAbroadSession(params: {
+  publicToken: string;
+  answers: Record<string, unknown>;
+}): Promise<void> {
+  const body = {
+    action: "public_save_settle_abroad",
+    publicToken: params.publicToken,
+    answers: params.answers,
+  };
+
+  const { error } = await supabase.functions.invoke("service-eligibility-session", { body });
+  if (!error) return;
+
+  const { error: updErr } = await supabase
+    .from("assessment_sessions")
+    .update({
+      answers: params.answers,
+      status: "in_progress",
+      updated_at: new Date().toISOString(),
+    } as never)
+    .eq("public_token", params.publicToken)
+    .eq("assessment_kind", "settle_abroad");
+
+  if (updErr) throw new Error(updErr.message);
+}
+
 /** Public prospect flow — edge function when deployed, else direct anon insert. */
 export async function createPublicEligibilitySession(params: {
   libraryId: string;

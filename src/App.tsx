@@ -213,14 +213,7 @@ const App = () => (
                   <Route path="/assessment/verify/:token" element={<AssessmentVerify />} />
                   <Route path="/eligibility/check" element={<EligibilityCheckPublic />} />
                   <Route path="/eligibility/run/:sessionId" element={<ServiceEligibilityRun />} />
-                  <Route
-                    path="/assessment/run/:sessionId"
-                    element={
-                      <ProtectedRoute>
-                        <AssessmentRun />
-                      </ProtectedRoute>
-                    }
-                  />
+                  <Route path="/assessment/run/:sessionId" element={<AssessmentRun />} />
                   <Route
                     path="/portal"
                     element={

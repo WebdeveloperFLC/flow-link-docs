@@ -395,6 +395,12 @@ function SessionsTab() {
       pdf_path: r.pdf_path,
       submitted_at: r.submitted_at,
       created_at: r.created_at,
+      assessment_kind: r.assessment_kind ?? "settle_abroad",
+      source: r.source ?? null,
+      library_id: r.library_id ?? null,
+      prospect_name: r.prospect_name ?? null,
+      prospect_email: r.prospect_email ?? null,
+      prospect_phone: r.prospect_phone ?? null,
       client_id: r.client_id ?? null,
       lead_id: r.lead_id ?? null,
       client:
@@ -413,13 +419,33 @@ function SessionsTab() {
     load();
   }, []);
 
+  const resumePath = (r: any) => {
+    if (r.assessment_kind === "service_eligibility") {
+      return `/eligibility/run/${r.id}`;
+    }
+    const p = new URLSearchParams();
+    if (r.library_id) p.set("library_id", r.library_id);
+    if (r.source === "public_link" || r.library_id) p.set("from", "service-library");
+    const qs = p.toString();
+    return `/assessment/run/${r.id}${qs ? `?${qs}` : ""}`;
+  };
+
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
     return rows.filter((r) => {
       if (statusFilter !== "all" && r.status !== statusFilter) return false;
       if (!t) return true;
       const p = r.client ?? r.lead ?? {};
-      const hay = `${p.full_name ?? ""} ${p.first_name ?? ""} ${p.last_name ?? ""} ${p.email ?? ""}`.toLowerCase();
+      const hay = [
+        p.full_name ?? "",
+        p.first_name ?? "",
+        p.last_name ?? "",
+        p.email ?? "",
+        r.prospect_name ?? "",
+        r.prospect_email ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
       return hay.includes(t);
     });
   }, [rows, q, statusFilter]);
@@ -554,15 +580,27 @@ function SessionsTab() {
         <tbody>
           {filtered.map((r) => {
             const p = r.client ?? r.lead ?? {};
-            const name = p.full_name ?? ([p.first_name, p.last_name].filter(Boolean).join(" ") || "—");
+            const name =
+              r.prospect_name ??
+              p.full_name ??
+              ([p.first_name, p.last_name].filter(Boolean).join(" ") || "—");
+            const email = r.prospect_email ?? p.email ?? "—";
+            const isPublicProspect = r.source === "public_link" && !r.client && !r.lead;
             const isOpen = r.status === "draft" || r.status === "in_progress";
             const isDone = r.status === "submitted" || r.status === "counselor_reviewed";
             const hasPdf = !!r.pdf_path;
             const hasEmail = !!p.email;
             return (
               <tr key={r.id} className="border-t">
-                <td className="p-2 px-3">{name}</td>
-                <td className="p-2">{p.email ?? "—"}</td>
+                <td className="p-2 px-3">
+                  {name}
+                  {isPublicProspect && (
+                    <Badge variant="outline" className="ml-2 text-[10px]">
+                      Public link
+                    </Badge>
+                  )}
+                </td>
+                <td className="p-2">{email}</td>
                 <td className="p-2 text-xs">{GOAL_LABELS[r.goal] ?? "—"}</td>
                 <td className="p-2">
                   <Badge variant={r.status === "submitted" ? "default" : "outline"}>{r.status}</Badge>
@@ -576,7 +614,7 @@ function SessionsTab() {
                         <Button
                           size="sm"
                           variant="default"
-                          onClick={() => nav(`/assessment/run/${r.id}`)}
+                          onClick={() => nav(resumePath(r))}
                           title="Open / Resume"
                         >
                           <PlayCircle className="size-3.5 mr-1" />

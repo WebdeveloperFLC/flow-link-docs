@@ -230,6 +230,46 @@ function wrap(t: string, n: number) {
   return out;
 }
 
+async function notifyStaffPublicSubmission(
+  admin: ReturnType<typeof createClient>,
+  session: Record<string, unknown>,
+) {
+  const { data: roles } = await admin
+    .from("user_roles")
+    .select("user_id")
+    .in("role", ["admin", "administrator", "counselor", "documentation", "telecaller"]);
+  const userIds = [...new Set((roles ?? []).map((r) => r.user_id as string))];
+  const prospectName = String(session.prospect_name ?? "Prospect");
+  const libraryId = session.library_id as string | null;
+  let serviceLabel = "Visa eligibility";
+  if (libraryId) {
+    const { data: lib } = await admin
+      .from("service_library")
+      .select("service, sub_service")
+      .eq("id", libraryId)
+      .maybeSingle();
+    if (lib) serviceLabel = `${lib.service} – ${lib.sub_service}`;
+  }
+  const link = libraryId
+    ? `/assessment-admin?session=${session.id}&library_id=${libraryId}`
+    : `/assessment-admin?session=${session.id}`;
+  const rows = userIds.map((user_id) => ({
+    user_id,
+    category: "info",
+    severity: "info",
+    title: `New public assessment: ${prospectName}`,
+    body: `${prospectName} submitted ${serviceLabel}. Review in Settle Abroad console.`,
+    link,
+    dedupe_key: `public-assessment-${session.id}`,
+    entity_type: "assessment_session",
+    entity_id: String(session.id),
+    metadata: { source: "public_link", library_id: libraryId },
+  }));
+  if (rows.length) {
+    await admin.from("app_notifications").insert(rows);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
@@ -237,11 +277,9 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const user = await createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } }).auth.getUser();
-    if (!user.data.user) return json({ error: "Not authenticated" }, 401);
     const admin = createClient(supabaseUrl, serviceKey);
 
-    const { sessionId, answers } = await req.json();
+    const { sessionId, answers, publicToken } = await req.json();
     if (!sessionId) return json({ error: "Missing sessionId" }, 400);
 
     const { data: session } = await admin.from("assessment_sessions")
@@ -249,17 +287,24 @@ Deno.serve(async (req) => {
       .eq("id", sessionId).maybeSingle();
     if (!session) return json({ error: "Session not found" }, 404);
 
-    // Authorisation:
-    //  - Email-flow sessions: the lead's auth_user_id must match.
-    //  - Counselor-initiated sessions (no lead): admin/counselor role.
-    const uid = user.data.user.id;
-    let allowed = false;
-    if (session.lead?.auth_user_id === uid) allowed = true;
-    if (!allowed) {
-      const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", uid);
-      if ((roles ?? []).some((r) => ["admin", "counselor"].includes(r.role))) allowed = true;
+    const isPublicProspect =
+      publicToken &&
+      session.public_token === publicToken &&
+      session.source === "public_link" &&
+      session.assessment_kind === "settle_abroad";
+
+    if (!isPublicProspect) {
+      const user = await createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } }).auth.getUser();
+      if (!user.data.user) return json({ error: "Not authenticated" }, 401);
+      const uid = user.data.user.id;
+      let allowed = false;
+      if (session.lead?.auth_user_id === uid) allowed = true;
+      if (!allowed) {
+        const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", uid);
+        if ((roles ?? []).some((r) => ["admin", "counselor", "administrator"].includes(r.role))) allowed = true;
+      }
+      if (!allowed) return json({ error: "Forbidden" }, 403);
     }
-    if (!allowed) return json({ error: "Forbidden" }, 403);
 
     // Build a "subject" object for the PDF & email — works for either path.
     const subject = session.lead ?? (session.client ? {
@@ -268,6 +313,12 @@ Deno.serve(async (req) => {
       last_name: (session.client.full_name ?? "").split(" ").slice(1).join(" "),
       email: session.client.email,
       phone: session.client.phone,
+    } : isPublicProspect ? {
+      first_name: String(session.prospect_name ?? "").split(" ")[0] ?? "",
+      middle_name: "",
+      last_name: String(session.prospect_name ?? "").split(" ").slice(1).join(" "),
+      email: session.prospect_email,
+      phone: session.prospect_phone,
     } : { first_name: "", middle_name: "", last_name: "", email: "", phone: "" });
 
     const finalAnswers = { ...(session.answers ?? {}), ...(answers ?? {}) };
@@ -307,6 +358,10 @@ Deno.serve(async (req) => {
       submitted_at: new Date().toISOString(),
       last_emailed_at: new Date().toISOString(),
     }).eq("id", sessionId);
+
+    if (isPublicProspect) {
+      await notifyStaffPublicSubmission(admin, session as Record<string, unknown>);
+    }
 
     // Email report to client
     if (subject.email) {
