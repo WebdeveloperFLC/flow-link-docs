@@ -1,5 +1,319 @@
 /** Build academy_metadata JSON for MBBS institutions from registry config. */
 
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const TUITION_BY_ID = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "../../content/service-library/mbbs-tuition-data.json"), "utf8"),
+);
+
+function fmtUsd(n) {
+  return n.toLocaleString("en-US");
+}
+
+function fmtRub(n) {
+  return n.toLocaleString("en-US");
+}
+
+export function buildFullCostBreakdown(inst) {
+  const t = TUITION_BY_ID[inst.libraryId];
+  const currency = t?.currency ?? (inst.archetype === "russia_specialist" ? "RUB" : "USD");
+  const verifyHost = inst.tuitionUrl.replace(/^https?:\/\//, "");
+
+  if (t?.archetype === "caribbean_md") {
+    const adminRange = t.adminPerSem
+      ? `${fmtUsd(t.adminPerSem)}/sem × 10`
+      : t.adminBasicPerSem && t.adminClinicalPerSem
+        ? `${fmtUsd(t.adminBasicPerSem)}/sem (basic) · ${fmtUsd(t.adminClinicalPerSem)}/sem (clinical)`
+        : "Per catalog";
+    const totalRange =
+      t.totalTuitionAndAdmin != null
+        ? fmtUsd(t.totalTuitionAndAdmin)
+        : t.totalTuitionOnly != null
+          ? fmtUsd(t.totalTuitionOnly)
+          : "Sum of 10 semesters";
+
+    return {
+      title: `Full cost breakdown — ${inst.institutionName}`,
+      currency: "USD",
+      lastVerified: "Jun 2026",
+      disclaimer: `Indicative structure for counselor discussions. Tuition changes each academic year — always quote from ${inst.tuitionUrl} before client commitment.`,
+      sourceUrl: inst.tuitionUrl,
+      sections: [
+        {
+          id: "fees",
+          label: "University & administrative fees",
+          items: [
+            {
+              label: "MD tuition — basic science (per semester)",
+              range: fmtUsd(t.basicTuitionPerSem),
+              notes: "Terms 1–5",
+              currency: "USD",
+            },
+            {
+              label: "MD tuition — clinical (per semester)",
+              range: fmtUsd(t.clinicalTuitionPerSem),
+              notes: "Terms 6–10",
+              currency: "USD",
+            },
+            {
+              label: "Application / seat deposit",
+              range: fmtUsd(t.applicationFee),
+              currency: "USD",
+            },
+            {
+              label: "Student services / admin fees",
+              range: adminRange,
+              currency: "USD",
+            },
+            { label: "Visa & immigration fees", range: "Varies", notes: "Consulate + permits" },
+          ],
+        },
+        {
+          id: "tuition",
+          label: "Program costs",
+          items: [
+            {
+              label: "Total program tuition (indicative)",
+              range: totalRange,
+              notes: t.rateNote,
+              currency: "USD",
+            },
+            { label: "Books & equipment", range: "1,000–3,000", unit: "per year", currency: "USD" },
+            {
+              label: "USMLE exam fees",
+              range: `${fmtUsd(t.usmleStep1)} + ${fmtUsd(t.usmleStep2)}`,
+              notes: "Step 1 + Step 2 CK",
+              currency: "USD",
+            },
+          ],
+        },
+        {
+          id: "living",
+          label: "Living costs",
+          items: [
+            {
+              label: `Housing (${inst.city})`,
+              range: "See university / local market",
+              unit: "per month",
+              currency: "USD",
+            },
+            { label: "Food & personal", range: "Varies by city", unit: "per month", currency: "USD" },
+            {
+              label: "Health insurance",
+              range: "Mandatory",
+              notes: "Verify university requirements",
+              currency: "USD",
+            },
+            {
+              label: "Clinical years (US cities)",
+              range: "Varies by rotation city",
+              unit: "per month",
+              notes: "Higher in major metros",
+              currency: "USD",
+            },
+          ],
+        },
+        {
+          id: "misc",
+          label: "Miscellaneous",
+          items: [
+            { label: "Future Link consultancy fee", range: "See Fees tab" },
+            { label: "Flights India ↔ destination", range: "₹50,000–2,00,000+" },
+            { label: "Medical exam & police clearance", range: "₹5,000–15,000" },
+            { label: "Forex / wire transfer charges", range: "Bank dependent" },
+          ],
+        },
+      ],
+      totals: [
+        {
+          label: "Indicative total program budget",
+          value: `From USD $${totalRange} tuition + living costs`,
+          notes: `Use ${verifyHost.split("/")[0]} tuition page; add 15% buffer for currency and fee increases.`,
+        },
+      ],
+    };
+  }
+
+  if (t?.archetype === "georgia_md") {
+    return {
+      title: `Full cost breakdown — ${inst.institutionName}`,
+      currency: "USD",
+      lastVerified: "Jun 2026",
+      disclaimer: `Indicative structure for counselor discussions. Tuition changes each academic year — always quote from ${inst.tuitionUrl} before client commitment.`,
+      sourceUrl: inst.tuitionUrl,
+      sections: [
+        {
+          id: "fees",
+          label: "University & administrative fees",
+          items: [
+            {
+              label: "MD tuition (annual)",
+              range: fmtUsd(t.annualTuition),
+              notes: t.rateNote,
+              currency: "USD",
+            },
+            { label: "Application fee", range: "See official site", currency: "USD" },
+            { label: "Registration / admin fees", range: "Per catalog", currency: "USD" },
+            { label: "Visa & immigration fees", range: "Varies", notes: "Consulate + permits" },
+          ],
+        },
+        {
+          id: "tuition",
+          label: "Program costs",
+          items: [
+            {
+              label: "Total program tuition (indicative)",
+              range: fmtUsd(t.totalProgramTuition),
+              notes: `${t.programYears} years × $${fmtUsd(t.annualTuition)}/year`,
+              currency: "USD",
+            },
+            { label: "Books & equipment", range: "Varies", unit: "per year", currency: "USD" },
+          ],
+        },
+        {
+          id: "living",
+          label: "Living costs",
+          items: [
+            {
+              label: `Housing (${inst.city})`,
+              range: "400–800",
+              unit: "per month",
+              currency: "USD",
+              notes: "Tbilisi/Batumi market rates",
+            },
+            { label: "Food & personal", range: "200–400", unit: "per month", currency: "USD" },
+            {
+              label: "Health insurance",
+              range: "Mandatory",
+              notes: "Verify university requirements",
+              currency: "USD",
+            },
+          ],
+        },
+        {
+          id: "misc",
+          label: "Miscellaneous",
+          items: [
+            { label: "Future Link consultancy fee", range: "See Fees tab" },
+            { label: "Flights India ↔ Georgia", range: "₹40,000–1,50,000+" },
+            { label: "Medical exam & police clearance", range: "₹5,000–15,000" },
+            { label: "Forex / wire transfer charges", range: "Bank dependent" },
+          ],
+        },
+      ],
+      totals: [
+        {
+          label: "Indicative total program budget",
+          value: `From USD $${fmtUsd(t.totalProgramTuition)} tuition + living costs`,
+          notes: `Use ${verifyHost.split("/")[0]} tuition page; add 15% buffer for currency and fee increases.`,
+        },
+      ],
+    };
+  }
+
+  if (t?.archetype === "russia_specialist") {
+    return {
+      title: `Full cost breakdown — ${inst.institutionName}`,
+      currency: "RUB",
+      lastVerified: "Jun 2026",
+      disclaimer: `Indicative structure for counselor discussions. Tuition changes each academic year — always quote from ${inst.tuitionUrl} before client commitment.`,
+      sourceUrl: inst.tuitionUrl,
+      sections: [
+        {
+          id: "fees",
+          label: "University & administrative fees",
+          items: [
+            {
+              label: "Tuition (annual)",
+              range: fmtRub(t.annualTuition),
+              notes: t.rateNote,
+              currency: "RUB",
+            },
+            { label: "Application fee", range: "See synergy.ru", currency: "RUB" },
+            { label: "Dormitory / housing", range: "Varies", unit: "per month", currency: "RUB" },
+            { label: "Visa & immigration fees", range: "Varies", notes: "Consulate + registration" },
+          ],
+        },
+        {
+          id: "tuition",
+          label: "Program costs",
+          items: [
+            {
+              label: "Total program tuition (indicative)",
+              range: fmtRub(t.totalProgramTuition),
+              notes: `${t.programYears} years × ₽${fmtRub(t.annualTuition)}/year`,
+              currency: "RUB",
+            },
+            { label: "Books & equipment", range: "Varies", unit: "per year", currency: "RUB" },
+          ],
+        },
+        {
+          id: "living",
+          label: "Living costs",
+          items: [
+            {
+              label: `Housing (${inst.city})`,
+              range: "See university / local market",
+              unit: "per month",
+              currency: "RUB",
+            },
+            { label: "Food & personal", range: "Varies", unit: "per month", currency: "RUB" },
+            {
+              label: "Health insurance",
+              range: "Mandatory",
+              notes: "Required for visa",
+              currency: "RUB",
+            },
+          ],
+        },
+        {
+          id: "misc",
+          label: "Miscellaneous",
+          items: [
+            { label: "Future Link consultancy fee", range: "See Fees tab" },
+            { label: "Flights India ↔ Moscow", range: "₹50,000–2,00,000+" },
+            { label: "Medical exam & police clearance", range: "₹5,000–15,000" },
+            { label: "Forex / wire transfer charges", range: "Bank dependent" },
+          ],
+        },
+      ],
+      totals: [
+        {
+          label: "Indicative total program budget",
+          value: `From ₽${fmtRub(t.totalProgramTuition)} tuition + living costs`,
+          notes: `Use ${verifyHost.split("/")[0]} tuition page; add 15% buffer for currency and fee increases.`,
+        },
+      ],
+    };
+  }
+
+  return {
+    title: `Full cost breakdown — ${inst.institutionName}`,
+    currency,
+    lastVerified: "Jun 2026",
+    disclaimer: `Indicative structure for counselor discussions. Tuition changes each academic year — always quote from ${inst.tuitionUrl} before client commitment.`,
+    sourceUrl: inst.tuitionUrl,
+    sections: [
+      {
+        id: "fees",
+        label: "University & administrative fees",
+        items: [
+          {
+            label: "Tuition (annual / per semester)",
+            range: "See official tuition page",
+            notes: `Verify on ${verifyHost.split("/")[0]}`,
+            currency,
+          },
+        ],
+      },
+    ],
+    totals: [],
+  };
+}
+
 function indiaPathway(inst) {
   return {
     fmgeNext:
@@ -425,65 +739,7 @@ export function buildMbbsMetadata(inst) {
         lastVerified: "Jun 2026",
       },
     },
-    fullCostBreakdown: {
-      title: `Full cost breakdown — ${inst.institutionName}`,
-      currency: inst.archetype === "russia_specialist" ? "RUB" : inst.archetype === "georgia_md" ? "USD" : "USD",
-      lastVerified: "Jun 2026",
-      disclaimer: `Indicative structure for counselor discussions. Tuition changes each academic year — always quote from ${inst.tuitionUrl} before client commitment.`,
-      sourceUrl: inst.tuitionUrl,
-      sections: [
-        {
-          id: "fees",
-          label: "University & administrative fees",
-          items: [
-            { label: "Tuition (annual / per semester)", range: "See official tuition page", notes: `Verify on ${verifyHost.split("/")[0]}`, currency: inst.archetype === "russia_specialist" ? "RUB" : "USD" },
-            { label: "Application fee", range: "See official site", currency: inst.archetype === "russia_specialist" ? "RUB" : "USD" },
-            { label: "Student services / admin fees", range: "Per catalog", currency: inst.archetype === "russia_specialist" ? "RUB" : "USD" },
-            { label: "Visa & immigration fees", range: "Varies", notes: "Consulate + permits" },
-          ],
-        },
-        {
-          id: "tuition",
-          label: "Program costs",
-          items: [
-            { label: "Total program tuition", range: "Sum of all years/semesters", notes: "Official fee schedule only", currency: inst.archetype === "russia_specialist" ? "RUB" : "USD" },
-            { label: "Books & equipment", range: "Varies", unit: "per year", currency: inst.archetype === "russia_specialist" ? "RUB" : "USD" },
-            ...(inst.archetype === "caribbean_md"
-              ? [{ label: "USMLE exam fees", range: "Step 1 + Step 2 CK", notes: "During program", currency: "USD" }]
-              : []),
-          ],
-        },
-        {
-          id: "living",
-          label: "Living costs",
-          items: [
-            { label: `Housing (${inst.city})`, range: "See university / local market", unit: "per month", currency: inst.archetype === "russia_specialist" ? "RUB" : "USD" },
-            { label: "Food & personal", range: "Varies by city", unit: "per month", currency: inst.archetype === "russia_specialist" ? "RUB" : "USD" },
-            { label: "Health insurance", range: "Mandatory", notes: "Verify university requirements", currency: inst.archetype === "russia_specialist" ? "RUB" : "USD" },
-            ...(inst.archetype === "caribbean_md"
-              ? [{ label: "Clinical years (US cities)", range: "Varies by rotation city", unit: "per month", notes: "Higher in major metros", currency: "USD" }]
-              : []),
-          ],
-        },
-        {
-          id: "misc",
-          label: "Miscellaneous",
-          items: [
-            { label: "Future Link consultancy fee", range: "See Fees tab" },
-            { label: "Flights India ↔ destination", range: "₹50,000–2,00,000+" },
-            { label: "Medical exam & police clearance", range: "₹5,000–15,000" },
-            { label: "Forex / wire transfer charges", range: "Bank dependent" },
-          ],
-        },
-      ],
-      totals: [
-        {
-          label: "Indicative total program budget",
-          value: "Calculate from official tuition + full program living costs",
-          notes: `Use ${verifyHost.split("/")[0]} tuition page; add 15% buffer for currency and fee increases.`,
-        },
-      ],
-    },
+    fullCostBreakdown: buildFullCostBreakdown(inst),
     eligibility: [
       { criterion: "Meet university academic entry requirements", met: true },
       { criterion: "English proficiency (if required)", met: true },

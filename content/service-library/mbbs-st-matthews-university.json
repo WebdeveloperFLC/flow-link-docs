@@ -299,14 +299,20 @@
         "label": "University & administrative fees",
         "items": [
           {
-            "label": "Tuition (annual / per semester)",
-            "range": "See official tuition page",
-            "notes": "Verify on medicine.stmatthews.edu",
+            "label": "MD tuition — basic science (per semester)",
+            "range": "16,802",
+            "notes": "Terms 1–5",
             "currency": "USD"
           },
           {
-            "label": "Application fee",
-            "range": "See official site",
+            "label": "MD tuition — clinical (per semester)",
+            "range": "22,406",
+            "notes": "Terms 6–10",
+            "currency": "USD"
+          },
+          {
+            "label": "Application / seat deposit",
+            "range": "100",
             "currency": "USD"
           },
           {
@@ -326,21 +332,21 @@
         "label": "Program costs",
         "items": [
           {
-            "label": "Total program tuition",
-            "range": "Sum of all years/semesters",
-            "notes": "Official fee schedule only",
+            "label": "Total program tuition (indicative)",
+            "range": "196,040",
+            "notes": "Tuition only — admin fees extra; verify on stmatthews.edu",
             "currency": "USD"
           },
           {
             "label": "Books & equipment",
-            "range": "Varies",
+            "range": "1,000–3,000",
             "unit": "per year",
             "currency": "USD"
           },
           {
             "label": "USMLE exam fees",
-            "range": "Step 1 + Step 2 CK",
-            "notes": "During program",
+            "range": "670 + 985",
+            "notes": "Step 1 + Step 2 CK",
             "currency": "USD"
           }
         ]
@@ -402,7 +408,7 @@
     "totals": [
       {
         "label": "Indicative total program budget",
-        "value": "Calculate from official tuition + full program living costs",
+        "value": "From USD $196,040 tuition + living costs",
         "notes": "Use medicine.stmatthews.edu tuition page; add 15% buffer for currency and fee increases."
       }
     ]

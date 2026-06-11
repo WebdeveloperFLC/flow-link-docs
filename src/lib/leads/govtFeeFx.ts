@@ -7,6 +7,7 @@ const TO_INR: Record<string, number> = {
   EUR: 90,
   AUD: 55,
   NZD: 50,
+  RUB: 0.93,
 };
 
 const TO_CAD: Record<string, number> = {
