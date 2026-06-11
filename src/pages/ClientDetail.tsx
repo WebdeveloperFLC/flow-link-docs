@@ -77,11 +77,15 @@ import { AiSummaryPanel } from "@/components/clients/AiSummaryPanel";
 import { PersonWorkspaceCard } from "@/components/clients/PersonWorkspaceCard";
 import { ClientStageCard } from "@/components/clients/ClientStageCard";
 import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitcher";
+import { ClientSetupPanel } from "@/components/clients/ClientSetupPanel";
+import { ClientAssessmentsCard } from "@/components/clients/ClientAssessmentsCard";
 import { ServiceLibraryContextActions } from "@/components/service-library/ServiceLibraryContextActions";
 import { ContextBackBar } from "@/components/navigation/ContextBackBar";
 import {
   parseLibraryIdFromServiceCode,
 } from "@/lib/service-library/serviceCodes";
+import { fetchWorkflowTemplatesForService } from "@/lib/service-library/matchWorkflowTemplate";
+import { useActiveServiceContext } from "@/lib/clientActiveServiceContext";
 
 interface Client {
   id: string;
@@ -89,6 +93,7 @@ interface Client {
   application_id: string;
   country: string;
   application_type: string;
+  interested_countries?: string[] | null;
   template_id: string | null;
   status: string;
   extra_items?: ExtraItem[] | null;
@@ -130,7 +135,7 @@ const ClientDetail = () => {
   const fromServiceLibrary = searchParams.get("from") === "service-library";
   const slLibraryId =
     searchParams.get("library_id") ?? parseLibraryIdFromServiceCode(searchParams.get("service"));
-  const slCountry = searchParams.get("sl_country");
+  const slCountry = searchParams.get("sl_country") ?? searchParams.get("country");
   const { canUpload, isAdmin, canDeleteDocs, user } = useAuth();
   const [client, setClient] = useState<Client | null>(null);
   const [template, setTemplate] = useState<Template | null>(null);
@@ -157,7 +162,6 @@ const ClientDetail = () => {
   const [trashUserNames, setTrashUserNames] = useState<Record<string, string>>({});
   const [secondaryLoading, setSecondaryLoading] = useState(true);
   const [stageRefreshKey, setStageRefreshKey] = useState(0);
-  const onServiceSwitched = useCallback(() => setStageRefreshKey((k) => k + 1), []);
 
   // Critical fetch — only what's needed for the first paint above the fold
   // (client + template + active documents + sections). Runs in parallel.
@@ -191,13 +195,25 @@ const ClientDetail = () => {
     setClient(c as unknown as Client | null);
     setSections(sectionsData);
     setDocs((activeDocs ?? []) as Doc[]);
-    if (c?.template_id) {
-      const { data: t } = await supabase.from("workflow_templates").select("*").eq("id", c.template_id).single();
+
+    let templateId = c?.template_id ?? null;
+    const destCountry = slCountry ?? (c as { interested_countries?: string[] | null })?.interested_countries?.[0] ?? null;
+    const libId = slLibraryId ?? parseLibraryIdFromServiceCode(searchParams.get("service"));
+    if (c && !templateId && libId) {
+      const templates = await fetchWorkflowTemplatesForService(libId, destCountry);
+      if (templates[0]?.id) {
+        templateId = templates[0].id;
+        await supabase.from("clients").update({ template_id: templateId }).eq("id", id);
+      }
+    }
+
+    if (templateId) {
+      const { data: t } = await supabase.from("workflow_templates").select("*").eq("id", templateId).single();
       setTemplate(t as unknown as Template | null);
     } else {
       setTemplate(null);
     }
-  }, [id, user?.id, isAdmin, navigate]);
+  }, [id, user?.id, isAdmin, navigate, slLibraryId, slCountry, searchParams]);
 
   // Secondary fetch — below-the-fold cards (binders, trash, profile names).
   // Runs after the critical paint. Splitting into a separate query also lets
@@ -241,6 +257,14 @@ const ClientDetail = () => {
     await loadCritical();
     loadSecondary();
   }, [loadCritical, loadSecondary]);
+
+  const onServiceSwitched = useCallback(() => {
+    setStageRefreshKey((k) => k + 1);
+    void loadCritical();
+  }, [loadCritical]);
+
+  const serviceCtx = useActiveServiceContext(client, searchParams);
+  const uploadLimitLabel = serviceCtx.isCanadaDestination ? "IRCC ≤ 4 MB" : "≤ 4 MB";
 
   // Critical paint first — secondary kicks off right after to avoid serial waterfall.
   useEffect(() => {
@@ -961,25 +985,29 @@ const ClientDetail = () => {
   return (
     <AppLayout>
       <ContextBackBar
-        libraryId={slLibraryId}
-        country={slCountry}
+        libraryId={slLibraryId ?? serviceCtx.libraryId}
+        country={slCountry ?? serviceCtx.destinationCountry}
         fallbackLabel="All clients"
         fallbackHref="/clients"
       />
       <PageHeader
         title={client.full_name}
-        description={`${client.application_id} · ${client.country} · ${client.application_type}`}
+        description={
+          serviceCtx.serviceLabel
+            ? `${client.application_id} · ${serviceCtx.destinationCountry ?? client.country} · ${serviceCtx.serviceLabel}`
+            : `${client.application_id} · ${client.country} · ${client.application_type}`
+        }
         actions={
           <div className="flex gap-2 flex-wrap">
-            {(fromServiceLibrary || slLibraryId) && slLibraryId && (
+            {(fromServiceLibrary || slLibraryId || serviceCtx.libraryId) && (slLibraryId ?? serviceCtx.libraryId) && (
               <ServiceLibraryContextActions
-                libraryId={slLibraryId}
-                country={slCountry}
+                libraryId={(slLibraryId ?? serviceCtx.libraryId)!}
+                country={slCountry ?? serviceCtx.destinationCountry}
                 clientId={client.id}
                 showServiceLibraryBack={false}
               />
             )}
-            {!slLibraryId && (
+            {!(slLibraryId ?? serviceCtx.libraryId) && (
               <Button asChild variant="outline" size="sm">
                 <Link to="/clients">
                   <ChevronLeft className="size-4" />
@@ -1035,6 +1063,12 @@ const ClientDetail = () => {
       <div className="p-8 grid lg:grid-cols-3 gap-6">
         {/* Left: unified case documents (sections + checklist + uploads) */}
         <div className="lg:col-span-2 space-y-6">
+          <ClientSetupPanel
+            clientId={client.id}
+            libraryId={serviceCtx.libraryId ?? slLibraryId}
+            destinationCountry={serviceCtx.destinationCountry}
+            onRefresh={load}
+          />
           <ClientServiceSwitcher
             clientId={client.id}
             clientCountry={client.country}
@@ -1044,6 +1078,7 @@ const ClientDetail = () => {
             key={stageRefreshKey}
             clientId={client.id}
             clientCountry={client.country}
+            destinationCountry={serviceCtx.destinationCountry}
           />
           <ClientProfileCard
             clientId={client.id}
@@ -1063,12 +1098,19 @@ const ClientDetail = () => {
 
           <ClientPaymentsCard clientId={client.id} />
 
-          <LetterCard clientId={client.id} canGenerate={canUpload} onGenerated={load} />
+          <ClientAssessmentsCard clientId={client.id} />
+
+          <LetterCard
+            clientId={client.id}
+            canGenerate={canUpload}
+            onGenerated={load}
+            destinationCountry={serviceCtx.destinationCountry}
+          />
 
           <ClientFormsCard
             clientId={client.id}
-            country={client.country}
-            category={client.application_type}
+            country={serviceCtx.destinationCountry ?? client.country}
+            category={serviceCtx.formsCategory ?? client.application_type}
             canEdit={canUpload}
           />
 
@@ -1399,6 +1441,7 @@ const ClientDetail = () => {
                         client={client}
                         templateTypes={checklistItems.map((it) => it.name)}
                         people={people}
+                        uploadLimitLabel={uploadLimitLabel}
                         onUploaded={() => {
                           load();
                           try {

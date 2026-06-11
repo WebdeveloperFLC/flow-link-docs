@@ -3,14 +3,24 @@
  * Seed workflow_templates from branded HTML document checklists.
  * Links each template to service_library via category = `{library_id}::{country}`.
  *
- *   node scripts/generate-workflow-template-sql.mjs
+ *   node scripts/generate-workflow-template-sql.mjs              # full regen (baseline migration)
+ *   node scripts/generate-workflow-template-sql.mjs --extended   # delta only → new migration
  */
 import fs from "fs";
 import path from "path";
 import { LIBRARY_IDS } from "./lib/service-library-ids.mjs";
 
 const CHECKLIST_DIR = path.join(process.cwd(), "public/specimens/checklists");
-const OUT = path.join(process.cwd(), "supabase/migrations/20260610250000_seed_workflow_templates_from_checklists.sql");
+const BASELINE = path.join(
+  process.cwd(),
+  "supabase/migrations/20260610250000_seed_workflow_templates_from_checklists.sql",
+);
+const OUT_FULL = BASELINE;
+const OUT_EXTENDED = path.join(
+  process.cwd(),
+  "supabase/migrations/20260616120000_workflow_templates_extended.sql",
+);
+const extendedOnly = process.argv.includes("--extended");
 
 const COUNTRY_BY_PREFIX = {
   canada: "Canada",
@@ -32,6 +42,14 @@ const COUNTRY_BY_PREFIX = {
   denmark: "Denmark",
   portugal: "Portugal",
   coaching: "Coaching",
+  uae: "UAE",
+  poland: "Poland",
+  hungary: "Hungary",
+  latvia: "Latvia",
+  singapore: "Singapore",
+  cyprus: "Cyprus",
+  lithuania: "Lithuania",
+  mbbs: "International",
 };
 
 function slugKey(text, i) {
@@ -142,13 +160,33 @@ for (const file of htmlFiles.sort()) {
   templates.push(buildTemplate(slug, libraryId, sections));
 }
 
-const lines = [
-  "-- Document binder templates seeded from branded HTML checklists.",
-  "-- Links workflow_templates.category to service_library id (library_id::country).",
-  "",
-];
+function existingCategoriesFromBaseline() {
+  if (!fs.existsSync(BASELINE)) return new Set();
+  const text = fs.readFileSync(BASELINE, "utf8");
+  const set = new Set();
+  for (const m of text.matchAll(/category = '([^']+)'/g)) set.add(m[1]);
+  return set;
+}
 
-for (const t of templates) {
+const baselineCats = extendedOnly ? existingCategoriesFromBaseline() : new Set();
+const selected = extendedOnly
+  ? templates.filter((t) => !baselineCats.has(t.category))
+  : templates;
+
+const lines = extendedOnly
+  ? [
+      "-- Extended document binder templates (UAE, CEE, Singapore, extra Germany, MBBS, etc.).",
+      "-- Safe to apply after 20260610250000_seed_workflow_templates_from_checklists.sql.",
+      "-- Regenerate: node scripts/generate-workflow-template-sql.mjs --extended",
+      "",
+    ]
+  : [
+      "-- Document binder templates seeded from branded HTML checklists.",
+      "-- Links workflow_templates.category to service_library id (library_id::country).",
+      "",
+    ];
+
+for (const t of selected) {
   const escName = t.name.replace(/'/g, "''");
   lines.push(`DELETE FROM public.workflow_templates WHERE category = '${t.category}';`);
   lines.push(
@@ -160,5 +198,11 @@ for (const t of templates) {
   lines.push("");
 }
 
-fs.writeFileSync(OUT, lines.join("\n"));
-console.log(`Wrote ${templates.length} templates → ${OUT}`);
+const outPath = extendedOnly ? OUT_EXTENDED : OUT_FULL;
+fs.writeFileSync(outPath, lines.join("\n"));
+console.log(
+  `Wrote ${selected.length} template${selected.length === 1 ? "" : "s"} (${templates.length} parsed) → ${outPath}`,
+);
+if (extendedOnly && selected.length === 0) {
+  console.log("No new categories beyond baseline — nothing to migrate.");
+}

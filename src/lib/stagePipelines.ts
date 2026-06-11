@@ -84,12 +84,38 @@ export async function autoAssignPipelineForClient(params: {
   country?: string | null;
   interestedCountries?: string[] | null;
   serviceCategory?: string | null;
+  /** When set, treated as a service_library code — resolved via keyword match, not exact category. */
+  serviceCode?: string | null;
+  serviceTitle?: string | null;
+  subService?: string | null;
 }): Promise<{ pipelineId: string; stageId: string } | null> {
   const { clientId } = params;
   const countries = [params.country, ...(params.interestedCountries ?? [])]
     .filter((c): c is string => !!c && c.trim().length > 0);
   const category = (params.serviceCategory ?? "").trim();
-  if (!countries.length || !category) return null;
+  if (!countries.length) return null;
+
+  if (params.serviceTitle && params.subService) {
+    const fromLibrary = await resolvePipelineForServiceLibrary({
+      country: params.country,
+      interestedCountries: params.interestedCountries,
+      serviceTitle: params.serviceTitle,
+      subService: params.subService,
+    });
+    if (fromLibrary) {
+      const { error } = await supabase
+        .from("clients")
+        .update({ pipeline_id: fromLibrary.pipelineId, current_stage_id: fromLibrary.stageId })
+        .eq("id", clientId);
+      if (error) {
+        console.warn("[autoAssignPipeline] update failed", error);
+        return null;
+      }
+      return fromLibrary;
+    }
+  }
+
+  if (!category || category.includes("::")) return null;
 
   try {
     const { data: pipelines } = await supabase

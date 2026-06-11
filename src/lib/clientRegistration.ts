@@ -125,6 +125,7 @@ export function prefillFromLead(lead: Lead): ClientDraft {
   const seededHistory: EducationEntry[] = lead.last_education
     ? [{ level: lead.last_education ?? undefined }]
     : [];
+  const interested = lead.interested_countries ?? [];
   return {
     source_lead_id: lead.id,
     first_name: lead.first_name,
@@ -142,14 +143,14 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     last_education: lead.last_education ?? null,
     last_education_other: lead.last_education_other ?? null,
     education_history: seededHistory,
-    interested_countries: lead.interested_countries ?? [],
+    interested_countries: interested,
     branch: lead.branch ?? null,
     department: lead.department ?? null,
     coaching_services: lead.coaching_services ?? [],
     visa_services: lead.visa_services ?? [],
     admission_services: lead.admission_services ?? [],
     allied_services: lead.allied_services ?? [],
-    application_type: visaCode || "Student Visa",
+    application_type: visaCode.includes("::") ? "Visa application" : visaCode || "Student Visa",
   };
 }
 

@@ -190,8 +190,10 @@ export function ServiceLibraryClientDialog({
       onOpenChange(false);
       if (result.pipelineAssigned) {
         toast.success(`Linked to ${serviceTitle}`);
+      } else if (result.templateAssigned) {
+        toast.success(`Service linked — assign a pipeline on the client page if needed`);
       } else {
-        toast.success(`Service added — assign a pipeline on the client page if needed`);
+        toast.success(`Service added — complete setup on the client page`);
       }
       rememberServiceLibraryReturn(libraryId, country);
       navigate(clientDetailUrl(clientId, result.serviceCode));
@@ -218,7 +220,7 @@ export function ServiceLibraryClientDialog({
       return;
     }
     const p = new URLSearchParams(serviceParams);
-    p.set("lead_id", pickedLead);
+    p.set("id", pickedLead);
     onOpenChange(false);
     navigate(`/leads/new?register_client=1&${p.toString()}`);
   };

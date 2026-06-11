@@ -10,12 +10,20 @@ interface Props {
   clientId: string;
   canGenerate: boolean;
   onGenerated?: () => void;
+  /** Destination country for the active visa application — filters letter kinds. */
+  destinationCountry?: string | null;
 }
 
-export const LetterCard = ({ clientId, canGenerate, onGenerated }: Props) => {
+const CANADA_ONLY_KINDS = new Set(["rcic", "statdec"]);
+
+export const LetterCard = ({ clientId, canGenerate, onGenerated, destinationCountry }: Props) => {
   const [busy, setBusy] = useState<LetterKind | null>(null);
   const [missing, setMissing] = useState<{ kind: LetterKind; fields: string[] } | null>(null);
-  const LETTER_KINDS = useLetterKinds();
+  const LETTER_KINDS = useLetterKinds().filter((lk) => {
+    const dest = (destinationCountry ?? "").trim().toLowerCase();
+    if (!dest || dest === "canada") return true;
+    return !CANADA_ONLY_KINDS.has(lk.kind);
+  });
 
   const generate = async (kind: LetterKind) => {
     setBusy(kind);

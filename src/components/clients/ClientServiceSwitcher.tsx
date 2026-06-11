@@ -66,8 +66,8 @@ export function ClientServiceSwitcher({ clientId, clientCountry, onSwitched }: P
       }
       setActiveCode(targetCode);
 
-      // If current pipeline doesn't match the active service, sync it.
-      if (targetCode) {
+      // Sync pipeline only when URL explicitly selects a service (not on passive load).
+      if (targetCode && params.get("service")) {
         const expected = await resolvePipelineForServiceCode(targetCode, cat, clientCountry);
         const currentPipeline = clientRes.data?.pipeline_id ?? null;
         if (expected && expected.pipelineId !== currentPipeline) {

@@ -38,7 +38,8 @@ import { GENDERS } from "@/lib/leadSchemas";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureFreshSession, AuthExpiredError, PermissionDeniedError } from "@/lib/supabaseSafeInsert";
-import { autoAssignPipelineForClient, resolvePipelineForServiceLibrary } from "@/lib/stagePipelines";
+import { autoAssignPipelineForClient } from "@/lib/stagePipelines";
+import { completeClientServiceEnrollment } from "@/lib/service-library/completeClientServiceEnrollment";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
 import { buildClientDetailUrlFromServiceLibrary } from "@/lib/service-library/serviceCodes";
 
@@ -244,6 +245,63 @@ export function ClientRegistrationPanel({
     };
   };
 
+  const sendPortalInviteIfEnabled = async (savedClientId: string) => {
+    if (!portalEnabled) return;
+    const email = getLeadFields().email ?? f.email;
+    if (!email?.trim()) return;
+    try {
+      await supabase.functions.invoke("client-portal-invite-create", {
+        body: { clientId: savedClientId, email: email.trim() },
+      });
+      toast.success(`Portal invite sent to ${email.trim()}`);
+    } catch {
+      toast.warning("Client saved but portal invite could not be sent");
+    }
+  };
+
+  const runServiceEnrollment = async (savedClientId: string) => {
+    const primaryCountry = interestedCountries?.[0] ?? slCountry ?? null;
+    if (slLibraryId && (slServiceLabel || slSubService)) {
+      return completeClientServiceEnrollment({
+        clientId: savedClientId,
+        libraryId: slLibraryId,
+        country: slCountry ?? primaryCountry,
+        serviceTitle: slServiceLabel ?? undefined,
+        subService: slSubService ?? undefined,
+        serviceCode: slVisaService ?? undefined,
+        counselorNote: slServiceLabel ? `Service Library application: ${slServiceLabel}` : null,
+      });
+    }
+
+    const firstVisa = services.visa_services?.[0] ?? null;
+    if (firstVisa?.includes("::")) {
+      return completeClientServiceEnrollment({
+        clientId: savedClientId,
+        serviceCode: firstVisa,
+        country: primaryCountry,
+      });
+    }
+
+    if (slServiceLabel && slSubService) {
+      await autoAssignPipelineForClient({
+        clientId: savedClientId,
+        country: primaryCountry,
+        interestedCountries,
+        serviceTitle: slServiceLabel,
+        subService: slSubService,
+      });
+      return { gaps: [] as string[], pipelineAssigned: false, templateAssigned: false, serviceCode: firstVisa, applicationTypeLabel: null, destinationCountry: primaryCountry };
+    }
+
+    await autoAssignPipelineForClient({
+      clientId: savedClientId,
+      country: primaryCountry,
+      interestedCountries,
+      serviceCategory: firstVisa,
+    });
+    return { gaps: [] as string[], pipelineAssigned: false, templateAssigned: false, serviceCode: firstVisa, applicationTypeLabel: null, destinationCountry: primaryCountry };
+  };
+
   const autosave = async () => {
     const lead = getLeadFields();
     const fn = (lead.first_name ?? "").trim();
@@ -259,7 +317,8 @@ export function ClientRegistrationPanel({
         return;
       }
       const saved = await upsertClientRegistration(clientId, buildDraft());
-      if (!clientId) {
+      const isFirstSave = !clientId;
+      if (isFirstSave) {
         setClientId(saved.id);
         onClientIdChange?.(saved.id);
         setRegNumber(saved.registration_number ?? null);
@@ -284,28 +343,26 @@ export function ClientRegistrationPanel({
         } catch {
           /* best-effort */
         }
-        const primaryCountry = interestedCountries?.[0] ?? saved.country ?? slCountry ?? null;
-        if (slServiceLabel && slSubService) {
-          void resolvePipelineForServiceLibrary({
-            country: primaryCountry,
-            interestedCountries,
-            serviceTitle: slServiceLabel,
-            subService: slSubService,
-          }).then(async (match) => {
-            if (!match) return;
-            await supabase
-              .from("clients")
-              .update({ pipeline_id: match.pipelineId, current_stage_id: match.stageId })
-              .eq("id", saved.id);
-          });
-        } else {
-          const firstVisa = services.visa_services?.[0] ?? null;
-          void autoAssignPipelineForClient({
-            clientId: saved.id,
-            country: primaryCountry,
-            interestedCountries,
-            serviceCategory: firstVisa,
-          });
+
+        const enrollment = await runServiceEnrollment(saved.id);
+        if (enrollment.gaps.includes("pipeline")) {
+          toast.message("Client registered — assign an application pipeline on the client page if needed");
+        }
+        if (enrollment.gaps.includes("binder_template")) {
+          toast.message("No document checklist template linked for this service yet");
+        }
+
+        await sendPortalInviteIfEnabled(saved.id);
+
+        if (slLibraryId) {
+          nav(
+            buildClientDetailUrlFromServiceLibrary({
+              clientId: saved.id,
+              libraryId: slLibraryId,
+              country: slCountry,
+              serviceCode: slVisaService ?? enrollment.serviceCode ?? undefined,
+            }),
+          );
         }
       }
     } catch (e: unknown) {

@@ -1,6 +1,8 @@
 import type { ServiceCatalogueItem } from "@/lib/leads";
 import { resolvePipelineForServiceLibrary } from "@/lib/stagePipelines";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchWorkflowTemplatesForService } from "@/lib/service-library/matchWorkflowTemplate";
+import { parseLibraryIdFromServiceCode } from "@/lib/service-library/serviceCodes";
 
 export type ClientServiceEntry = {
   code: string;
@@ -103,6 +105,7 @@ export async function switchClientActiveService(params: {
   catalogue: ServiceCatalogueItem[];
   clientCountry?: string | null;
 }): Promise<boolean> {
+  const item = catalogueItemForCode(params.serviceCode, params.catalogue);
   const match = await resolvePipelineForServiceCode(
     params.serviceCode,
     params.catalogue,
@@ -113,13 +116,24 @@ export async function switchClientActiveService(params: {
   const stageId = await resolveStageForPipeline(params.clientId, match.pipelineId);
   if (!stageId) return false;
 
-  const { error } = await supabase
-    .from("clients")
-    .update({
-      pipeline_id: match.pipelineId,
-      current_stage_id: stageId,
-    })
-    .eq("id", params.clientId);
+  const patch: Record<string, unknown> = {
+    pipeline_id: match.pipelineId,
+    current_stage_id: stageId,
+  };
+
+  if (item) {
+    const label = item.sub_category ?? item.service_name;
+    if (label) patch.application_type = label;
+  }
+
+  const libraryId = parseLibraryIdFromServiceCode(params.serviceCode);
+  const dest = countryFromServiceCode(params.serviceCode, item, params.clientCountry);
+  if (libraryId) {
+    const templates = await fetchWorkflowTemplatesForService(libraryId, dest);
+    if (templates[0]?.id) patch.template_id = templates[0].id;
+  }
+
+  const { error } = await supabase.from("clients").update(patch).eq("id", params.clientId);
   if (error) throw error;
   return true;
 }
