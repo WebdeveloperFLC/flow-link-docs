@@ -40,60 +40,76 @@ Regenerate: `node scripts/generate-visa-metadata-sql-split.mjs`
 | 29 | `cyprus-visitor-visa.sql` | Cyprus – National Visitor Visa (Short Stay) | 63.5 KB | 75 |
 | 30 | `denmark-student-visa.sql` | Denmark – Residence Permit for Studies | 67.6 KB | 75 |
 | 31 | `denmark-visitor-visa.sql` | Denmark – Schengen Visitor Visa (Type C) | 58.0 KB | 75 |
-| 32 | `finland-student-visa.sql` | Finland – Residence Permit for Studies | 67.8 KB | 75 |
-| 33 | `finland-visitor-visa.sql` | Finland – Schengen Visitor Visa (Type C) | 58.2 KB | 75 |
-| 34 | `france-student-visa.sql` | France – Student Visa (VLS-TS) | 67.7 KB | 75 |
-| 35 | `france-visitor-visa.sql` | France – Schengen Visitor Visa (Type C) | 58.0 KB | 75 |
-| 36 | `germany-ausbildung.sql` | Germany – Ausbildung (Vocational Training) | 68.2 KB | 75 |
-| 37 | `germany-blue-card.sql` | Germany – EU Blue Card | 67.0 KB | 75 |
-| 38 | `germany-job-seeker.sql` | Germany – Job Seeker Visa | 62.8 KB | 75 |
-| 39 | `germany-opportunity-card.sql` | Germany – Opportunity Card (Chancenkarte) | 66.8 KB | 75 |
-| 40 | `germany-skilled-worker.sql` | Germany – Skilled Worker Visa (§18a/§18b) | 66.2 KB | 75 |
-| 41 | `germany-spouse-visa.sql` | Germany – Spouse / Family Reunion Visa | 65.2 KB | 75 |
-| 42 | `germany-student-visa.sql` | Germany – Student Visa (National Visa) | 65.8 KB | 75 |
-| 43 | `germany-visitor-visa.sql` | Germany – Visitor / Schengen Visa (Type C) | 57.9 KB | 75 |
-| 44 | `ireland-student-visa.sql` | Ireland – Stamp 2 Student Permission | 67.6 KB | 75 |
-| 45 | `ireland-visitor-visa.sql` | Ireland – Short Stay Visit Visa (C) | 64.5 KB | 75 |
-| 46 | `italy-student-visa.sql` | Italy – Student Visa (National D Visa) | 67.9 KB | 75 |
-| 47 | `italy-visitor-visa.sql` | Italy – Schengen Visitor Visa (Type C) | 58.2 KB | 75 |
-| 48 | `lithuania-student-visa.sql` | Lithuania – Student Visa (National D Visa) | 67.3 KB | 75 |
-| 49 | `lithuania-visitor-visa.sql` | Lithuania – Schengen Visitor Visa (Type C) | 60.1 KB | 75 |
-| 50 | `malta-student-visa.sql` | Malta – Student Visa (National D Visa) | 67.8 KB | 75 |
-| 51 | `malta-visitor-visa.sql` | Malta – Schengen Visitor Visa (Type C) | 58.1 KB | 75 |
-| 52 | `mbbs-avicenna-batumi.sql` | Avicenna Batumi Medical University — Georgia | 64.0 KB | 75 |
-| 53 | `mbbs-georgian-national-university-seu.sql` | Georgian National University SEU — Georgia | 63.4 KB | 75 |
-| 54 | `mbbs-international-black-sea-university.sql` | International Black Sea University — Georgia | 64.5 KB | 75 |
-| 55 | `mbbs-medical-university-americas.sql` | Medical University of the Americas — Caribbean | 64.5 KB | 75 |
-| 56 | `mbbs-saba-university.sql` | Saba University School of Medicine — Caribbean | 75.2 KB | 75 |
-| 57 | `mbbs-st-matthews-university.sql` | St. Matthew's University — Caribbean | 66.4 KB | 75 |
-| 58 | `mbbs-synergy-university.sql` | Synergy University — Russia | 63.5 KB | 75 |
-| 59 | `netherlands-student-visa.sql` | Netherlands – Student Visa (MVV + Residence Permit) | 67.5 KB | 75 |
-| 60 | `netherlands-visitor-visa.sql` | Netherlands – Schengen Visitor Visa (Type C) | 58.1 KB | 75 |
-| 61 | `nz-post-study-work.sql` | New Zealand – Post Study Work Visa | 64.4 KB | 75 |
-| 62 | `nz-skilled-migrant.sql` | New Zealand – Skilled Migrant Category (SMC) | 65.9 KB | 75 |
-| 63 | `nz-spouse-visa.sql` | New Zealand – Partner of a New Zealander Visa | 66.7 KB | 75 |
-| 64 | `nz-student-visa.sql` | New Zealand – Student Visa | 61.8 KB | 75 |
-| 65 | `nz-visitor-visa.sql` | New Zealand – Visitor Visa | 53.2 KB | 75 |
-| 66 | `portugal-student-visa.sql` | Portugal – Student Visa (National D Visa) | 68.4 KB | 75 |
-| 67 | `portugal-visitor-visa.sql` | Portugal – Schengen Visitor Visa (Type C) | 59.0 KB | 75 |
-| 68 | `spain-student-visa.sql` | Spain – Student Visa (National D Visa) | 67.8 KB | 75 |
-| 69 | `spain-visitor-visa.sql` | Spain – Schengen Visitor Visa (Type C) | 58.2 KB | 75 |
-| 70 | `sweden-student-visa.sql` | Sweden – Residence Permit for Studies | 67.9 KB | 75 |
-| 71 | `sweden-visitor-visa.sql` | Sweden – Schengen Visitor Visa (Type C) | 58.3 KB | 75 |
-| 72 | `uae-golden-visa.sql` | United Arab Emirates – Golden Visa (Long-Term Residence) | 67.4 KB | 75 |
-| 73 | `uae-spouse-dependent-visa.sql` | United Arab Emirates – Spouse / Dependent Visa | 65.7 KB | 75 |
-| 74 | `uae-student-visa.sql` | United Arab Emirates – Student Residence Visa | 69.9 KB | 75 |
-| 75 | `uae-visitor-visa.sql` | United Arab Emirates – Visitor Visa (Tourist / Short Stay) | 65.7 KB | 75 |
-| 76 | `uae-work-permit.sql` | United Arab Emirates – Employment / Work Permit | 67.7 KB | 75 |
-| 77 | `uk-graduate-route.sql` | UK – Graduate Route Visa | 61.3 KB | 75 |
-| 78 | `uk-skilled-worker.sql` | UK – Skilled Worker Visa | 62.3 KB | 75 |
-| 79 | `uk-spouse-visa.sql` | UK – Spouse / Partner Visa (Family) | 68.5 KB | 75 |
-| 80 | `uk-student-visa.sql` | UK – Student Visa (Student Route) | 63.6 KB | 75 |
-| 81 | `uk-visitor-visa.sql` | UK – Visitor Visa (Standard Visitor) | 62.6 KB | 75 |
-| 82 | `usa-green-card.sql` | USA – Green Card (Employment & Family) | 68.4 KB | 75 |
-| 83 | `usa-spouse-visa.sql` | USA – Spouse / Fiancé Visa (K-1 / CR-1 / IR-1) | 72.7 KB | 75 |
-| 84 | `usa-student-visa.sql` | USA – Student Visa (F-1) | 67.2 KB | 75 |
-| 85 | `usa-visitor-visa.sql` | USA – Visitor Visa (B1/B2) | 63.0 KB | 75 |
+| 32 | `finland-spouse-visa.sql` | Finland – Family Reunification (Spouse / Join Family) | 64.2 KB | 75 |
+| 33 | `finland-student-visa.sql` | Finland – Residence Permit for Studies | 67.8 KB | 75 |
+| 34 | `finland-visitor-visa.sql` | Finland – Schengen Visitor Visa (Type C) | 58.2 KB | 75 |
+| 35 | `france-student-visa.sql` | France – Student Visa (VLS-TS) | 67.7 KB | 75 |
+| 36 | `france-visitor-visa.sql` | France – Schengen Visitor Visa (Type C) | 58.0 KB | 75 |
+| 37 | `germany-ausbildung.sql` | Germany – Ausbildung (Vocational Training) | 68.2 KB | 75 |
+| 38 | `germany-blue-card.sql` | Germany – EU Blue Card | 67.0 KB | 75 |
+| 39 | `germany-job-seeker.sql` | Germany – Job Seeker Visa | 62.8 KB | 75 |
+| 40 | `germany-opportunity-card.sql` | Germany – Opportunity Card (Chancenkarte) | 66.8 KB | 75 |
+| 41 | `germany-skilled-worker.sql` | Germany – Skilled Worker Visa (§18a/§18b) | 66.2 KB | 75 |
+| 42 | `germany-spouse-visa.sql` | Germany – Spouse / Family Reunion Visa | 65.2 KB | 75 |
+| 43 | `germany-student-visa.sql` | Germany – Student Visa (National Visa) | 65.8 KB | 75 |
+| 44 | `germany-visitor-visa.sql` | Germany – Visitor / Schengen Visa (Type C) | 57.9 KB | 75 |
+| 45 | `hungary-spouse-visa.sql` | Hungary – Family Reunification (Spouse / Join Family) | 64.2 KB | 75 |
+| 46 | `hungary-student-visa.sql` | Hungary – Student Residence Permit (National D Visa) | 66.1 KB | 75 |
+| 47 | `hungary-visitor-visa.sql` | Hungary – Schengen Visitor Visa (Type C) | 60.6 KB | 75 |
+| 48 | `hungary-work-permit.sql` | Hungary – Residence Permit for Employment | 68.4 KB | 75 |
+| 49 | `ireland-student-visa.sql` | Ireland – Stamp 2 Student Permission | 67.6 KB | 75 |
+| 50 | `ireland-visitor-visa.sql` | Ireland – Short Stay Visit Visa (C) | 64.5 KB | 75 |
+| 51 | `italy-student-visa.sql` | Italy – Student Visa (National D Visa) | 67.9 KB | 75 |
+| 52 | `italy-visitor-visa.sql` | Italy – Schengen Visitor Visa (Type C) | 58.2 KB | 75 |
+| 53 | `latvia-spouse-visa.sql` | Latvia – Family Reunification (Spouse / Join Family) | 63.9 KB | 75 |
+| 54 | `latvia-student-visa.sql` | Latvia – Student Residence Permit (National D Visa) | 66.0 KB | 75 |
+| 55 | `latvia-visitor-visa.sql` | Latvia – Schengen Visitor Visa (Type C) | 60.2 KB | 75 |
+| 56 | `lithuania-student-visa.sql` | Lithuania – Student Visa (National D Visa) | 67.3 KB | 75 |
+| 57 | `lithuania-visitor-visa.sql` | Lithuania – Schengen Visitor Visa (Type C) | 60.1 KB | 75 |
+| 58 | `malta-student-visa.sql` | Malta – Student Visa (National D Visa) | 67.8 KB | 75 |
+| 59 | `malta-visitor-visa.sql` | Malta – Schengen Visitor Visa (Type C) | 58.1 KB | 75 |
+| 60 | `mbbs-avicenna-batumi.sql` | Avicenna Batumi Medical University — Georgia | 64.0 KB | 75 |
+| 61 | `mbbs-georgian-national-university-seu.sql` | Georgian National University SEU — Georgia | 63.4 KB | 75 |
+| 62 | `mbbs-international-black-sea-university.sql` | International Black Sea University — Georgia | 64.5 KB | 75 |
+| 63 | `mbbs-medical-university-americas.sql` | Medical University of the Americas — Caribbean | 64.5 KB | 75 |
+| 64 | `mbbs-saba-university.sql` | Saba University School of Medicine — Caribbean | 75.2 KB | 75 |
+| 65 | `mbbs-st-matthews-university.sql` | St. Matthew's University — Caribbean | 66.4 KB | 75 |
+| 66 | `mbbs-synergy-university.sql` | Synergy University — Russia | 63.5 KB | 75 |
+| 67 | `netherlands-student-visa.sql` | Netherlands – Student Visa (MVV + Residence Permit) | 67.5 KB | 75 |
+| 68 | `netherlands-visitor-visa.sql` | Netherlands – Schengen Visitor Visa (Type C) | 58.1 KB | 75 |
+| 69 | `nz-post-study-work.sql` | New Zealand – Post Study Work Visa | 64.4 KB | 75 |
+| 70 | `nz-skilled-migrant.sql` | New Zealand – Skilled Migrant Category (SMC) | 65.9 KB | 75 |
+| 71 | `nz-spouse-visa.sql` | New Zealand – Partner of a New Zealander Visa | 66.7 KB | 75 |
+| 72 | `nz-student-visa.sql` | New Zealand – Student Visa | 61.8 KB | 75 |
+| 73 | `nz-visitor-visa.sql` | New Zealand – Visitor Visa | 53.2 KB | 75 |
+| 74 | `poland-eu-blue-card.sql` | Poland – EU Blue Card / Skilled Worker Residence | 70.2 KB | 75 |
+| 75 | `poland-spouse-visa.sql` | Poland – Family Reunification (Spouse / Join Family) | 64.0 KB | 75 |
+| 76 | `poland-student-visa.sql` | Poland – Student Visa (National D + Residence for Studies) | 65.9 KB | 75 |
+| 77 | `poland-visitor-visa.sql` | Poland – Schengen Visitor Visa (Type C) | 60.0 KB | 75 |
+| 78 | `portugal-student-visa.sql` | Portugal – Student Visa (National D Visa) | 68.4 KB | 75 |
+| 79 | `portugal-visitor-visa.sql` | Portugal – Schengen Visitor Visa (Type C) | 59.0 KB | 75 |
+| 80 | `singapore-employment-pass.sql` | Singapore – Employment Pass / S Pass (Work Pass) | 58.8 KB | 75 |
+| 81 | `singapore-spouse-dependent-visa.sql` | Singapore – Dependant's Pass / LTVP (Spouse & Dependants) | 64.8 KB | 75 |
+| 82 | `singapore-student-visa.sql` | Singapore – Student's Pass (STP) | 65.2 KB | 75 |
+| 83 | `singapore-visitor-visa.sql` | Singapore – Short-Term Visit / Visitor | 57.9 KB | 75 |
+| 84 | `spain-student-visa.sql` | Spain – Student Visa (National D Visa) | 67.8 KB | 75 |
+| 85 | `spain-visitor-visa.sql` | Spain – Schengen Visitor Visa (Type C) | 58.2 KB | 75 |
+| 86 | `sweden-student-visa.sql` | Sweden – Residence Permit for Studies | 67.9 KB | 75 |
+| 87 | `sweden-visitor-visa.sql` | Sweden – Schengen Visitor Visa (Type C) | 58.3 KB | 75 |
+| 88 | `uae-golden-visa.sql` | United Arab Emirates – Golden Visa (Long-Term Residence) | 67.4 KB | 75 |
+| 89 | `uae-spouse-dependent-visa.sql` | United Arab Emirates – Spouse / Dependent Visa | 65.7 KB | 75 |
+| 90 | `uae-student-visa.sql` | United Arab Emirates – Student Residence Visa | 69.9 KB | 75 |
+| 91 | `uae-visitor-visa.sql` | United Arab Emirates – Visitor Visa (Tourist / Short Stay) | 65.7 KB | 75 |
+| 92 | `uae-work-permit.sql` | United Arab Emirates – Employment / Work Permit | 67.7 KB | 75 |
+| 93 | `uk-graduate-route.sql` | UK – Graduate Route Visa | 61.3 KB | 75 |
+| 94 | `uk-skilled-worker.sql` | UK – Skilled Worker Visa | 62.3 KB | 75 |
+| 95 | `uk-spouse-visa.sql` | UK – Spouse / Partner Visa (Family) | 68.5 KB | 75 |
+| 96 | `uk-student-visa.sql` | UK – Student Visa (Student Route) | 63.6 KB | 75 |
+| 97 | `uk-visitor-visa.sql` | UK – Visitor Visa (Standard Visitor) | 62.6 KB | 75 |
+| 98 | `usa-green-card.sql` | USA – Green Card (Employment & Family) | 68.4 KB | 75 |
+| 99 | `usa-spouse-visa.sql` | USA – Spouse / Fiancé Visa (K-1 / CR-1 / IR-1) | 72.7 KB | 75 |
+| 100 | `usa-student-visa.sql` | USA – Student Visa (F-1) | 67.2 KB | 75 |
+| 101 | `usa-visitor-visa.sql` | USA – Visitor Visa (B1/B2) | 63.0 KB | 75 |
 
 ## Faster sync — country batches
 

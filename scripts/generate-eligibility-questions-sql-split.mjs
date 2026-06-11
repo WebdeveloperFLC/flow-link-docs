@@ -149,6 +149,10 @@ function regionFor(file) {
     portugal: "07-eu-portugal",
     cyprus: "07-eu-cyprus",
     lithuania: "07-eu-lithuania",
+    poland: "07-eu-poland",
+    hungary: "07-eu-hungary",
+    latvia: "07-eu-latvia",
+    singapore: "10-singapore",
     uae: "09-uae",
   };
   return map[p] ?? "08-other";

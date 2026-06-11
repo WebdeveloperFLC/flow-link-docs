@@ -114,6 +114,22 @@ export const LIBRARY_IDS = {
   "uae-visitor-visa.json": "b2000001-0001-4000-8000-0000000000d9",
   "uae-work-permit.json": "b2000001-0001-4000-8000-0000000000da",
   "uae-golden-visa.json": "b2000001-0001-4000-8000-0000000000db",
+  "poland-student-visa.json": "b2000001-0001-4000-8000-0000000000dc",
+  "poland-visitor-visa.json": "b2000001-0001-4000-8000-0000000000dd",
+  "poland-spouse-visa.json": "b2000001-0001-4000-8000-0000000000de",
+  "poland-eu-blue-card.json": "b2000001-0001-4000-8000-0000000000df",
+  "hungary-student-visa.json": "b2000001-0001-4000-8000-0000000000e0",
+  "hungary-visitor-visa.json": "b2000001-0001-4000-8000-0000000000e1",
+  "hungary-spouse-visa.json": "b2000001-0001-4000-8000-0000000000e2",
+  "hungary-work-permit.json": "b2000001-0001-4000-8000-0000000000e3",
+  "latvia-student-visa.json": "b2000001-0001-4000-8000-0000000000e4",
+  "latvia-visitor-visa.json": "b2000001-0001-4000-8000-0000000000e5",
+  "latvia-spouse-visa.json": "b2000001-0001-4000-8000-0000000000e6",
+  "singapore-student-visa.json": "b2000001-0001-4000-8000-0000000000e7",
+  "singapore-visitor-visa.json": "b2000001-0001-4000-8000-0000000000e8",
+  "singapore-spouse-dependent-visa.json": "b2000001-0001-4000-8000-0000000000e9",
+  "singapore-employment-pass.json": "b2000001-0001-4000-8000-0000000000ea",
+  "finland-spouse-visa.json": "b2000001-0001-4000-8000-0000000000eb",
 };
 
 export function slugFromJsonFile(file) {
