@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ServiceTabs, type ServiceSelection } from "@/components/leads/ServiceTabs";
 import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
+import { useServiceLabelMap } from "@/lib/service-library/useServiceLabelMap";
 import { appendTimeline } from "@/lib/timeline";
 import { toast } from "sonner";
 import { Loader2, Pencil, Sparkles } from "lucide-react";
@@ -156,14 +157,12 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
 
   useEffect(() => { void load(); }, [load]);
 
-  const nameByCode = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const s of catalogue) {
-      const code = s.service_code || s.id;
-      m.set(code, s.service_name);
-    }
-    return m;
-  }, [catalogue]);
+  const allCodes = useMemo(
+    () =>
+      DISPLAY_GROUPS.flatMap((g) => g.keys.flatMap((k) => selection[k] ?? [])),
+    [selection],
+  );
+  const nameByCode = useServiceLabelMap(allCodes, catalogue);
 
   const totalCount = useMemo(
     () =>

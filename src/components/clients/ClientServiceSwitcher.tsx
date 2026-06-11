@@ -10,6 +10,7 @@ import {
   switchClientActiveService,
   type ClientServiceEntry,
 } from "@/lib/clientActiveService";
+import { useServiceLabelMap } from "@/lib/service-library/useServiceLabelMap";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -23,6 +24,7 @@ type Props = {
 export function ClientServiceSwitcher({ clientId, clientCountry, onSwitched }: Props) {
   const [params, setParams] = useSearchParams();
   const [services, setServices] = useState<ClientServiceEntry[]>([]);
+  const [serviceCodes, setServiceCodes] = useState<string[]>([]);
   const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
   const [activeCode, setActiveCode] = useState<string | null>(params.get("service"));
   const [loading, setLoading] = useState(true);
@@ -44,6 +46,7 @@ export function ClientServiceSwitcher({ clientId, clientCountry, onSwitched }: P
       setCatalogue(cat);
 
       const codes = collectClientServices(clientRes.data ?? {});
+      setServiceCodes(codes);
       const entries = buildClientServiceEntries(codes, cat);
       setServices(entries);
 
@@ -90,7 +93,13 @@ export function ClientServiceSwitcher({ clientId, clientCountry, onSwitched }: P
     void load();
   }, [load]);
 
-  const showSwitcher = services.length > 1;
+  const labelMap = useServiceLabelMap(serviceCodes, catalogue);
+  const displayServices = useMemo(
+    () => services.map((s) => ({ ...s, label: labelMap.get(s.code) ?? s.label })),
+    [services, labelMap],
+  );
+
+  const showSwitcher = displayServices.length > 1;
 
   const onSelect = async (code: string) => {
     if (code === activeCode || switching) return;
@@ -135,11 +144,11 @@ export function ClientServiceSwitcher({ clientId, clientCountry, onSwitched }: P
           Active application
         </div>
         <p className="text-[11px] text-muted-foreground">
-          {services.length} services — select one to view its stage progress
+          {displayServices.length} services — select one to view its stage progress
         </p>
       </div>
       <div className="flex flex-wrap gap-1.5 px-1 pb-1">
-        {services.map((s) => {
+        {displayServices.map((s) => {
           const isActive = s.code === activeCode;
           const busy = switching === s.code;
           return (
