@@ -121,8 +121,8 @@ export function buildFullCostBreakdown(inst) {
           label: "Miscellaneous",
           items: [
             { label: "Future Link consultancy fee", range: "See Fees tab" },
-            { label: "Flights India ↔ destination", range: "₹50,000–2,00,000+" },
-            { label: "Medical exam & police clearance", range: "₹5,000–15,000" },
+            { label: "Flights India ↔ destination", range: "50,000–2,00,000+", currency: "INR" },
+            { label: "Medical exam & police clearance", range: "5,000–15,000", currency: "INR" },
             { label: "Forex / wire transfer charges", range: "Bank dependent" },
           ],
         },
@@ -198,8 +198,8 @@ export function buildFullCostBreakdown(inst) {
           label: "Miscellaneous",
           items: [
             { label: "Future Link consultancy fee", range: "See Fees tab" },
-            { label: "Flights India ↔ Georgia", range: "₹40,000–1,50,000+" },
-            { label: "Medical exam & police clearance", range: "₹5,000–15,000" },
+            { label: "Flights India ↔ Georgia", range: "40,000–1,50,000+", currency: "INR" },
+            { label: "Medical exam & police clearance", range: "5,000–15,000", currency: "INR" },
             { label: "Forex / wire transfer charges", range: "Bank dependent" },
           ],
         },
@@ -274,8 +274,8 @@ export function buildFullCostBreakdown(inst) {
           label: "Miscellaneous",
           items: [
             { label: "Future Link consultancy fee", range: "See Fees tab" },
-            { label: "Flights India ↔ Moscow", range: "₹50,000–2,00,000+" },
-            { label: "Medical exam & police clearance", range: "₹5,000–15,000" },
+            { label: "Flights India ↔ Moscow", range: "50,000–2,00,000+", currency: "INR" },
+            { label: "Medical exam & police clearance", range: "5,000–15,000", currency: "INR" },
             { label: "Forex / wire transfer charges", range: "Bank dependent" },
           ],
         },

@@ -399,11 +399,13 @@
           },
           {
             "label": "Flights India ↔ destination",
-            "range": "₹50,000–2,00,000+"
+            "range": "50,000–2,00,000+",
+            "currency": "INR"
           },
           {
             "label": "Medical exam & police clearance",
-            "range": "₹5,000–15,000"
+            "range": "5,000–15,000",
+            "currency": "INR"
           },
           {
             "label": "Forex / wire transfer charges",
