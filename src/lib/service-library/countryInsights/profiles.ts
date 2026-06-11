@@ -233,6 +233,75 @@ export const COUNTRY_PROFILES: Record<string, CountryProfile> = {
   },
   Malta: { country: "Malta", facts: [{ label: "Capital", value: "Valletta" }, { label: "Currency", value: "Euro (EUR)" }], costOfLiving: { currency: "EUR", lastVerified: "Jun 2026", items: [{ label: "Student living estimate", range: "800–1,100", unit: "per month" }], notes: [] } },
   Finland: { country: "Finland", facts: [{ label: "Capital", value: "Helsinki" }, { label: "Currency", value: "Euro (EUR)" }], costOfLiving: { currency: "EUR", lastVerified: "Jun 2026", items: [{ label: "Student funds (Finnish Immigration)", amount: "9,600", unit: "per year", notes: "Verify current Migri amount" }, { label: "Room (Helsinki)", range: "400–700", unit: "per month" }], notes: [] } },
+  Poland: {
+    country: "Poland",
+    facts: [
+      { label: "Capital", value: "Warsaw" },
+      { label: "Currency", value: "Polish złoty (PLN) / Euro for some fees" },
+      { label: "Schengen", value: "Yes" },
+    ],
+    costOfLiving: {
+      currency: "PLN",
+      lastVerified: "Jun 2026",
+      items: [
+        { label: "Student living (Warsaw)", range: "2,500–4,500", unit: "per month" },
+        { label: "Public tuition", range: "Free–4,000", unit: "EUR per year", notes: "Programme dependent" },
+        { label: "Private tuition", range: "3,000–8,000", unit: "EUR per year" },
+      ],
+      notes: ["Verify UdSC proof-of-funds amount before quoting."],
+    },
+  },
+  Hungary: {
+    country: "Hungary",
+    facts: [
+      { label: "Capital", value: "Budapest" },
+      { label: "Currency", value: "Hungarian forint (HUF)" },
+      { label: "Schengen", value: "Yes" },
+    ],
+    costOfLiving: {
+      currency: "HUF",
+      lastVerified: "Jun 2026",
+      items: [
+        { label: "Student living (Budapest)", range: "150,000–280,000", unit: "per month" },
+        { label: "Medicine programmes", range: "€12,000–18,000", unit: "per year", notes: "University dependent" },
+      ],
+      notes: ["OIF residence rules apply after D visa entry."],
+    },
+  },
+  Latvia: {
+    country: "Latvia",
+    facts: [
+      { label: "Capital", value: "Riga" },
+      { label: "Currency", value: "Euro (EUR)" },
+      { label: "Schengen", value: "Yes" },
+    ],
+    costOfLiving: {
+      currency: "EUR",
+      lastVerified: "Jun 2026",
+      items: [
+        { label: "Student living funds", amount: "7,440", unit: "per year", notes: "€620/month × 12 — verify PMLP" },
+        { label: "Room (Riga)", range: "250–500", unit: "per month" },
+      ],
+      notes: [],
+    },
+  },
+  Singapore: {
+    country: "Singapore",
+    facts: [
+      { label: "Capital", value: "Singapore (city-state)" },
+      { label: "Currency", value: "Singapore dollar (SGD)" },
+      { label: "Authority", value: "ICA / MOM" },
+    ],
+    costOfLiving: {
+      currency: "SGD",
+      lastVerified: "Jun 2026",
+      items: [
+        { label: "Student living", range: "1,200–2,500", unit: "per month" },
+        { label: "EP minimum salary", range: "Verify MOM", unit: "COMPASS applies", notes: "Changes frequently" },
+      ],
+      notes: ["Student's Pass via SOLAR; Dependant's Pass tied to principal pass holder."],
+    },
+  },
   Sweden: { country: "Sweden", facts: [{ label: "Capital", value: "Stockholm" }, { label: "Currency", value: "Swedish krona (SEK)" }], costOfLiving: { currency: "SEK", lastVerified: "Jun 2026", items: [{ label: "Student maintenance (Migrationsverket)", amount: "102,000", unit: "per year", notes: "Verify current SEK amount" }, { label: "Room (Stockholm)", range: "4,500–8,500", unit: "per month" }], notes: [] } },
   Austria: { country: "Austria", facts: [{ label: "Capital", value: "Vienna" }, { label: "Currency", value: "Euro (EUR)" }], costOfLiving: { currency: "EUR", lastVerified: "Jun 2026", items: [{ label: "Student funds guideline", amount: "12,000", unit: "per year" }, { label: "Room (Vienna)", range: "400–700", unit: "per month" }], notes: [] } },
   Belgium: { country: "Belgium", facts: [{ label: "Capital", value: "Brussels" }, { label: "Currency", value: "Euro (EUR)" }], costOfLiving: { currency: "EUR", lastVerified: "Jun 2026", items: [{ label: "Student living estimate", amount: "11,500", unit: "per year" }, { label: "Room (Brussels)", range: "450–750", unit: "per month" }], notes: [] } },
