@@ -1,3 +1,5 @@
+import { findCountry } from "@/lib/countries";
+
 /** ISO-style badges for Service Library sidebar (not first-two-chars of country name). */
 const COUNTRY_BADGE: Record<string, string> = {
   Canada: "CA",
@@ -69,6 +71,10 @@ export const VISA_COUNTRY_PRIORITY = [
 
 export function countryBadgeCode(country: string): string {
   return COUNTRY_BADGE[country] ?? country.slice(0, 2).toUpperCase();
+}
+
+export function countryFlagEmoji(country: string): string {
+  return findCountry(country)?.flag ?? "";
 }
 
 export function sortVisaCountries(countries: string[]): string[] {

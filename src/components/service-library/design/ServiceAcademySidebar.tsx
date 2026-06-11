@@ -11,6 +11,7 @@ import {
   type AcademyServiceItem,
 } from "@/lib/service-library/academyNav";
 import type { CoachingVariant } from "@/lib/service-library/serviceNavClassification";
+import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
 
 const iconMap: Record<AcademyCategoryFilter, typeof Plane> = {
   visa: Plane,
@@ -49,10 +50,12 @@ const navBtnActive = "bg-gradient-to-r from-sky-500 to-violet-600 text-white fon
 function NavItemButton({
   item,
   selectedId,
+  countryFlag,
   onSelect,
 }: {
   item: AcademyServiceItem;
   selectedId: string | null;
+  countryFlag?: string;
   onSelect: (id: string) => void;
 }) {
   const selected = selectedId === item.id;
@@ -63,6 +66,11 @@ function NavItemButton({
       onClick={() => onSelect(item.id)}
       className={cn(navBtnBase, selected ? navBtnActive : navBtnIdle)}
     >
+      {countryFlag && (
+        <span className="text-base leading-none shrink-0" aria-hidden>
+          {countryFlag}
+        </span>
+      )}
       <span className="flex-1 min-w-0 leading-snug line-clamp-2 break-words">{item.label}</span>
       {item.needsReview && (
         <span className="size-2 rounded-full bg-amber-400 shrink-0 ring-2 ring-slate-900" title="Needs review" />
@@ -118,6 +126,8 @@ export function ServiceAcademySidebar({
   const Icon = iconMap[categoryFilter] ?? BookOpen;
   const count = groupItemCount(group);
   const step = group?.step;
+  const activeCountryFlag =
+    categoryFilter === "visa" && country !== "ALL" ? countryFlagEmoji(country) : "";
 
   const resetToCountries = () => {
     onCountry("ALL");
@@ -189,7 +199,12 @@ export function ServiceAcademySidebar({
         )}
 
         {categoryFilter === "visa" && country !== "ALL" && (
-          <div className="rounded-lg border border-sky-500/35 bg-sky-950/40 px-3 py-2 text-xs font-medium text-sky-100">
+          <div className="rounded-lg border border-sky-500/35 bg-sky-950/40 px-3 py-2 text-xs font-medium text-sky-100 flex items-center gap-1.5">
+            {activeCountryFlag && (
+              <span className="text-base leading-none" aria-hidden>
+                {activeCountryFlag}
+              </span>
+            )}
             <span className="text-sky-300">{country}</span>
             <span className="text-slate-400 mx-1">·</span>
             <span className="text-violet-300">Visa & Immigration</span>
@@ -258,7 +273,9 @@ export function ServiceAcademySidebar({
               <div className="space-y-1">
                 <SectionLabel accent="sky">Countries</SectionLabel>
                 <ul className="space-y-1">
-                  {group.countryPickers.map((picker) => (
+                  {group.countryPickers.map((picker) => {
+                    const flag = countryFlagEmoji(picker.country);
+                    return (
                     <li key={picker.country}>
                       <button
                         type="button"
@@ -268,12 +285,18 @@ export function ServiceAcademySidebar({
                           country === picker.country ? navBtnActive : navBtnIdle,
                         )}
                       >
+                        {flag && (
+                          <span className="text-base leading-none shrink-0" aria-hidden>
+                            {flag}
+                          </span>
+                        )}
                         <span className="flex-1 truncate font-medium">{picker.country}</span>
                         <span className="text-[11px] font-bold text-sky-300 tabular-nums">{picker.countryBadge}</span>
                         <span className="text-[11px] text-violet-300 tabular-nums">{picker.count}</span>
                       </button>
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
               </div>
             )}
@@ -358,7 +381,12 @@ export function ServiceAcademySidebar({
                 <SectionLabel accent="violet">Services</SectionLabel>
                 {group.items.map((item) => (
                   <li key={item.id}>
-                    <NavItemButton item={item} selectedId={selectedId} onSelect={onSelect} />
+                    <NavItemButton
+                      item={item}
+                      selectedId={selectedId}
+                      countryFlag={activeCountryFlag || undefined}
+                      onSelect={onSelect}
+                    />
                   </li>
                 ))}
               </ul>

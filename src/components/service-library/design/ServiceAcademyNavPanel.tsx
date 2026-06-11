@@ -14,6 +14,7 @@ import type {
   AcademyServiceItem,
 } from "@/lib/service-library/academyNav";
 import type { CoachingVariant } from "@/lib/service-library/serviceNavClassification";
+import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
 
 type Props = {
   group: AcademyNavGroup | null;
@@ -77,11 +78,13 @@ function StepPills({ steps, active }: { steps: string[]; active: number }) {
 function CountryCard({
   country,
   badge,
+  flag,
   count,
   onClick,
 }: {
   country: string;
   badge: string;
+  flag: string;
   count: number;
   onClick: () => void;
 }) {
@@ -89,11 +92,20 @@ function CountryCard({
     <button type="button" onClick={onClick} className="text-left group">
       <Card className="p-4 h-full shadow-elev-sm hover:border-primary/40 hover:shadow-md transition-all group-hover:bg-primary/[0.02]">
         <div className="flex items-start gap-3">
-          <div className="size-11 rounded-xl bg-primary/10 text-primary font-bold text-sm flex items-center justify-center shrink-0">
-            {badge}
+          <div className="size-11 rounded-xl bg-primary/10 flex flex-col items-center justify-center shrink-0 gap-0.5">
+            {flag ? (
+              <span className="text-2xl leading-none" aria-hidden>
+                {flag}
+              </span>
+            ) : (
+              <span className="text-primary font-bold text-sm">{badge}</span>
+            )}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="font-semibold text-sm group-hover:text-primary transition-colors">{country}</div>
+            <div className="font-semibold text-sm group-hover:text-primary transition-colors flex items-center gap-1.5">
+              {flag && <span className="text-base leading-none sm:hidden" aria-hidden>{flag}</span>}
+              {country}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">{count} services</p>
           </div>
           <ArrowRight className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1" />
@@ -103,19 +115,31 @@ function CountryCard({
   );
 }
 
-function ServiceCard({ item, onClick }: { item: AcademyServiceItem; onClick: () => void }) {
+function ServiceCard({
+  item,
+  countryFlag,
+  onClick,
+}: {
+  item: AcademyServiceItem;
+  countryFlag?: string;
+  onClick: () => void;
+}) {
   return (
     <button type="button" onClick={onClick} className="text-left group w-full">
       <Card className="p-4 shadow-elev-sm hover:border-primary/40 hover:shadow-md transition-all group-hover:bg-primary/[0.02]">
         <div className="flex items-center gap-3">
-          <div className="size-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
-            <Stamp className="size-4 text-primary" />
+          <div className="size-9 rounded-lg bg-muted flex items-center justify-center shrink-0 text-lg leading-none">
+            {countryFlag ? (
+              <span aria-hidden>{countryFlag}</span>
+            ) : (
+              <Stamp className="size-4 text-primary" />
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="font-medium text-sm leading-snug group-hover:text-primary transition-colors">
               {item.label}
             </div>
-            {item.countryBadge && (
+            {item.countryBadge && !countryFlag && (
               <span className="text-[10px] text-muted-foreground">{item.countryBadge}</span>
             )}
           </div>
@@ -207,6 +231,7 @@ export function ServiceAcademyNavPanel({
               key={p.country}
               country={p.country}
               badge={p.countryBadge}
+              flag={countryFlagEmoji(p.country)}
               count={p.count}
               onClick={() => onCountry(p.country)}
             />
@@ -219,6 +244,7 @@ export function ServiceAcademyNavPanel({
   if (step === "services" && group.items) {
     const sectionLabel =
       categoryFilter === "visa" ? "Visa & Immigration" : coachingFamily ?? "Coaching";
+    const activeCountryFlag = categoryFilter === "visa" ? countryFlagEmoji(country) : "";
 
     return (
       <div className="flex-1 overflow-y-auto px-6 md:px-10 py-8 md:py-10 max-w-4xl mx-auto w-full">
@@ -227,7 +253,7 @@ export function ServiceAcademyNavPanel({
             categoryFilter === "visa"
               ? [
                   { label: "All countries", onClick: resetCountry },
-                  { label: `${country} · ${sectionLabel}` },
+                  { label: `${activeCountryFlag ? `${activeCountryFlag} ` : ""}${country} · ${sectionLabel}` },
                 ]
               : [{ label: "Coaching", onClick: resetFamily }, { label: sectionLabel }]
           }
@@ -241,8 +267,15 @@ export function ServiceAcademyNavPanel({
           active={categoryFilter === "visa" ? 1 : 2}
         />
         <div className="mb-6">
-          <h1 className="text-xl font-bold tracking-tight mb-1 bg-gradient-to-r from-sky-600 to-violet-600 bg-clip-text text-transparent">
-            {categoryFilter === "visa" ? `${country} · Visa & Immigration` : sectionLabel}
+          <h1 className="text-xl font-bold tracking-tight mb-1 bg-gradient-to-r from-sky-600 to-violet-600 bg-clip-text text-transparent flex items-center gap-2">
+            {activeCountryFlag && (
+              <span className="text-2xl leading-none not-italic" aria-hidden>
+                {activeCountryFlag}
+              </span>
+            )}
+            <span>
+              {categoryFilter === "visa" ? `${country} · Visa & Immigration` : sectionLabel}
+            </span>
           </h1>
           <p className="text-sm text-muted-foreground">
             Select a service to open checklists, sample docs, quizzes, and counselor notes.
@@ -253,7 +286,12 @@ export function ServiceAcademyNavPanel({
         ) : (
           <div className="grid gap-2">
             {group.items.map((item) => (
-              <ServiceCard key={item.id} item={item} onClick={() => onSelectService(item.id)} />
+              <ServiceCard
+                key={item.id}
+                item={item}
+                countryFlag={activeCountryFlag || undefined}
+                onClick={() => onSelectService(item.id)}
+              />
             ))}
           </div>
         )}

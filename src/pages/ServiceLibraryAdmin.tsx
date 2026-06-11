@@ -30,6 +30,7 @@ import {
   type AcademyServiceItem,
 } from "@/lib/service-library/academyNav";
 import type { CoachingVariant } from "@/lib/service-library/serviceNavClassification";
+import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
 import { AcademyContentEditor } from "@/components/service-library/admin/AcademyContentEditor";
 import { ContentSetupSummary } from "@/components/service-library/admin/ContentSetupSummary";
 import { ServiceAcademyNavPanel } from "@/components/service-library/design/ServiceAcademyNavPanel";
@@ -503,7 +504,9 @@ function AdminNavTree({
           Country
         </p>
         <ul className="space-y-0.5">
-          {group.countryPickers.map((picker) => (
+          {group.countryPickers.map((picker) => {
+            const flag = countryFlagEmoji(picker.country);
+            return (
             <li key={picker.country}>
               <button
                 type="button"
@@ -512,11 +515,17 @@ function AdminNavTree({
                   countryFilter === picker.country ? "bg-primary/10 text-primary font-medium" : ""
                 }`}
               >
+                {flag && (
+                  <span className="text-base leading-none shrink-0" aria-hidden>
+                    {flag}
+                  </span>
+                )}
                 <span className="flex-1 truncate">{picker.country}</span>
                 <span className="text-[10px] text-muted-foreground tabular-nums">{picker.count}</span>
               </button>
             </li>
-          ))}
+            );
+          })}
         </ul>
       </div>
     );
