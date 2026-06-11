@@ -5,13 +5,15 @@ import type { ServiceFeeBreakdownView } from "@/lib/service-library/feeBreakdown
 
 type Props = {
   breakdown: ServiceFeeBreakdownView;
+  /** MBBS: university fees are quoted on official site — INR column often empty. */
+  isMbbs?: boolean;
 };
 
 function formatInr(amount: number): string {
   return `₹${amount.toLocaleString("en-IN")}`;
 }
 
-export function ServiceFeeBreakdownPanel({ breakdown }: Props) {
+export function ServiceFeeBreakdownPanel({ breakdown, isMbbs }: Props) {
   const { govt, consultancy } = breakdown;
   const applicableGovt = govt?.items.filter((i) => i.applicable) ?? [];
   const notApplicableGovt = govt?.items.filter((i) => !i.applicable) ?? [];
@@ -76,9 +78,13 @@ export function ServiceFeeBreakdownPanel({ breakdown }: Props) {
         <Card className="p-5 shadow-elev-sm">
           <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
             <div>
-              <h3 className="font-semibold text-base">Government & official fees</h3>
+              <h3 className="font-semibold text-base">
+                {isMbbs ? "University & official fees" : "Government & official fees"}
+              </h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Itemised charges in {govt.nativeCurrency} with INR equivalent for counselor reference.
+                {isMbbs
+                  ? "Tuition changes each year — confirm on the official university fee page. Detailed ranges are in the program cost breakdown below."
+                  : `Itemised charges in ${govt.nativeCurrency} with INR equivalent for counselor reference.`}
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-xs">

@@ -25,11 +25,12 @@ import {
 import { coachingFamilyLabel } from "./serviceNavClassification";
 import { resolveServiceFeeBreakdown } from "./feeBreakdown";
 import type { ServiceFeeBreakdownView } from "./feeBreakdown/types";
+import { resolveMbbsFullCostBreakdown } from "./feeBreakdown/mbbsProgramCosts";
 import {
   hasCountryInsightsContent,
   resolveCountryInsights,
 } from "./countryInsights/resolveCountryInsights";
-import type { CountryInsightsView } from "./countryInsights/types";
+import type { CountryInsightsView, FullCostBreakdown } from "./countryInsights/types";
 import type { MbbsInstitutionMeta } from "./mbbs/types";
 import { isMbbsServiceRow } from "./mbbs/resolveMbbsInstitutions";
 
@@ -66,6 +67,7 @@ export type AcademyViewModel = {
   timeline: { weeks: string; title: string }[];
   fees: { consultancy: string; govt: string; thirdParty: string };
   feeBreakdown: ServiceFeeBreakdownView | null;
+  fullCostBreakdown: FullCostBreakdown | null;
   countryInsights: CountryInsightsView | null;
   checklist: {
     completed: number;
@@ -415,6 +417,9 @@ export function buildAcademyViewModel(args: {
       thirdParty: "Varies",
     },
     feeBreakdown: isCoaching ? null : resolveServiceFeeBreakdown(master.id, meta, feesScoped),
+    fullCostBreakdown: isMbbs
+      ? resolveMbbsFullCostBreakdown(master.id, meta)
+      : (meta.fullCostBreakdown as FullCostBreakdown | undefined) ?? null,
     countryInsights: (() => {
       if (isCoaching || !displayCountry) return null;
       const insights = resolveCountryInsights(displayCountry, meta);
