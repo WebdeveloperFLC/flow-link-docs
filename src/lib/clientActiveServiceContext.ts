@@ -6,6 +6,11 @@ import {
   guessServiceCodeForPipeline,
 } from "@/lib/clientActiveService";
 import { parseLibraryIdFromServiceCode } from "@/lib/service-library/serviceCodes";
+import {
+  findCatalogueItemForStoredCode,
+  resolveServiceLabelSync,
+} from "@/lib/service-library/resolveServiceLabel";
+import { useServiceLabelMap } from "@/lib/service-library/useServiceLabelMap";
 
 export type ClientLite = {
   id: string;
@@ -40,12 +45,13 @@ function countryFromServiceCode(code: string, item: ServiceCatalogueItem | null,
 export function resolveActiveServiceContextSync(params: {
   client: ClientLite;
   catalogue: ServiceCatalogueItem[];
+  libraryLabels?: ReadonlyMap<string, string>;
   urlServiceCode?: string | null;
   urlLibraryId?: string | null;
   urlCountry?: string | null;
 }): Omit<ActiveServiceContext, "loading"> {
   const codes = collectClientServices(params.client);
-  const entries = buildClientServiceEntries(codes, params.catalogue);
+  const entries = buildClientServiceEntries(codes, params.catalogue, params.libraryLabels);
 
   let activeCode: string | null = null;
   if (params.urlServiceCode && codes.includes(params.urlServiceCode)) {
@@ -54,7 +60,7 @@ export function resolveActiveServiceContextSync(params: {
     activeCode = codes[0] ?? null;
   } else if (params.client.pipeline_id && codes.length > 1) {
     for (const code of codes) {
-      const item = params.catalogue.find((s) => (s.service_code || s.id) === code);
+      const item = findCatalogueItemForStoredCode(code, params.catalogue);
       if (!item) continue;
       // best-effort: first code wins when sync without async pipeline guess
     }
@@ -69,9 +75,7 @@ export function resolveActiveServiceContextSync(params: {
     parseLibraryIdFromServiceCode(params.urlServiceCode) ||
     null;
 
-  const item = activeCode
-    ? params.catalogue.find((s) => (s.service_code || s.id) === activeCode) ?? null
-    : null;
+  const item = activeCode ? findCatalogueItemForStoredCode(activeCode, params.catalogue) : null;
 
   const destinationCountry =
     params.urlCountry?.trim() ||
@@ -86,10 +90,13 @@ export function resolveActiveServiceContextSync(params: {
     null;
 
   const serviceLabel =
+    (activeCode ? resolveServiceLabelSync(activeCode, params.catalogue, params.libraryLabels) : null) ||
     item?.service_name?.trim() ||
     entries.find((e) => e.code === activeCode)?.label ||
     params.client.application_type?.trim() ||
     null;
+  const normalizedServiceLabel =
+    serviceLabel && activeCode && serviceLabel === activeCode ? null : serviceLabel;
 
   const residenceCountry = params.client.country?.trim() || null;
   const isCanadaDestination = (destinationCountry ?? "").trim().toLowerCase() === "canada";
@@ -99,7 +106,7 @@ export function resolveActiveServiceContextSync(params: {
     libraryId,
     destinationCountry,
     formsCategory,
-    serviceLabel,
+    serviceLabel: normalizedServiceLabel,
     residenceCountry,
     isCanadaDestination,
   };
@@ -144,6 +151,12 @@ export function useActiveServiceContext(
     };
   }, [client, catalogue]);
 
+  const clientCodes = useMemo(
+    () => (client ? collectClientServices(client) : []),
+    [client],
+  );
+  const labelMap = useServiceLabelMap(clientCodes, catalogue);
+
   return useMemo(() => {
     if (!client) {
       return {
@@ -158,17 +171,18 @@ export function useActiveServiceContext(
       };
     }
 
-    const urlCode = urlService && collectClientServices(client).includes(urlService) ? urlService : null;
-    const activeServiceCode = urlCode ?? resolvedCode ?? collectClientServices(client)[0] ?? null;
+    const urlCode = urlService && clientCodes.includes(urlService) ? urlService : null;
+    const activeServiceCode = urlCode ?? resolvedCode ?? clientCodes[0] ?? null;
 
     const base = resolveActiveServiceContextSync({
       client,
       catalogue,
+      libraryLabels: labelMap,
       urlServiceCode: activeServiceCode,
       urlLibraryId,
       urlCountry,
     });
 
     return { ...base, activeServiceCode, loading };
-  }, [client, catalogue, loading, resolvedCode, urlService, urlLibraryId, urlCountry]);
+  }, [client, clientCodes, catalogue, labelMap, loading, resolvedCode, urlService, urlLibraryId, urlCountry]);
 }

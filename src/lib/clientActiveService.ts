@@ -3,6 +3,10 @@ import { resolvePipelineForServiceLibrary } from "@/lib/stagePipelines";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchWorkflowTemplatesForService } from "@/lib/service-library/matchWorkflowTemplate";
 import { parseLibraryIdFromServiceCode } from "@/lib/service-library/serviceCodes";
+import {
+  findCatalogueItemForStoredCode,
+  resolveServiceLabelSync,
+} from "@/lib/service-library/resolveServiceLabel";
 
 export type ClientServiceEntry = {
   code: string;
@@ -29,12 +33,11 @@ export function collectClientServices(codes: {
 export function buildClientServiceEntries(
   codes: string[],
   catalogue: ServiceCatalogueItem[],
+  libraryLabels?: ReadonlyMap<string, string>,
 ): ClientServiceEntry[] {
-  const nameByCode = new Map(catalogue.map((s) => [s.service_code || s.id, s.service_name]));
-  const catByCode = new Map(catalogue.map((s) => [s.service_code || s.id, s.master_key]));
-
   return codes.map((code) => {
-    const master = catByCode.get(code) ?? "";
+    const item = findCatalogueItemForStoredCode(code, catalogue);
+    const master = item?.master_key ?? "";
     let category: ClientServiceEntry["category"] = "visa";
     if (master === "coaching_services") category = "coaching";
     else if (master === "admission_services") category = "admission";
@@ -43,14 +46,14 @@ export function buildClientServiceEntries(
 
     return {
       code,
-      label: nameByCode.get(code) ?? code,
+      label: resolveServiceLabelSync(code, catalogue, libraryLabels),
       category,
     };
   });
 }
 
 function catalogueItemForCode(code: string, catalogue: ServiceCatalogueItem[]) {
-  return catalogue.find((s) => (s.service_code || s.id) === code) ?? null;
+  return findCatalogueItemForStoredCode(code, catalogue);
 }
 
 function countryFromServiceCode(code: string, item: ServiceCatalogueItem | null, clientCountry?: string | null) {

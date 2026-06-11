@@ -4,6 +4,7 @@ import { resolvePipelineForServiceLibrary } from "@/lib/stagePipelines";
 import { resolvePipelineForServiceCode } from "@/lib/clientActiveService";
 import { buildServiceCode, parseLibraryIdFromServiceCode } from "./serviceCodes";
 import { fetchWorkflowTemplatesForService } from "./matchWorkflowTemplate";
+import { findCatalogueItemForStoredCode } from "./resolveServiceLabel";
 
 type ServiceCategory =
   | "visa_immigration"
@@ -33,7 +34,7 @@ export type ClientServiceEnrollmentResult = {
 };
 
 function catalogueItemForCode(code: string, catalogue: ServiceCatalogueItem[]) {
-  return catalogue.find((s) => (s.service_code || s.id) === code) ?? null;
+  return findCatalogueItemForStoredCode(code, catalogue);
 }
 
 function destinationFromCode(code: string, item: ServiceCatalogueItem | null, fallback?: string | null) {
