@@ -238,6 +238,76 @@ export const COUNTRY_PROFILES: Record<string, CountryProfile> = {
   Belgium: { country: "Belgium", facts: [{ label: "Capital", value: "Brussels" }, { label: "Currency", value: "Euro (EUR)" }], costOfLiving: { currency: "EUR", lastVerified: "Jun 2026", items: [{ label: "Student living estimate", amount: "11,500", unit: "per year" }, { label: "Room (Brussels)", range: "450–750", unit: "per month" }], notes: [] } },
   Denmark: { country: "Denmark", facts: [{ label: "Capital", value: "Copenhagen" }, { label: "Currency", value: "Danish krone (DKK)" }], costOfLiving: { currency: "DKK", lastVerified: "Jun 2026", items: [{ label: "Student funds (Danish Agency)", amount: "72,000", unit: "per year", notes: "Verify current DKK amount" }], notes: [] } },
   Portugal: { country: "Portugal", facts: [{ label: "Capital", value: "Lisbon" }, { label: "Currency", value: "Euro (EUR)" }], costOfLiving: { currency: "EUR", lastVerified: "Jun 2026", items: [{ label: "Student living estimate", amount: "9,120", unit: "per year" }, { label: "Room (Lisbon)", range: "400–650", unit: "per month" }], notes: [] } },
+  Cyprus: {
+    country: "Cyprus",
+    facts: [
+      { label: "Capital", value: "Nicosia" },
+      { label: "Currency", value: "Euro (EUR)" },
+      { label: "EU member", value: "Since 2004" },
+      { label: "Schengen", value: "Not yet (as of Jun 2026)" },
+      { label: "Language", value: "English widely used in universities" },
+    ],
+    costOfLiving: {
+      currency: "EUR",
+      lastVerified: "Jun 2026",
+      summary: "Nicosia is more affordable than Limassol for students.",
+      items: [
+        { label: "Student living (Nicosia)", range: "500–800", unit: "per month" },
+        { label: "Student living (Limassol)", range: "700–1,000", unit: "per month" },
+        { label: "Private tuition", range: "7,000–13,000", unit: "per year" },
+        { label: "Financial proof benchmark", range: "7,000–10,000", unit: "bank balance", notes: "No official minimum published" },
+      ],
+      notes: ["Pink Slip required within 7–10 days of arrival.", "Cyprus permit does not allow Schengen travel without separate visa."],
+    },
+  },
+  "United Arab Emirates": {
+    country: "United Arab Emirates",
+    facts: [
+      { label: "Capital", value: "Abu Dhabi" },
+      { label: "Currency", value: "UAE dirham (AED)" },
+      { label: "Immigration authority", value: "ICP UAE (federal) · GDRFA (Dubai) · Emirate immigration departments" },
+      { label: "Student licensing", value: "KHDA (Dubai) · SPEA (Sharjah) · ADEK (Abu Dhabi)" },
+      { label: "Employment", value: "MOHRE (mainland) · Free-zone authorities (DMCC, JAFZA, ADGM, etc.)" },
+      { label: "Indian applicant note", value: "Most routes from India via institution/employer sponsor, VFS, or ICP e-visa" },
+    ],
+    costOfLiving: {
+      currency: "AED",
+      lastVerified: "Jun 2026",
+      summary: "Dubai and Abu Dhabi are highest; Sharjah often more affordable for students.",
+      sourceUrl: "https://u.ae/en/icp",
+      items: [
+        { label: "Student living (Dubai shared)", range: "1,500–3,500", unit: "per month" },
+        { label: "Student living (Sharjah shared)", range: "1,200–2,800", unit: "per month" },
+        { label: "Student living (Abu Dhabi shared)", range: "1,400–3,200", unit: "per month" },
+        { label: "Undergraduate tuition (private)", range: "35,000–60,000", unit: "per year" },
+        { label: "Visitor visa govt fee", range: "200–1,200", unit: "approx.", notes: "Duration & entry type dependent" },
+        { label: "Golden Visa property threshold", amount: "2,000,000", unit: "AED property value", notes: "Verify ICP current criteria" },
+      ],
+      notes: [
+        "Emirates ID and medical are mandatory after most residence visas.",
+        "Overstay fines apply — counsel clients on visa validity dates.",
+      ],
+    },
+  },
+  Lithuania: {
+    country: "Lithuania",
+    facts: [
+      { label: "Capital", value: "Vilnius" },
+      { label: "Currency", value: "Euro (EUR)" },
+      { label: "Schengen", value: "Yes" },
+      { label: "Language", value: "Lithuanian; many English-taught programmes" },
+    ],
+    costOfLiving: {
+      currency: "EUR",
+      lastVerified: "Jun 2026",
+      items: [
+        { label: "Student funds guideline", amount: "6,912", unit: "per year", notes: "€576/month × 12 — verify on migracija.lt" },
+        { label: "Room (Vilnius)", range: "250–500", unit: "per month" },
+        { label: "Food & transport", range: "200–350", unit: "per month" },
+      ],
+      notes: ["National D visa then temporary residence permit after arrival."],
+    },
+  },
   Saba: {
     country: "Saba (Dutch Caribbean)",
     facts: [

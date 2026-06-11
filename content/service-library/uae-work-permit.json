@@ -1,0 +1,1436 @@
+{
+  "displayName": "United Arab Emirates – Employment / Work Permit",
+  "shortDescription": "MOHRE offer · Employer sponsorship · Medical · Emirates ID · India route",
+  "version": "v2.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 10 Jun 2026",
+  "learningLevel": "Intermediate",
+  "learningMinutes": 24,
+  "policyAlert": {
+    "active": true,
+    "date": "10 Jun 2026",
+    "summary": "Employment visa requires MOHRE-approved work permit and employer sponsorship. Education certificates must be attested for skilled roles."
+  },
+  "alert": {
+    "title": "MOHRE work permit first",
+    "body": "Employer obtains MOHRE pre-approval/work permit quota before employee applies entry permit from India."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "MOHRE approval",
+      "variant": "warning"
+    },
+    {
+      "label": "3–6 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Skilled & free-zone",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "₹50,000 consultancy",
+      "variant": "neutral"
+    },
+    {
+      "label": "Employer sponsor",
+      "variant": "success"
+    },
+    {
+      "label": "Certificate attestation",
+      "variant": "warning"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "3–6w",
+      "sub": "MOHRE + GDRFA + India exit",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "AED 3,000+",
+      "sub": "+ medical & ID",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "88%",
+      "sub": "~75% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "18",
+      "sub": "+ attested degree",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "₹50,000",
+      "sub": "Skilled MOHRE — see variants",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit from India, medical, and Emirates ID."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance"
+    },
+    {
+      "label": "Free-zone route",
+      "value": "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.).",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "MOHRE · GDRFA/ICP (emirate) · Employer PRO · UAE Embassy India (attestation)"
+    },
+    {
+      "label": "After approval",
+      "value": "Enter UAE; medical; Emirates ID; labour card (MOHRE); sign employment contract in UAE."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Signed offer from licensed UAE employer",
+      "met": true
+    },
+    {
+      "criterion": "MOHRE work permit / pre-approval obtained",
+      "met": false,
+      "note": "Employer initiates"
+    },
+    {
+      "criterion": "Degree/experience attested for UAE",
+      "met": false,
+      "note": "4–6 weeks"
+    },
+    {
+      "criterion": "Passport valid 6+ months",
+      "met": true
+    },
+    {
+      "criterion": "Medical fitness (UAE panel)",
+      "met": false
+    },
+    {
+      "criterion": "Role matches qualification (skill level)",
+      "met": true
+    }
+  ],
+  "redFlagsBanner": "Fake job offers and visa fee collection without MOHRE approval are fraud patterns — verify employer licence.",
+  "redFlags": [
+    {
+      "title": "No MOHRE permit",
+      "description": "Employer has not secured work permit.",
+      "fix": "Confirm MOHRE application status before travel",
+      "severity": "Very common"
+    },
+    {
+      "title": "Fake offer letter",
+      "description": "Unlicensed company or scam.",
+      "fix": "Verify trade licence and MOHRE establishment card",
+      "severity": "Very common"
+    },
+    {
+      "title": "Degree skill mismatch",
+      "description": "Role not matching attested qualification.",
+      "fix": "MOHRE skill level check before filing",
+      "severity": "Common"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Who pays employment visa costs?",
+      "a": "Typically employer per UAE labour law for standard hires — confirm contract terms."
+    },
+    {
+      "q": "Can visitor convert to employment?",
+      "a": "May require exit and re-entry on employment visa — verify GDRFA status change rules."
+    },
+    {
+      "q": "Free-zone vs mainland?",
+      "a": "Different sponsoring authorities — confirm zone before starting attestation."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit from India, medical, and Emirates ID."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance"
+    },
+    {
+      "q": "What is Free-zone route for this service?",
+      "a": "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "MOHRE · GDRFA/ICP (emirate) · Employer PRO · UAE Embassy India (attestation)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Enter UAE; medical; Emirates ID; labour card (MOHRE); sign employment contract in UAE."
+    },
+    {
+      "q": "Is Signed offer from licensed UAE employer required?",
+      "a": "Signed offer from licensed UAE employer is typically required."
+    },
+    {
+      "q": "Is MOHRE work permit / pre-approval obtained required?",
+      "a": "Employer initiates"
+    },
+    {
+      "q": "Is Degree/experience attested for UAE required?",
+      "a": "4–6 weeks"
+    },
+    {
+      "q": "Is Passport valid 6+ months required?",
+      "a": "Passport valid 6+ months is typically required."
+    },
+    {
+      "q": "Is Medical fitness (UAE panel) required?",
+      "a": "Medical fitness (UAE panel) is typically required."
+    },
+    {
+      "q": "Is Role matches qualification (skill level) required?",
+      "a": "Role matches qualification (skill level) is typically required."
+    },
+    {
+      "q": "Can Future Link guarantee approval?",
+      "a": "No. Government authorities decide each case. Never promise approval."
+    },
+    {
+      "q": "What documents should we collect first?",
+      "a": "Passport, application forms, fees, and the service checklist in the Checklist tab."
+    },
+    {
+      "q": "How long does processing take?",
+      "a": "See KPI processing time — always verify current GDRFA/ICP timelines before quoting."
+    },
+    {
+      "q": "What are government fees?",
+      "a": "Confirm latest fees on the official portal in the Resources section before quoting."
+    },
+    {
+      "q": "Can the client apply from India?",
+      "a": "Yes — standard route for Indian nationals via sponsor, VFS, or ICP e-visa as applicable."
+    },
+    {
+      "q": "What if the client was refused before?",
+      "a": "Disclose all refusals, overstays, and bans; address GDRFA fines before reapply."
+    },
+    {
+      "q": "Can the client work on this visa?",
+      "a": "Work rights depend on visa type — employment visa required for full-time work."
+    },
+    {
+      "q": "United Arab Emirates – Employment / Work Permit: counselor verification point 22?",
+      "a": "Confirm eligibility, checklist sign-off, current fees, and client consent before submission."
+    },
+    {
+      "q": "United Arab Emirates – Employment / Work Permit: counselor verification point 23?",
+      "a": "Confirm eligibility, checklist sign-off, current fees, and client consent before submission."
+    },
+    {
+      "q": "United Arab Emirates – Employment / Work Permit: counselor verification point 24?",
+      "a": "Confirm eligibility, checklist sign-off, current fees, and client consent before submission."
+    },
+    {
+      "q": "United Arab Emirates – Employment / Work Permit: counselor verification point 25?",
+      "a": "Confirm eligibility, checklist sign-off, current fees, and client consent before submission."
+    },
+    {
+      "q": "United Arab Emirates – Employment / Work Permit: counselor verification point 26?",
+      "a": "Confirm eligibility, checklist sign-off, current fees, and client consent before submission."
+    },
+    {
+      "q": "United Arab Emirates – Employment / Work Permit: counselor verification point 27?",
+      "a": "Confirm eligibility, checklist sign-off, current fees, and client consent before submission."
+    },
+    {
+      "q": "United Arab Emirates – Employment / Work Permit: counselor verification point 28?",
+      "a": "Confirm eligibility, checklist sign-off, current fees, and client consent before submission."
+    },
+    {
+      "q": "United Arab Emirates – Employment / Work Permit: counselor verification point 29?",
+      "a": "Confirm eligibility, checklist sign-off, current fees, and client consent before submission."
+    },
+    {
+      "q": "United Arab Emirates – Employment / Work Permit: counselor verification point 30?",
+      "a": "Confirm eligibility, checklist sign-off, current fees, and client consent before submission."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs",
+    "Verify licensed institution or employer before collecting full fees"
+  ],
+  "proTips": [
+    "Verify KHDA / SPEA / ADEK license list recognition before fees",
+    "Compare Opportunity Card vs job seeker at intake",
+    "Prepare UAE and English CVs",
+    "Open blocked account when ready",
+    "Research target industry employers before arrival"
+  ],
+  "postApproval": [
+    "Explain job search timeline and limits",
+    "Guide on GDRFA / ICP registration",
+    "Advise on converting to work permit",
+    "Connect to Make it in United Arab Emirates job portal"
+  ],
+  "performance": {
+    "ourRate": 88,
+    "industryRate": 72,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "0"
+      },
+      {
+        "label": "Approved",
+        "value": "0"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Complete sponsorship file",
+      "ours": 90,
+      "benchmark": 75
+    },
+    {
+      "label": "Credible funds / salary proof",
+      "ours": 85,
+      "benchmark": 70
+    },
+    {
+      "label": "Clean immigration history",
+      "ours": 88,
+      "benchmark": 72
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1–2",
+      "title": "Pathway assessment, recognition check"
+    },
+    {
+      "weeks": "2–8",
+      "title": "ZAB if needed, blocked account, documents"
+    },
+    {
+      "weeks": "8–10",
+      "title": "Embassy submission"
+    },
+    {
+      "weeks": "8–12",
+      "title": "Embassy processing"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "United Arab Emirates – Opportunity Card",
+      "libraryId": ""
+    },
+    {
+      "label": "United Arab Emirates – Student Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "United Arab Emirates – Spouse Visa",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
+      "version": "v1.0",
+      "date": "10 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial UAE counselor content — India application route."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Always check if client qualifies for Opportunity Card first—may be better pathway than traditional job seeker."
+    }
+  ],
+  "resources": [
+    {
+      "title": "MOHRE UAE",
+      "url": "https://www.mohre.gov.ae/",
+      "description": "Work permits and labour law"
+    },
+    {
+      "title": "ICP UAE",
+      "url": "https://u.ae/en/icp",
+      "description": "Residence visa"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Job seeker visa primary purpose:",
+      "options": [
+        "Permanent residence immediately",
+        "Search for qualified employment",
+        "Tourism",
+        "Study full-time"
+      ],
+      "correctIndex": 1,
+      "explanation": "Job search purpose.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Employment / Work Permit (§18a/§18b), which statement about Description is correct?",
+      "options": [
+        "National visa allowing qualified professionals with recognised UAE-equivalent degree to search for employment in United Arab Emirates, typically up to 6 months.",
+        "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition fo…",
+        "Degree must be recognised as equivalent to UAE qualification via KHDA / SPEA / ADEK license list or statement of comparability.",
+        "UAE Embassy in India · ZAB for recognition · GDRFA / ICP after arrival"
+      ],
+      "correctIndex": 0,
+      "explanation": "National visa allowing qualified professionals with recognised UAE-equivalent degree to search for employment in United Arab Emirates, typically up to 6 months."
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Employment / Work Permit (§18a/§18b), which statement about Key authority is correct?",
+      "options": [
+        "UAE Embassy in India · ZAB for recognition · GDRFA / ICP after arrival",
+        "National visa allowing qualified professionals with recognised UAE-equivalent degree to search for employment in United Arab Emirates, typically up to 6 months.",
+        "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition fo…",
+        "Degree must be recognised as equivalent to UAE qualification via KHDA / SPEA / ADEK license list or statement of comparability."
+      ],
+      "correctIndex": 0,
+      "explanation": "UAE Embassy in India · ZAB for recognition · GDRFA / ICP after arrival"
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Employment / Work Permit, which statement about Description is correct?",
+      "options": [
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.).",
+        "MOHRE · GDRFA/ICP (emirate) · Employer PRO · UAE Embassy India (attestation)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit from India, medical, and Emirates ID."
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Employment / Work Permit: what is true regarding Eligible applicants?",
+      "options": [
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.).",
+        "MOHRE · GDRFA/ICP (emirate) · Employer PRO · UAE Embassy India (attestation)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Employment / Work Permit should state correctly about Free-zone route:",
+      "options": [
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.).",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "MOHRE · GDRFA/ICP (emirate) · Employer PRO · UAE Embassy India (attestation)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.). — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Employment / Work Permit, which statement about Key authority is correct?",
+      "options": [
+        "MOHRE · GDRFA/ICP (emirate) · Employer PRO · UAE Embassy India (attestation)",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "MOHRE · GDRFA/ICP (emirate) · Employer PRO · UAE Embassy India (attestation)"
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Employment / Work Permit: what is true regarding After approval?",
+      "options": [
+        "Enter UAE; medical; Emirates ID; labour card (MOHRE); sign employment contract in UAE.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Enter UAE; medical; Emirates ID; labour card (MOHRE); sign employment contract in UAE."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Employment / Work Permit should state correctly about Signed offer from licensed UAE employer:",
+      "options": [
+        "Signed offer from licensed UAE employer is a core requirement for this service.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Signed offer from licensed UAE employer"
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Employment / Work Permit, which statement about MOHRE work permit / pre-approval obtained is correct?",
+      "options": [
+        "MOHRE work permit / pre-approval obtained is often required or assessed for this service. Note: Employer initiates",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Employer initiates"
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Employment / Work Permit: what is true regarding Degree/experience attested for UAE?",
+      "options": [
+        "Degree/experience attested for UAE is often required or assessed for this service. Note: 4–6 weeks",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "4–6 weeks"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Employment / Work Permit should state correctly about Passport valid 6+ months:",
+      "options": [
+        "Passport valid 6+ months is a core requirement for this service.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Passport valid 6+ months"
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Employment / Work Permit, which statement about Medical fitness (UAE panel) is correct?",
+      "options": [
+        "Medical fitness (UAE panel) is often required or assessed for this service.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Medical fitness (UAE panel)"
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Employment / Work Permit: what is true regarding Role matches qualification (skill level)?",
+      "options": [
+        "Role matches qualification (skill level) is a core requirement for this service.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Role matches qualification (skill level)"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Employment / Work Permit should state correctly about Processing time:",
+      "options": [
+        "Processing time: 3–6w — MOHRE + GDRFA + India exit",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "MOHRE + GDRFA + India exit"
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Employment / Work Permit, which statement about Government fee is correct?",
+      "options": [
+        "Government fee: AED 3,000+ — + medical & ID",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ medical & ID"
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Employment / Work Permit: what is true regarding Our approval rate?",
+      "options": [
+        "Our approval rate: 88% — ~75% benchmark",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "~75% benchmark"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Employment / Work Permit should state correctly about Required docs:",
+      "options": [
+        "Required docs: 18 — + attested degree",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ attested degree"
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Employment / Work Permit, which statement about Consultancy fee is correct?",
+      "options": [
+        "Consultancy fee: ₹50,000 — Skilled MOHRE — see variants",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Skilled MOHRE — see variants"
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Employment / Work Permit: what is true regarding service summary?",
+      "options": [
+        "MOHRE offer · Employer sponsorship · Medical · Emirates ID · India route",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "MOHRE offer · Employer sponsorship · Medical · Emirates ID · India route"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Employment / Work Permit should state correctly about MOHRE work permit first:",
+      "options": [
+        "Employer obtains MOHRE pre-approval/work permit quota before employee applies entry permit from India.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Employer obtains MOHRE pre-approval/work permit quota before employee applies entry permit from India."
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Employment / Work Permit, which statement about policy update is correct?",
+      "options": [
+        "Employment visa requires MOHRE-approved work permit and employer sponsorship. Education certificates must be attested for skilled roles.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Employment visa requires MOHRE-approved work permit and employer sponsorship. Education certificates must be attested for skilled roles."
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Employment / Work Permit: what is true regarding Who pays employment visa costs?",
+      "options": [
+        "Typically employer per UAE labour law for standard hires — confirm contract terms.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Typically employer per UAE labour law for standard hires — confirm contract terms."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Employment / Work Permit should state correctly about Can visitor convert to employment:",
+      "options": [
+        "May require exit and re-entry on employment visa — verify GDRFA status change rules.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "May require exit and re-entry on employment visa — verify GDRFA status change rules."
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Employment / Work Permit, which statement about Free-zone vs mainland is correct?",
+      "options": [
+        "Different sponsoring authorities — confirm zone before starting attestation.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Different sponsoring authorities — confirm zone before starting attestation."
+    },
+    {
+      "question": "Financial proof typically via:",
+      "options": [
+        "Cash only",
+        "Blocked account or equivalent proof",
+        "No proof",
+        "Employer letter only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Blocked account common.",
+      "level": 2
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Employment / Work Permit (§18a/§18b): what is true regarding Eligible applicants?",
+      "options": [
+        "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition fo…",
+        "National visa allowing qualified professionals with recognised UAE-equivalent degree to search for employment in United Arab Emirates, typically up to 6 months.",
+        "Degree must be recognised as equivalent to UAE qualification via KHDA / SPEA / ADEK license list or statement of comparability.",
+        "UAE Embassy in India · ZAB for recognition · GDRFA / ICP after arrival"
+      ],
+      "correctIndex": 0,
+      "explanation": "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition for some fields"
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Employment / Work Permit (§18a/§18b): what is true regarding After approval?",
+      "options": [
+        "Enter United Arab Emirates; attend interviews; convert to work permit when employment secured.",
+        "National visa allowing qualified professionals with recognised UAE-equivalent degree to search for employment in United Arab Emirates, typically up to 6 months.",
+        "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition fo…",
+        "Degree must be recognised as equivalent to UAE qualification via KHDA / SPEA / ADEK license list or statement of comparability."
+      ],
+      "correctIndex": 0,
+      "explanation": "Enter United Arab Emirates; attend interviews; convert to work permit when employment secured."
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Employment / Work Permit process, what is the correct approach to client question: Who pays employment visa costs?",
+      "options": [
+        "Typically employer per UAE labour law for standard hires — confirm contract terms.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Typically employer per UAE labour law for standard hires — confirm contract terms."
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Employment / Work Permit, what should happen during client question: Can visitor convert to employment?",
+      "options": [
+        "May require exit and re-entry on employment visa — verify GDRFA status change rules.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "May require exit and re-entry on employment visa — verify GDRFA status change rules."
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Employment / Work Permit workflow — best practice for client question: Free-zone vs mainland:",
+      "options": [
+        "Different sponsoring authorities — confirm zone before starting attestation.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Different sponsoring authorities — confirm zone before starting attestation."
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Employment / Work Permit process, what is the correct approach to Financial proof typically via:?",
+      "options": [
+        "Blocked account or equivalent proof",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Blocked account common."
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Employment / Work Permit, what should happen during United Arab Emirates – Employment / Work Permit (§18a/§18b): what is true regar…?",
+      "options": [
+        "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition fo…",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition for some fields"
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Employment / Work Permit workflow — best practice for United Arab Emirates – Employment / Work Permit (§18a/§18b): what is true regar…:",
+      "options": [
+        "Enter United Arab Emirates; attend interviews; convert to work permit when employment secured.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Enter United Arab Emirates; attend interviews; convert to work permit when employment secured."
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Employment / Work Permit process, what is the correct approach to timeline (1–2)?",
+      "options": [
+        "Pathway assessment, recognition check",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "1–2: Pathway assessment, recognition check"
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Employment / Work Permit, what should happen during timeline (2–8)?",
+      "options": [
+        "ZAB if needed, blocked account, documents",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–8: ZAB if needed, blocked account, documents"
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Employment / Work Permit workflow — best practice for timeline (8–10):",
+      "options": [
+        "Embassy submission",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "8–10: Embassy submission"
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Employment / Work Permit process, what is the correct approach to timeline (8–12)?",
+      "options": [
+        "Embassy processing",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "8–12: Embassy processing"
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Employment / Work Permit, what should happen during counselor tip?",
+      "options": [
+        "Verify KHDA / SPEA / ADEK license list recognition before fees",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify KHDA / SPEA / ADEK license list recognition before fees"
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Employment / Work Permit workflow — best practice for counselor tip:",
+      "options": [
+        "Compare Opportunity Card vs job seeker at intake",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Compare Opportunity Card vs job seeker at intake"
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Employment / Work Permit process, what is the correct approach to counselor tip?",
+      "options": [
+        "Prepare UAE and English CVs",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Prepare UAE and English CVs"
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Employment / Work Permit process, what is the correct approach to post-approval step?",
+      "options": [
+        "Explain job search timeline and limits",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain job search timeline and limits"
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Employment / Work Permit, what should happen during post-approval step?",
+      "options": [
+        "Guide on GDRFA / ICP registration",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Guide on GDRFA / ICP registration"
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Employment / Work Permit workflow — best practice for post-approval step:",
+      "options": [
+        "Advise on converting to work permit",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Advise on converting to work permit"
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Employment / Work Permit, what should happen during Sample passport bio page (mock)?",
+      "options": [
+        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Employment / Work Permit workflow — best practice for Sample degree / vocational certificate (mock):",
+      "options": [
+        "Recognized qualification for job seeker or opportunity pathways.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Recognized qualification for job seeker or opportunity pathways."
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Employment / Work Permit process, what is the correct approach to Sample blocked account / funds proof (mock)?",
+      "options": [
+        "Financial means for United Arab Emirates job seeker or opportunity card.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Financial means for United Arab Emirates job seeker or opportunity card."
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Employment / Work Permit, what should happen during Sample CV (European format mock)?",
+      "options": [
+        "Europass-style CV for UAE labour market orientation.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Europass-style CV for UAE labour market orientation."
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Employment / Work Permit workflow — best practice for Sample language certificate (mock):",
+      "options": [
+        "UAE A1/A2 or English test where required.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "UAE A1/A2 or English test where required."
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Employment / Work Permit process, what is the correct approach to recommended practice?",
+      "options": [
+        "Verify qualification recognition on KHDA / SPEA / ADEK license list",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify qualification recognition on KHDA / SPEA / ADEK license list"
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Job Seeker Visa: what is true regarding Eligible applicants?",
+      "options": [
+        "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition fo…",
+        "National visa allowing qualified professionals with recognised UAE-equivalent degree to search for employment in United Arab Emirates, typically up to 6 months.",
+        "Degree must be recognised as equivalent to UAE qualification via KHDA / SPEA / ADEK license list or statement of comparability.",
+        "UAE Embassy in India · ZAB for recognition · GDRFA / ICP after arrival"
+      ],
+      "correctIndex": 0,
+      "explanation": "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition for some fields"
+    },
+    {
+      "level": 3,
+      "question": "A counselor explaining United Arab Emirates – Employment / Work Permit (§18a/§18b) should state correctly about Recognition prerequisite:",
+      "options": [
+        "Degree must be recognised as equivalent to UAE qualification via KHDA / SPEA / ADEK license list or statement of comparability.",
+        "National visa allowing qualified professionals with recognised UAE-equivalent degree to search for employment in United Arab Emirates, typically up to 6 months.",
+        "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition fo…",
+        "UAE Embassy in India · ZAB for recognition · GDRFA / ICP after arrival"
+      ],
+      "correctIndex": 0,
+      "explanation": "Degree must be recognised as equivalent to UAE qualification via KHDA / SPEA / ADEK license list or statement of comparability. — verify current rules."
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Employment / Work Permit: what is the compliance risk with United Arab Emirates – Job Seeker Visa: what is true regarding Eligible applica…?",
+      "options": [
+        "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition fo…",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition for some fields"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Employment / Work Permit — key issue with A counselor explaining United Arab Emirates – Employment / Work Permit (§18a/§1…:",
+      "options": [
+        "Degree must be recognised as equivalent to UAE qualification via KHDA / SPEA / ADEK license list or statement of comparability.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Degree must be recognised as equivalent to UAE qualification via KHDA / SPEA / ADEK license list or statement of comparability. — verify current rules."
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Employment / Work Permit, counselors must avoid this mistake related to No MOHRE permit:",
+      "options": [
+        "Confirm MOHRE application status before travel",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Employer has not secured work permit."
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Employment / Work Permit: what is the compliance risk with No MOHRE permit (detail)?",
+      "options": [
+        "Employer has not secured work permit.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm MOHRE application status before travel"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Employment / Work Permit — key issue with Fake offer letter:",
+      "options": [
+        "Verify trade licence and MOHRE establishment card",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Unlicensed company or scam."
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Employment / Work Permit, counselors must avoid this mistake related to Fake offer letter (detail):",
+      "options": [
+        "Unlicensed company or scam.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify trade licence and MOHRE establishment card"
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Employment / Work Permit: what is the compliance risk with Degree skill mismatch?",
+      "options": [
+        "MOHRE skill level check before filing",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Role not matching attested qualification."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Employment / Work Permit — key issue with Degree skill mismatch (detail):",
+      "options": [
+        "Role not matching attested qualification.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "MOHRE skill level check before filing"
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Employment / Work Permit, counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not guarantee visa or employment",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee visa or employment"
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Employment / Work Permit: what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not apply without recognition",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not apply without recognition"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Employment / Work Permit — key issue with counselor don't:",
+      "options": [
+        "Do not use insufficient blocked account",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not use insufficient blocked account"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Employment / Work Permit — key issue with common mistake:",
+      "options": [
+        "Degree not recognised",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Degree not recognised"
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Employment / Work Permit, counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Wrong pathway chosen",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Wrong pathway chosen"
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Employment / Work Permit: what is the compliance risk with common mistake?",
+      "options": [
+        "Generic job search plan",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Generic job search plan"
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Employment / Work Permit: what is the compliance risk with compliance rule?",
+      "options": [
+        "Client service agreement and consent must be on file before submission",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Client service agreement and consent must be on file before submission"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Employment / Work Permit — key issue with compliance rule:",
+      "options": [
+        "Never guarantee visa or immigration approval; use approved-language only",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Employment / Work Permit, counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Fee quotes must separate consultancy, government, and third-party costs",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Employment / Work Permit — key issue with refusal handling:",
+      "options": [
+        "Fake job offers and visa fee collection without MOHRE approval are fraud patterns — verify employer licence.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fake job offers and visa fee collection without MOHRE approval are fraud patterns — verify employer licence."
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Employment / Work Permit, counselors must avoid this mistake related to Complete sponsorship file:",
+      "options": [
+        "Our target: 90% vs benchmark 75%",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Complete sponsorship file"
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Employment / Work Permit: what is the compliance risk with Credible funds / salary proof?",
+      "options": [
+        "Our target: 85% vs benchmark 70%",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Credible funds / salary proof"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Employment / Work Permit — key issue with Clean immigration history:",
+      "options": [
+        "Our target: 88% vs benchmark 72%",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Clean immigration history"
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Employment / Work Permit, counselors must avoid this mistake related to United Arab Emirates – Job Seeker Visa: what is true regarding Eligible applica…:",
+      "options": [
+        "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition fo…",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition for some fields"
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Employment / Work Permit: what is the compliance risk with A counselor explaining United Arab Emirates – Employment / Work Permit (§18a/§1…?",
+      "options": [
+        "Degree must be recognised as equivalent to UAE qualification via KHDA / SPEA / ADEK license list or statement of comparability.",
+        "Employment residence visa for skilled workers sponsored by a UAE mainland (MOHRE) employer or free-zone company. Includes work permit approval, entry permit fr…",
+        "Valid job offer from licensed UAE employer · MOHRE work permit approval · Education/experience match to role · Medical fitness · Security clearance",
+        "Free-zone companies use zone authority instead of MOHRE — verify zone-specific process (DMCC, JAFZA, ADGM, etc.)."
+      ],
+      "correctIndex": 0,
+      "explanation": "Degree must be recognised as equivalent to UAE qualification via KHDA / SPEA / ADEK license list or statement of comparability. — verify current rules."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Verify qualification recognition on KHDA / SPEA / ADEK license list",
+      "Compare Opportunity Card vs job seeker",
+      "Open blocked account for required amount",
+      "Prepare industry-specific job search plan",
+      "Disclose prior refusals"
+    ],
+    "donts": [
+      "Do not guarantee visa or employment",
+      "Do not apply without recognition",
+      "Do not use insufficient blocked account",
+      "Do not promise job placement",
+      "Do not hide UAE refusals"
+    ],
+    "mistakes": [
+      "Degree not recognised",
+      "Wrong pathway chosen",
+      "Generic job search plan",
+      "Blocked account short",
+      "Client expected guaranteed employment"
+    ]
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample degree / vocational certificate (mock)",
+      "description": "Recognized qualification for job seeker or opportunity pathways.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample blocked account / funds proof (mock)",
+      "description": "Financial means for United Arab Emirates job seeker or opportunity card.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample CV (European format mock)",
+      "description": "Europass-style CV for UAE labour market orientation.",
+      "mimeType": "application/pdf",
+      "docKind": "employment"
+    },
+    {
+      "title": "Sample language certificate (mock)",
+      "description": "UAE A1/A2 or English test where required.",
+      "mimeType": "image/jpeg",
+      "docKind": "language"
+    }
+  ],
+  "navBucket": "immigration",
+  "workingRights": {
+    "applicant": {
+      "summary": "Skilled worker (§18a/§18b), EU Blue Card, Opportunity Card, and Job Seeker have distinct work/search rights — follow permit type.",
+      "details": [
+        "Blue Card tied to salary threshold and employer.",
+        "Opportunity Card allows job search, not automatic employment."
+      ],
+      "restrictions": [],
+      "sourceUrl": "https://www.make-it-in-germany.com/",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Spouse of skilled worker typically receives residence with labor market access after arrival registration.",
+      "details": [],
+      "restrictions": [],
+      "sourceUrl": "https://www.make-it-in-germany.com/",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — UAE Employment / Work Permit",
+    "currency": "AED",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Verify on ICP/GDRFA/MOHRE portals before quoting.",
+    "sourceUrl": "https://www.mohre.gov.ae/",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & labour fees",
+        "items": [
+          {
+            "label": "Work permit (MOHRE)",
+            "range": "AED 300–5,000",
+            "currency": "AED",
+            "applicable": true,
+            "notes": "Skill/category dependent"
+          },
+          {
+            "label": "Entry permit + stamping",
+            "range": "AED 1,500–3,500",
+            "currency": "AED",
+            "applicable": true
+          },
+          {
+            "label": "Medical + Emirates ID",
+            "range": "AED 500–1,000",
+            "currency": "AED",
+            "applicable": true
+          },
+          {
+            "label": "Labour card",
+            "range": "AED 1,000–2,000",
+            "currency": "AED",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "₹50,000 skilled MOHRE",
+            "notes": "Service package dependent — GST extra where applicable"
+          },
+          {
+            "label": "Free-zone package",
+            "range": "₹55,000",
+            "notes": "Consultancy — zone dependent"
+          },
+          {
+            "label": "Domestic worker route",
+            "range": "₹35,000",
+            "notes": "Consultancy — separate category"
+          },
+          {
+            "label": "Degree attestation",
+            "range": "₹10,000–25,000",
+            "notes": "India + UAE MOFA"
+          }
+        ]
+      }
+    ],
+    "totals": []
+  }
+}

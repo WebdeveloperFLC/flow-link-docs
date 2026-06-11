@@ -135,10 +135,21 @@ export const CONSULTANCY_FEE_BREAKDOWNS: ConsultancyFeeBreakdownSource[] = [
     ["b2000001-0001-4000-8000-0000000000b2", "Denmark", "visitor"],
     ["b2000001-0001-4000-8000-0000000000b3", "Portugal", "student"],
     ["b2000001-0001-4000-8000-0000000000b4", "Portugal", "visitor"],
+    ["b2000001-0001-4000-8000-0000000000c8", "Cyprus", "student"],
+    ["b2000001-0001-4000-8000-0000000000c9", "Cyprus", "visitor"],
+    ["b2000001-0001-4000-8000-0000000000cd", "Lithuania", "student"],
+    ["b2000001-0001-4000-8000-0000000000ce", "Lithuania", "visitor"],
   ].map(([id, country, type]) =>
     type === "student"
       ? single(id as string, `${country} student visa — full service`, 32000, "APS where required · funds · VFS filing")
-      : single(id as string, `${country} Schengen visitor visa`, 11000, "Travel plan · insurance · appointment"),
+      : single(
+          id as string,
+          country === "Cyprus"
+            ? `${country} national visitor visa`
+            : `${country} Schengen visitor visa`,
+          11000,
+          country === "Cyprus" ? "Travel plan · ties · VFS filing" : "Travel plan · insurance · appointment",
+        ),
   ),
 
   // —— Ireland ——
@@ -174,6 +185,51 @@ export const CONSULTANCY_FEE_BREAKDOWNS: ConsultancyFeeBreakdownSource[] = [
   consult("b2000001-0001-4000-8000-0000000000d7", [
     pkg("georgia-admission", "ABMU MD — admission & visa file (India)", 55000, "Application · Georgia D5 visa · enrollment"),
     pkg("family-dependants", "Family dependant visa add-on", 28000, "Per dependant strategy"),
+  ]),
+
+  // —— United Arab Emirates ——
+  consult("b2000001-0001-4000-8000-0000000000cf", [
+    pkg("dxb_student", "Dubai Student Residence Visa", 15000, "KHDA institution · GDRFA Dubai"),
+    pkg("shj_student", "Sharjah Student Residence Visa", 14000, "SPEA institution · GDRFA Sharjah"),
+    pkg("auh_student", "Abu Dhabi Student Residence Visa", 15000, "ADEK institution · ICP Abu Dhabi"),
+  ]),
+  consult("b2000001-0001-4000-8000-0000000000d8", [
+    pkg("dxb_spouse", "Dubai Spouse / Dependent Visa", 30000, "Resident sponsor · Ejari · salary proof"),
+    pkg("shj_spouse", "Sharjah Spouse / Dependent Visa", 28000, "Sharjah GDRFA route"),
+    pkg("auh_spouse", "Abu Dhabi Spouse / Dependent Visa", 30000, "Abu Dhabi ICP route"),
+  ]),
+  consult("b2000001-0001-4000-8000-0000000000d9", [
+    pkg("dxb_30_single", "Dubai Visitor 30D — Single Entry", 5000, "Short-stay tourist"),
+    pkg("dxb_30_multi", "Dubai Visitor 30D — Multiple Entry", 5000, "Short-stay tourist"),
+    pkg("dxb_60_single", "Dubai Visitor 60D — Single Entry", 6000, "Extended visit"),
+    pkg("dxb_60_multi", "Dubai Visitor 60D — Multiple Entry", 6000, "Extended visit"),
+    pkg("dxb_90_single", "Dubai Visitor 90D — Single Entry", 7000, "Long visit"),
+    pkg("dxb_90_multi", "Dubai Visitor 90D — Multiple Entry", 7500, "Long visit"),
+    pkg("shj_30_single", "Sharjah Visitor 30D — Single Entry", 4500, "Sharjah sponsor route"),
+    pkg("shj_30_multi", "Sharjah Visitor 30D — Multiple Entry", 4500, "Sharjah sponsor route"),
+    pkg("shj_60_single", "Sharjah Visitor 60D — Single Entry", 5500, "Sharjah sponsor route"),
+    pkg("shj_60_multi", "Sharjah Visitor 60D — Multiple Entry", 5500, "Sharjah sponsor route"),
+    pkg("shj_90_single", "Sharjah Visitor 90D — Single Entry", 6500, "Sharjah sponsor route"),
+    pkg("shj_90_multi", "Sharjah Visitor 90D — Multiple Entry", 7000, "Sharjah sponsor route"),
+    pkg("auh_30_single", "Abu Dhabi Visitor 30D — Single Entry", 5000, "Abu Dhabi sponsor route"),
+    pkg("auh_30_multi", "Abu Dhabi Visitor 30D — Multiple Entry", 5000, "Abu Dhabi sponsor route"),
+    pkg("auh_60_single", "Abu Dhabi Visitor 60D — Single Entry", 6000, "Abu Dhabi sponsor route"),
+    pkg("auh_60_multi", "Abu Dhabi Visitor 60D — Multiple Entry", 6000, "Abu Dhabi sponsor route"),
+    pkg("auh_90_single", "Abu Dhabi Visitor 90D — Single Entry", 7000, "Abu Dhabi sponsor route"),
+    pkg("auh_90_multi", "Abu Dhabi Visitor 90D — Multiple Entry", 7500, "Abu Dhabi sponsor route"),
+  ]),
+  consult("b2000001-0001-4000-8000-0000000000da", [
+    pkg("wp_skilled_mohre", "Employment Visa — Skilled (MOHRE)", 50000, "Work permit · attestation · medical"),
+    pkg("wp_freezone", "Employment Visa — Free Zone", 55000, "Zone authority route"),
+    pkg("wp_domestic", "Employment Visa — Domestic Worker", 35000, "Domestic worker category"),
+  ]),
+  consult("b2000001-0001-4000-8000-0000000000db", [
+    pkg("golden_investor", "Golden Visa — Investor / Partner", 95000, "Investment evidence · ICP nomination"),
+    pkg("golden_property", "Golden Visa — Real Estate (AED 2M+)", 85000, "Title deed · valuation"),
+    pkg("golden_entrepreneur", "Golden Visa — Entrepreneur", 90000, "Business plan · nomination"),
+    pkg("golden_talent", "Golden Visa — Talented Professional", 75000, "Salary · achievements"),
+    pkg("golden_scientist", "Golden Visa — Scientist / Researcher", 80000, "Academic credentials"),
+    pkg("golden_outstanding_student", "Golden Visa — Outstanding Student", 65000, "University nomination"),
   ]),
 ];
 

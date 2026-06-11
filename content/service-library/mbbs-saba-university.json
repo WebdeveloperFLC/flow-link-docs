@@ -1,7 +1,7 @@
 {
   "displayName": "Saba University School of Medicine — Caribbean",
   "shortDescription": "MD program · NVAO accredited · Basic science on Saba · Clinical rotations in US & Canada",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 10 Jun 2026",
@@ -763,6 +763,258 @@
       "explanation": "Verify current NMC rules."
     },
     {
+      "level": 1,
+      "question": "For Saba University School of Medicine — Caribbean, which statement about Description is correct?",
+      "options": [
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…",
+        "Saba University School of Medicine (admissions) · Netherlands / Dutch Caribbean immigration for study · US immigration for clinical years"
+      ],
+      "correctIndex": 0,
+      "explanation": "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Saba (Caribbean Netherlands), followed by five semesters of cli…"
+    },
+    {
+      "level": 1,
+      "question": "Saba University School of Medicine — Caribbean: what is true regarding Eligible applicants?",
+      "options": [
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…",
+        "Saba University School of Medicine (admissions) · Netherlands / Dutch Caribbean immigration for study · US immigration for clinical years"
+      ],
+      "correctIndex": 0,
+      "explanation": "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with current NMC rules"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Saba University School of Medicine — Caribbean should state correctly about Accreditation highlight:",
+      "options": [
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "Saba University School of Medicine (admissions) · Netherlands / Dutch Caribbean immigration for study · US immigration for clinical years"
+      ],
+      "correctIndex": 0,
+      "explanation": "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUSOM. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For Saba University School of Medicine — Caribbean, which statement about Key authority is correct?",
+      "options": [
+        "Saba University School of Medicine (admissions) · Netherlands / Dutch Caribbean immigration for study · US immigration for clinical years",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Saba University School of Medicine (admissions) · Netherlands / Dutch Caribbean immigration for study · US immigration for clinical years"
+    },
+    {
+      "level": 1,
+      "question": "Saba University School of Medicine — Caribbean: what is true regarding After graduation?",
+      "options": [
+        "USMLE Steps 1 & 2 CK · NRMP residency match · FMGE/NExT for India practice · Canadian residency pathways for eligible graduates",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "USMLE Steps 1 & 2 CK · NRMP residency match · FMGE/NExT for India practice · Canadian residency pathways for eligible graduates"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Saba University School of Medicine — Caribbean should state correctly about Bachelor's degree or qualifying pre-med coursework:",
+      "options": [
+        "Bachelor's degree or qualifying pre-med coursework is a core requirement for this service.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Bachelor's degree or qualifying pre-med coursework"
+    },
+    {
+      "level": 1,
+      "question": "For Saba University School of Medicine — Caribbean, which statement about English proficiency (if required) is correct?",
+      "options": [
+        "English proficiency (if required) is a core requirement for this service.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "English proficiency (if required)"
+    },
+    {
+      "level": 1,
+      "question": "Saba University School of Medicine — Caribbean: what is true regarding NEET qualified (Indian applicants — verify current NMC rule)?",
+      "options": [
+        "NEET qualified (Indian applicants — verify current NMC rule) is often required or assessed for this service. Note: Check NMC notification at admission year",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Check NMC notification at admission year"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Saba University School of Medicine — Caribbean should state correctly about Meet SUSOM admission requirements:",
+      "options": [
+        "Meet SUSOM admission requirements is a core requirement for this service.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Meet SUSOM admission requirements"
+    },
+    {
+      "level": 1,
+      "question": "For Saba University School of Medicine — Caribbean, which statement about Financial capacity for full program is correct?",
+      "options": [
+        "Financial capacity for full program is a core requirement for this service.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Financial capacity for full program"
+    },
+    {
+      "level": 1,
+      "question": "Saba University School of Medicine — Caribbean: what is true regarding Program duration?",
+      "options": [
+        "Program duration: 4 years — 10 semesters",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "10 semesters"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Saba University School of Medicine — Caribbean should state correctly about Tuition:",
+      "options": [
+        "Tuition: From $298,750 — Sep 2026 rates — verify on saba.edu",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Sep 2026 rates — verify on saba.edu"
+    },
+    {
+      "level": 1,
+      "question": "For Saba University School of Medicine — Caribbean, which statement about USMLE Step 1 pass is correct?",
+      "options": [
+        "USMLE Step 1 pass: 98% — First-time 2024",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "First-time 2024"
+    },
+    {
+      "level": 1,
+      "question": "Saba University School of Medicine — Caribbean: what is true regarding Required docs?",
+      "options": [
+        "Required docs: 18+ — Admission + visa",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Admission + visa"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Saba University School of Medicine — Caribbean should state correctly about Consultancy fee:",
+      "options": [
+        "Consultancy fee: See Fees tab — Future Link package",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Future Link package"
+    },
+    {
+      "level": 1,
+      "question": "For Saba University School of Medicine — Caribbean, which statement about service summary is correct?",
+      "options": [
+        "MD program · NVAO accredited · Basic science on Saba · Clinical rotations in US & Canada",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "MD program · NVAO accredited · Basic science on Saba · Clinical rotations in US & Canada"
+    },
+    {
+      "level": 1,
+      "question": "Saba University School of Medicine — Caribbean: what is true regarding MD vs MBBS naming?",
+      "options": [
+        "SUSOM awards a Doctor of Medicine (MD) — counsel Indian clients on FMGE/NExT pathway; do not describe as Indian-style MBBS without explaining licensing steps.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "SUSOM awards a Doctor of Medicine (MD) — counsel Indian clients on FMGE/NExT pathway; do not describe as Indian-style MBBS without explaining licensing steps."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Saba University School of Medicine — Caribbean should state correctly about policy update:",
+      "options": [
+        "Verify current tuition, intake dates, and admission requirements on saba.edu before quoting clients. Indian students: confirm NEET eligibility and NMC guidance…",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify current tuition, intake dates, and admission requirements on saba.edu before quoting clients. Indian students: confirm NEET eligibility and NMC guidance separately."
+    },
+    {
+      "level": 1,
+      "question": "For Saba University School of Medicine — Caribbean, which statement about Is SUSOM accredited is correct?",
+      "options": [
+        "NVAO accredited; WFME recognised; US NCFMEA comparable standards — see saba.edu/why-saba/",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "NVAO accredited; WFME recognised; US NCFMEA comparable standards — see saba.edu/why-saba/"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Saba University School of Medicine — Caribbean should state correctly about Intakes:",
+      "options": [
+        "January, May, and September per saba.edu.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "January, May, and September per saba.edu."
+    },
+    {
+      "level": 1,
+      "question": "For Saba University School of Medicine — Caribbean, which statement about Can Indian students apply after NEET is correct?",
+      "options": [
+        "Verify current NMC rules for foreign medical study — NEET qualification may be required.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify current NMC rules for foreign medical study — NEET qualification may be required."
+    },
+    {
       "level": 2,
       "question": "Clinical rotations primarily in?",
       "options": [
@@ -799,6 +1051,270 @@
       "explanation": "Small island; limited economy."
     },
     {
+      "level": 2,
+      "question": "In the Saba University School of Medicine — Caribbean process, what is the correct approach to client question: Is SUSOM accredited?",
+      "options": [
+        "NVAO accredited; WFME recognised; US NCFMEA comparable standards — see saba.edu/why-saba/",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "NVAO accredited; WFME recognised; US NCFMEA comparable standards — see saba.edu/why-saba/"
+    },
+    {
+      "level": 2,
+      "question": "For Saba University School of Medicine — Caribbean, what should happen during client question: Program duration?",
+      "options": [
+        "4 years (10 semesters): 5 basic science on Saba + 5 clinical in US.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "4 years (10 semesters): 5 basic science on Saba + 5 clinical in US."
+    },
+    {
+      "level": 2,
+      "question": "Saba University School of Medicine — Caribbean workflow — best practice for client question: Intakes:",
+      "options": [
+        "January, May, and September per saba.edu.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "January, May, and September per saba.edu."
+    },
+    {
+      "level": 2,
+      "question": "In the Saba University School of Medicine — Caribbean process, what is the correct approach to client question: Can Indian students apply after NEET?",
+      "options": [
+        "Verify current NMC rules for foreign medical study — NEET qualification may be required.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify current NMC rules for foreign medical study — NEET qualification may be required."
+    },
+    {
+      "level": 2,
+      "question": "For Saba University School of Medicine — Caribbean, what should happen during client question: Is it MBBS or MD?",
+      "options": [
+        "Doctor of Medicine (MD) — US-style medical degree.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Doctor of Medicine (MD) — US-style medical degree."
+    },
+    {
+      "level": 2,
+      "question": "Saba University School of Medicine — Caribbean workflow — best practice for client question: FMGE/NExT required for India:",
+      "options": [
+        "Yes for Indian licensure after foreign MD — verify current NMC process.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes for Indian licensure after foreign MD — verify current NMC process."
+    },
+    {
+      "level": 2,
+      "question": "In the Saba University School of Medicine — Caribbean process, what is the correct approach to client question: USMLE pass rates?",
+      "options": [
+        "SUSOM reports 98% first-time Step 1 and Step 2 CK pass (2024).",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "SUSOM reports 98% first-time Step 1 and Step 2 CK pass (2024)."
+    },
+    {
+      "level": 2,
+      "question": "For Saba University School of Medicine — Caribbean, what should happen during client question: Residency placement?",
+      "options": [
+        "SUSOM reports 99% three-year residency placement rate — verify latest on graduate success page.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "SUSOM reports 99% three-year residency placement rate — verify latest on graduate success page."
+    },
+    {
+      "level": 2,
+      "question": "Saba University School of Medicine — Caribbean workflow — best practice for client question: Where is basic science:",
+      "options": [
+        "Island of Saba, Dutch Caribbean.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Island of Saba, Dutch Caribbean."
+    },
+    {
+      "level": 2,
+      "question": "In the Saba University School of Medicine — Caribbean process, what is the correct approach to client question: Where are clinical rotations?",
+      "options": [
+        "Affiliated US hospitals; select Canada electives.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Affiliated US hospitals; select Canada electives."
+    },
+    {
+      "level": 2,
+      "question": "For Saba University School of Medicine — Caribbean, what should happen during client question: English medium?",
+      "options": [
+        "Yes — entire MD program in English.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes — entire MD program in English."
+    },
+    {
+      "level": 2,
+      "question": "Saba University School of Medicine — Caribbean workflow — best practice for client question: Can spouse work on Saba:",
+      "options": [
+        "Very limited — do not promise spouse employment.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Very limited — do not promise spouse employment."
+    },
+    {
+      "level": 2,
+      "question": "In the Saba University School of Medicine — Caribbean process, what is the correct approach to client question: Tuition amount?",
+      "options": [
+        "Always verify current semester rates on saba.edu/admissions/tuition-and-fees/",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Always verify current semester rates on saba.edu/admissions/tuition-and-fees/"
+    },
+    {
+      "level": 2,
+      "question": "For Saba University School of Medicine — Caribbean, what should happen during client question: Scholarships?",
+      "options": [
+        "Check saba.edu/admissions/scholarships/ for current offerings.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Check saba.edu/admissions/scholarships/ for current offerings."
+    },
+    {
+      "level": 2,
+      "question": "Saba University School of Medicine — Caribbean workflow — best practice for client question: Gateway program:",
+      "options": [
+        "15-week prep for conditionally accepted students.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "15-week prep for conditionally accepted students."
+    },
+    {
+      "level": 2,
+      "question": "In the Saba University School of Medicine — Caribbean process, what is the correct approach to client question: Pre-med master's?",
+      "options": [
+        "8-month MSc via MUA partner, then apply to MD.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "8-month MSc via MUA partner, then apply to MD."
+    },
+    {
+      "level": 2,
+      "question": "For Saba University School of Medicine — Caribbean, what should happen during client question: Housing on Saba?",
+      "options": [
+        "See saba.edu/student-experience/housing/",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "See saba.edu/student-experience/housing/"
+    },
+    {
+      "level": 2,
+      "question": "Saba University School of Medicine — Caribbean workflow — best practice for client question: Canadian applicants:",
+      "options": [
+        "Dedicated CAD tuition option — see Canadian applicants page.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Dedicated CAD tuition option — see Canadian applicants page."
+    },
+    {
+      "level": 2,
+      "question": "In the Saba University School of Medicine — Caribbean process, what is the correct approach to client question: Can we guarantee approval?",
+      "options": [
+        "No — never guarantee admission, visa, residency, or licensure.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "No — never guarantee admission, visa, residency, or licensure."
+    },
+    {
+      "level": 2,
+      "question": "For Saba University School of Medicine — Caribbean, what should happen during client question: Document checklist?",
+      "options": [
+        "See Checklist tab — admission, visa, clinical, family sections.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "See Checklist tab — admission, visa, clinical, family sections."
+    },
+    {
+      "level": 2,
+      "question": "Saba University School of Medicine — Caribbean workflow — best practice for client question: US visa for clinical years:",
+      "options": [
+        "Plan F-1 or university-guided status for US rotations — case specific.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Plan F-1 or university-guided status for US rotations — case specific."
+    },
+    {
+      "level": 2,
+      "question": "In the Saba University School of Medicine — Caribbean process, what is the correct approach to client question: NMC recognition?",
+      "options": [
+        "Verify institution on NMC list at time of enrollment.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify institution on NMC list at time of enrollment."
+    },
+    {
       "level": 3,
       "question": "Can counselors guarantee US residency?",
       "options": [
@@ -809,9 +1325,303 @@
       ],
       "correctIndex": 1,
       "explanation": "Compliance — no guarantees."
+    },
+    {
+      "level": 3,
+      "question": "Saba University School of Medicine — Caribbean: what is the compliance risk with Can counselors guarantee US residency?",
+      "options": [
+        "Never — cite published stats only",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Compliance — no guarantees."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Saba University School of Medicine — Caribbean — key issue with Guaranteed residency promise:",
+      "options": [
+        "Quote SUSOM published stats only; no guarantees",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Agents promising US residency or 100% match."
+    },
+    {
+      "level": 3,
+      "question": "For Saba University School of Medicine — Caribbean, counselors must avoid this mistake related to Guaranteed residency promise (detail):",
+      "options": [
+        "Agents promising US residency or 100% match.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Quote SUSOM published stats only; no guarantees"
+    },
+    {
+      "level": 3,
+      "question": "Saba University School of Medicine — Caribbean: what is the compliance risk with NMC list not verified?",
+      "options": [
+        "Verify on nmc.org.in before contract",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Enrollment without checking current NMC foreign medical institutions list."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Saba University School of Medicine — Caribbean — key issue with NMC list not verified (detail):",
+      "options": [
+        "Enrollment without checking current NMC foreign medical institutions list.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify on nmc.org.in before contract"
+    },
+    {
+      "level": 3,
+      "question": "For Saba University School of Medicine — Caribbean, counselors must avoid this mistake related to Underestimating clinical-year costs:",
+      "options": [
+        "Include US rotation city living costs",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Budgeting only for Saba island living."
+    },
+    {
+      "level": 3,
+      "question": "Saba University School of Medicine — Caribbean: what is the compliance risk with Underestimating clinical-year costs (detail)?",
+      "options": [
+        "Budgeting only for Saba island living.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Include US rotation city living costs"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Saba University School of Medicine — Caribbean — key issue with Family relocation without visa plan:",
+      "options": [
+        "Immigration counsel before promising family join",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Spouse/children without dependant visa strategy."
+    },
+    {
+      "level": 3,
+      "question": "For Saba University School of Medicine — Caribbean, counselors must avoid this mistake related to Family relocation without visa plan (detail):",
+      "options": [
+        "Spouse/children without dependant visa strategy.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Immigration counsel before promising family join"
+    },
+    {
+      "level": 3,
+      "question": "Saba University School of Medicine — Caribbean: what is the compliance risk with Calling MD an Indian MBBS?",
+      "options": [
+        "Explain MD + FMGE/NExT pathway clearly",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Misrepresenting degree equivalency."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Saba University School of Medicine — Caribbean — key issue with Calling MD an Indian MBBS (detail):",
+      "options": [
+        "Misrepresenting degree equivalency.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain MD + FMGE/NExT pathway clearly"
+    },
+    {
+      "level": 3,
+      "question": "For Saba University School of Medicine — Caribbean, counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not guarantee residency",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee residency"
+    },
+    {
+      "level": 3,
+      "question": "Saba University School of Medicine — Caribbean: what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not promise spouse work on Saba",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not promise spouse work on Saba"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Saba University School of Medicine — Caribbean — key issue with counselor don't:",
+      "options": [
+        "Do not mislabel MD as Indian MBBS",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not mislabel MD as Indian MBBS"
+    },
+    {
+      "level": 3,
+      "question": "For Saba University School of Medicine — Caribbean, counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Outdated tuition quotes",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Outdated tuition quotes"
+    },
+    {
+      "level": 3,
+      "question": "Saba University School of Medicine — Caribbean: what is the compliance risk with common mistake?",
+      "options": [
+        "Skipping NMC list check",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Skipping NMC list check"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Saba University School of Medicine — Caribbean — key issue with common mistake:",
+      "options": [
+        "Ignoring US clinical living costs",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Ignoring US clinical living costs"
+    },
+    {
+      "level": 3,
+      "question": "For Saba University School of Medicine — Caribbean, counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Client agreement and consent before submission",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Client agreement and consent before submission"
+    },
+    {
+      "level": 3,
+      "question": "Saba University School of Medicine — Caribbean: what is the compliance risk with compliance rule?",
+      "options": [
+        "Never guarantee admission, visa, USMLE pass, residency match, or India license",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee admission, visa, USMLE pass, residency match, or India license"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Saba University School of Medicine — Caribbean — key issue with compliance rule:",
+      "options": [
+        "Quote tuition only from official saba.edu fee page",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Quote tuition only from official saba.edu fee page"
+    },
+    {
+      "level": 3,
+      "question": "Saba University School of Medicine — Caribbean: what is the compliance risk with refusal handling?",
+      "options": [
+        "If client expects guaranteed US residency or India license without FMGE/NExT, reset expectations before taking fees.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "If client expects guaranteed US residency or India license without FMGE/NExT, reset expectations before taking fees."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Saba University School of Medicine — Caribbean — key issue with Can counselors guarantee US residency:",
+      "options": [
+        "Never — cite published stats only",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Compliance — no guarantees."
+    },
+    {
+      "level": 3,
+      "question": "For Saba University School of Medicine — Caribbean, counselors must avoid this mistake related to Guaranteed residency promise:",
+      "options": [
+        "Quote SUSOM published stats only; no guarantees",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Agents promising US residency or 100% match."
+    },
+    {
+      "level": 3,
+      "question": "Saba University School of Medicine — Caribbean: what is the compliance risk with Guaranteed residency promise (detail)?",
+      "options": [
+        "Agents promising US residency or 100% match.",
+        "Saba University School of Medicine (SUSOM), established 1992, offers a 4-year Doctor of Medicine program. Five semesters of basic sciences on the island of Sab…",
+        "Bachelor's degree or equivalent pre-med foundation · English proficiency · Meet SUSOM admission requirements · Indian applicants: verify NEET eligibility with …",
+        "NVAO accreditation — standards deemed comparable to US medical schools by US DOE NCFMEA. Only Caribbean medical school with European NVAO accreditation per SUS…"
+      ],
+      "correctIndex": 0,
+      "explanation": "Quote SUSOM published stats only; no guarantees"
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
     {
       "version": "v1.0",
       "date": "10 Jun 2026",

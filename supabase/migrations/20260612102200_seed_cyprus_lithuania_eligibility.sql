@@ -1,0 +1,68 @@
+-- Cyprus + Lithuania eligibility questions
+-- Run AFTER metadata migrations
+
+-- Eligibility questions: 07-eu-cyprus
+-- Regenerate: node scripts/generate-eligibility-questions-sql-split.mjs
+
+INSERT INTO public.service_eligibility_questions
+  (library_id, code, section, label, help_text, q_type, options, conditional_on, rule, prefill_field, allows_pending_note, sort_order)
+SELECT v.library_id, v.code, v.section, v.label, v.help_text, v.q_type, v.options, v.conditional_on, v.rule, v.prefill_field, v.allows_pending_note, v.sort_order
+FROM (VALUES
+  ('b2000001-0001-4000-8000-0000000000c8'::uuid, 'unconditional_offer_from_crmd_recognised', 'eligibility', 'Does the client meet: Unconditional offer from CRMD-recognised institution?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 10),
+  ('b2000001-0001-4000-8000-0000000000c8'::uuid, 'pcc_apostilled_mea_cyprus_embassy_attest', 'eligibility', 'Does the client meet: PCC apostilled (MEA) + Cyprus Embassy attested?', 'Start immediately — allow 4–6 weeks', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 20),
+  ('b2000001-0001-4000-8000-0000000000c8'::uuid, 'medical_panel_hiv_hep_b_c_syphilis_tb_va', 'eligibility', 'Does the client meet: Medical panel (HIV, Hep B/C, Syphilis, TB — valid 4 months)?', 'Time tests for application date', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 30),
+  ('b2000001-0001-4000-8000-0000000000c8'::uuid, 'financial_proof_7_000_10_000', 'eligibility', 'Does the client meet: Financial proof €7,000–€10,000+?', '3–6 months bank history; sponsor acceptable', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 40),
+  ('b2000001-0001-4000-8000-0000000000c8'::uuid, 'proof_of_accommodation_in_cyprus', 'eligibility', 'Does the client meet: Proof of accommodation in Cyprus?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 50),
+  ('b2000001-0001-4000-8000-0000000000c8'::uuid, 'tuition_deposit_paid_university_receipt', 'eligibility', 'Does the client meet: Tuition deposit paid (university receipt)?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 60),
+  ('b2000001-0001-4000-8000-0000000000c8'::uuid, 'valid_passport_1_year_beyond_arrival', 'eligibility', 'Does the client meet: Valid passport (1+ year beyond arrival)?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"block_if":{"equals":false},"outcome_if_fail":"not_yet"}'::jsonb, NULL, false, 70),
+  ('b2000001-0001-4000-8000-0000000000c8'::uuid, 'english_proficiency_or_university_waiver', 'eligibility', 'Does the client meet: English proficiency or university waiver?', 'IELTS 5.5–6.5 typical; some waive', 'yes_no', NULL::jsonb, NULL::jsonb, '{"block_if":{"equals":false},"outcome_if_fail":"not_yet"}'::jsonb, NULL, false, 80),
+  ('b2000001-0001-4000-8000-0000000000c8'::uuid, 'passport_valid', 'documents', 'Is the passport valid for the expected processing period?', 'Check expiry against expected decision timeline.', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, 'clients.passport_expiry', true, 90),
+  ('b2000001-0001-4000-8000-0000000000c8'::uuid, 'prior_refusals', 'compliance', 'Any prior visa refusals, overstays, or undeclared immigration history?', 'Full disclosure required before lodging.', 'yes_no', NULL::jsonb, NULL::jsonb, '{"senior_review_if":{"equals":true},"block_if":{"equals":true},"outcome_if_fail":"senior_review"}'::jsonb, NULL, false, 100),
+  ('b2000001-0001-4000-8000-0000000000c8'::uuid, 'counselor_ready', 'submission', 'Has the counselor confirmed the file is complete and ready to lodge?', 'Final quality check before submission.', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false}}'::jsonb, NULL, false, 110),
+  ('b2000001-0001-4000-8000-0000000000c9'::uuid, 'valid_passport_3_months_beyond_stay', 'eligibility', 'Does the client meet: Valid passport (3+ months beyond stay)?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"block_if":{"equals":false},"outcome_if_fail":"not_yet"}'::jsonb, NULL, false, 10),
+  ('b2000001-0001-4000-8000-0000000000c9'::uuid, 'travel_medical_insurance_recommended', 'eligibility', 'Does the client meet: Travel medical insurance (recommended)?', '€30,000+ coverage advised', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 20),
+  ('b2000001-0001-4000-8000-0000000000c9'::uuid, 'proof_of_accommodation_and_itinerary', 'eligibility', 'Does the client meet: Proof of accommodation and itinerary?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 30),
+  ('b2000001-0001-4000-8000-0000000000c9'::uuid, 'proof_of_funds_for_trip', 'eligibility', 'Does the client meet: Proof of funds for trip?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 40),
+  ('b2000001-0001-4000-8000-0000000000c9'::uuid, 'strong_ties_to_india', 'eligibility', 'Does the client meet: Strong ties to India?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"block_if":{"equals":false},"outcome_if_fail":"not_yet"}'::jsonb, NULL, false, 50),
+  ('b2000001-0001-4000-8000-0000000000c9'::uuid, 'cover_letter_explaining_purpose', 'eligibility', 'Does the client meet: Cover letter explaining purpose?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"block_if":{"equals":false},"outcome_if_fail":"not_yet"}'::jsonb, NULL, false, 60),
+  ('b2000001-0001-4000-8000-0000000000c9'::uuid, 'biometrics_at_vfs_if_required', 'eligibility', 'Does the client meet: Biometrics at VFS (if required)?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 70),
+  ('b2000001-0001-4000-8000-0000000000c9'::uuid, 'passport_valid', 'documents', 'Is the passport valid for the expected processing period?', 'Check expiry against expected decision timeline.', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, 'clients.passport_expiry', true, 80),
+  ('b2000001-0001-4000-8000-0000000000c9'::uuid, 'prior_refusals', 'compliance', 'Any prior visa refusals, overstays, or undeclared immigration history?', 'Full disclosure required before lodging.', 'yes_no', NULL::jsonb, NULL::jsonb, '{"senior_review_if":{"equals":true},"block_if":{"equals":true},"outcome_if_fail":"senior_review"}'::jsonb, NULL, false, 90),
+  ('b2000001-0001-4000-8000-0000000000c9'::uuid, 'counselor_ready', 'submission', 'Has the counselor confirmed the file is complete and ready to lodge?', 'Final quality check before submission.', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false}}'::jsonb, NULL, false, 100)
+) AS v(library_id, code, section, label, help_text, q_type, options, conditional_on, rule, prefill_field, allows_pending_note, sort_order)
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.service_eligibility_questions q
+  WHERE q.library_id = v.library_id AND q.code = v.code
+);
+
+-- Eligibility questions: 07-eu-lithuania
+-- Regenerate: node scripts/generate-eligibility-questions-sql-split.mjs
+
+INSERT INTO public.service_eligibility_questions
+  (library_id, code, section, label, help_text, q_type, options, conditional_on, rule, prefill_field, allows_pending_note, sort_order)
+SELECT v.library_id, v.code, v.section, v.label, v.help_text, v.q_type, v.options, v.conditional_on, v.rule, v.prefill_field, v.allows_pending_note, v.sort_order
+FROM (VALUES
+  ('b2000001-0001-4000-8000-0000000000cd'::uuid, 'admission_from_recognised_lithuanian_ins', 'eligibility', 'Does the client meet: Admission from recognised Lithuanian institution?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 10),
+  ('b2000001-0001-4000-8000-0000000000cd'::uuid, 'proof_of_funds_576_month_12', 'eligibility', 'Does the client meet: Proof of funds (€576/month × 12)?', 'Verify current amount on migracija.lt', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 20),
+  ('b2000001-0001-4000-8000-0000000000cd'::uuid, 'health_insurance_travel_statutory', 'eligibility', 'Does the client meet: Health insurance (travel + statutory)?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 30),
+  ('b2000001-0001-4000-8000-0000000000cd'::uuid, 'motivation_letter_and_cv', 'eligibility', 'Does the client meet: Motivation letter and CV?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"block_if":{"equals":false},"outcome_if_fail":"not_yet"}'::jsonb, NULL, false, 40),
+  ('b2000001-0001-4000-8000-0000000000cd'::uuid, 'language_proficiency_as_required', 'eligibility', 'Does the client meet: Language proficiency (as required)?', 'English or Lithuanian per program', 'yes_no', NULL::jsonb, NULL::jsonb, '{"block_if":{"equals":false},"outcome_if_fail":"not_yet"}'::jsonb, NULL, false, 50),
+  ('b2000001-0001-4000-8000-0000000000cd'::uuid, 'valid_passport', 'eligibility', 'Does the client meet: Valid passport?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"block_if":{"equals":false},"outcome_if_fail":"not_yet"}'::jsonb, NULL, false, 60),
+  ('b2000001-0001-4000-8000-0000000000cd'::uuid, 'passport_valid', 'documents', 'Is the passport valid for the expected processing period?', 'Check expiry against expected decision timeline.', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, 'clients.passport_expiry', true, 70),
+  ('b2000001-0001-4000-8000-0000000000cd'::uuid, 'prior_refusals', 'compliance', 'Any prior visa refusals, overstays, or undeclared immigration history?', 'Full disclosure required before lodging.', 'yes_no', NULL::jsonb, NULL::jsonb, '{"senior_review_if":{"equals":true},"block_if":{"equals":true},"outcome_if_fail":"senior_review"}'::jsonb, NULL, false, 80),
+  ('b2000001-0001-4000-8000-0000000000cd'::uuid, 'counselor_ready', 'submission', 'Has the counselor confirmed the file is complete and ready to lodge?', 'Final quality check before submission.', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false}}'::jsonb, NULL, false, 90),
+  ('b2000001-0001-4000-8000-0000000000ce'::uuid, 'valid_passport_3_months_beyond_stay', 'eligibility', 'Does the client meet: Valid passport (3+ months beyond stay)?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"block_if":{"equals":false},"outcome_if_fail":"not_yet"}'::jsonb, NULL, false, 10),
+  ('b2000001-0001-4000-8000-0000000000ce'::uuid, 'travel_medical_insurance_30_000', 'eligibility', 'Does the client meet: Travel medical insurance €30,000+?', 'Valid for entire Schengen stay', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 20),
+  ('b2000001-0001-4000-8000-0000000000ce'::uuid, 'proof_of_accommodation_and_itinerary', 'eligibility', 'Does the client meet: Proof of accommodation and itinerary?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 30),
+  ('b2000001-0001-4000-8000-0000000000ce'::uuid, 'proof_of_funds', 'eligibility', 'Does the client meet: Proof of funds?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 40),
+  ('b2000001-0001-4000-8000-0000000000ce'::uuid, 'strong_ties_to_india', 'eligibility', 'Does the client meet: Strong ties to India?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"block_if":{"equals":false},"outcome_if_fail":"not_yet"}'::jsonb, NULL, false, 50),
+  ('b2000001-0001-4000-8000-0000000000ce'::uuid, 'cover_letter_explaining_purpose', 'eligibility', 'Does the client meet: Cover letter explaining purpose?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"block_if":{"equals":false},"outcome_if_fail":"not_yet"}'::jsonb, NULL, false, 60),
+  ('b2000001-0001-4000-8000-0000000000ce'::uuid, 'biometrics_if_not_in_vis', 'eligibility', 'Does the client meet: Biometrics (if not in VIS)?', NULL, 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, NULL, true, 70),
+  ('b2000001-0001-4000-8000-0000000000ce'::uuid, 'passport_valid', 'documents', 'Is the passport valid for the expected processing period?', 'Check expiry against expected decision timeline.', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false},"allows_pending":true}'::jsonb, 'clients.passport_expiry', true, 80),
+  ('b2000001-0001-4000-8000-0000000000ce'::uuid, 'prior_refusals', 'compliance', 'Any prior visa refusals, overstays, or undeclared immigration history?', 'Full disclosure required before lodging.', 'yes_no', NULL::jsonb, NULL::jsonb, '{"senior_review_if":{"equals":true},"block_if":{"equals":true},"outcome_if_fail":"senior_review"}'::jsonb, NULL, false, 90),
+  ('b2000001-0001-4000-8000-0000000000ce'::uuid, 'counselor_ready', 'submission', 'Has the counselor confirmed the file is complete and ready to lodge?', 'Final quality check before submission.', 'yes_no', NULL::jsonb, NULL::jsonb, '{"warn_if":{"equals":false}}'::jsonb, NULL, false, 100)
+) AS v(library_id, code, section, label, help_text, q_type, options, conditional_on, rule, prefill_field, allows_pending_note, sort_order)
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.service_eligibility_questions q
+  WHERE q.library_id = v.library_id AND q.code = v.code
+);
