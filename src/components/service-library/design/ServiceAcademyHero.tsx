@@ -1,10 +1,7 @@
 import { Share2, BookOpen, Brain, Plus, Link as LinkIcon, ClipboardCheck } from "lucide-react";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
-import {
-  ServiceAcademyHeroSearch,
-  type HeroSearchService,
-  type HeroSearchTab,
-} from "@/components/service-library/design/ServiceAcademyHeroSearch";
+import { ServiceAcademyHeroSearch } from "@/components/service-library/design/ServiceAcademyHeroSearch";
+import type { PageSearchEntry } from "@/lib/service-library/buildPageSearchIndex";
 import flcLogo from "@/assets/flc-logo.png";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,11 +25,9 @@ type Props = {
   onStartEligibility?: () => void;
   policyDismissed?: boolean;
   canManage?: boolean;
-  searchQuery?: string;
-  onSearchChange?: (q: string) => void;
-  searchTabs?: HeroSearchTab[];
-  searchServices?: HeroSearchService[];
-  onSelectService?: (id: string) => void;
+  pageSearch?: string;
+  onPageSearchChange?: (q: string) => void;
+  pageSearchEntries?: PageSearchEntry[];
 };
 
 export function ServiceAcademyHero({
@@ -46,11 +41,9 @@ export function ServiceAcademyHero({
   onStartEligibility,
   policyDismissed,
   canManage,
-  searchQuery = "",
-  onSearchChange,
-  searchTabs = [],
-  searchServices = [],
-  onSelectService,
+  pageSearch = "",
+  onPageSearchChange,
+  pageSearchEntries = [],
 }: Props) {
   const showPolicy = !policyDismissed && view.policyAlert;
   const regionLabel = view.mbbsMeta?.regionLabel ?? view.country;
@@ -84,14 +77,13 @@ export function ServiceAcademyHero({
               Policy update
             </Badge>
           )}
-          {onSearchChange && onSelectService ? (
+          {onPageSearchChange ? (
             <ServiceAcademyHeroSearch
-              value={searchQuery}
-              onChange={onSearchChange}
-              tabs={searchTabs}
-              services={searchServices}
+              value={pageSearch}
+              onChange={onPageSearchChange}
+              entries={pageSearchEntries}
+              view={view}
               onOpenTab={(tab) => onOpenTab?.(tab)}
-              onSelectService={onSelectService}
             />
           ) : null}
           <NotificationCenter />
