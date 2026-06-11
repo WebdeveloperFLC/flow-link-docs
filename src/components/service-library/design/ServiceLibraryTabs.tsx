@@ -200,7 +200,7 @@ export function ServiceLibraryTabs({
 
       <TabsContent value="fees" className="mt-0 space-y-4">
         {view.feeBreakdown?.govt || view.feeBreakdown?.consultancy ? (
-          <ServiceFeeBreakdownPanel breakdown={view.feeBreakdown} />
+          <ServiceFeeBreakdownPanel breakdown={view.feeBreakdown} isMbbs={view.isMbbs} />
         ) : view.isMbbs ? null : (
           <Card className="p-5 shadow-elev-sm">
             <p className="text-sm text-muted-foreground">
@@ -208,15 +208,15 @@ export function ServiceLibraryTabs({
             </p>
           </Card>
         )}
-        {view.countryInsights?.fullCostBreakdown?.sections?.length ? (
+        {view.fullCostBreakdown?.sections?.length ? (
           <ServiceFullCostBreakdownCard
-            breakdown={view.countryInsights.fullCostBreakdown}
+            breakdown={view.fullCostBreakdown}
             emphasizeTuition={view.isMbbs}
           />
-        ) : view.isMbbs && !(view.feeBreakdown?.govt || view.feeBreakdown?.consultancy) ? (
+        ) : view.isMbbs ? (
           <Card className="p-5 shadow-elev-sm">
             <p className="text-sm text-muted-foreground">
-              Tuition structure not configured yet. Add full cost breakdown in Service Library Admin → Service content.
+              Program cost breakdown not available for this institution yet.
             </p>
           </Card>
         ) : null}
