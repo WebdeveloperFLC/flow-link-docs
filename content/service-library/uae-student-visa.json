@@ -1,0 +1,1541 @@
+{
+  "displayName": "United Arab Emirates – Student Residence Visa",
+  "shortDescription": "KHDA / SPEA / ADEK · University sponsorship · Dubai, Sharjah, Abu Dhabi · India route",
+  "version": "v2.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 10 Jun 2026",
+  "learningLevel": "Intermediate",
+  "learningMinutes": 22,
+  "policyAlert": {
+    "active": true,
+    "date": "10 Jun 2026",
+    "summary": "Student visa requires licensed institution sponsorship. Confirm emirate authority (GDRFA Dubai, Sharjah, Abu Dhabi) before quoting fees."
+  },
+  "alert": {
+    "title": "Licensed institution + emirate authority",
+    "body": "Verify university/college is licensed in the target emirate (KHDA Dubai, SPEA Sharjah, ADEK Abu Dhabi). Unlicensed agents or TR-only offers are a compliance risk."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Institution sponsorship",
+      "variant": "warning"
+    },
+    {
+      "label": "2–4 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Emirates ID after arrival",
+      "variant": "neutral"
+    },
+    {
+      "label": "Dubai · Sharjah · Abu Dhabi",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "2–4 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "₹15,000 consultancy",
+      "variant": "neutral"
+    },
+    {
+      "label": "University sponsor",
+      "variant": "success"
+    },
+    {
+      "label": "Medical + Emirates ID",
+      "variant": "warning"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "2–4w",
+      "sub": "After complete file + sponsor NOC",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "AED 1,000+",
+      "sub": "+ visa typing & medical",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "92%",
+      "sub": "~80% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "16",
+      "sub": "+ attestation & sponsor letter",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "₹15,000",
+      "sub": "+ govt & third-party",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit issued from India, then Emirates ID and residence stamping after arrival and medical."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · Indian documents attested (MOFA UAE where required)"
+    },
+    {
+      "label": "Emirate authorities",
+      "value": "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location",
+      "warning": true
+    },
+    {
+      "label": "Proof of funds",
+      "value": "Tuition payment receipt + living support per institution guidelines; sponsor may require bank statements or sponsor undertaking.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "ICP UAE (u.ae/en/icp) · GDRFA (emirate) · VFS Global UAE India · Licensed university/college"
+    },
+    {
+      "label": "After approval",
+      "value": "Enter UAE on entry permit; complete medical; apply Emirates ID; residence visa stamping; register with institution. Part-time work may require university NOC (typically max 15 hrs/week in term)."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Admission from KHDA/SPEA/ADEK-licensed institution",
+      "met": true
+    },
+    {
+      "criterion": "Tuition deposit or payment receipt",
+      "met": false,
+      "note": "Required before visa processing"
+    },
+    {
+      "criterion": "Passport valid 6+ months",
+      "met": true
+    },
+    {
+      "criterion": "Indian documents attested (MOFA UAE as required)",
+      "met": false,
+      "note": "Allow 2–4 weeks"
+    },
+    {
+      "criterion": "Medical fitness test (UAE-approved)",
+      "met": false,
+      "note": "After arrival or as directed"
+    },
+    {
+      "criterion": "Institution visa processing fee paid",
+      "met": false
+    },
+    {
+      "criterion": "Security clearance / GDRFA approval",
+      "met": false,
+      "note": "Institution submits"
+    },
+    {
+      "criterion": "Accommodation proof in UAE",
+      "met": false
+    }
+  ],
+  "redFlagsBanner": "After refusal, address sponsor file gaps before rebooking. Never use unlicensed institutions or visa runners.",
+  "redFlags": [
+    {
+      "title": "Unlicensed college or fake admission",
+      "description": "Institution not on KHDA/SPEA/ADEK list.",
+      "fix": "Verify license on official emirate education portal before fees",
+      "severity": "Very common"
+    },
+    {
+      "title": "Tuition not paid before visa",
+      "description": "Sponsor cannot proceed without payment proof.",
+      "fix": "Collect university receipt matching offer letter",
+      "severity": "Very common"
+    },
+    {
+      "title": "Wrong emirate authority",
+      "description": "Dubai file submitted for Sharjah campus.",
+      "fix": "Match GDRFA/ICP to physical campus emirate",
+      "severity": "Common"
+    },
+    {
+      "title": "Attestation incomplete",
+      "description": "Indian degree/marksheets not MOFA attested.",
+      "fix": "MEA → UAE Embassy India → MOFA UAE chain",
+      "severity": "Common"
+    },
+    {
+      "title": "Emirates ID delay",
+      "description": "Student did not complete medical/ID after arrival.",
+      "fix": "Institution PRO timeline — complete within 30 days",
+      "severity": "High"
+    },
+    {
+      "title": "Prior UAE overstay",
+      "description": "Hidden overstay or absconding record.",
+      "fix": "GDRFA history check; disclose and remediate fines",
+      "severity": "High"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee UAE student visa approval?",
+      "a": "No. GDRFA/ICP decides based on sponsor file and security checks. Never promise approval."
+    },
+    {
+      "q": "Which emirate authority for Dubai students?",
+      "a": "GDRFA Dubai with KHDA-licensed institution sponsorship."
+    },
+    {
+      "q": "Can students work part-time?",
+      "a": "Limited part-time work with university NOC — verify current MOHRE rules; not full-time employment."
+    },
+    {
+      "q": "How to apply from India?",
+      "a": "Institution-sponsored entry permit via GDRFA/ICP channels; VFS or embassy attestation for documents as required."
+    },
+    {
+      "q": "What after arrival?",
+      "a": "Medical test, Emirates ID biometrics, residence visa stamping, university registration."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit issued from India, then Emirates ID and residence stamping after arrival and medical."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · Indian documents attested (MOFA UAE where required)"
+    },
+    {
+      "q": "What is Emirate authorities for this service?",
+      "a": "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+    },
+    {
+      "q": "What is Proof of funds for this service?",
+      "a": "Tuition payment receipt + living support per institution guidelines; sponsor may require bank statements or sponsor undertaking."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "ICP UAE (u.ae/en/icp) · GDRFA (emirate) · VFS Global UAE India · Licensed university/college"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Enter UAE on entry permit; complete medical; apply Emirates ID; residence visa stamping; register with institution. Part-time work may require university NOC (typically max 15 hrs/week in term)."
+    },
+    {
+      "q": "Is Admission from KHDA/SPEA/ADEK-licensed institution required?",
+      "a": "Admission from KHDA/SPEA/ADEK-licensed institution is typically required."
+    },
+    {
+      "q": "Is Tuition deposit or payment receipt required?",
+      "a": "Required before visa processing"
+    },
+    {
+      "q": "Is Passport valid 6+ months required?",
+      "a": "Passport valid 6+ months is typically required."
+    },
+    {
+      "q": "Is Indian documents attested (MOFA UAE as required) required?",
+      "a": "Allow 2–4 weeks"
+    },
+    {
+      "q": "Is Medical fitness test (UAE-approved) required?",
+      "a": "After arrival or as directed"
+    },
+    {
+      "q": "Is Institution visa processing fee paid required?",
+      "a": "Institution visa processing fee paid is typically required."
+    },
+    {
+      "q": "Is Security clearance / GDRFA approval required?",
+      "a": "Institution submits"
+    },
+    {
+      "q": "Is Accommodation proof in UAE required?",
+      "a": "Accommodation proof in UAE is typically required."
+    },
+    {
+      "q": "Can Future Link guarantee approval?",
+      "a": "No. Government authorities decide each case. Never promise approval."
+    },
+    {
+      "q": "What documents should we collect first?",
+      "a": "Passport, application forms, fees, and the service checklist in the Checklist tab."
+    },
+    {
+      "q": "How long does processing take?",
+      "a": "See KPI processing time — always verify current GDRFA/ICP timelines before quoting."
+    },
+    {
+      "q": "What are government fees?",
+      "a": "Confirm latest fees on the official portal in the Resources section before quoting."
+    },
+    {
+      "q": "Can the client apply from India?",
+      "a": "Yes — standard route for Indian nationals via sponsor, VFS, or ICP e-visa as applicable."
+    },
+    {
+      "q": "What if the client was refused before?",
+      "a": "Disclose all refusals, overstays, and bans; address GDRFA fines before reapply."
+    },
+    {
+      "q": "Can the client work on this visa?",
+      "a": "Work rights depend on visa type — employment visa required for full-time work."
+    },
+    {
+      "q": "United Arab Emirates – Student Residence Visa: counselor verification point 27?",
+      "a": "Confirm eligibility, checklist sign-off, current fees, and client consent before submission."
+    },
+    {
+      "q": "United Arab Emirates – Student Residence Visa: counselor verification point 28?",
+      "a": "Confirm eligibility, checklist sign-off, current fees, and client consent before submission."
+    },
+    {
+      "q": "United Arab Emirates – Student Residence Visa: counselor verification point 29?",
+      "a": "Confirm eligibility, checklist sign-off, current fees, and client consent before submission."
+    },
+    {
+      "q": "United Arab Emirates – Student Residence Visa: counselor verification point 30?",
+      "a": "Confirm eligibility, checklist sign-off, current fees, and client consent before submission."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs",
+    "Verify licensed institution or employer before collecting full fees"
+  ],
+  "proTips": [
+    "Confirm campus emirate before quoting GDRFA fees",
+    "Start MOFA attestation when offer letter arrives",
+    "Use institution PRO for filing — avoid freelance visa runners",
+    "Warn clients: UAE student visa is not a work permit"
+  ],
+  "postApproval": [
+    "Complete medical and Emirates ID within institution timeline",
+    "Register for orientation on first week",
+    "Discuss dependent visa separately if spouse plans to join"
+  ],
+  "performance": {
+    "ourRate": 88,
+    "industryRate": 72,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "0"
+      },
+      {
+        "label": "Approved",
+        "value": "0"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Complete sponsorship file",
+      "ours": 90,
+      "benchmark": 75
+    },
+    {
+      "label": "Credible funds / salary proof",
+      "ours": 85,
+      "benchmark": 70
+    },
+    {
+      "label": "Clean immigration history",
+      "ours": 88,
+      "benchmark": 72
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1–2",
+      "title": "Offer letter, tuition payment, attestation start"
+    },
+    {
+      "weeks": "2–3",
+      "title": "Institution submits to GDRFA/ICP"
+    },
+    {
+      "weeks": "3–4",
+      "title": "Entry permit issued — travel to UAE"
+    },
+    {
+      "weeks": "Arrival",
+      "title": "Medical, Emirates ID, residence stamping"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "UAE — Spouse / Dependent Visa",
+      "libraryId": "b2000001-0001-4000-8000-0000000000d8"
+    },
+    {
+      "label": "UAE — Visitor Visa",
+      "libraryId": "b2000001-0001-4000-8000-0000000000d9"
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
+      "version": "v1.0",
+      "date": "10 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial UAE counselor content — India application route."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "10 Jun 2026",
+      "text": "Match emirate to campus — Dubai/Sharjah/Abu Dhabi have different GDRFA/ICP workflows."
+    }
+  ],
+  "resources": [
+    {
+      "title": "ICP UAE — Federal Authority",
+      "url": "https://u.ae/en/icp",
+      "description": "Visa and residency services"
+    },
+    {
+      "title": "GDRFA Dubai",
+      "url": "https://www.gdrfad.gov.ae/",
+      "description": "Dubai visas and residency"
+    },
+    {
+      "title": "KHDA Dubai",
+      "url": "https://www.khda.gov.ae/",
+      "description": "Licensed Dubai institutions"
+    },
+    {
+      "title": "ADEK Abu Dhabi",
+      "url": "https://www.adek.gov.ae/",
+      "description": "Abu Dhabi education licensing"
+    },
+    {
+      "title": "VFS Global — UAE",
+      "url": "https://visa.vfsglobal.com/",
+      "description": "Verify India application centre"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Indian students generally need:",
+      "options": [
+        "Only passport",
+        "admission documentation + admission + proof of funds",
+        "Job offer",
+        "EU citizenship"
+      ],
+      "correctIndex": 1,
+      "explanation": "document attestation mandatory for India.",
+      "level": 1
+    },
+    {
+      "question": "After arrival student must:",
+      "options": [
+        "Ignore registration",
+        "Register address and apply residence permit",
+        "Work full-time immediately",
+        "Leave in 1 week"
+      ],
+      "correctIndex": 1,
+      "explanation": "Anmeldung and GDRFA / ICP required.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "Englishy – Student Visa (National Visa): what is true regarding Eligible applicants?",
+      "options": [
+        "Unconditional admission from licensed UAE institution or conditional admission · Proof of funds or scholarship · MOFA-attested academic documents · Health insurance · Motivation letter",
+        "National visa (Type D) for study at a recognised English university or preparatory course. After entry, convert to residence permit at local GDRFA / ICP.",
+        "Tuition payment + living support per institution guidelines typically required unless scholarship or sponsor alternative applies.",
+        "UAE Embassy/Consulate in India · ICP UAE / GDRFA (emirate) · Local GDRFA / ICP after arrival"
+      ],
+      "correctIndex": 0,
+      "explanation": "Unconditional admission from licensed UAE institution or conditional admission · Proof of funds or scholarship · MOFA-attested academic documents · Health insurance · Motivation letter"
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Student Residence Visa, which statement about Description is correct?",
+      "options": [
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location",
+        "Tuition payment receipt + living support per institution guidelines; sponsor may require bank statements or sponsor undertaking."
+      ],
+      "correctIndex": 0,
+      "explanation": "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit issued from India, then Emirates ID and residence stamping af…"
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Student Residence Visa: what is true regarding Eligible applicants?",
+      "options": [
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location",
+        "Tuition payment receipt + living support per institution guidelines; sponsor may require bank statements or sponsor undertaking."
+      ],
+      "correctIndex": 0,
+      "explanation": "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · Indian documents attested (MOFA UAE where required)"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Student Residence Visa should state correctly about Emirate authorities:",
+      "options": [
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Tuition payment receipt + living support per institution guidelines; sponsor may require bank statements or sponsor undertaking."
+      ],
+      "correctIndex": 0,
+      "explanation": "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Student Residence Visa, which statement about Proof of funds is correct?",
+      "options": [
+        "Tuition payment receipt + living support per institution guidelines; sponsor may require bank statements or sponsor undertaking.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Tuition payment receipt + living support per institution guidelines; sponsor may require bank statements or sponsor undertaking. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Student Residence Visa: what is true regarding Key authority?",
+      "options": [
+        "ICP UAE (u.ae/en/icp) · GDRFA (emirate) · VFS Global UAE India · Licensed university/college",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "ICP UAE (u.ae/en/icp) · GDRFA (emirate) · VFS Global UAE India · Licensed university/college"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Student Residence Visa should state correctly about After approval:",
+      "options": [
+        "Enter UAE on entry permit; complete medical; apply Emirates ID; residence visa stamping; register with institution. Part-time work may require university NOC (…",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Enter UAE on entry permit; complete medical; apply Emirates ID; residence visa stamping; register with institution. Part-time work may require university NOC (typically max 15 hrs/week in term)."
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Student Residence Visa, which statement about Admission from KHDA/SPEA/ADEK-licensed institution is correct?",
+      "options": [
+        "Admission from KHDA/SPEA/ADEK-licensed institution is a core requirement for this service.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Admission from KHDA/SPEA/ADEK-licensed institution"
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Student Residence Visa: what is true regarding Tuition deposit or payment receipt?",
+      "options": [
+        "Tuition deposit or payment receipt is often required or assessed for this service. Note: Required before visa processing",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Required before visa processing"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Student Residence Visa should state correctly about Passport valid 6+ months:",
+      "options": [
+        "Passport valid 6+ months is a core requirement for this service.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Passport valid 6+ months"
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Student Residence Visa, which statement about Indian documents attested (MOFA UAE as required) is correct?",
+      "options": [
+        "Indian documents attested (MOFA UAE as required) is often required or assessed for this service. Note: Allow 2–4 weeks",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Allow 2–4 weeks"
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Student Residence Visa: what is true regarding Medical fitness test (UAE-approved)?",
+      "options": [
+        "Medical fitness test (UAE-approved) is often required or assessed for this service. Note: After arrival or as directed",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "After arrival or as directed"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Student Residence Visa should state correctly about Institution visa processing fee paid:",
+      "options": [
+        "Institution visa processing fee paid is often required or assessed for this service.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Institution visa processing fee paid"
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Student Residence Visa, which statement about Security clearance / GDRFA approval is correct?",
+      "options": [
+        "Security clearance / GDRFA approval is often required or assessed for this service. Note: Institution submits",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Institution submits"
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Student Residence Visa: what is true regarding Accommodation proof in UAE?",
+      "options": [
+        "Accommodation proof in UAE is often required or assessed for this service.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Accommodation proof in UAE"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Student Residence Visa should state correctly about Processing time:",
+      "options": [
+        "Processing time: 2–4w — After complete file + sponsor NOC",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "After complete file + sponsor NOC"
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Student Residence Visa, which statement about Government fee is correct?",
+      "options": [
+        "Government fee: AED 1,000+ — + visa typing & medical",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "+ visa typing & medical"
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Student Residence Visa: what is true regarding Our approval rate?",
+      "options": [
+        "Our approval rate: 92% — ~80% benchmark",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "~80% benchmark"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Student Residence Visa should state correctly about Required docs:",
+      "options": [
+        "Required docs: 16 — + attestation & sponsor letter",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "+ attestation & sponsor letter"
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Student Residence Visa, which statement about Consultancy fee is correct?",
+      "options": [
+        "Consultancy fee: ₹15,000 — + govt & third-party",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "+ govt & third-party"
+    },
+    {
+      "level": 1,
+      "question": "United Arab Emirates – Student Residence Visa: what is true regarding service summary?",
+      "options": [
+        "KHDA / SPEA / ADEK · University sponsorship · Dubai, Sharjah, Abu Dhabi · India route",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "KHDA / SPEA / ADEK · University sponsorship · Dubai, Sharjah, Abu Dhabi · India route"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining United Arab Emirates – Student Residence Visa should state correctly about Licensed institution + emirate authority:",
+      "options": [
+        "Verify university/college is licensed in the target emirate (KHDA Dubai, SPEA Sharjah, ADEK Abu Dhabi). Unlicensed agents or TR-only offers are a compliance ri…",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify university/college is licensed in the target emirate (KHDA Dubai, SPEA Sharjah, ADEK Abu Dhabi). Unlicensed agents or TR-only offers are a compliance risk."
+    },
+    {
+      "level": 1,
+      "question": "For United Arab Emirates – Student Residence Visa, which statement about policy update is correct?",
+      "options": [
+        "Student visa requires licensed institution sponsorship. Confirm emirate authority (GDRFA Dubai, Sharjah, Abu Dhabi) before quoting fees.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Student visa requires licensed institution sponsorship. Confirm emirate authority (GDRFA Dubai, Sharjah, Abu Dhabi) before quoting fees."
+    },
+    {
+      "question": "Proof of funds 2026 amount approx:",
+      "options": [
+        "€5,000",
+        "required living funds",
+        "€50,000",
+        "€500"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tuition and living funds per university sponsor guidelines.",
+      "level": 2
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Track document attestation",
+        "Guarantee visa approval",
+        "Verify admission",
+        "Check proof of funds"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees.",
+      "level": 2
+    },
+    {
+      "level": 2,
+      "question": "A counselor explaining Englishy – Student Visa (National Visa) should state correctly about Proof of funds:",
+      "options": [
+        "Tuition payment + living support per institution guidelines typically required unless scholarship or sponsor alternative applies.",
+        "National visa (Type D) for study at a recognised English university or preparatory course. After entry, convert to residence permit at local GDRFA / ICP.",
+        "Unconditional admission from licensed UAE institution or conditional admission · Proof of funds or scholarship · MOFA-attested academic documents · Health insurance · Motivation letter",
+        "UAE Embassy/Consulate in India · ICP UAE / GDRFA (emirate) · Local GDRFA / ICP after arrival"
+      ],
+      "correctIndex": 0,
+      "explanation": "Tuition payment + living support per institution guidelines typically required unless scholarship or sponsor alternative applies. — verify current rules."
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Student Residence Visa process, what is the correct approach to client question: Can we guarantee UAE student visa approval?",
+      "options": [
+        "No. GDRFA/ICP decides based on sponsor file and security checks. Never promise approval.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "No. GDRFA/ICP decides based on sponsor file and security checks. Never promise approval."
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Student Residence Visa, what should happen during client question: Which emirate authority for Dubai students?",
+      "options": [
+        "GDRFA Dubai with KHDA-licensed institution sponsorship.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "GDRFA Dubai with KHDA-licensed institution sponsorship."
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Student Residence Visa workflow — best practice for client question: Can students work part-time:",
+      "options": [
+        "Limited part-time work with university NOC — verify current MOHRE rules; not full-time employment.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Limited part-time work with university NOC — verify current MOHRE rules; not full-time employment."
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Student Residence Visa process, what is the correct approach to client question: How to apply from India?",
+      "options": [
+        "Institution-sponsored entry permit via GDRFA/ICP channels; VFS or embassy attestation for documents as required.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Institution-sponsored entry permit via GDRFA/ICP channels; VFS or embassy attestation for documents as required."
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Student Residence Visa, what should happen during client question: What after arrival?",
+      "options": [
+        "Medical test, Emirates ID biometrics, residence visa stamping, university registration.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Medical test, Emirates ID biometrics, residence visa stamping, university registration."
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Student Residence Visa workflow — best practice for Proof of funds 2026 amount approx::",
+      "options": [
+        "required living funds",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Tuition and living funds per university sponsor guidelines."
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Student Residence Visa process, what is the correct approach to Counselors must never:?",
+      "options": [
+        "Guarantee visa approval",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "No guarantees."
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Student Residence Visa, what should happen during A counselor explaining Englishy – Student Visa (National Visa) should state cor…?",
+      "options": [
+        "Tuition payment + living support per institution guidelines typically required unless scholarship or sponsor alternative applies.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Tuition payment + living support per institution guidelines typically required unless scholarship or sponsor alternative applies. — verify current rules."
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Student Residence Visa workflow — best practice for timeline (1–2):",
+      "options": [
+        "Offer letter, tuition payment, attestation start",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "1–2: Offer letter, tuition payment, attestation start"
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Student Residence Visa process, what is the correct approach to timeline (2–3)?",
+      "options": [
+        "Institution submits to GDRFA/ICP",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "2–3: Institution submits to GDRFA/ICP"
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Student Residence Visa, what should happen during timeline (3–4)?",
+      "options": [
+        "Entry permit issued — travel to UAE",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "3–4: Entry permit issued — travel to UAE"
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Student Residence Visa workflow — best practice for timeline (Arrival):",
+      "options": [
+        "Medical, Emirates ID, residence stamping",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Arrival: Medical, Emirates ID, residence stamping"
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Student Residence Visa process, what is the correct approach to counselor tip?",
+      "options": [
+        "Confirm campus emirate before quoting GDRFA fees",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm campus emirate before quoting GDRFA fees"
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Student Residence Visa, what should happen during counselor tip?",
+      "options": [
+        "Start MOFA attestation when offer letter arrives",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Start MOFA attestation when offer letter arrives"
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Student Residence Visa workflow — best practice for counselor tip:",
+      "options": [
+        "Use institution PRO for filing — avoid freelance visa runners",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Use institution PRO for filing — avoid freelance visa runners"
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Student Residence Visa, what should happen during post-approval step?",
+      "options": [
+        "Complete medical and Emirates ID within institution timeline",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Complete medical and Emirates ID within institution timeline"
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Student Residence Visa workflow — best practice for post-approval step:",
+      "options": [
+        "Register for orientation on first week",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Register for orientation on first week"
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Student Residence Visa process, what is the correct approach to post-approval step?",
+      "options": [
+        "Discuss dependent visa separately if spouse plans to join",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Discuss dependent visa separately if spouse plans to join"
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Student Residence Visa, what should happen during Sample passport bio page (mock)?",
+      "options": [
+        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
+    },
+    {
+      "level": 2,
+      "question": "United Arab Emirates – Student Residence Visa workflow — best practice for Sample university admission letter (mock):",
+      "options": [
+        "United Arab Emirates university university admission letter for national visa.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "United Arab Emirates university university admission letter for national visa."
+    },
+    {
+      "level": 2,
+      "question": "In the United Arab Emirates – Student Residence Visa process, what is the correct approach to Sample admission documentation (mock)?",
+      "options": [
+        "Academic Evaluation Centre certificate for India.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Academic Evaluation Centre certificate for India."
+    },
+    {
+      "level": 2,
+      "question": "For United Arab Emirates – Student Residence Visa, what should happen during Sample proof of funds confirmation (mock)?",
+      "options": [
+        "Sperrkonto required living funds+ — explain to clients.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Sperrkonto required living funds+ — explain to clients."
+    },
+    {
+      "question": "National visa fee approx:",
+      "options": [
+        "€500",
+        "AED 1,000+",
+        "€2,000",
+        "Free"
+      ],
+      "correctIndex": 1,
+      "explanation": "Embassy national visa fee.",
+      "level": 3
+    },
+    {
+      "level": 3,
+      "question": "For Englishy – Student Visa (National Visa), which statement about Description is correct?",
+      "options": [
+        "National visa (Type D) for study at a recognised English university or preparatory course. After entry, convert to residence permit at local GDRFA / ICP.",
+        "Unconditional admission from licensed UAE institution or conditional admission · Proof of funds or scholarship · MOFA-attested academic documents · Health insurance · Motivation letter",
+        "Tuition payment + living support per institution guidelines typically required unless scholarship or sponsor alternative applies.",
+        "UAE Embassy/Consulate in India · ICP UAE / GDRFA (emirate) · Local GDRFA / ICP after arrival"
+      ],
+      "correctIndex": 0,
+      "explanation": "National visa (Type D) for study at a recognised English university or preparatory course. After entry, convert to residence permit at local GDRFA / ICP."
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Student Residence Visa: what is the compliance risk with National visa fee approx:?",
+      "options": [
+        "AED 1,000+",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Embassy national visa fee."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Student Residence Visa — key issue with For Englishy – Student Visa (National Visa), which statement about Description …:",
+      "options": [
+        "National visa (Type D) for study at a recognised English university or preparatory course. After entry, convert to residence permit at local GDRFA / ICP.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "National visa (Type D) for study at a recognised English university or preparatory course. After entry, convert to residence permit at local GDRFA / ICP."
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Student Residence Visa, counselors must avoid this mistake related to Unlicensed college or fake admission:",
+      "options": [
+        "Verify license on official emirate education portal before fees",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Institution not on KHDA/SPEA/ADEK list."
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Student Residence Visa: what is the compliance risk with Unlicensed college or fake admission (detail)?",
+      "options": [
+        "Institution not on KHDA/SPEA/ADEK list.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify license on official emirate education portal before fees"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Student Residence Visa — key issue with Tuition not paid before visa:",
+      "options": [
+        "Collect university receipt matching offer letter",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Sponsor cannot proceed without payment proof."
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Student Residence Visa, counselors must avoid this mistake related to Tuition not paid before visa (detail):",
+      "options": [
+        "Sponsor cannot proceed without payment proof.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Collect university receipt matching offer letter"
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Student Residence Visa: what is the compliance risk with Wrong emirate authority?",
+      "options": [
+        "Match GDRFA/ICP to physical campus emirate",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Dubai file submitted for Sharjah campus."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Student Residence Visa — key issue with Wrong emirate authority (detail):",
+      "options": [
+        "Dubai file submitted for Sharjah campus.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Match GDRFA/ICP to physical campus emirate"
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Student Residence Visa, counselors must avoid this mistake related to Attestation incomplete:",
+      "options": [
+        "MEA → UAE Embassy India → MOFA UAE chain",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Indian degree/marksheets not MOFA attested."
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Student Residence Visa: what is the compliance risk with Attestation incomplete (detail)?",
+      "options": [
+        "Indian degree/marksheets not MOFA attested.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "MEA → UAE Embassy India → MOFA UAE chain"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Student Residence Visa — key issue with Emirates ID delay:",
+      "options": [
+        "Institution PRO timeline — complete within 30 days",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Student did not complete medical/ID after arrival."
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Student Residence Visa, counselors must avoid this mistake related to Emirates ID delay (detail):",
+      "options": [
+        "Student did not complete medical/ID after arrival.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Institution PRO timeline — complete within 30 days"
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Student Residence Visa: what is the compliance risk with Prior UAE overstay?",
+      "options": [
+        "GDRFA history check; disclose and remediate fines",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Hidden overstay or absconding record."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Student Residence Visa — key issue with Prior UAE overstay (detail):",
+      "options": [
+        "Hidden overstay or absconding record.",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "GDRFA history check; disclose and remediate fines"
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Student Residence Visa, counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not guarantee approval",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee approval"
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Student Residence Visa: what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not book embassy without document attestation",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not book embassy without document attestation"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Student Residence Visa — key issue with counselor don't:",
+      "options": [
+        "Do not use unrecognised institutions",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not use unrecognised institutions"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Student Residence Visa — key issue with common mistake:",
+      "options": [
+        "document attestation applied too late for intake",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: document attestation applied too late for intake"
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Student Residence Visa, counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Proof of funds short by even €1",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Proof of funds short by even €1"
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Student Residence Visa: what is the compliance risk with common mistake?",
+      "options": [
+        "Generic motivation letter",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Generic motivation letter"
+    },
+    {
+      "level": 3,
+      "question": "United Arab Emirates – Student Residence Visa: what is the compliance risk with compliance rule?",
+      "options": [
+        "Client service agreement and consent must be on file before submission",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Client service agreement and consent must be on file before submission"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on United Arab Emirates – Student Residence Visa — key issue with compliance rule:",
+      "options": [
+        "Never guarantee visa or immigration approval; use approved-language only",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
+    },
+    {
+      "level": 3,
+      "question": "For United Arab Emirates – Student Residence Visa, counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Fee quotes must separate consultancy, government, and third-party costs",
+        "Student residence visa for full-time study at a UAE-licensed university or college in Dubai, Sharjah, or Abu Dhabi. Institution acts as sponsor; entry permit i…",
+        "Unconditional admission from licensed institution · Tuition/deposit paid per offer · Passport 6+ months validity · Medical fitness · Security clearance · India…",
+        "Dubai: GDRFA Dubai + KHDA · Sharjah: GDRFA Sharjah + SPEA · Abu Dhabi: ICP / ADEK — route depends on campus location"
+      ],
+      "correctIndex": 0,
+      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Start document attestation early",
+      "Verify institution on KHDA / SPEA / ADEK license list",
+      "Open proof of funds for full required amount",
+      "Write course-specific motivation letter",
+      "Disclose prior refusals"
+    ],
+    "donts": [
+      "Do not guarantee approval",
+      "Do not book embassy without document attestation",
+      "Do not use unrecognised institutions",
+      "Do not hide UAE refusals",
+      "Do not quote outdated proof of funds amount"
+    ],
+    "mistakes": [
+      "document attestation applied too late for intake",
+      "Proof of funds short by even €1",
+      "Generic motivation letter",
+      "Wrong health insurance type",
+      "Expired admission letter"
+    ]
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample university admission letter (mock)",
+      "description": "United Arab Emirates university university admission letter for national visa.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample admission documentation (mock)",
+      "description": "Academic Evaluation Centre certificate for India.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample proof of funds confirmation (mock)",
+      "description": "Sperrkonto required living funds+ — explain to clients.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample IELTS / IELTS/TOEFL certificate (mock)",
+      "description": "Language proof for degree program.",
+      "mimeType": "image/jpeg",
+      "docKind": "language"
+    },
+    {
+      "title": "Sample CV & motivation letter (mock)",
+      "description": "English embassy standard application packet.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample travel health insurance (mock)",
+      "description": "Coverage from arrival until enrollment.",
+      "mimeType": "application/pdf",
+      "docKind": "insurance"
+    }
+  ],
+  "navBucket": "visa",
+  "workingRights": {
+    "applicant": {
+      "summary": "Part-time work possible with university NOC during studies — typically capped around 15 hours/week in academic term; verify MOHRE and institution policy.",
+      "details": [
+        "Full-time employment requires separate work permit",
+        "Internships may need additional approvals"
+      ],
+      "restrictions": [
+        "Cannot work without NOC",
+        "Sector restrictions may apply"
+      ],
+      "sourceUrl": "https://u.ae/en/icp",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Dependants may apply for separate residence visa sponsored by student if institution and salary/funds criteria met.",
+      "details": [],
+      "restrictions": [],
+      "sourceUrl": "https://u.ae/en/icp",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — UAE Student Residence Visa",
+    "currency": "AED",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative costs for counselor discussions only. Verify on ICP/GDRFA/MOHRE portals before quoting.",
+    "sourceUrl": "https://u.ae/en/icp",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "Government & visa fees",
+        "items": [
+          {
+            "label": "Entry permit / visa issuance",
+            "range": "AED 1,000–3,000",
+            "unit": "approx.",
+            "currency": "AED",
+            "applicable": true,
+            "notes": "Varies by emirate and institution"
+          },
+          {
+            "label": "Emirates ID + medical",
+            "range": "AED 500–1,000",
+            "currency": "AED",
+            "applicable": true
+          },
+          {
+            "label": "Visa change / stamping",
+            "range": "AED 500–1,500",
+            "currency": "AED",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Tuition & education",
+        "items": [
+          {
+            "label": "Undergraduate tuition (UAE)",
+            "range": "AED 35,000–60,000",
+            "unit": "per year",
+            "currency": "AED",
+            "applicable": true
+          },
+          {
+            "label": "Postgraduate tuition",
+            "range": "AED 45,000–90,000",
+            "unit": "per year",
+            "currency": "AED",
+            "applicable": true
+          },
+          {
+            "label": "Institution visa processing",
+            "range": "AED 2,000–5,000",
+            "currency": "AED",
+            "applicable": true
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Accommodation (shared)",
+            "range": "AED 1,500–3,500",
+            "unit": "per month",
+            "currency": "AED"
+          },
+          {
+            "label": "Food & transport",
+            "range": "AED 800–1,500",
+            "unit": "per month",
+            "currency": "AED"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "₹15,000",
+            "notes": "Service package dependent — GST extra where applicable"
+          },
+          {
+            "label": "Document attestation (India)",
+            "range": "₹5,000–15,000",
+            "notes": "MEA + UAE Embassy"
+          },
+          {
+            "label": "Flight to UAE",
+            "range": "₹25,000–55,000",
+            "notes": "Season dependent"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative first year",
+        "value": "AED 55,000–100,000+",
+        "notes": "Tuition + living + visa fees excluding consultancy."
+      }
+    ]
+  }
+}

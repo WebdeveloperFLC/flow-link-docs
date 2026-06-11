@@ -21,6 +21,7 @@ node scripts/generate-visa-metadata-country-batches.mjs
 | canada | `batches/batch-canada-part1.sql` | 6 | 308.8 KB |
 | canada | `batches/batch-canada-part2.sql` | 5 | 337.6 KB |
 | canada | `batches/batch-canada-part3.sql` | 6 | 321.4 KB |
+| cyprus | `batches/batch-cyprus.sql` | 2 | 141.5 KB |
 | denmark | `batches/batch-denmark.sql` | 2 | 125.8 KB |
 | finland | `batches/batch-finland.sql` | 2 | 126.1 KB |
 | france | `batches/batch-france.sql` | 2 | 125.8 KB |
@@ -28,12 +29,16 @@ node scripts/generate-visa-metadata-country-batches.mjs
 | germany | `batches/batch-germany-part2.sql` | 3 | 189.1 KB |
 | ireland | `batches/batch-ireland.sql` | 2 | 132.2 KB |
 | italy | `batches/batch-italy.sql` | 2 | 126.2 KB |
+| lithuania | `batches/batch-lithuania.sql` | 2 | 127.6 KB |
 | malta | `batches/batch-malta.sql` | 2 | 126.1 KB |
+| mbbs | `batches/batch-mbbs-part1.sql` | 5 | 331.9 KB |
+| mbbs | `batches/batch-mbbs-part2.sql` | 2 | 130.1 KB |
 | netherlands | `batches/batch-netherlands.sql` | 2 | 125.7 KB |
 | nz | `batches/batch-nz.sql` | 5 | 312.3 KB |
 | portugal | `batches/batch-portugal.sql` | 2 | 127.6 KB |
 | spain | `batches/batch-spain.sql` | 2 | 126.1 KB |
 | sweden | `batches/batch-sweden.sql` | 2 | 126.3 KB |
+| uae | `batches/batch-uae.sql` | 5 | 336.6 KB |
 | uk | `batches/batch-uk.sql` | 5 | 318.6 KB |
 | usa | `batches/batch-usa.sql` | 4 | 271.4 KB |
 

@@ -74,6 +74,10 @@ export const LIBRARY_IDS = {
   "denmark-visitor-visa.json": "b2000001-0001-4000-8000-0000000000b2",
   "portugal-student-visa.json": "b2000001-0001-4000-8000-0000000000b3",
   "portugal-visitor-visa.json": "b2000001-0001-4000-8000-0000000000b4",
+  "cyprus-student-visa.json": "b2000001-0001-4000-8000-0000000000c8",
+  "cyprus-visitor-visa.json": "b2000001-0001-4000-8000-0000000000c9",
+  "lithuania-student-visa.json": "b2000001-0001-4000-8000-0000000000cd",
+  "lithuania-visitor-visa.json": "b2000001-0001-4000-8000-0000000000ce",
   "coaching-ielts-academic-regular-nb.json": "b2000001-0001-4000-8000-000000000075",
   "coaching-ielts-gt-regular-nb.json": "b2000001-0001-4000-8000-000000000076",
   "coaching-ielts-gt-crash.json": "b2000001-0001-4000-8000-000000000077",
@@ -105,6 +109,13 @@ export const LIBRARY_IDS = {
   "mbbs-georgian-national-university-seu.json": "b2000001-0001-4000-8000-0000000000d5",
   "mbbs-international-black-sea-university.json": "b2000001-0001-4000-8000-0000000000d6",
   "mbbs-avicenna-batumi.json": "b2000001-0001-4000-8000-0000000000d7",
+  "uae-student-visa.json": "b2000001-0001-4000-8000-0000000000cf",
+  "uae-spouse-dependent-visa.json": "b2000001-0001-4000-8000-0000000000d8",
+  "uae-visitor-visa.json": "b2000001-0001-4000-8000-0000000000d9",
+  "uae-work-permit.json": "b2000001-0001-4000-8000-0000000000da",
+  "uae-golden-visa.json": "b2000001-0001-4000-8000-0000000000db",
+};
+
 export function slugFromJsonFile(file) {
   return file.replace(/\.json$/, "");
 }

@@ -1,7 +1,7 @@
 {
   "displayName": "International Black Sea University — Georgia",
   "shortDescription": "6-year Medical Doctor in English · Tbilisi · established 2023 medical school",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 10 Jun 2026",
@@ -694,6 +694,270 @@
       "explanation": "Always official fee page."
     },
     {
+      "level": 1,
+      "question": "For International Black Sea University — Georgia, which statement about Description is correct?",
+      "options": [
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status",
+        "International Black Sea University (admissions) · Georgia immigration authorities for study permit / visa"
+      ],
+      "correctIndex": 0,
+      "explanation": "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculum per university publications."
+    },
+    {
+      "level": 1,
+      "question": "International Black Sea University — Georgia: what is true regarding Eligible applicants?",
+      "options": [
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "IBSU Medicine School established 2023 — verify current national accreditation status",
+        "International Black Sea University (admissions) · Georgia immigration authorities for study permit / visa"
+      ],
+      "correctIndex": 0,
+      "explanation": "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining International Black Sea University — Georgia should state correctly about Accreditation highlight:",
+      "options": [
+        "IBSU Medicine School established 2023 — verify current national accreditation status",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "International Black Sea University (admissions) · Georgia immigration authorities for study permit / visa"
+      ],
+      "correctIndex": 0,
+      "explanation": "IBSU Medicine School established 2023 — verify current national accreditation status — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For International Black Sea University — Georgia, which statement about Key authority is correct?",
+      "options": [
+        "International Black Sea University (admissions) · Georgia immigration authorities for study permit / visa",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "International Black Sea University (admissions) · Georgia immigration authorities for study permit / visa"
+    },
+    {
+      "level": 1,
+      "question": "International Black Sea University — Georgia: what is true regarding After graduation?",
+      "options": [
+        "FMGE/NExT for India · Host-country licensing exams · Verify WDOMS and NMC list status",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "FMGE/NExT for India · Host-country licensing exams · Verify WDOMS and NMC list status"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining International Black Sea University — Georgia should state correctly about Meet university academic entry requirements:",
+      "options": [
+        "Meet university academic entry requirements is a core requirement for this service.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Meet university academic entry requirements"
+    },
+    {
+      "level": 1,
+      "question": "For International Black Sea University — Georgia, which statement about English proficiency (if required) is correct?",
+      "options": [
+        "English proficiency (if required) is a core requirement for this service.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "English proficiency (if required)"
+    },
+    {
+      "level": 1,
+      "question": "International Black Sea University — Georgia: what is true regarding NEET qualified (Indian applicants — verify current NMC rule)?",
+      "options": [
+        "NEET qualified (Indian applicants — verify current NMC rule) is often required or assessed for this service. Note: Check NMC notification at admission year",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Check NMC notification at admission year"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining International Black Sea University — Georgia should state correctly about Financial capacity for full program:",
+      "options": [
+        "Financial capacity for full program is a core requirement for this service.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Financial capacity for full program"
+    },
+    {
+      "level": 1,
+      "question": "For International Black Sea University — Georgia, which statement about Age and health requirements met is correct?",
+      "options": [
+        "Age and health requirements met is a core requirement for this service.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Age and health requirements met"
+    },
+    {
+      "level": 1,
+      "question": "International Black Sea University — Georgia: what is true regarding Program duration?",
+      "options": [
+        "Program duration: 6 years — Medical Doctor (English-taught)",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Medical Doctor (English-taught)"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining International Black Sea University — Georgia should state correctly about Tuition:",
+      "options": [
+        "Tuition: See Fees tab — Official ibsu.edu.ge rates",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Official ibsu.edu.ge rates"
+    },
+    {
+      "level": 1,
+      "question": "For International Black Sea University — Georgia, which statement about Medium is correct?",
+      "options": [
+        "Medium: English — Verify on site",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify on site"
+    },
+    {
+      "level": 1,
+      "question": "International Black Sea University — Georgia: what is true regarding Required docs?",
+      "options": [
+        "Required docs: 18+ — Admission + visa",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Admission + visa"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining International Black Sea University — Georgia should state correctly about Consultancy fee:",
+      "options": [
+        "Consultancy fee: See Fees tab — Future Link package",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Future Link package"
+    },
+    {
+      "level": 1,
+      "question": "For International Black Sea University — Georgia, which statement about service summary is correct?",
+      "options": [
+        "6-year Medical Doctor in English · Tbilisi · established 2023 medical school",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "6-year Medical Doctor in English · Tbilisi · established 2023 medical school"
+    },
+    {
+      "level": 1,
+      "question": "International Black Sea University — Georgia: what is true regarding Foreign medical degree pathway?",
+      "options": [
+        "Verify NMC recognition and FMGE/NExT requirements before quoting International Black Sea University to Indian clients.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify NMC recognition and FMGE/NExT requirements before quoting International Black Sea University to Indian clients."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining International Black Sea University — Georgia should state correctly about policy update:",
+      "options": [
+        "Verify current tuition, intake dates, and admission requirements on ibsu.edu.ge/ before quoting clients. Indian students: confirm NEET eligibility and NMC guid…",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify current tuition, intake dates, and admission requirements on ibsu.edu.ge/ before quoting clients. Indian students: confirm NEET eligibility and NMC guidance separately."
+    },
+    {
+      "level": 1,
+      "question": "For International Black Sea University — Georgia, which statement about Program duration is correct?",
+      "options": [
+        "6 years (MD programme)",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "6 years (MD programme)"
+    },
+    {
+      "level": 1,
+      "question": "International Black Sea University — Georgia: what is true regarding Intakes?",
+      "options": [
+        "September, February",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "September, February"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining International Black Sea University — Georgia should state correctly about English medium:",
+      "options": [
+        "English",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "English"
+    },
+    {
+      "level": 1,
+      "question": "For International Black Sea University — Georgia, which statement about Is it MBBS or MD is correct?",
+      "options": [
+        "Medical Doctor (English-taught)",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Medical Doctor (English-taught)"
+    },
+    {
       "level": 2,
       "question": "Primary campus city?",
       "options": [
@@ -730,6 +994,270 @@
       "explanation": "6 years (MD programme)"
     },
     {
+      "level": 2,
+      "question": "In the International Black Sea University — Georgia process, what is the correct approach to client question: Program duration?",
+      "options": [
+        "6 years (MD programme)",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "6 years (MD programme)"
+    },
+    {
+      "level": 2,
+      "question": "For International Black Sea University — Georgia, what should happen during client question: Intakes?",
+      "options": [
+        "September, February",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "September, February"
+    },
+    {
+      "level": 2,
+      "question": "International Black Sea University — Georgia workflow — best practice for client question: English medium:",
+      "options": [
+        "English",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "English"
+    },
+    {
+      "level": 2,
+      "question": "In the International Black Sea University — Georgia process, what is the correct approach to client question: Is it MBBS or MD?",
+      "options": [
+        "Medical Doctor (English-taught)",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Medical Doctor (English-taught)"
+    },
+    {
+      "level": 2,
+      "question": "For International Black Sea University — Georgia, what should happen during client question: FMGE/NExT required for India?",
+      "options": [
+        "Yes for Indian licensure — verify current NMC process.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes for Indian licensure — verify current NMC process."
+    },
+    {
+      "level": 2,
+      "question": "International Black Sea University — Georgia workflow — best practice for client question: NEET required for Indian students:",
+      "options": [
+        "Verify current NMC rules for foreign medical study.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify current NMC rules for foreign medical study."
+    },
+    {
+      "level": 2,
+      "question": "In the International Black Sea University — Georgia process, what is the correct approach to client question: Tuition amount?",
+      "options": [
+        "Always verify on official site: https://ibsu.edu.ge/en/schools/medical-school/program/medical-program/",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Always verify on official site: https://ibsu.edu.ge/en/schools/medical-school/program/medical-program/"
+    },
+    {
+      "level": 2,
+      "question": "For International Black Sea University — Georgia, what should happen during client question: How to apply?",
+      "options": [
+        "https://ibsu.edu.ge/iro/admission/",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "https://ibsu.edu.ge/iro/admission/"
+    },
+    {
+      "level": 2,
+      "question": "International Black Sea University — Georgia workflow — best practice for client question: Admission requirements:",
+      "options": [
+        "https://ibsu.edu.ge/en/schools/medical-school/program/medical-program/",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "https://ibsu.edu.ge/en/schools/medical-school/program/medical-program/"
+    },
+    {
+      "level": 2,
+      "question": "In the International Black Sea University — Georgia process, what is the correct approach to client question: Can we guarantee approval?",
+      "options": [
+        "No — never guarantee admission, visa, licensing, or residency.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "No — never guarantee admission, visa, licensing, or residency."
+    },
+    {
+      "level": 2,
+      "question": "For International Black Sea University — Georgia, what should happen during client question: NMC recognition?",
+      "options": [
+        "Verify institution on NMC list at time of enrollment.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify institution on NMC list at time of enrollment."
+    },
+    {
+      "level": 2,
+      "question": "International Black Sea University — Georgia workflow — best practice for client question: WHO listing:",
+      "options": [
+        "Check World Directory of Medical Schools (WDOMS).",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Check World Directory of Medical Schools (WDOMS)."
+    },
+    {
+      "level": 2,
+      "question": "In the International Black Sea University — Georgia process, what is the correct approach to client question: Part-time work?",
+      "options": [
+        "Maintain full-time student status — verify local work restrictions.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Maintain full-time student status — verify local work restrictions."
+    },
+    {
+      "level": 2,
+      "question": "For International Black Sea University — Georgia, what should happen during client question: Spouse can accompany?",
+      "options": [
+        "Case-by-case — verify dependant visa rules before promising.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Case-by-case — verify dependant visa rules before promising."
+    },
+    {
+      "level": 2,
+      "question": "International Black Sea University — Georgia workflow — best practice for client question: Where to practice after graduation:",
+      "options": [
+        "See Practice tab — India FMGE/NExT plus host-country options.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "See Practice tab — India FMGE/NExT plus host-country options."
+    },
+    {
+      "level": 2,
+      "question": "In the International Black Sea University — Georgia process, what is the correct approach to client question: Document checklist?",
+      "options": [
+        "See Checklist tab — admission, visa, and clinical sections.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "See Checklist tab — admission, visa, and clinical sections."
+    },
+    {
+      "level": 2,
+      "question": "For International Black Sea University — Georgia, what should happen during client question: Official website?",
+      "options": [
+        "ibsu.edu.ge/",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "ibsu.edu.ge/"
+    },
+    {
+      "level": 2,
+      "question": "International Black Sea University — Georgia workflow — best practice for client question: City / campus:",
+      "options": [
+        "Tbilisi, Georgia (Tbilisi)",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Tbilisi, Georgia (Tbilisi)"
+    },
+    {
+      "level": 2,
+      "question": "In the International Black Sea University — Georgia process, what is the correct approach to client question: Accreditation?",
+      "options": [
+        "Verify on official university site before quoting clients.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify on official university site before quoting clients."
+    },
+    {
+      "level": 2,
+      "question": "For International Black Sea University — Georgia, what should happen during client question: Consultancy fee?",
+      "options": [
+        "See Fees tab — separate from university tuition.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "See Fees tab — separate from university tuition."
+    },
+    {
+      "level": 2,
+      "question": "International Black Sea University — Georgia workflow — best practice for client question: Total budget estimate:",
+      "options": [
+        "Use Full cost breakdown tab + official tuition page.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Use Full cost breakdown tab + official tuition page."
+    },
+    {
+      "level": 2,
+      "question": "In the International Black Sea University — Georgia process, what is the correct approach to client question: Scholarships?",
+      "options": [
+        "Check official admissions page for current offerings.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Check official admissions page for current offerings."
+    },
+    {
       "level": 3,
       "question": "Before enrollment, NMC list should be?",
       "options": [
@@ -752,9 +1280,291 @@
       ],
       "correctIndex": 1,
       "explanation": "Compliance — separate invoices."
+    },
+    {
+      "level": 3,
+      "question": "International Black Sea University — Georgia: what is the compliance risk with Before enrollment, NMC list should be?",
+      "options": [
+        "Verified on nmc.org.in",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify at admission year."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on International Black Sea University — Georgia — key issue with Consultancy fee vs tuition:",
+      "options": [
+        "Separate — never commingle",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Compliance — separate invoices."
+    },
+    {
+      "level": 3,
+      "question": "For International Black Sea University — Georgia, counselors must avoid this mistake related to NMC list not verified:",
+      "options": [
+        "Verify on nmc.org.in before contract",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Enrollment without checking current NMC foreign medical institutions list."
+    },
+    {
+      "level": 3,
+      "question": "International Black Sea University — Georgia: what is the compliance risk with NMC list not verified (detail)?",
+      "options": [
+        "Enrollment without checking current NMC foreign medical institutions list.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify on nmc.org.in before contract"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on International Black Sea University — Georgia — key issue with Outdated tuition quotes:",
+      "options": [
+        "Open https://ibsu.edu.ge/en/schools/medical-school/program/medical-program/ during counseling call",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Quoting from agent brochures instead of official site."
+    },
+    {
+      "level": 3,
+      "question": "For International Black Sea University — Georgia, counselors must avoid this mistake related to Outdated tuition quotes (detail):",
+      "options": [
+        "Quoting from agent brochures instead of official site.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Open https://ibsu.edu.ge/en/schools/medical-school/program/medical-program/ during counseling call"
+    },
+    {
+      "level": 3,
+      "question": "International Black Sea University — Georgia: what is the compliance risk with Guaranteed licensure promise?",
+      "options": [
+        "No guarantees — cite official stats only",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Agents promising FMGE pass or residency match."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on International Black Sea University — Georgia — key issue with Guaranteed licensure promise (detail):",
+      "options": [
+        "Agents promising FMGE pass or residency match.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "No guarantees — cite official stats only"
+    },
+    {
+      "level": 3,
+      "question": "For International Black Sea University — Georgia, counselors must avoid this mistake related to Family relocation without visa plan:",
+      "options": [
+        "Immigration counsel before promising family join",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Spouse/children without dependant visa strategy."
+    },
+    {
+      "level": 3,
+      "question": "International Black Sea University — Georgia: what is the compliance risk with Family relocation without visa plan (detail)?",
+      "options": [
+        "Spouse/children without dependant visa strategy.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Immigration counsel before promising family join"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on International Black Sea University — Georgia — key issue with Wrong degree naming:",
+      "options": [
+        "Explain FMGE/NExT pathway clearly",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Misrepresenting MD vs MBBS equivalency for India."
+    },
+    {
+      "level": 3,
+      "question": "For International Black Sea University — Georgia, counselors must avoid this mistake related to Wrong degree naming (detail):",
+      "options": [
+        "Misrepresenting MD vs MBBS equivalency for India.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain FMGE/NExT pathway clearly"
+    },
+    {
+      "level": 3,
+      "question": "International Black Sea University — Georgia: what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not guarantee licensure or residency",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee licensure or residency"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on International Black Sea University — Georgia — key issue with counselor don't:",
+      "options": [
+        "Do not promise spouse work without visa approval",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not promise spouse work without visa approval"
+    },
+    {
+      "level": 3,
+      "question": "For International Black Sea University — Georgia, counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not mislabel degree equivalency",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not mislabel degree equivalency"
+    },
+    {
+      "level": 3,
+      "question": "International Black Sea University — Georgia: what is the compliance risk with common mistake?",
+      "options": [
+        "Outdated tuition quotes",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Outdated tuition quotes"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on International Black Sea University — Georgia — key issue with common mistake:",
+      "options": [
+        "Skipping NMC list check",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Skipping NMC list check"
+    },
+    {
+      "level": 3,
+      "question": "For International Black Sea University — Georgia, counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Ignoring clinical-year living costs",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Ignoring clinical-year living costs"
+    },
+    {
+      "level": 3,
+      "question": "International Black Sea University — Georgia: what is the compliance risk with compliance rule?",
+      "options": [
+        "Client agreement and consent before submission",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Client agreement and consent before submission"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on International Black Sea University — Georgia — key issue with compliance rule:",
+      "options": [
+        "Never guarantee admission, visa, licensure, or residency match",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee admission, visa, licensure, or residency match"
+    },
+    {
+      "level": 3,
+      "question": "For International Black Sea University — Georgia, counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Quote tuition only from official ibsu.edu.ge fee page",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Quote tuition only from official ibsu.edu.ge fee page"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on International Black Sea University — Georgia — key issue with refusal handling:",
+      "options": [
+        "If client expects guaranteed licensure or residency without exams, reset expectations before taking fees.",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "If client expects guaranteed licensure or residency without exams, reset expectations before taking fees."
+    },
+    {
+      "level": 3,
+      "question": "For International Black Sea University — Georgia, counselors must avoid this mistake related to Before enrollment, NMC list should be:",
+      "options": [
+        "Verified on nmc.org.in",
+        "International Black Sea University (IBSU) offers Medical Doctor (English-taught). Internships at partner clinics from early semesters. American-model curriculu…",
+        "Meet IBSU admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules",
+        "IBSU Medicine School established 2023 — verify current national accreditation status"
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify at admission year."
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
     {
       "version": "v1.0",
       "date": "10 Jun 2026",
