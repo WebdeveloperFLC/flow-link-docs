@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AssessmentHeader } from "@/components/assessment/AssessmentHeader";
@@ -7,6 +7,7 @@ import { ContextBackBar } from "@/components/navigation/ContextBackBar";
 import { Loader2, Send, CheckCircle2, ArrowLeft, ArrowRight, Save, Download } from "lucide-react";
 import { toast } from "sonner";
 import { downloadAssessmentPdf } from "@/lib/assessmentPdf";
+import { savePublicSettleAbroadSession } from "@/lib/service-eligibility/sessions";
 import { OccupationSearch, type OccupationValue } from "@/components/assessment/OccupationSearch";
 import { PathwayEligibilityPanel } from "@/components/assessment/PathwayEligibilityPanel";
 import { ChancenkartePanel } from "@/components/assessment/ChancenkartePanel";
@@ -133,8 +134,9 @@ const GOAL_LABELS: Record<string, string> = {
 export default function AssessmentRun() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const nav = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<Q[]>([]);
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -151,15 +153,19 @@ export default function AssessmentRun() {
   const [subject, setSubject] = useState<{ name?: string; email?: string }>({});
   const [libraryId, setLibraryId] = useState<string | null>(searchParams.get("library_id"));
   const [clientId, setClientId] = useState<string | null>(null);
+  const [publicToken, setPublicToken] = useState<string | null>(searchParams.get("token"));
+  const [sessionFound, setSessionFound] = useState(true);
+  const isPublic = searchParams.get("public") === "1";
 
   const fromServiceLibrary =
     searchParams.get("from") === "service-library" || Boolean(libraryId);
 
   const isStaff = Boolean(
-    user ||
-      (typeof window !== "undefined" && document.referrer.includes("/assessment-admin")) ||
-      sessionStorage.getItem("flc_staff_session") === "1" ||
-      fromServiceLibrary,
+    !isPublic &&
+      (user ||
+        (typeof window !== "undefined" && document.referrer.includes("/assessment-admin")) ||
+        sessionStorage.getItem("flc_staff_session") === "1" ||
+        fromServiceLibrary),
   );
 
   const load = useCallback(async () => {
@@ -170,7 +176,7 @@ export default function AssessmentRun() {
       supabase
         .from("assessment_sessions")
         .select(
-          "answers, status, goal, country, library_id, client_id, client:clients(full_name, email), lead:assessment_leads(first_name, last_name, email)",
+          "answers, status, goal, country, library_id, client_id, public_token, prospect_name, prospect_email, source, assessment_kind, client:clients(full_name, email), lead:assessment_leads(first_name, last_name, email)",
         )
         .eq("id", sessionId)
         .maybeSingle(),
@@ -188,13 +194,21 @@ export default function AssessmentRun() {
     setStatus(ses.data?.status ?? "draft");
     setGoal(sGoal);
     setCountry(sCountry);
-    setLibraryId((ses.data as { library_id?: string | null })?.library_id ?? searchParams.get("library_id"));
-    setClientId((ses.data as { client_id?: string | null })?.client_id ?? null);
-    const c: any = (ses.data as any)?.client;
-    const l: any = (ses.data as any)?.lead;
+    const row = ses.data as Record<string, unknown> | null;
+    setSessionFound(Boolean(row));
+    setLibraryId((row?.library_id as string | null) ?? searchParams.get("library_id"));
+    setClientId((row?.client_id as string | null) ?? null);
+    setPublicToken((row?.public_token as string | null) ?? searchParams.get("token"));
+    const c: any = row?.client;
+    const l: any = row?.lead;
+    const prospectName = row?.prospect_name as string | undefined;
+    const prospectEmail = row?.prospect_email as string | undefined;
     setSubject({
-      name: c?.full_name ?? ([l?.first_name, l?.last_name].filter(Boolean).join(" ") || undefined),
-      email: c?.email ?? l?.email ?? undefined,
+      name:
+        c?.full_name ??
+        ([l?.first_name, l?.last_name].filter(Boolean).join(" ") || undefined) ??
+        prospectName,
+      email: c?.email ?? l?.email ?? prospectEmail ?? undefined,
     });
     setLoading(false);
   }, [sessionId, searchParams]);
@@ -365,12 +379,22 @@ export default function AssessmentRun() {
     if (!sessionId) return;
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("assessment_sessions")
-        .update({ answers, status: "in_progress" })
-        .eq("id", sessionId);
-      if (error) throw error;
-      if (!silent) toast.success("Progress saved — find it under Submissions in the admin console");
+      if (isPublic && publicToken) {
+        await savePublicSettleAbroadSession({ publicToken, answers });
+      } else {
+        const { error } = await supabase
+          .from("assessment_sessions")
+          .update({ answers, status: "in_progress" })
+          .eq("id", sessionId);
+        if (error) throw error;
+      }
+      if (!silent) {
+        toast.success(
+          isPublic
+            ? "Progress saved — you can return to this link to continue"
+            : "Progress saved — find it under Submissions in the admin console",
+        );
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -407,9 +431,11 @@ export default function AssessmentRun() {
     if (!sessionId) return;
     setSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("assessment-submit", { body: { sessionId, answers } });
+      const body: Record<string, unknown> = { sessionId, answers };
+      if (isPublic && publicToken) body.publicToken = publicToken;
+      const { data, error } = await supabase.functions.invoke("assessment-submit", { body });
       if (error || (data as any)?.error) throw new Error(error?.message ?? (data as any)?.error);
-      toast.success("Assessment submitted");
+      toast.success(isPublic ? "Assessment submitted — a counselor will contact you" : "Assessment submitted");
       setStatus("submitted");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed");
@@ -418,12 +444,30 @@ export default function AssessmentRun() {
     }
   };
 
-  if (loading)
+  if (loading || authLoading)
     return (
       <div className="flc-shell min-h-screen flex items-center justify-center">
         <Loader2 className="animate-spin text-[hsl(220_18%_11%)]" />
       </div>
     );
+
+  if (!isPublic && !user) {
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  const urlToken = searchParams.get("token");
+  if (isPublic && (!sessionFound || !urlToken || !publicToken || urlToken !== publicToken)) {
+    return (
+      <div className="flc-shell min-h-screen flex items-center justify-center p-6">
+        <div className="flc-card max-w-md p-8 text-center space-y-3">
+          <h2 className="flc-display text-xl">Invalid or expired link</h2>
+          <p className="text-sm text-[hsl(220_14%_28%)]">
+            This assessment link is missing or no longer valid. Ask your counselor for a new public link.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (status === "submitted") {
     const total = crs?.total ?? 0;

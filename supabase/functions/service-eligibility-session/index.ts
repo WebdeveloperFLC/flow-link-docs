@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { resolveSettleAbroadMapping, usesSettleAbroadAssessment } from "../_shared/settleAbroadBridge.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -28,6 +29,70 @@ Deno.serve(async (req) => {
     );
     const body = await req.json().catch(() => ({}));
     const action = body.action ?? "staff_create";
+
+    if (action === "public_preview") {
+      const libraryId = body.libraryId as string;
+      if (!libraryId) return json({ error: "libraryId required" }, 400);
+      const svc = await assertVisaService(admin, libraryId);
+      const mapping = resolveSettleAbroadMapping(libraryId);
+      return json({
+        title: `${svc.service} – ${svc.sub_service}`,
+        fullAssessment: usesSettleAbroadAssessment(libraryId),
+        country: mapping?.country ?? svc.service ?? "Canada",
+      });
+    }
+
+    if (action === "public_create_settle_abroad") {
+      const libraryId = body.libraryId as string;
+      const name = (body.name ?? "").trim();
+      const email = (body.email ?? "").trim().toLowerCase();
+      if (!libraryId || !name || !email) return json({ error: "libraryId, name, and email required" }, 400);
+
+      const mapping = resolveSettleAbroadMapping(libraryId);
+      if (!mapping) return json({ error: "This service does not use the full eligibility assessment" }, 400);
+
+      await assertVisaService(admin, libraryId);
+      const token = crypto.randomUUID();
+
+      const { data: ses, error } = await admin
+        .from("assessment_sessions")
+        .insert({
+          library_id: libraryId,
+          assessment_kind: "settle_abroad",
+          source: "public_link",
+          public_token: token,
+          prospect_name: name,
+          prospect_email: email,
+          prospect_phone: body.phone?.trim() || null,
+          country: mapping.country,
+          goal: mapping.goal,
+          status: "draft",
+          answers: {},
+        })
+        .select("id, public_token")
+        .single();
+      if (error || !ses) return json({ error: error?.message ?? "Could not create session" }, 500);
+      return json({ sessionId: ses.id, publicToken: ses.public_token });
+    }
+
+    if (action === "public_save_settle_abroad") {
+      const token = body.publicToken as string;
+      if (!token) return json({ error: "publicToken required" }, 400);
+      const patch: Record<string, unknown> = {
+        answers: body.answers ?? {},
+        updated_at: new Date().toISOString(),
+        status: "in_progress",
+      };
+      const { data, error } = await admin
+        .from("assessment_sessions")
+        .update(patch)
+        .eq("public_token", token)
+        .eq("assessment_kind", "settle_abroad")
+        .select("id")
+        .maybeSingle();
+      if (error || !data) return json({ error: error?.message ?? "Session not found" }, 404);
+      return json({ ok: true, sessionId: data.id });
+    }
 
     if (action === "public_create") {
       const libraryId = body.libraryId as string;
