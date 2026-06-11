@@ -10,6 +10,7 @@ import { copyToClipboard } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 import { MbbsInstitutionSwitcher } from "@/components/service-library/design/MbbsInstitutionSwitcher";
 import type { MbbsInstitutionOption } from "@/lib/service-library/mbbs/types";
+import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
 
 type Props = {
   view: AcademyViewModel;
@@ -41,6 +42,7 @@ export function ServiceAcademyHero({
   const { country: titleCountry, name: titleName } = view.isMbbs
     ? { country: regionLabel, name: view.mbbsMeta?.institutionName ?? view.title }
     : splitServiceTitle(view.title, view.country);
+  const titleCountryFlag = titleCountry ? countryFlagEmoji(titleCountry) : "";
 
   return (
     <div className={cn("space-y-4 border-b bg-card pb-4", view.isMbbs && "border-rose-500/20")}>
@@ -107,7 +109,14 @@ export function ServiceAcademyHero({
           </div>
           <div className="min-w-0 flex-1">
             {titleCountry ? (
-              <p className="text-sm font-semibold text-muted-foreground tracking-wide mb-0.5">{titleCountry}</p>
+              <p className="text-sm font-semibold text-muted-foreground tracking-wide mb-0.5 flex items-center gap-1.5">
+                {titleCountryFlag && (
+                  <span className="text-lg leading-none" aria-hidden>
+                    {titleCountryFlag}
+                  </span>
+                )}
+                {titleCountry}
+              </p>
             ) : null}
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-snug">
               {titleName}
