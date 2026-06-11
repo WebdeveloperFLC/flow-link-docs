@@ -47,7 +47,7 @@ type RegistrationPhase = "lead" | "client";
 const LeadNew = () => {
   const nav = useNavigate();
   const [sp] = useSearchParams();
-  const editId = sp.get("id");
+  const editId = sp.get("id") ?? sp.get("lead_id");
   const slCountry = sp.get("country");
   const slVisaService = sp.get("visa_service");
   const slServiceLabel = sp.get("service_label");

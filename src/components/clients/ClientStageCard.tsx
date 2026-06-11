@@ -22,7 +22,15 @@ interface HistoryRow {
   label?: string; color?: string | null;
 }
 
-export function ClientStageCard({ clientId, clientCountry }: { clientId: string; clientCountry?: string | null }) {
+export function ClientStageCard({
+  clientId,
+  clientCountry,
+  destinationCountry,
+}: {
+  clientId: string;
+  clientCountry?: string | null;
+  destinationCountry?: string | null;
+}) {
   const { canUpload } = useAuth();
   const [current, setCurrent] = useState<CurrentStage | null>(null);
   const [stages, setStages] = useState<Stage[]>([]);
@@ -72,11 +80,11 @@ export function ClientStageCard({ clientId, clientCountry }: { clientId: string;
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [clientId]);
 
   const filteredPipelines = useMemo(() => {
-    if (!clientCountry) return pipelines;
-    const norm = clientCountry.trim().toLowerCase();
-    const matching = pipelines.filter((p) => p.country.trim().toLowerCase() === norm);
+    const filterCountry = (destinationCountry ?? clientCountry)?.trim().toLowerCase();
+    if (!filterCountry) return pipelines;
+    const matching = pipelines.filter((p) => p.country.trim().toLowerCase() === filterCountry);
     return matching.length ? matching : pipelines;
-  }, [pipelines, clientCountry]);
+  }, [pipelines, clientCountry, destinationCountry]);
 
   const onAssignPipeline = async (pipelineId: string) => {
     setBusy(true);

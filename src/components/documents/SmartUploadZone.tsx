@@ -89,12 +89,15 @@ export const SmartUploadZone = ({
   templateTypes,
   people,
   onUploaded,
+  uploadLimitLabel = "≤ 4 MB",
 }: {
   client: Client;
   templateTypes?: string[];
   /** Roster of people on this case. Must include the applicant. */
   people: CasePerson[];
   onUploaded: () => void;
+  /** Shown in the upload badge — e.g. "IRCC ≤ 4 MB" for Canada cases. */
+  uploadLimitLabel?: string;
 }) => {
   const [drag, setDrag] = useState(false);
   const [queue, setQueue] = useState<QueueItem[]>([]);
@@ -877,7 +880,7 @@ export const SmartUploadZone = ({
           <Wand2 className="size-4 text-secondary" /> Smart upload
         </div>
         <span className="text-[10px] uppercase tracking-wide font-semibold px-1.5 py-0.5 rounded bg-secondary/10 text-secondary">
-          IRCC ≤ 4MB
+          {uploadLimitLabel}
         </span>
       </div>
       <p className="text-xs text-muted-foreground mb-3">

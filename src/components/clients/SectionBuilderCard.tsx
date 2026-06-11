@@ -673,7 +673,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
             {dragActive
               ? `Drop files into ${section.label}`
               : (canEdit
-                  ? `Drop files here or click "Upload to ${section.label}". Files are auto-classified, optimized for IRCC ≤ 4 MB, and their information is extracted into this section.`
+                  ? `Drop files here or click "Upload to ${section.label}". Files are auto-classified, optimized ≤ 4 MB, and their information is extracted into this section.`
                   : "No documents in this section yet.")}
           </div>
         </>
