@@ -1,6 +1,9 @@
 -- Include public prospect + service library context in staff submissions list
+-- Must DROP first: PostgreSQL cannot CREATE OR REPLACE when RETURNS TABLE columns change.
 
-CREATE OR REPLACE FUNCTION public.list_assessment_sessions_admin(_limit int DEFAULT 200)
+DROP FUNCTION IF EXISTS public.list_assessment_sessions_admin(int);
+
+CREATE FUNCTION public.list_assessment_sessions_admin(_limit int DEFAULT 200)
 RETURNS TABLE (
   id uuid,
   status text,
