@@ -306,19 +306,25 @@
         "label": "University & administrative fees",
         "items": [
           {
-            "label": "Tuition (annual / per semester)",
-            "range": "See official tuition page",
-            "notes": "Verify on www.mua.edu",
+            "label": "MD tuition — basic science (per semester)",
+            "range": "13,000",
+            "notes": "Terms 1–5",
             "currency": "USD"
           },
           {
-            "label": "Application fee",
-            "range": "See official site",
+            "label": "MD tuition — clinical (per semester)",
+            "range": "15,000",
+            "notes": "Terms 6–10",
+            "currency": "USD"
+          },
+          {
+            "label": "Application / seat deposit",
+            "range": "100",
             "currency": "USD"
           },
           {
             "label": "Student services / admin fees",
-            "range": "Per catalog",
+            "range": "3,900/sem × 10",
             "currency": "USD"
           },
           {
@@ -333,21 +339,21 @@
         "label": "Program costs",
         "items": [
           {
-            "label": "Total program tuition",
-            "range": "Sum of all years/semesters",
-            "notes": "Official fee schedule only",
+            "label": "Total program tuition (indicative)",
+            "range": "179,000",
+            "notes": "Indicative per published fee schedule — verify on mua.edu",
             "currency": "USD"
           },
           {
             "label": "Books & equipment",
-            "range": "Varies",
+            "range": "1,000–3,000",
             "unit": "per year",
             "currency": "USD"
           },
           {
             "label": "USMLE exam fees",
-            "range": "Step 1 + Step 2 CK",
-            "notes": "During program",
+            "range": "670 + 985",
+            "notes": "Step 1 + Step 2 CK",
             "currency": "USD"
           }
         ]
@@ -409,7 +415,7 @@
     "totals": [
       {
         "label": "Indicative total program budget",
-        "value": "Calculate from official tuition + full program living costs",
+        "value": "From USD $179,000 tuition + living costs",
         "notes": "Use www.mua.edu tuition page; add 15% buffer for currency and fee increases."
       }
     ]

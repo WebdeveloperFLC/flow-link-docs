@@ -1,0 +1,80 @@
+{
+  "b2000001-0001-4000-8000-0000000000d1": {
+    "archetype": "caribbean_md",
+    "currency": "USD",
+    "sourceUrl": "https://www.saba.edu/admissions/tuition-and-fees/",
+    "islandLabel": "Saba",
+    "applicationFee": 750,
+    "basicTuitionPerSem": 20480,
+    "clinicalTuitionPerSem": 24950,
+    "adminBasicPerSem": 8270,
+    "adminClinicalPerSem": 6050,
+    "totalTuitionAndAdmin": 298750,
+    "usmleStep1": 670,
+    "usmleStep2": 985,
+    "rateNote": "Sep 2026 matriculants — verify on saba.edu before quoting"
+  },
+  "b2000001-0001-4000-8000-0000000000d2": {
+    "archetype": "russia_specialist",
+    "currency": "RUB",
+    "sourceUrl": "https://synergy.ru/abiturientam/programmyi_obucheniya/medical_doctor",
+    "annualTuition": 745740,
+    "totalProgramTuition": 4474440,
+    "programYears": 6,
+    "rateNote": "English MD track — verify current RUB quote on synergy.ru"
+  },
+  "b2000001-0001-4000-8000-0000000000d3": {
+    "archetype": "caribbean_md",
+    "currency": "USD",
+    "sourceUrl": "https://www.mua.edu/admissions/tuition-and-fees",
+    "islandLabel": "Nevis",
+    "applicationFee": 100,
+    "basicTuitionPerSem": 13000,
+    "clinicalTuitionPerSem": 15000,
+    "adminPerSem": 3900,
+    "totalTuitionAndAdmin": 179000,
+    "usmleStep1": 670,
+    "usmleStep2": 985,
+    "rateNote": "Indicative per published fee schedule — verify on mua.edu"
+  },
+  "b2000001-0001-4000-8000-0000000000d4": {
+    "archetype": "caribbean_md",
+    "currency": "USD",
+    "sourceUrl": "https://medicine.stmatthews.edu/admissions/tuition-and-fees",
+    "islandLabel": "Cayman Islands",
+    "applicationFee": 100,
+    "basicTuitionPerSem": 16802,
+    "clinicalTuitionPerSem": 22406,
+    "totalTuitionOnly": 196040,
+    "usmleStep1": 670,
+    "usmleStep2": 985,
+    "rateNote": "Tuition only — admin fees extra; verify on stmatthews.edu"
+  },
+  "b2000001-0001-4000-8000-0000000000d5": {
+    "archetype": "georgia_md",
+    "currency": "USD",
+    "sourceUrl": "https://seu.edu.ge/en/admissions",
+    "annualTuition": 5900,
+    "totalProgramTuition": 35400,
+    "programYears": 6,
+    "rateNote": "International students — verify on seu.edu.ge"
+  },
+  "b2000001-0001-4000-8000-0000000000d6": {
+    "archetype": "georgia_md",
+    "currency": "USD",
+    "sourceUrl": "https://ibsu.edu.ge/en/schools/medical-school/program/medical-program/",
+    "annualTuition": 5900,
+    "totalProgramTuition": 35400,
+    "programYears": 6,
+    "rateNote": "International students — scholarship up to $500; verify on ibsu.edu.ge"
+  },
+  "b2000001-0001-4000-8000-0000000000d7": {
+    "archetype": "georgia_md",
+    "currency": "USD",
+    "sourceUrl": "https://abmu.edu.ge/en/faculty/educational-programmes",
+    "annualTuition": 4900,
+    "totalProgramTuition": 29400,
+    "programYears": 6,
+    "rateNote": "International students — verify on abmu.edu.ge"
+  }
+}

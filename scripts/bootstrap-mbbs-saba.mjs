@@ -2,8 +2,17 @@
 /** Generate mbbs-saba-university.json and SQL seed. Run: node scripts/bootstrap-mbbs-saba.mjs */
 import fs from "fs";
 import path from "path";
+import { buildFullCostBreakdown } from "./lib/mbbs-content-builder.mjs";
 
 export const SABA_LIBRARY_ID = "b2000001-0001-4000-8000-0000000000d1";
+
+const sabaInst = {
+  libraryId: SABA_LIBRARY_ID,
+  institutionName: "Saba University School of Medicine",
+  city: "The Bottom",
+  archetype: "caribbean_md",
+  tuitionUrl: "https://www.saba.edu/admissions/tuition-and-fees/",
+};
 
 const meta = {
   displayName: "Saba University School of Medicine — Caribbean",
@@ -38,7 +47,7 @@ const meta = {
   ],
   kpis: [
     { label: "Program duration", value: "4 years", sub: "10 semesters", tone: "primary" },
-    { label: "Tuition", value: "See Fees tab", sub: "Official saba.edu rates", tone: "warning" },
+    { label: "Tuition", value: "From $298,750", sub: "Sep 2026 rates — verify on saba.edu", tone: "warning" },
     { label: "USMLE Step 1 pass", value: "98%", sub: "First-time 2024", tone: "success" },
     { label: "Required docs", value: "18+", sub: "Admission + visa", tone: "violet" },
     { label: "Consultancy fee", value: "See Fees tab", sub: "Future Link package", tone: "primary" },
@@ -260,62 +269,7 @@ const meta = {
       lastVerified: "Jun 2026",
     },
   },
-  fullCostBreakdown: {
-    title: "Full cost breakdown — Saba University School of Medicine",
-    currency: "USD",
-    lastVerified: "Jun 2026",
-    disclaimer:
-      "Indicative structure for counselor discussions. Tuition changes each academic year — always quote from https://www.saba.edu/admissions/tuition-and-fees/ before client commitment.",
-    sourceUrl: "https://www.saba.edu/admissions/tuition-and-fees/",
-    sections: [
-      {
-        id: "fees",
-        label: "University & administrative fees",
-        items: [
-          { label: "MD tuition (per semester)", range: "See official tuition page", notes: "Verify on saba.edu", currency: "USD" },
-          { label: "Application fee", range: "See saba.edu", currency: "USD" },
-          { label: "Student services / admin fees", range: "Per catalog", currency: "USD" },
-          { label: "Visa & immigration fees", range: "Varies", notes: "Consulate + permits" },
-        ],
-      },
-      {
-        id: "tuition",
-        label: "Program costs",
-        items: [
-          { label: "Total MD program tuition", range: "Sum of 10 semesters", notes: "Official fee schedule only", currency: "USD" },
-          { label: "Books & equipment", range: "1,000–3,000", unit: "per year", currency: "USD" },
-          { label: "USMLE exam fees", range: "Step 1 + Step 2 CK", notes: "During program", currency: "USD" },
-        ],
-      },
-      {
-        id: "living",
-        label: "Living costs",
-        items: [
-          { label: "Housing (Saba island)", range: "See housing page", unit: "per semester", notes: "saba.edu/student-experience/housing", currency: "USD" },
-          { label: "Food & personal (Saba)", range: "400–700", unit: "per month", currency: "USD" },
-          { label: "Clinical years (US cities)", range: "Varies by rotation city", unit: "per month", notes: "Higher in major metros", currency: "USD" },
-          { label: "Health insurance", range: "Mandatory", notes: "Verify SUSOM requirements", currency: "USD" },
-        ],
-      },
-      {
-        id: "misc",
-        label: "Miscellaneous",
-        items: [
-          { label: "Future Link consultancy fee", range: "See Fees tab" },
-          { label: "Flights India ↔ Saba ↔ US rotation cities", range: "₹80,000–2,50,000+" },
-          { label: "Medical exam & police clearance", range: "₹5,000–15,000" },
-          { label: "Forex / wire transfer charges", range: "Bank dependent" },
-        ],
-      },
-    ],
-    totals: [
-      {
-        label: "Indicative total program budget",
-        value: "Calculate from official tuition + 4 years living",
-        notes: "Use saba.edu tuition page; add 15% buffer for currency and fee increases.",
-      },
-    ],
-  },
+  fullCostBreakdown: buildFullCostBreakdown(sabaInst),
   eligibility: [
     { criterion: "Bachelor's degree or qualifying pre-med coursework", met: true },
     { criterion: "English proficiency (if required)", met: true },

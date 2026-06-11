@@ -15,6 +15,7 @@ function formatNative(amount: number, currency: string): string {
   if (cur === "USD") return `USD $${n}`;
   if (cur === "NZD") return `NZD $${n}`;
   if (cur === "INR") return `₹${n}`;
+  if (cur === "RUB") return `₽${n}`;
   return `${cur} ${n}`;
 }
 

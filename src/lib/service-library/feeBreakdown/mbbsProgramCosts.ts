@@ -18,14 +18,16 @@ const MBBS_PROGRAM_COSTS = new Map<string, FullCostBreakdown>([
   ["b2000001-0001-4000-8000-0000000000d7", avicenna.fullCostBreakdown as FullCostBreakdown],
 ]);
 
-/** Program tuition / living breakdown — built-in fallback when DB metadata is stale. */
+/** Program tuition / living breakdown — prefer repo JSON over stale DB placeholders. */
 export function resolveMbbsFullCostBreakdown(
   libraryId: string,
   meta?: ServiceAcademyMetadata | null,
 ): FullCostBreakdown | null {
+  const builtIn = MBBS_PROGRAM_COSTS.get(libraryId);
+  if (builtIn?.sections?.length) return builtIn;
   const fromMeta = meta?.fullCostBreakdown;
   if (fromMeta?.sections?.length) return fromMeta as FullCostBreakdown;
-  return MBBS_PROGRAM_COSTS.get(libraryId) ?? null;
+  return null;
 }
 
 export function hasMbbsProgramCostBreakdown(libraryId: string): boolean {

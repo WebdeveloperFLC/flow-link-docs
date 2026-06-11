@@ -3,7 +3,9 @@ export type FeeBreakdownUnit =
   | "per dependent adult"
   | "per dependent child"
   | "per year"
+  | "per semester"
   | "per family"
+  | "program total"
   | "varies";
 
 export type GovtFeeBreakdownItem = {
