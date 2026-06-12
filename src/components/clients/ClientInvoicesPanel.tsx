@@ -37,6 +37,8 @@ import {
   normalizeInvoicePickedState,
   getPickedQty,
   setPickedQty,
+  getLineDiscount,
+  setLineDiscount,
   type BillableClientService,
   type InvoiceLineLike,
 } from "@/lib/clientInvoiceServices";
@@ -917,22 +919,35 @@ function InvoiceEditorDialog({
 
   const selectedOffer = offers.find((o) => o.id === selectedOfferId) || null;
 
+  const displayServices = useMemo(() => {
+    if (isEdit) {
+      return services.filter((s) => getPickedQty(s, picked) > 0);
+    }
+    if (activeServiceCode) {
+      const libPrefix = activeServiceCode.split("::")[0] ?? "";
+      const matched = services.filter(
+        (s) =>
+          s.service_code === activeServiceCode ||
+          s.id === activeServiceCode ||
+          s.id.startsWith(`${libPrefix}::`),
+      );
+      if (matched.length > 0) return matched;
+    }
+    return services;
+  }, [services, picked, isEdit, activeServiceCode]);
+
   const pricingInputs = useMemo(
     () =>
-      Object.entries(picked)
-        .filter(([, q]) => q > 0)
-        .map(([id, qty]) => {
-          const svc = services.find((s) => s.id === id);
-          const unit = currency === "CAD" ? Number(svc?.fee_cad ?? 0) : Number(svc?.fee_inr ?? 0);
-          return {
-            id,
-            svc,
-            unit,
-            qty,
-            discount: lineDiscounts[id] ?? { mode: "amount" as DiscountMode, value: 0 },
-          };
-        }),
-    [picked, services, currency, lineDiscounts],
+      displayServices
+        .map((s) => ({
+          id: s.id,
+          svc: s,
+          unit: currency === "CAD" ? Number(s.fee_cad ?? 0) : Number(s.fee_inr ?? 0),
+          qty: getPickedQty(s, picked),
+          discount: getLineDiscount(s, lineDiscounts),
+        }))
+        .filter((row) => row.qty > 0),
+    [displayServices, picked, lineDiscounts, currency],
   );
 
   const offerDiscountPreview = useMemo(() => {
@@ -1081,23 +1096,6 @@ function InvoiceEditorDialog({
     onClose();
   };
 
-  const displayServices = useMemo(() => {
-    if (isEdit) {
-      return services.filter((s) => getPickedQty(s, picked) > 0);
-    }
-    if (activeServiceCode) {
-      const libPrefix = activeServiceCode.split("::")[0] ?? "";
-      const matched = services.filter(
-        (s) =>
-          s.service_code === activeServiceCode ||
-          s.id === activeServiceCode ||
-          s.id.startsWith(`${libPrefix}::`),
-      );
-      if (matched.length > 0) return matched;
-    }
-    return services;
-  }, [services, picked, isEdit, activeServiceCode]);
-
   const primaryService = displayServices.length === 1 ? displayServices[0] : null;
 
   return (
@@ -1183,8 +1181,8 @@ function InvoiceEditorDialog({
                   <tr>
                     <th className="text-left px-3 py-2">Service</th>
                     <th className="text-right px-3 py-2 w-24">Unit</th>
-                    <th className="text-right px-3 py-2 w-16">Qty</th>
-                    <th className="text-right px-3 py-2 w-36">Discount</th>
+                    <th className="text-right px-3 py-2 w-[4.5rem]">Qty</th>
+                    <th className="text-right px-3 py-2 w-40">Discount</th>
                     <th className="text-right px-3 py-2 w-24">Total</th>
                   </tr>
                 </thead>
@@ -1192,7 +1190,7 @@ function InvoiceEditorDialog({
                   {displayServices.map((s) => {
                     const unit = currency === "CAD" ? Number(s.fee_cad ?? 0) : Number(s.fee_inr ?? 0);
                     const qty = getPickedQty(s, picked);
-                    const discount = lineDiscounts[s.id] ?? { mode: "amount" as DiscountMode, value: 0 };
+                    const discount = getLineDiscount(s, lineDiscounts);
                     const gross = unit * qty;
                     const lineDiscountAmt = resolveLineDiscountAmount(gross, discount);
                     const rowIdx = pricingInputs.findIndex((r) => r.id === s.id);
@@ -1204,29 +1202,28 @@ function InvoiceEditorDialog({
                           <div className="font-medium leading-snug">{s.service_name}</div>
                           {lineDiscountAmt > 0 && qty > 0 && (
                             <div className="text-[11px] text-muted-foreground mt-0.5">
-                              −{money(lineDiscountAmt, currency)} line discount
+                              −{money(lineDiscountAmt, currency)}
+                              {discount.mode === "percentage"
+                                ? ` (${discount.value}% off)`
+                                : " line discount"}
                             </div>
                           )}
                         </td>
                         <td className="px-3 py-2 text-right tabular-nums">{money(unit, currency)}</td>
                         <td className="px-3 py-2">
-                          <Input
+                          <input
                             type="number"
                             min={0}
                             step={1}
-                            value={String(qty)}
-                            onChange={(e) =>
+                            value={qty}
+                            onChange={(e) => {
+                              const nextQty = Math.max(0, parseInt(e.target.value, 10) || 0);
                               setPicked((p) => {
-                                const next = setPickedQty(
-                                  s,
-                                  services,
-                                  p,
-                                  Math.max(0, parseInt(e.target.value, 10) || 0),
-                                );
+                                const next = setPickedQty(s, services, p, nextQty);
                                 return normalizeInvoicePickedState(services, next, lineDiscounts).picked;
-                              })
-                            }
-                            className="h-8 text-right tabular-nums"
+                              });
+                            }}
+                            className="flex h-8 w-full min-w-[3.25rem] rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground text-right tabular-nums ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                           />
                         </td>
                         <td className="px-3 py-2">
@@ -1235,13 +1232,15 @@ function InvoiceEditorDialog({
                               value={discount.mode}
                               disabled={qty <= 0}
                               onValueChange={(mode: DiscountMode) =>
-                                setLineDiscounts((p) => ({
-                                  ...p,
-                                  [s.id]: { mode, value: p[s.id]?.value ?? 0 },
-                                }))
+                                setLineDiscounts((p) =>
+                                  setLineDiscount(s, p, {
+                                    mode,
+                                    value: getLineDiscount(s, p).value,
+                                  }),
+                                )
                               }
                             >
-                              <SelectTrigger className="h-8 w-[4.5rem] px-2 text-xs">
+                              <SelectTrigger className="h-8 w-[3.25rem] px-2 text-xs shrink-0">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -1249,23 +1248,22 @@ function InvoiceEditorDialog({
                                 <SelectItem value="percentage">%</SelectItem>
                               </SelectContent>
                             </Select>
-                            <Input
+                            <input
                               type="number"
                               min={0}
                               max={discount.mode === "percentage" ? 100 : undefined}
-                              value={discount.value || ""}
-                              placeholder="0"
+                              step={discount.mode === "percentage" ? 1 : 0.01}
+                              value={discount.value}
                               disabled={qty <= 0}
                               onChange={(e) =>
-                                setLineDiscounts((p) => ({
-                                  ...p,
-                                  [s.id]: {
-                                    mode: p[s.id]?.mode ?? "amount",
+                                setLineDiscounts((p) =>
+                                  setLineDiscount(s, p, {
+                                    mode: getLineDiscount(s, p).mode,
                                     value: Math.max(0, parseFloat(e.target.value) || 0),
-                                  },
-                                }))
+                                  }),
+                                )
                               }
-                              className="h-8 w-20 text-right"
+                              className="flex h-8 w-16 min-w-[3.5rem] rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground text-right tabular-nums ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
                             />
                           </div>
                         </td>
