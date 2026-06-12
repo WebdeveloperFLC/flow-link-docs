@@ -112,6 +112,16 @@ export const STAFF_GUIDES: StaffGuideDef[] = [
     contentFile: "institutions-module.md",
     relatedModule: "institutions",
   },
+  {
+    slug: "incentive-platform-spec",
+    title: "Incentive Platform Specification (Draft)",
+    navLabel: "Incentive Platform Spec",
+    description:
+      "Cash incentives, centralized FX with buffer, Allied & Travel scoping, targets, slabs, payouts, and competition layer — pending sign-off before build.",
+    category: "Product / Finance",
+    contentFile: "incentive-platform-spec-v1.md",
+    relatedModule: "incentives",
+  },
 ];
 
 /** Staff guides only — intentionally excludes `docs/governance/`. */
