@@ -129,10 +129,12 @@ const crmNav: NavItem[] = [
   },
 ];
 
-/** Unified Performance Hub — replaces separate Incentives / Wallet / Offers groups (Phase 5A) */
+/** Unified Performance Hub — replaces separate Incentives / Wallet / Offers groups (Phase 5A+) */
 const performanceNav: NavItem[] = [
   { to: "/performance", icon: LayoutGrid, label: "My performance", end: true },
-  { to: "/incentives/give-discount", icon: Gift, label: "Give discount" },
+  { to: "/performance/give-discount", icon: Gift, label: "Give discount" },
+  { to: "/performance/team", icon: Users, label: "Team · branch", roles: ["manager", "admin", "administrator"] },
+  { to: "/performance/executive", icon: BarChart2, label: "Executive dashboard", adminOnly: true },
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
   { to: "/incentives/plans", icon: Settings2, label: "Plans & rules", adminOnly: true },
   { to: "/incentives/admin", icon: Calculator, label: "Runs (preview / lock)", adminOnly: true },

@@ -29,7 +29,7 @@ export default function PerformanceHome() {
           profileName={data.profileName}
           branchName={data.branchName}
           period={data.period}
-          primaryAction={{ label: "Give discount", to: "/incentives/give-discount" }}
+          primaryAction={{ label: "Give discount", to: "/performance/give-discount" }}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

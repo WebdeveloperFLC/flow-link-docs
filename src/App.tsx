@@ -167,6 +167,9 @@ import IncentiveCompetitions from "@/pages/IncentiveCompetitions";
 import IncentiveSimulator from "@/pages/IncentiveSimulator";
 import PerformanceHome from "@/pages/PerformanceHome";
 import PerformanceCommandCenter from "@/pages/PerformanceCommandCenter";
+import PerformanceExecutive from "@/pages/PerformanceExecutive";
+import PerformanceTeam from "@/pages/PerformanceTeam";
+import PerformanceWalletPolicy from "@/pages/PerformanceWalletPolicy";
 import AiHelpPage from "./ai-help/pages/AiHelpPage";
 import GuidesIndexPage from "./guides/pages/GuidesIndexPage";
 import GuideDetailPage from "./guides/pages/GuideDetailPage";
@@ -526,6 +529,38 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceCommandCenter />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/executive"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceExecutive />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/team"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceTeam />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/give-discount"
+                    element={
+                      <ProtectedRoute>
+                        <GiveDiscount />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/wallet/policy"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceWalletPolicy />
                       </ProtectedRoute>
                     }
                   />
