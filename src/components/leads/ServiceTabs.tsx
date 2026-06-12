@@ -234,7 +234,7 @@ export const ServiceTabs = ({
             {isVisa && !noCountriesPicked && (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs text-muted-foreground">
-                  Consultancy fees ({feeCurrency}); government in official currency + approx. equivalent:
+                  Filter by destination country to add services. Consultancy ({feeCurrency}); government fees:
                 </span>
                 <div className="inline-flex rounded-md border p-0.5">
                   {(["INR", "CAD"] as FeeCurrency[]).map((cur) => (
