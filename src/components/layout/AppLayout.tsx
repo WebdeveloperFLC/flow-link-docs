@@ -56,6 +56,7 @@ import {
   Settings2,
   Gift,
   CalendarClock,
+  DollarSign,
 } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -128,6 +129,7 @@ const incentivesNav: NavItem[] = [
   { to: "/incentives", icon: Wallet, label: "My Incentives" },
   { to: "/incentives/admin", icon: Calculator, label: "Incentives Admin", adminOnly: true },
   { to: "/incentives/plans", icon: Settings2, label: "Incentive Plans", adminOnly: true },
+  { to: "/incentives/fx-rates", icon: DollarSign, label: "FX Rates", adminOnly: true },
 ];
 
 const walletNav: NavItem[] = [

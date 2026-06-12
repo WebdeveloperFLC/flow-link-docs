@@ -77,20 +77,49 @@ function periodRange(period_key: string): { start: string; end: string } {
   throw new Error(`Unrecognized period_key: ${period_key}`);
 }
 
-// ---- load the period FX snapshot (currency -> rate_to_inr) ----------------
+// ---- load effective FX snapshot (base + buffer → rate_to_inr) ----------------
 async function loadFxSnapshot(svc: Svc, period_key: string): Promise<Record<string, number>> {
   const { data, error } = await svc
     .from("fx_rates")
-    .select("currency, rate_to_inr, period_key")
+    .select("currency, rate_to_inr, base_rate_to_inr, buffer_fixed, buffer_pct, period_key")
     .lte("period_key", period_key)
     .order("period_key", { ascending: false });
   if (error) throw error;
   const snap: Record<string, number> = { INR: 1.0 };
-  // first (most recent <= period) wins per currency
   for (const r of (data ?? []) as any[]) {
-    if (!(r.currency in snap)) snap[r.currency] = Number(r.rate_to_inr);
+    const cur = String(r.currency ?? "").toUpperCase();
+    if (!cur || cur in snap) continue;
+    const base = Number(r.base_rate_to_inr ?? r.rate_to_inr ?? 0);
+    let eff = base;
+    if (Number(r.buffer_pct ?? 0) > 0) {
+      eff = base * (1 + Number(r.buffer_pct) / 100);
+    } else {
+      eff = base + Number(r.buffer_fixed ?? 2);
+    }
+    snap[cur] = Math.round(eff * 10000) / 10000;
   }
   return snap;
+}
+
+function resolveCounselor(c: {
+  closing_counselor_id?: string | null;
+  assigned_counselor_id?: string | null;
+  owner_id?: string | null;
+}): string | null {
+  return c.closing_counselor_id ?? c.assigned_counselor_id ?? c.owner_id ?? null;
+}
+
+function classifyMasterKey(master?: string | null): string {
+  const m = (master ?? "").toLowerCase();
+  if (m === "allied_services" || m === "travel_financial") return "ancillary";
+  return "service_revenue";
+}
+
+function discountPenaltyMultiplier(pct: number): number {
+  if (pct <= 5) return 1;
+  if (pct <= 10) return 0.9;
+  if (pct <= 15) return 0.75;
+  return 0;
 }
 
 function convert(amount: number, from: string, to: string, snap: Record<string, number>): number | null {
@@ -185,17 +214,32 @@ Deno.serve(async (req: Request) => {
     const useNet = (plan.revenue_basis ?? "net") === "net";
     const period_type = (body.period_type ?? plan.period_type) as string;
 
-    // --- LOCK path: only flip an already-calculated run to locked ---
+    // --- LOCK path: snapshot plan version + freeze run ---
     if (action === "lock") {
       const snap = await loadFxSnapshot(svc, period_key);
+      let planVersionId: string | null = null;
+      const { data: verId } = await svc.rpc("fn_snapshot_incentive_plan_version", {
+        _plan_id: plan_id,
+        _period_key: period_key,
+        _created_by: callerId,
+      });
+      if (verId) planVersionId = verId as string;
+
       const { data: run, error: runErr } = await svc
         .from("incentive_runs")
-        .update({ status: "approved", locked: true, fx_snapshot: snap, approved_by: callerId, approved_at: new Date().toISOString() })
+        .update({
+          status: "approved",
+          locked: true,
+          fx_snapshot: snap,
+          plan_version_id: planVersionId,
+          approved_by: callerId,
+          approved_at: new Date().toISOString(),
+        })
         .eq("plan_id", plan_id).eq("period_key", period_key)
-        .is("branch_id", branch_id) // matches null too via .is when null
+        .is("branch_id", branch_id)
         .select().single();
       if (runErr) return json({ error: runErr.message }, 400);
-      return json({ ok: true, action, run });
+      return json({ ok: true, action, run, plan_version_id: planVersionId });
     }
 
     // --- compute path (preview or calculate) ---
@@ -208,18 +252,30 @@ Deno.serve(async (req: Request) => {
     const slabsBySource: Record<string, Slab[]> = {};
     for (const s of slabs) (slabsBySource[s.source_type] ||= []).push(s);
 
-    // counselors in scope: those who own clients in this branch (or all if no branch)
-    let clientQ = svc.from("clients").select("id, assigned_counselor_id, branch_id");
-    if (branch_id) clientQ = clientQ.eq("branch_id", branch_id);
+    // targets for bonus (period + optional plan)
+    const { data: targetsRaw } = await svc
+      .from("incentive_targets")
+      .select("*")
+      .eq("period_key", period_key)
+      .or(`plan_id.eq.${plan_id},plan_id.is.null`);
+
+    // counselors in scope — closer-wins attribution
+    let branchName: string | null = null;
+    if (branch_id) {
+      const { data: br } = await svc.from("branches").select("name").eq("id", branch_id).maybeSingle();
+      branchName = (br as any)?.name ?? null;
+    }
+
+    let clientQ = svc.from("clients").select(
+      "id, assigned_counselor_id, owner_id, closing_counselor_id, branch",
+    );
+    if (branchName) clientQ = clientQ.eq("branch", branchName);
     const { data: clients } = await clientQ;
     const clientList = (clients ?? []) as any[];
     const clientToCounselor: Record<string, string> = {};
-    const counselorSet = new Set<string>();
     for (const c of clientList) {
-      if (c.assigned_counselor_id) {
-        clientToCounselor[c.id] = c.assigned_counselor_id;
-        counselorSet.add(c.assigned_counselor_id);
-      }
+      const cid = resolveCounselor(c);
+      if (cid) clientToCounselor[c.id] = cid;
     }
     const clientIds = clientList.map((c) => c.id);
 
@@ -241,19 +297,32 @@ Deno.serve(async (req: Request) => {
         .gte("paid_at", start).lt("paid_at", end);
 
       const invoiceIds = [...new Set((pays ?? []).map((p: any) => p.invoice_id).filter(Boolean))] as string[];
-      const invoiceMap: Record<string, { amount: number; currency: string }> = {};
+      const invoiceMap: Record<string, { amount: number; currency: string; line_items?: any[] }> = {};
       const walletDiscByInvoice: Record<string, number> = {};
+      const serviceMasterByCode: Record<string, string> = {};
+
+      if (invoiceIds.length) {
+        const { data: svcRows } = await svc.from("service_library").select("id, service_category, service");
+        for (const s of (svcRows ?? []) as any[]) {
+          if (s.id) serviceMasterByCode[s.id] = s.service_category;
+          if (s.service) serviceMasterByCode[s.service] = s.service_category;
+        }
+      }
 
       if (useNet && invoiceIds.length) {
         const [{ data: invs }, { data: allocs }] = await Promise.all([
-          svc.from("client_invoices").select("id, amount, currency").in("id", invoiceIds),
+          svc.from("client_invoices").select("id, amount, currency, line_items").in("id", invoiceIds),
           svc.from("wallet_allocations")
             .select("invoice_id, amount, currency, status")
             .in("invoice_id", invoiceIds)
             .eq("status", "applied"),
         ]);
         for (const inv of (invs ?? []) as any[]) {
-          invoiceMap[inv.id] = { amount: Number(inv.amount ?? 0), currency: inv.currency ?? "INR" };
+          invoiceMap[inv.id] = {
+            amount: Number(inv.amount ?? 0),
+            currency: inv.currency ?? "INR",
+            line_items: Array.isArray(inv.line_items) ? inv.line_items : [],
+          };
         }
         for (const a of (allocs ?? []) as any[]) {
           if (!a.invoice_id) continue;
@@ -266,8 +335,9 @@ Deno.serve(async (req: Request) => {
         if (p.is_refund) continue;
         const cid = clientToCounselor[p.client_id];
         if (!cid) continue;
-        let inSettlement = convert(Number(p.amount), p.currency ?? "INR", settlement, snap);
-        if (inSettlement == null) continue;
+        let grossSettlement = convert(Number(p.amount), p.currency ?? "INR", settlement, snap);
+        if (grossSettlement == null) continue;
+        let inSettlement = grossSettlement;
 
         if (useNet && p.invoice_id && invoiceMap[p.invoice_id]) {
           const inv = invoiceMap[p.invoice_id];
@@ -279,7 +349,13 @@ Deno.serve(async (req: Request) => {
           }
         }
 
-        const src = "service_revenue";
+        let src = "service_revenue";
+        if (p.invoice_id && invoiceMap[p.invoice_id]?.line_items?.length) {
+          const firstLine = invoiceMap[p.invoice_id].line_items[0];
+          const code = firstLine?.service_code ?? firstLine?.service_id;
+          const mk = firstLine?.master_key ?? (code ? serviceMasterByCode[code] : null);
+          src = classifyMasterKey(mk);
+        }
         const b = ensure(cid, src);
         b.count += 1;
         b.revenue += inSettlement;
@@ -288,6 +364,7 @@ Deno.serve(async (req: Request) => {
           client_id: p.client_id, base_amount: Number(p.amount), base_currency: p.currency ?? "INR",
           fx_rate_used: p.currency === "INR" ? 1 : snap[p.currency] ?? null,
           settlement_amount: inSettlement,
+          gross_settlement: grossSettlement,
         });
       }
     }
@@ -296,15 +373,18 @@ Deno.serve(async (req: Request) => {
     {
       const { data: comm } = await svc
         .from("upi_commission_students")
-        .select("id, client_id, commission_amount, tuition_currency, commission_status, commission_paid_date")
+        .select("id, client_id, commission_amount, tuition_currency, commission_status, commission_paid_date, channel_type, partnership_route_id, aggregator_id")
         .eq("commission_status", "paid")
         .gte("commission_paid_date", start).lt("commission_paid_date", end);
       for (const cm of (comm ?? []) as any[]) {
         const cid = cm.client_id ? clientToCounselor[cm.client_id] : null;
-        if (!cid) continue; // only commissions tied to an attributable client
+        if (!cid) continue;
         const amt = convert(Number(cm.commission_amount ?? 0), cm.tuition_currency ?? "CAD", settlement, snap);
         if (amt == null) continue;
-        const src = "direct_visa_commission";
+        const ch = (cm.channel_type ?? "").toLowerCase();
+        let src = "direct_visa_commission";
+        if (ch === "indirect" || cm.aggregator_id) src = "b2b_admission_commission";
+        else if (ch === "direct" || ch === "student_direct") src = "direct_visa_commission";
         const b = ensure(cid, src);
         b.count += 1;
         b.revenue += amt;
@@ -317,31 +397,78 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // ---- apply slabs per counselor per source ----
+    // ---- apply slabs + target bonus + discount penalty per counselor ----
+    const counselorGross: Record<string, number> = {};
+    const counselorNet: Record<string, number> = {};
+    for (const cid of Object.keys(acc)) {
+      for (const src of Object.keys(acc[cid])) {
+        for (const ln of acc[cid][src].lines) {
+          counselorGross[cid] = (counselorGross[cid] ?? 0) + Number(ln.gross_settlement ?? ln.settlement_amount ?? 0);
+          counselorNet[cid] = (counselorNet[cid] ?? 0) + Number(ln.settlement_amount ?? 0);
+        }
+      }
+    }
+
     const perCounselor: Record<string, { total: number; lines: any[] }> = {};
     for (const cid of Object.keys(acc)) {
       perCounselor[cid] = { total: 0, lines: [] };
+      let subtotalBeforePenalty = 0;
       for (const src of Object.keys(acc[cid])) {
         const bucket = acc[cid][src];
         const srcSlabs = slabsBySource[src] ?? [];
-        // choose metric: revenue-based sources use revenue; count handled inside
         const { earned, slabId } = applySlabs(bucket.revenue, bucket.count, srcSlabs);
-        // attach earned proportionally is complex; store one summary line per source
-        perCounselor[cid].total += earned;
+        subtotalBeforePenalty += earned;
         for (const ln of bucket.lines) {
           perCounselor[cid].lines.push({
             ...ln, slab_id: slabId,
-            earned_amount: 0, // detail lines trace source; earned summarized below
+            earned_amount: 0,
             settlement_currency: settlement,
           });
         }
-        // summary earned line
         perCounselor[cid].lines.push({
           source_type: src, slab_id: slabId, client_id: null,
           base_amount: bucket.revenue, base_currency: settlement, fx_rate_used: null,
-          earned_amount: earned, settlement_currency: settlement,
-          note: `Earned on ${bucket.count} item(s), base ${bucket.revenue.toFixed(2)} ${settlement}`,
+          earned_amount: 0, settlement_currency: settlement,
+          note: `Slab base on ${bucket.count} item(s), revenue ${bucket.revenue.toFixed(2)} ${settlement}`,
         });
+      }
+
+      const gross = counselorGross[cid] ?? subtotalBeforePenalty;
+      const net = counselorNet[cid] ?? subtotalBeforePenalty;
+      const discPct = gross > 0 ? ((gross - net) / gross) * 100 : 0;
+      const penalized = Math.round(subtotalBeforePenalty * discountPenaltyMultiplier(discPct) * 100) / 100;
+      if (penalized !== subtotalBeforePenalty) {
+        perCounselor[cid].lines.push({
+          source_type: "service_revenue", slab_id: null, client_id: null,
+          base_amount: discPct, base_currency: settlement, fx_rate_used: null,
+          earned_amount: penalized - subtotalBeforePenalty, settlement_currency: settlement,
+          note: `Discount penalty ${discPct.toFixed(1)}% effective`,
+        });
+      }
+      perCounselor[cid].total += penalized;
+
+      // target bonus
+      const tgt = ((targetsRaw ?? []) as any[]).find((t) => t.counselor_id === cid);
+      if (tgt?.bonus_rate_type && tgt.bonus_value != null) {
+        const achieved = net;
+        const targetVal = Number(tgt.target_value) || 0;
+        const achPct = targetVal > 0 ? (achieved / targetVal) * 100 : 0;
+        const trigger = Number(tgt.bonus_trigger_pct ?? 100);
+        if (achPct >= trigger) {
+          let bonus = 0;
+          if (tgt.bonus_rate_type === "flat") bonus = Number(tgt.bonus_value);
+          else if (tgt.bonus_rate_type === "percent") bonus = (achieved * Number(tgt.bonus_value)) / 100;
+          bonus = Math.round(bonus * 100) / 100;
+          if (bonus > 0) {
+            perCounselor[cid].total += bonus;
+            perCounselor[cid].lines.push({
+              source_type: "service_revenue", slab_id: null, client_id: null,
+              base_amount: achieved, base_currency: settlement, fx_rate_used: null,
+              earned_amount: bonus, settlement_currency: settlement,
+              note: `Target bonus @ ${achPct.toFixed(1)}% achievement`,
+            });
+          }
+        }
       }
     }
 

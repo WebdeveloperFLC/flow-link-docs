@@ -160,6 +160,7 @@ import GiveDiscount from "@/pages/GiveDiscount";
 import WalletTopups from "@/pages/WalletTopups";
 import PeriodClose from "@/pages/PeriodClose";
 import IncentivePlans from "@/pages/IncentivePlans";
+import IncentiveFxRates from "@/pages/IncentiveFxRates";
 import AiHelpPage from "./ai-help/pages/AiHelpPage";
 import GuidesIndexPage from "./guides/pages/GuidesIndexPage";
 import GuideDetailPage from "./guides/pages/GuideDetailPage";
@@ -527,6 +528,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <IncentivePlans />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/incentives/fx-rates"
+                    element={
+                      <ProtectedRoute>
+                        <IncentiveFxRates />
                       </ProtectedRoute>
                     }
                   />

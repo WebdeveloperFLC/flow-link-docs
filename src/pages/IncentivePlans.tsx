@@ -42,15 +42,29 @@ interface Target {
 export default function IncentivePlans() {
   const { toast } = useToast();
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [slabs, setSlabs] = useState<Slab[]>([]);
   const [targets, setTargets] = useState<Target[]>([]);
-  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [profiles, setProfiles] = useState<{ id: string; full_name: string }[]>([]);
   const [activePlan, setActivePlan] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   // form state
-  const [newPlan, setNewPlan] = useState<{ name: string; period_type: PeriodType; settlement_currency: string; revenue_basis: string }>({ name: "", period_type: "monthly", settlement_currency: "INR", revenue_basis: "net" });
+  const [newPlan, setNewPlan] = useState<{
+    name: string;
+    period_type: PeriodType;
+    settlement_currency: string;
+    revenue_basis: string;
+    scope_type: string;
+    branch_id: string;
+  }>({
+    name: "",
+    period_type: "monthly",
+    settlement_currency: "INR",
+    revenue_basis: "net",
+    scope_type: "org",
+    branch_id: "",
+  });
   const [newSlab, setNewSlab] = useState<{ source_type: SourceType; metric: Metric; rate_type: RateType; min_threshold: string; max_threshold: string; rate_value: string; service_filter: string }>({ source_type: "service_revenue", metric: "net_revenue", rate_type: "percent", min_threshold: "0", max_threshold: "", rate_value: "5", service_filter: "" });
   const [newTarget, setNewTarget] = useState<{ counselor_id: string; period_type: PeriodType; period_key: string; target_metric: Metric; target_value: string; target_currency: string; bonus_rate_type: "" | "flat" | "percent"; bonus_value: string; bonus_trigger_pct: string }>({ counselor_id: "", period_type: "monthly", period_key: "", target_metric: "net_revenue", target_value: "0", target_currency: "INR", bonus_rate_type: "", bonus_value: "", bonus_trigger_pct: "100" });
 
@@ -80,12 +94,23 @@ export default function IncentivePlans() {
   async function createPlan() {
     if (!newPlan.name.trim()) { toast({ title: "Plan name required", variant: "destructive" }); return; }
     const { error } = await supabase.from("incentive_plans").insert([{
-      name: newPlan.name.trim(), period_type: newPlan.period_type,
-      settlement_currency: newPlan.settlement_currency, revenue_basis: newPlan.revenue_basis,
+      name: newPlan.name.trim(),
+      period_type: newPlan.period_type,
+      settlement_currency: newPlan.settlement_currency,
+      revenue_basis: newPlan.revenue_basis,
+      scope_type: newPlan.scope_type,
+      branch_id: newPlan.branch_id.trim() || null,
     }]);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Plan created" });
-    setNewPlan({ name: "", period_type: "monthly", settlement_currency: "INR", revenue_basis: "net" });
+    setNewPlan({
+      name: "",
+      period_type: "monthly",
+      settlement_currency: "INR",
+      revenue_basis: "net",
+      scope_type: "org",
+      branch_id: "",
+    });
     await loadAll();
   }
 
@@ -184,6 +209,24 @@ export default function IncentivePlans() {
                     <option value="gross">gross</option>
                   </select>
                 </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Scope</label>
+                  <select className={sel} value={newPlan.scope_type} onChange={(e) => setNewPlan({ ...newPlan, scope_type: e.target.value })}>
+                    <option value="org">Organization-wide</option>
+                    <option value="branch">Branch-specific</option>
+                  </select>
+                </div>
+                {newPlan.scope_type === "branch" && (
+                  <div className="md:col-span-2">
+                    <label className="text-xs text-muted-foreground">Branch</label>
+                    <select className={sel} value={newPlan.branch_id} onChange={(e) => setNewPlan({ ...newPlan, branch_id: e.target.value })}>
+                      <option value="">Select branch…</option>
+                      {branches.map((b) => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
               <Button onClick={createPlan}><Plus className="size-4 mr-1" /> Create plan</Button>
             </Card>
@@ -196,13 +239,14 @@ export default function IncentivePlans() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="text-left text-muted-foreground border-b">
-                      <tr><th className="py-2 pr-4">Name</th><th className="py-2 pr-4">Period</th><th className="py-2 pr-4">Currency</th><th className="py-2 pr-4">Basis</th><th className="py-2 pr-4">Active</th></tr>
+                      <tr><th className="py-2 pr-4">Name</th><th className="py-2 pr-4">Period</th><th className="py-2 pr-4">Scope</th><th className="py-2 pr-4">Currency</th><th className="py-2 pr-4">Basis</th><th className="py-2 pr-4">Active</th></tr>
                     </thead>
                     <tbody>
                       {plans.map((p) => (
                         <tr key={p.id} className="border-b last:border-0">
                           <td className="py-2 pr-4">{p.name}</td>
                           <td className="py-2 pr-4">{p.period_type}</td>
+                          <td className="py-2 pr-4">{p.scope_type ?? "org"}{p.branch_id ? ` · ${branches.find((b) => b.id === p.branch_id)?.name ?? "branch"}` : ""}</td>
                           <td className="py-2 pr-4">{p.settlement_currency}</td>
                           <td className="py-2 pr-4">{p.revenue_basis}</td>
                           <td className="py-2 pr-4">

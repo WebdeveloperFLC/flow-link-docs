@@ -46,18 +46,21 @@ export default function IncentivesAdmin() {
   const [planId, setPlanId] = useState<string>("");
   const [periodKey, setPeriodKey] = useState<string>(currentPeriodKey());
   const [branchId, setBranchId] = useState<string>("");
+  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<{ summary: SummaryRow[]; grand_total: number; settlement: string; fx: Record<string, number> } | null>(null);
   const [names, setNames] = useState<Record<string, string>>({});
 
   async function loadAll() {
-    const [pl, rn, prof] = await Promise.all([
+    const [pl, rn, prof, br] = await Promise.all([
       supabase.from("incentive_plans").select("id, name, period_type, settlement_currency, is_active").order("created_at", { ascending: false }),
       supabase.from("incentive_runs").select("id, plan_id, period_key, branch_id, status, total_settlement, settlement_currency, locked, calculated_at").order("calculated_at", { ascending: false }).limit(50),
       supabase.from("profiles").select("id, full_name"),
+      supabase.from("branches").select("id, name").order("name"),
     ]);
     setPlans((pl.data ?? []) as Plan[]);
     setRuns((rn.data ?? []) as RunRow[]);
+    setBranches((br.data ?? []) as { id: string; name: string }[]);
     const map: Record<string, string> = {};
     for (const p of (prof.data ?? []) as any[]) map[p.id] = p.full_name ?? p.id;
     setNames(map);
@@ -123,8 +126,17 @@ export default function IncentivesAdmin() {
               <Input className="mt-1" value={periodKey} onChange={(e) => setPeriodKey(e.target.value)} placeholder="2026-05 / 2026-Q2 / 2026-H1 / 2026" />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground">Branch ID (optional)</label>
-              <Input className="mt-1" value={branchId} onChange={(e) => setBranchId(e.target.value)} placeholder="leave blank = all branches" />
+              <label className="text-xs text-muted-foreground">Branch (optional)</label>
+              <select
+                className="w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm"
+                value={branchId}
+                onChange={(e) => setBranchId(e.target.value)}
+              >
+                <option value="">All branches</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
