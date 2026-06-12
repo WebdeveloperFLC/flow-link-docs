@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -6,17 +7,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Wallet, Gift, RotateCcw, Lock } from "lucide-react";
+import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
+import { PerformanceMetricCard } from "@/components/performance/PerformanceMetricCard";
+import { cn } from "@/lib/utils";
+import { Gift, RotateCcw } from "lucide-react";
 import { OFFER_FUNDING_LABELS, type OfferFundingSource } from "@/lib/offers/lifecycle";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
 import { walletScopeLabel } from "@/lib/walletScope";
+import { formatInr, currentPeriodKey } from "@/lib/performanceHubTheme";
 
 type AllocStatus = "reserved" | "applied" | "reversed";
-
-function currentPeriodKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
 
 interface WalletRow {
   id: string;
@@ -78,6 +78,7 @@ const fmt = (n: number, ccy: string) =>
 export default function GiveDiscount() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const period = currentPeriodKey();
 
   const [wallets, setWallets] = useState<WalletRow[]>([]);
@@ -171,6 +172,13 @@ export default function GiveDiscount() {
     loadAll();
     /* eslint-disable-next-line */
   }, [user?.id, period]);
+
+  useEffect(() => {
+    const clientId = searchParams.get("client");
+    if (!clientId || targets.length === 0) return;
+    const key = `client:${clientId}`;
+    if (targets.some((t) => `${t.kind}:${t.id}` === key)) setTargetKey(key);
+  }, [searchParams, targets]);
 
   useEffect(() => {
     if (!user || !targetKey) {
@@ -271,6 +279,18 @@ export default function GiveDiscount() {
   const amtNum = Number(amount) || 0;
   const overBalance = walletDebitPreview > (wallet?.balance ?? 0);
   const overUnlock = sizingActive && walletDebitPreview > remainingUnlocked;
+  const depthPct = mode === "percent" ? pctNum : cap > 0 ? Math.min(100, (amtNum / Math.max(wallet?.balance ?? 1, 1)) * 100) : 0;
+  const depthLabel =
+    depthPct <= 10 || amtNum <= 5000
+      ? { text: "Instant apply — within wallet authority", tone: "ok" as const }
+      : depthPct <= 20
+        ? { text: "11–20% — routes to branch manager approval (Phase 5C queue)", tone: "warn" as const }
+        : { text: ">20% — routes to admin / director (Phase 5C queue)", tone: "escalate" as const };
+
+  const unlockBarPct =
+    wallet && wallet.potential_wallet > 0
+      ? Math.min(100, (spent / wallet.potential_wallet) * 100)
+      : 0;
 
   async function give() {
     if (!user || !wallet) {
@@ -362,25 +382,28 @@ export default function GiveDiscount() {
         ? (labels[`lead:${a.lead_id}`] ?? "Lead")
         : "—";
 
-  const unlockPct =
-    wallet && wallet.potential_wallet > 0
-      ? Math.min(100, Math.round((remainingUnlocked / wallet.potential_wallet) * 100))
-      : 0;
-
   return (
     <AppLayout>
       <div className="p-6 space-y-6 max-w-4xl">
-        <div className="flex items-center gap-3">
-          <Gift className="size-6 text-primary" />
-          <div>
-            <h1 className="text-2xl font-semibold">Give Discount</h1>
-            <p className="text-sm text-muted-foreground">Period {period}</p>
+        <PerformanceHubHeader
+          title="Give discount"
+          subtitle={`Full-page apply · hard unlock gate · period ${period}`}
+          period={period}
+          showModuleLegend={false}
+        />
+
+        {wallet && sizingActive && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <PerformanceMetricCard module="wallet" label="Spendable" value={fmt(remainingUnlocked, ccy)} />
+            <PerformanceMetricCard module="wallet" label="Unlocked" value={fmt(wallet.unlocked_amount, ccy)} />
+            <PerformanceMetricCard module="wallet" label="Potential" value={fmt(wallet.potential_wallet, ccy)} />
+            <PerformanceMetricCard module="wallet" label="Spent" value={fmt(spent, ccy)} />
           </div>
-        </div>
+        )}
 
         <Card className="p-5 space-y-4">
           <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-            <Wallet className="size-4" /> Your wallet
+            <Gift className="size-4" /> Your wallet
           </div>
           {wallets.length > 1 && (
             <div>
@@ -413,19 +436,26 @@ export default function GiveDiscount() {
               {sizingActive && (
                 <div className="space-y-2 pt-2 border-t">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <Lock className="size-3.5" /> Unlocked to spend
-                    </span>
+                    <span className="text-muted-foreground">Unlocked spend cap</span>
                     <span className="font-medium">
                       {fmt(remainingUnlocked, ccy)} / {fmt(wallet.potential_wallet, ccy)} potential
                     </span>
                   </div>
-                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div className="h-2.5 rounded-full bg-muted overflow-hidden">
                     <div
-                      className="h-full bg-primary transition-all"
-                      style={{ width: `${unlockPct}%` }}
+                      className={cn(
+                        "h-full transition-all",
+                        overUnlock ? "bg-destructive" : "bg-amber-500",
+                      )}
+                      style={{ width: `${Math.min(unlockBarPct, 100)}%` }}
                     />
                   </div>
+                  {overUnlock && (
+                    <p className="text-sm text-destructive font-medium">
+                      Only {fmt(remainingUnlocked, ccy)} unlocked — reduce the discount or wait for achievement.
+                      Submit blocked (allocation trigger).
+                    </p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     {fmt(spent, ccy)} already applied this period. Wallet debit uses funding rules when an offer is
                     selected.
@@ -483,14 +513,19 @@ export default function GiveDiscount() {
                     ))}
                   </select>
                   {selectedOffer?.funding_source === "university" && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs mt-1 rounded-md bg-blue-500/10 text-blue-800 dark:text-blue-300 px-2 py-1">
                       University-funded — no debit from your wallet.
                     </p>
                   )}
                   {selectedOffer?.funding_source === "joint" && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs mt-1 rounded-md bg-amber-500/10 text-amber-900 dark:text-amber-200 px-2 py-1">
                       Joint offer — your wallet debits {selectedOffer.fl_contribution_pct ?? 50}% of the discount
                       value.
+                    </p>
+                  )}
+                  {selectedOffer?.funding_source === "future_link" && (
+                    <p className="text-xs mt-1 rounded-md bg-violet-500/10 text-violet-900 dark:text-violet-200 px-2 py-1">
+                      FL-funded — full discount debits your wallet.
                     </p>
                   )}
                 </div>
@@ -546,11 +581,22 @@ export default function GiveDiscount() {
                 </div>
               </div>
 
+              <div
+                className={cn(
+                  "rounded-md border px-3 py-2 text-xs",
+                  depthLabel.tone === "ok" && "border-emerald-500/30 bg-emerald-500/5",
+                  depthLabel.tone === "warn" && "border-amber-500/30 bg-amber-500/5",
+                  depthLabel.tone === "escalate" && "border-destructive/30 bg-destructive/5",
+                )}
+              >
+                Approval depth: {depthLabel.text}
+              </div>
+
               <p className="text-xs text-muted-foreground">
                 Enter the discount value in {ccy}. Unlock limits apply once your wallet has been sized for the period.
               </p>
 
-              <Button disabled={busy || overBalance || overUnlock} onClick={give}>
+              <Button disabled={busy || overBalance || overUnlock || overPctCap} onClick={give}>
                 <Gift className="size-4 mr-1" /> Apply discount
               </Button>
             </>

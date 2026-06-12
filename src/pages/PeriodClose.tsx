@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarClock, Play, RotateCcw, RefreshCw, ArrowRightCircle } from "lucide-react";
+import { CalendarClock, Play, RotateCcw, RefreshCw, ArrowRightCircle, Calculator } from "lucide-react";
 
 type RolloverPolicy = "expire" | "partial" | "full";
 
@@ -161,6 +161,27 @@ export default function PeriodClose() {
     }
   }
 
+  async function applySizing() {
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("fn_size_wallets_for_period", { _period_key: period });
+      if (error) throw error;
+      toast({
+        title: "Sizing applied",
+        description: `${data ?? 0} wallet(s) sized for ${period}.`,
+      });
+      await loadAll();
+    } catch (e: unknown) {
+      toast({
+        title: "Error",
+        description: e instanceof Error ? e.message : String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function closeAndReseed() {
     setBusy(true);
     try {
@@ -242,6 +263,9 @@ export default function PeriodClose() {
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={syncScores} disabled={busy}>
                 <RefreshCw className="size-4 mr-1" /> Refresh scores
+              </Button>
+              <Button variant="outline" onClick={applySizing} disabled={busy}>
+                <Calculator className="size-4 mr-1" /> Apply sizing rules
               </Button>
               <Button onClick={closeAndReseed} disabled={busy}>
                 <ArrowRightCircle className="size-4 mr-1" /> Close period &amp; reseed

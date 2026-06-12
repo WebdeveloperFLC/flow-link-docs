@@ -152,6 +152,16 @@ export const STAFF_GUIDES: StaffGuideDef[] = [
     contentFile: "offers-wallet-staff-guide.md",
     relatedModule: "offers",
   },
+  {
+    slug: "performance-hub-gaps",
+    title: "Performance Hub — Gaps & Prototype Brief",
+    navLabel: "Performance Hub Gaps",
+    description:
+      "Unified UX target state: what's built vs missing across incentives, wallet, and offers. For product, design, and Phase 5 roadmap.",
+    category: "Product / Design",
+    contentFile: "performance-hub-prototype-gaps.md",
+    relatedModule: "incentives",
+  },
 ];
 
 /** Staff guides only — intentionally excludes `docs/governance/`. */

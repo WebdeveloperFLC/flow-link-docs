@@ -40,7 +40,7 @@ import { ClientProfileCard } from "@/components/clients/ClientProfileCard";
 import { ClientPaymentsCard } from "@/components/clients/ClientPaymentsCard";
 import { ClientServicesCard } from "@/components/clients/ClientServicesCard";
 import { ClientProgramsCard } from "@/components/clients/ClientProgramsCard";
-import { ClientOffersPanel } from "@/components/clients/ClientOffersPanel";
+import { ClientPromotionsStrip } from "@/components/clients/ClientPromotionsStrip";
 import { LetterCard } from "@/components/letters/LetterCard";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
@@ -1095,7 +1095,7 @@ const ClientDetail = () => {
 
           <ClientProgramsCard clientId={client.id} canEdit={canUpload} />
 
-          <ClientOffersPanel clientId={client.id} />
+          <ClientPromotionsStrip clientId={client.id} clientName={client.full_name ?? undefined} />
 
           <ClientPaymentsCard clientId={client.id} activeServiceCode={serviceCtx.activeServiceCode} />
 

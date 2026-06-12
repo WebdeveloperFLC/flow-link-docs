@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
+import { PerformanceKpiGrid, PerformanceMoneyRail } from "@/components/performance/PerformanceMoneyRail";
+import { usePerformancePeriodMetrics } from "@/hooks/usePerformancePeriodMetrics";
 import { currentPeriodKey } from "@/lib/performanceHubTheme";
 import {
   Banknote,
@@ -25,6 +29,8 @@ const WORKFLOW = [
 ] as const;
 
 const ADMIN_LINKS = [
+  { to: "/performance/executive", label: "Executive dashboard", icon: Calculator },
+  { to: "/performance/wallet/policy", label: "Wallet policy", icon: Gift },
   { to: "/incentives/admin", label: "Runs & preview", icon: Calculator },
   { to: "/incentives/plans", label: "Plans & rules", icon: Settings2 },
   { to: "/incentives/fx-rates", label: "FX rates", icon: DollarSign },
@@ -36,7 +42,8 @@ const ADMIN_LINKS = [
 ] as const;
 
 export default function PerformanceCommandCenter() {
-  const period = currentPeriodKey();
+  const [period, setPeriod] = useState(currentPeriodKey());
+  const metrics = usePerformancePeriodMetrics(period, "All branches");
 
   return (
     <AppLayout>
@@ -47,6 +54,71 @@ export default function PerformanceCommandCenter() {
           period={period}
           showModuleLegend={false}
         />
+
+        <div>
+          <label className="text-xs text-muted-foreground">Period</label>
+          <Input className="w-32 mt-1" value={period} onChange={(e) => setPeriod(e.target.value)} />
+        </div>
+
+        <PerformanceKpiGrid
+          loading={metrics.loading}
+          items={[
+            {
+              label: "Verified revenue",
+              value: metrics.loading ? "…" : `₹${metrics.verifiedRevenue.toLocaleString("en-IN")}`,
+              module: "cash",
+            },
+            {
+              label: "Wallet unlocked",
+              value: metrics.loading ? "…" : `₹${metrics.walletUnlocked.toLocaleString("en-IN")}`,
+              module: "wallet",
+            },
+            {
+              label: "Offers redeemed",
+              value: metrics.loading ? "…" : String(metrics.offersRedeemed),
+              module: "offers",
+            },
+            {
+              label: "Cash incentive due",
+              value: metrics.loading
+                ? "…"
+                : metrics.runLocked
+                  ? `₹${metrics.cashIncentiveDue.toLocaleString("en-IN")}`
+                  : metrics.cashIncentiveDue > 0
+                    ? `₹${metrics.cashIncentiveDue.toLocaleString("en-IN")} preview`
+                    : "—",
+              module: "cash",
+            },
+            {
+              label: "Discounts",
+              value: metrics.loading ? "…" : `₹${metrics.discountTotal.toLocaleString("en-IN")}`,
+              module: "offers",
+            },
+            {
+              label: "Net revenue",
+              value: metrics.loading ? "…" : `₹${metrics.netRevenue.toLocaleString("en-IN")}`,
+              module: "cash",
+            },
+          ]}
+        />
+
+        <Card className="p-5">
+          <h2 className="text-lg font-semibold mb-4">June money flow · {period}</h2>
+          <PerformanceMoneyRail
+            loading={metrics.loading}
+            steps={[
+              { label: "Verified revenue", value: metrics.verifiedRevenue, module: "cash", hint: "qualifying events" },
+              { label: "− Discounts", value: metrics.discountTotal, module: "offers", hint: "wallet allocations" },
+              { label: "= Net revenue", value: metrics.netRevenue, module: "cash", hint: "incentive base" },
+              {
+                label: "Cash due",
+                value: metrics.cashIncentiveDue,
+                module: "cash",
+                hint: metrics.runLocked ? "locked run" : "preview",
+              },
+            ]}
+          />
+        </Card>
 
         <Card className="p-5">
           <h2 className="text-lg font-semibold mb-4">Monthly workflow · {period}</h2>
@@ -67,10 +139,6 @@ export default function PerformanceCommandCenter() {
               </li>
             ))}
           </ol>
-          <p className="text-xs text-muted-foreground mt-4">
-            Full KPI tiles (revenue, wallet unlocked, offers redeemed, cash due) — Phase 5B. Admin screens below remain
-            unchanged until unified tabs ship.
-          </p>
         </Card>
 
         <Card className="p-5">
