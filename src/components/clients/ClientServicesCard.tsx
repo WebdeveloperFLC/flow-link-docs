@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ServiceTabs, type ServiceSelection } from "@/components/leads/ServiceTabs";
+import { SelectedServicesPanel } from "@/components/clients/SelectedServicesPanel";
 import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
 import { useServiceLabelMap } from "@/lib/service-library/useServiceLabelMap";
 import { appendTimeline } from "@/lib/timeline";
@@ -163,6 +164,11 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
     [selection],
   );
   const nameByCode = useServiceLabelMap(allCodes, catalogue);
+  const draftCodes = useMemo(
+    () => GROUP_LABELS.flatMap((g) => draft[g.key] ?? []),
+    [draft],
+  );
+  const draftLabelMap = useServiceLabelMap(draftCodes, catalogue);
 
   const totalCount = useMemo(
     () =>
@@ -285,6 +291,15 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
           <DialogHeader>
             <DialogTitle>Edit client services</DialogTitle>
           </DialogHeader>
+          <SelectedServicesPanel
+            value={draft}
+            catalogue={catalogue}
+            labelByCode={draftLabelMap}
+            onChange={setDraft}
+          />
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground pt-1">
+            Add services
+          </div>
           <ServiceTabs value={draft} onChange={setDraft} visaLocked={false} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
