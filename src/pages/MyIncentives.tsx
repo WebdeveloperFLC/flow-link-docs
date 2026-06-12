@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
-import { Wallet, Trophy, Receipt, TrendingUp, Lock } from "lucide-react";
+import { forecastMonthEnd } from "@/incentives/lib/incentiveEngineLogic";
 
 function currentPeriodKey() {
   const d = new Date();
@@ -72,6 +72,7 @@ export default function MyIncentives() {
   const [ledger, setLedger] = useState<LedgerRow[]>([]);
   const [payouts, setPayouts] = useState<PayoutRow[]>([]);
   const [earnedThisPeriod, setEarnedThisPeriod] = useState<number>(0);
+  const [projectedEarned, setProjectedEarned] = useState<number>(0);
   const [leaderboard, setLeaderboard] = useState<LeaderRow[]>([]);
   const [myRank, setMyRank] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -132,11 +133,20 @@ export default function MyIncentives() {
         );
       }
 
-      const { data: li } = await supabase
-        .from("incentive_line_items")
-        .select("earned_amount")
-        .eq("counselor_id", user.id);
-      const earned = (li ?? []).reduce((s: number, r: { earned_amount?: number }) => s + Number(r.earned_amount ?? 0), 0);
+      const { data: runs } = await supabase.from("incentive_runs").select("id").eq("period_key", period);
+      const runIds = ((runs ?? []) as { id: string }[]).map((r) => r.id);
+      let earned = 0;
+      if (runIds.length) {
+        const { data: li } = await supabase
+          .from("incentive_line_items")
+          .select("earned_amount, run_id")
+          .eq("counselor_id", user.id)
+          .in("run_id", runIds);
+        earned = (li ?? []).reduce((s: number, r: { earned_amount?: number }) => s + Number(r.earned_amount ?? 0), 0);
+      }
+
+      const now = new Date();
+      const projected = forecastMonthEnd(earned, now.getDate(), new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate());
 
       const lb = ((lbRes.data ?? []) as LeaderRow[]) ?? [];
       const rankEntry = lb.find((r) => r.counselor_id === user.id);
@@ -149,6 +159,7 @@ export default function MyIncentives() {
       setLedger(ledgerRows);
       setPayouts((p.data ?? []) as PayoutRow[]);
       setEarnedThisPeriod(earned);
+      setProjectedEarned(projected);
       setLeaderboard(lb);
       setMyRank(rankEntry?.rank ?? null);
       setLoading(false);
@@ -241,7 +252,7 @@ export default function MyIncentives() {
             </div>
             <div className="text-3xl font-semibold mt-2">{loading ? "…" : fmt(earnedThisPeriod, "INR")}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              {payouts.filter((p) => p.status === "pending" || p.status === "approved").length} pending payouts
+              Projected {loading ? "…" : fmt(projectedEarned, "INR")} · period {period}
             </div>
           </Card>
         </div>
