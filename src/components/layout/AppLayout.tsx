@@ -60,6 +60,7 @@ import {
   Banknote,
   Trophy,
   FlaskConical,
+  LayoutGrid,
 } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -128,24 +129,20 @@ const crmNav: NavItem[] = [
   },
 ];
 
-const incentivesNav: NavItem[] = [
-  { to: "/incentives", icon: Wallet, label: "My Incentives" },
-  { to: "/incentives/admin", icon: Calculator, label: "Incentives Admin", adminOnly: true },
-  { to: "/incentives/plans", icon: Settings2, label: "Incentive Plans", adminOnly: true },
-  { to: "/incentives/fx-rates", icon: DollarSign, label: "FX Rates", adminOnly: true },
+/** Unified Performance Hub — replaces separate Incentives / Wallet / Offers groups (Phase 5A) */
+const performanceNav: NavItem[] = [
+  { to: "/performance", icon: LayoutGrid, label: "My performance", end: true },
+  { to: "/incentives/give-discount", icon: Gift, label: "Give discount" },
+  { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
+  { to: "/incentives/plans", icon: Settings2, label: "Plans & rules", adminOnly: true },
+  { to: "/incentives/admin", icon: Calculator, label: "Runs (preview / lock)", adminOnly: true },
+  { to: "/incentives/fx-rates", icon: DollarSign, label: "FX rates", adminOnly: true },
   { to: "/incentives/competitions", icon: Trophy, label: "Competitions", adminOnly: true },
   { to: "/incentives/simulator", icon: FlaskConical, label: "Simulator", adminOnly: true },
-  { to: "/incentives/payouts", icon: Banknote, label: "Payout Desk", adminOnly: true },
-];
-
-const walletNav: NavItem[] = [
-  { to: "/incentives/give-discount", icon: Gift, label: "Give Discount" },
-  { to: "/incentives/wallet-topups", icon: Wallet, label: "Wallet Top-ups", adminOnly: true },
-  { to: "/incentives/period-close", icon: CalendarClock, label: "Period Close", adminOnly: true },
-];
-
-const offersNav: NavItem[] = [
-  { to: "/offers-admin", icon: Tag, label: "Offers & discounts", adminOnly: true },
+  { to: "/incentives/payouts", icon: Banknote, label: "Payout desk", adminOnly: true },
+  { to: "/incentives/wallet-topups", icon: Wallet, label: "Wallet top-ups", adminOnly: true },
+  { to: "/incentives/period-close", icon: CalendarClock, label: "Period close", adminOnly: true },
+  { to: "/offers-admin", icon: Tag, label: "Offers library", adminOnly: true },
   { to: "/offers-analytics", icon: BarChart2, label: "Offer analytics", adminOnly: true },
 ];
 
@@ -390,23 +387,11 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
             {renderSection("calendar", "Calendar", calendarNav)}
 
             {renderSection(
-              "incentives",
-              "Incentives",
-              incentivesNav.filter(
+              "performance",
+              "Performance Hub",
+              performanceNav.filter(
                 (i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never)),
               ),
-            )}
-
-            {renderSection(
-              "wallet",
-              "Wallet",
-              walletNav.filter((i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never))),
-            )}
-
-            {renderSection(
-              "offers",
-              "Offers & Discounts",
-              offersNav.filter((i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never))),
             )}
 
             {(isAdmin || canViewDsh) && renderSection("digital", "Digital", digitalSuccessNav)}
