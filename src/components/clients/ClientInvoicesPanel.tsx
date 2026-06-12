@@ -31,6 +31,13 @@ import { verifyPayment, rejectPayment, openPaymentProof } from "@/accounting/lib
 import { appendTimeline } from "@/lib/timeline";
 import { buildCatalogueLookup, fetchAllServiceCatalogue } from "@/lib/leads";
 import {
+  loadClientBillableServices,
+  resolvePreselectedServiceId,
+  type BillableClientService,
+  type InvoiceLineLike,
+} from "@/lib/clientInvoiceServices";
+import { Switch } from "@/components/ui/switch";
+import {
   notifyUsers,
   resolveCounselorNotificationUserIds,
   resolveAllClientStakeholderUserIds,
@@ -63,10 +70,11 @@ type Invoice = {
   invoice_reminder_locked_until: string | null;
   invoice_locked_for_edit: boolean | null;
   line_items: any;
+  applied_offer_id?: string | null;
+  offer_discount_amount?: number | null;
   created_at: string;
 };
 
-type Service = { id: string; service_name: string; fee_inr: number | null; fee_cad: number | null };
 type Branch = { id: string; name: string };
 type FirmEntity = { id: string; firm_name: string | null };
 
@@ -146,7 +154,13 @@ function computeInvoiceTotals(invoice: Invoice, verifiedPaidForInvoice: number) 
   return { total, paid, outstanding, displayStatus };
 }
 
-export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
+export function ClientInvoicesPanel({
+  clientId,
+  activeServiceCode,
+}: {
+  clientId: string;
+  activeServiceCode?: string | null;
+}) {
   const [rows, setRows] = useState<Invoice[]>([]);
   const [pending, setPending] = useState<any[]>([]);
   const [verifiedPaidByInvoice, setVerifiedPaidByInvoice] = useState<Record<string, number>>({});
@@ -157,6 +171,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
   const [loading, setLoading] = useState(true);
   const [isAccounts, setIsAccounts] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [editInvoice, setEditInvoice] = useState<Invoice | null>(null);
   const [collectFor, setCollectFor] = useState<Invoice | null>(null);
   const [receiptFor, setReceiptFor] = useState<Invoice | null>(null);
   const [reminderFor, setReminderFor] = useState<Invoice | null>(null);
@@ -169,7 +184,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
       supabase
         .from("client_invoices")
         .select(
-          "id,invoice_number,status,currency,amount,amount_paid,due_date,branch_id,firm_entity_id,external_request_sent_today,invoice_reminder_locked_until,invoice_locked_for_edit,line_items,created_at",
+          "id,invoice_number,status,currency,amount,amount_paid,due_date,branch_id,firm_entity_id,external_request_sent_today,invoice_reminder_locked_until,invoice_locked_for_edit,line_items,applied_offer_id,offer_discount_amount,created_at",
         )
         .eq("client_id", clientId)
         .is("archived_at", null)
@@ -266,6 +281,49 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId]);
 
+  const pendingDraft = rows.find(
+    (r) => r.status === "draft" && computeInvoiceTotals(r, verifiedPaidByInvoice[r.id] ?? 0).outstanding > 0,
+  );
+
+  const openInvoiceEditor = () => {
+    let draft = pendingDraft ?? null;
+    if (activeServiceCode) {
+      const libPrefix = activeServiceCode.split("::")[0];
+      const preferred = rows.find((r) => {
+        if (r.status !== "draft") return false;
+        const lines = Array.isArray(r.line_items) ? r.line_items : [];
+        return lines.some((li: InvoiceLineLike) => {
+          const sid = String(li.service_id ?? li.service_code ?? "");
+          return (
+            sid === activeServiceCode ||
+            sid.startsWith(`${libPrefix}::`) ||
+            activeServiceCode.startsWith(`${sid}::`)
+          );
+        });
+      });
+      if (preferred) draft = preferred;
+    }
+    if (draft) {
+      setEditInvoice(draft);
+      return;
+    }
+    setCreateOpen(true);
+  };
+
+  const closeInvoiceEditor = () => {
+    setCreateOpen(false);
+    setEditInvoice(null);
+    load();
+  };
+
+  const openInvoiceDetail = (invoice: Invoice) => {
+    if (invoice.status === "draft" && !invoice.invoice_locked_for_edit) {
+      setEditInvoice(invoice);
+      return;
+    }
+    setSnapshotFor(invoice);
+  };
+
   const outstanding = rows.reduce((s, r) => {
     const { outstanding } = computeInvoiceTotals(r, verifiedPaidByInvoice[r.id] ?? 0);
     return s + outstanding;
@@ -302,10 +360,22 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
             )}
           </div>
         </div>
-        <Button size="sm" onClick={() => setCreateOpen(true)}>
-          <Plus className="size-3.5 mr-1" /> Create invoice
+        <Button size="sm" onClick={openInvoiceEditor}>
+          <Plus className="size-3.5 mr-1" /> {pendingDraft ? "Review draft" : "Create invoice"}
         </Button>
       </div>
+
+      {pendingDraft && !loading && (
+        <div className="mb-3 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm flex flex-wrap items-center justify-between gap-2">
+          <span>
+            Pending draft <b>{pendingDraft.invoice_number}</b> —{" "}
+            {money(Number(pendingDraft.amount), pendingDraft.currency)} awaiting payment
+          </span>
+          <Button size="sm" variant="outline" onClick={openInvoiceEditor}>
+            Edit draft
+          </Button>
+        </div>
+      )}
 
       {loading ? (
         <div className="py-6 flex items-center justify-center text-muted-foreground text-sm">
@@ -352,7 +422,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
                   <tr
                     key={r.id}
                     className="border-t hover:bg-muted/30 align-middle cursor-pointer"
-                    onClick={() => setSnapshotFor(r)}
+                    onClick={() => openInvoiceDetail(r)}
                   >
                     <td className="px-3 py-2 font-medium">
                       {r.invoice_number}
@@ -377,7 +447,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">{formatDue(r.due_date)}</td>
                     <td className="px-3 py-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                      <Button size="sm" variant="ghost" onClick={() => setSnapshotFor(r)} title="View snapshot">
+                      <Button size="sm" variant="ghost" onClick={() => openInvoiceDetail(r)} title="View snapshot">
                         <Eye className="size-3.5" />
                       </Button>
                       <Button
@@ -433,12 +503,18 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
       )}
 
       {createOpen && (
-        <CreateInvoiceDialog
+        <InvoiceEditorDialog
           clientId={clientId}
-          onClose={() => {
-            setCreateOpen(false);
-            load();
-          }}
+          activeServiceCode={activeServiceCode}
+          onClose={closeInvoiceEditor}
+        />
+      )}
+      {editInvoice && (
+        <InvoiceEditorDialog
+          clientId={clientId}
+          activeServiceCode={activeServiceCode}
+          existingInvoice={editInvoice}
+          onClose={closeInvoiceEditor}
         />
       )}
       {collectFor && (
@@ -692,19 +768,34 @@ function RejectPaymentDialog({ payment, onClose }: { payment: any; onClose: (cha
   );
 }
 
-/* ───────────────────── Create Invoice ───────────────────── */
-function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose: () => void }) {
-  const [services, setServices] = useState<Service[]>([]);
+/* ───────────────────── Create / Edit Invoice ───────────────────── */
+function InvoiceEditorDialog({
+  clientId,
+  activeServiceCode,
+  existingInvoice,
+  onClose,
+}: {
+  clientId: string;
+  activeServiceCode?: string | null;
+  existingInvoice?: Invoice | null;
+  onClose: () => void;
+}) {
+  const isEdit = !!existingInvoice;
+  const [services, setServices] = useState<BillableClientService[]>([]);
+  const [, setCatalogue] = useState<Awaited<ReturnType<typeof loadClientBillableServices>>["catalogue"]>([]);
+  const [loadingServices, setLoadingServices] = useState(true);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [entities, setEntities] = useState<FirmEntity[]>([]);
   const [picked, setPicked] = useState<Record<string, number>>({});
-  const [currency, setCurrency] = useState("INR");
-  const [branchId, setBranchId] = useState<string | undefined>();
-  const [firmId, setFirmId] = useState<string | undefined>();
-  const [dueDate, setDueDate] = useState<string>("");
+  const [lineDiscounts, setLineDiscounts] = useState<Record<string, number>>({});
+  const [currency, setCurrency] = useState(existingInvoice?.currency ?? "INR");
+  const [branchId, setBranchId] = useState<string | undefined>(existingInvoice?.branch_id ?? undefined);
+  const [firmId, setFirmId] = useState<string | undefined>(existingInvoice?.firm_entity_id ?? undefined);
+  const [dueDate, setDueDate] = useState<string>(existingInvoice?.due_date?.slice(0, 10) ?? "");
+  const [gstEnabled, setGstEnabled] = useState(false);
+  const [gstRate, setGstRate] = useState(18);
   const [saving, setSaving] = useState(false);
 
-  // Phase 2: offers applicable to this client (eligible via RPC).
   type EligibleOffer = {
     id: string;
     title: string;
@@ -714,32 +805,66 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
     promo_code: string | null;
   };
   const [offers, setOffers] = useState<EligibleOffer[]>([]);
-  const [selectedOfferId, setSelectedOfferId] = useState<string>("none");
+  const [selectedOfferId, setSelectedOfferId] = useState<string>(
+    existingInvoice?.applied_offer_id ?? "none",
+  );
 
   useEffect(() => {
     (async () => {
-      const [cat, b, f] = await Promise.all([
-        fetchAllServiceCatalogue().catch(() => []),
-        supabase.from("branches").select("id,name").eq("is_active", true).order("name"),
-        supabase.from("firm_profile").select("id,firm_name").order("firm_name"),
-      ]);
-      setServices(
-        cat
-          .filter((s) => s.pricing_type !== "FREE" && s.pricing_type !== "ON_REQUEST")
-          .map((s) => ({
-            id: s.id,
-            service_name: s.service_name,
-            fee_inr: s.fee_inr ?? null,
-            fee_cad: s.fee_cad ?? null,
-          })),
-      );
-      setBranches((b.data ?? []) as any);
-      setEntities((f.data ?? []) as any);
-    })();
-  }, []);
+      setLoadingServices(true);
+      try {
+        const [{ services: clientServices, catalogue: cat }, b, f] = await Promise.all([
+          loadClientBillableServices(clientId),
+          supabase.from("branches").select("id,name").eq("is_active", true).order("name"),
+          supabase.from("firm_profile").select("id,firm_name").order("firm_name"),
+        ]);
+        setServices(clientServices);
+        setCatalogue(cat);
+        setBranches((b.data ?? []) as Branch[]);
+        setEntities((f.data ?? []) as FirmEntity[]);
 
-  // Service codes on the invoice, used to filter eligible offers by applicable_services.
-  // only re-queries when the SET of services changes, not on quantity edits.
+        if (existingInvoice) {
+          const lines = Array.isArray(existingInvoice.line_items)
+            ? (existingInvoice.line_items as InvoiceLineLike[])
+            : [];
+          const nextPicked: Record<string, number> = {};
+          const nextDiscounts: Record<string, number> = {};
+          let hasTax = false;
+          for (const li of lines) {
+            const sid = li.service_id ?? li.service_code;
+            if (!sid) continue;
+            const match = clientServices.find((s) => s.id === sid || s.service_code === sid) ?? {
+              id: String(sid),
+              service_code: String(sid),
+              service_name: li.service_name ?? li.description ?? "Service",
+              fee_inr: li.amount ?? null,
+              fee_cad: null,
+            };
+            if (!clientServices.some((s) => s.id === match.id)) {
+              clientServices.push(match);
+              setServices([...clientServices]);
+            }
+            nextPicked[match.id] = Math.max(1, Number(li.quantity ?? 1));
+            nextDiscounts[match.id] = Number(li.discount ?? 0);
+            if (Number(li.tax ?? 0) > 0 || Number(li.gst_rate ?? 0) > 0) hasTax = true;
+            if (Number(li.gst_rate ?? 0) > 0) setGstRate(Number(li.gst_rate));
+          }
+          setPicked(nextPicked);
+          setLineDiscounts(nextDiscounts);
+          setGstEnabled(hasTax);
+        } else {
+          const preId = resolvePreselectedServiceId(clientServices, cat, activeServiceCode);
+          if (preId) setPicked({ [preId]: 1 });
+        }
+      } catch (e) {
+        console.warn("[invoice] load client services failed", e);
+        toast.error("Could not load client services");
+      } finally {
+        setLoadingServices(false);
+      }
+    })();
+  }, [clientId, activeServiceCode, existingInvoice]);
+
   const pickedServiceIds = Object.keys(picked);
   const serviceKey = [...pickedServiceIds].sort().join(",");
 
@@ -747,13 +872,16 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
     (async () => {
       try {
         const ids = serviceKey ? serviceKey.split(",") : [];
+        const codes = ids
+          .map((id) => services.find((s) => s.id === id)?.service_code ?? id)
+          .filter(Boolean);
         const { data, error } = await supabase.rpc("offers_eligible_for_client", {
           _client_id: clientId,
-          _service_codes: ids.length > 0 ? ids : null,
+          _service_codes: codes.length > 0 ? codes : null,
         });
         if (error) throw error;
         setOffers(
-          ((data ?? []) as any[]).map((o) => ({
+          ((data ?? []) as EligibleOffer[]).map((o) => ({
             id: o.id,
             title: o.title,
             discount_type: o.discount_type,
@@ -763,92 +891,115 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
           })),
         );
       } catch {
-        // Offers are optional; never block invoice creation if this fails.
         setOffers([]);
       }
     })();
-  }, [clientId, serviceKey]);
-  // Phase 3: if the selected offer is no longer eligible after a service change,
-  // clear the selection so the dropdown can't show a stale/ineligible offer.
+  }, [clientId, serviceKey, services]);
+
   useEffect(() => {
     if (selectedOfferId !== "none" && !offers.some((o) => o.id === selectedOfferId)) {
       setSelectedOfferId("none");
     }
   }, [offers, selectedOfferId]);
-  const lineItems = useMemo(
-    () =>
-      Object.entries(picked)
-        .filter(([, q]) => q > 0)
-        .map(([id, qty]) => {
-          const svc = services.find((s) => s.id === id);
-          const unit = currency === "CAD" ? Number(svc?.fee_cad ?? 0) : Number(svc?.fee_inr ?? 0);
-          return {
-            service_id: id,
-            service_name: svc?.service_name ?? "",
-            description: svc?.service_name ?? "",
-            quantity: qty,
-            currency,
-            amount: unit,
-            discount: 0,
-            tax: 0,
-            total: unit * qty,
-          };
-        }),
-    [picked, services, currency],
-  );
 
-  const total = lineItems.reduce((s, l) => s + l.total, 0);
+  const lineItems = useMemo(() => {
+    return Object.entries(picked)
+      .filter(([, q]) => q > 0)
+      .map(([id, qty]) => {
+        const svc = services.find((s) => s.id === id);
+        const unit = currency === "CAD" ? Number(svc?.fee_cad ?? 0) : Number(svc?.fee_inr ?? 0);
+        const lineDiscount = Number(lineDiscounts[id] ?? 0);
+        const subtotal = Math.max(0, unit * qty - lineDiscount);
+        const tax = gstEnabled ? subtotal * (gstRate / 100) : 0;
+        return {
+          service_id: id,
+          service_code: svc?.service_code ?? id,
+          service_name: svc?.service_name ?? "",
+          description: svc?.service_name ?? "",
+          quantity: qty,
+          currency,
+          amount: unit,
+          discount: lineDiscount,
+          tax: Number(tax.toFixed(2)),
+          gst_rate: gstEnabled ? gstRate : 0,
+          total: Number((subtotal + tax).toFixed(2)),
+        };
+      });
+  }, [picked, services, currency, lineDiscounts, gstEnabled, gstRate]);
 
-  // Phase 2: compute the offer discount against the subtotal (invoice currency).
+  const subtotalBeforeOffer = lineItems.reduce((s, l) => s + l.total, 0);
   const selectedOffer = offers.find((o) => o.id === selectedOfferId) || null;
-  const discount = useMemo(() => {
-    if (!selectedOffer || total <= 0) return 0;
+  const offerDiscount = useMemo(() => {
+    if (!selectedOffer || subtotalBeforeOffer <= 0) return 0;
     let d =
       selectedOffer.discount_type === "percentage"
-        ? (total * selectedOffer.discount_value) / 100
+        ? (subtotalBeforeOffer * selectedOffer.discount_value) / 100
         : selectedOffer.discount_value;
     if (selectedOffer.max_discount_amount != null) {
       d = Math.min(d, selectedOffer.max_discount_amount);
     }
-    // Never discount below zero or above the subtotal.
-    return Math.max(0, Math.min(d, total));
-  }, [selectedOffer, total]);
+    return Math.max(0, Math.min(d, subtotalBeforeOffer));
+  }, [selectedOffer, subtotalBeforeOffer]);
 
-  const netTotal = Math.max(0, total - discount);
+  const netTotal = Math.max(0, subtotalBeforeOffer - offerDiscount);
 
   const save = async () => {
     if (lineItems.length === 0) {
-      toast.error("Pick at least one service");
+      toast.error("Select at least one client service");
       return;
     }
     setSaving(true);
-    const { data: u } = await supabase.auth.getUser();
-    const invoiceId = crypto.randomUUID();
-    const invoiceNumber = `TEMP-${crypto.randomUUID()}`;
 
-    // Phase 2: distribute the discount proportionally across line items so the
-    // sum of line totals matches the reduced invoice amount. 'amount' below is
-    // the NET (reduced) total — the single source of truth fn_recompute_invoice_totals reads.
     const discountedLineItems =
-      discount > 0 && total > 0
+      offerDiscount > 0 && subtotalBeforeOffer > 0
         ? lineItems.map((l) => {
-            const share = (l.total / total) * discount;
+            const share = (l.total / subtotalBeforeOffer) * offerDiscount;
             const lineNet = Math.max(0, l.total - share);
-            return { ...l, discount: Number(share.toFixed(2)), total: Number(lineNet.toFixed(2)) };
+            return {
+              ...l,
+              discount: Number((l.discount + share).toFixed(2)),
+              total: Number(lineNet.toFixed(2)),
+            };
           })
         : lineItems;
 
-    const { error } = await supabase.from("client_invoices").insert({
-      id: invoiceId,
-      client_id: clientId,
-      invoice_number: invoiceNumber,
+    const payload = {
       amount: netTotal,
       currency,
-      status: "draft",
       line_items: discountedLineItems,
       due_date: dueDate || null,
       branch_id: branchId ?? null,
       firm_entity_id: firmId ?? null,
+      applied_offer_id: selectedOffer ? selectedOffer.id : null,
+      offer_discount_amount: offerDiscount > 0 ? Number(offerDiscount.toFixed(2)) : 0,
+      subtotal_in_inr: netTotal,
+      subtotal_in_cad: netTotal,
+      subtotal_in_usd: netTotal,
+    };
+
+    if (isEdit && existingInvoice) {
+      const { error } = await supabase
+        .from("client_invoices")
+        .update(payload as never)
+        .eq("id", existingInvoice.id);
+      setSaving(false);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("Draft invoice updated");
+      onClose();
+      return;
+    }
+
+    const { data: u } = await supabase.auth.getUser();
+    const invoiceId = crypto.randomUUID();
+    const invoiceNumber = `TEMP-${crypto.randomUUID()}`;
+    const { error } = await supabase.from("client_invoices").insert({
+      id: invoiceId,
+      client_id: clientId,
+      invoice_number: invoiceNumber,
+      status: "draft",
       created_by: u?.user?.id ?? null,
       invoice_entity_code: "FLC",
       invoice_branch_code:
@@ -862,15 +1013,10 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
       fx_rate_to_usd: 1,
       fx_provider: "manual",
       fx_manual_override: true,
-      subtotal_in_inr: netTotal,
-      subtotal_in_cad: netTotal,
-      subtotal_in_usd: netTotal,
-      // Phase 2 attribution (record-keeping; does not drive totals)
-      applied_offer_id: selectedOffer ? selectedOffer.id : null,
-      offer_discount_amount: discount > 0 ? Number(discount.toFixed(2)) : 0,
       attributed_counselor_id: selectedOffer ? (u?.user?.id ?? null) : null,
       tracking_code: null,
-    } as any);
+      ...payload,
+    } as never);
     setSaving(false);
     if (error) {
       toast.error(error.message);
@@ -882,7 +1028,7 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
         .select("owner_id, assigned_counselor_id, full_name")
         .eq("id", clientId)
         .maybeSingle();
-      const recipients = resolveCounselorNotificationUserIds(cli as any, {
+      const recipients = resolveCounselorNotificationUserIds(cli as never, {
         event: "invoice_created",
         clientId,
         invoiceId,
@@ -892,7 +1038,7 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
         category: "invoice_created",
         severity: "info",
         title: `Invoice created: ${invoiceNumber}`,
-        body: `${(cli as any)?.full_name ?? "Client"} • ${currency} ${netTotal.toFixed(2)}`,
+        body: `${(cli as { full_name?: string })?.full_name ?? "Client"} • ${currency} ${netTotal.toFixed(2)}`,
         link: `/clients/${clientId}`,
         entityType: "client_invoice",
         entityId: invoiceId,
@@ -906,133 +1052,202 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
     onClose();
   };
 
+  const primaryService = services.length === 1 ? services[0] : null;
+
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create invoice</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit draft invoice" : "Create invoice"}</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <Label>Currency</Label>
-            <Select value={currency} onValueChange={setCurrency}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {["INR", "CAD", "USD"].map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+        {loadingServices ? (
+          <div className="py-8 flex items-center justify-center text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin mr-2" /> Loading client services…
           </div>
-          <div>
-            <Label>Branch</Label>
-            <Select value={branchId} onValueChange={setBranchId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                {branches.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        ) : services.length === 0 ? (
+          <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+            No billable services on this client yet. Add a service under <b>Client services</b> first — a draft
+            invoice is created automatically when fees apply.
           </div>
-          <div>
-            <Label>Issuing entity</Label>
-            <Select value={firmId} onValueChange={setFirmId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                {entities.map((e) => (
-                  <SelectItem key={e.id} value={e.id}>
-                    {e.firm_name || "Firm"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="col-span-3">
-            <Label>Due date</Label>
-            <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-          </div>
-        </div>
-        <div className="mt-3 max-h-64 overflow-y-auto border rounded">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="text-left px-2 py-1">Service</th>
-                <th className="text-right px-2 py-1">Unit</th>
-                <th className="w-24 text-right px-2 py-1">Qty</th>
-                <th className="text-right px-2 py-1">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {services.map((s) => {
-                const unit = currency === "CAD" ? Number(s.fee_cad ?? 0) : Number(s.fee_inr ?? 0);
-                const qty = picked[s.id] ?? 0;
-                return (
-                  <tr key={s.id} className="border-t">
-                    <td className="px-2 py-1">{s.service_name}</td>
-                    <td className="px-2 py-1 text-right tabular-nums">{money(unit, currency)}</td>
-                    <td className="px-2 py-1">
-                      <Input
-                        type="number"
-                        min={0}
-                        value={qty}
-                        onChange={(e) =>
-                          setPicked((p) => ({ ...p, [s.id]: Math.max(0, parseInt(e.target.value) || 0) }))
-                        }
-                        className="h-7 text-right"
-                      />
-                    </td>
-                    <td className="px-2 py-1 text-right tabular-nums">{money(unit * qty, currency)}</td>
+        ) : (
+          <>
+            {primaryService && (
+              <div className="rounded-md border bg-muted/20 px-3 py-2 text-sm">
+                <div className="text-xs uppercase tracking-wide text-muted-foreground mb-0.5">Service</div>
+                <div className="font-medium leading-snug">{primaryService.service_name}</div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label>Currency</Label>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["INR", "CAD", "USD"].map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Branch</Label>
+                <Select value={branchId} onValueChange={setBranchId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Issuing entity</Label>
+                <Select value={firmId} onValueChange={setFirmId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {entities.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.firm_name || "Firm"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-3">
+                <Label>Due date</Label>
+                <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="mt-3 border rounded-md overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th className="text-left px-3 py-2">Service</th>
+                    <th className="text-right px-3 py-2 w-24">Unit</th>
+                    <th className="text-right px-3 py-2 w-16">Qty</th>
+                    <th className="text-right px-3 py-2 w-24">Discount</th>
+                    <th className="text-right px-3 py-2 w-24">Total</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {services.map((s) => {
+                    const unit = currency === "CAD" ? Number(s.fee_cad ?? 0) : Number(s.fee_inr ?? 0);
+                    const qty = picked[s.id] ?? 0;
+                    const lineDiscount = lineDiscounts[s.id] ?? 0;
+                    const subtotal = Math.max(0, unit * qty - lineDiscount);
+                    const tax = gstEnabled ? subtotal * (gstRate / 100) : 0;
+                    const lineTotal = subtotal + tax;
+                    return (
+                      <tr key={s.id} className="border-t align-top">
+                        <td className="px-3 py-2">
+                          <div className="font-medium leading-snug">{s.service_name}</div>
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums">{money(unit, currency)}</td>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="number"
+                            min={0}
+                            value={qty}
+                            onChange={(e) =>
+                              setPicked((p) => ({ ...p, [s.id]: Math.max(0, parseInt(e.target.value) || 0) }))
+                            }
+                            className="h-8 text-right"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="number"
+                            min={0}
+                            value={lineDiscount}
+                            disabled={qty <= 0}
+                            onChange={(e) =>
+                              setLineDiscounts((p) => ({
+                                ...p,
+                                [s.id]: Math.max(0, parseFloat(e.target.value) || 0),
+                              }))
+                            }
+                            className="h-8 text-right"
+                          />
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums">{money(lineTotal, currency)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-        {/* Phase 2: optional offer/discount at draft creation */}
-        <div className="mt-3">
-          <Label>Apply offer (optional)</Label>
-          <Select value={selectedOfferId} onValueChange={setSelectedOfferId}>
-            <SelectTrigger>
-              <SelectValue placeholder="No offer" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No offer</SelectItem>
-              {offers.map((o) => (
-                <SelectItem key={o.id} value={o.id}>
-                  {o.title}
-                  {o.discount_type === "percentage"
-                    ? ` — ${o.discount_value}% off`
-                    : ` — ${currency} ${o.discount_value} off`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+            <div className="mt-3 flex flex-wrap items-center gap-4 rounded-md border px-3 py-2">
+              <div className="flex items-center gap-2">
+                <Switch checked={gstEnabled} onCheckedChange={setGstEnabled} id="gst-toggle" />
+                <Label htmlFor="gst-toggle" className="text-sm font-normal">
+                  Add GST
+                </Label>
+              </div>
+              {gstEnabled && (
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs text-muted-foreground">Rate %</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={gstRate}
+                    onChange={(e) => setGstRate(Math.max(0, parseFloat(e.target.value) || 0))}
+                    className="h-8 w-20 text-right"
+                  />
+                </div>
+              )}
+            </div>
 
-        <div className="mt-2 text-right text-sm space-y-0.5">
-          <div className="text-muted-foreground">Subtotal: {money(total, currency)}</div>
-          {discount > 0 && <div className="text-primary">Offer discount: −{money(discount, currency)}</div>}
-          <div className="font-medium">Total: {money(netTotal, currency)}</div>
-        </div>
+            <div className="mt-3">
+              <Label>Apply offer (optional)</Label>
+              <Select value={selectedOfferId} onValueChange={setSelectedOfferId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="No offer" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No offer</SelectItem>
+                  {offers.map((o) => (
+                    <SelectItem key={o.id} value={o.id}>
+                      {o.title}
+                      {o.discount_type === "percentage"
+                        ? ` — ${o.discount_value}% off`
+                        : ` — ${currency} ${o.discount_value} off`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="mt-2 text-right text-sm space-y-0.5">
+              <div className="text-muted-foreground">Subtotal: {money(subtotalBeforeOffer, currency)}</div>
+              {offerDiscount > 0 && (
+                <div className="text-primary">Offer discount: −{money(offerDiscount, currency)}</div>
+              )}
+              <div className="font-medium">Total: {money(netTotal, currency)}</div>
+            </div>
+          </>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={save} disabled={saving || netTotal <= 0}>
-            {saving ? "Saving…" : "Create draft"}
+          <Button onClick={save} disabled={saving || loadingServices || services.length === 0 || netTotal <= 0}>
+            {saving ? "Saving…" : isEdit ? "Save draft" : "Create draft"}
           </Button>
         </DialogFooter>
       </DialogContent>

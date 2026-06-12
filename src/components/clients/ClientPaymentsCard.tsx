@@ -3,10 +3,16 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { ClientInvoicesPanel } from "./ClientInvoicesPanel";
 
-export function ClientPaymentsCard({ clientId }: { clientId: string }) {
+export function ClientPaymentsCard({
+  clientId,
+  activeServiceCode,
+}: {
+  clientId: string;
+  activeServiceCode?: string | null;
+}) {
   return (
     <div className="space-y-2">
-      <ClientInvoicesPanel clientId={clientId} />
+      <ClientInvoicesPanel clientId={clientId} activeServiceCode={activeServiceCode} />
       <div className="flex justify-end">
         <Button asChild size="sm" variant="ghost">
           <Link to="/accounting/ar">
