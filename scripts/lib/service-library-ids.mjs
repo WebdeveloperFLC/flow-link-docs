@@ -130,6 +130,7 @@ export const LIBRARY_IDS = {
   "singapore-spouse-dependent-visa.json": "b2000001-0001-4000-8000-0000000000e9",
   "singapore-employment-pass.json": "b2000001-0001-4000-8000-0000000000ea",
   "finland-spouse-visa.json": "b2000001-0001-4000-8000-0000000000eb",
+  "south-korea-student-visa.json": "b2000001-0001-4000-8000-0000000000ec",
 };
 
 export function slugFromJsonFile(file) {
