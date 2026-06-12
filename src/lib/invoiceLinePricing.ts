@@ -2,6 +2,9 @@
 
 export type DiscountMode = "amount" | "percentage";
 
+/** Whether GST is calculated on discounted lines or on gross before discounts. */
+export type TaxBasis = "after_discount" | "before_discount";
+
 export type LineDiscountInput = {
   mode: DiscountMode;
   /** Raw value: currency amount or percentage (0–100). */
@@ -73,12 +76,16 @@ export function computeInvoiceLines(
   offerDiscount: number,
   gstEnabled: boolean,
   gstRate: number,
+  checkoutDiscount: LineDiscountInput = { mode: "amount", value: 0 },
+  taxBasis: TaxBasis = "after_discount",
 ): {
   lines: ComputedInvoiceLine[];
   subtotalAfterLineDiscounts: number;
   offerDiscountApplied: number;
   taxableTotal: number;
   gstTotal: number;
+  grandTotalBeforeCheckout: number;
+  checkoutDiscountApplied: number;
   grandTotal: number;
 } {
   const computed = lines.map((line) => {
@@ -89,14 +96,35 @@ export function computeInvoiceLines(
   });
 
   const subtotalAfterLineDiscounts = computed.reduce((s, l) => s + l.netBeforeOffer, 0);
+  const grossTotal = computed.reduce((s, l) => s + l.gross, 0);
   const offerDiscountApplied = Math.min(Math.max(0, offerDiscount), subtotalAfterLineDiscounts);
-  const taxableTotal = Math.max(0, subtotalAfterLineDiscounts - offerDiscountApplied);
+  const taxableTotal =
+    taxBasis === "before_discount"
+      ? grossTotal
+      : Math.max(0, subtotalAfterLineDiscounts - offerDiscountApplied);
 
   const withOffer = computed.map((line) => {
     const offerShare =
       subtotalAfterLineDiscounts > 0
         ? (line.netBeforeOffer / subtotalAfterLineDiscounts) * offerDiscountApplied
         : 0;
+
+    if (taxBasis === "before_discount") {
+      const taxable = line.gross;
+      const tax = gstEnabled ? taxable * (gstRate / 100) : 0;
+      const total = Math.max(0, line.gross + tax - line.lineDiscountAmount - offerShare);
+      return {
+        gross: line.gross,
+        lineDiscountAmount: line.lineDiscountAmount,
+        netBeforeOffer: line.netBeforeOffer,
+        offerShare,
+        taxable,
+        tax: Number(tax.toFixed(2)),
+        total: Number(total.toFixed(2)),
+        discount: line.discount,
+      };
+    }
+
     const taxable = Math.max(0, line.netBeforeOffer - offerShare);
     const tax = gstEnabled ? taxable * (gstRate / 100) : 0;
     const total = taxable + tax;
@@ -113,14 +141,48 @@ export function computeInvoiceLines(
   });
 
   const gstTotal = withOffer.reduce((s, l) => s + l.tax, 0);
-  const grandTotal = withOffer.reduce((s, l) => s + l.total, 0);
+  const grandTotalBeforeCheckout = withOffer.reduce((s, l) => s + l.total, 0);
+  const checkoutDiscountApplied = resolveCheckoutDiscountAmount(
+    grandTotalBeforeCheckout,
+    checkoutDiscount,
+  );
+
+  let finalLines = withOffer;
+  if (checkoutDiscountApplied > 0 && grandTotalBeforeCheckout > 0) {
+    finalLines = withOffer.map((line) => {
+      const share = (line.total / grandTotalBeforeCheckout) * checkoutDiscountApplied;
+      return {
+        ...line,
+        total: Number(Math.max(0, line.total - share).toFixed(2)),
+      };
+    });
+  }
+
+  const grandTotal = finalLines.reduce((s, l) => s + l.total, 0);
 
   return {
-    lines: withOffer,
+    lines: finalLines,
     subtotalAfterLineDiscounts,
     offerDiscountApplied,
     taxableTotal,
     gstTotal: Number(gstTotal.toFixed(2)),
+    grandTotalBeforeCheckout: Number(grandTotalBeforeCheckout.toFixed(2)),
+    checkoutDiscountApplied: Number(checkoutDiscountApplied.toFixed(2)),
     grandTotal: Number(grandTotal.toFixed(2)),
   };
+}
+
+/** Costco-style discount on the invoice total including tax. */
+export function resolveCheckoutDiscountAmount(
+  totalInclTax: number,
+  checkout: LineDiscountInput,
+): number {
+  return resolveLineDiscountAmount(totalInclTax, checkout);
+}
+
+/** Hidden line-item id used to persist checkout discount on draft invoices. */
+export const CHECKOUT_DISCOUNT_META_ID = "__checkout_discount__";
+
+export function isCheckoutDiscountMetaLine(line: { service_id?: string | null }): boolean {
+  return line.service_id === CHECKOUT_DISCOUNT_META_ID;
 }

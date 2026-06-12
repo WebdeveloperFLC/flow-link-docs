@@ -22,6 +22,10 @@ export type InvoiceLineLike = {
   discount?: number | null;
   discount_mode?: "amount" | "percentage" | null;
   discount_value?: number | null;
+  checkout_discount_mode?: "amount" | "percentage" | null;
+  checkout_discount_value?: number | null;
+  checkout_discount_applied?: number | null;
+  gst_basis?: "after_discount" | "before_discount" | null;
   tax?: number | null;
   gst_rate?: number | null;
   total?: number | null;

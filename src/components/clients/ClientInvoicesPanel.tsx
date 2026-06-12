@@ -47,8 +47,11 @@ import {
   computeOfferDiscountAmount,
   normalizeDiscountInput,
   resolveLineDiscountAmount,
+  CHECKOUT_DISCOUNT_META_ID,
+  isCheckoutDiscountMetaLine,
   type DiscountMode,
   type LineDiscountInput,
+  type TaxBasis,
 } from "@/lib/invoiceLinePricing";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -808,6 +811,11 @@ function InvoiceEditorDialog({
   const [dueDate, setDueDate] = useState<string>(existingInvoice?.due_date?.slice(0, 10) ?? "");
   const [gstEnabled, setGstEnabled] = useState(true);
   const [gstRate, setGstRate] = useState(18);
+  const [gstBasis, setGstBasis] = useState<TaxBasis>("after_discount");
+  const [checkoutDiscount, setCheckoutDiscount] = useState<LineDiscountInput>({
+    mode: "amount",
+    value: 0,
+  });
   const [saving, setSaving] = useState(false);
 
   type EligibleOffer = {
@@ -844,8 +852,21 @@ function InvoiceEditorDialog({
           const nextPicked: Record<string, number> = {};
           const nextDiscounts: Record<string, LineDiscountInput> = {};
           let hasTax = false;
+          let loadedGstBasis: TaxBasis | null = null;
           const mergedServices = [...clientServices];
           for (const li of lines) {
+            if (isCheckoutDiscountMetaLine(li)) {
+              setCheckoutDiscount(
+                normalizeDiscountInput(
+                  {
+                    mode: (li.checkout_discount_mode as DiscountMode | null) ?? undefined,
+                    value: li.checkout_discount_value ?? undefined,
+                  },
+                  li.checkout_discount_applied,
+                ),
+              );
+              continue;
+            }
             const match = resolveBillableServiceForLine(li, mergedServices, cat);
             if (!match) continue;
             if (!mergedServices.some((s) => s.id === match.id)) {
@@ -861,7 +882,11 @@ function InvoiceEditorDialog({
             );
             if (Number(li.tax ?? 0) > 0 || Number(li.gst_rate ?? 0) > 0) hasTax = true;
             if (Number(li.gst_rate ?? 0) > 0) setGstRate(Number(li.gst_rate));
+            if (!loadedGstBasis && li.gst_basis === "before_discount") {
+              loadedGstBasis = "before_discount";
+            }
           }
+          if (loadedGstBasis) setGstBasis(loadedGstBasis);
           const normalized = normalizeInvoicePickedState(mergedServices, nextPicked, nextDiscounts);
           setServices(normalized.services);
           setPicked(normalized.picked);
@@ -969,13 +994,15 @@ function InvoiceEditorDialog({
         offerDiscountPreview,
         gstEnabled,
         gstRate,
+        checkoutDiscount,
+        gstBasis,
       ),
-    [pricingInputs, offerDiscountPreview, gstEnabled, gstRate],
+    [pricingInputs, offerDiscountPreview, gstEnabled, gstRate, checkoutDiscount, gstBasis],
   );
 
-  const lineItems = useMemo(
-    () =>
-      pricingInputs.map((row, idx) => {
+  const lineItems = useMemo(() => {
+    const rows = pricingInputs
+      .map((row, idx) => {
         const computed = priced.lines[idx];
         if (!computed) return null;
         return {
@@ -991,11 +1018,41 @@ function InvoiceEditorDialog({
           discount_value: row.discount.value,
           tax: computed.tax,
           gst_rate: gstEnabled ? gstRate : 0,
+          gst_basis: gstEnabled ? gstBasis : null,
           total: computed.total,
         };
-      }).filter(Boolean),
-    [pricingInputs, priced.lines, currency, gstEnabled, gstRate],
-  );
+      })
+      .filter(Boolean) as Record<string, unknown>[];
+
+    if (checkoutDiscount.value > 0 || priced.checkoutDiscountApplied > 0) {
+      rows.push({
+        service_id: CHECKOUT_DISCOUNT_META_ID,
+        service_code: CHECKOUT_DISCOUNT_META_ID,
+        service_name: "Checkout discount (incl. tax)",
+        description: "Costco-style flat discount on total incl. GST",
+        quantity: 0,
+        currency,
+        amount: 0,
+        discount: priced.checkoutDiscountApplied,
+        checkout_discount_mode: checkoutDiscount.mode,
+        checkout_discount_value: checkoutDiscount.value,
+        checkout_discount_applied: priced.checkoutDiscountApplied,
+        tax: 0,
+        gst_rate: 0,
+        total: 0,
+      });
+    }
+    return rows;
+  }, [
+    pricingInputs,
+    priced.lines,
+    priced.checkoutDiscountApplied,
+    currency,
+    gstEnabled,
+    gstRate,
+    gstBasis,
+    checkoutDiscount,
+  ]);
 
   const netTotal = priced.grandTotal;
 
@@ -1279,22 +1336,83 @@ function InvoiceEditorDialog({
               <div className="flex items-center gap-2">
                 <Switch checked={gstEnabled} onCheckedChange={setGstEnabled} id="gst-toggle" />
                 <Label htmlFor="gst-toggle" className="text-sm font-normal">
-                  Add GST (after discounts)
+                  Add GST
                 </Label>
               </div>
               {gstEnabled && (
-                <div className="flex items-center gap-2">
-                  <Label className="text-xs text-muted-foreground">Rate %</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={gstRate}
-                    onChange={(e) => setGstRate(Math.max(0, parseFloat(e.target.value) || 0))}
-                    className="h-8 w-20 text-right"
-                  />
-                </div>
+                <>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs text-muted-foreground whitespace-nowrap">Rate %</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={gstRate}
+                      onChange={(e) => setGstRate(Math.max(0, parseFloat(e.target.value) || 0))}
+                      className="h-8 w-20 text-right"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 min-w-[12rem]">
+                    <Label className="text-xs text-muted-foreground whitespace-nowrap">GST on</Label>
+                    <Select value={gstBasis} onValueChange={(v: TaxBasis) => setGstBasis(v)}>
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="after_discount">Amount after discounts</SelectItem>
+                        <SelectItem value="before_discount">Full amount before discounts</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
               )}
+            </div>
+
+            <div className="mt-3 rounded-md border px-3 py-3 space-y-2">
+              <div>
+                <Label className="text-sm font-medium">Checkout discount (on total incl. tax)</Label>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Like Costco — applied after GST on the final amount due.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Select
+                  value={checkoutDiscount.mode}
+                  onValueChange={(mode: DiscountMode) =>
+                    setCheckoutDiscount((c) => ({ mode, value: c.value }))
+                  }
+                >
+                  <SelectTrigger className="h-8 w-[4.5rem] px-2 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="amount">
+                      {currency === "INR" ? "₹" : currency === "CAD" ? "CA$" : "$"} flat
+                    </SelectItem>
+                    <SelectItem value="percentage">% off total</SelectItem>
+                  </SelectContent>
+                </Select>
+                <input
+                  type="number"
+                  min={0}
+                  max={checkoutDiscount.mode === "percentage" ? 100 : undefined}
+                  step={checkoutDiscount.mode === "percentage" ? 1 : 0.01}
+                  value={checkoutDiscount.value || ""}
+                  placeholder="0"
+                  onChange={(e) =>
+                    setCheckoutDiscount((c) => ({
+                      ...c,
+                      value: Math.max(0, parseFloat(e.target.value) || 0),
+                    }))
+                  }
+                  className="flex h-8 w-24 min-w-[4rem] rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground text-right tabular-nums ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                />
+                {priced.checkoutDiscountApplied > 0 && (
+                  <span className="text-xs text-primary tabular-nums">
+                    −{money(priced.checkoutDiscountApplied, currency)} off amount due
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="mt-3">
@@ -1328,10 +1446,22 @@ function InvoiceEditorDialog({
               )}
               {gstEnabled && priced.gstTotal > 0 && (
                 <div className="text-muted-foreground">
-                  GST ({gstRate}%): {money(priced.gstTotal, currency)}
+                  GST ({gstRate}%
+                  {gstBasis === "before_discount" ? " on pre-discount amount" : ""}):{" "}
+                  {money(priced.gstTotal, currency)}
                 </div>
               )}
-              <div className="font-medium">Total: {money(netTotal, currency)}</div>
+              {priced.grandTotalBeforeCheckout !== priced.grandTotal && (
+                <>
+                  <div className="text-muted-foreground">
+                    Total incl. tax: {money(priced.grandTotalBeforeCheckout, currency)}
+                  </div>
+                  <div className="text-primary">
+                    Checkout discount: −{money(priced.checkoutDiscountApplied, currency)}
+                  </div>
+                </>
+              )}
+              <div className="font-medium">Amount due: {money(netTotal, currency)}</div>
             </div>
           </>
         )}
@@ -3072,7 +3202,9 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
                   </tr>
                 </thead>
                 <tbody>
-                  {(Array.isArray(invoice.line_items) ? invoice.line_items : []).map((li: any, i: number) => (
+                  {(Array.isArray(invoice.line_items) ? invoice.line_items : [])
+                    .filter((li: any) => !isCheckoutDiscountMetaLine(li))
+                    .map((li: any, i: number) => (
                     <tr key={i} className="border-t">
                       <td className="px-2 py-1">{li.service_name || li.description || "—"}</td>
                       <td className="px-2 py-1 text-right tabular-nums">{li.quantity ?? 1}</td>
