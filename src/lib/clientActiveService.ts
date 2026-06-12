@@ -3,6 +3,7 @@ import { resolvePipelineForServiceLibrary } from "@/lib/stagePipelines";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchWorkflowTemplatesForService } from "@/lib/service-library/matchWorkflowTemplate";
 import { parseLibraryIdFromServiceCode } from "@/lib/service-library/serviceCodes";
+import { parseStoredServiceCode } from "@/lib/service-library/resolveServiceLabel";
 import {
   findCatalogueItemForStoredCode,
   resolveServiceLabelSync,
@@ -62,19 +63,49 @@ function countryFromServiceCode(code: string, item: ServiceCatalogueItem | null,
   return item?.country_tag ?? clientCountry ?? null;
 }
 
+function resolveCountryForServiceCode(
+  serviceCode: string,
+  item: ServiceCatalogueItem | null,
+  clientCountry?: string | null,
+): string | null {
+  const parsed = parseStoredServiceCode(serviceCode);
+  return (
+    parsed.country ??
+    countryFromServiceCode(serviceCode, item, clientCountry) ??
+    clientCountry ??
+    null
+  );
+}
+
 export async function resolvePipelineForServiceCode(
   serviceCode: string,
   catalogue: ServiceCatalogueItem[],
   clientCountry?: string | null,
 ): Promise<{ pipelineId: string; stageId: string } | null> {
+  const parsed = parseStoredServiceCode(serviceCode);
   const item = catalogueItemForCode(serviceCode, catalogue);
+  const country = resolveCountryForServiceCode(serviceCode, item, clientCountry);
+  if (!country) return null;
+
+  const distinctiveTokens = [parsed.variantKey].filter((t): t is string => !!t);
+  const title = item?.service_name?.trim() ?? "";
+  const fromLibrary = await resolvePipelineForServiceLibrary({
+    country,
+    serviceTitle: title,
+    subService: title,
+    libraryId: parsed.libraryId,
+    distinctiveTokens,
+  });
+  if (fromLibrary) return fromLibrary;
+
   if (!item) return null;
-  const country = countryFromServiceCode(serviceCode, item, clientCountry);
-  const { serviceTitle, subService } = serviceKeywordsForPipelineMatch(item);
+  const { serviceTitle, subService } = serviceKeywordsForPipelineMatch(item, null, country);
   return resolvePipelineForServiceLibrary({
     country,
     serviceTitle,
     subService,
+    libraryId: parsed.libraryId,
+    distinctiveTokens,
   });
 }
 

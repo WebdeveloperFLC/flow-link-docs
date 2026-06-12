@@ -50,13 +50,30 @@ export function deriveFormsCategory(
   return item?.service_name?.trim() || app || null;
 }
 
+function stripCountryFromTitle(title: string, country?: string | null): string {
+  let t = title.trim();
+  const c = country?.trim();
+  if (c && t.toLowerCase().startsWith(c.toLowerCase())) {
+    t = t.slice(c.length).replace(/^[\s–—-]+/, "").trim();
+  }
+  if (t.includes("–") || t.includes("—")) {
+    const parts = t.split(/[–—]/);
+    return parts[parts.length - 1]?.trim() || t;
+  }
+  const hyphenParts = t.split("-").map((p) => p.trim()).filter(Boolean);
+  if (hyphenParts.length > 1 && hyphenParts[0]!.length <= 20) {
+    return hyphenParts.slice(1).join(" - ").trim();
+  }
+  return t;
+}
+
 /** Keywords for stage pipeline matching (never use destination country as subService). */
 export function serviceKeywordsForPipelineMatch(
   item: ServiceCatalogueItem | null,
   serviceTitle?: string | null,
+  country?: string | null,
 ): { serviceTitle: string; subService: string } {
   const title = item?.service_name?.trim() || serviceTitle?.trim() || "";
-  const afterDash = title.includes("–") ? title.split("–").pop()?.trim() : title.split("-").slice(1).join("-").trim();
-  const subService = afterDash || title;
+  const subService = stripCountryFromTitle(title, country ?? item?.country_tag ?? null);
   return { serviceTitle: title, subService };
 }

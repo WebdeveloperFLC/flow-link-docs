@@ -1,6 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
+import { LIBRARY_PIPELINE_SEED_SLUG } from "@/lib/stagePipelineLibrarySlug";
 
 const norm = (s: string) => s.trim().toLowerCase();
+
+/** Generic words that cause false ties (e.g. PGWP vs BOWP both match "work permit"). */
+const PIPELINE_MATCH_STOPWORDS = new Set([
+  "canada", "work", "permit", "visa", "student", "immigration", "application", "services",
+  "united", "kingdom", "states", "australia", "germany", "record", "extension", "dependent",
+]);
 
 function keywordTokens(...parts: (string | null | undefined)[]): string[] {
   const tokens = new Set<string>();
@@ -8,10 +15,39 @@ function keywordTokens(...parts: (string | null | undefined)[]): string[] {
     if (!part) continue;
     for (const raw of part.split(/[^a-zA-Z0-9]+/)) {
       const t = raw.trim().toLowerCase();
-      if (t.length >= 3) tokens.add(t);
+      if (t.length < 3 || PIPELINE_MATCH_STOPWORDS.has(t)) continue;
+      tokens.add(t);
     }
   }
   return [...tokens];
+}
+
+async function resolvePipelineByLibrarySeed(
+  libraryId: string,
+  country: string,
+): Promise<{ pipelineId: string; stageId: string } | null> {
+  const slug = LIBRARY_PIPELINE_SEED_SLUG[libraryId];
+  if (!slug) return null;
+
+  const { data: pipeline } = await supabase
+    .from("stage_pipelines")
+    .select("id")
+    .eq("country", country)
+    .eq("is_active", true)
+    .ilike("description", `%${slug}%`)
+    .maybeSingle();
+  if (!pipeline) return null;
+
+  const { data: stage } = await supabase
+    .from("pipeline_stages")
+    .select("id")
+    .eq("pipeline_id", pipeline.id)
+    .order("sort_order", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (!stage) return null;
+
+  return { pipelineId: pipeline.id, stageId: stage.id };
 }
 
 /**
@@ -23,10 +59,18 @@ export async function resolvePipelineForServiceLibrary(params: {
   interestedCountries?: string[] | null;
   serviceTitle: string;
   subService: string;
+  libraryId?: string | null;
+  distinctiveTokens?: string[];
 }): Promise<{ pipelineId: string; stageId: string } | null> {
   const countries = [params.country, ...(params.interestedCountries ?? [])]
     .filter((c): c is string => !!c && c.trim().length > 0);
   if (!countries.length) return null;
+
+  const primaryCountry = countries[0]!;
+  if (params.libraryId) {
+    const direct = await resolvePipelineByLibrarySeed(params.libraryId, primaryCountry);
+    if (direct) return direct;
+  }
 
   try {
     const { data: pipelines } = await supabase
@@ -40,6 +84,9 @@ export async function resolvePipelineForServiceLibrary(params: {
     if (!candidates.length) return null;
 
     const needles = keywordTokens(params.subService, params.serviceTitle);
+    const distinctive = (params.distinctiveTokens ?? [])
+      .map((t) => t.trim().toLowerCase())
+      .filter((t) => t.length >= 2);
     let best: (typeof candidates)[number] | null = null;
     let bestScore = 0;
 
@@ -48,6 +95,11 @@ export async function resolvePipelineForServiceLibrary(params: {
       let score = 0;
       for (const n of needles) {
         if (haystack.includes(n)) score += n.length;
+        else if (n === "student" && haystack.includes("study")) score += 5;
+        else if (n === "spouse" && haystack.includes("spous")) score += 5;
+      }
+      for (const d of distinctive) {
+        if (haystack.includes(d)) score += d.length * 8;
       }
       if (score > bestScore) {
         bestScore = score;
