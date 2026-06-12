@@ -742,6 +742,131 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // ---- Phase 3: campaign overlays + branch contests ----
+    {
+      const { data: qeRows } = await svc
+        .from("incentive_qualifying_events")
+        .select("counselor_id, branch_id, amount, currency, dimensions")
+        .eq("period_key", period_key);
+
+      const { data: campaigns } = await svc
+        .from("incentive_campaigns")
+        .select("*")
+        .eq("period_key", period_key)
+        .eq("is_active", true);
+
+      for (const camp of (campaigns ?? []) as any[]) {
+        for (const cid of Object.keys(perCounselor)) {
+          const matching = ((qeRows ?? []) as any[]).filter((e) => {
+            if (e.counselor_id !== cid) return false;
+            const d = (e.dimensions ?? {}) as LineDims;
+            const scope = mergeScope(camp.scope_preset, camp.scope_json ?? {});
+            if (camp.country_code && normScope(d.country_code) !== normScope(camp.country_code)) return false;
+            if (camp.institution_id && normScope(d.institution_id) !== normScope(camp.institution_id)) return false;
+            if (camp.intake && normScope(d.intake) !== normScope(camp.intake)) return false;
+            return matchesScope(scope, d, false);
+          });
+          if (!matching.length) continue;
+          let bonus = 0;
+          if (camp.bonus_type === "flat_per_event") {
+            bonus = Math.round(matching.length * Number(camp.bonus_value) * 100) / 100;
+          } else if (camp.bonus_type === "percent_revenue") {
+            const rev = matching.reduce((s: number, e: any) => s + Number(e.amount ?? 0), 0);
+            bonus = Math.round((rev * Number(camp.bonus_value)) / 100 * 100) / 100;
+          } else if (camp.bonus_type === "pool_fixed") {
+            bonus = Number(camp.pool_amount ?? camp.bonus_value);
+          }
+          if (bonus <= 0) continue;
+          const ccy = camp.settlement_currency ?? settlement;
+          const inSettlement = ccy === settlement ? bonus : (convert(bonus, ccy, settlement, snap) ?? bonus);
+          perCounselor[cid].total += inSettlement;
+          perCounselor[cid].lines.push({
+            source_type: "service_revenue", slab_id: null, rule_id: null, client_id: null,
+            base_amount: matching.length, base_currency: ccy, fx_rate_used: null,
+            earned_amount: inSettlement, settlement_currency: settlement,
+            note: `Campaign overlay "${camp.name}"`,
+          });
+        }
+      }
+
+      const { data: contests } = await svc
+        .from("incentive_branch_contests")
+        .select("*")
+        .eq("period_key", period_key)
+        .eq("is_active", true)
+        .eq("status", "active");
+
+      for (const contest of (contests ?? []) as any[]) {
+        const { data: cBranches } = await svc
+          .from("incentive_contest_branches")
+          .select("branch_id")
+          .eq("contest_id", contest.id);
+        const branchIds = new Set(((cBranches ?? []) as any[]).map((b) => b.branch_id));
+        if (!branchIds.size) continue;
+
+        const useCount = contest.metric === "enrolment_count";
+        const branchTotals: Record<string, number> = {};
+        const branchCounselors: Record<string, Record<string, number>> = {};
+
+        for (const e of (qeRows ?? []) as any[]) {
+          if (!e.branch_id || !branchIds.has(e.branch_id)) continue;
+          const bid = e.branch_id as string;
+          const cid = e.counselor_id as string;
+          const add = useCount ? 1 : Number(e.amount ?? 0);
+          branchTotals[bid] = (branchTotals[bid] ?? 0) + add;
+          (branchCounselors[bid] ||= {})[cid] = (branchCounselors[bid][cid] ?? 0) + add;
+        }
+
+        const ranked = Object.entries(branchTotals)
+          .map(([branch_id, total]) => ({ branch_id, total }))
+          .filter((r) => r.total >= Number(contest.min_branch_total ?? 0))
+          .sort((a, b) => b.total - a.total);
+        if (!ranked.length) continue;
+
+        const pool = Number(contest.pool_amount ?? 0);
+        const contestPayouts: Record<string, number> = {};
+
+        if (contest.winner_mode === "proportional_all") {
+          const sum = ranked.reduce((s, r) => s + r.total, 0);
+          for (const r of ranked) {
+            const branchPool = sum > 0 ? Math.round((pool * (r.total / sum)) * 100) / 100 : 0;
+            const counselors = Object.entries(branchCounselors[r.branch_id] ?? {}).map(([counselor_id, total]) => ({ counselor_id, total }));
+            const cSum = counselors.reduce((s, c) => s + c.total, 0);
+            for (const c of counselors) {
+              if (cSum <= 0) continue;
+              const share = Math.round((branchPool * (c.total / cSum)) * 100) / 100;
+              contestPayouts[c.counselor_id] = (contestPayouts[c.counselor_id] ?? 0) + share;
+            }
+          }
+        } else {
+          const winner = ranked[0];
+          const counselors = Object.entries(branchCounselors[winner.branch_id] ?? {}).map(([counselor_id, total]) => ({ counselor_id, total }));
+          const cSum = counselors.reduce((s, c) => s + c.total, 0);
+          if (contest.split_mode === "equal_among_counselors") {
+            const each = counselors.length ? Math.round((pool / counselors.length) * 100) / 100 : 0;
+            for (const c of counselors) contestPayouts[c.counselor_id] = (contestPayouts[c.counselor_id] ?? 0) + each;
+          } else {
+            for (const c of counselors) {
+              if (cSum <= 0) continue;
+              contestPayouts[c.counselor_id] = (contestPayouts[c.counselor_id] ?? 0) + Math.round((pool * (c.total / cSum)) * 100) / 100;
+            }
+          }
+        }
+
+        for (const [cid, amt] of Object.entries(contestPayouts)) {
+          if (amt <= 0) continue;
+          if (!perCounselor[cid]) perCounselor[cid] = { total: 0, lines: [] };
+          perCounselor[cid].total += amt;
+          perCounselor[cid].lines.push({
+            source_type: "service_revenue", slab_id: null, rule_id: null, client_id: null,
+            base_amount: amt, base_currency: contest.settlement_currency ?? settlement, fx_rate_used: null,
+            earned_amount: amt, settlement_currency: settlement,
+            note: `Branch contest "${contest.name}" pool share`,
+          });
+        }
+      }
+    }
+
     const summary = Object.entries(perCounselor).map(([cid, v]) => ({
       counselor_id: cid, earned: Math.round(v.total * 100) / 100, settlement_currency: settlement,
     }));

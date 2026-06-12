@@ -60,6 +60,23 @@ interface LeaderRow {
   rank: number;
 }
 
+interface DimLeaderRow {
+  rank: number;
+  group_key: string;
+  group_label: string;
+  total_amount: number;
+  event_count: number;
+  currency: string;
+}
+
+interface RevenueBreakdown {
+  core_revenue: number;
+  allied_revenue: number;
+  travel_revenue: number;
+  event_count: number;
+  currency: string;
+}
+
 const fmt = (n: number, ccy: string) =>
   `${ccy === "INR" ? "₹" : ""}${Number(n ?? 0).toLocaleString()} ${ccy !== "INR" ? ccy : ""}`.trim();
 
@@ -75,6 +92,9 @@ export default function MyIncentives() {
   const [earnedThisPeriod, setEarnedThisPeriod] = useState<number>(0);
   const [projectedEarned, setProjectedEarned] = useState<number>(0);
   const [leaderboard, setLeaderboard] = useState<LeaderRow[]>([]);
+  const [dimLeaderboard, setDimLeaderboard] = useState<DimLeaderRow[]>([]);
+  const [lbGroup, setLbGroup] = useState<"counselor" | "branch" | "country" | "service">("counselor");
+  const [breakdown, setBreakdown] = useState<RevenueBreakdown | null>(null);
   const [myRank, setMyRank] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -84,7 +104,7 @@ export default function MyIncentives() {
     (async () => {
       setLoading(true);
 
-      const [w, settings, scoreRes, lbRes, p] = await Promise.all([
+      const [w, settings, scoreRes, lbRes, p, bdRes] = await Promise.all([
         supabase
           .from("discount_wallets")
           .select(
@@ -107,6 +127,10 @@ export default function MyIncentives() {
           .eq("counselor_id", user.id)
           .order("created_at", { ascending: false })
           .limit(20),
+        supabase.rpc("fn_incentive_counselor_revenue_breakdown", {
+          _counselor_id: user.id,
+          _period_key: period,
+        }),
       ]);
 
       let ledgerRows: LedgerRow[] = [];
@@ -163,12 +187,30 @@ export default function MyIncentives() {
       setProjectedEarned(projected);
       setLeaderboard(lb);
       setMyRank(rankEntry?.rank ?? null);
+      const bd = bdRes.data as RevenueBreakdown | null;
+      if (bd && typeof bd === "object") setBreakdown(bd);
       setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
   }, [user?.id, period]);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.rpc("fn_incentive_dimension_leaderboard", {
+        _period_key: period,
+        _group_by: lbGroup,
+        _limit: 10,
+      });
+      if (!cancelled) setDimLeaderboard((data ?? []) as DimLeaderRow[]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, period, lbGroup]);
 
   const walletCcy = wallet?.currency ?? "INR";
   const remainingUnlocked = Math.max((wallet?.unlocked_amount ?? 0) - spent, 0);
@@ -258,6 +300,27 @@ export default function MyIncentives() {
           </Card>
         </div>
 
+        {breakdown && (
+          <Card className="p-5">
+            <h2 className="text-lg font-semibold mb-3">Revenue mix — {period}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground text-xs uppercase">Core (coaching + visa + admission)</p>
+                <p className="text-xl font-semibold mt-1">{fmt(Number(breakdown.core_revenue ?? 0), breakdown.currency ?? "INR")}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs uppercase">Allied services</p>
+                <p className="text-xl font-semibold mt-1">{fmt(Number(breakdown.allied_revenue ?? 0), breakdown.currency ?? "INR")}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs uppercase">Travel &amp; financial</p>
+                <p className="text-xl font-semibold mt-1">{fmt(Number(breakdown.travel_revenue ?? 0), breakdown.currency ?? "INR")}</p>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">{breakdown.event_count ?? 0} qualifying events this period</p>
+          </Card>
+        )}
+
         {wallet && (
           <Card className="p-5">
             <div className="flex items-center gap-2 text-sm font-medium mb-2">
@@ -280,7 +343,7 @@ export default function MyIncentives() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card className="p-5">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Trophy className="size-5" /> Leaderboard — {period}
+              <Trophy className="size-5" /> Performance score — {period}
             </h2>
             {loading ? (
               <div className="text-sm text-muted-foreground">Loading…</div>
@@ -314,10 +377,59 @@ export default function MyIncentives() {
                 </table>
               </div>
             )}
+            {myRank != null && (
+              <p className="text-xs text-muted-foreground mt-2">Your performance rank: #{myRank}</p>
+            )}
           </Card>
 
           <Card className="p-5">
-            <h2 className="text-lg font-semibold mb-4">Wallet activity</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Trophy className="size-5" /> Incentive leaderboard
+              </h2>
+              <select
+                className="border rounded-md h-8 px-2 text-xs bg-background"
+                value={lbGroup}
+                onChange={(e) => setLbGroup(e.target.value as typeof lbGroup)}
+              >
+                <option value="counselor">By counselor</option>
+                <option value="branch">By branch</option>
+                <option value="country">By country</option>
+                <option value="service">By service line</option>
+              </select>
+            </div>
+            {dimLeaderboard.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No qualifying events yet for this view.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-left text-muted-foreground border-b">
+                    <tr>
+                      <th className="py-2 pr-4">#</th>
+                      <th className="py-2 pr-4">Name</th>
+                      <th className="py-2 pr-4 text-right">Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dimLeaderboard.map((r) => (
+                      <tr
+                        key={`${lbGroup}-${r.group_key}`}
+                        className={`border-b last:border-0 ${lbGroup === "counselor" && r.group_key === user?.id ? "bg-primary/5" : ""}`}
+                      >
+                        <td className="py-2 pr-4">{r.rank}</td>
+                        <td className="py-2 pr-4 capitalize">{r.group_label}</td>
+                        <td className="py-2 pr-4 text-right font-medium">{fmt(Number(r.total_amount), r.currency)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+        </div>
+
+        <Card className="p-5">
+          <h2 className="text-lg font-semibold mb-4">Wallet activity</h2>
             {loading ? (
               <div className="text-sm text-muted-foreground">Loading…</div>
             ) : ledger.length === 0 ? (
@@ -349,8 +461,7 @@ export default function MyIncentives() {
                 </table>
               </div>
             )}
-          </Card>
-        </div>
+        </Card>
 
         <Card className="p-5">
           <h2 className="text-lg font-semibold mb-4">My payouts</h2>
