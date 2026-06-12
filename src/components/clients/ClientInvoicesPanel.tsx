@@ -49,6 +49,7 @@ import {
   resolveLineDiscountAmount,
   CHECKOUT_DISCOUNT_META_ID,
   isCheckoutDiscountMetaLine,
+  summarizeInvoiceDiscounts,
   type DiscountMode,
   type LineDiscountInput,
   type TaxBasis,
@@ -133,6 +134,11 @@ function money(amt: number, cur: string) {
   } catch {
     return `${cur || ""} ${(amt || 0).toFixed(2)}`;
   }
+}
+
+function formatDiscountCell(amt: number, cur: string) {
+  if (amt <= 0.005) return "—";
+  return `−${money(amt, cur)}`;
 }
 
 /** Safe due-date formatter — never returns "NaN". */
@@ -409,6 +415,8 @@ export function ClientInvoicesPanel({
               <tr>
                 <th className="text-left px-3 py-2">Invoice</th>
                 <th className="text-left px-3 py-2">Status</th>
+                <th className="text-right px-3 py-2">Gross</th>
+                <th className="text-right px-3 py-2">Discount</th>
                 <th className="text-right px-3 py-2">Total</th>
                 <th className="text-right px-3 py-2">Paid</th>
                 <th className="text-right px-3 py-2">Balance</th>
@@ -419,6 +427,7 @@ export function ClientInvoicesPanel({
             <tbody>
               {rows.map((r) => {
                 const totals = computeInvoiceTotals(r, verifiedPaidByInvoice[r.id] ?? 0);
+                const discountSummary = summarizeInvoiceDiscounts(r);
                 const balance = totals.outstanding;
                 const collectDisabled = !isAccounts || balance <= 0 || TERMINAL_STATUSES.has(r.status);
                 const remLocked =
@@ -453,7 +462,26 @@ export function ClientInvoicesPanel({
                         {totals.displayStatus.replace(/_/g, " ")}
                       </Badge>
                     </td>
-                    <td className="px-3 py-2 text-right tabular-nums">{money(Number(r.amount), r.currency)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+                      {discountSummary.grossSubtotal > 0
+                        ? money(discountSummary.grossSubtotal, r.currency)
+                        : money(Number(r.amount), r.currency)}
+                    </td>
+                    <td
+                      className={`px-3 py-2 text-right tabular-nums ${
+                        discountSummary.hasDiscount ? "text-primary" : "text-muted-foreground"
+                      }`}
+                      title={
+                        discountSummary.checkoutDiscount > 0
+                          ? `Line/offer: ${money(discountSummary.lineAndOfferDiscount, r.currency)} · Checkout: ${money(discountSummary.checkoutDiscount, r.currency)}`
+                          : undefined
+                      }
+                    >
+                      {formatDiscountCell(discountSummary.totalDiscount, r.currency)}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums font-medium">
+                      {money(Number(r.amount), r.currency)}
+                    </td>
                     <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
                       {money(totals.paid, r.currency)}
                     </td>
@@ -3110,6 +3138,7 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
   );
   const totals = computeInvoiceTotals(invoice, verifiedPaid);
   const balance = totals.outstanding;
+  const discountSummary = summarizeInvoiceDiscounts(invoice);
   const awaitingCount = payments.filter((p) => p.payment_status === "awaiting_verification").length;
   const receiptsByPaymentId = useMemo(() => {
     const m = new Map<string, any>();
@@ -3160,7 +3189,21 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
               <div>{formatDue(invoice.due_date)}</div>
             </div>
             <div>
-              <div className="text-xs text-muted-foreground">Total</div>
+              <div className="text-xs text-muted-foreground">Gross</div>
+              <div className="tabular-nums">
+                {discountSummary.grossSubtotal > 0
+                  ? money(discountSummary.grossSubtotal, invoice.currency)
+                  : money(Number(invoice.amount), invoice.currency)}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Discount</div>
+              <div className={`tabular-nums ${discountSummary.hasDiscount ? "text-primary" : ""}`}>
+                {formatDiscountCell(discountSummary.totalDiscount, invoice.currency)}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Amount due</div>
               <div className="font-medium tabular-nums">{money(Number(invoice.amount), invoice.currency)}</div>
             </div>
             <div>
