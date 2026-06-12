@@ -9,10 +9,15 @@ export function useVisibleGuides(): { guides: StaffGuideDef[]; loading: boolean 
   const commissions = useModulePermission("commissions");
   const clients = useModulePermission("clients");
   const dsh = useModulePermission("digital_success_hub");
+  const incentives = useModulePermission("incentives");
 
   const loading =
     !isAdmin &&
-    (institutions.loading || commissions.loading || clients.loading || dsh.loading);
+    (institutions.loading ||
+      commissions.loading ||
+      clients.loading ||
+      dsh.loading ||
+      incentives.loading);
 
   const canViewModule = (module: GuideRelatedModule | undefined): boolean => {
     if (!module) return true;
@@ -26,6 +31,8 @@ export function useVisibleGuides(): { guides: StaffGuideDef[]; loading: boolean 
         return clients.canView;
       case "digital_success_hub":
         return dsh.canView;
+      case "incentives":
+        return incentives.canView;
       default:
         return true;
     }
