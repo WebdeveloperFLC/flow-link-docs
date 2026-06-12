@@ -7,6 +7,7 @@ import {
   findCatalogueItemForStoredCode,
   resolveServiceLabelSync,
 } from "@/lib/service-library/resolveServiceLabel";
+import { serviceKeywordsForPipelineMatch } from "@/lib/service-library/formsCategory";
 
 export type ClientServiceEntry = {
   code: string;
@@ -69,10 +70,10 @@ export async function resolvePipelineForServiceCode(
   const item = catalogueItemForCode(serviceCode, catalogue);
   if (!item) return null;
   const country = countryFromServiceCode(serviceCode, item, clientCountry);
-  const subService = item.sub_category ?? item.service_name.split("–").pop()?.trim() ?? item.service_name;
+  const { serviceTitle, subService } = serviceKeywordsForPipelineMatch(item);
   return resolvePipelineForServiceLibrary({
     country,
-    serviceTitle: item.service_name,
+    serviceTitle,
     subService,
   });
 }

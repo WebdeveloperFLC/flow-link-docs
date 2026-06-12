@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ServiceCatalogueItem } from "@/lib/leads";
 import {
   buildServiceLabelMap,
@@ -6,42 +6,64 @@ import {
   fetchServiceLibraryLabels,
 } from "./resolveServiceLabel";
 
+function codesKey(codes: string[]): string {
+  return [...new Set(codes.map((c) => c.trim()).filter(Boolean))].sort().join("\0");
+}
+
 /** Resolve human-readable labels for stored service codes (incl. variant-parent codes). */
 export function useServiceLabelMap(codes: string[], catalogue: ServiceCatalogueItem[]) {
-  const [libraryLabels, setLibraryLabels] = useState<Map<string, string>>(() => new Map());
+  const [libraryLabels, setLibraryLabels] = useState<Record<string, string>>({});
+  const libraryLabelsRef = useRef(libraryLabels);
+  libraryLabelsRef.current = libraryLabels;
 
+  const normalizedKey = useMemo(() => codesKey(codes), [codes]);
   const normalizedCodes = useMemo(
-    () => [...new Set(codes.map((c) => c.trim()).filter(Boolean))],
-    [codes],
+    () => (normalizedKey ? normalizedKey.split("\0") : []),
+    [normalizedKey],
   );
 
-  const unresolvedIds = useMemo(
-    () => collectUnresolvedLibraryIds(normalizedCodes, catalogue, libraryLabels),
+  const catalogueKey = useMemo(
+    () => catalogue.map((s) => s.service_code || s.id).join("\0"),
+    [catalogue],
+  );
+
+  const labelMap = useMemo(
+    () => buildServiceLabelMap(normalizedCodes, catalogue, new Map(Object.entries(libraryLabels))),
     [normalizedCodes, catalogue, libraryLabels],
   );
 
   useEffect(() => {
-    if (unresolvedIds.length === 0) return;
+    const missing = collectUnresolvedLibraryIds(
+      normalizedCodes,
+      catalogue,
+      new Map(Object.entries(libraryLabelsRef.current)),
+    );
+    if (missing.length === 0) return;
+
     let cancelled = false;
-    void fetchServiceLibraryLabels(unresolvedIds)
-      .then((next) => {
-        if (cancelled) return;
+    void fetchServiceLibraryLabels(missing)
+      .then((fetched) => {
+        if (cancelled || fetched.size === 0) return;
         setLibraryLabels((prev) => {
-          const merged = new Map(prev);
-          for (const [id, label] of next) merged.set(id, label);
-          return merged;
+          let changed = false;
+          const next = { ...prev };
+          for (const [id, label] of fetched) {
+            if (next[id] !== label) {
+              next[id] = label;
+              changed = true;
+            }
+          }
+          return changed ? next : prev;
         });
       })
       .catch(() => {
         /* keep sync fallbacks */
       });
+
     return () => {
       cancelled = true;
     };
-  }, [unresolvedIds.join("|")]);
+  }, [normalizedKey, catalogueKey, normalizedCodes, catalogue]);
 
-  return useMemo(
-    () => buildServiceLabelMap(normalizedCodes, catalogue, libraryLabels),
-    [normalizedCodes, catalogue, libraryLabels],
-  );
+  return labelMap;
 }

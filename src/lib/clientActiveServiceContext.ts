@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
 import {
   buildClientServiceEntries,
@@ -9,8 +9,10 @@ import { parseLibraryIdFromServiceCode } from "@/lib/service-library/serviceCode
 import {
   findCatalogueItemForStoredCode,
   resolveServiceLabelSync,
+  fetchServiceLibraryLabels,
+  collectUnresolvedLibraryIds,
 } from "@/lib/service-library/resolveServiceLabel";
-import { useServiceLabelMap } from "@/lib/service-library/useServiceLabelMap";
+import { deriveFormsCategory } from "@/lib/service-library/formsCategory";
 
 export type ClientLite = {
   id: string;
@@ -84,8 +86,8 @@ export function resolveActiveServiceContextSync(params: {
     null;
 
   const formsCategory =
+    deriveFormsCategory(item, activeCode, params.client.application_type) ||
     item?.sub_category?.trim() ||
-    item?.service_name?.trim() ||
     params.client.application_type?.trim() ||
     null;
 
@@ -155,7 +157,59 @@ export function useActiveServiceContext(
     () => (client ? collectClientServices(client) : []),
     [client],
   );
-  const labelMap = useServiceLabelMap(clientCodes, catalogue);
+
+  const [libraryLabels, setLibraryLabels] = useState<Record<string, string>>({});
+  const libraryLabelsRef = useRef(libraryLabels);
+  libraryLabelsRef.current = libraryLabels;
+
+  const clientCodesKey = useMemo(
+    () => clientCodes.slice().sort().join("\0"),
+    [clientCodes],
+  );
+
+  const catalogueKey = useMemo(
+    () => catalogue.map((s) => s.service_code || s.id).join("\0"),
+    [catalogue],
+  );
+
+  useEffect(() => {
+    if (clientCodes.length === 0) return;
+    const missing = collectUnresolvedLibraryIds(
+      clientCodes,
+      catalogue,
+      new Map(Object.entries(libraryLabelsRef.current)),
+    );
+    if (missing.length === 0) return;
+
+    let cancelled = false;
+    void fetchServiceLibraryLabels(missing)
+      .then((fetched) => {
+        if (cancelled || fetched.size === 0) return;
+        setLibraryLabels((prev) => {
+          let changed = false;
+          const next = { ...prev };
+          for (const [id, label] of fetched) {
+            if (next[id] !== label) {
+              next[id] = label;
+              changed = true;
+            }
+          }
+          return changed ? next : prev;
+        });
+      })
+      .catch(() => {
+        /* keep sync fallbacks */
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [clientCodesKey, catalogueKey, clientCodes, catalogue]);
+
+  const labelMap = useMemo(
+    () => new Map(Object.entries(libraryLabels)),
+    [libraryLabels],
+  );
 
   return useMemo(() => {
     if (!client) {
