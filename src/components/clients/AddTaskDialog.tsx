@@ -15,6 +15,9 @@ import {
   type StaffMember,
 } from "@/lib/staffDirectory";
 
+/** Radix Select forbids empty-string item values; use sentinel for "no filter". */
+const ALL_DEPARTMENTS = "__all__";
+
 export function AddTaskDialog({
   open,
   onOpenChange,
@@ -144,10 +147,16 @@ export function AddTaskDialog({
           </div>
           <div>
             <Label>Department</Label>
-            <Select value={departmentId} onValueChange={(v) => { setDepartmentId(v); setAssignedTo(""); }}>
+            <Select
+              value={departmentId || ALL_DEPARTMENTS}
+              onValueChange={(v) => {
+                setDepartmentId(v === ALL_DEPARTMENTS ? "" : v);
+                setAssignedTo("");
+              }}
+            >
               <SelectTrigger><SelectValue placeholder="All departments" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All departments</SelectItem>
+                <SelectItem value={ALL_DEPARTMENTS}>All departments</SelectItem>
                 {departments.map((d) => (
                   <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                 ))}
