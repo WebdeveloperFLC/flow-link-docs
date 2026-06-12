@@ -4,10 +4,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Version** | 1.0 (draft for approval) |
-| **Date** | 12 June 2026 |
-| **Status** | **DRAFT — pending stakeholder sign-off before build** |
-| **Related docs** | [offers-discounts-wallet-ai-scope-v2.md](./offers-discounts-wallet-ai-scope-v2.md), [OFFERS_WALLET_INCENTIVE_MANIFEST.md](../../supabase/schema-export/OFFERS_WALLET_INCENTIVE_MANIFEST.md), [SPRINT_0_READINESS_REPORT.md](./SPRINT_0_READINESS_REPORT.md) |
+| **Version** | 1.1 (as-built reference) |
+| **Date** | 12 June 2026 · updated June 2026 post Phase 4 |
+| **Status** | **Active — Phases 0–4 deployed** |
+| **Staff guide** | [incentives-module-guide.md](./incentives-module-guide.md) — operational how-to |
+| **Related docs** | [offers-discounts-wallet-ai-scope-v2.md](./offers-discounts-wallet-ai-scope-v2.md), [offers-wallet-staff-guide.md](./offers-wallet-staff-guide.md), [OFFERS_WALLET_INCENTIVE_MANIFEST.md](../../supabase/schema-export/OFFERS_WALLET_INCENTIVE_MANIFEST.md) |
 | **Classification** | Confidential — Internal |
 
 **Status legend:** ✅ BUILT · 🟡 PARTIAL · 🔲 PLANNED
@@ -82,12 +83,12 @@ Build approach: **extend existing schema and engine** (`incentive_plans`, slabs,
 - Competition layer (leaderboards, contests, branch pools)
 - Counselor-facing dashboard (targets, earned, rank, allied vs core breakdown)
 
-### Out of scope (v1)
+### Out of scope (future)
 
-- AI-based target recommendation
-- Full accounting/AP automation (schema hook `accounting_ap_bill_id` reserved)
-- Client-facing incentive visibility
-- Payroll system integration (export CSV/API is v2)
+- Full payroll system API integration (CSV export ✅ Phase 4)
+- Client-facing cash incentive visibility
+- Unified Performance Hub UX redesign (planned)
+- Complete migration of invoice FX off static matrix (partial)
 
 ---
 
@@ -138,106 +139,85 @@ effective_rate_to_inr =
 
 Finance chooses per currency whether buffer is **fixed** or **percent**. Both may be configured; effective rate uses the configured method.
 
-### 4.3 Purpose-specific rates (optional v1.1)
+### 4.3 Purpose-specific rates ✅ (Phase 4)
 
-| Purpose | Use |
-|---------|-----|
-| `client_billing` | Invoices, payment collection, receipts |
-| `incentive_settlement` | Converting earned amounts at run lock |
-| `commission_reporting` | Institution commission display |
+| Purpose (`rate_purpose`) | Use |
+|------------------------|-----|
+| `general` | Fallback for all uses |
+| `billing` | Invoices, payment collection (when wired) |
+| `incentive_settlement` | Run calculation (engine default) |
+| `payout` | Counselor payout conversion (future) |
 
-v1 may use a **single effective rate** for all purposes; schema should allow purpose split later.
+Engine and RPC prefer purpose-specific rate, then fall back to `general`.
 
-### 4.4 Current state 🟡
+### 4.4 Built ✅
 
 | Location | Behavior |
 |----------|----------|
-| `fx_rates` table | `currency`, `period_key`, `rate_to_inr` — used by incentive runs |
-| Invoice headers | Per-invoice `fx_rate_to_inr/cad/usd` snapshotted at issue |
-| `src/accounting/lib/fx.ts` | **Hardcoded static matrix** — not centralized |
-| Incentive engine | Reads `fx_rates`; **no buffer concept** |
+| `fx_rates` | `base_rate_to_inr`, `buffer_fixed`, `buffer_pct`, `rate_purpose` |
+| RPC | `fn_effective_fx_rate_to_inr(currency, period_key, purpose)` |
+| Admin UI | `/incentives/fx-rates` |
+| Incentive engine | `loadFxSnapshot()` — purpose-aware; frozen at lock |
+| Invoice headers | Per-invoice rate snapshotted at issue (unchanged) |
 
-### 4.5 Planned design 🔲
+### 4.5 Remaining 🟡
 
-**Single source of truth:** RPC e.g. `fn_effective_fx_rate(currency, purpose, as_of_date)` returning:
-
-- `base_rate`, `buffer_fixed`, `buffer_pct`, `effective_rate`, `period_key`, `set_by`, `set_at`
-
-**Admin screen:** Settings → **FX & Buffers**
-
-- Currency, period (monthly default)
-- Base source: manual | API import (future)
-- Buffer (fixed and/or %)
-- Preview effective rate
-- Audit log of changes
-
-**Consumers (must migrate off static matrix):**
-
-- Invoice creation & payment collection
-- Receipt generation
-- Incentive run calculate/lock (`fx_snapshot` uses effective rates)
-- Commission reporting displays
-
-**Immutability:**
-
-- Invoices: rate **frozen at issue** (existing behavior — keep)
-- Incentive runs: rate **frozen at lock** (existing behavior — keep)
-- New invoices use **current effective rate** at time of issue
+| Gap | Notes |
+|-----|-------|
+| `src/accounting/lib/fx.ts` static matrix | Migrate invoices to centralized RPC |
+| FX audit log | Change history UI 🔲 |
+| API import of market rates | 🔲 |
 
 ---
 
 ## 5. Current implementation status
 
-Verified against repository (June 2026).
+Verified against repository — **Phases 0–4 deployed** (June 2026).
 
-### 5.1 Built ✅
+> **Staff operations:** see [incentives-module-guide.md](./incentives-module-guide.md)
+
+### 5.1 Built ✅ (Phases 0–4)
 
 | Area | What exists |
 |------|-------------|
-| **Schema** | `incentive_plans`, `incentive_slabs`, `incentive_targets`, `incentive_runs`, `incentive_line_items`, `incentive_payouts`, `incentive_adjustments`, `incentive_schemes` |
-| **Engine** | Edge function `incentive-calculate-run` — preview, calculate, lock |
-| **Revenue rules** | Verified payments; net revenue subtracts wallet allocations pro-rata |
-| **Commissions** | `upi_commission_students` when `commission_status = paid` |
-| **FX at run** | Period FX snapshot from `fx_rates` |
-| **Slabs** | Tiered percent/flat/per_unit in engine |
-| **Achievement** | `fn_counselor_period_achievement` RPC |
-| **UI** | `/incentives/plans`, `/incentives/admin`, `/incentives` (My Incentives) |
-| **Wallet (related)** | Give Discount, Wallet Top-ups, Period Close, performance scores, leaderboard |
-| **Service library** | Full catalogue including `allied_services` + `travel_financial` |
-| **Lead/client UI** | Allied & Travel tab (`ServiceTabs.tsx`) |
+| **FX + buffer** | `fx_rates` columns, `fn_effective_fx_rate_to_inr`, `/incentives/fx-rates`, purpose-specific rates |
+| **Qualifying events** | `incentive_qualifying_events` + trigger on verified payment |
+| **Rules & scope** | `incentive_rules`, `scope_json`, presets, `IncentiveScopeFields` UI |
+| **Engine** | `incentive-calculate-run` — preview, calculate, lock; closer-wins; role filter; discount penalty |
+| **Revenue** | Verified payments; net subtracts wallet allocations; ancillary + commission source types wired |
+| **Dimensions** | Country, institution, intake from `cf_client_programs` + `upi_commission_students` |
+| **Targets & bonuses** | Target bonuses applied; auto-suggest RPC `fn_suggest_incentive_targets` |
+| **Slabs** | Continuous chain validation in UI; rule-linked slabs |
+| **Payouts** | Payout desk: generate → approve → TDS → paid; CSV export; AP bill ID |
+| **Adjustments** | UI on run detail for locked runs |
+| **Competition** | Branch contests, campaign overlays, dimension leaderboards RPCs |
+| **Counselor UI** | My Incentives — period earned, forecast, revenue mix, leaderboards |
+| **Admin UI** | Plans, Admin, Run detail, Competitions, Simulator, Payout desk |
+| **Role plans** | `scope_type = role` + `role_key` filter via `user_roles` |
+| **Plan versions** | Snapshot on lock via `fn_snapshot_incentive_plan_version` |
 
 ### 5.2 Partial 🟡
 
 | Capability | Gap |
 |------------|-----|
-| Service-scoped revenue | All payments tagged `service_revenue`; no master_key / service_code split |
-| `ancillary` source type | In enum; **not wired** in calculator |
-| `b2b_admission_commission` | In enum; **not wired** |
-| Slab `metric` field | UI supports count/gross/net; engine uses revenue bucket only |
-| `service_filter` on slabs | Text field; not enforced |
-| Target bonuses | `bonus_trigger_pct`, `bonus_value` in schema; **not applied** in engine |
-| Payouts | Table exists; **no generation workflow** |
-| Adjustments | Table exists; **no UI** |
-| `incentive_schemes` | Table exists; **unused** |
-| FX buffer | **Not implemented** |
-| My Incentives “earned” | Sums all line items; **not period-scoped** |
-| RLS | Partial policies on incentive tables |
+| Invoice FX migration | Static matrix in `fx.ts` not fully replaced |
+| `incentive_schemes` | Table unused |
+| Stacking modes (exclusive/cap) | Schema concept; engine additive only |
+| Enrolment milestones beyond first payment | Partial — rule milestone field exists |
+| Telecaller lead attribution | Role plans ✅; lead-converted events partial |
+| UX polish | Functional admin tables; unified Performance Hub 🔲 |
 
-### 5.3 Not built 🔲
+### 5.3 Planned 🔲
 
-- Qualifying events ledger
-- Structured scope JSON on rules
-- Rule builder with service picker (mirror lead form)
-- Payout desk (generate → approve → TDS → paid)
-- Campaign/contest overlay rules
-- Institution + intake + program attribution on line items
-- Centralized FX admin + buffer
-- Role-based plans (telecaller, documentation)
-- What-if simulator
+- Unified Performance Hub (incentives + wallet + offers navigation)
+- Payroll API beyond CSV
+- FX change audit log
+- AI target recommendation beyond prior-period suggest
+- Full Offer Influence / Wallet Impact revenue analytics (offers module)
 
 ### 5.4 Verdict
 
-Architecture is **intermediate / partially advanced** (~55–65% of target). Schema and core calculator exist; **scope flexibility, allied attribution, FX buffer, and payout ops** are the main build gaps.
+**Phases 0–4 complete (~90% of v1 spec).** Remaining work is UX consolidation, offers/wallet wiring, and analytics depth — not core engine gaps.
 
 ---
 
@@ -539,20 +519,23 @@ Use `role_key` + plan `scope_type` (org / branch / individual). Requires attribu
 
 ## 14. Admin UX & navigation
 
-Extends current **Incentives** menu:
+Current **Incentives** menu (Phases 0–4):
 
 | Screen | Route | Status | Purpose |
 |--------|-------|--------|---------|
-| My Incentives | `/incentives` | 🟡 | Counselor dashboard — enhance with period scope, allied breakdown |
-| Incentive Plans | `/incentives/plans` | 🟡 | Replace with plan + **rule builder** |
-| Incentives Admin | `/incentives/admin` | 🟡 | Runs — add line-item drill-down |
-| **FX & Buffers** | `/settings/fx` (proposed) | 🔲 | Central rates |
-| **Payout desk** | `/incentives/payouts` (proposed) | 🔲 | Generate, approve, TDS, mark paid |
-| **Adjustments** | `/incentives/adjustments` (proposed) | 🔲 | Post-lock corrections |
-| **Contests** | `/incentives/contests` (proposed) | 🔲 | Campaign management |
-| Give Discount | `/incentives/give-discount` | ✅ | Wallet (related) |
+| My Incentives | `/incentives` | ✅ | Wallet + cash earned + achievement + leaderboards + revenue mix |
+| Incentive Plans | `/incentives/plans` | ✅ | Plans, rules, slabs, targets, auto-suggest |
+| Incentives Admin | `/incentives/admin` | ✅ | Preview / calculate / lock |
+| Run detail | `/incentives/runs/:runId` | ✅ | Line-item audit + adjustments |
+| FX Rates | `/incentives/fx-rates` | ✅ | Central rates + buffer + purpose |
+| Competitions | `/incentives/competitions` | ✅ | Branch contests + campaign overlays |
+| Simulator | `/incentives/simulator` | ✅ | What-if period comparison |
+| Payout desk | `/incentives/payouts` | ✅ | Generate, approve, TDS, CSV, AP ref |
+| Give Discount | `/incentives/give-discount` | ✅ | Wallet (related — see offers-wallet guide) |
 | Wallet Top-ups | `/incentives/wallet-topups` | ✅ | Wallet (related) |
 | Period Close | `/incentives/period-close` | ✅ | Wallet + scores (related) |
+
+**Planned 🔲:** Unified Performance Hub shell replacing separate nav groups.
 
 ### 14.1 Rule builder UX (proposed)
 
@@ -632,52 +615,16 @@ See §11.
 
 ## 17. Phased implementation roadmap
 
-### Phase 0 — Foundation (4–6 weeks)
+| Phase | Status | Summary |
+|-------|--------|---------|
+| **0 Foundation** | ✅ Deployed | FX buffer, qualifying events, engine fixes, period-scoped earned |
+| **1 Core ops** | ✅ Deployed | Rules, scope UI, payout desk, adjustments, run audit |
+| **2 Study abroad** | ✅ Deployed | Institution/intake dimensions, B2B commission, rule currency override |
+| **3 Competition** | ✅ Deployed | Branch contests, campaign overlays, dimension leaderboards, revenue mix |
+| **4 Advanced** | ✅ Deployed | Simulator, target suggest, CSV/AP export, role plans, FX purposes |
+| **5 UX & integration** | 🔲 Planned | Performance Hub, offers/wallet wiring, analytics — see offers scope v2 §23 |
 
-| # | Deliverable |
-|---|-------------|
-| 0.1 | Centralized FX + buffer — RPC + admin UI; migrate off `fx.ts` static matrix |
-| 0.2 | Payment line tagging — invoice lines carry master_key, service_code on events |
-| 0.3 | `incentive_qualifying_events` table + backfill job |
-| 0.4 | Engine fixes: all `source_type`s, slab `metric`, target bonuses |
-| 0.5 | My Incentives: period-scoped earned |
-
-### Phase 1 — Core ops (6–8 weeks)
-
-| # | Deliverable |
-|---|-------------|
-| 1.1 | `incentive_rules` + scope_json + presets including `allied_travel` |
-| 1.2 | Rule builder UI (service picker mirrors lead form) |
-| 1.3 | Enrolment milestones |
-| 1.4 | Payout desk: generate → approve → TDS → paid |
-| 1.5 | Adjustments UI |
-| 1.6 | Admin line-item audit on runs |
-
-### Phase 2 — Study abroad depth (6–8 weeks)
-
-| # | Deliverable |
-|---|-------------|
-| 2.1 | Institution + program + intake dimensions on events |
-| 2.2 | Institution-specific campaigns |
-| 2.3 | B2B commission rules fully wired |
-| 2.4 | Rule-level settlement currency (CAD, AUD, GBP) |
-
-### Phase 3 — Competition (4–6 weeks)
-
-| # | Deliverable |
-|---|-------------|
-| 3.1 | Branch vs branch contests |
-| 3.2 | Campaign overlays |
-| 3.3 | Enhanced leaderboards (country, service, institution) |
-| 3.4 | Allied vs core breakdown on counselor dashboard |
-
-### Phase 4 — Advanced (ongoing)
-
-- What-if simulator
-- Auto-suggest targets from prior year
-- Finance export / AP integration
-- Role-based plans (telecaller, documentation)
-- Purpose-specific FX rates
+Migration files: `20260618120000` through `20260618150000_incentive_platform_phase*.sql`
 
 ---
 
@@ -742,7 +689,7 @@ See §11.
 
 ## 20. Sign-off
 
-**This document must be approved before Phase 0 implementation begins.**
+Phases 0–4 implemented June 2026. Operational sign-off for production UAT:
 
 | Role | Name | Date | Approved |
 |------|------|------|----------|
@@ -752,19 +699,13 @@ See §11.
 | Engineering Lead | | | ☐ |
 | Branch Management (representative) | | | ☐ |
 
-**Approval notes / changes requested:**
+**Decisions recorded (defaults in production):**
 
-```
-(Free text — stakeholder fills in during review)
-```
-
-**Decisions required at sign-off:**
-
-1. Buffer method default: fixed (+2) vs percent per currency?
-2. Single FX purpose for v1 or split billing vs incentive?
-3. Allied kicker allowed when core target missed? (Recommended: yes)
-4. Primary enrolment milestone: first verified payment vs offer received?
-5. Default settlement currency for country campaigns: INR converted at lock, or native currency?
+1. Buffer default: **fixed +2** per currency
+2. FX purposes: **split** — `incentive_settlement` vs `general` vs `billing`
+3. Allied kicker: **allowed** when core target missed (configurable per plan)
+4. Primary enrolment milestone: **first verified payment**
+5. Country campaigns: **rule-level currency override** (CAD etc.) with FX at lock
 
 ---
 
@@ -797,11 +738,26 @@ See [OFFERS_WALLET_INCENTIVE_MANIFEST.md](../../supabase/schema-export/OFFERS_WA
 | `/incentives` | `MyIncentives.tsx` |
 | `/incentives/plans` | `IncentivePlans.tsx` |
 | `/incentives/admin` | `IncentivesAdmin.tsx` |
+| `/incentives/runs/:runId` | `IncentiveRunDetail.tsx` |
+| `/incentives/fx-rates` | `IncentiveFxRates.tsx` |
+| `/incentives/competitions` | `IncentiveCompetitions.tsx` |
+| `/incentives/simulator` | `IncentiveSimulator.tsx` |
+| `/incentives/payouts` | `IncentivePayoutDesk.tsx` |
 | `/incentives/give-discount` | `GiveDiscount.tsx` |
 | `/incentives/wallet-topups` | `WalletTopups.tsx` |
 | `/incentives/period-close` | `PeriodClose.tsx` |
 
-### 21.5 Service catalogue references
+### 21.5 Phase 4 RPCs
+
+| RPC | Purpose |
+|-----|---------|
+| `fn_suggest_incentive_targets` | Auto-suggest targets from prior period |
+| `fn_incentive_payout_export` | Finance CSV source data |
+| `fn_incentive_dimension_leaderboard` | Country/service/branch leaderboards |
+| `fn_incentive_branch_contest_standings` | Branch contest live standings |
+| `fn_incentive_counselor_revenue_breakdown` | Core/allied/travel mix |
+
+### 21.6 Service catalogue references
 
 | File | Relevance |
 |------|-----------|
@@ -809,13 +765,14 @@ See [OFFERS_WALLET_INCENTIVE_MANIFEST.md](../../supabase/schema-export/OFFERS_WA
 | `src/lib/leads/servicePickerGroups.ts` | Sub-category grouping |
 | `supabase/migrations/20260519024118_*.sql` | Seed allied + travel_financial rows |
 
-### 21.6 FX references (to replace)
+### 21.7 FX references
 
-| File | Issue |
-|------|-------|
-| `src/accounting/lib/fx.ts` | Static matrix — migrate to centralized RPC |
-| `fx_rates` table | Add buffer columns in Phase 0 migration |
+| File | Status |
+|------|--------|
+| `src/lib/fxPolicy.ts` | Client-side effective rate helper ✅ |
+| `fx_rates` + Phase 0/4 migrations | Buffer + purpose columns ✅ |
+| `src/accounting/lib/fx.ts` | Static matrix — migrate 🟡 |
 
 ---
 
-*End of document — v1.0 draft for approval.*
+*End of document — v1.1 as-built reference. Staff guide: [incentives-module-guide.md](./incentives-module-guide.md)*

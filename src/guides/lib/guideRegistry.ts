@@ -114,13 +114,43 @@ export const STAFF_GUIDES: StaffGuideDef[] = [
   },
   {
     slug: "incentive-platform-spec",
-    title: "Incentive Platform Specification (Draft)",
+    title: "Incentive Platform Specification (v1.1)",
     navLabel: "Incentive Platform Spec",
     description:
-      "Cash incentives, centralized FX with buffer, Allied & Travel scoping, targets, slabs, payouts, and competition layer — pending sign-off before build.",
+      "Technical reference — FX, rules, qualifying events, runs, payouts, competition. Phases 0–4 as-built.",
     category: "Product / Finance",
     contentFile: "incentive-platform-spec-v1.md",
     relatedModule: "incentives",
+  },
+  {
+    slug: "incentives-module",
+    title: "Incentives Module — Staff Operational Guide",
+    navLabel: "Incentives Module",
+    description:
+      "Cash incentives: My Incentives, plans, rules, slabs, targets, FX, competitions, simulator, runs, payouts. Phases 0–4.",
+    category: "Product / Finance",
+    contentFile: "incentives-module-guide.md",
+    relatedModule: "incentives",
+  },
+  {
+    slug: "offers-discounts-wallet-scope",
+    title: "Offers, Discounts & Wallet — Product Scope (v2.1)",
+    navLabel: "Offers & Wallet Scope",
+    description:
+      "Canonical product spec: offer library, wallet engine, AI roadmap, incentive integration, advanced features backlog.",
+    category: "Product / MarCom",
+    contentFile: "offers-discounts-wallet-ai-scope-v2.md",
+    relatedModule: "offers",
+  },
+  {
+    slug: "offers-wallet-staff",
+    title: "Offers & Wallet — Staff Operational Guide",
+    navLabel: "Offers & Wallet Guide",
+    description:
+      "Offers admin, Give Discount, wallet top-ups, period close, analytics, and connection to cash incentives.",
+    category: "Product / MarCom",
+    contentFile: "offers-wallet-staff-guide.md",
+    relatedModule: "offers",
   },
 ];
 
