@@ -19,17 +19,19 @@ function upsertStageLines(st) {
   const label = sqlStr(st.label);
   const clientLabel = sqlStr(st.client_label);
   const color = sqlStr(st.color);
+  const notify = st.notify ? "true" : "false";
+  const clientVisible = st.client_visible === false ? "false" : "true";
   return [
     `  UPDATE public.pipeline_stages SET`,
     `    label = ${label},`,
     `    client_label = ${clientLabel},`,
     `    sort_order = ${st.sort},`,
     `    color = ${color},`,
-    `    notify_client = false,`,
-    `    is_client_visible = true`,
+    `    notify_client = ${notify},`,
+    `    is_client_visible = ${clientVisible}`,
     `  WHERE pipeline_id = pid AND key = ${key};`,
     `  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)`,
-    `  SELECT pid, ${key}, ${label}, ${clientLabel}, ${st.sort}, ${color}, false, true`,
+    `  SELECT pid, ${key}, ${label}, ${clientLabel}, ${st.sort}, ${color}, ${notify}, ${clientVisible}`,
     `  WHERE NOT EXISTS (`,
     `    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = ${key}`,
     `  );`,

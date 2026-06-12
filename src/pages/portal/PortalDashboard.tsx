@@ -3,11 +3,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { STAGE_ORDER, stageProgressPercent } from "@/lib/portal";
-import { CheckCircle2, FileText, Tag, CreditCard, Upload, Calendar, MessageCircle } from "lucide-react";
+import { fetchPortalPipelineProgress, type PortalPipelineProgress } from "@/lib/portalPipelineProgress";
+import { PortalPipelineProgressBar, portalProgressPercent } from "@/components/portal/PortalPipelineProgressBar";
+import { FileText, Tag, CreditCard, Upload, Calendar, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
-import { cn } from "@/lib/utils";
 
 const STATUS_COLORS: Record<string,string> = {
   verified: "hsl(var(--primary))", pending: "hsl(45 93% 47%)",
@@ -29,6 +29,14 @@ function NoLink() {
 
 function Inner({ clientId }: { clientId: string }) {
   const [client, setClient] = useState<{ full_name: string|null; lead_stage: string|null; application_type: string|null }|null>(null);
+  const [pipelineProgress, setPipelineProgress] = useState<PortalPipelineProgress>({
+    pipelineId: null,
+    pipelineName: null,
+    currentStageId: null,
+    currentStageLabel: null,
+    progressPercent: 0,
+    stages: [],
+  });
   const [files, setFiles] = useState<{ status: string }[]>([]);
   const [offers, setOffers] = useState<number>(0);
   const [tasks, setTasks] = useState<number>(0);
@@ -54,10 +62,11 @@ function Inner({ clientId }: { clientId: string }) {
       setWallet(w.data ?? { available_points: 0, points_value_rate: 1 });
       setActivity((tl.data ?? []) as { id: string; summary: string; created_at: string }[]);
       setActiveOffers((ao.data ?? []) as Array<{ id: string; offer: { title: string; description: string | null; discount_type: string; discount_value: number; valid_to: string | null } }>);
+      setPipelineProgress(await fetchPortalPipelineProgress(clientId));
     })();
   }, [clientId]);
 
-  const progress = stageProgressPercent(client?.lead_stage);
+  const progressLabel = `${portalProgressPercent(pipelineProgress, client?.lead_stage)}%`;
   const submitted = files.filter((f) => f.status !== "not_uploaded").length;
   const total = Math.max(files.length, 1);
 
@@ -74,7 +83,7 @@ function Inner({ clientId }: { clientId: string }) {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <Kpi label="Application Progress" value={`${progress}%`} />
+        <Kpi label="Application Progress" value={String(progressLabel)} />
         <Kpi label="Files Submitted" value={`${submitted} / ${files.length}`} />
         <Kpi label="Tasks Pending" value={String(tasks)} />
         <Kpi label="Credit Points" value={(wallet?.available_points ?? 0).toString()} sub={`$${((wallet?.available_points ?? 0) * (wallet?.points_value_rate ?? 1)).toFixed(2)} value`} />
@@ -83,22 +92,10 @@ function Inner({ clientId }: { clientId: string }) {
 
       <Card className="p-5">
         <h3 className="font-semibold mb-4">Application Progress</h3>
-        <div className="flex items-center justify-between gap-2 overflow-x-auto">
-          {STAGE_ORDER.map((s, idx) => {
-            const cur = STAGE_ORDER.findIndex(x => x.toLowerCase() === (client?.lead_stage??"").toLowerCase());
-            const done = cur >= 0 && idx <= cur;
-            const isCurrent = idx === cur;
-            return (
-              <div key={s} className="flex flex-col items-center flex-1 min-w-[80px]">
-                <div className={cn("size-9 rounded-full flex items-center justify-center text-sm font-bold",
-                  done ? "bg-primary text-primary-foreground" : isCurrent ? "bg-primary/20 text-primary border-2 border-primary" : "bg-muted text-muted-foreground")}>
-                  {done ? <CheckCircle2 className="size-5"/> : idx+1}
-                </div>
-                <div className="text-xs mt-1 text-center font-medium">{s}</div>
-              </div>
-            );
-          })}
-        </div>
+        <PortalPipelineProgressBar
+          progress={pipelineProgress}
+          legacyLeadStage={client?.lead_stage}
+        />
       </Card>
 
       <div className="grid md:grid-cols-2 gap-4">
