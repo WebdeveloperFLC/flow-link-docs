@@ -120,6 +120,44 @@ async function findAdmins(sb: ReturnType<typeof admin>): Promise<string[]> {
   return (data ?? []).map((r: any) => r.user_id);
 }
 
+/** Notify assignees 1 hour before task due (once per task). */
+async function processDueSoonTasks(sb: ReturnType<typeof admin>) {
+  const now = Date.now();
+  const inOneHour = new Date(now + 60 * 60 * 1000).toISOString();
+  const { data: tasks } = await sb
+    .from("client_tasks")
+    .select("id,title,client_id,assigned_to,due_at,status,reminder_sent_at")
+    .in("status", ["open", "in_progress"])
+    .not("due_at", "is", null)
+    .not("assigned_to", "is", null)
+    .gt("due_at", new Date().toISOString())
+    .lte("due_at", inOneHour)
+    .is("reminder_sent_at", null)
+    .limit(200);
+  if (!tasks?.length) return 0;
+
+  let count = 0;
+  for (const t of tasks as any[]) {
+    if (!t.assigned_to) continue;
+    await sendReminder(sb, {
+      userIds: [t.assigned_to],
+      category: "new_task_assigned",
+      title: `Task due soon: ${t.title}`,
+      body: `Due at ${new Date(t.due_at).toLocaleString()}`,
+      link: `/clients/${t.client_id}`,
+      entityType: "client_task",
+      entityId: t.id,
+      kind: "due_soon",
+      escalationLevel: 0,
+      severity: "info",
+      clientId: t.client_id,
+    });
+    await sb.from("client_tasks").update({ reminder_sent_at: new Date().toISOString() }).eq("id", t.id);
+    count++;
+  }
+  return count;
+}
+
 /** Overdue tasks with escalation */
 async function processOverdueTasks(sb: ReturnType<typeof admin>) {
   const { data: tasks } = await sb
@@ -257,6 +295,7 @@ Deno.serve(async (req) => {
   const started = Date.now();
   const result: Record<string, unknown> = { ok: true };
   try {
+    result.due_soon_tasks = await processDueSoonTasks(sb);
     result.overdue_tasks   = await processOverdueTasks(sb);
     result.pending_payments = await processPendingPayments(sb);
     result.portal_messages = await processPortalMessages(sb);

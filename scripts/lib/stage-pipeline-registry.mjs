@@ -31,6 +31,14 @@ const COUNTRY_FROM_PREFIX = {
   singapore: "Singapore",
 };
 
+const KIND_TO_STAGE_SET = {
+  student: "study",
+  visitor: "visitor",
+  spouse: "spouse",
+  work: "work",
+  pr: "pr",
+};
+
 const STAGE_SETS = {
   study: [
     { key: "enrolled", label: "Enrolled", client_label: "Enrolled", color: "#6366f1", sort: 10 },
@@ -45,6 +53,57 @@ const STAGE_SETS = {
     { key: "biometrics_medical", label: "Biometrics / medical", client_label: "Biometrics or medical in progress", color: "#14b8a6", sort: 80 },
     { key: "visa_approved", label: "Visa approved", client_label: "Visa approved", color: "#22c55e", sort: 85, notify: true },
     { key: "visa_refused", label: "Visa refused", client_label: "Application outcome received", color: "#ef4444", sort: 90, notify: true, client_visible: false },
+  ],
+  visitor: [
+    { key: "enrolled", label: "Enrolled", client_label: "Enrolled", color: "#6366f1", sort: 10 },
+    { key: "payment_pending", label: "Consultancy fee pending", client_label: "Fee payment pending", color: "#f59e0b", sort: 20 },
+    { key: "payment_received", label: "Consultancy fee received", client_label: "Fee received", color: "#22c55e", sort: 30 },
+    { key: "docs_collection", label: "Docs collection", client_label: "Collecting documents", color: "#3b82f6", sort: 40 },
+    { key: "docs_complete", label: "Docs complete", client_label: "Documents ready", color: "#06b6d4", sort: 50 },
+    { key: "visa_preparation", label: "Visa file preparation", client_label: "Preparing visa application", color: "#6366f1", sort: 60 },
+    { key: "visa_lodged", label: "Visa application lodged", client_label: "Visa application submitted", color: "#0ea5e9", sort: 70, notify: true },
+    { key: "biometrics_medical", label: "Biometrics / medical", client_label: "Biometrics or medical in progress", color: "#14b8a6", sort: 80 },
+    { key: "visa_approved", label: "Visa approved", client_label: "Visa approved", color: "#22c55e", sort: 85, notify: true },
+    { key: "visa_refused", label: "Visa refused", client_label: "Application outcome received", color: "#ef4444", sort: 90, notify: true, client_visible: false },
+  ],
+  work: [
+    { key: "enrolled", label: "Enrolled", client_label: "Enrolled", color: "#6366f1", sort: 10 },
+    { key: "payment_pending", label: "Consultancy fee pending", client_label: "Fee payment pending", color: "#f59e0b", sort: 20 },
+    { key: "payment_received", label: "Consultancy fee received", client_label: "Fee received", color: "#22c55e", sort: 30 },
+    { key: "docs_collection", label: "Docs collection", client_label: "Collecting documents", color: "#3b82f6", sort: 40 },
+    { key: "docs_complete", label: "Docs complete", client_label: "Documents ready", color: "#06b6d4", sort: 50 },
+    { key: "job_offer_lmia", label: "Job offer / LMIA secured", client_label: "Employer documents confirmed", color: "#8b5cf6", sort: 60 },
+    { key: "visa_preparation", label: "Work permit preparation", client_label: "Preparing work permit file", color: "#6366f1", sort: 65 },
+    { key: "visa_lodged", label: "Application lodged", client_label: "Work permit application submitted", color: "#0ea5e9", sort: 70, notify: true },
+    { key: "biometrics_medical", label: "Biometrics / medical", client_label: "Biometrics or medical in progress", color: "#14b8a6", sort: 80 },
+    { key: "visa_approved", label: "Permit approved", client_label: "Work permit approved", color: "#22c55e", sort: 85, notify: true },
+    { key: "visa_refused", label: "Permit refused", client_label: "Application outcome received", color: "#ef4444", sort: 90, notify: true, client_visible: false },
+  ],
+  spouse: [
+    { key: "enrolled", label: "Enrolled", client_label: "Enrolled", color: "#6366f1", sort: 10 },
+    { key: "payment_pending", label: "Consultancy fee pending", client_label: "Fee payment pending", color: "#f59e0b", sort: 20 },
+    { key: "payment_received", label: "Consultancy fee received", client_label: "Fee received", color: "#22c55e", sort: 30 },
+    { key: "docs_collection", label: "Docs collection", client_label: "Collecting documents", color: "#3b82f6", sort: 40 },
+    { key: "docs_complete", label: "Docs complete", client_label: "Documents ready", color: "#06b6d4", sort: 50 },
+    { key: "relationship_verified", label: "Relationship / sponsor verified", client_label: "Relationship evidence confirmed", color: "#a855f7", sort: 60 },
+    { key: "visa_preparation", label: "Application preparation", client_label: "Preparing family visa file", color: "#6366f1", sort: 65 },
+    { key: "visa_lodged", label: "Application lodged", client_label: "Family visa application submitted", color: "#0ea5e9", sort: 70, notify: true },
+    { key: "biometrics_medical", label: "Biometrics / medical", client_label: "Biometrics or medical in progress", color: "#14b8a6", sort: 80 },
+    { key: "visa_approved", label: "Visa approved", client_label: "Visa approved", color: "#22c55e", sort: 85, notify: true },
+    { key: "visa_refused", label: "Visa refused", client_label: "Application outcome received", color: "#ef4444", sort: 90, notify: true, client_visible: false },
+  ],
+  pr: [
+    { key: "enrolled", label: "Enrolled", client_label: "Enrolled", color: "#6366f1", sort: 10 },
+    { key: "payment_pending", label: "Consultancy fee pending", client_label: "Fee payment pending", color: "#f59e0b", sort: 20 },
+    { key: "payment_received", label: "Consultancy fee received", client_label: "Fee received", color: "#22c55e", sort: 30 },
+    { key: "docs_collection", label: "Docs collection", client_label: "Collecting documents", color: "#3b82f6", sort: 40 },
+    { key: "docs_complete", label: "Docs complete", client_label: "Documents ready", color: "#06b6d4", sort: 50 },
+    { key: "profile_eoi", label: "Profile / EOI submitted", client_label: "Profile or EOI in pool", color: "#8b5cf6", sort: 60 },
+    { key: "invitation_ita", label: "ITA / nomination received", client_label: "Invitation to apply received", color: "#a855f7", sort: 65 },
+    { key: "visa_lodged", label: "PR application lodged", client_label: "Permanent residence application submitted", color: "#0ea5e9", sort: 70, notify: true },
+    { key: "biometrics_medical", label: "Biometrics / medical", client_label: "Biometrics or medical in progress", color: "#14b8a6", sort: 80 },
+    { key: "visa_approved", label: "PR confirmed", client_label: "Permanent residence approved", color: "#22c55e", sort: 85, notify: true },
+    { key: "visa_refused", label: "Application refused", client_label: "Application outcome received", color: "#ef4444", sort: 90, notify: true, client_visible: false },
   ],
   default: [
     { key: "enrolled", label: "Enrolled", client_label: "Enrolled", color: "#6366f1", sort: 10 },
@@ -67,10 +126,31 @@ function slugFromFile(file) {
 }
 
 function inferKind(file) {
-  if (file.includes("student")) return "study";
-  if (file.includes("bowp") || file.includes("work") || file.includes("employment") || file.includes("blue-card") || file.includes("pgwp") || file.includes("skilled") || file.includes("opportunity") || file.includes("job-seeker") || file.includes("ausbildung") || file.includes("graduate") || file.includes("express-entry") || file.includes("green-card") || file.includes("oinp") || file.includes("pnp") || file.includes("tr-to-pr")) {
-    if (file.includes("student")) return "study";
-    return "default";
+  if (file.includes("student") || file.includes("study-permit-extension")) return "study";
+  if (file.includes("visitor") || file.includes("super-visa") || file.includes("caips")) return "visitor";
+  if (file.includes("spouse") || file.includes("dependent")) return "spouse";
+  if (
+    file.includes("express-entry") ||
+    file.includes("tr-to-pr") ||
+    file.includes("pnp") ||
+    file.includes("oinp") ||
+    file.includes("green-card") ||
+    file.includes("skilled-migration")
+  ) {
+    return "pr";
+  }
+  if (
+    file.includes("bowp") ||
+    file.includes("work") ||
+    file.includes("employment") ||
+    file.includes("blue-card") ||
+    file.includes("pgwp") ||
+    file.includes("opportunity") ||
+    file.includes("job-seeker") ||
+    file.includes("ausbildung") ||
+    file.includes("graduate")
+  ) {
+    return "work";
   }
   return "default";
 }
@@ -143,7 +223,7 @@ export function buildStagePipelineDefinitions() {
       country: svc.country,
       name: `${svc.country} ${svc.subService.split("(")[0].trim()}`,
       service_category: svc.subService.split("(")[0].trim(),
-      stageSet: inferKind(svc.file),
+      stageSet: KIND_TO_STAGE_SET[svc.kind] ?? inferKind(svc.file),
       description: `CEE/Singapore pipeline for ${svc.file}`,
     });
   }

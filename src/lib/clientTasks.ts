@@ -15,6 +15,8 @@ export interface ClientTask {
   status: TaskStatus;
   due_at: string | null;
   assigned_to: string | null;
+  department_id: string | null;
+  pipeline_stage_id: string | null;
   created_by: string | null;
   completed_by: string | null;
   completed_at: string | null;
@@ -42,10 +44,16 @@ export async function createTask(input: {
   priority?: TaskPriority;
   dueAt?: string | null;
   assignedTo?: string | null;
+  departmentId?: string | null;
+  pipelineStageId?: string | null;
+  requireAssignee?: boolean;
+  requireDue?: boolean;
 }): Promise<ClientTask> {
   const { data: u } = await supabase.auth.getUser();
   const me = u?.user?.id;
   if (!me) throw new Error("Not signed in");
+  if (input.requireAssignee && !input.assignedTo) throw new Error("Assign a team member");
+  if (input.requireDue && !input.dueAt) throw new Error("Set a due date for this application task");
   const { data, error } = await supabase
     .from("client_tasks" as never)
     .insert({
@@ -56,6 +64,8 @@ export async function createTask(input: {
       priority: input.priority ?? "normal",
       due_at: input.dueAt ?? null,
       assigned_to: input.assignedTo ?? null,
+      department_id: input.departmentId ?? null,
+      pipeline_stage_id: input.pipelineStageId ?? null,
       created_by: me,
     } as never)
     .select()
