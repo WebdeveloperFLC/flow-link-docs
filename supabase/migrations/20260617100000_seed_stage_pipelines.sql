@@ -30,28 +30,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -82,15 +82,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -99,11 +99,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -137,28 +137,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -189,15 +189,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -206,11 +206,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -244,28 +244,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -296,43 +296,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -364,28 +416,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -416,15 +468,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -433,11 +485,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -471,28 +523,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -523,15 +575,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -540,11 +592,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -578,28 +630,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -630,15 +682,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -647,11 +699,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -685,28 +737,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -737,43 +789,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -805,28 +909,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -857,15 +961,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -874,11 +978,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -912,28 +1016,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -964,43 +1068,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -1032,28 +1188,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -1084,15 +1240,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -1101,11 +1257,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -1139,28 +1295,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -1191,15 +1347,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -1208,11 +1364,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -1246,28 +1402,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -1298,15 +1454,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -1315,11 +1471,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -1353,28 +1509,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -1405,15 +1561,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -1422,11 +1578,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -1460,28 +1616,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -1512,15 +1668,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -1529,11 +1685,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -1567,28 +1723,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -1619,15 +1775,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -1636,11 +1792,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -1674,28 +1830,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -1726,15 +1882,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -1743,11 +1899,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -1781,28 +1937,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -1833,15 +1989,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -1850,11 +2006,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -1888,28 +2044,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -1940,15 +2096,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -1957,11 +2113,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -1995,28 +2151,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -2047,15 +2203,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -2064,11 +2220,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -2102,28 +2258,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -2154,15 +2310,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -2171,11 +2327,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -2209,28 +2365,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -2261,15 +2417,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -2278,11 +2434,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -2316,28 +2472,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -2368,43 +2524,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -2436,28 +2644,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -2488,15 +2696,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -2505,11 +2713,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -2543,28 +2751,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -2595,15 +2803,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -2612,11 +2820,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -2650,28 +2858,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -2702,15 +2910,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -2719,11 +2927,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -2757,28 +2965,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -2809,15 +3017,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -2826,11 +3034,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -2864,28 +3072,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -2916,15 +3124,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -2933,11 +3141,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -2971,28 +3179,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -3023,43 +3231,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -3091,28 +3351,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -3143,15 +3403,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -3160,11 +3420,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -3198,28 +3458,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -3250,43 +3510,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -3318,28 +3630,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -3370,15 +3682,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -3387,11 +3699,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -3425,28 +3737,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -3477,15 +3789,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -3494,11 +3806,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -3532,28 +3844,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -3584,43 +3896,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -3652,28 +4016,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -3704,15 +4068,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -3721,11 +4085,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -3759,28 +4123,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -3811,43 +4175,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -3879,28 +4295,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -3931,15 +4347,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -3948,11 +4364,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -3986,28 +4402,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -4038,15 +4454,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -4055,11 +4471,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -4093,28 +4509,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -4145,15 +4561,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -4162,11 +4578,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -4200,28 +4616,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -4252,15 +4668,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -4269,11 +4685,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -4307,28 +4723,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -4359,15 +4775,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -4376,11 +4792,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -4414,28 +4830,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -4466,15 +4882,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -4483,11 +4899,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -4521,28 +4937,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -4573,15 +4989,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -4590,11 +5006,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -4628,28 +5044,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -4680,43 +5096,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -4748,28 +5216,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -4800,15 +5268,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -4817,11 +5285,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -4855,28 +5323,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -4907,15 +5375,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -4924,11 +5392,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -4962,28 +5430,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -5014,43 +5482,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -5082,28 +5602,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -5134,15 +5654,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -5151,11 +5671,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -5189,28 +5709,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -5241,15 +5761,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -5258,11 +5778,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -5296,28 +5816,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -5348,43 +5868,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -5416,28 +5988,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -5468,15 +6040,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -5485,11 +6057,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -5523,28 +6095,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -5575,43 +6147,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -5643,28 +6267,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -5695,15 +6319,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -5712,11 +6336,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -5750,28 +6374,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -5802,15 +6426,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -5819,11 +6443,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -5857,28 +6481,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -5909,43 +6533,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -5977,28 +6653,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -6029,15 +6705,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -6046,11 +6722,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -6084,28 +6760,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -6136,43 +6812,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -6204,28 +6932,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -6256,15 +6984,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -6273,11 +7001,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -6311,28 +7039,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -6363,43 +7091,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -6431,28 +7211,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -6483,15 +7263,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -6500,11 +7280,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -6538,28 +7318,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -6590,43 +7370,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -6658,28 +7490,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -6710,15 +7542,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -6727,11 +7559,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -6765,28 +7597,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -6817,15 +7649,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -6834,11 +7666,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -6872,28 +7704,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -6924,15 +7756,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -6941,11 +7773,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -6979,28 +7811,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -7031,15 +7863,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -7048,11 +7880,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -7086,28 +7918,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -7138,43 +7970,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -7206,28 +8090,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -7258,15 +8142,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -7275,11 +8159,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -7313,28 +8197,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -7365,15 +8249,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -7382,11 +8266,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -7420,28 +8304,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -7472,15 +8356,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -7489,11 +8373,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -7527,28 +8411,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -7579,43 +8463,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -7647,28 +8583,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -7699,15 +8635,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -7716,11 +8652,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -7754,28 +8690,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -7806,43 +8742,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -7874,28 +8862,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -7926,15 +8914,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -7943,11 +8931,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -7981,28 +8969,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -8033,15 +9021,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -8050,11 +9038,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -8088,28 +9076,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -8140,15 +9128,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -8157,11 +9145,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -8195,28 +9183,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -8247,43 +9235,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -8315,28 +9355,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -8367,15 +9407,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -8384,11 +9424,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -8422,28 +9462,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -8474,43 +9514,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -8542,28 +9634,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -8594,15 +9686,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -8611,11 +9703,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -8649,28 +9741,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -8701,43 +9793,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -8769,28 +9913,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -8821,15 +9965,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -8838,11 +9982,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -8876,28 +10020,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -8928,15 +10072,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -8945,11 +10089,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -8983,28 +10127,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -9035,15 +10179,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -9052,11 +10196,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -9090,28 +10234,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -9142,43 +10286,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -9210,28 +10406,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -9262,15 +10458,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -9279,11 +10475,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -9317,28 +10513,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -9369,15 +10565,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -9386,11 +10582,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -9424,28 +10620,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -9476,15 +10672,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -9493,11 +10689,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -9531,28 +10727,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -9583,15 +10779,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -9600,11 +10796,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -9638,28 +10834,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -9690,15 +10886,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -9707,11 +10903,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -9745,28 +10941,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -9797,43 +10993,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -9865,28 +11113,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -9917,15 +11165,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -9934,11 +11182,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -9972,28 +11220,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -10024,15 +11272,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -10041,11 +11289,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -10079,28 +11327,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -10131,15 +11379,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -10148,11 +11396,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
@@ -10186,28 +11434,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -10238,43 +11486,95 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Offer letter applied',
-    client_label = 'Offer / LOA secured',
+    label = 'LOA / offer secured',
+    client_label = 'Offer letter received',
     sort_order = 60,
     color = '#8b5cf6',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'offer_letter';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'offer_letter', 'Offer letter applied', 'Offer / LOA secured', 60, '#8b5cf6', false, true
+  SELECT pid, 'offer_letter', 'LOA / offer secured', 'Offer letter received', 60, '#8b5cf6', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'offer_letter'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
-    sort_order = 70,
-    color = '#0ea5e9',
+    label = 'Tuition deposit paid',
+    client_label = 'Tuition payment confirmed',
+    sort_order = 65,
+    color = '#a855f7',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'application_submitted';
+  WHERE pipeline_id = pid AND key = 'tuition_paid';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 70, '#0ea5e9', false, true
+  SELECT pid, 'tuition_paid', 'Tuition deposit paid', 'Tuition payment confirmed', 65, '#a855f7', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'tuition_paid'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Decision received',
-    client_label = 'Decision received',
-    sort_order = 80,
-    color = '#64748b',
+    label = 'Visa file preparation',
+    client_label = 'Preparing visa application',
+    sort_order = 70,
+    color = '#6366f1',
     notify_client = false,
     is_client_visible = true
-  WHERE pipeline_id = pid AND key = 'decision_received';
+  WHERE pipeline_id = pid AND key = 'visa_preparation';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 80, '#64748b', false, true
+  SELECT pid, 'visa_preparation', 'Visa file preparation', 'Preparing visa application', 70, '#6366f1', false, true
   WHERE NOT EXISTS (
-    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_preparation'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa application lodged',
+    client_label = 'Visa application submitted',
+    sort_order = 75,
+    color = '#0ea5e9',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_lodged';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_lodged', 'Visa application lodged', 'Visa application submitted', 75, '#0ea5e9', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_lodged'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Biometrics / medical',
+    client_label = 'Biometrics or medical in progress',
+    sort_order = 80,
+    color = '#14b8a6',
+    notify_client = false,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'biometrics_medical';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'biometrics_medical', 'Biometrics / medical', 'Biometrics or medical in progress', 80, '#14b8a6', false, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'biometrics_medical'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa approved',
+    client_label = 'Visa approved',
+    sort_order = 85,
+    color = '#22c55e',
+    notify_client = true,
+    is_client_visible = true
+  WHERE pipeline_id = pid AND key = 'visa_approved';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_approved', 'Visa approved', 'Visa approved', 85, '#22c55e', true, true
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_approved'
+  );
+  UPDATE public.pipeline_stages SET
+    label = 'Visa refused',
+    client_label = 'Application outcome received',
+    sort_order = 90,
+    color = '#ef4444',
+    notify_client = true,
+    is_client_visible = false
+  WHERE pipeline_id = pid AND key = 'visa_refused';
+  INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
+  SELECT pid, 'visa_refused', 'Visa refused', 'Application outcome received', 90, '#ef4444', true, false
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'visa_refused'
   );
 END $$;
 
@@ -10306,28 +11606,28 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'enrolled'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment pending',
-    client_label = 'Payment pending',
+    label = 'Consultancy fee pending',
+    client_label = 'Fee payment pending',
     sort_order = 20,
     color = '#f59e0b',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_pending';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_pending', 'Payment pending', 'Payment pending', 20, '#f59e0b', false, true
+  SELECT pid, 'payment_pending', 'Consultancy fee pending', 'Fee payment pending', 20, '#f59e0b', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_pending'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Payment received',
-    client_label = 'Payment received',
+    label = 'Consultancy fee received',
+    client_label = 'Fee received',
     sort_order = 30,
     color = '#22c55e',
     notify_client = false,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'payment_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'payment_received', 'Payment received', 'Payment received', 30, '#22c55e', false, true
+  SELECT pid, 'payment_received', 'Consultancy fee received', 'Fee received', 30, '#22c55e', false, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'payment_received'
   );
@@ -10358,15 +11658,15 @@ BEGIN
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'docs_complete'
   );
   UPDATE public.pipeline_stages SET
-    label = 'Application submitted',
-    client_label = 'Application lodged',
+    label = 'Application lodged',
+    client_label = 'Application submitted',
     sort_order = 60,
     color = '#0ea5e9',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'application_submitted';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'application_submitted', 'Application submitted', 'Application lodged', 60, '#0ea5e9', false, true
+  SELECT pid, 'application_submitted', 'Application lodged', 'Application submitted', 60, '#0ea5e9', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'application_submitted'
   );
@@ -10375,11 +11675,11 @@ BEGIN
     client_label = 'Decision received',
     sort_order = 70,
     color = '#64748b',
-    notify_client = false,
+    notify_client = true,
     is_client_visible = true
   WHERE pipeline_id = pid AND key = 'decision_received';
   INSERT INTO public.pipeline_stages (pipeline_id, key, label, client_label, sort_order, color, notify_client, is_client_visible)
-  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', false, true
+  SELECT pid, 'decision_received', 'Decision received', 'Decision received', 70, '#64748b', true, true
   WHERE NOT EXISTS (
     SELECT 1 FROM public.pipeline_stages ps WHERE ps.pipeline_id = pid AND ps.key = 'decision_received'
   );
