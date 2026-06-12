@@ -1848,6 +1848,13 @@ export type Database = {
             foreignKeyName: "ai_summaries_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_summaries_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -2282,6 +2289,13 @@ export type Database = {
             foreignKeyName: "assessment_invitations_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_invitations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -2367,6 +2381,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_leads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -2618,6 +2639,13 @@ export type Database = {
             foreignKeyName: "assessment_sessions_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -2700,6 +2728,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "binders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -3612,6 +3647,13 @@ export type Database = {
             foreignKeyName: "call_queue_items_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_queue_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -3777,6 +3819,13 @@ export type Database = {
             foreignKeyName: "case_people_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_people_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -3871,6 +3920,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_client_programs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -4440,6 +4496,13 @@ export type Database = {
             foreignKeyName: "client_access_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_access_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -4514,6 +4577,13 @@ export type Database = {
             foreignKeyName: "client_appointments_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -4575,6 +4645,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_document_extraction_queue_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -4661,6 +4738,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_document_extractions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -4760,6 +4844,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -4928,6 +5019,13 @@ export type Database = {
             foreignKeyName: "client_emails_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_emails_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -5053,6 +5151,13 @@ export type Database = {
             foreignKeyName: "client_family_members_primary_client_id_fkey"
             columns: ["primary_client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_family_members_primary_client_id_fkey"
+            columns: ["primary_client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -5134,6 +5239,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_files_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -5237,6 +5349,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_adjustments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -5535,6 +5654,13 @@ export type Database = {
             foreignKeyName: "client_invoice_payments_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -5745,6 +5871,13 @@ export type Database = {
             foreignKeyName: "client_invoice_refund_requests_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_refund_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -5836,6 +5969,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_reminders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -6201,6 +6341,13 @@ export type Database = {
             foreignKeyName: "client_invoices_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -6258,6 +6405,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: true
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_notification_prefs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -6322,6 +6476,13 @@ export type Database = {
             foreignKeyName: "client_notifications_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -6371,6 +6532,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_offers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -6445,6 +6613,13 @@ export type Database = {
             foreignKeyName: "client_portal_invites_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_invites_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -6488,6 +6663,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_links_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -6757,6 +6939,13 @@ export type Database = {
             foreignKeyName: "client_stage_history_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_history_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -6791,11 +6980,14 @@ export type Database = {
           completed_by: string | null
           created_at: string
           created_by: string | null
+          department_id: string | null
           description: string | null
           due_at: string | null
           id: string
           kind: string
+          pipeline_stage_id: string | null
           priority: string
+          reminder_sent_at: string | null
           status: string
           title: string
           updated_at: string
@@ -6807,11 +6999,14 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           created_by?: string | null
+          department_id?: string | null
           description?: string | null
           due_at?: string | null
           id?: string
           kind?: string
+          pipeline_stage_id?: string | null
           priority?: string
+          reminder_sent_at?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -6823,16 +7018,41 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           created_by?: string | null
+          department_id?: string | null
           description?: string | null
           due_at?: string | null
           id?: string
           kind?: string
+          pipeline_stage_id?: string | null
           priority?: string
+          reminder_sent_at?: string | null
           status?: string
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "client_tasks_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_tasks_pipeline_stage_id_fkey"
+            columns: ["pipeline_stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_tasks_pipeline_stage_id_fkey"
+            columns: ["pipeline_stage_id"]
+            isOneToOne: false
+            referencedRelation: "vw_portal_stages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       client_timeline: {
         Row: {
@@ -6916,6 +7136,8 @@ export type Database = {
           interested_countries: string[]
           interested_country: string | null
           interested_course: string | null
+          internal_sub_status: string | null
+          internal_sub_status_note: string | null
           last_education: string | null
           last_education_other: string | null
           last_name: string | null
@@ -7017,6 +7239,8 @@ export type Database = {
           interested_countries?: string[]
           interested_country?: string | null
           interested_course?: string | null
+          internal_sub_status?: string | null
+          internal_sub_status_note?: string | null
           last_education?: string | null
           last_education_other?: string | null
           last_name?: string | null
@@ -7118,6 +7342,8 @@ export type Database = {
           interested_countries?: string[]
           interested_country?: string | null
           interested_course?: string | null
+          internal_sub_status?: string | null
+          internal_sub_status_note?: string | null
           last_education?: string | null
           last_education_other?: string | null
           last_name?: string | null
@@ -7416,6 +7642,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: true
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_wallet_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -8238,6 +8471,13 @@ export type Database = {
             foreignKeyName: "dsh_media_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dsh_media_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -8485,6 +8725,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_threads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -8907,6 +9154,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_line_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -9513,6 +9767,13 @@ export type Database = {
             foreignKeyName: "lead_remarks_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_remarks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -10023,6 +10284,13 @@ export type Database = {
             foreignKeyName: "offer_audience_targets_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_audience_targets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -10095,6 +10363,13 @@ export type Database = {
             foreignKeyName: "offer_events_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -10136,6 +10411,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_group_members_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -10797,6 +11079,13 @@ export type Database = {
             foreignKeyName: "point_redemptions_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "point_redemptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -10849,6 +11138,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "point_transactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -11211,6 +11507,13 @@ export type Database = {
             foreignKeyName: "referrals_joined_client_id_fkey"
             columns: ["joined_client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_joined_client_id_fkey"
+            columns: ["joined_client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -11226,6 +11529,13 @@ export type Database = {
             columns: ["referrer_client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_client_id_fkey"
+            columns: ["referrer_client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -15412,6 +15722,13 @@ export type Database = {
             foreignKeyName: "voice_notes_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voice_notes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -15497,6 +15814,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_allocations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
             referencedColumns: ["id"]
           },
           {
@@ -15923,6 +16247,13 @@ export type Database = {
             foreignKeyName: "whatsapp_conversations_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -16221,6 +16552,13 @@ export type Database = {
             foreignKeyName: "client_invoices_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
           },
@@ -16357,6 +16695,44 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      v_clients_needing_pipeline: {
+        Row: {
+          application_id: string | null
+          application_type: string | null
+          country: string | null
+          full_name: string | null
+          id: string | null
+          pipeline_id: string | null
+          visa_services: string[] | null
+        }
+        Insert: {
+          application_id?: string | null
+          application_type?: string | null
+          country?: string | null
+          full_name?: string | null
+          id?: string | null
+          pipeline_id?: string | null
+          visa_services?: string[] | null
+        }
+        Update: {
+          application_id?: string | null
+          application_type?: string | null
+          country?: string | null
+          full_name?: string | null
+          id?: string | null
+          pipeline_id?: string | null
+          visa_services?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "stage_pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_visa_content_health: {
         Row: {
@@ -16524,6 +16900,31 @@ export type Database = {
       }
     }
     Functions: {
+      _canonical_study_library_id: {
+        Args: { _dest_country: string }
+        Returns: string
+      }
+      _first_pipeline_stage: { Args: { _pipeline_id: string }; Returns: string }
+      _legacy_client_dest_country: {
+        Args: {
+          _application_type: string
+          _country: string
+          _interested_countries: string[]
+        }
+        Returns: string
+      }
+      _merge_stage_pipeline: {
+        Args: { _canonical_id: string; _legacy_id: string; _note: string }
+        Returns: number
+      }
+      _normalize_orphan_service_code: {
+        Args: { _raw_code: string }
+        Returns: string
+      }
+      _pipeline_stage_template: {
+        Args: { _service_category: string }
+        Returns: string
+      }
       acct_user_has_module: {
         Args: { _level: string; _module: string; _uid: string }
         Returns: boolean
@@ -16723,6 +17124,8 @@ export type Database = {
           interested_countries: string[]
           interested_country: string | null
           interested_course: string | null
+          internal_sub_status: string | null
+          internal_sub_status_note: string | null
           last_education: string | null
           last_education_other: string | null
           last_name: string | null
@@ -17319,8 +17722,8 @@ export type Database = {
         Args: { _limit?: number }
         Returns: {
           answers: Json
+          assessment_kind: string
           client_email: string
-          client_id: string
           client_name: string
           client_phone: string
           country: string
@@ -17328,11 +17731,15 @@ export type Database = {
           goal: string
           id: string
           lead_email: string
-          lead_id: string
           lead_name: string
           lead_phone: string
+          library_id: string
           output: Json
           pdf_path: string
+          prospect_email: string
+          prospect_name: string
+          prospect_phone: string
+          source: string
           status: string
           submitted_at: string
         }[]
