@@ -2,7 +2,7 @@
 /**
  * Bootstrap Poland, Hungary, Latvia, Singapore + Finland family visa JSON.
  * Run: node scripts/bootstrap-cee-singapore-visa.mjs
- * Then: node scripts/expand-service-quizzes.mjs --only=poland,hungary,latvia,singapore,finland-spouse
+ * Then: node scripts/expand-service-quizzes.mjs
  * Then: node scripts/generate-cee-singapore-artifacts.mjs
  */
 import fs from "fs";
@@ -127,6 +127,22 @@ function euVisitor(cfg) {
     changelog: [{ version: "v1.0", date: DATE, author: "Service Library", summary: `Initial ${cfg.country} Schengen visitor content.` }],
   });
   return meta;
+}
+
+function finlandSpouse(cfg) {
+  const meta = euSpouse(cfg);
+  return replaceAll(meta, [
+    ["AufenthG", "Finnish Aliens Act"],
+    ["Ausländerbehörde", "Finnish Immigration Service (Migri)"],
+    ["Anmeldung", "Local register office (DVV)"],
+    ["Standesamt", "Digital and Population Data Services Agency"],
+    ["make-it-in-germany.com", "migri.fi"],
+    ["india.diplo.de", "finlandabroad.fi"],
+    ["€11,904", "Migri income threshold (verify annually)"],
+    ["blocked account", "proof of income / sponsor means"],
+    ["German A1", "Finnish A1 or integration plan if required"],
+    ["Basic German A1", "Language requirements per Migri guidance"],
+  ]);
 }
 
 function euSpouse(cfg) {
@@ -262,12 +278,16 @@ function sgStudent(cfg) {
 }
 
 function sgVisitor(cfg) {
-  const meta = replaceAll(load("uae-visitor-visa.json"), [
-    ["United Arab Emirates", "Singapore"],
-    ["UAE", "Singapore"],
-    ["United Arab Emirates – Visitor Visa", "Singapore – Short-Term Visit / Visitor"],
-    ["GDRFA", "ICA"],
-    ["AED", "SGD"],
+  const meta = replaceAll(load("lithuania-visitor-visa.json"), [
+    ["Lithuania – Schengen Visitor Visa (Type C)", "Singapore – Short-Term Visit / Visitor"],
+    ["Lithuania – Schengen Visitor Visa", "Singapore – Short-Term Visit / Visitor"],
+    ["Lithuanian", "Singapore"],
+    ["Lithuania", "Singapore"],
+    ["Schengen Type C", "Short-term visit pass"],
+    ["migracija.lt", "ica.gov.sg"],
+    ["Migration Department", "Immigration & Checkpoints Authority (ICA)"],
+    ["€576/month", "SGD funds per trip purpose"],
+    ["Schengen", "Singapore"],
   ]);
   Object.assign(meta, {
     displayName: "Singapore – Short-Term Visit / Visitor",
@@ -358,7 +378,12 @@ for (const cfg of CEE_SINGAPORE_SERVICES) {
       meta = cfg.country === "Singapore" ? sgVisitor(cfg) : euVisitor(cfg);
       break;
     case "spouse":
-      meta = euSpouse(cfg);
+      meta =
+        cfg.country === "Singapore"
+          ? sgSpouse(cfg)
+          : cfg.country === "Finland"
+            ? finlandSpouse(cfg)
+            : euSpouse(cfg);
       break;
     case "work":
       meta = cfg.country === "Singapore" ? sgWork(cfg) : euWork(cfg);

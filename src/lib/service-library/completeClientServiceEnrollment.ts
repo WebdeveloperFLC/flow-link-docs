@@ -5,6 +5,7 @@ import { resolvePipelineForServiceCode } from "@/lib/clientActiveService";
 import { buildServiceCode, parseLibraryIdFromServiceCode } from "./serviceCodes";
 import { fetchWorkflowTemplatesForService } from "./matchWorkflowTemplate";
 import { findCatalogueItemForStoredCode } from "./resolveServiceLabel";
+import { serviceKeywordsForPipelineMatch } from "./formsCategory";
 
 type ServiceCategory =
   | "visa_immigration"
@@ -47,8 +48,8 @@ function applicationTypeLabel(
   serviceTitle?: string | null,
   item?: ServiceCatalogueItem | null,
 ): string | null {
-  const label = item?.sub_category ?? item?.service_name ?? subService ?? serviceTitle ?? null;
-  return label?.trim() || null;
+  const label = item?.service_name?.trim() || serviceTitle?.trim() || subService?.trim() || null;
+  return label || null;
 }
 
 function mergeInterestedCountries(existing: string[] | null | undefined, destination: string | null): string[] {
@@ -92,7 +93,7 @@ export async function completeClientServiceEnrollment(params: {
     params.country?.trim() ||
     destinationFromCode(serviceCode ?? "", item, null) ||
     null;
-  const subService = params.subService?.trim() || item?.sub_category || item?.service_name || null;
+  const subService = params.subService?.trim() || serviceKeywordsForPipelineMatch(item).subService || null;
   const serviceTitle = params.serviceTitle?.trim() || item?.service_name || subService || null;
   const appType = applicationTypeLabel(subService, serviceTitle, item);
 
@@ -140,13 +141,14 @@ export async function completeClientServiceEnrollment(params: {
   let templateAssigned = false;
 
   if (serviceTitle && subService) {
+    const kw = serviceKeywordsForPipelineMatch(item);
     const pipeline = await resolvePipelineForServiceLibrary({
       country: destination ?? (client as { country?: string | null }).country ?? null,
       interestedCountries: (patch.interested_countries as string[] | undefined) ??
         (client as { interested_countries?: string[] | null }).interested_countries ??
         null,
-      serviceTitle,
-      subService,
+      serviceTitle: serviceTitle || kw.serviceTitle,
+      subService: kw.subService || subService,
     });
     if (pipeline) {
       patch.pipeline_id = pipeline.pipelineId;
