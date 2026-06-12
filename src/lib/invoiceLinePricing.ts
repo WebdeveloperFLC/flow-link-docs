@@ -186,3 +186,55 @@ export const CHECKOUT_DISCOUNT_META_ID = "__checkout_discount__";
 export function isCheckoutDiscountMetaLine(line: { service_id?: string | null }): boolean {
   return line.service_id === CHECKOUT_DISCOUNT_META_ID;
 }
+
+export type InvoiceDiscountSummary = {
+  grossSubtotal: number;
+  lineAndOfferDiscount: number;
+  checkoutDiscount: number;
+  totalDiscount: number;
+  hasDiscount: boolean;
+};
+
+/** Derive subtotal and discount totals from persisted invoice line_items. */
+export function summarizeInvoiceDiscounts(invoice: {
+  line_items?: unknown;
+  offer_discount_amount?: number | null;
+}): InvoiceDiscountSummary {
+  const lines = Array.isArray(invoice.line_items)
+    ? (invoice.line_items as Array<{
+        service_id?: string | null;
+        quantity?: number | null;
+        amount?: number | null;
+        discount?: number | null;
+        checkout_discount_applied?: number | null;
+      }>)
+    : [];
+
+  let grossSubtotal = 0;
+  let lineAndOfferDiscount = 0;
+  let checkoutDiscount = 0;
+
+  for (const li of lines) {
+    if (isCheckoutDiscountMetaLine(li)) {
+      checkoutDiscount = Math.max(0, Number(li.checkout_discount_applied ?? li.discount ?? 0));
+      continue;
+    }
+    const qty = Math.max(0, Number(li.quantity ?? 1));
+    const unit = Math.max(0, Number(li.amount ?? 0));
+    grossSubtotal += unit * qty;
+    lineAndOfferDiscount += Math.max(0, Number(li.discount ?? 0));
+  }
+
+  if (lineAndOfferDiscount <= 0 && Number(invoice.offer_discount_amount ?? 0) > 0) {
+    lineAndOfferDiscount = Number(invoice.offer_discount_amount);
+  }
+
+  const totalDiscount = lineAndOfferDiscount + checkoutDiscount;
+  return {
+    grossSubtotal,
+    lineAndOfferDiscount,
+    checkoutDiscount,
+    totalDiscount,
+    hasDiscount: totalDiscount > 0.005,
+  };
+}
