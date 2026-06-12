@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -7,6 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Settings2, Plus, Trash2 } from "lucide-react";
+import {
+  auditSlabGroups,
+  nextSlabMin,
+  normalizeServiceFilter,
+  validateNewSlab,
+} from "@/incentives/lib/incentiveSlabValidation";
 
 const PERIOD_TYPES = ["monthly", "quarterly", "half_yearly", "yearly"];
 const SOURCE_TYPES = ["service_revenue", "ancillary", "direct_visa_commission", "b2b_admission_commission"];
@@ -66,6 +72,8 @@ export default function IncentivePlans() {
     branch_id: "",
   });
   const [newSlab, setNewSlab] = useState<{ source_type: SourceType; metric: Metric; rate_type: RateType; min_threshold: string; max_threshold: string; rate_value: string; service_filter: string }>({ source_type: "service_revenue", metric: "net_revenue", rate_type: "percent", min_threshold: "0", max_threshold: "", rate_value: "5", service_filter: "" });
+  const [slabMinTouched, setSlabMinTouched] = useState(false);
+  const [addingSlab, setAddingSlab] = useState(false);
   const [newTarget, setNewTarget] = useState<{ counselor_id: string; period_type: PeriodType; period_key: string; target_metric: Metric; target_value: string; target_currency: string; bonus_rate_type: "" | "flat" | "percent"; bonus_value: string; bonus_trigger_pct: string }>({ counselor_id: "", period_type: "monthly", period_key: "", target_metric: "net_revenue", target_value: "0", target_currency: "INR", bonus_rate_type: "", bonus_value: "", bonus_trigger_pct: "100" });
 
   async function loadAll() {
@@ -120,19 +128,91 @@ export default function IncentivePlans() {
     await loadAll();
   }
 
+  const planSlabs = useMemo(
+    () =>
+      slabs
+        .filter((s) => s.plan_id === activePlan)
+        .sort(
+          (a, b) =>
+            `${a.source_type}|${a.metric}|${a.service_filter ?? ""}`.localeCompare(
+              `${b.source_type}|${b.metric}|${b.service_filter ?? ""}`,
+            ) || a.min_threshold - b.min_threshold,
+        ),
+    [slabs, activePlan],
+  );
+
+  const slabIssues = useMemo(() => auditSlabGroups(planSlabs), [planSlabs]);
+
+  const suggestedMin = useMemo(
+    () =>
+      nextSlabMin(planSlabs, {
+        source_type: newSlab.source_type,
+        metric: newSlab.metric,
+        service_filter: normalizeServiceFilter(newSlab.service_filter),
+      }),
+    [planSlabs, newSlab.source_type, newSlab.metric, newSlab.service_filter],
+  );
+
+  const slabAppendBlocked = suggestedMin === null;
+
+  useEffect(() => {
+    if (slabMinTouched || suggestedMin == null) return;
+    setNewSlab((prev) => ({ ...prev, min_threshold: String(suggestedMin) }));
+  }, [suggestedMin, slabMinTouched, activePlan]);
+
   async function addSlab() {
     if (!activePlan) { toast({ title: "Select a plan first", variant: "destructive" }); return; }
-    const { error } = await supabase.from("incentive_slabs").insert([{
-      plan_id: activePlan, source_type: newSlab.source_type, metric: newSlab.metric,
-      rate_type: newSlab.rate_type, min_threshold: Number(newSlab.min_threshold) || 0,
-      max_threshold: newSlab.max_threshold.trim() === "" ? null : Number(newSlab.max_threshold),
+    if (addingSlab) return;
+
+    const serviceFilter = normalizeServiceFilter(newSlab.service_filter);
+    const min = Number(newSlab.min_threshold);
+    const max = newSlab.max_threshold.trim() === "" ? null : Number(newSlab.max_threshold);
+    const input = {
+      source_type: newSlab.source_type,
+      metric: newSlab.metric,
+      service_filter: serviceFilter,
+      rate_type: newSlab.rate_type,
+      min_threshold: min,
+      max_threshold: max,
       rate_value: Number(newSlab.rate_value) || 0,
-      service_filter: newSlab.service_filter.trim() || null,
-      sort_order: slabs.filter((s) => s.plan_id === activePlan).length,
-    }]);
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Slab added" });
-    await loadAll();
+    };
+
+    const existing = planSlabs.map((s) => ({
+      source_type: s.source_type,
+      metric: s.metric,
+      service_filter: s.service_filter,
+      rate_type: s.rate_type,
+      min_threshold: s.min_threshold,
+      max_threshold: s.max_threshold,
+      rate_value: s.rate_value,
+    }));
+
+    const check = validateNewSlab(existing, input);
+    if (!check.ok) {
+      toast({ title: "Invalid slab", description: check.error, variant: "destructive" });
+      return;
+    }
+
+    setAddingSlab(true);
+    try {
+      const sortOrder = planSlabs.length;
+      const { error } = await supabase.from("incentive_slabs").insert([{
+        plan_id: activePlan,
+        ...input,
+        sort_order: sortOrder,
+      }]);
+      if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+      toast({ title: "Slab added" });
+      setNewSlab((prev) => ({
+        ...prev,
+        max_threshold: "",
+        min_threshold: String(nextSlabMin([...existing, input], input) ?? 0),
+      }));
+      setSlabMinTouched(false);
+      await loadAll();
+    } finally {
+      setAddingSlab(false);
+    }
   }
 
   async function deleteSlab(id: string) {
@@ -163,8 +243,6 @@ export default function IncentivePlans() {
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     await loadAll();
   }
-
-  const planSlabs = slabs.filter((s) => s.plan_id === activePlan);
 
   return (
     <AppLayout>
@@ -275,13 +353,27 @@ export default function IncentivePlans() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div>
                   <label className="text-xs text-muted-foreground">Source</label>
-                  <select className={sel} value={newSlab.source_type} onChange={(e) => setNewSlab({ ...newSlab, source_type: e.target.value as SourceType })}>
+                  <select
+                    className={sel}
+                    value={newSlab.source_type}
+                    onChange={(e) => {
+                      setSlabMinTouched(false);
+                      setNewSlab({ ...newSlab, source_type: e.target.value as SourceType });
+                    }}
+                  >
                     {SOURCE_TYPES.map((x) => <option key={x} value={x}>{x.replace(/_/g, " ")}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Metric</label>
-                  <select className={sel} value={newSlab.metric} onChange={(e) => setNewSlab({ ...newSlab, metric: e.target.value as Metric })}>
+                  <select
+                    className={sel}
+                    value={newSlab.metric}
+                    onChange={(e) => {
+                      setSlabMinTouched(false);
+                      setNewSlab({ ...newSlab, metric: e.target.value as Metric });
+                    }}
+                  >
                     {METRICS.map((x) => <option key={x} value={x}>{x.replace(/_/g, " ")}</option>)}
                   </select>
                 </div>
@@ -297,19 +389,58 @@ export default function IncentivePlans() {
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Min threshold</label>
-                  <Input className="mt-1" value={newSlab.min_threshold} onChange={(e) => setNewSlab({ ...newSlab, min_threshold: e.target.value })} />
+                  <Input
+                    className="mt-1"
+                    value={newSlab.min_threshold}
+                    onChange={(e) => {
+                      setSlabMinTouched(true);
+                      setNewSlab({ ...newSlab, min_threshold: e.target.value });
+                    }}
+                  />
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    {slabAppendBlocked
+                      ? "Open-ended (∞) slab exists — set its max or delete it before adding more."
+                      : planSlabs.length === 0
+                        ? "First slab must start at 0."
+                        : `Continuous chain: min must be ${suggestedMin} (previous max).`}
+                  </p>
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Max threshold (blank = ∞)</label>
                   <Input className="mt-1" value={newSlab.max_threshold} onChange={(e) => setNewSlab({ ...newSlab, max_threshold: e.target.value })} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="text-xs text-muted-foreground">Service filter (optional master_key/code)</label>
-                  <Input className="mt-1" value={newSlab.service_filter} onChange={(e) => setNewSlab({ ...newSlab, service_filter: e.target.value })} placeholder="blank = all services" />
+                  <label className="text-xs text-muted-foreground">Service filter (optional — separate chain per service)</label>
+                  <Input
+                    className="mt-1"
+                    value={newSlab.service_filter}
+                    onChange={(e) => {
+                      setSlabMinTouched(false);
+                      setNewSlab({ ...newSlab, service_filter: e.target.value });
+                    }}
+                    placeholder="blank = all services (one shared chain)"
+                  />
                 </div>
               </div>
-              <Button onClick={addSlab}><Plus className="size-4 mr-1" /> Add slab</Button>
+              <Button onClick={addSlab} disabled={addingSlab || slabAppendBlocked}>
+                <Plus className="size-4 mr-1" /> {addingSlab ? "Adding…" : "Add slab"}
+              </Button>
             </Card>
+
+            {slabIssues.length > 0 && (
+              <Card className="p-5 border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
+                <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-100 mb-2">
+                  Existing slab issues — delete bad rows and rebuild as a continuous chain
+                </h2>
+                <ul className="text-sm text-amber-900/90 dark:text-amber-100/90 space-y-1 list-disc pl-5">
+                  {slabIssues.map((issue, i) => (
+                    <li key={i}>
+                      <span className="font-medium">{issue.group.replace(/\|/g, " · ")}</span>: {issue.message}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
 
             <Card className="p-5">
               <h2 className="text-lg font-semibold mb-4">Current slabs</h2>
@@ -317,13 +448,14 @@ export default function IncentivePlans() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="text-left text-muted-foreground border-b">
-                      <tr><th className="py-2 pr-4">Source</th><th className="py-2 pr-4">Metric</th><th className="py-2 pr-4">Rate</th><th className="py-2 pr-4 text-right">Min</th><th className="py-2 pr-4 text-right">Max</th><th className="py-2 pr-4 text-right">Value</th><th className="py-2 pr-4"></th></tr>
+                      <tr><th className="py-2 pr-4">Source</th><th className="py-2 pr-4">Metric</th><th className="py-2 pr-4">Service</th><th className="py-2 pr-4">Rate</th><th className="py-2 pr-4 text-right">Min</th><th className="py-2 pr-4 text-right">Max</th><th className="py-2 pr-4 text-right">Value</th><th className="py-2 pr-4"></th></tr>
                     </thead>
                     <tbody>
                       {planSlabs.map((s) => (
                         <tr key={s.id} className="border-b last:border-0">
                           <td className="py-2 pr-4">{s.source_type.replace(/_/g, " ")}</td>
                           <td className="py-2 pr-4">{s.metric.replace(/_/g, " ")}</td>
+                          <td className="py-2 pr-4 text-muted-foreground">{s.service_filter ?? "All services"}</td>
                           <td className="py-2 pr-4">{s.rate_type}</td>
                           <td className="py-2 pr-4 text-right">{s.min_threshold}</td>
                           <td className="py-2 pr-4 text-right">{s.max_threshold ?? "∞"}</td>
