@@ -62,7 +62,7 @@ export default function IncentivePlans() {
     period_type: "monthly",
     settlement_currency: "INR",
     revenue_basis: "net",
-    scope_type: "org",
+    scope_type: "global",
     branch_id: "",
   });
   const [newSlab, setNewSlab] = useState<{ source_type: SourceType; metric: Metric; rate_type: RateType; min_threshold: string; max_threshold: string; rate_value: string; service_filter: string }>({ source_type: "service_revenue", metric: "net_revenue", rate_type: "percent", min_threshold: "0", max_threshold: "", rate_value: "5", service_filter: "" });
@@ -108,7 +108,7 @@ export default function IncentivePlans() {
       period_type: "monthly",
       settlement_currency: "INR",
       revenue_basis: "net",
-      scope_type: "org",
+      scope_type: "global",
       branch_id: "",
     });
     await loadAll();
@@ -212,7 +212,7 @@ export default function IncentivePlans() {
                 <div>
                   <label className="text-xs text-muted-foreground">Scope</label>
                   <select className={sel} value={newPlan.scope_type} onChange={(e) => setNewPlan({ ...newPlan, scope_type: e.target.value })}>
-                    <option value="org">Organization-wide</option>
+                    <option value="global">Organization-wide</option>
                     <option value="branch">Branch-specific</option>
                   </select>
                 </div>
@@ -246,7 +246,7 @@ export default function IncentivePlans() {
                         <tr key={p.id} className="border-b last:border-0">
                           <td className="py-2 pr-4">{p.name}</td>
                           <td className="py-2 pr-4">{p.period_type}</td>
-                          <td className="py-2 pr-4">{p.scope_type ?? "org"}{p.branch_id ? ` · ${branches.find((b) => b.id === p.branch_id)?.name ?? "branch"}` : ""}</td>
+                          <td className="py-2 pr-4">{p.scope_type ?? "global"}{p.branch_id ? ` · ${branches.find((b) => b.id === p.branch_id)?.name ?? "branch"}` : ""}</td>
                           <td className="py-2 pr-4">{p.settlement_currency}</td>
                           <td className="py-2 pr-4">{p.revenue_basis}</td>
                           <td className="py-2 pr-4">
