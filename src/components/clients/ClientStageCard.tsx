@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { subStatusesForStageKey } from "@/lib/stageSubStatuses";
 import { ClientRefusalWorkflowDialog } from "@/components/clients/ClientRefusalWorkflowDialog";
+import { AddTaskDialog } from "@/components/clients/AddTaskDialog";
 
 interface Pipeline { id: string; name: string; country: string; service_category: string; }
 interface Stage {
@@ -51,6 +52,7 @@ export function ClientStageCard({
   const [subStatusNote, setSubStatusNote] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [refusalOpen, setRefusalOpen] = useState(false);
+  const [assignTaskOpen, setAssignTaskOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
@@ -320,6 +322,9 @@ export function ClientStageCard({
                   <AlertTriangle className="size-3.5" /> Refusal workflow
                 </Button>
               )}
+              <Button size="sm" variant="outline" className="h-8" onClick={() => setAssignTaskOpen(true)} disabled={busy}>
+                Assign task
+              </Button>
             </div>
           </div>
         )}
@@ -359,6 +364,18 @@ export function ClientStageCard({
           onComplete={load}
         />
       )}
+      <AddTaskDialog
+        open={assignTaskOpen}
+        onOpenChange={setAssignTaskOpen}
+        clientId={clientId}
+        applicationMode
+        pipelineStageId={current?.current_stage_id}
+        prefillTitle={
+          current?.stage_label
+            ? `Complete: ${current.stage_label}`
+            : undefined
+        }
+      />
     </>
   );
 }

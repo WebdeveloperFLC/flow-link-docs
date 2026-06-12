@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Clock, AlertTriangle, CheckCircle2, CalendarClock, Trash2 } from "lucide-react";
 import { listTasks, completeTask, subscribeTasks, deleteTask, bucketize, type ClientTask } from "@/lib/clientTasks";
 import { AddTaskDialog } from "./AddTaskDialog";
+import { TaskDueCountdown } from "./TaskDueCountdown";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ export function ClientTasksCard({ clientId }: { clientId: string }) {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<ClientTask[]>([]);
   const [open, setOpen] = useState(false);
+  const [appTaskOpen, setAppTaskOpen] = useState(false);
   const [names, setNames] = useState<Record<string, string>>({});
 
   const refresh = () => listTasks(clientId).then(setTasks).catch(() => {});
@@ -80,7 +82,10 @@ export function ClientTasksCard({ clientId }: { clientId: string }) {
                   <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
                     {t.due_at && (
                       <span className={cn("inline-flex items-center gap-1", overdue && "text-destructive font-medium")}>
-                        <Clock className="size-3" /> {new Date(t.due_at).toLocaleString()}
+                        <Clock className="size-3" />
+                        {new Date(t.due_at).toLocaleString()}
+                        {" · "}
+                        <TaskDueCountdown dueAt={t.due_at} />
                       </span>
                     )}
                     {t.assigned_to && <span>· assignee: {names[t.assigned_to] ?? "…"}</span>}
@@ -107,6 +112,7 @@ export function ClientTasksCard({ clientId }: { clientId: string }) {
           <div className="font-semibold flex items-center gap-2"><CalendarClock className="size-4" /> Tasks & callbacks</div>
           <div className="text-xs text-muted-foreground">{buckets.overdue.length + buckets.dueToday.length + buckets.upcoming.length} open · {buckets.done.length} done</div>
         </div>
+        <Button size="sm" variant="outline" onClick={() => setAppTaskOpen(true)}>Assign to team</Button>
         <Button size="sm" onClick={() => setOpen(true)}><Plus className="size-3.5 mr-1.5" /> New task</Button>
       </div>
       {tasks.length === 0 && (
@@ -117,6 +123,13 @@ export function ClientTasksCard({ clientId }: { clientId: string }) {
       <Section icon={CalendarClock} label="Upcoming" items={buckets.upcoming} />
       <Section icon={CheckCircle2} label="Done" items={buckets.done.slice(0, 5)} tone="text-success" />
       <AddTaskDialog open={open} onOpenChange={setOpen} clientId={clientId} onCreated={refresh} />
+      <AddTaskDialog
+        open={appTaskOpen}
+        onOpenChange={setAppTaskOpen}
+        clientId={clientId}
+        applicationMode
+        onCreated={refresh}
+      />
     </Card>
   );
 }

@@ -15,6 +15,10 @@ export const STAGE_SUBSTATUSES: Record<string, string[]> = {
   visa_refused: ["Reviewing refusal", "Resubmission planned", "Alt country planned", "Case closed"],
   application_submitted: ["Awaiting BIL", "IRCC processing"],
   decision_received: ["Approved", "Refused", "Further action"],
+  job_offer_lmia: ["LMIA in progress", "Job offer received", "Employer docs pending"],
+  relationship_verified: ["Sponsor docs verified", "Relationship proof complete", "Awaiting lodgement"],
+  profile_eoi: ["CRS calculated", "EOI in pool", "Awaiting ITA"],
+  invitation_ita: ["ITA received", "PNP nomination", "Deadline tracking"],
 };
 
 export function subStatusesForStageKey(stageKey: string | null | undefined): string[] {

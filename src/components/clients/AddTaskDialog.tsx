@@ -1,20 +1,38 @@
-import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useEffect, useMemo, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { createTask, type TaskKind, type TaskPriority } from "@/lib/clientTasks";
+import {
+  TASK_DUE_PRESETS,
+  dueAtFromPresetHours,
+  filterStaffByDepartment,
+  loadStaffDirectory,
+  type StaffMember,
+} from "@/lib/staffDirectory";
 
-export function AddTaskDialog({ open, onOpenChange, clientId, defaultKind, prefillTitle, onCreated }: {
+export function AddTaskDialog({
+  open,
+  onOpenChange,
+  clientId,
+  defaultKind,
+  prefillTitle,
+  applicationMode,
+  pipelineStageId,
+  onCreated,
+}: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   clientId: string;
   defaultKind?: TaskKind;
   prefillTitle?: string;
+  /** Application workflow: requires assignee + due date; shows department filter + SLA presets. */
+  applicationMode?: boolean;
+  pipelineStageId?: string | null;
   onCreated?: () => void;
 }) {
   const [title, setTitle] = useState("");
@@ -22,8 +40,10 @@ export function AddTaskDialog({ open, onOpenChange, clientId, defaultKind, prefi
   const [kind, setKind] = useState<TaskKind>(defaultKind ?? "task");
   const [priority, setPriority] = useState<TaskPriority>("normal");
   const [dueAt, setDueAt] = useState("");
-  const [assignedTo, setAssignedTo] = useState<string>("");
-  const [users, setUsers] = useState<{ id: string; label: string; role: string }[]>([]);
+  const [assignedTo, setAssignedTo] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
+  const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -31,41 +51,71 @@ export function AddTaskDialog({ open, onOpenChange, clientId, defaultKind, prefi
     setTitle(prefillTitle ?? "");
     setDescription("");
     setKind(defaultKind ?? "task");
-    setPriority("normal");
-    setDueAt("");
+    setPriority(applicationMode ? "high" : "normal");
+    setDueAt(applicationMode ? dueAtFromPresetHours(24).slice(0, 16) : "");
     setAssignedTo("");
-    (async () => {
-      const { data: roles } = await supabase.from("user_roles").select("user_id,role").in("role", ["telecaller","counselor","admin","documentation"]);
-      const ids = Array.from(new Set((roles ?? []).map((r) => r.user_id)));
-      if (!ids.length) { setUsers([]); return; }
-      const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", ids);
-      const roleMap = new Map<string, string>();
-      (roles ?? []).forEach((r) => roleMap.set(r.user_id, r.role));
-      setUsers((profs ?? []).map((p) => ({ id: p.id, label: p.full_name || p.email || p.id.slice(0,6), role: roleMap.get(p.id) ?? "" })));
-    })();
-  }, [open, prefillTitle, defaultKind]);
+    setDepartmentId("");
+    loadStaffDirectory().then(({ staff: s, departments: d }) => {
+      setStaff(s);
+      setDepartments(d);
+      if (applicationMode) {
+        const immigration = d.find((x) => x.name === "Immigration");
+        if (immigration) setDepartmentId(immigration.id);
+      }
+    });
+  }, [open, prefillTitle, defaultKind, applicationMode]);
+
+  const assignableStaff = useMemo(
+    () => filterStaffByDepartment(staff, departmentId || null),
+    [staff, departmentId],
+  );
+
+  const applyPreset = (hours: number) => {
+    const iso = dueAtFromPresetHours(hours);
+    setDueAt(iso.slice(0, 16));
+  };
 
   const submit = async () => {
-    if (!title.trim()) { toast.error("Title is required"); return; }
+    if (!title.trim()) {
+      toast.error("Title is required");
+      return;
+    }
     setBusy(true);
     try {
       await createTask({
-        clientId, title, description, kind, priority,
+        clientId,
+        title,
+        description,
+        kind,
+        priority,
         dueAt: dueAt ? new Date(dueAt).toISOString() : null,
         assignedTo: assignedTo || null,
+        departmentId: departmentId || null,
+        pipelineStageId: pipelineStageId ?? null,
+        requireAssignee: applicationMode,
+        requireDue: applicationMode,
       });
-      toast.success("Task created");
+      toast.success(applicationMode ? "Application task assigned" : "Task created");
       onCreated?.();
       onOpenChange(false);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed");
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>New {kind}</DialogTitle></DialogHeader>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{applicationMode ? "Assign application task" : `New ${kind}`}</DialogTitle>
+          {applicationMode && (
+            <DialogDescription>
+              Assign to a department member with a due date. They receive an in-app notification immediately.
+            </DialogDescription>
+          )}
+        </DialogHeader>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -93,32 +143,58 @@ export function AddTaskDialog({ open, onOpenChange, clientId, defaultKind, prefi
             </div>
           </div>
           <div>
+            <Label>Department</Label>
+            <Select value={departmentId} onValueChange={(v) => { setDepartmentId(v); setAssignedTo(""); }}>
+              <SelectTrigger><SelectValue placeholder="All departments" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All departments</SelectItem>
+                {departments.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
             <Label>Title *</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Call to confirm IELTS booking" />
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Complete visa QA review" />
           </div>
           <div>
             <Label>Notes</Label>
             <Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Due</Label>
-              <Input type="datetime-local" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+          <div>
+            <Label>Due {applicationMode ? "*" : ""}</Label>
+            <Input type="datetime-local" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {TASK_DUE_PRESETS.map((p) => (
+                <Button key={p.hours} type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => applyPreset(p.hours)}>
+                  {p.label}
+                </Button>
+              ))}
             </div>
-            <div>
-              <Label>Assign to</Label>
-              <Select value={assignedTo} onValueChange={setAssignedTo}>
-                <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
-                <SelectContent>
-                  {users.map((u) => <SelectItem key={u.id} value={u.id}>{u.label} <span className="text-muted-foreground">· {u.role}</span></SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+          </div>
+          <div>
+            <Label>Assign to {applicationMode ? "*" : ""}</Label>
+            <Select value={assignedTo} onValueChange={setAssignedTo}>
+              <SelectTrigger><SelectValue placeholder="Select team member" /></SelectTrigger>
+              <SelectContent>
+                {assignableStaff.map((u) => (
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.label}
+                    <span className="text-muted-foreground">
+                      {" "}· {u.role}{u.departmentName ? ` · ${u.departmentName}` : ""}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={submit} disabled={busy}>Create</Button>
+          <Button onClick={submit} disabled={busy}>
+            {applicationMode ? "Assign task" : "Create"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
