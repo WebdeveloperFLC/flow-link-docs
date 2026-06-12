@@ -131,6 +131,7 @@ const incentivesNav: NavItem[] = [
   { to: "/incentives/admin", icon: Calculator, label: "Incentives Admin", adminOnly: true },
   { to: "/incentives/plans", icon: Settings2, label: "Incentive Plans", adminOnly: true },
   { to: "/incentives/fx-rates", icon: DollarSign, label: "FX Rates", adminOnly: true },
+  { to: "/incentives/competitions", icon: Trophy, label: "Competitions", adminOnly: true },
   { to: "/incentives/payouts", icon: Banknote, label: "Payout Desk", adminOnly: true },
 ];
 
