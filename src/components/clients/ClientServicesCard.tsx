@@ -341,7 +341,7 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
       </div>
 
       <Dialog open={open} onOpenChange={(o) => { if (!saving) setOpen(o); }}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit client services</DialogTitle>
           </DialogHeader>

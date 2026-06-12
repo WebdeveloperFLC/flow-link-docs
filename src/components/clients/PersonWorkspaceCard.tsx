@@ -11,7 +11,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { processToPdf } from "@/lib/processFile";
-import { buildPreservedDocumentName, sanitizeName, sanitizeOriginalStem } from "@/lib/constants";
+import { buildPreservedDocumentName, DOCUMENT_TYPES, sanitizeName, sanitizeOriginalStem } from "@/lib/constants";
+import { getAllowedDocumentTypes } from "@/lib/binderSplit";
+import { classifyDocument } from "@/lib/classifyDocument";
+import { runDocumentFieldExtraction } from "@/lib/runDocumentFieldExtraction";
 import { markChecklistItemReady } from "@/lib/checklist";
 import { generateBinder } from "@/lib/binder";
 import { openClientDocument } from "@/lib/documentPreview";
@@ -66,6 +69,16 @@ interface Props {
   canEdit: boolean;
   isAdmin: boolean;
   onChanged?: () => void;
+}
+
+function prettyTitle(fileName: string): string {
+  const base = fileName.replace(/\.[^.]+$/, "");
+  const cleaned = base.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+  if (!cleaned) return base;
+  return cleaned
+    .split(" ")
+    .map((w) => (w === w.toLowerCase() ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+    .join(" ");
 }
 
 const statusBadge = (status: string | null | undefined) => {
@@ -178,11 +191,23 @@ export const PersonWorkspaceCard = ({ client, person, canEdit, isAdmin, onChange
   const onUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setUploading(true);
+    const allowedDocumentTypes = getAllowedDocumentTypes(DOCUMENT_TYPES);
     try {
       for (const file of Array.from(files)) {
-        // Preserve original filename identity (no more generic
-        // "Other_Document" titles). Bump _v{n} only on collisions within the
-        // same client to avoid silent overwrites.
+        let docType = "Other";
+        let customType: string | null = null;
+        try {
+          const c = await classifyDocument(file, allowedDocumentTypes);
+          if (c?.type) {
+            docType = c.type;
+            customType = c.type === "Other" ? (c.customType ?? prettyTitle(file.name)) : null;
+          }
+        } catch (e) {
+          console.warn("person upload classify failed", e);
+        }
+        if (docType === "Other" && !customType) customType = prettyTitle(file.name);
+        const effectiveType = docType === "Other" ? (customType || "Other") : docType;
+
         const { data: existingDocs } = await supabase
           .from("client_documents")
           .select("file_name")
@@ -196,44 +221,42 @@ export const PersonWorkspaceCard = ({ client, person, canEdit, isAdmin, onChange
         const baseName = buildPreservedDocumentName(file.name, version);
         console.debug("[doc-debug] upload_received", file.name, "person", person.full_name);
         console.debug("[doc-debug] original_filename", file.name);
+        console.debug("[doc-debug] classified_type", effectiveType);
         console.debug("[doc-debug] generated_title", `${baseName}.pdf`, "version", version);
         if (collisions > 0) console.debug("[doc-debug] duplicate_name_detected", { stem, collisions });
         const processed = await processToPdf(file, baseName);
-        const path = `${client.id}/${person.id}/${sanitizeName("Other")}/${Date.now()}_${processed.name}`;
+        const path = `${client.id}/${person.id}/${sanitizeName(docType)}/${Date.now()}_${processed.name}`;
         const { error: upErr } = await supabase.storage
           .from("client-documents")
           .upload(path, processed, { contentType: "application/pdf" });
         if (upErr) throw upErr;
-        const sectionId = await inferSectionId("Other").catch(() => null);
+        const sectionId = await inferSectionId(effectiveType).catch(() => null);
         const { data: ins, error: insErr } = await supabase
           .from("client_documents")
           .insert({
             client_id: client.id,
             person_id: person.id,
             is_shared: false,
-            document_type: "Other",
-            custom_type: null,
+            document_type: docType,
+            custom_type: customType,
             file_name: processed.name,
             storage_path: path,
             mime_type: "application/pdf",
             size_bytes: processed.size,
-            version: 1,
-            status: "received",
+            version,
+            status: "processed",
             section_id: sectionId,
           })
           .select()
           .single();
         if (insErr) throw insErr;
-        // Try to auto-link to a checklist row using the ORIGINAL filename as
-        // the matching hint. Without this, every co-applicant upload landed
-        // in "Other uploads" even when it clearly matched (e.g. Passport.pdf).
         try {
           const matched = await markChecklistItemReady(
             ins.id,
             client.id,
-            "Other",
-            null,
-            stem.replace(/[_-]+/g, " "),
+            docType,
+            customType,
+            processed.name,
           );
           console.debug("[doc-debug] checklist_match", matched ?? null);
           if (matched) console.debug("[doc-debug] mapped_to_checklist", matched);
@@ -247,6 +270,21 @@ export const PersonWorkspaceCard = ({ client, person, canEdit, isAdmin, onChange
           eventType: "person_document_uploaded",
           summary: `Document uploaded for ${person.full_name}: ${processed.name}`,
           metadata: { document_id: ins.id, file_name: processed.name, person_role: person.role },
+        });
+        void runDocumentFieldExtraction({
+          clientId: client.id,
+          documentId: ins.id,
+          file: processed,
+          documentType: effectiveType,
+          customType: docType === "Other" ? customType : null,
+          fileName: processed.name,
+          personId: person.id,
+          onFieldsWritten: () => onChanged?.(),
+        }).then(({ written }) => {
+          if (written > 0) {
+            toast.success(`Extracted ${written} field${written === 1 ? "" : "s"} for ${person.full_name}`);
+            void load();
+          }
         });
       }
       toast.success("Uploaded");

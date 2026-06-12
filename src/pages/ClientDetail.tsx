@@ -664,8 +664,8 @@ const ClientDetail = () => {
             const { data: blob } = await supabase.storage.from("client-documents").download(d.storage_path);
             if (blob) {
               const file = new File([blob], d.file_name, { type: d.mime_type || "application/pdf" });
-              snippet = await extractFirstPageText(file, 12000, 3);
-              imageDataUrls = await renderPdfPagesToJpegDataUrls(file, 3);
+              snippet = await extractFirstPageText(file, 28000, 8);
+              imageDataUrls = await renderPdfPagesToJpegDataUrls(file, 6);
             }
           } catch (e) {
             console.warn("client-side pdf extract failed, falling back to server:", e);

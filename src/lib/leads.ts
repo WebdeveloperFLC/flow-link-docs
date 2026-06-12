@@ -286,8 +286,17 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
   );
 
   const items: ServiceCatalogueItem[] = [];
+  const seenIds = new Set<string>();
+  const pushItem = (item: ServiceCatalogueItem) => {
+    if (seenIds.has(item.id)) return;
+    seenIds.add(item.id);
+    items.push(item);
+  };
+
   for (const r of rows) {
-    const countries = (r.service_library_countries ?? []).map((c) => c.country);
+    const countries = [
+      ...new Set((r.service_library_countries ?? []).map((c) => c.country).filter(Boolean)),
+    ];
     const displayLabel =
       (r.academy_metadata as { displayName?: string } | null)?.displayName ?? null;
 
@@ -320,7 +329,7 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
         if (parentVariants && parentVariants.length > 0) {
           for (const v of parentVariants) {
             const groupKey = visaVariantGroupKey(v.group_label);
-            items.push(
+            pushItem(
               withLibraryFees(
                 {
                   id: `${r.id}::${c}::${v.variant_key}`,
@@ -348,7 +357,11 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
           continue;
         }
 
-        items.push(
+        // Parent fallback only when no picker variants exist for this library row.
+        const hasAnyVariants = variants.some((pv) => pv.library_id === r.id);
+        if (hasAnyVariants) continue;
+
+        pushItem(
           withLibraryFees(
             {
               id: parentKey,
@@ -374,7 +387,7 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
       if (r.service_category === "coaching_services") {
         const variantLabel = resolveCoachingVariantLabel(familyField, r.sub_service, displayLabel);
         const groupKey = resolveCoachingFamilyKey(familyField, r.sub_service);
-        items.push(
+        pushItem(
           withLibraryFees(
             {
               id: r.id,
@@ -398,7 +411,7 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
       } else {
         const variantLabel = displayLabel ?? r.sub_service;
         const grouped = resolveAlliedAdmissionGrouping(familyField, r.sub_service, variantLabel);
-        items.push(
+        pushItem(
           withLibraryFees(
             {
               id: r.id,

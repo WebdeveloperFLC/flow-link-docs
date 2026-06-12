@@ -8,11 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import type { ServiceCatalogueItem } from "@/lib/leads";
-import {
-  groupFeeSummary,
-  SERVICE_PICKER_GRID,
-  type FeeCurrency,
-} from "@/lib/leads/serviceFeeLabel";
+import { type FeeCurrency } from "@/lib/leads/serviceFeeLabel";
 import type { ServiceSelection } from "@/components/leads/ServiceTabs";
 import { ServicePickerRow, ServiceFeeColumnsHeader } from "@/components/leads/ServicePickerRow";
 import {
@@ -96,9 +92,6 @@ function GroupAccordion({
     return isServiceCodeSelected(value[key] ?? [], item, catalogue);
   }).length;
 
-  const consultSummary = groupFeeSummary(group.items, feeCurrency, "consultancy");
-  const govtSummary = groupFeeSummary(group.items, feeCurrency, "government");
-
   // Single-option groups: show fees inline without an extra accordion level.
   if (group.items.length === 1) {
     const item = group.items[0]!;
@@ -123,34 +116,20 @@ function GroupAccordion({
   return (
     <AccordionItem value={group.key} className="border-b last:border-b-0">
       <AccordionTrigger className="px-3 py-2.5 hover:no-underline hover:bg-muted/30 text-sm gap-2">
-        <div className={cn(SERVICE_PICKER_GRID, "w-full min-w-0 flex-1")}>
-          <div />
-          <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-            <span className="font-medium truncate">{group.label}</span>
-            <span className="text-xs text-muted-foreground shrink-0">
-              {group.items.length} options
-            </span>
-            {selectedCount > 0 && (
-              <Badge variant="secondary" className="h-5 px-1.5 text-xs shrink-0">
-                {selectedCount}
-              </Badge>
-            )}
-          </div>
-          <div
-            className="text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap min-w-0 overflow-hidden text-ellipsis"
-            title={consultSummary}
-          >
-            {consultSummary}
-          </div>
-          <div
-            className="text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap min-w-0 overflow-hidden text-ellipsis"
-            title={govtSummary}
-          >
-            {govtSummary}
-          </div>
+        <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
+          <span className="font-medium">{group.label}</span>
+          <span className="text-xs text-muted-foreground shrink-0">
+            {group.items.length} options
+          </span>
+          {selectedCount > 0 && (
+            <Badge variant="secondary" className="h-5 px-1.5 text-xs shrink-0">
+              {selectedCount}
+            </Badge>
+          )}
         </div>
       </AccordionTrigger>
-      <AccordionContent className="pb-0 pt-0 overflow-visible">
+      <AccordionContent className="pb-0 pt-0">
+        <ServiceFeeColumnsHeader feeCurrency={feeCurrency} />
         {group.sections ? (
           <div className="divide-y">
             {group.sections.map((section) => (
