@@ -21,9 +21,14 @@ import {
   type ServicePickerGroup,
   type ServicePickerTab,
 } from "@/lib/leads/servicePickerGroups";
+import {
+  catalogueItemCode,
+  isServiceCodeSelected,
+} from "@/lib/service-library/serviceSelectionMatch";
 
 function GroupItems({
   items,
+  catalogue,
   getSelectionKey,
   value,
   onToggle,
@@ -33,6 +38,7 @@ function GroupItems({
   feeCurrency,
 }: {
   items: ServiceCatalogueItem[];
+  catalogue: ServiceCatalogueItem[];
   getSelectionKey: (item: ServiceCatalogueItem) => keyof ServiceSelection;
   value: ServiceSelection;
   onToggle: (key: keyof ServiceSelection, code: string) => void;
@@ -44,9 +50,9 @@ function GroupItems({
   return (
     <div className="divide-y">
       {items.map((item) => {
-        const code = item.service_code || item.id;
+        const code = catalogueItemCode(item);
         const selectionKey = getSelectionKey(item);
-        const checked = (value[selectionKey] ?? []).includes(code);
+        const checked = isServiceCodeSelected(value[selectionKey] ?? [], item, catalogue);
         return (
           <ServicePickerRow
             key={item.id}
@@ -66,6 +72,7 @@ function GroupItems({
 
 function GroupAccordion({
   group,
+  catalogue,
   getSelectionKey,
   value,
   onToggle,
@@ -75,6 +82,7 @@ function GroupAccordion({
   feeCurrency,
 }: {
   group: ServicePickerGroup;
+  catalogue: ServiceCatalogueItem[];
   getSelectionKey: (item: ServiceCatalogueItem) => keyof ServiceSelection;
   value: ServiceSelection;
   onToggle: (key: keyof ServiceSelection, code: string) => void;
@@ -84,9 +92,8 @@ function GroupAccordion({
   feeCurrency: FeeCurrency;
 }) {
   const selectedCount = group.items.filter((item) => {
-    const code = item.service_code || item.id;
     const key = getSelectionKey(item);
-    return (value[key] ?? []).includes(code);
+    return isServiceCodeSelected(value[key] ?? [], item, catalogue);
   }).length;
 
   const consultSummary = groupFeeSummary(group.items, feeCurrency, "consultancy");
@@ -95,9 +102,9 @@ function GroupAccordion({
   // Single-option groups: show fees inline without an extra accordion level.
   if (group.items.length === 1) {
     const item = group.items[0]!;
-    const code = item.service_code || item.id;
+    const code = catalogueItemCode(item);
     const selectionKey = getSelectionKey(item);
-    const checked = (value[selectionKey] ?? []).includes(code);
+    const checked = isServiceCodeSelected(value[selectionKey] ?? [], item, catalogue);
     return (
       <div className="border-b last:border-b-0">
         <ServicePickerRow
@@ -153,6 +160,7 @@ function GroupAccordion({
                 </div>
                 <GroupItems
                   items={section.items}
+                  catalogue={catalogue}
                   getSelectionKey={getSelectionKey}
                   value={value}
                   onToggle={onToggle}
@@ -167,6 +175,7 @@ function GroupAccordion({
         ) : (
           <GroupItems
             items={group.items}
+            catalogue={catalogue}
             getSelectionKey={getSelectionKey}
             value={value}
             onToggle={onToggle}
@@ -183,6 +192,7 @@ function GroupAccordion({
 
 export function GroupedServiceList({
   items,
+  catalogue,
   tab,
   getSelectionKey,
   value,
@@ -194,6 +204,7 @@ export function GroupedServiceList({
   showFeeHeader = false,
 }: {
   items: ServiceCatalogueItem[];
+  catalogue: ServiceCatalogueItem[];
   tab: ServicePickerTab;
   getSelectionKey: (item: ServiceCatalogueItem) => keyof ServiceSelection;
   value: ServiceSelection;
@@ -206,17 +217,9 @@ export function GroupedServiceList({
 }) {
   const groups = useMemo(() => groupCatalogueItems(items, tab), [items, tab]);
 
-  const selectedCodes = useMemo(() => {
-    const codes = new Set<string>();
-    for (const key of Object.keys(value) as (keyof ServiceSelection)[]) {
-      for (const code of value[key] ?? []) codes.add(code);
-    }
-    return codes;
-  }, [value]);
-
   const defaultOpen = useMemo(
-    () => groupsWithSelection(groups, selectedCodes),
-    [groups, selectedCodes],
+    () => groupsWithSelection(groups, value, catalogue, getSelectionKey, isServiceCodeSelected),
+    [groups, value, catalogue, getSelectionKey],
   );
 
   if (items.length === 0) {
@@ -237,6 +240,7 @@ export function GroupedServiceList({
         <GroupAccordion
           key={group.key}
           group={group}
+          catalogue={catalogue}
           getSelectionKey={getSelectionKey}
           value={value}
           onToggle={onToggle}
@@ -256,6 +260,7 @@ export function GroupedServiceList({
             <GroupAccordion
               key={group.key}
               group={group}
+              catalogue={catalogue}
               getSelectionKey={getSelectionKey}
               value={value}
               onToggle={onToggle}

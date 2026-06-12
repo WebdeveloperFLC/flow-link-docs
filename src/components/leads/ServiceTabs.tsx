@@ -11,6 +11,11 @@ import {
   shouldUseGroupedPicker,
   type ServicePickerTab,
 } from "@/lib/leads/servicePickerGroups";
+import {
+  catalogueItemCode,
+  isServiceCodeSelected,
+  toggleServiceSelectionCodes,
+} from "@/lib/service-library/serviceSelectionMatch";
 
 export interface ServiceSelection {
   coaching_services: string[];
@@ -62,6 +67,7 @@ const TABS: Tab[] = [
 
 function FlatServiceList({
   items,
+  catalogue,
   getSelectionKey,
   value,
   onToggle,
@@ -71,6 +77,7 @@ function FlatServiceList({
   feeCurrency,
 }: {
   items: ServiceCatalogueItem[];
+  catalogue: ServiceCatalogueItem[];
   getSelectionKey: (item: ServiceCatalogueItem) => keyof ServiceSelection;
   value: ServiceSelection;
   onToggle: (key: keyof ServiceSelection, code: string) => void;
@@ -91,9 +98,9 @@ function FlatServiceList({
     <div className={cn("border rounded-md divide-y overflow-x-auto min-w-0", disabled && "opacity-50 pointer-events-none")}>
       <ServiceFeeColumnsHeader feeCurrency={feeCurrency} />
       {items.map((s) => {
-        const code = s.service_code || s.id;
+        const code = catalogueItemCode(s);
         const itemKey = getSelectionKey(s);
-        const checked = (value[itemKey] ?? []).includes(code);
+        const checked = isServiceCodeSelected(value[itemKey] ?? [], s, catalogue);
         return (
           <ServicePickerRow
             key={s.id}
@@ -158,7 +165,12 @@ export const ServiceTabs = ({
 
   const toggle = (key: keyof ServiceSelection, code: string) => {
     const cur = value[key] ?? [];
-    const next = cur.includes(code) ? cur.filter((x) => x !== code) : [...cur, code];
+    const item = catalogue.find((s) => catalogueItemCode(s) === code);
+    const next = item
+      ? toggleServiceSelectionCodes(cur, item, catalogue)
+      : cur.includes(code)
+        ? cur.filter((x) => x !== code)
+        : [...cur, code];
     onChange({ ...value, [key]: next });
     onCommit?.(key, next);
   };
@@ -279,6 +291,7 @@ export const ServiceTabs = ({
               <div className={cn(locked && "opacity-50 pointer-events-none")}>
                 <GroupedServiceList
                   items={filtered}
+                  catalogue={catalogue}
                   tab={t.grouped}
                   getSelectionKey={getSelectionKey}
                   value={value}
@@ -293,6 +306,7 @@ export const ServiceTabs = ({
             ) : (
               <FlatServiceList
                 items={filtered}
+                catalogue={catalogue}
                 getSelectionKey={getSelectionKey}
                 value={value}
                 onToggle={toggle}
