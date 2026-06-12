@@ -33,9 +33,21 @@ import { buildCatalogueLookup, fetchAllServiceCatalogue } from "@/lib/leads";
 import {
   loadClientBillableServices,
   resolvePreselectedServiceId,
+  resolveBillableServiceForLine,
+  normalizeInvoicePickedState,
+  getPickedQty,
+  setPickedQty,
   type BillableClientService,
   type InvoiceLineLike,
 } from "@/lib/clientInvoiceServices";
+import {
+  computeInvoiceLines,
+  computeOfferDiscountAmount,
+  normalizeDiscountInput,
+  resolveLineDiscountAmount,
+  type DiscountMode,
+  type LineDiscountInput,
+} from "@/lib/invoiceLinePricing";
 import { Switch } from "@/components/ui/switch";
 import {
   notifyUsers,
@@ -787,12 +799,12 @@ function InvoiceEditorDialog({
   const [branches, setBranches] = useState<Branch[]>([]);
   const [entities, setEntities] = useState<FirmEntity[]>([]);
   const [picked, setPicked] = useState<Record<string, number>>({});
-  const [lineDiscounts, setLineDiscounts] = useState<Record<string, number>>({});
+  const [lineDiscounts, setLineDiscounts] = useState<Record<string, LineDiscountInput>>({});
   const [currency, setCurrency] = useState(existingInvoice?.currency ?? "INR");
   const [branchId, setBranchId] = useState<string | undefined>(existingInvoice?.branch_id ?? undefined);
   const [firmId, setFirmId] = useState<string | undefined>(existingInvoice?.firm_entity_id ?? undefined);
   const [dueDate, setDueDate] = useState<string>(existingInvoice?.due_date?.slice(0, 10) ?? "");
-  const [gstEnabled, setGstEnabled] = useState(false);
+  const [gstEnabled, setGstEnabled] = useState(true);
   const [gstRate, setGstRate] = useState(18);
   const [saving, setSaving] = useState(false);
 
@@ -828,30 +840,31 @@ function InvoiceEditorDialog({
             ? (existingInvoice.line_items as InvoiceLineLike[])
             : [];
           const nextPicked: Record<string, number> = {};
-          const nextDiscounts: Record<string, number> = {};
+          const nextDiscounts: Record<string, LineDiscountInput> = {};
           let hasTax = false;
+          const mergedServices = [...clientServices];
           for (const li of lines) {
-            const sid = li.service_id ?? li.service_code;
-            if (!sid) continue;
-            const match = clientServices.find((s) => s.id === sid || s.service_code === sid) ?? {
-              id: String(sid),
-              service_code: String(sid),
-              service_name: li.service_name ?? li.description ?? "Service",
-              fee_inr: li.amount ?? null,
-              fee_cad: null,
-            };
-            if (!clientServices.some((s) => s.id === match.id)) {
-              clientServices.push(match);
-              setServices([...clientServices]);
+            const match = resolveBillableServiceForLine(li, mergedServices, cat);
+            if (!match) continue;
+            if (!mergedServices.some((s) => s.id === match.id)) {
+              mergedServices.push(match);
             }
-            nextPicked[match.id] = Math.max(1, Number(li.quantity ?? 1));
-            nextDiscounts[match.id] = Number(li.discount ?? 0);
+            nextPicked[match.id] = Math.max(nextPicked[match.id] ?? 0, Math.max(1, Number(li.quantity ?? 1)));
+            nextDiscounts[match.id] = normalizeDiscountInput(
+              {
+                mode: (li.discount_mode as DiscountMode | null) ?? undefined,
+                value: li.discount_value ?? undefined,
+              },
+              li.discount,
+            );
             if (Number(li.tax ?? 0) > 0 || Number(li.gst_rate ?? 0) > 0) hasTax = true;
             if (Number(li.gst_rate ?? 0) > 0) setGstRate(Number(li.gst_rate));
           }
-          setPicked(nextPicked);
-          setLineDiscounts(nextDiscounts);
-          setGstEnabled(hasTax);
+          const normalized = normalizeInvoicePickedState(mergedServices, nextPicked, nextDiscounts);
+          setServices(normalized.services);
+          setPicked(normalized.picked);
+          setLineDiscounts(normalized.discounts);
+          setGstEnabled(hasTax || currency === "INR");
         } else {
           const preId = resolvePreselectedServiceId(clientServices, cat, activeServiceCode);
           if (preId) setPicked({ [preId]: 1 });
@@ -863,7 +876,7 @@ function InvoiceEditorDialog({
         setLoadingServices(false);
       }
     })();
-  }, [clientId, activeServiceCode, existingInvoice]);
+  }, [clientId, activeServiceCode, existingInvoice?.id]);
 
   const pickedServiceIds = Object.keys(picked);
   const serviceKey = [...pickedServiceIds].sort().join(",");
@@ -902,76 +915,92 @@ function InvoiceEditorDialog({
     }
   }, [offers, selectedOfferId]);
 
-  const lineItems = useMemo(() => {
-    return Object.entries(picked)
-      .filter(([, q]) => q > 0)
-      .map(([id, qty]) => {
-        const svc = services.find((s) => s.id === id);
-        const unit = currency === "CAD" ? Number(svc?.fee_cad ?? 0) : Number(svc?.fee_inr ?? 0);
-        const lineDiscount = Number(lineDiscounts[id] ?? 0);
-        const subtotal = Math.max(0, unit * qty - lineDiscount);
-        const tax = gstEnabled ? subtotal * (gstRate / 100) : 0;
-        return {
-          service_id: id,
-          service_code: svc?.service_code ?? id,
-          service_name: svc?.service_name ?? "",
-          description: svc?.service_name ?? "",
-          quantity: qty,
-          currency,
-          amount: unit,
-          discount: lineDiscount,
-          tax: Number(tax.toFixed(2)),
-          gst_rate: gstEnabled ? gstRate : 0,
-          total: Number((subtotal + tax).toFixed(2)),
-        };
-      });
-  }, [picked, services, currency, lineDiscounts, gstEnabled, gstRate]);
-
-  const subtotalBeforeOffer = lineItems.reduce((s, l) => s + l.total, 0);
   const selectedOffer = offers.find((o) => o.id === selectedOfferId) || null;
-  const offerDiscount = useMemo(() => {
-    if (!selectedOffer || subtotalBeforeOffer <= 0) return 0;
-    let d =
-      selectedOffer.discount_type === "percentage"
-        ? (subtotalBeforeOffer * selectedOffer.discount_value) / 100
-        : selectedOffer.discount_value;
-    if (selectedOffer.max_discount_amount != null) {
-      d = Math.min(d, selectedOffer.max_discount_amount);
-    }
-    return Math.max(0, Math.min(d, subtotalBeforeOffer));
-  }, [selectedOffer, subtotalBeforeOffer]);
 
-  const netTotal = Math.max(0, subtotalBeforeOffer - offerDiscount);
+  const pricingInputs = useMemo(
+    () =>
+      Object.entries(picked)
+        .filter(([, q]) => q > 0)
+        .map(([id, qty]) => {
+          const svc = services.find((s) => s.id === id);
+          const unit = currency === "CAD" ? Number(svc?.fee_cad ?? 0) : Number(svc?.fee_inr ?? 0);
+          return {
+            id,
+            svc,
+            unit,
+            qty,
+            discount: lineDiscounts[id] ?? { mode: "amount" as DiscountMode, value: 0 },
+          };
+        }),
+    [picked, services, currency, lineDiscounts],
+  );
+
+  const offerDiscountPreview = useMemo(() => {
+    const subtotalNet = pricingInputs.reduce((s, row) => {
+      const gross = row.unit * row.qty;
+      return s + Math.max(0, gross - resolveLineDiscountAmount(gross, row.discount));
+    }, 0);
+    return computeOfferDiscountAmount(subtotalNet, selectedOffer);
+  }, [pricingInputs, selectedOffer]);
+
+  const priced = useMemo(
+    () =>
+      computeInvoiceLines(
+        pricingInputs.map((row) => ({
+          unit: row.unit,
+          qty: row.qty,
+          discount: row.discount,
+        })),
+        offerDiscountPreview,
+        gstEnabled,
+        gstRate,
+      ),
+    [pricingInputs, offerDiscountPreview, gstEnabled, gstRate],
+  );
+
+  const lineItems = useMemo(
+    () =>
+      pricingInputs.map((row, idx) => {
+        const computed = priced.lines[idx];
+        if (!computed) return null;
+        return {
+          service_id: row.id,
+          service_code: row.svc?.service_code ?? row.id,
+          service_name: row.svc?.service_name ?? "",
+          description: row.svc?.service_name ?? "",
+          quantity: row.qty,
+          currency,
+          amount: row.unit,
+          discount: Number((computed.lineDiscountAmount + computed.offerShare).toFixed(2)),
+          discount_mode: row.discount.mode,
+          discount_value: row.discount.value,
+          tax: computed.tax,
+          gst_rate: gstEnabled ? gstRate : 0,
+          total: computed.total,
+        };
+      }).filter(Boolean),
+    [pricingInputs, priced.lines, currency, gstEnabled, gstRate],
+  );
+
+  const netTotal = priced.grandTotal;
 
   const save = async () => {
     if (lineItems.length === 0) {
-      toast.error("Select at least one client service");
+      toast.error("Set quantity to at least 1 for a service");
       return;
     }
     setSaving(true);
 
-    const discountedLineItems =
-      offerDiscount > 0 && subtotalBeforeOffer > 0
-        ? lineItems.map((l) => {
-            const share = (l.total / subtotalBeforeOffer) * offerDiscount;
-            const lineNet = Math.max(0, l.total - share);
-            return {
-              ...l,
-              discount: Number((l.discount + share).toFixed(2)),
-              total: Number(lineNet.toFixed(2)),
-            };
-          })
-        : lineItems;
-
     const payload = {
       amount: netTotal,
       currency,
-      line_items: discountedLineItems,
+      line_items: lineItems,
       due_date: dueDate || null,
       branch_id: branchId ?? null,
       firm_entity_id: firmId ?? null,
       applied_offer_id: selectedOffer ? selectedOffer.id : null,
-      offer_discount_amount: offerDiscount > 0 ? Number(offerDiscount.toFixed(2)) : 0,
+      offer_discount_amount:
+        priced.offerDiscountApplied > 0 ? Number(priced.offerDiscountApplied.toFixed(2)) : 0,
       subtotal_in_inr: netTotal,
       subtotal_in_cad: netTotal,
       subtotal_in_usd: netTotal,
@@ -1052,7 +1081,24 @@ function InvoiceEditorDialog({
     onClose();
   };
 
-  const primaryService = services.length === 1 ? services[0] : null;
+  const displayServices = useMemo(() => {
+    if (isEdit) {
+      return services.filter((s) => getPickedQty(s, picked) > 0);
+    }
+    if (activeServiceCode) {
+      const libPrefix = activeServiceCode.split("::")[0] ?? "";
+      const matched = services.filter(
+        (s) =>
+          s.service_code === activeServiceCode ||
+          s.id === activeServiceCode ||
+          s.id.startsWith(`${libPrefix}::`),
+      );
+      if (matched.length > 0) return matched;
+    }
+    return services;
+  }, [services, picked, isEdit, activeServiceCode]);
+
+  const primaryService = displayServices.length === 1 ? displayServices[0] : null;
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -1138,49 +1184,90 @@ function InvoiceEditorDialog({
                     <th className="text-left px-3 py-2">Service</th>
                     <th className="text-right px-3 py-2 w-24">Unit</th>
                     <th className="text-right px-3 py-2 w-16">Qty</th>
-                    <th className="text-right px-3 py-2 w-24">Discount</th>
+                    <th className="text-right px-3 py-2 w-36">Discount</th>
                     <th className="text-right px-3 py-2 w-24">Total</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {services.map((s) => {
+                  {displayServices.map((s) => {
                     const unit = currency === "CAD" ? Number(s.fee_cad ?? 0) : Number(s.fee_inr ?? 0);
-                    const qty = picked[s.id] ?? 0;
-                    const lineDiscount = lineDiscounts[s.id] ?? 0;
-                    const subtotal = Math.max(0, unit * qty - lineDiscount);
-                    const tax = gstEnabled ? subtotal * (gstRate / 100) : 0;
-                    const lineTotal = subtotal + tax;
+                    const qty = getPickedQty(s, picked);
+                    const discount = lineDiscounts[s.id] ?? { mode: "amount" as DiscountMode, value: 0 };
+                    const gross = unit * qty;
+                    const lineDiscountAmt = resolveLineDiscountAmount(gross, discount);
+                    const rowIdx = pricingInputs.findIndex((r) => r.id === s.id);
+                    const lineTotal = rowIdx >= 0 ? (priced.lines[rowIdx]?.total ?? 0) : 0;
+                    const currencySuffix = currency === "INR" ? "₹" : currency === "CAD" ? "CA$" : "$";
                     return (
                       <tr key={s.id} className="border-t align-top">
                         <td className="px-3 py-2">
                           <div className="font-medium leading-snug">{s.service_name}</div>
+                          {lineDiscountAmt > 0 && qty > 0 && (
+                            <div className="text-[11px] text-muted-foreground mt-0.5">
+                              −{money(lineDiscountAmt, currency)} line discount
+                            </div>
+                          )}
                         </td>
                         <td className="px-3 py-2 text-right tabular-nums">{money(unit, currency)}</td>
                         <td className="px-3 py-2">
                           <Input
                             type="number"
                             min={0}
-                            value={qty}
+                            step={1}
+                            value={String(qty)}
                             onChange={(e) =>
-                              setPicked((p) => ({ ...p, [s.id]: Math.max(0, parseInt(e.target.value) || 0) }))
+                              setPicked((p) => {
+                                const next = setPickedQty(
+                                  s,
+                                  services,
+                                  p,
+                                  Math.max(0, parseInt(e.target.value, 10) || 0),
+                                );
+                                return normalizeInvoicePickedState(services, next, lineDiscounts).picked;
+                              })
                             }
-                            className="h-8 text-right"
+                            className="h-8 text-right tabular-nums"
                           />
                         </td>
                         <td className="px-3 py-2">
-                          <Input
-                            type="number"
-                            min={0}
-                            value={lineDiscount}
-                            disabled={qty <= 0}
-                            onChange={(e) =>
-                              setLineDiscounts((p) => ({
-                                ...p,
-                                [s.id]: Math.max(0, parseFloat(e.target.value) || 0),
-                              }))
-                            }
-                            className="h-8 text-right"
-                          />
+                          <div className="flex items-center gap-1.5 justify-end">
+                            <Select
+                              value={discount.mode}
+                              disabled={qty <= 0}
+                              onValueChange={(mode: DiscountMode) =>
+                                setLineDiscounts((p) => ({
+                                  ...p,
+                                  [s.id]: { mode, value: p[s.id]?.value ?? 0 },
+                                }))
+                              }
+                            >
+                              <SelectTrigger className="h-8 w-[4.5rem] px-2 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="amount">{currencySuffix}</SelectItem>
+                                <SelectItem value="percentage">%</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={discount.mode === "percentage" ? 100 : undefined}
+                              value={discount.value || ""}
+                              placeholder="0"
+                              disabled={qty <= 0}
+                              onChange={(e) =>
+                                setLineDiscounts((p) => ({
+                                  ...p,
+                                  [s.id]: {
+                                    mode: p[s.id]?.mode ?? "amount",
+                                    value: Math.max(0, parseFloat(e.target.value) || 0),
+                                  },
+                                }))
+                              }
+                              className="h-8 w-20 text-right"
+                            />
+                          </div>
                         </td>
                         <td className="px-3 py-2 text-right tabular-nums">{money(lineTotal, currency)}</td>
                       </tr>
@@ -1194,7 +1281,7 @@ function InvoiceEditorDialog({
               <div className="flex items-center gap-2">
                 <Switch checked={gstEnabled} onCheckedChange={setGstEnabled} id="gst-toggle" />
                 <Label htmlFor="gst-toggle" className="text-sm font-normal">
-                  Add GST
+                  Add GST (after discounts)
                 </Label>
               </div>
               {gstEnabled && (
@@ -1233,9 +1320,18 @@ function InvoiceEditorDialog({
             </div>
 
             <div className="mt-2 text-right text-sm space-y-0.5">
-              <div className="text-muted-foreground">Subtotal: {money(subtotalBeforeOffer, currency)}</div>
-              {offerDiscount > 0 && (
-                <div className="text-primary">Offer discount: −{money(offerDiscount, currency)}</div>
+              <div className="text-muted-foreground">
+                Subtotal (after line discounts): {money(priced.subtotalAfterLineDiscounts, currency)}
+              </div>
+              {priced.offerDiscountApplied > 0 && (
+                <div className="text-primary">
+                  Offer discount: −{money(priced.offerDiscountApplied, currency)}
+                </div>
+              )}
+              {gstEnabled && priced.gstTotal > 0 && (
+                <div className="text-muted-foreground">
+                  GST ({gstRate}%): {money(priced.gstTotal, currency)}
+                </div>
               )}
               <div className="font-medium">Total: {money(netTotal, currency)}</div>
             </div>

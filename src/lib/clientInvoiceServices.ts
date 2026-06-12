@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
 import { collectClientServices } from "@/lib/clientActiveService";
 import { findCatalogueItemForStoredCode } from "@/lib/service-library/resolveServiceLabel";
+import type { LineDiscountInput } from "@/lib/invoiceLinePricing";
 
 export type BillableClientService = {
   id: string;
@@ -19,6 +20,8 @@ export type InvoiceLineLike = {
   quantity?: number | null;
   amount?: number | null;
   discount?: number | null;
+  discount_mode?: "amount" | "percentage" | null;
+  discount_value?: number | null;
   tax?: number | null;
   gst_rate?: number | null;
   total?: number | null;
@@ -130,4 +133,104 @@ export function resolvePreselectedServiceId(
   }
   if (services.length === 1) return services[0]!.id;
   return null;
+}
+
+/** Map invoice line service_id/code to a single billable catalogue row id. */
+export function resolveBillableServiceForLine(
+  line: InvoiceLineLike,
+  services: BillableClientService[],
+  catalogue: ServiceCatalogueItem[],
+): BillableClientService | null {
+  const refs = [line.service_id, line.service_code].filter(Boolean).map(String);
+  for (const ref of refs) {
+    const direct = services.find((s) => s.id === ref || s.service_code === ref);
+    if (direct) return direct;
+    const item = findCatalogueItemForStoredCode(ref, catalogue);
+    if (item) {
+      const fromList = services.find((s) => s.id === item.id || s.service_code === (item.service_code ?? item.id));
+      if (fromList) return fromList;
+      return {
+        id: item.id,
+        service_code: item.service_code ?? ref,
+        service_name: item.service_name,
+        fee_inr: item.fee_inr ?? null,
+        fee_cad: item.fee_cad ?? null,
+      };
+    }
+  }
+  const name = line.service_name ?? line.description;
+  if (name) {
+    const byName = services.find((s) => s.service_name === name);
+    if (byName) return byName;
+  }
+  return null;
+}
+
+/** Collapse picked/discount maps to one canonical id per service (prevents double-counting). */
+export function normalizeInvoicePickedState(
+  services: BillableClientService[],
+  picked: Record<string, number>,
+  discounts: Record<string, LineDiscountInput>,
+): {
+  services: BillableClientService[];
+  picked: Record<string, number>;
+  discounts: Record<string, LineDiscountInput>;
+} {
+  const mergedServices = [...services];
+  const nextPicked: Record<string, number> = {};
+  const nextDiscounts: Record<string, LineDiscountInput> = {};
+
+  for (const [rawId, qty] of Object.entries(picked)) {
+    if (qty <= 0) continue;
+    const svc =
+      mergedServices.find((s) => s.id === rawId || s.service_code === rawId) ??
+      mergedServices.find((s) => rawId.startsWith(s.id) || s.id.startsWith(rawId));
+    const canonicalId = svc?.id ?? rawId;
+    if (!svc && !mergedServices.some((s) => s.id === canonicalId)) {
+      mergedServices.push({
+        id: canonicalId,
+        service_code: rawId,
+        service_name: rawId,
+        fee_inr: null,
+        fee_cad: null,
+      });
+    }
+    nextPicked[canonicalId] = Math.max(nextPicked[canonicalId] ?? 0, qty);
+    if (discounts[rawId]) nextDiscounts[canonicalId] = discounts[rawId]!;
+  }
+
+  return { services: mergedServices, picked: nextPicked, discounts: nextDiscounts };
+}
+
+export function getPickedQty(
+  service: BillableClientService,
+  picked: Record<string, number>,
+): number {
+  if (picked[service.id] != null) return picked[service.id]!;
+  for (const [id, qty] of Object.entries(picked)) {
+    if (id === service.service_code || id.startsWith(service.id) || service.id.startsWith(id)) {
+      return qty;
+    }
+  }
+  return 0;
+}
+
+export function setPickedQty(
+  service: BillableClientService,
+  services: BillableClientService[],
+  picked: Record<string, number>,
+  qty: number,
+): Record<string, number> {
+  const next = { ...picked };
+  for (const s of services) {
+    const same =
+      s.id === service.id ||
+      s.service_code === service.service_code ||
+      s.id.startsWith(service.id) ||
+      service.id.startsWith(s.id);
+    if (same && s.id !== service.id) delete next[s.id];
+  }
+  if (qty <= 0) delete next[service.id];
+  else next[service.id] = qty;
+  return next;
 }
