@@ -165,6 +165,8 @@ import IncentivePayoutDesk from "@/pages/IncentivePayoutDesk";
 import IncentiveRunDetail from "@/pages/IncentiveRunDetail";
 import IncentiveCompetitions from "@/pages/IncentiveCompetitions";
 import IncentiveSimulator from "@/pages/IncentiveSimulator";
+import PerformanceHome from "@/pages/PerformanceHome";
+import PerformanceCommandCenter from "@/pages/PerformanceCommandCenter";
 import AiHelpPage from "./ai-help/pages/AiHelpPage";
 import GuidesIndexPage from "./guides/pages/GuidesIndexPage";
 import GuideDetailPage from "./guides/pages/GuideDetailPage";
@@ -509,6 +511,22 @@ const App = () => (
                       <CommissionsProtectedRoute>
                         <CommissionsPage />
                       </CommissionsProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceHome />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/admin"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceCommandCenter />
+                      </ProtectedRoute>
                     }
                   />
                   <Route

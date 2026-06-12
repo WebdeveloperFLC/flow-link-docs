@@ -1,6 +1,7 @@
 export type NavSectionKey =
   | 'crm'
   | 'calendar'
+  | 'performance'
   | 'incentives'
   | 'wallet'
   | 'offers'
@@ -73,6 +74,7 @@ export interface ThemeConfig {
 export const DEFAULT_NAV_SECTION_COLORS: Record<NavSectionKey, string> = {
   crm: '220 85% 50%',
   calendar: '262 78% 58%',
+  performance: '173 58% 42%',
   incentives: '38 92% 50%',
   wallet: '158 64% 40%',
   offers: '346 77% 49%',
@@ -167,6 +169,7 @@ const RAINBOW_CRM: ThemeConfig = {
   navSectionColors: {
     crm: '220 85% 55%',
     calendar: '262 78% 62%',
+    performance: '173 58% 45%',
     incentives: '38 92% 55%',
     wallet: '158 64% 45%',
     offers: '346 77% 55%',
