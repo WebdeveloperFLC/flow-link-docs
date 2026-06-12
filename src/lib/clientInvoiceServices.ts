@@ -197,9 +197,48 @@ export function normalizeInvoicePickedState(
     }
     nextPicked[canonicalId] = Math.max(nextPicked[canonicalId] ?? 0, qty);
     if (discounts[rawId]) nextDiscounts[canonicalId] = discounts[rawId]!;
+    else if (discounts[canonicalId]) nextDiscounts[canonicalId] = discounts[canonicalId]!;
+  }
+
+  for (const s of mergedServices) {
+    const d = getLineDiscount(s, discounts);
+    if (d.value > 0 || nextDiscounts[s.id]) {
+      nextDiscounts[s.id] = nextDiscounts[s.id] ?? d;
+    }
   }
 
   return { services: mergedServices, picked: nextPicked, discounts: nextDiscounts };
+}
+
+export function getLineDiscount(
+  service: BillableClientService,
+  discounts: Record<string, LineDiscountInput>,
+): LineDiscountInput {
+  if (discounts[service.id]) return discounts[service.id]!;
+  for (const [id, d] of Object.entries(discounts)) {
+    if (id === service.service_code || id.startsWith(service.id) || service.id.startsWith(id)) {
+      return d;
+    }
+  }
+  return { mode: "amount", value: 0 };
+}
+
+export function setLineDiscount(
+  service: BillableClientService,
+  discounts: Record<string, LineDiscountInput>,
+  next: LineDiscountInput,
+): Record<string, LineDiscountInput> {
+  const out = { ...discounts };
+  for (const key of Object.keys(out)) {
+    if (
+      key !== service.id &&
+      (key === service.service_code || key.startsWith(service.id) || service.id.startsWith(key))
+    ) {
+      delete out[key];
+    }
+  }
+  out[service.id] = next;
+  return out;
 }
 
 export function getPickedQty(
