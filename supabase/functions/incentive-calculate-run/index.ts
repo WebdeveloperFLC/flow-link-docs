@@ -131,14 +131,131 @@ function convert(amount: number, from: string, to: string, snap: Record<string, 
   return Math.round(((amount * rf) / rt) * 100) / 100;
 }
 
+// ---- scope matching (Phase 1+2) --------------------------------------------
+type ScopeJson = {
+  master_keys?: string[];
+  service_codes?: string[];
+  sub_categories?: string[];
+  exclude_master_keys?: string[];
+  country_codes?: string[];
+  country_tags?: string[];
+  institution_ids?: string[];
+  intakes?: string[];
+  program_names?: string[];
+};
+
+type LineDims = {
+  master_key?: string | null;
+  service_code?: string | null;
+  sub_category?: string | null;
+  country_code?: string | null;
+  country_tag?: string | null;
+  institution_id?: string | null;
+  intake?: string | null;
+  program_name?: string | null;
+  is_first_payment?: boolean;
+};
+
+function normScope(s: string | null | undefined): string {
+  return (s ?? "").trim().toLowerCase();
+}
+
+function resolveScopePreset(preset: string | null | undefined): ScopeJson {
+  switch (preset) {
+    case "allied_travel":
+      return { master_keys: ["allied_services", "travel_financial"] };
+    case "all_allied":
+      return { master_keys: ["allied_services"] };
+    case "all_travel":
+      return { master_keys: ["travel_financial"] };
+    case "core_only":
+      return { master_keys: ["coaching_services", "visa_immigration", "admission_services"] };
+    default:
+      return {
+        master_keys: [
+          "coaching_services", "visa_immigration", "admission_services", "allied_services", "travel_financial",
+        ],
+      };
+  }
+}
+
+function mergeScope(preset: string | null | undefined, json: ScopeJson | null | undefined): ScopeJson {
+  const base = resolveScopePreset(preset);
+  const extra = json ?? {};
+  return {
+    master_keys: extra.master_keys?.length ? extra.master_keys : base.master_keys,
+    service_codes: extra.service_codes,
+    sub_categories: extra.sub_categories,
+    exclude_master_keys: extra.exclude_master_keys,
+    country_codes: extra.country_codes,
+    country_tags: extra.country_tags,
+    institution_ids: extra.institution_ids,
+    intakes: extra.intakes,
+    program_names: extra.program_names,
+  };
+}
+
+function serviceCodeMatches(code: string | null | undefined, filter: string): boolean {
+  const c = normScope(code);
+  const f = normScope(filter);
+  if (!c || !f) return false;
+  return c === f || c.startsWith(f + "::") || c.split("::")[0] === f;
+}
+
+function matchesScope(scope: ScopeJson, dims: LineDims, requireFirst = false): boolean {
+  if (requireFirst && dims.is_first_payment === false) return false;
+  const mk = normScope(dims.master_key);
+  if (scope.exclude_master_keys?.some((x) => normScope(x) === mk)) return false;
+  if (scope.master_keys?.length && !scope.master_keys.some((x) => normScope(x) === mk)) return false;
+  if (scope.service_codes?.length && !scope.service_codes.some((f) => serviceCodeMatches(dims.service_code, f))) return false;
+  if (scope.sub_categories?.length && !scope.sub_categories.some((x) => normScope(x) === normScope(dims.sub_category))) return false;
+  if (scope.country_codes?.length && !scope.country_codes.some((x) => normScope(x) === normScope(dims.country_code))) return false;
+  if (scope.country_tags?.length && !scope.country_tags.some((x) => normScope(x) === normScope(dims.country_tag))) return false;
+  if (scope.institution_ids?.length && !scope.institution_ids.some((x) => normScope(x) === normScope(dims.institution_id))) return false;
+  if (scope.intakes?.length && !scope.intakes.some((x) => normScope(x) === normScope(dims.intake))) return false;
+  if (scope.program_names?.length && !scope.program_names.some((x) => normScope(x) === normScope(dims.program_name))) return false;
+  return true;
+}
+
+function matchesServiceFilter(filter: string | null | undefined, dims: LineDims): boolean {
+  const f = (filter ?? "").trim();
+  if (!f) return true;
+  if (normScope(dims.master_key) === normScope(f)) return true;
+  return serviceCodeMatches(dims.service_code, f);
+}
+
 // ---- slab application ------------------------------------------------------
 // Given a metric value (count or revenue in settlement ccy) and the slabs for
 // a source_type, compute earned amount in settlement currency.
 interface Slab {
-  id: string; source_type: string; service_filter: string | null;
+  id: string; source_type: string; service_filter: string | null; rule_id?: string | null;
   metric: string; rate_type: string;
   min_threshold: number; max_threshold: number | null; rate_value: number;
   sort_order: number;
+}
+
+interface IncentiveRule {
+  id: string; name: string; is_active: boolean;
+  scope_preset: string | null; scope_json: ScopeJson;
+  source_type: string; metric: string; rate_type: string; rate_value: number;
+  milestone: string | null; settlement_currency: string | null;
+}
+
+function slabGroupKey(s: Slab): string {
+  return `${s.source_type}|${(s.service_filter ?? "").trim()}`;
+}
+
+function applyRuleRate(rule: IncentiveRule, revenue: number, count: number): number {
+  switch (rule.rate_type) {
+    case "percent":
+      return Math.round((revenue * rule.rate_value) / 100 * 100) / 100;
+    case "flat":
+      return count > 0 ? rule.rate_value : 0;
+    case "per_unit":
+      return Math.round(count * rule.rate_value * 100) / 100;
+    default:
+      return 0;
+  }
 }
 
 function applySlabs(metricValue: number, units: number, slabs: Slab[]): { earned: number; slabId: string | null } {
@@ -246,11 +363,13 @@ Deno.serve(async (req: Request) => {
     const { start, end } = periodRange(period_key);
     const snap = await loadFxSnapshot(svc, period_key);
 
-    // slabs for this plan
+    // slabs + rules for this plan
     const { data: slabsRaw } = await svc.from("incentive_slabs").select("*").eq("plan_id", plan_id);
     const slabs = (slabsRaw ?? []) as Slab[];
-    const slabsBySource: Record<string, Slab[]> = {};
-    for (const s of slabs) (slabsBySource[s.source_type] ||= []).push(s);
+    const legacySlabs = slabs.filter((s) => !s.rule_id);
+
+    const { data: rulesRaw } = await svc.from("incentive_rules").select("*").eq("plan_id", plan_id).eq("is_active", true);
+    const rules = ((rulesRaw ?? []) as IncentiveRule[]).sort((a, b) => (a as any).sort_order - (b as any).sort_order);
 
     // targets for bonus (period + optional plan)
     const { data: targetsRaw } = await svc
@@ -279,12 +398,42 @@ Deno.serve(async (req: Request) => {
     }
     const clientIds = clientList.map((c) => c.id);
 
+    // client dimension enrichment (country, institution, intake, program)
+    const clientDims: Record<string, LineDims> = {};
+    if (clientIds.length) {
+      const [{ data: progs }, { data: commRows }] = await Promise.all([
+        svc.from("cf_client_programs").select("client_id, country_code, course_id").in("client_id", clientIds).eq("is_primary", true),
+        svc.from("upi_commission_students").select("client_id, institution_id, program_name, intake_term, intake_year").in("client_id", clientIds),
+      ]);
+      for (const cid of clientIds) clientDims[cid] = {};
+      for (const p of (progs ?? []) as any[]) {
+        clientDims[p.client_id] = { ...clientDims[p.client_id], country_code: p.country_code };
+      }
+      for (const u of (commRows ?? []) as any[]) {
+        const intake = [u.intake_term, u.intake_year].filter(Boolean).join("-");
+        clientDims[u.client_id] = {
+          ...clientDims[u.client_id],
+          institution_id: u.institution_id,
+          program_name: u.program_name,
+          intake: intake || null,
+        };
+      }
+    }
+
+    const serviceSubById: Record<string, string> = {};
+    const { data: svcLibRows } = await svc.from("service_library").select("id, service_category, sub_service, service");
+    for (const s of (svcLibRows ?? []) as any[]) {
+      if (s.id) serviceSubById[s.id] = s.sub_service;
+    }
+
     // ---- verified service/ancillary revenue from payments ----
-    // accumulate per counselor per source_type, in settlement currency
     type Bucket = { count: number; revenue: number; lines: any[] };
-    const acc: Record<string, Record<string, Bucket>> = {}; // counselor -> source -> bucket
-    const ensure = (cid: string, src: string): Bucket =>
-      ((acc[cid] ||= {})[src] ||= { count: 0, revenue: 0, lines: [] });
+    const slabAcc: Record<string, Record<string, Bucket>> = {}; // counselor -> slabGroupKey
+    const ruleAcc: Record<string, Record<string, Bucket>> = {}; // counselor -> rule_id
+    const ensureSlab = (cid: string, gk: string): Bucket =>
+      ((slabAcc[cid] ||= {})[gk] ||= { count: 0, revenue: 0, lines: [] });
+    const ensureRule = (cid: string, rid: string): Bucket =>
+      ((ruleAcc[cid] ||= {})[rid] ||= { count: 0, revenue: 0, lines: [] });
 
     if (clientIds.length) {
       const { data: pays } = await svc
@@ -300,13 +449,24 @@ Deno.serve(async (req: Request) => {
       const invoiceMap: Record<string, { amount: number; currency: string; line_items?: any[] }> = {};
       const walletDiscByInvoice: Record<string, number> = {};
       const serviceMasterByCode: Record<string, string> = {};
+      const hadPriorVerified = new Set<string>();
+      const seenFirstInPeriod = new Set<string>();
 
-      if (invoiceIds.length) {
-        const { data: svcRows } = await svc.from("service_library").select("id, service_category, service");
-        for (const s of (svcRows ?? []) as any[]) {
-          if (s.id) serviceMasterByCode[s.id] = s.service_category;
-          if (s.service) serviceMasterByCode[s.service] = s.service_category;
-        }
+      if (clientIds.length) {
+        const { data: priorRows } = await svc
+          .from("client_invoice_payments")
+          .select("client_id")
+          .in("client_id", clientIds)
+          .lt("paid_at", start)
+          .or("payment_status.eq.verified,payment_proof_status.eq.verified")
+          .is("archived_at", null)
+          .neq("is_refund", true);
+        for (const pr of (priorRows ?? []) as any[]) hadPriorVerified.add(pr.client_id);
+      }
+
+      for (const s of (svcLibRows ?? []) as any[]) {
+        if (s.id) serviceMasterByCode[s.id] = s.service_category;
+        if (s.service) serviceMasterByCode[s.service] = s.service_category;
       }
 
       if (useNet && invoiceIds.length) {
@@ -350,22 +510,54 @@ Deno.serve(async (req: Request) => {
         }
 
         let src = "service_revenue";
+        let dims: LineDims = { ...(clientDims[p.client_id] ?? {}) };
         if (p.invoice_id && invoiceMap[p.invoice_id]?.line_items?.length) {
           const firstLine = invoiceMap[p.invoice_id].line_items[0];
           const code = firstLine?.service_code ?? firstLine?.service_id;
-          const mk = firstLine?.master_key ?? (code ? serviceMasterByCode[code] : null);
+          const mk = firstLine?.master_key ?? (code ? serviceMasterByCode[code] ?? serviceMasterByCode[code.split("::")[0]] : null);
           src = classifyMasterKey(mk);
+          dims = {
+            ...dims,
+            master_key: mk,
+            service_code: code,
+            sub_category: code ? serviceSubById[code.split("::")[0]] ?? null : null,
+          };
         }
-        const b = ensure(cid, src);
-        b.count += 1;
-        b.revenue += inSettlement;
-        b.lines.push({
+        const isFirst = !hadPriorVerified.has(p.client_id) && !seenFirstInPeriod.has(p.client_id);
+        dims.is_first_payment = isFirst;
+        if (isFirst) seenFirstInPeriod.add(p.client_id);
+
+        const lineRec = {
           source_type: src, source_payment_id: p.id, source_invoice_id: p.invoice_id,
           client_id: p.client_id, base_amount: Number(p.amount), base_currency: p.currency ?? "INR",
           fx_rate_used: p.currency === "INR" ? 1 : snap[p.currency] ?? null,
           settlement_amount: inSettlement,
           gross_settlement: grossSettlement,
-        });
+          dimensions: dims,
+        };
+
+        const legacyGroups = new Set<string>();
+        for (const sl of legacySlabs.filter((s) => s.source_type === src)) {
+          if (matchesServiceFilter(sl.service_filter, dims)) legacyGroups.add(slabGroupKey(sl));
+        }
+        if (legacyGroups.size === 0) legacyGroups.add(`${src}|`);
+
+        for (const gk of legacyGroups) {
+          const b = ensureSlab(cid, gk);
+          b.count += 1;
+          b.revenue += inSettlement / legacyGroups.size;
+          b.lines.push(lineRec);
+        }
+
+        for (const rule of rules) {
+          if (rule.source_type !== src) continue;
+          const scope = mergeScope(rule.scope_preset, rule.scope_json ?? {});
+          if (!matchesScope(scope, dims, rule.milestone === "first_payment")) continue;
+          const rb = ensureRule(cid, rule.id);
+          rb.count += 1;
+          rb.revenue += inSettlement;
+          rb.lines.push({ ...lineRec, rule_id: rule.id });
+        }
       }
     }
 
@@ -373,36 +565,71 @@ Deno.serve(async (req: Request) => {
     {
       const { data: comm } = await svc
         .from("upi_commission_students")
-        .select("id, client_id, commission_amount, tuition_currency, commission_status, commission_paid_date, channel_type, partnership_route_id, aggregator_id")
+        .select("id, client_id, commission_amount, tuition_currency, commission_status, commission_paid_date, channel_type, partnership_route_id, aggregator_id, institution_id, program_name, intake_term, intake_year")
         .eq("commission_status", "paid")
         .gte("commission_paid_date", start).lt("commission_paid_date", end);
       for (const cm of (comm ?? []) as any[]) {
         const cid = cm.client_id ? clientToCounselor[cm.client_id] : null;
         if (!cid) continue;
-        const amt = convert(Number(cm.commission_amount ?? 0), cm.tuition_currency ?? "CAD", settlement, snap);
+        const ruleCcy = settlement;
+        const amt = convert(Number(cm.commission_amount ?? 0), cm.tuition_currency ?? "CAD", ruleCcy, snap);
         if (amt == null) continue;
         const ch = (cm.channel_type ?? "").toLowerCase();
         let src = "direct_visa_commission";
         if (ch === "indirect" || cm.aggregator_id) src = "b2b_admission_commission";
         else if (ch === "direct" || ch === "student_direct") src = "direct_visa_commission";
-        const b = ensure(cid, src);
-        b.count += 1;
-        b.revenue += amt;
-        b.lines.push({
+        const intake = [cm.intake_term, cm.intake_year].filter(Boolean).join("-");
+        const dims: LineDims = {
+          ...(clientDims[cm.client_id] ?? {}),
+          institution_id: cm.institution_id ?? clientDims[cm.client_id]?.institution_id,
+          program_name: cm.program_name ?? clientDims[cm.client_id]?.program_name,
+          intake: intake || clientDims[cm.client_id]?.intake,
+          master_key: "admission_services",
+        };
+        const lineRec = {
           source_type: src, source_commission_id: cm.id, client_id: cm.client_id,
           base_amount: Number(cm.commission_amount ?? 0), base_currency: cm.tuition_currency ?? "CAD",
           fx_rate_used: (cm.tuition_currency ?? "CAD") === "INR" ? 1 : snap[cm.tuition_currency ?? "CAD"] ?? null,
           settlement_amount: amt,
-        });
+          dimensions: dims,
+        };
+        const legacyGroups = new Set<string>();
+        for (const sl of legacySlabs.filter((s) => s.source_type === src)) {
+          if (matchesServiceFilter(sl.service_filter, dims)) legacyGroups.add(slabGroupKey(sl));
+        }
+        if (legacyGroups.size === 0) legacyGroups.add(`${src}|`);
+        for (const gk of legacyGroups) {
+          const b = ensureSlab(cid, gk);
+          b.count += 1;
+          b.revenue += amt / legacyGroups.size;
+          b.lines.push(lineRec);
+        }
+        for (const rule of rules) {
+          if (rule.source_type !== src) continue;
+          const scope = mergeScope(rule.scope_preset, rule.scope_json ?? {});
+          if (!matchesScope(scope, dims, rule.milestone === "commission_paid")) continue;
+          const rb = ensureRule(cid, rule.id);
+          rb.count += 1;
+          rb.revenue += amt;
+          rb.lines.push({ ...lineRec, rule_id: rule.id });
+        }
       }
     }
 
-    // ---- apply slabs + target bonus + discount penalty per counselor ----
+    // ---- apply legacy slabs + rules + target bonus + discount penalty ----
     const counselorGross: Record<string, number> = {};
     const counselorNet: Record<string, number> = {};
-    for (const cid of Object.keys(acc)) {
-      for (const src of Object.keys(acc[cid])) {
-        for (const ln of acc[cid][src].lines) {
+    const allCounselors = new Set<string>([...Object.keys(slabAcc), ...Object.keys(ruleAcc)]);
+
+    for (const cid of allCounselors) {
+      for (const gk of Object.keys(slabAcc[cid] ?? {})) {
+        for (const ln of slabAcc[cid][gk].lines) {
+          counselorGross[cid] = (counselorGross[cid] ?? 0) + Number(ln.gross_settlement ?? ln.settlement_amount ?? 0);
+          counselorNet[cid] = (counselorNet[cid] ?? 0) + Number(ln.settlement_amount ?? 0);
+        }
+      }
+      for (const rid of Object.keys(ruleAcc[cid] ?? {})) {
+        for (const ln of ruleAcc[cid][rid].lines) {
           counselorGross[cid] = (counselorGross[cid] ?? 0) + Number(ln.gross_settlement ?? ln.settlement_amount ?? 0);
           counselorNet[cid] = (counselorNet[cid] ?? 0) + Number(ln.settlement_amount ?? 0);
         }
@@ -410,27 +637,70 @@ Deno.serve(async (req: Request) => {
     }
 
     const perCounselor: Record<string, { total: number; lines: any[] }> = {};
-    for (const cid of Object.keys(acc)) {
+    for (const cid of allCounselors) {
       perCounselor[cid] = { total: 0, lines: [] };
       let subtotalBeforePenalty = 0;
-      for (const src of Object.keys(acc[cid])) {
-        const bucket = acc[cid][src];
-        const srcSlabs = slabsBySource[src] ?? [];
-        const { earned, slabId } = applySlabs(bucket.revenue, bucket.count, srcSlabs);
+
+      for (const gk of Object.keys(slabAcc[cid] ?? {})) {
+        const bucket = slabAcc[cid][gk];
+        const src = gk.split("|")[0];
+        const filter = gk.split("|").slice(1).join("|");
+        const groupSlabs = legacySlabs.filter((s) => s.source_type === src && (s.service_filter ?? "").trim() === filter);
+        const { earned, slabId } = applySlabs(bucket.revenue, bucket.count, groupSlabs);
         subtotalBeforePenalty += earned;
         for (const ln of bucket.lines) {
           perCounselor[cid].lines.push({
-            ...ln, slab_id: slabId,
+            ...ln, slab_id: slabId, rule_id: null,
             earned_amount: 0,
             settlement_currency: settlement,
           });
         }
-        perCounselor[cid].lines.push({
-          source_type: src, slab_id: slabId, client_id: null,
-          base_amount: bucket.revenue, base_currency: settlement, fx_rate_used: null,
-          earned_amount: 0, settlement_currency: settlement,
-          note: `Slab base on ${bucket.count} item(s), revenue ${bucket.revenue.toFixed(2)} ${settlement}`,
-        });
+        if (earned > 0) {
+          perCounselor[cid].lines.push({
+            source_type: src, slab_id: slabId, rule_id: null, client_id: null,
+            base_amount: bucket.revenue, base_currency: settlement, fx_rate_used: null,
+            earned_amount: earned, settlement_currency: settlement,
+            note: `Slab [${filter || "all"}] on ${bucket.count} item(s), revenue ${bucket.revenue.toFixed(2)}`,
+          });
+        }
+      }
+
+      for (const rule of rules) {
+        const bucket = ruleAcc[cid]?.[rule.id];
+        if (!bucket) continue;
+        const ruleCcy = rule.settlement_currency ?? settlement;
+        let earned = 0;
+        if (rule.rate_type === "slab") {
+          const ruleSlabs = slabs.filter((s) => s.rule_id === rule.id);
+          const rev = ruleCcy === settlement ? bucket.revenue : (convert(bucket.revenue, settlement, ruleCcy, snap) ?? bucket.revenue);
+          const res = applySlabs(rev, bucket.count, ruleSlabs);
+          earned = res.earned;
+          perCounselor[cid].lines.push({
+            source_type: rule.source_type, slab_id: res.slabId, rule_id: rule.id, client_id: null,
+            base_amount: rev, base_currency: ruleCcy, fx_rate_used: null,
+            earned_amount: earned, settlement_currency: ruleCcy,
+            note: `Rule "${rule.name}" slab`,
+          });
+        } else {
+          const rev = rule.metric.includes("count") || rule.metric === "enrolment_count"
+            ? bucket.count : bucket.revenue;
+          earned = applyRuleRate(rule, bucket.revenue, bucket.count);
+          if (ruleCcy !== settlement) {
+            earned = convert(earned, settlement, ruleCcy, snap) ?? earned;
+          }
+          perCounselor[cid].lines.push({
+            source_type: rule.source_type, slab_id: null, rule_id: rule.id, client_id: null,
+            base_amount: rev, base_currency: ruleCcy, fx_rate_used: null,
+            earned_amount: earned, settlement_currency: ruleCcy,
+            note: `Rule "${rule.name}" ${rule.rate_type}`,
+          });
+        }
+        subtotalBeforePenalty += ruleCcy === settlement ? earned : (convert(earned, ruleCcy, settlement, snap) ?? earned);
+        for (const ln of bucket.lines) {
+          perCounselor[cid].lines.push({
+            ...ln, slab_id: null, earned_amount: 0, settlement_currency: ruleCcy,
+          });
+        }
       }
 
       const gross = counselorGross[cid] ?? subtotalBeforePenalty;
@@ -511,6 +781,7 @@ Deno.serve(async (req: Request) => {
         rows.push({
           run_id: runId, counselor_id: cid,
           source_type: ln.source_type, slab_id: ln.slab_id ?? null,
+          rule_id: ln.rule_id ?? null,
           source_payment_id: ln.source_payment_id ?? null,
           source_invoice_id: ln.source_invoice_id ?? null,
           source_commission_id: ln.source_commission_id ?? null,

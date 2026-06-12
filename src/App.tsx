@@ -161,6 +161,8 @@ import WalletTopups from "@/pages/WalletTopups";
 import PeriodClose from "@/pages/PeriodClose";
 import IncentivePlans from "@/pages/IncentivePlans";
 import IncentiveFxRates from "@/pages/IncentiveFxRates";
+import IncentivePayoutDesk from "@/pages/IncentivePayoutDesk";
+import IncentiveRunDetail from "@/pages/IncentiveRunDetail";
 import AiHelpPage from "./ai-help/pages/AiHelpPage";
 import GuidesIndexPage from "./guides/pages/GuidesIndexPage";
 import GuideDetailPage from "./guides/pages/GuideDetailPage";
@@ -536,6 +538,22 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <IncentiveFxRates />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/incentives/payouts"
+                    element={
+                      <ProtectedRoute>
+                        <IncentivePayoutDesk />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/incentives/runs/:runId"
+                    element={
+                      <ProtectedRoute>
+                        <IncentiveRunDetail />
                       </ProtectedRoute>
                     }
                   />
