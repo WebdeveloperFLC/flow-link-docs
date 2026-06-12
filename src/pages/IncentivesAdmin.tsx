@@ -204,6 +204,7 @@ export default function IncentivesAdmin() {
                     <th className="py-2 pr-4">Locked</th>
                     <th className="py-2 pr-4 text-right">Total</th>
                     <th className="py-2 pr-4">Calculated</th>
+                    <th className="py-2 pr-4">Audit</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -214,6 +215,9 @@ export default function IncentivesAdmin() {
                       <td className="py-2 pr-4">{r.locked ? "🔒" : "—"}</td>
                       <td className="py-2 pr-4 text-right">{fmt(r.total_settlement, r.settlement_currency)}</td>
                       <td className="py-2 pr-4">{r.calculated_at ? new Date(r.calculated_at).toLocaleDateString() : "—"}</td>
+                      <td className="py-2 pr-4">
+                        <a href={`/incentives/runs/${r.id}`} className="text-primary text-xs underline">Line items</a>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

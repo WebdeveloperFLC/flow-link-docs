@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Settings2, Plus, Trash2 } from "lucide-react";
+import { IncentiveRulesTab, type IncentiveRule } from "@/incentives/components/IncentiveRulesTab";
 import {
   auditSlabGroups,
   nextSlabMin,
@@ -51,6 +52,7 @@ export default function IncentivePlans() {
   const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [slabs, setSlabs] = useState<Slab[]>([]);
   const [targets, setTargets] = useState<Target[]>([]);
+  const [rules, setRules] = useState<IncentiveRule[]>([]);
   const [profiles, setProfiles] = useState<{ id: string; full_name: string }[]>([]);
   const [activePlan, setActivePlan] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -78,17 +80,19 @@ export default function IncentivePlans() {
 
   async function loadAll() {
     setLoading(true);
-    const [pl, sl, tg, br, pr] = await Promise.all([
+    const [pl, sl, tg, br, pr, rl] = await Promise.all([
       supabase.from("incentive_plans").select("*").order("created_at", { ascending: false }),
       supabase.from("incentive_slabs").select("*").order("sort_order", { ascending: true }),
       supabase.from("incentive_targets").select("*").order("period_key", { ascending: false }),
       supabase.from("branches").select("id, name").order("name"),
       supabase.from("profiles").select("id, full_name").order("full_name"),
+      supabase.from("incentive_rules").select("*").order("sort_order", { ascending: true }),
     ]);
     const planRows = (pl.data ?? []) as Plan[];
     setPlans(planRows);
     setSlabs((sl.data ?? []) as Slab[]);
     setTargets((tg.data ?? []) as Target[]);
+    setRules((rl.data ?? []) as IncentiveRule[]);
     setBranches((br.data ?? []) as any[]);
     setProfiles((pr.data ?? []) as any[]);
     if (!activePlan && planRows.length) setActivePlan(planRows[0].id);
@@ -255,6 +259,7 @@ export default function IncentivePlans() {
         <Tabs defaultValue="plans">
           <TabsList>
             <TabsTrigger value="plans">Plans</TabsTrigger>
+            <TabsTrigger value="rules">Rules</TabsTrigger>
             <TabsTrigger value="slabs">Slabs</TabsTrigger>
             <TabsTrigger value="targets">Targets</TabsTrigger>
           </TabsList>
@@ -341,6 +346,21 @@ export default function IncentivePlans() {
             </Card>
           </TabsContent>
 
+          {/* ---------- RULES (Phase 1) ---------- */}
+          <TabsContent value="rules" className="space-y-4">
+            <div className="flex justify-end">
+              <select className="border rounded-md h-9 px-2 bg-background text-sm" value={activePlan} onChange={(e) => setActivePlan(e.target.value)}>
+                {plans.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+            <IncentiveRulesTab
+              activePlan={activePlan}
+              plans={plans.map((p) => ({ id: p.id, name: p.name }))}
+              rules={rules}
+              onReload={loadAll}
+            />
+          </TabsContent>
+
           {/* ---------- SLABS ---------- */}
           <TabsContent value="slabs" className="space-y-4">
             <Card className="p-5 space-y-3">
@@ -410,7 +430,7 @@ export default function IncentivePlans() {
                   <Input className="mt-1" value={newSlab.max_threshold} onChange={(e) => setNewSlab({ ...newSlab, max_threshold: e.target.value })} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="text-xs text-muted-foreground">Service filter (optional — separate chain per service)</label>
+                  <label className="text-xs text-muted-foreground">Service filter (legacy — use Rules tab for country/institution)</label>
                   <Input
                     className="mt-1"
                     value={newSlab.service_filter}
