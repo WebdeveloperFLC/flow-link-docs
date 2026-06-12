@@ -1,5 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Lock } from "lucide-react";
+import { toast } from "sonner";
 import type { ServiceSelection } from "@/components/leads/ServiceTabs";
 import type { ServiceCatalogueItem } from "@/lib/leads";
 import { removeStoredServiceCode } from "@/lib/service-library/serviceSelectionMatch";
@@ -17,11 +19,17 @@ export function SelectedServicesPanel({
   catalogue,
   labelByCode,
   onChange,
+  removalLocked = false,
+  removalLockMessage,
+  isAdmin = false,
 }: {
   value: ServiceSelection;
   catalogue: ServiceCatalogueItem[];
   labelByCode: Map<string, string>;
   onChange: (next: ServiceSelection) => void;
+  removalLocked?: boolean;
+  removalLockMessage?: string;
+  isAdmin?: boolean;
 }) {
   const entries = GROUPS.flatMap(({ key, label }) =>
     (value[key] ?? []).map((code) => ({
@@ -42,6 +50,23 @@ export function SelectedServicesPanel({
     });
   };
 
+  const tryRemove = (groupKey: keyof ServiceSelection, code: string, name: string) => {
+    if (!removalLocked) {
+      remove(groupKey, code);
+      return;
+    }
+    if (!isAdmin) {
+      toast.error(removalLockMessage ?? "Cannot remove services while the application is in progress.");
+      return;
+    }
+    const ok = window.confirm(
+      `Remove "${name}"?\n\nThis application is already in progress. Only use this for test files.`,
+    );
+    if (ok) remove(groupKey, code);
+  };
+
+  const canRemove = !removalLocked || isAdmin;
+
   return (
     <div className="rounded-lg border border-primary/25 bg-primary/5 p-3 space-y-2">
       <div>
@@ -49,8 +74,18 @@ export function SelectedServicesPanel({
           Currently selected
         </div>
         <p className="text-[11px] text-muted-foreground mt-0.5">
-          Uncheck to remove. Browse below by country to add more services.
+          {removalLocked && !isAdmin
+            ? "Services are locked while the application pipeline is in progress."
+            : removalLocked
+              ? "Admin only: uncheck to remove in-progress services (e.g. test files)."
+              : "Uncheck to remove. Browse below by country to add more services."}
         </p>
+        {removalLocked && removalLockMessage && (
+          <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 flex items-start gap-1">
+            <Lock className="size-3 shrink-0 mt-0.5" />
+            {removalLockMessage}
+          </p>
+        )}
       </div>
       <div className="space-y-1.5">
         {entries.map(({ key, groupLabel, code, name }) => (
@@ -60,13 +95,17 @@ export function SelectedServicesPanel({
           >
             <Checkbox
               checked
+              disabled={removalLocked && !isAdmin}
               className="mt-0.5"
               onCheckedChange={(checked) => {
-                if (!checked) remove(key, code);
+                if (!checked) tryRemove(key, code, name);
               }}
             />
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium leading-snug">{name}</div>
+              <div className="text-sm font-medium leading-snug flex items-center gap-1.5">
+                {name}
+                {removalLocked && !canRemove && <Lock className="size-3 text-muted-foreground shrink-0" />}
+              </div>
               <Badge variant="outline" className="mt-1 text-[10px] font-normal">
                 {groupLabel}
               </Badge>

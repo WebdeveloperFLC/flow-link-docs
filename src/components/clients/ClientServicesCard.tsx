@@ -11,6 +11,12 @@ import { useServiceLabelMap } from "@/lib/service-library/useServiceLabelMap";
 import { appendTimeline } from "@/lib/timeline";
 import { toast } from "sonner";
 import { Loader2, Pencil, Sparkles } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  isActiveApplicationInProgress,
+  serviceRemovalBlockedMessage,
+  type PipelineProgressSnapshot,
+} from "@/lib/clientServiceGuards";
 
 const EMPTY: ServiceSelection = {
   coaching_services: [],
@@ -39,6 +45,10 @@ const GROUP_LABELS: { key: keyof ServiceSelection; label: string }[] = [
   { key: "allied_services", label: "Allied" },
   { key: "travel_services", label: "Travel" },
 ];
+
+function totalServiceCount(sel: ServiceSelection): number {
+  return GROUP_LABELS.reduce((n, g) => n + (sel[g.key]?.length ?? 0), 0);
+}
 
 async function autoDraftInvoiceForServices(
   clientId: string,
@@ -128,23 +138,31 @@ async function autoDraftInvoiceForServices(
 }
 
 export function ClientServicesCard({ clientId, canEdit }: { clientId: string; canEdit: boolean }) {
+  const { isAdmin } = useAuth();
   const [selection, setSelection] = useState<ServiceSelection>(EMPTY);
   const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<ServiceSelection>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [pipelineProgress, setPipelineProgress] = useState<PipelineProgressSnapshot | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: c }, cat] = await Promise.all([
+    const [{ data: c }, { data: stage }, cat] = await Promise.all([
       supabase
         .from("clients")
         .select("coaching_services,visa_services,admission_services,allied_services,travel_financial_services")
         .eq("id", clientId)
         .maybeSingle(),
+      supabase
+        .from("vw_client_current_stage")
+        .select("pipeline_id, progress_percent, stage_order, stage_key")
+        .eq("client_id", clientId)
+        .maybeSingle(),
       fetchAllServiceCatalogue().catch(() => [] as ServiceCatalogueItem[]),
     ]);
+    setPipelineProgress((stage as PipelineProgressSnapshot) ?? null);
     setCatalogue(cat);
     setSelection({
       coaching_services: (c?.coaching_services as string[] | null) ?? [],
@@ -179,12 +197,48 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
     [selection],
   );
 
+  const removalLocked = isActiveApplicationInProgress(pipelineProgress);
+  const removalLockMessage = pipelineProgress
+    ? serviceRemovalBlockedMessage(pipelineProgress)
+    : undefined;
+
   const startEdit = () => {
     setDraft(selection);
     setOpen(true);
   };
 
+  const setDraftGuarded = (next: ServiceSelection) => {
+    if (
+      removalLocked &&
+      !isAdmin &&
+      totalServiceCount(next) < totalServiceCount(draft)
+    ) {
+      toast.error(removalLockMessage ?? "Cannot remove services while the application is in progress.");
+      return;
+    }
+    setDraft(next);
+  };
+
   const save = async () => {
+    if (
+      removalLocked &&
+      !isAdmin &&
+      totalServiceCount(draft) < totalServiceCount(selection)
+    ) {
+      toast.error(removalLockMessage ?? "Cannot remove services while the application is in progress.");
+      return;
+    }
+    if (
+      removalLocked &&
+      isAdmin &&
+      totalServiceCount(draft) < totalServiceCount(selection) &&
+      !window.confirm(
+        "Save service removals for a client whose application is already in progress?\n\nOnly continue if this is a test file.",
+      )
+    ) {
+      return;
+    }
+
     setSaving(true);
     try {
       const { error } = await supabase
@@ -295,12 +349,15 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
             value={draft}
             catalogue={catalogue}
             labelByCode={draftLabelMap}
-            onChange={setDraft}
+            onChange={setDraftGuarded}
+            removalLocked={removalLocked}
+            removalLockMessage={removalLockMessage}
+            isAdmin={isAdmin}
           />
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground pt-1">
             Add services
           </div>
-          <ServiceTabs value={draft} onChange={setDraft} visaLocked={false} />
+          <ServiceTabs value={draft} onChange={setDraftGuarded} visaLocked={false} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
             <Button onClick={save} disabled={saving}>

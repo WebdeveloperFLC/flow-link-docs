@@ -38,10 +38,13 @@ export function ClientStageCard({
   clientId,
   clientCountry,
   destinationCountry,
+  activeServiceLabel,
 }: {
   clientId: string;
   clientCountry?: string | null;
   destinationCountry?: string | null;
+  /** Active visa/service label — shown instead of generic pipeline name when set. */
+  activeServiceLabel?: string | null;
 }) {
   const { canUpload } = useAuth();
   const [current, setCurrent] = useState<CurrentStage | null>(null);
@@ -230,17 +233,31 @@ export function ClientStageCard({
 
   const currentIdx = stages.findIndex((s) => s.id === current.current_stage_id);
   const showRefusalActions = currentStageKey === "visa_refused" || currentStageKey === "decision_received";
+  const pipelineTitle = activeServiceLabel?.trim() || current.pipeline_name;
+  const pipelineSubtitle =
+    activeServiceLabel?.trim() &&
+    current.pipeline_name &&
+    activeServiceLabel.trim().toLowerCase() !== current.pipeline_name.trim().toLowerCase()
+      ? current.pipeline_name
+      : null;
 
   return (
     <>
       <Card className="p-4 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <Workflow className="size-4 text-muted-foreground" />
-            {current.pipeline_name}
-            <span className="text-xs font-normal text-muted-foreground">
-              · stage {current.stage_order ?? "?"} of {current.total_stages ?? stages.length} · {current.progress_percent ?? 0}%
-            </span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Workflow className="size-4 text-muted-foreground shrink-0" />
+              <span className="truncate">{pipelineTitle}</span>
+              <span className="text-xs font-normal text-muted-foreground shrink-0">
+                · stage {current.stage_order ?? "?"} of {current.total_stages ?? stages.length} · {current.progress_percent ?? 0}%
+              </span>
+            </div>
+            {pipelineSubtitle && (
+              <div className="text-[11px] text-muted-foreground mt-0.5 pl-6">
+                Workflow: {pipelineSubtitle}
+              </div>
+            )}
           </div>
           {canUpload && (
             <Select value={current.current_stage_id ?? undefined} onValueChange={onChangeStage} disabled={busy}>

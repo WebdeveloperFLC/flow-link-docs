@@ -1079,6 +1079,7 @@ const ClientDetail = () => {
             clientId={client.id}
             clientCountry={client.country}
             destinationCountry={serviceCtx.destinationCountry}
+            activeServiceLabel={serviceCtx.serviceLabel}
           />
           <ClientProfileCard
             clientId={client.id}
