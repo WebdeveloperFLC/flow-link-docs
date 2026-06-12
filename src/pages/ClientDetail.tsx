@@ -1097,7 +1097,7 @@ const ClientDetail = () => {
 
           <ClientOffersPanel clientId={client.id} />
 
-          <ClientPaymentsCard clientId={client.id} />
+          <ClientPaymentsCard clientId={client.id} activeServiceCode={serviceCtx.activeServiceCode} />
 
           <ClientAssessmentsCard clientId={client.id} />
 
