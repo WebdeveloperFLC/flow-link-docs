@@ -266,11 +266,27 @@ export function groupCatalogueItems(
 
 export function groupsWithSelection(
   groups: ServicePickerGroup[],
-  selectedCodes: Set<string>,
+  selection: {
+    coaching_services?: string[];
+    visa_services?: string[];
+    admission_services?: string[];
+    allied_services?: string[];
+    travel_services?: string[];
+  },
+  catalogue: ServicePickerCatalogueItem[],
+  getSelectionKey: (item: ServicePickerCatalogueItem) => keyof typeof selection,
+  isSelected: (
+    storedCodes: readonly string[],
+    item: ServicePickerCatalogueItem,
+    catalogue: ServicePickerCatalogueItem[],
+  ) => boolean,
 ): string[] {
   return groups
     .filter((group) =>
-      group.items.some((item) => selectedCodes.has(item.service_code || item.id)),
+      group.items.some((item) => {
+        const key = getSelectionKey(item);
+        return isSelected(selection[key] ?? [], item, catalogue);
+      }),
     )
     .map((group) => group.key);
 }
