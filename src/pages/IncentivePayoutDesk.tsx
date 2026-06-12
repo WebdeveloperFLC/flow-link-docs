@@ -7,7 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Banknote, CheckCircle } from "lucide-react";
+import { Banknote, CheckCircle, Download } from "lucide-react";
+import { downloadCsv, payoutsToCsv } from "@/incentives/lib/incentiveFinanceExport";
 
 interface PayoutRow {
   id: string;
@@ -20,6 +21,7 @@ interface PayoutRow {
   settlement_currency: string;
   status: string;
   paid_at: string | null;
+  accounting_ap_bill_id: string | null;
 }
 
 const fmt = (n: number, ccy: string) =>
@@ -31,8 +33,10 @@ export default function IncentivePayoutDesk() {
   const [rows, setRows] = useState<PayoutRow[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
   const [runId, setRunId] = useState("");
+  const [exportRunId, setExportRunId] = useState("");
   const [tdsPct, setTdsPct] = useState("10");
   const [busy, setBusy] = useState(false);
+  const [exportBusy, setExportBusy] = useState(false);
 
   async function load() {
     const [po, prof] = await Promise.all([
@@ -123,6 +127,64 @@ export default function IncentivePayoutDesk() {
     await load();
   }
 
+  async function setApBillId(id: string, apBillId: string) {
+    const { error } = await supabase
+      .from("incentive_payouts")
+      .update({ accounting_ap_bill_id: apBillId.trim() || null })
+      .eq("id", id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    await load();
+  }
+
+  async function exportCsv() {
+    setExportBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("fn_incentive_payout_export", {
+        _run_id: exportRunId.trim() || null,
+        _period_key: null,
+      });
+      if (error) throw error;
+      const exportRows = (data ?? []) as {
+        payout_id: string;
+        period_key: string;
+        counselor_name: string;
+        counselor_id: string;
+        gross_amount: number;
+        tds_amount: number;
+        net_amount: number;
+        settlement_currency: string;
+        status: string;
+      }[];
+      if (!exportRows.length) {
+        toast({ title: "Nothing to export" });
+        return;
+      }
+      const csv = payoutsToCsv(
+        exportRows.map((r) => ({
+          payout_id: r.payout_id,
+          period_key: r.period_key,
+          counselor_name: r.counselor_name,
+          counselor_id: r.counselor_id,
+          gross_amount: r.gross_amount,
+          tds_amount: r.tds_amount,
+          net_amount: r.net_amount,
+          settlement_currency: r.settlement_currency,
+          status: r.status,
+        })),
+      );
+      const suffix = exportRunId.trim() ? exportRunId.trim().slice(0, 8) : "all";
+      downloadCsv(`incentive-payouts-${suffix}.csv`, csv);
+      toast({ title: `Exported ${exportRows.length} row(s)` });
+    } catch (e: any) {
+      toast({ title: "Export failed", description: e.message, variant: "destructive" });
+    } finally {
+      setExportBusy(false);
+    }
+  }
+
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
@@ -148,6 +210,24 @@ export default function IncentivePayoutDesk() {
           </Button>
         </Card>
 
+        <Card className="p-5 space-y-3">
+          <h2 className="text-lg font-semibold">Finance export (CSV / AP)</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="md:col-span-2">
+              <label className="text-xs text-muted-foreground">Run ID (optional — blank exports all recent payouts)</label>
+              <Input className="mt-1" value={exportRunId} onChange={(e) => setExportRunId(e.target.value)} placeholder="uuid" />
+            </div>
+            <div className="flex items-end">
+              <Button variant="outline" className="w-full" disabled={exportBusy} onClick={exportCsv}>
+                <Download className="size-4 mr-1" /> {exportBusy ? "Exporting…" : "Download CSV"}
+              </Button>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            After uploading to your AP system, paste the bill ID on each payout row below.
+          </p>
+        </Card>
+
         <Card className="p-5">
           <h2 className="text-lg font-semibold mb-4">Payout queue</h2>
           {rows.length === 0 ? (
@@ -162,6 +242,7 @@ export default function IncentivePayoutDesk() {
                     <th className="py-2 pr-4 text-right">TDS</th>
                     <th className="py-2 pr-4 text-right">Net</th>
                     <th className="py-2 pr-4">Status</th>
+                    <th className="py-2 pr-4">AP bill ID</th>
                     <th className="py-2 pr-4">Actions</th>
                   </tr>
                 </thead>
@@ -173,6 +254,17 @@ export default function IncentivePayoutDesk() {
                       <td className="py-2 pr-4 text-right">{fmt(r.tds_amount, r.settlement_currency)}</td>
                       <td className="py-2 pr-4 text-right font-medium">{fmt(r.net_amount, r.settlement_currency)}</td>
                       <td className="py-2 pr-4">{r.status}</td>
+                      <td className="py-2 pr-4">
+                        <Input
+                          className="h-8 w-36 text-xs"
+                          defaultValue={r.accounting_ap_bill_id ?? ""}
+                          placeholder="AP ref"
+                          onBlur={(e) => {
+                            const v = e.target.value.trim();
+                            if (v !== (r.accounting_ap_bill_id ?? "")) setApBillId(r.id, v);
+                          }}
+                        />
+                      </td>
                       <td className="py-2 pr-4 flex flex-wrap gap-1">
                         {r.status === "pending" && (
                           <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, "approved")}>Approve</Button>

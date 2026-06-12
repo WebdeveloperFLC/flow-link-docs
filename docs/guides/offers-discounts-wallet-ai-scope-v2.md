@@ -4,9 +4,9 @@
 
 | Field | Value |
 |-------|-------|
-| **Version** | 2.0 |
-| **Date** | 9 June 2026 |
-| **Status** | Canonical scope — supersedes v1 (`offers-discounts-wallet-ai-scope.md`) |
+| **Version** | 2.1 |
+| **Date** | 9 June 2026 · updated June 2026 |
+| **Status** | Canonical scope — supersedes v1. **Staff guide:** [offers-wallet-staff-guide.md](./offers-wallet-staff-guide.md) |
 | **Sources** | Codebase audit + stakeholder review + [FutureLink_Offers_Discounts_Module_Claude.pdf](./FutureLink_Offers_Discounts_Module_Claude.pdf) |
 | **Classification** | Confidential — Internal |
 
@@ -38,6 +38,7 @@
 20. [Risks & mitigations](#20-risks--mitigations)
 21. [Sign-off](#21-sign-off)
 22. [Technical appendix — built inventory](#22-technical-appendix--built-inventory)
+23. [Advanced features backlog (June 2026)](#23-advanced-features-backlog-june-2026)
 
 ---
 
@@ -99,7 +100,8 @@ Verified against live schema, frontend pages, and RPCs (June 2026).
 | **Give discount** | `/incentives/give-discount` — `wallet_allocations`; DB trigger enforces cap & balance |
 | **Wallet ledger** | `wallet_ledger` — movements with `balance_after` |
 | **Wallet top-ups** | `/incentives/wallet-topups` — manual create/top-up; `wallet_topup_rules` schema |
-| **Incentive engine** | `incentive_plans`, `incentive_targets`, `incentive_runs`, `incentive_payouts`, slabs |
+| **Incentive engine** | `incentive_plans`, rules, runs, payouts — **Phases 0–4 deployed** |
+| **Incentive UI** | Plans, Admin, FX, Competitions, Simulator, Payout desk, Run audit |
 | **Period close** | `/incentives/period-close` — `fn_close_due_wallets`, `fn_reinstate_wallet`, achievement via `fn_counselor_period_achievement` |
 | **Eligibility & analytics RPCs** | `offers_eligible_for_client`, `user_can_see_offer`, `log_offer_event` |
 | **Family & referrals** | `client_family_members`, `referrals`, portal refer |
@@ -113,13 +115,14 @@ Verified against live schema, frontend pages, and RPCs (June 2026).
 | Capability | Exists | Missing |
 |------------|--------|---------|
 | Achievement-linked wallet sizing | Achievement % at Period Close; `wallet_topup_rules` | Auto-size/top-up from rules; manual only today |
-| Proportional unlock | Balance, caps, allocations | `unlocked_balance` gating not enforced |
-| Base × multiplier | Incentive slabs, `bonus_trigger_pct` | Not applied to discount wallet |
-| Strategic wallets | `scope_country_tag`, `scoped` budget kind | Ring-fence enforcement at allocation |
-| Performance Score | Targets, runs, conversion data | Weighted score for multiplier |
-| Offer lifecycle | `is_active` flag | Draft → Approved → Active workflow |
-| Wallet ↔ offer link | FK on `wallet_allocations` | Full UI + funding-aware deduction |
-| Analytics | ROI & counsellor stats | Offer Influence Revenue, Wallet Impact Revenue |
+| Proportional unlock | Balance, caps, allocations; achievement on My Incentives | Hard block at Give Discount when over unlock 🔲 |
+| Base × multiplier | Incentive slabs, `bonus_trigger_pct`; target suggest RPC | Not applied to discount wallet sizing 🔲 |
+| Strategic wallets | `scope_country_tag`, `scoped` budget kind | Ring-fence enforcement at allocation 🔲 |
+| Performance Score | Targets, runs, leaderboard on My Incentives | Weighted score for multiplier 🔲 |
+| Offer lifecycle | `is_active` flag | Draft → Approved → Active workflow 🔲 |
+| Wallet ↔ offer link | FK on `wallet_allocations`; net revenue in incentive engine | Funding-aware deduction UI 🔲 |
+| Analytics | ROI & counsellor stats | Offer Influence Revenue, Wallet Impact Revenue 🔲 |
+| Cross-module UX | My Incentives shows wallet + cash | Unified Performance Hub navigation 🔲 |
 
 ### 2.3 Not yet built 🔲
 
@@ -156,6 +159,28 @@ wallet_topup_rules ───────────────┘             
 ```
 
 **Headline for developers:** Wallet, ledger, allocations, caps, targets/runs, and achievement calculation **already work**. Performance-linked behaviour is largely **wiring**: connect `wallet_topup_rules` + Period Close achievement to sizing/unlocking, enforce scope tags, add lifecycle + funding + analytics.
+
+### 2.6 Incentive Platform integration ✅ (Phases 0–4 — June 2026)
+
+The **cash incentive platform** is now deployed and wired to this module:
+
+| Connection | How it works |
+|------------|--------------|
+| **Net revenue** | Incentive engine subtracts `wallet_allocations` pro-rata from verified payments |
+| **Discount penalty** | Deep discounts (5–15%+) reduce cash incentive multiplier |
+| **Qualifying events** | Verified payments feed `incentive_qualifying_events` — shared period_key |
+| **Targets** | `incentive_targets` shared concept; achievement via `fn_counselor_period_achievement` |
+| **My Incentives** | Single counselor view: wallet balance + cash earned + leaderboards |
+| **Competitions** | Branch contests use same qualifying event stream |
+| **Payouts** | Separate cash ledger (`incentive_payouts`) — not wallet |
+
+**Staff guides:**
+
+- [Incentives Module Guide](./incentives-module-guide.md) — cash incentives operations
+- [Offers & Wallet Staff Guide](./offers-wallet-staff-guide.md) — this module's operations
+- [Incentive Platform Spec v1.1](./incentive-platform-spec-v1.md) — technical reference
+
+**Still to wire 🔲:** Wallet Impact Revenue metric · funding-aware deduction · unified Performance Hub UX · offer suggestions showing unlocked wallet balance.
 
 ### 2.5 Naming — do not confuse ⚠️
 
@@ -493,17 +518,20 @@ Counsellors **pick from pre-approved types** — they do **not** use AI to inven
 
 ### 16.8 Mapping to existing screens
 
-| Screen | Today | Enhancement |
-|--------|-------|-------------|
-| Give Discount | Apply discount | Show unlocked vs potential; block beyond unlock; funding-aware |
-| Wallet Top-ups | Manual create | Base wallet + multiplier bands; auto-fund |
-| Period Close | Close + rollover | Performance Score → next wallet |
-| My Incentives | Targets view | Achievement %, unlock, projection |
-| Incentive Plans | Payout structure | Hold multiplier bands, score weights |
+| Screen | Today (June 2026) | Enhancement |
+|--------|-------------------|-------------|
+| Give Discount | Apply discount; allocation + ledger | Show unlocked vs potential; block beyond unlock; funding-aware |
+| Wallet Top-ups | Manual create | Base wallet + multiplier bands; auto-fund from rules |
+| Period Close | Close + rollover; achievement RPC | Performance Score → next wallet multiplier |
+| My Incentives | ✅ Wallet + achievement + cash earned + leaderboards + revenue mix | Wallet Impact Revenue, ROI vs team |
+| Incentive Plans | ✅ Full plan/rule/slab/target builder + suggest | Hold multiplier bands, score weights |
+| Incentives Admin | ✅ Preview/calculate/lock + run audit | Period command center integration |
 
-### 16.9 Counsellor wallet dashboard 🔲
+### 16.9 Counsellor wallet dashboard 🟡
 
-Target · achievement % · Performance Score · potential/unlocked/spent/remaining · Wallet Impact Revenue · ROI vs team · next unlock threshold · strategic wallet balances · leaderboard rank.
+**Partially live on My Incentives:** target · achievement % · potential/unlocked/spent · cash earned · leaderboard rank · revenue mix.
+
+**Still 🔲:** Performance Score breakdown · Wallet Impact Revenue · ROI vs team · strategic wallet balances · next unlock threshold UI.
 
 ---
 
@@ -588,12 +616,14 @@ Wallet-bounded · creation-restricted · cap-respecting · approval-aware · exp
 | **1 Foundation** | Offer library, types, codes, roles, caps | Create & apply offers | ✅ mostly done |
 | **2 Channels** | WA, SMS, email, segments, approvals | Reach customers | 🔲 |
 | **3 Automation** | Auto-rules, festival calendar, journeys, family/Gen-Z | Hands-free promos | 🟡 birthday |
-| **4 Wallet** | Performance wallet, unlock, leaderboards, restricted builder | Earn-to-give | 🟡 schema |
+| **4 Wallet** | Performance wallet, unlock, leaderboards | Earn-to-give | 🟡 schema + My Incentives partial |
+| **4b Incentives** | Cash incentive platform Phases 0–4 | Runs, rules, payouts, contests | ✅ deployed — see [incentives-module-guide.md](./incentives-module-guide.md) |
 | **5 Intelligence** | Influence revenue, A/B, attribution, social | Data-driven ROI | 🔲 |
 | **6 AI assistive** | Suggestions, drafts, safe auto-send, AI Studio | MarCom + counsellor assist | 🔲 |
 | **7 AI autonomous** | Predictive scoring, optimal depth, self-tuning | Mature AI | 🔲 |
+| **8 UX Hub** | Unified Performance navigation | One module for incentives + wallet + offers | 🔲 |
 
-**Developer priority (immediate):** Wire `wallet_topup_rules` + achievement % → wallet size/unlock (§2.4).
+**Developer priority (immediate):** Wire `wallet_topup_rules` + achievement % → wallet size/unlock (§2.4) · funding source on offers · Promotion request workflow.
 
 ---
 
@@ -645,7 +675,7 @@ Wallet-bounded · creation-restricted · cap-respecting · approval-aware · exp
 
 ## 22. Technical appendix — built inventory
 
-*Codebase audit — 9 June 2026*
+*Codebase audit — updated June 2026*
 
 ### UI routes
 
@@ -657,7 +687,14 @@ Wallet-bounded · creation-restricted · cap-respecting · approval-aware · exp
 | `/incentives/give-discount` | GiveDiscount.tsx | ✅ |
 | `/incentives/wallet-topups` | WalletTopups.tsx | ✅ |
 | `/incentives/period-close` | PeriodClose.tsx | ✅ |
-| `/incentives` | MyIncentives.tsx | ✅ |
+| `/incentives` | MyIncentives.tsx | ✅ wallet + cash + leaderboards |
+| `/incentives/plans` | IncentivePlans.tsx | ✅ |
+| `/incentives/admin` | IncentivesAdmin.tsx | ✅ |
+| `/incentives/fx-rates` | IncentiveFxRates.tsx | ✅ |
+| `/incentives/competitions` | IncentiveCompetitions.tsx | ✅ |
+| `/incentives/simulator` | IncentiveSimulator.tsx | ✅ |
+| `/incentives/payouts` | IncentivePayoutDesk.tsx | ✅ |
+| `/incentives/runs/:runId` | IncentiveRunDetail.tsx | ✅ |
 | Client → Offers tab | ClientOffersPanel.tsx | ✅ |
 | Invoice offer apply | ClientInvoicesPanel.tsx | ✅ |
 | `/offers-ai-studio` | — | 🔲 |
@@ -683,11 +720,17 @@ Wallet-bounded · creation-restricted · cap-respecting · approval-aware · exp
 | `fn_close_due_wallets()` | ✅ |
 | `fn_reinstate_wallet()` | ✅ |
 | `fn_redeem_offer_on_invoice` | ✅ |
+| `fn_suggest_incentive_targets` | ✅ Phase 4 |
+| `fn_incentive_payout_export` | ✅ Phase 4 |
+| `fn_incentive_dimension_leaderboard` | ✅ Phase 3 |
 
 ### Related documents
 
 | Document | Purpose |
 |----------|---------|
+| [offers-wallet-staff-guide.md](./offers-wallet-staff-guide.md) | **Staff operations** — offers + wallet |
+| [incentives-module-guide.md](./incentives-module-guide.md) | **Staff operations** — cash incentives |
+| [incentive-platform-spec-v1.md](./incentive-platform-spec-v1.md) | Incentive technical reference v1.1 |
 | [offers-discounts-wallet-ai-scope.md](./offers-discounts-wallet-ai-scope.md) | v1 scope (superseded) |
 | [FutureLink_Offers_Discounts_Module_Claude.pdf](./FutureLink_Offers_Discounts_Module_Claude.pdf) | Stakeholder narrative source |
 | [offers-discounts-wallet-ai-scope-v2.html](./offers-discounts-wallet-ai-scope-v2.html) | Print-friendly HTML |
@@ -701,12 +744,73 @@ node scripts/md-to-print-html.mjs docs/guides/offers-discounts-wallet-ai-scope-v
 
 ---
 
+## 23. Advanced features backlog (June 2026)
+
+Prioritized list of **not-yet-built** capabilities across offers, wallet, and cross-module integration. Staff summary in [offers-wallet-staff-guide.md §12](./offers-wallet-staff-guide.md#12-advanced-features-backlog-june-2026).
+
+### P1 — High impact, wiring mostly exists
+
+| # | Feature | Module | Notes |
+|---|---------|--------|-------|
+| A1 | Auto wallet sizing from `wallet_topup_rules` | Wallet | Schema ✅; connect Period Close achievement |
+| A2 | Enforce unlocked balance at Give Discount | Wallet | Show unlocked vs potential; hard block |
+| A3 | Funding source on offers (FL / University / Joint) | Offers | University offers must not debit counselor wallet |
+| A4 | Promotion request workflow | Offers | Field → MarCom queue with margin view |
+| A5 | Wallet-aware offer suggestions on client/lead | Offers + Wallet | L0 suggest only; show unlocked ₹ |
+
+### P2 — Operational maturity
+
+| # | Feature | Module | Notes |
+|---|---------|--------|-------|
+| B1 | Offer lifecycle (draft → approved → active) | Offers | Version history |
+| B2 | Corporate promotions calendar | Offers | Tie to festival / intake seasons |
+| B3 | Base × performance multiplier for wallet | Wallet | Bands from last-period achievement |
+| B4 | Performance Score (weighted metrics) | Wallet | ROI guard — don't reward discount-only behavior |
+| B5 | Omni-channel distribution (WA, SMS, email) | Offers | DSH copy partial |
+| B6 | Manager approval queue for deep discounts | Offers | Depth matrix §13.3 |
+| B7 | Restricted offer builder enforcement | Offers | Pre-approved types only for counselors |
+
+### P3 — Analytics & segments
+
+| # | Feature | Module | Notes |
+|---|---------|--------|-------|
+| C1 | Offer Influence Revenue | Offers | Direct + assisted + multi-service |
+| C2 | Wallet Impact Revenue | Wallet | Size wallet on discount-driven revenue |
+| C3 | Segment library UI | Offers | Gen-Z, family, lapsed, cold pool |
+| C4 | Unique per-person coupon codes | Offers | Fraud guards |
+| C5 | Strategic / scoped wallets | Wallet | Ring-fence by country/service |
+| C6 | Branch pooled wallets | Wallet | Team competition |
+
+### P4 — AI & automation (defer until P1–P2 stable)
+
+| # | Feature | Module | Notes |
+|---|---------|--------|-------|
+| D1 | AI Offer Studio (`/offers-ai-studio`) | Offers | MarCom/Admin only |
+| D2 | Auto-send safe triggers (birthday ✅ partial) | Offers | L2 after L0/L1 trusted |
+| D3 | Automation journeys (win-back, cross-sell) | Offers | §15 |
+| D4 | Predictive propensity / optimal depth | AI | Phase 7 |
+| D5 | Self-optimising campaigns | AI | Phase 7 |
+
+### P5 — Unified UX (Performance Hub)
+
+| # | Feature | Notes |
+|---|---------|-------|
+| E1 | Single sidebar: Performance | Replace Incentives + Wallet + Offers groups |
+| E2 | Period command center | Wallet close + incentive run + offer ROI one screen |
+| E3 | Client promotions strip | Offers + wallet headroom + apply in-context |
+| E4 | Counselor mobile-friendly Give Discount | Optional |
+
+**Recommended build order:** A1 → A2 → A3 → A5 → B1 → E1 (UX can run parallel once A1–A3 scoped).
+
+---
+
 ## Document history
 
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 9 Jun 2026 | Initial scope (Cursor) |
 | 2.0 | 9 Jun 2026 | Merged with Claude PDF; canonical spec |
+| 2.1 | Jun 2026 | Incentive Phases 0–4 integration; §23 advanced backlog; staff guides linked |
 
 ---
 

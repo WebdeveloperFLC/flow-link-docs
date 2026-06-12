@@ -77,26 +77,60 @@ function periodRange(period_key: string): { start: string; end: string } {
   throw new Error(`Unrecognized period_key: ${period_key}`);
 }
 
-// ---- load effective FX snapshot (base + buffer → rate_to_inr) ----------------
-async function loadFxSnapshot(svc: Svc, period_key: string): Promise<Record<string, number>> {
+function fxPurposePriority(purpose: string | null | undefined, preferred: string): number {
+  const p = (purpose ?? "general").toLowerCase();
+  if (p === preferred) return 0;
+  if (p === "general") return 1;
+  return 2;
+}
+
+function effectiveFxFromRow(r: {
+  base_rate_to_inr?: number | null;
+  rate_to_inr?: number | null;
+  buffer_fixed?: number | null;
+  buffer_pct?: number | null;
+}): number {
+  const base = Number(r.base_rate_to_inr ?? r.rate_to_inr ?? 0);
+  let eff = base;
+  if (Number(r.buffer_pct ?? 0) > 0) {
+    eff = base * (1 + Number(r.buffer_pct) / 100);
+  } else {
+    eff = base + Number(r.buffer_fixed ?? 2);
+  }
+  return Math.round(eff * 10000) / 10000;
+}
+
+// ---- load effective FX snapshot (purpose-specific, fall back to general) ----
+async function loadFxSnapshot(
+  svc: Svc,
+  period_key: string,
+  purpose = "incentive_settlement",
+): Promise<Record<string, number>> {
   const { data, error } = await svc
     .from("fx_rates")
-    .select("currency, rate_to_inr, base_rate_to_inr, buffer_fixed, buffer_pct, period_key")
+    .select("currency, rate_to_inr, base_rate_to_inr, buffer_fixed, buffer_pct, period_key, rate_purpose")
     .lte("period_key", period_key)
+    .or(`rate_purpose.eq.${purpose},rate_purpose.eq.general,rate_purpose.is.null`)
     .order("period_key", { ascending: false });
   if (error) throw error;
-  const snap: Record<string, number> = { INR: 1.0 };
+  const byCur: Record<string, any> = {};
   for (const r of (data ?? []) as any[]) {
     const cur = String(r.currency ?? "").toUpperCase();
-    if (!cur || cur in snap) continue;
-    const base = Number(r.base_rate_to_inr ?? r.rate_to_inr ?? 0);
-    let eff = base;
-    if (Number(r.buffer_pct ?? 0) > 0) {
-      eff = base * (1 + Number(r.buffer_pct) / 100);
-    } else {
-      eff = base + Number(r.buffer_fixed ?? 2);
+    if (!cur) continue;
+    const existing = byCur[cur];
+    if (!existing) {
+      byCur[cur] = r;
+      continue;
     }
-    snap[cur] = Math.round(eff * 10000) / 10000;
+    const rp = fxPurposePriority(r.rate_purpose, purpose);
+    const ep = fxPurposePriority(existing.rate_purpose, purpose);
+    if (rp < ep || (rp === ep && String(r.period_key) > String(existing.period_key))) {
+      byCur[cur] = r;
+    }
+  }
+  const snap: Record<string, number> = { INR: 1.0 };
+  for (const [cur, r] of Object.entries(byCur)) {
+    snap[cur] = effectiveFxFromRow(r);
   }
   return snap;
 }
@@ -331,6 +365,18 @@ Deno.serve(async (req: Request) => {
     const useNet = (plan.revenue_basis ?? "net") === "net";
     const period_type = (body.period_type ?? plan.period_type) as string;
 
+    // Role-scoped plans: only counselors with matching app role earn
+    let roleEligible: Set<string> | null = null;
+    if (plan.scope_type === "role" && plan.role_key) {
+      const { data: roleRows } = await svc
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", plan.role_key);
+      roleEligible = new Set((roleRows ?? []).map((r: { user_id: string }) => r.user_id));
+    }
+    const counselorInPlan = (cid: string | null | undefined): boolean =>
+      !!cid && (!roleEligible || roleEligible.has(cid));
+
     // --- LOCK path: snapshot plan version + freeze run ---
     if (action === "lock") {
       const snap = await loadFxSnapshot(svc, period_key);
@@ -394,7 +440,7 @@ Deno.serve(async (req: Request) => {
     const clientToCounselor: Record<string, string> = {};
     for (const c of clientList) {
       const cid = resolveCounselor(c);
-      if (cid) clientToCounselor[c.id] = cid;
+      if (counselorInPlan(cid)) clientToCounselor[c.id] = cid!;
     }
     const clientIds = clientList.map((c) => c.id);
 

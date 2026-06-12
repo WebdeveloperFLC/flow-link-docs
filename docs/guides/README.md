@@ -38,20 +38,22 @@ Guides
 
 ### Additional guides (technical / module)
 
-| Guide | File | Category |
-|---|---|---|
-| Institutions Module | [institutions-module.md](./institutions-module.md) | Institutions |
-| WhatsApp Meta setup | [whatsapp-meta-team-setup.md](./whatsapp-meta-team-setup.md) | Integrations |
+| Guide | File | Category | In-app |
+|---|---|---|---|
+| Institutions Module | [institutions-module.md](./institutions-module.md) | Institutions | ✅ |
+| **Incentives Module (staff)** | [incentives-module-guide.md](./incentives-module-guide.md) | Product / Finance | ✅ `/guides/incentives-module` |
+| Incentive Platform Spec v1.1 | [incentive-platform-spec-v1.md](./incentive-platform-spec-v1.md) | Product / Finance | ✅ `/guides/incentive-platform-spec` |
+| **Offers & Wallet (staff)** | [offers-wallet-staff-guide.md](./offers-wallet-staff-guide.md) | Product / MarCom | ✅ `/guides/offers-wallet-staff` |
+| Offers & Discounts Scope v2.1 | [offers-discounts-wallet-ai-scope-v2.md](./offers-discounts-wallet-ai-scope-v2.md) | Product / MarCom | ✅ `/guides/offers-discounts-wallet-scope` |
+| WhatsApp Meta setup | [whatsapp-meta-team-setup.md](./whatsapp-meta-team-setup.md) | Integrations | ✅ |
 | WhatsApp Phase 1 (technical) | [whatsapp-phase1-meta-setup.md](./whatsapp-phase1-meta-setup.md) | — (repo only) |
-| Offers & Discounts Module (scope v2 — **canonical**) | [offers-discounts-wallet-ai-scope-v2.md](./offers-discounts-wallet-ai-scope-v2.md) | Product / MarCom |
-| **Incentive Platform Spec (draft — pending approval)** | [incentive-platform-spec-v1.md](./incentive-platform-spec-v1.md) | Product / Finance · **In-app:** `/guides/incentive-platform-spec` |
-| Offers scope v1 (archived) | [offers-discounts-wallet-ai-scope.md](./offers-discounts-wallet-ai-scope.md) | Product / MarCom |
-| Offers scope (Claude PDF) | [FutureLink_Offers_Discounts_Module_Claude.pdf](./FutureLink_Offers_Discounts_Module_Claude.pdf) | Product / MarCom |
-| **Sprint 0 Readiness Report** | [SPRINT_0_READINESS_REPORT.md](./SPRINT_0_READINESS_REPORT.md) | Engineering |
-| **Sprint 1 Complete** | [SPRINT_1_COMPLETE.md](./SPRINT_1_COMPLETE.md) | Engineering |
-| **Sprint 2 Complete** | [SPRINT_2_COMPLETE.md](./SPRINT_2_COMPLETE.md) | Engineering |
-| **Sprint 5 Complete** | [SPRINT_5_COMPLETE.md](./SPRINT_5_COMPLETE.md) | Engineering |
-| Schema manifest (wallet/incentive) | [OFFERS_WALLET_INCENTIVE_MANIFEST.md](../supabase/schema-export/OFFERS_WALLET_INCENTIVE_MANIFEST.md) | Engineering |
+| Offers scope v1 (archived) | [offers-discounts-wallet-ai-scope.md](./offers-discounts-wallet-ai-scope.md) | Product / MarCom | — |
+| Offers scope (Claude PDF) | [FutureLink_Offers_Discounts_Module_Claude.pdf](./FutureLink_Offers_Discounts_Module_Claude.pdf) | Product / MarCom | — |
+| **Sprint 0 Readiness Report** | [SPRINT_0_READINESS_REPORT.md](./SPRINT_0_READINESS_REPORT.md) | Engineering | — |
+| **Sprint 1 Complete** | [SPRINT_1_COMPLETE.md](./SPRINT_1_COMPLETE.md) | Engineering | — |
+| **Sprint 2 Complete** | [SPRINT_2_COMPLETE.md](./SPRINT_2_COMPLETE.md) | Engineering | — |
+| **Sprint 5 Complete** | [SPRINT_5_COMPLETE.md](./SPRINT_5_COMPLETE.md) | Engineering | — |
+| Schema manifest (wallet/incentive) | [OFFERS_WALLET_INCENTIVE_MANIFEST.md](../supabase/schema-export/OFFERS_WALLET_INCENTIVE_MANIFEST.md) | Engineering | — |
 
 ## Adding a guide
 

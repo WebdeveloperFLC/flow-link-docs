@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Settings2, Plus, Trash2 } from "lucide-react";
+import { Settings2, Plus, Trash2, Sparkles } from "lucide-react";
+import { priorPeriodKey } from "@/incentives/lib/incentiveFinanceExport";
 import { IncentiveRulesTab, type IncentiveRule } from "@/incentives/components/IncentiveRulesTab";
 import {
   auditSlabGroups,
@@ -20,6 +21,7 @@ const SOURCE_TYPES = ["service_revenue", "ancillary", "direct_visa_commission", 
 const RATE_TYPES = ["flat", "per_unit", "percent", "slab"];
 const METRICS = ["count", "gross_revenue", "net_revenue", "commission_received"];
 const CURRENCIES = ["INR", "CAD", "USD", "GBP", "AUD"];
+const ROLE_KEYS = ["counselor", "telecaller", "documentation", "admin", "viewer"];
 
 type PeriodType = "monthly" | "quarterly" | "half_yearly" | "yearly";
 type SourceType = "service_revenue" | "ancillary" | "direct_visa_commission" | "b2b_admission_commission";
@@ -65,6 +67,7 @@ export default function IncentivePlans() {
     revenue_basis: string;
     scope_type: string;
     branch_id: string;
+    role_key: string;
   }>({
     name: "",
     period_type: "monthly",
@@ -72,11 +75,15 @@ export default function IncentivePlans() {
     revenue_basis: "net",
     scope_type: "global",
     branch_id: "",
+    role_key: "counselor",
   });
   const [newSlab, setNewSlab] = useState<{ source_type: SourceType; metric: Metric; rate_type: RateType; min_threshold: string; max_threshold: string; rate_value: string; service_filter: string }>({ source_type: "service_revenue", metric: "net_revenue", rate_type: "percent", min_threshold: "0", max_threshold: "", rate_value: "5", service_filter: "" });
   const [slabMinTouched, setSlabMinTouched] = useState(false);
   const [addingSlab, setAddingSlab] = useState(false);
   const [newTarget, setNewTarget] = useState<{ counselor_id: string; period_type: PeriodType; period_key: string; target_metric: Metric; target_value: string; target_currency: string; bonus_rate_type: "" | "flat" | "percent"; bonus_value: string; bonus_trigger_pct: string }>({ counselor_id: "", period_type: "monthly", period_key: "", target_metric: "net_revenue", target_value: "0", target_currency: "INR", bonus_rate_type: "", bonus_value: "", bonus_trigger_pct: "100" });
+  const [suggestGrowth, setSuggestGrowth] = useState("10");
+  const [suggestSourcePeriod, setSuggestSourcePeriod] = useState("");
+  const [suggesting, setSuggesting] = useState(false);
 
   async function loadAll() {
     setLoading(true);
@@ -111,7 +118,8 @@ export default function IncentivePlans() {
       settlement_currency: newPlan.settlement_currency,
       revenue_basis: newPlan.revenue_basis,
       scope_type: newPlan.scope_type,
-      branch_id: newPlan.branch_id.trim() || null,
+      branch_id: newPlan.scope_type === "branch" ? (newPlan.branch_id.trim() || null) : null,
+      role_key: newPlan.scope_type === "role" ? (newPlan.role_key || null) : null,
     }]);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Plan created" });
@@ -122,6 +130,7 @@ export default function IncentivePlans() {
       revenue_basis: "net",
       scope_type: "global",
       branch_id: "",
+      role_key: "counselor",
     });
     await loadAll();
   }
@@ -248,6 +257,61 @@ export default function IncentivePlans() {
     await loadAll();
   }
 
+  async function suggestTargetsFromPrior() {
+    const targetPeriod = newTarget.period_key.trim();
+    if (!targetPeriod) {
+      toast({ title: "Enter target period key first", variant: "destructive" });
+      return;
+    }
+    const sourcePeriod = suggestSourcePeriod.trim() || priorPeriodKey(targetPeriod);
+    if (!sourcePeriod) {
+      toast({ title: "Invalid period key", variant: "destructive" });
+      return;
+    }
+    setSuggesting(true);
+    try {
+      const growth = Number(suggestGrowth) || 10;
+      const { data, error } = await supabase.rpc("fn_suggest_incentive_targets", {
+        _source_period_key: sourcePeriod,
+        _growth_pct: growth,
+        _plan_id: activePlan || null,
+      });
+      if (error) throw error;
+      const rows = (data ?? []) as {
+        counselor_id: string;
+        suggested_target: number;
+        target_currency: string;
+      }[];
+      if (!rows.length) {
+        toast({ title: "No prior revenue", description: `No qualifying events in ${sourcePeriod}.` });
+        return;
+      }
+      const inserts = rows.map((r) => ({
+        plan_id: activePlan || null,
+        counselor_id: r.counselor_id,
+        period_type: newTarget.period_type,
+        period_key: targetPeriod,
+        target_metric: newTarget.target_metric,
+        target_value: r.suggested_target,
+        target_currency: r.target_currency ?? newTarget.target_currency,
+        bonus_rate_type: newTarget.bonus_rate_type || null,
+        bonus_value: newTarget.bonus_value.trim() === "" ? null : Number(newTarget.bonus_value),
+        bonus_trigger_pct: Number(newTarget.bonus_trigger_pct) || 100,
+      }));
+      const { error: insErr } = await supabase.from("incentive_targets").insert(inserts);
+      if (insErr) throw insErr;
+      toast({
+        title: `Suggested ${inserts.length} target(s)`,
+        description: `${sourcePeriod} + ${growth}% → ${targetPeriod}`,
+      });
+      await loadAll();
+    } catch (e: any) {
+      toast({ title: "Suggest failed", description: e.message, variant: "destructive" });
+    } finally {
+      setSuggesting(false);
+    }
+  }
+
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
@@ -297,6 +361,7 @@ export default function IncentivePlans() {
                   <select className={sel} value={newPlan.scope_type} onChange={(e) => setNewPlan({ ...newPlan, scope_type: e.target.value })}>
                     <option value="global">Organization-wide</option>
                     <option value="branch">Branch-specific</option>
+                    <option value="role">Role-specific</option>
                   </select>
                 </div>
                 {newPlan.scope_type === "branch" && (
@@ -306,6 +371,16 @@ export default function IncentivePlans() {
                       <option value="">Select branch…</option>
                       {branches.map((b) => (
                         <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {newPlan.scope_type === "role" && (
+                  <div className="md:col-span-2">
+                    <label className="text-xs text-muted-foreground">Role (app_role)</label>
+                    <select className={sel} value={newPlan.role_key} onChange={(e) => setNewPlan({ ...newPlan, role_key: e.target.value })}>
+                      {ROLE_KEYS.map((r) => (
+                        <option key={r} value={r}>{r}</option>
                       ))}
                     </select>
                   </div>
@@ -329,7 +404,11 @@ export default function IncentivePlans() {
                         <tr key={p.id} className="border-b last:border-0">
                           <td className="py-2 pr-4">{p.name}</td>
                           <td className="py-2 pr-4">{p.period_type}</td>
-                          <td className="py-2 pr-4">{p.scope_type ?? "global"}{p.branch_id ? ` · ${branches.find((b) => b.id === p.branch_id)?.name ?? "branch"}` : ""}</td>
+                          <td className="py-2 pr-4">
+                            {p.scope_type ?? "global"}
+                            {p.branch_id ? ` · ${branches.find((b) => b.id === p.branch_id)?.name ?? "branch"}` : ""}
+                            {p.role_key ? ` · ${p.role_key}` : ""}
+                          </td>
                           <td className="py-2 pr-4">{p.settlement_currency}</td>
                           <td className="py-2 pr-4">{p.revenue_basis}</td>
                           <td className="py-2 pr-4">
@@ -494,6 +573,37 @@ export default function IncentivePlans() {
 
           {/* ---------- TARGETS ---------- */}
           <TabsContent value="targets" className="space-y-4">
+            <Card className="p-5 space-y-3">
+              <h2 className="text-lg font-semibold">Auto-suggest from prior period</h2>
+              <p className="text-sm text-muted-foreground">
+                Uses qualifying event totals from a prior month and applies growth % to bulk-create targets for the plan selected on Slabs/Rules tabs.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground">Target period (same as below)</label>
+                  <Input
+                    className="mt-1"
+                    value={newTarget.period_key}
+                    onChange={(e) => setNewTarget({ ...newTarget, period_key: e.target.value })}
+                    placeholder="2026-06"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Source period (blank = prior month)</label>
+                  <Input className="mt-1" value={suggestSourcePeriod} onChange={(e) => setSuggestSourcePeriod(e.target.value)} placeholder="2026-05" />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Growth %</label>
+                  <Input className="mt-1" value={suggestGrowth} onChange={(e) => setSuggestGrowth(e.target.value)} />
+                </div>
+                <div className="flex items-end">
+                  <Button variant="secondary" className="w-full" disabled={suggesting} onClick={suggestTargetsFromPrior}>
+                    <Sparkles className="size-4 mr-1" /> {suggesting ? "Suggesting…" : "Suggest targets"}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
             <Card className="p-5 space-y-3">
               <h2 className="text-lg font-semibold">Set target</h2>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
