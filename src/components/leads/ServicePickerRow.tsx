@@ -14,7 +14,7 @@ import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
 import { classifyCoachingVariant } from "@/lib/service-library/serviceNavClassification";
 
 const FEE_CELL =
-  "text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap min-w-0 overflow-hidden text-ellipsis";
+  "text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap shrink-0 pt-0.5";
 
 export function ServiceFeeColumnsHeader({ feeCurrency }: { feeCurrency: FeeCurrency }) {
   return (
@@ -80,14 +80,15 @@ export function ServicePickerRow({
         checked={checked}
         onCheckedChange={onToggle}
         disabled={disabled}
-        className="shrink-0"
+        className="shrink-0 mt-0.5"
       />
-      <div className="min-w-0 overflow-hidden">
+      <div className="min-w-0">
         <div
           className={cn(
-            "text-sm flex items-center gap-1.5 min-w-0",
+            "text-sm flex items-start gap-1.5 min-w-0",
             checked ? "font-semibold text-foreground" : "font-medium",
           )}
+          title={item.service_name}
         >
           {slUrl ? (
             <Link
@@ -95,13 +96,13 @@ export function ServicePickerRow({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="truncate text-primary hover:underline inline-flex items-center gap-1 min-w-0 max-w-full"
+              className="text-primary hover:underline inline-flex items-start gap-1 min-w-0"
             >
-              <span className="truncate">{item.service_name}</span>
-              <ExternalLink className="size-3 shrink-0 opacity-60" />
+              <span className="line-clamp-2 break-words leading-snug">{item.service_name}</span>
+              <ExternalLink className="size-3 shrink-0 opacity-60 mt-0.5" />
             </Link>
           ) : (
-            <span className="truncate">{item.service_name}</span>
+            <span className="line-clamp-2 break-words leading-snug">{item.service_name}</span>
           )}
           {hasNote && (
             <Popover open={openNote === item.id} onOpenChange={(o) => onOpenNote(o ? item.id : null)}>

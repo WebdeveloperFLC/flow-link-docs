@@ -36,8 +36,7 @@ import { useMasterLabels } from "@/lib/masters";
 import { openClientDocument } from "@/lib/documentPreview";
 import { processToPdf } from "@/lib/processFile";
 import { buildPreservedDocumentName, sanitizeName, sanitizeOriginalStem } from "@/lib/constants";
-import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegDataUrl } from "@/lib/extractFirstPageText";
-import { mergeExtractedFields } from "@/lib/extractedFields";
+import { runDocumentFieldExtraction } from "@/lib/runDocumentFieldExtraction";
 
 function isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[]): boolean {
   if (pageCount < 3 || segments.length !== 1) return false;
@@ -339,6 +338,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         });
         if (upErr) { toast.error(upErr.message); continue; }
 
+        const docVersion = collisions + 1;
         const { data: insRow, error: insErr } = await supabase.from("client_documents").insert({
           client_id: clientId,
           document_type: docType,
@@ -347,6 +347,8 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           storage_path: path,
           mime_type: processed.type || "application/pdf",
           size_bytes: processed.size,
+          version: docVersion,
+          status: "processed",
           section_id: targetSectionId,
           section_order: baseOrder + (n + 1) * 10,
         }).select().single();
@@ -372,67 +374,22 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         // are filtered to ONLY this section's allowed fields so an Identity
         // upload can never silently fill, say, Finance numbers.
         const insertedId = (insRow as { id: string } | null)?.id;
-        (async () => {
-          try {
-            const isPdfDoc = processed.type === "application/pdf" || processed.name.toLowerCase().endsWith(".pdf");
-            const isImage = processed.type.startsWith("image/");
-            const snippet = isPdfDoc ? await extractFirstPageText(processed, 28000, 8) : "";
-            const imageDataUrls: string[] = isPdfDoc
-              ? await renderPdfPagesToJpegDataUrls(processed, 6)
-              : isImage
-                ? [await imageFileToJpegDataUrl(processed)].filter(Boolean)
-                : [];
-            if (insertedId) {
-              const { data } = await supabase.functions.invoke("extract-document-data", {
-                body: {
-                  document_id: insertedId,
-                  document_type: effectiveType,
-                  custom_type: docType === "Other" ? (customType ?? null) : null,
-                  file_name: processed.name,
-                  snippet,
-                  image_data_urls: imageDataUrls,
-                },
-              });
-              const rawFields = (data?.fields ?? {}) as Record<string, string | number | null>;
-              const scoped = filterExtractedForSection(section.key, rawFields);
-              if (Object.keys(scoped).length > 0) {
-                const { written } = await mergeExtractedFields(
-                  clientId,
-                  insertedId,
-                  processed.name,
-                  scoped,
-                  effectiveType,
-                  docType === "Other" ? (customType ?? null) : null,
-                );
-                if (written.length > 0) {
-                  toast.success(`Extracted ${written.length} field${written.length === 1 ? "" : "s"} into ${section.label}`);
-                }
-              }
+        if (insertedId) {
+          void runDocumentFieldExtraction({
+            clientId,
+            documentId: insertedId,
+            file: processed,
+            documentType: effectiveType,
+            customType: docType === "Other" ? (customType ?? null) : null,
+            fileName: processed.name,
+            sectionKey: section.key,
+            onFieldsWritten: () => onChanged(),
+          }).then(({ written }) => {
+            if (written > 0) {
+              toast.success(`Extracted ${written} field${written === 1 ? "" : "s"} into ${section.label}`);
             }
-            // Authenticity verification (never blocks the UX).
-            if (insertedId) {
-              const pageImages: string[] = isPdfDoc
-                ? await renderPdfPagesToJpegDataUrls(processed, 4)
-                : isImage
-                  ? [await imageFileToJpegDataUrl(processed)].filter(Boolean)
-                  : [];
-              const embeddedText = isPdfDoc ? await extractFirstPageText(processed, 12000, 4) : "";
-              if (pageImages.length > 0 || embeddedText) {
-                await supabase.functions.invoke("verify-document", {
-                  body: {
-                    document_id: insertedId,
-                    doc_type: effectiveType,
-                    page_image_data_urls: pageImages,
-                    embedded_text: embeddedText,
-                    ocr_text: "",
-                  },
-                });
-              }
-            }
-          } catch (e) {
-            console.warn("section extract/verify failed:", e);
-          }
-        })();
+          });
+        }
       }
       if (n > 0) toast.success(`Uploaded ${n} document${n === 1 ? "" : "s"}`);
       onChanged();
