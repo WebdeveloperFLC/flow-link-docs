@@ -164,6 +164,7 @@ import IncentiveFxRates from "@/pages/IncentiveFxRates";
 import IncentivePayoutDesk from "@/pages/IncentivePayoutDesk";
 import IncentiveRunDetail from "@/pages/IncentiveRunDetail";
 import IncentiveCompetitions from "@/pages/IncentiveCompetitions";
+import IncentiveSimulator from "@/pages/IncentiveSimulator";
 import AiHelpPage from "./ai-help/pages/AiHelpPage";
 import GuidesIndexPage from "./guides/pages/GuidesIndexPage";
 import GuideDetailPage from "./guides/pages/GuideDetailPage";
@@ -547,6 +548,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <IncentiveCompetitions />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/incentives/simulator"
+                    element={
+                      <ProtectedRoute>
+                        <IncentiveSimulator />
                       </ProtectedRoute>
                     }
                   />

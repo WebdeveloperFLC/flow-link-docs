@@ -58,6 +58,8 @@ import {
   CalendarClock,
   DollarSign,
   Banknote,
+  Trophy,
+  FlaskConical,
 } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -132,6 +134,7 @@ const incentivesNav: NavItem[] = [
   { to: "/incentives/plans", icon: Settings2, label: "Incentive Plans", adminOnly: true },
   { to: "/incentives/fx-rates", icon: DollarSign, label: "FX Rates", adminOnly: true },
   { to: "/incentives/competitions", icon: Trophy, label: "Competitions", adminOnly: true },
+  { to: "/incentives/simulator", icon: FlaskConical, label: "Simulator", adminOnly: true },
   { to: "/incentives/payouts", icon: Banknote, label: "Payout Desk", adminOnly: true },
 ];
 
