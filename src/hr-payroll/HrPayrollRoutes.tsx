@@ -3,6 +3,7 @@ import { HrPayrollShell } from "./components/HrPayrollLayout";
 import HrDashboardPage from "./pages/HrDashboardPage";
 import HrEssPage from "./pages/HrEssPage";
 import HrEmp360Page from "./pages/HrEmp360Page";
+import HrEmp360Redirect from "./pages/HrEmp360Redirect";
 import HrEmployeesPage from "./pages/HrEmployeesPage";
 import HrShiftsPage from "./pages/HrShiftsPage";
 import HrTrainingPage from "./pages/HrTrainingPage";
@@ -25,6 +26,7 @@ export default function HrPayrollRoutes() {
       <Route element={<HrPayrollShell />}>
         <Route index element={<HrDashboardPage />} />
         <Route path="me" element={<HrEssPage />} />
+        <Route path="employee" element={<HrEmp360Redirect />} />
         <Route path="employee/:id" element={<HrEmp360Page />} />
         <Route path="employees" element={<HrEmployeesPage />} />
         <Route path="shifts" element={<HrShiftsPage />} />

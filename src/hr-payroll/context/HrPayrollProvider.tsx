@@ -20,6 +20,7 @@ import {
   type HrScreenKey,
 } from "../lib/constants";
 import type { HrPerms, HrRolePermissionRow, PayrollCycleRow } from "../lib/types";
+import { defaultPermsForRole, defaultScreensForRole } from "../lib/defaultAccess";
 
 type HrAccessContextValue = {
   orgId: string;
@@ -34,6 +35,7 @@ type HrAccessContextValue = {
   toast: string | null;
   fire: (msg: string) => void;
   dbReady: boolean;
+  permissionsLoading: boolean;
   permissions: HrRolePermissionRow[];
   refreshPermissions: () => void;
   updatePerm: (role: HrRole, perm: HrPerm, val: boolean) => Promise<void>;
@@ -71,14 +73,21 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
     window.setTimeout(() => setToast(null), 2600);
   }, []);
 
-  const { data: permissions = [], isSuccess: dbReady } = useQuery({
+  const {
+    data: permissions = [],
+    isSuccess: dbReady,
+    isLoading: permissionsLoading,
+  } = useQuery({
     queryKey: ["hr-role-permissions", HR_ORG_ID],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("role_permissions" as never)
         .select("*")
         .eq("org_id", HR_ORG_ID);
-      if (error) throw error;
+      if (error) {
+        console.warn("[HR] role_permissions:", error.message);
+        return [] as HrRolePermissionRow[];
+      }
       return (data ?? []) as HrRolePermissionRow[];
     },
     retry: false,
@@ -107,7 +116,7 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
 
   const { data: cycle = null } = useQuery({
     queryKey: ["hr-payroll-cycle", HR_ORG_ID],
-    enabled: dbReady,
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payroll_cycles" as never)
@@ -124,7 +133,7 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
 
   const { data: pendingCounts = {} } = useQuery({
     queryKey: ["hr-pending-counts", HR_ORG_ID],
-    enabled: dbReady,
+    enabled: !!user?.id,
     queryFn: async () => {
       const tables = [
         ["leave", "leave_requests"],
@@ -151,8 +160,16 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
     [permissions, role],
   );
 
-  const perms = useMemo(() => rowToPerms(roleRow), [roleRow]);
-  const screens = useMemo(() => rowToScreens(roleRow), [roleRow]);
+  const useFallbackAccess = permissions.length === 0 || !roleRow;
+
+  const perms = useMemo(
+    () => (useFallbackAccess ? defaultPermsForRole(role) : rowToPerms(roleRow)),
+    [useFallbackAccess, role, roleRow],
+  );
+  const screens = useMemo(
+    () => (useFallbackAccess ? defaultScreensForRole(role) : rowToScreens(roleRow)),
+    [useFallbackAccess, role, roleRow],
+  );
 
   const can = useCallback((p: HrPerm) => !!perms[p], [perms]);
   const canSee = useCallback((s: HrScreenKey) => !!screens[s], [screens]);
@@ -223,6 +240,7 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
     toast,
     fire,
     dbReady,
+    permissionsLoading,
     permissions,
     refreshPermissions,
     updatePerm,

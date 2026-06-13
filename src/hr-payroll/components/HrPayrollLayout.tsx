@@ -10,13 +10,13 @@ import {
 import { HR_NAV, screenKeyFromPath } from "../lib/nav";
 import { HR_ROLE_LIST, HrPayrollProvider, useHrAccess } from "../context/HrPayrollProvider";
 
-function firstAllowedScreen(canSee: (s: HrScreenKey) => boolean): string {
+function firstAllowedScreen(canSee: (s: HrScreenKey) => boolean): string | null {
   for (const g of HR_NAV) {
     for (const it of g.items) {
       if (canSee(it.k)) return HR_SCREEN_ROUTES[it.k];
     }
   }
-  return "/hr/me";
+  return null;
 }
 
 export function HrPayrollLayout() {
@@ -31,13 +31,27 @@ export function HrPayrollLayout() {
     pendingCounts,
     toast,
     dbReady,
+    permissionsLoading,
   } = useHrAccess();
 
   const viewKey = screenKeyFromPath(location.pathname);
   const title = HR_SCREEN_TITLES[viewKey] ?? "HR Payroll";
 
+  if (permissionsLoading) {
+    return (
+      <div data-hr-payroll className="app" style={{ padding: 48, textAlign: "center" }}>
+        <div className="serif" style={{ fontSize: 18, fontWeight: 600 }}>
+          Loading HR module…
+        </div>
+      </div>
+    );
+  }
+
   if (!canSee(viewKey)) {
-    return <Navigate to={firstAllowedScreen(canSee)} replace />;
+    const fallback = firstAllowedScreen(canSee);
+    if (fallback && fallback !== location.pathname) {
+      return <Navigate to={fallback} replace />;
+    }
   }
 
   const permList = HR_PERM_LIST.filter((p) => can(p));
