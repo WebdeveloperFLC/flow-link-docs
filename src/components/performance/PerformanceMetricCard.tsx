@@ -22,8 +22,8 @@ export function PerformanceMetricCard({
 }: PerformanceMetricCardProps) {
   const m = PERFORMANCE_MODULE[module];
   return (
-    <Card className={cn("p-5 border-l-4", m.border, m.bg, className)}>
-      <p className={cn("text-xs font-semibold uppercase tracking-wide", m.text)}>{label}</p>
+    <Card className={cn("p-5 border-l-4 ph-surface-card", m.card, m.border, className)}>
+      <p className={cn("text-xs font-semibold uppercase tracking-wide", m.labelClass, m.text)}>{label}</p>
       <div className="text-3xl font-semibold mt-2 tabular-nums">{value}</div>
       {detail && <div className="text-sm text-muted-foreground mt-2">{detail}</div>}
       {footer && <div className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border/60">{footer}</div>}

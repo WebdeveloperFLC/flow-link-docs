@@ -140,7 +140,7 @@ export const DEFAULT_THEME: ThemeConfig = {
   borderRadius: 'medium',
   buttonStyle: 'filled',
   buttonRadius: 'medium',
-  mode: 'light',
+  mode: 'system',
   cardStyle: 'solid',
   navActiveStyle: 'pill',
 };
@@ -392,6 +392,13 @@ export function ensureFontLoaded(family: ThemeConfig['fontFamily']): void {
   document.head.appendChild(link);
 }
 
+export function resolveThemeModeDark(mode: ThemeConfig['mode']): boolean {
+  if (typeof window === 'undefined') return mode === 'dark';
+  if (mode === 'dark') return true;
+  if (mode === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
 export function applyTheme(config: ThemeConfig): void {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
@@ -479,13 +486,13 @@ export function applyTheme(config: ThemeConfig): void {
   document.body.style.fontFamily = fontStack;
   document.body.style.fontSize = fontSizeMap[config.fontSize];
 
-  if (config.mode === 'dark') {
+  const isDark = resolveThemeModeDark(config.mode);
+  if (isDark) {
     root.classList.add('dark');
-  } else if (config.mode === 'light') {
-    root.classList.remove('dark');
+    root.setAttribute('data-theme', 'dark');
   } else {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    root.classList.toggle('dark', prefersDark);
+    root.classList.remove('dark');
+    root.setAttribute('data-theme', 'light');
   }
 
   const densityMap = { compact: '0.5rem', comfortable: '1rem', spacious: '1.5rem' } as const;

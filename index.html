@@ -23,6 +23,26 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem("fl-theme-v2");
+          var mode = "system";
+          if (raw) mode = JSON.parse(raw).mode || "system";
+          var dark =
+            mode === "dark" ||
+            (mode !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var el = document.documentElement;
+          if (dark) {
+            el.classList.add("dark");
+            el.setAttribute("data-theme", "dark");
+          } else {
+            el.classList.remove("dark");
+            el.setAttribute("data-theme", "light");
+          }
+        } catch (e) {}
+      })();
+    </script>
 </head>
 
   <body>

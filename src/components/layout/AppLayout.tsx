@@ -75,6 +75,9 @@ import { useCan } from "@/accounting/hooks/usePermission";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { ThemeCustomizer } from "@/components/theme/ThemeCustomizer";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { resolveThemeModeDark } from "@/lib/themeStore";
+import { isPerformanceHubPath } from "@/lib/performanceHubTokens";
+import { PerformanceHubContextBar } from "@/components/performance/PerformanceHubContextBar";
 import type { NavSectionKey } from "@/lib/themeStore";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AiHelpDrawer } from "@/ai-help/components/AiHelpDrawer";
@@ -261,6 +264,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { theme } = useTheme();
   const [hiddenOpen, setHiddenOpen] = useState(false);
   const location = useLocation();
+  const isPerformanceHub = isPerformanceHubPath(location.pathname);
   const sidebarMode = theme.sidebarMode;
   const iconsOnly = sidebarMode === "icons-only";
   const isHidden = sidebarMode === "hidden";
@@ -497,9 +501,20 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
 
         <main
           key={typeof window !== "undefined" ? window.location.pathname : "main"}
-          className={cn("flex-1 overflow-auto page-transition", theme.colorfulMode && "gradient-subtle")}
+          className={cn("flex-1 overflow-auto page-transition", theme.colorfulMode && !isPerformanceHub && "gradient-subtle")}
         >
-          {children}
+          {isPerformanceHub ? (
+            <div
+              data-performance-hub
+              data-theme={resolveThemeModeDark(theme.mode) ? "dark" : "light"}
+              className="min-h-full flex flex-col"
+            >
+              <PerformanceHubContextBar />
+              <div className="flex-1">{children}</div>
+            </div>
+          ) : (
+            children
+          )}
         </main>
         {/* Global enterprise topbar — always visible, top-right */}
         <Topbar />

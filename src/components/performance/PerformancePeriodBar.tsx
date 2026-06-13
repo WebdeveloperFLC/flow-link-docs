@@ -15,7 +15,7 @@ export function PerformancePeriodBar({ className, showBranch = true, compact = f
   return (
     <div
       className={cn(
-        "flex flex-wrap items-end gap-3 rounded-lg border bg-muted/20 px-3 py-2",
+        "flex flex-wrap items-end gap-3 rounded-lg border ph-period-bar px-3 py-2",
         compact && "py-1.5",
         className,
       )}
