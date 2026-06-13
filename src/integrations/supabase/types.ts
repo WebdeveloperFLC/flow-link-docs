@@ -17037,6 +17037,7 @@ export const Constants = {
         "commission_admin",
         "administrator",
         "manager",
+        "director",
       ],
       assessment_invite_status: ["pending", "registered", "expired", "revoked"],
       assessment_lead_source: [

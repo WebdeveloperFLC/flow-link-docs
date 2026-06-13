@@ -11,13 +11,17 @@ import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformancePeriodMetrics } from "@/hooks/usePerformancePeriodMetrics";
 import { usePerformanceTeamRows } from "@/hooks/usePerformanceTeamRows";
 import { formatInr } from "@/lib/performanceHubTheme";
+import { DIRECTOR_READ_ONLY_TOAST } from "@/lib/performanceDirectorReadOnly";
 import { AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function PerformanceExecutive() {
   const { isAdmin, hasRole, loading: authLoading } = useAuth();
   const { period, branchLabel } = usePerformancePeriod();
-  const readOnly = !isAdmin && hasRole(["viewer"]);
-  const canView = isAdmin || hasRole(["viewer"]);
+  const isDirectorOnly =
+    hasRole("director") && !isAdmin && !hasRole(["manager", "administrator"]);
+  const readOnly = isDirectorOnly || (!isAdmin && hasRole(["viewer"]));
+  const canView = isAdmin || hasRole(["viewer", "director"]);
 
   const metrics = usePerformancePeriodMetrics(period, branchLabel);
   const { rows: teamRows, loading: teamLoading } = usePerformanceTeamRows(period, branchLabel);
@@ -53,13 +57,11 @@ export default function PerformanceExecutive() {
   if (!canView) return <Navigate to="/performance" replace />;
 
   const alerts = [
-    !readOnly &&
-      !metrics.runLocked && {
-        msg: `Run not locked for ${period}${metrics.cashIncentiveDue > 0 ? " — preview exists" : ""}`,
-        to: "/incentives/admin",
-      },
-    !readOnly &&
-      metrics.payoutCount === 0 &&
+    !metrics.runLocked && {
+      msg: `Run not locked for ${period}${metrics.cashIncentiveDue > 0 ? " — preview exists" : ""}`,
+      to: "/incentives/admin",
+    },
+    metrics.payoutCount === 0 &&
       metrics.runLocked && {
         msg: "Run locked — generate payouts",
         to: "/incentives/payouts",
@@ -79,7 +81,11 @@ export default function PerformanceExecutive() {
         {readOnly && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Badge variant="secondary">Read-only</Badge>
-            <span>Director view — operational actions live on the command center (admin/finance).</span>
+            <span>
+              {isDirectorOnly
+                ? "Director view — operational actions live on the command center (admin/finance)."
+                : "Viewer access — operational actions live on the command center (admin/finance)."}
+            </span>
           </div>
         )}
 
@@ -89,6 +95,12 @@ export default function PerformanceExecutive() {
           <Link to="/performance/admin" className="text-sm text-primary hover:underline">
             Open command center →
           </Link>
+        )}
+
+        {isDirectorOnly && (
+          <p className="text-xs text-muted-foreground">
+            Alert actions open the Finance workflow — contact admin to calculate, lock, or pay out.
+          </p>
         )}
 
         <PerformanceKpiGrid
@@ -133,7 +145,7 @@ export default function PerformanceExecutive() {
           ]}
         />
 
-        {alerts.length > 0 && (
+        {(isDirectorOnly || !readOnly) && alerts.length > 0 && (
           <Card className="p-4 border-l-4 border-l-amber-500 bg-amber-500/5">
             <div className="flex items-center gap-2 text-sm font-medium mb-2">
               <AlertTriangle className="size-4 text-amber-600" /> Alerts
@@ -142,9 +154,19 @@ export default function PerformanceExecutive() {
               {alerts.map((a) => (
                 <li key={a.msg} className="flex items-center justify-between gap-2">
                   <span>{a.msg}</span>
-                  <Link to={a.to} className="text-primary font-medium shrink-0">
-                    Open →
-                  </Link>
+                  {isDirectorOnly ? (
+                    <button
+                      type="button"
+                      className="text-primary font-medium shrink-0 underline-offset-4 hover:underline"
+                      onClick={() => toast.info(DIRECTOR_READ_ONLY_TOAST)}
+                    >
+                      Open in Finance workflow
+                    </button>
+                  ) : (
+                    <Link to={a.to} className="text-primary font-medium shrink-0">
+                      Open →
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

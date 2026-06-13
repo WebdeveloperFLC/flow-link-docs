@@ -143,7 +143,7 @@ const performanceNav: NavItem[] = [
     label: "Branch pool",
     roles: ["manager", "admin", "administrator"],
   },
-  { to: "/performance/executive", icon: BarChart2, label: "Executive dashboard", roles: ["admin", "administrator", "viewer"] },
+  { to: "/performance/executive", icon: BarChart2, label: "Executive dashboard", roles: ["admin", "administrator", "viewer", "director"] },
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
   {
     to: "/performance/admin/approvals",
