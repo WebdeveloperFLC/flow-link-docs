@@ -72,16 +72,30 @@ interface ApplyResult {
   remaining_unlocked?: number;
   pending_approval?: boolean;
   approval_level?: string;
+  below_floor?: boolean;
+  is_waiver?: boolean;
   message?: string;
   auto_applied?: boolean;
   request_id?: string;
+}
+
+interface MarginPreview {
+  reference_amount?: number;
+  discount_amount?: number;
+  net_after_discount?: number | null;
+  min_net_required?: number | null;
+  min_net_pct?: number;
+  below_floor?: boolean;
+  is_waiver?: boolean;
+  approval_level?: string;
+  max_discount_without_floor?: number | null;
 }
 
 const fmt = (n: number, ccy: string) =>
   `${ccy === "INR" ? "₹" : ""}${Number(n ?? 0).toLocaleString()} ${ccy !== "INR" ? ccy : ""}`.trim();
 
 export default function GiveDiscount() {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const period = currentPeriodKey();
@@ -101,6 +115,8 @@ export default function GiveDiscount() {
   const [mode, setMode] = useState<"percent" | "amount">("percent");
   const [percent, setPercent] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
+  const [invoiceBase, setInvoiceBase] = useState<string>("");
+  const [marginPreview, setMarginPreview] = useState<MarginPreview | null>(null);
   const [busy, setBusy] = useState(false);
   const [spendLimits, setSpendLimits] = useState<{
     effective_remaining?: number;
@@ -308,17 +324,63 @@ export default function GiveDiscount() {
   }, [amount, selectedOffer]);
 
   const pctNum = Number(percent) || 0;
+  const baseNum = Number(invoiceBase) || 0;
   const overPctCap = mode === "percent" && pctNum > cap;
   const amtNum = Number(amount) || 0;
   const overBalance = walletDebitPreview > (wallet?.balance ?? 0);
   const overUnlock = sizingActive && walletDebitPreview > effectiveRemaining;
+  const isAdmin = hasRole(["admin", "administrator"]);
+  const blockedWaiver = Boolean(marginPreview?.is_waiver) && !isAdmin;
+
   const depthPct = mode === "percent" ? pctNum : cap > 0 ? Math.min(100, (amtNum / Math.max(wallet?.balance ?? 1, 1)) * 100) : 0;
-  const depthLabel =
-    depthPct <= 10 || amtNum <= 5000
-      ? { text: "Instant apply — within wallet authority", tone: "ok" as const }
-      : depthPct <= 20
-        ? { text: "11–20% — submitted to branch manager approval queue", tone: "warn" as const }
-        : { text: ">20% — submitted to admin approval queue", tone: "escalate" as const };
+  const depthLabel = (() => {
+    if (blockedWaiver) {
+      return { text: "Scholarship / full waiver — admin only (submit blocked)", tone: "escalate" as const };
+    }
+    if (marginPreview?.below_floor) {
+      return {
+        text: `Below margin floor — admin approval required (min net ${marginPreview.min_net_pct ?? 80}% of invoice)`,
+        tone: "escalate" as const,
+      };
+    }
+    const level = marginPreview?.approval_level;
+    if (level === "instant") {
+      return { text: "Instant apply — within wallet authority", tone: "ok" as const };
+    }
+    if (level === "manager") {
+      return { text: "11–20% — submitted to branch manager approval queue", tone: "warn" as const };
+    }
+    if (level === "admin") {
+      return { text: ">20% — submitted to admin approval queue", tone: "escalate" as const };
+    }
+    if (depthPct <= 10 || amtNum <= 5000) {
+      return { text: "Instant apply — within wallet authority", tone: "ok" as const };
+    }
+    if (depthPct <= 20) {
+      return { text: "11–20% — submitted to branch manager approval queue", tone: "warn" as const };
+    }
+    return { text: ">20% — submitted to admin approval queue", tone: "escalate" as const };
+  })();
+
+  useEffect(() => {
+    if (amtNum <= 0 && pctNum <= 0) {
+      setMarginPreview(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.rpc("fn_evaluate_discount_margin", {
+        _reference_amount: baseNum > 0 ? baseNum : 0,
+        _discount_amount: amtNum > 0 ? amtNum : 0,
+        _discount_percent: mode === "percent" && pctNum > 0 ? pctNum : null,
+        _offer_id: offerId || null,
+      });
+      if (!cancelled) setMarginPreview((data as MarginPreview) ?? null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [amtNum, pctNum, baseNum, offerId, mode]);
 
   const unlockBarPct =
     wallet && wallet.potential_wallet > 0
@@ -350,6 +412,7 @@ export default function GiveDiscount() {
         _percent: mode === "percent" ? pctNum : null,
         _wallet_id: wallet.id,
         _note: null,
+        _reference_amount: baseNum > 0 ? baseNum : null,
       });
       if (error) throw error;
 
@@ -586,6 +649,26 @@ export default function GiveDiscount() {
                 </div>
               )}
 
+              <div>
+                <label className="text-xs text-muted-foreground">
+                  Invoice base before discount ({ccy}) — for margin floor (O16)
+                </label>
+                <Input
+                  className="mt-1"
+                  value={invoiceBase}
+                  onChange={(e) => setInvoiceBase(e.target.value)}
+                  placeholder="e.g. 20000"
+                />
+                {baseNum > 0 && marginPreview?.min_net_required != null && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Min net after discount: {fmt(marginPreview.min_net_required, ccy)}
+                    {marginPreview.max_discount_without_floor != null && (
+                      <> · max discount without floor breach: {fmt(marginPreview.max_discount_without_floor, ccy)}</>
+                    )}
+                  </p>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="text-xs text-muted-foreground">Discount mode</label>
@@ -647,11 +730,23 @@ export default function GiveDiscount() {
                 Approval depth: {depthLabel.text}
               </div>
 
+              {marginPreview?.net_after_discount != null && baseNum > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Net after discount: {fmt(marginPreview.net_after_discount, ccy)}
+                  {marginPreview.below_floor && (
+                    <span className="text-destructive font-medium"> · below margin floor</span>
+                  )}
+                  {marginPreview.is_waiver && (
+                    <span className="text-destructive font-medium"> · full waiver</span>
+                  )}
+                </p>
+              )}
+
               <p className="text-xs text-muted-foreground">
                 Enter the discount value in {ccy}. Unlock limits apply once your wallet has been sized for the period.
               </p>
 
-              <Button disabled={busy || overBalance || overUnlock || overPctCap} onClick={give}>
+              <Button disabled={busy || overBalance || overUnlock || overPctCap || blockedWaiver} onClick={give}>
                 <Gift className="size-4 mr-1" /> Apply discount
               </Button>
             </>
