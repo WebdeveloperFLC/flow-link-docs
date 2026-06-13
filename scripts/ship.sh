@@ -80,6 +80,7 @@ Performance Hub migrations (Lovable Publish — approve ALL that still show as p
   [ ] 20260629120001_incentive_platform_phase5l_branch_pool.sql  — pool RPCs, O10, wallet impact
   [ ] 20260630120000_incentive_platform_phase5m.sql  — scheme templates, disputes, payroll, FX audit
   [ ] 20260631120000_incentive_platform_phase5n.sql  — wallet W4/W5/W6 policy
+  [ ] 20260701120000_incentive_platform_phase5o.sql  — offer automation journeys O7
 
 EOF
 }
