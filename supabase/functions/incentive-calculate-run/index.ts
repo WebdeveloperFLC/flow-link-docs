@@ -165,6 +165,23 @@ function convert(amount: number, from: string, to: string, snap: Record<string, 
   return Math.round(((amount * rf) / rt) * 100) / 100;
 }
 
+type RunRow = { id: string; locked: boolean; status: string; calculated_at: string | null };
+
+async function listRunsForScope(
+  svc: Svc,
+  plan_id: string,
+  period_key: string,
+  branch_id: string | null,
+): Promise<RunRow[]> {
+  let q = svc.from("incentive_runs").select("id, locked, status, calculated_at")
+    .eq("plan_id", plan_id).eq("period_key", period_key);
+  if (branch_id) q = q.eq("branch_id", branch_id);
+  else q = q.is("branch_id", null);
+  const { data, error } = await q.order("calculated_at", { ascending: false, nullsFirst: false });
+  if (error) throw error;
+  return (data ?? []) as RunRow[];
+}
+
 // ---- scope matching (Phase 1+2) --------------------------------------------
 type ScopeJson = {
   master_keys?: string[];
@@ -380,6 +397,15 @@ Deno.serve(async (req: Request) => {
     // --- LOCK path: snapshot plan version + freeze run ---
     if (action === "lock") {
       const snap = await loadFxSnapshot(svc, period_key);
+      const runs = await listRunsForScope(svc, plan_id, period_key, branch_id);
+      if (runs.some((r) => r.locked)) {
+        return json({ error: "A locked run already exists for this plan/period." }, 409);
+      }
+      const target = runs.find((r) => r.status === "calculated" && !r.locked);
+      if (!target) {
+        return json({ error: "No calculated run found — run Calculate & save first." }, 400);
+      }
+
       let planVersionId: string | null = null;
       const { data: verId } = await svc.rpc("fn_snapshot_incentive_plan_version", {
         _plan_id: plan_id,
@@ -398,8 +424,7 @@ Deno.serve(async (req: Request) => {
           approved_by: callerId,
           approved_at: new Date().toISOString(),
         })
-        .eq("plan_id", plan_id).eq("period_key", period_key)
-        .is("branch_id", branch_id)
+        .eq("id", target.id)
         .select().single();
       if (runErr) return json({ error: runErr.message }, 400);
       return json({ ok: true, action, run, plan_version_id: planVersionId });
@@ -924,17 +949,23 @@ Deno.serve(async (req: Request) => {
 
     // --- action === 'calculate': upsert run + replace line items ---
     // refuse to recompute a locked run (R2)
-    const { data: existing } = await svc.from("incentive_runs").select("id, locked")
-      .eq("plan_id", plan_id).eq("period_key", period_key).is("branch_id", branch_id).maybeSingle();
-    if (existing?.locked) return json({ error: "Run is locked; corrections must be adjustments (R2)." }, 409);
+    const runs = await listRunsForScope(svc, plan_id, period_key, branch_id);
+    if (runs.some((r) => r.locked)) {
+      return json({
+        error: "Run is locked for this plan/period. Corrections must be incentive adjustments (R2), not a recalculate.",
+      }, 409);
+    }
+    const existing = runs.find((r) => !r.locked) ?? null;
 
     let runId = existing?.id as string | undefined;
     if (runId) {
-      await svc.from("incentive_runs").update({
+      const { error: updErr } = await svc.from("incentive_runs").update({
         status: "calculated", settlement_currency: settlement, fx_snapshot: snap,
         total_settlement: grandTotal, calculated_at: new Date().toISOString(), calculated_by: callerId,
       }).eq("id", runId);
-      await svc.from("incentive_line_items").delete().eq("run_id", runId);
+      if (updErr) return json({ error: updErr.message }, 400);
+      const { error: delErr } = await svc.from("incentive_line_items").delete().eq("run_id", runId);
+      if (delErr) return json({ error: delErr.message }, 400);
     } else {
       const { data: ins, error: insErr } = await svc.from("incentive_runs").insert({
         plan_id, period_type, period_key, branch_id, settlement_currency: settlement,

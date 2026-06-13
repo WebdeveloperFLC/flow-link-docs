@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Calculator, Lock, Trophy } from "lucide-react";
+import { invokeError } from "@/lib/invokeError";
+import { Calculator, Lock } from "lucide-react";
 
 function currentPeriodKey() {
   const d = new Date();
@@ -76,8 +77,10 @@ export default function IncentivesAdmin() {
       const body: any = { action, plan_id: planId, period_key: periodKey };
       if (branchId.trim()) body.branch_id = branchId.trim();
       const { data, error } = await supabase.functions.invoke("incentive-calculate-run", { body });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (error || data?.error) {
+        const msg = await invokeError(error, data);
+        throw new Error(msg ?? data?.error ?? "Request failed");
+      }
 
       if (action === "preview") {
         setPreview({ summary: data.summary ?? [], grand_total: data.grand_total ?? 0, settlement: data.settlement ?? "INR", fx: data.fx_snapshot ?? {} });
@@ -199,6 +202,7 @@ export default function IncentivesAdmin() {
               <table className="w-full text-sm">
                 <thead className="text-left text-muted-foreground border-b">
                   <tr>
+                    <th className="py-2 pr-4">Plan</th>
                     <th className="py-2 pr-4">Period</th>
                     <th className="py-2 pr-4">Status</th>
                     <th className="py-2 pr-4">Locked</th>
@@ -210,6 +214,7 @@ export default function IncentivesAdmin() {
                 <tbody>
                   {runs.map((r) => (
                     <tr key={r.id} className="border-b last:border-0">
+                      <td className="py-2 pr-4">{plans.find((p) => p.id === r.plan_id)?.name ?? r.plan_id.slice(0, 8)}</td>
                       <td className="py-2 pr-4">{r.period_key}</td>
                       <td className="py-2 pr-4 capitalize">{r.status}</td>
                       <td className="py-2 pr-4">{r.locked ? "🔒" : "—"}</td>
