@@ -23,6 +23,7 @@ export interface PerformanceHomeData {
   earnedLocked: number;
   earnedProjected: number;
   earningRefreshedAt: string | null;
+  earningLive: boolean;
   hasLockedRun: boolean;
   breakdown: {
     core: number;
@@ -55,6 +56,7 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
     earnedLocked: 0,
     earnedProjected: 0,
     earningRefreshedAt: null,
+    earningLive: false,
     hasLockedRun: false,
     breakdown: null,
     branchLeaderboard: [],
@@ -245,14 +247,17 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
     };
   }, [userId, period]);
 
-  // I8 lite — poll earning snapshot every 60s while period is open
+  // I8 — poll + realtime earning snapshot
   useEffect(() => {
     if (!userId) return;
-    const tick = async () => {
+
+    let cancelled = false;
+    const refreshSnapshot = async () => {
       const { data } = await supabase.rpc("fn_counselor_earning_snapshot", {
         _counselor_id: userId,
         _period_key: period,
       });
+      if (cancelled) return;
       const snap = data as { earned_total?: number; has_locked_run?: boolean; refreshed_at?: string } | null;
       if (!snap) return;
       setState((s) => ({
@@ -262,8 +267,36 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
         earningRefreshedAt: snap.refreshed_at ?? new Date().toISOString(),
       }));
     };
-    const id = window.setInterval(tick, 60_000);
-    return () => window.clearInterval(id);
+
+    void refreshSnapshot();
+    const pollId = window.setInterval(refreshSnapshot, 60_000);
+
+    const channel = supabase
+      .channel(`perf-earnings-${userId}-${period}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "incentive_line_items", filter: `counselor_id=eq.${userId}` },
+        () => {
+          void refreshSnapshot();
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "incentive_runs", filter: `period_key=eq.${period}` },
+        () => {
+          void refreshSnapshot();
+        },
+      )
+      .subscribe((status) => {
+        if (cancelled) return;
+        setState((s) => ({ ...s, earningLive: status === "SUBSCRIBED" }));
+      });
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(pollId);
+      void supabase.removeChannel(channel);
+    };
   }, [userId, period]);
 
   return state;

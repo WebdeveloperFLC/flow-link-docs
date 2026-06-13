@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -33,6 +33,23 @@ export default function PerformanceHome() {
   const [exceptionAmount, setExceptionAmount] = useState("");
   const [exceptionReason, setExceptionReason] = useState("");
   const [submittingException, setSubmittingException] = useState(false);
+  const [hotClients, setHotClients] = useState<
+    { client_id: string; full_name: string; propensity_score: number; propensity_band: string }[]
+  >([]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.rpc("fn_counselor_offer_propensity_queue", { _limit: 5 }).then(({ data }) => {
+      setHotClients(
+        ((data ?? []) as {
+          client_id: string;
+          full_name: string;
+          propensity_score: number;
+          propensity_band: string;
+        }[]).filter((r) => r.propensity_band === "hot" || r.propensity_score >= 35),
+      );
+    });
+  }, [user?.id]);
 
   const isTelecallerOnly =
     hasRole("telecaller") && !roles.some((r) => HIGHER_THAN_TELECALLER.includes(r as (typeof HIGHER_THAN_TELECALLER)[number]));
@@ -140,11 +157,39 @@ export default function PerformanceHome() {
               data.hasLockedRun
                 ? `Locked run total ${formatInr(data.earnedLocked, "INR")} · projected month-end ${formatInr(data.earnedProjected, "INR")}`
                 : data.earningRefreshedAt
-                  ? `Refreshes every 60s · last ${new Date(data.earningRefreshedAt).toLocaleTimeString()} · pays after finance locks the run`
+                  ? data.earningLive
+                    ? `Live ticker · last ${new Date(data.earningRefreshedAt).toLocaleTimeString()} · 60s poll fallback`
+                    : `Refreshes every 60s · last ${new Date(data.earningRefreshedAt).toLocaleTimeString()} · pays after finance locks the run`
                   : "Pays after finance locks the period run"
             }
           />
         </div>
+
+        {hotClients.length > 0 && (
+          <Card className="p-5 border-l-4 border-l-red-500">
+            <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
+              <TrendingUp className="size-5 text-red-600" />
+              Hot clients for offers (I5)
+            </h2>
+            <p className="text-sm text-muted-foreground mb-3">
+              Rule-based propensity — open a client record to see the full suggestion card.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {hotClients.map((c) => (
+                <Link
+                  key={c.client_id}
+                  to={`/clients/${c.client_id}`}
+                  className="text-sm rounded-md border px-3 py-1.5 hover:bg-muted/50"
+                >
+                  {c.full_name}{" "}
+                  <span className="text-muted-foreground capitalize">
+                    · {c.propensity_band} {c.propensity_score}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {data.planStack.length > 0 && (
           <Card className="p-5">
