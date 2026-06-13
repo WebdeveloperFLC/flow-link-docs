@@ -89,10 +89,19 @@ interface MarginPreview {
   is_waiver?: boolean;
   approval_level?: string;
   max_discount_without_floor?: number | null;
+  floor_scope_key?: string;
 }
 
 const fmt = (n: number, ccy: string) =>
   `${ccy === "INR" ? "₹" : ""}${Number(n ?? 0).toLocaleString()} ${ccy !== "INR" ? ccy : ""}`.trim();
+
+const FLOOR_SERVICE_OPTIONS = [
+  { value: "", label: "Auto (from offer / global)" },
+  { value: "coaching_services", label: "Coaching" },
+  { value: "admission_services", label: "Admission" },
+  { value: "allied_services", label: "Allied" },
+  { value: "travel_financial", label: "Travel / financial" },
+];
 
 export default function GiveDiscount() {
   const { user, hasRole } = useAuth();
@@ -116,6 +125,7 @@ export default function GiveDiscount() {
   const [percent, setPercent] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [invoiceBase, setInvoiceBase] = useState<string>("");
+  const [masterKey, setMasterKey] = useState<string>("");
   const [marginPreview, setMarginPreview] = useState<MarginPreview | null>(null);
   const [busy, setBusy] = useState(false);
   const [spendLimits, setSpendLimits] = useState<{
@@ -374,13 +384,14 @@ export default function GiveDiscount() {
         _discount_amount: amtNum > 0 ? amtNum : 0,
         _discount_percent: mode === "percent" && pctNum > 0 ? pctNum : null,
         _offer_id: offerId || null,
+        _master_key: masterKey.trim() || null,
       });
       if (!cancelled) setMarginPreview((data as MarginPreview) ?? null);
     })();
     return () => {
       cancelled = true;
     };
-  }, [amtNum, pctNum, baseNum, offerId, mode]);
+  }, [amtNum, pctNum, baseNum, offerId, masterKey, mode]);
 
   const unlockBarPct =
     wallet && wallet.potential_wallet > 0
@@ -413,6 +424,7 @@ export default function GiveDiscount() {
         _wallet_id: wallet.id,
         _note: null,
         _reference_amount: baseNum > 0 ? baseNum : null,
+        _master_key: masterKey.trim() || null,
       });
       if (error) throw error;
 
@@ -649,25 +661,42 @@ export default function GiveDiscount() {
                 </div>
               )}
 
-              <div>
-                <label className="text-xs text-muted-foreground">
-                  Invoice base before discount ({ccy}) — for margin floor (O16)
-                </label>
-                <Input
-                  className="mt-1"
-                  value={invoiceBase}
-                  onChange={(e) => setInvoiceBase(e.target.value)}
-                  placeholder="e.g. 20000"
-                />
-                {baseNum > 0 && marginPreview?.min_net_required != null && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Min net after discount: {fmt(marginPreview.min_net_required, ccy)}
-                    {marginPreview.max_discount_without_floor != null && (
-                      <> · max discount without floor breach: {fmt(marginPreview.max_discount_without_floor, ccy)}</>
-                    )}
-                  </p>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground">
+                    Invoice base before discount ({ccy}) — for margin floor (O16)
+                  </label>
+                  <Input
+                    className="mt-1"
+                    value={invoiceBase}
+                    onChange={(e) => setInvoiceBase(e.target.value)}
+                    placeholder="e.g. 20000"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Service line (floor override O16b)</label>
+                  <select
+                    className="w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm"
+                    value={masterKey}
+                    onChange={(e) => setMasterKey(e.target.value)}
+                  >
+                    {FLOOR_SERVICE_OPTIONS.map((o) => (
+                      <option key={o.value || "auto"} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
+              {baseNum > 0 && marginPreview?.min_net_required != null && (
+                <p className="text-xs text-muted-foreground">
+                  Floor: {marginPreview.floor_scope_key ?? "global"} · min net {marginPreview.min_net_pct ?? 80}% →{" "}
+                  {fmt(marginPreview.min_net_required, ccy)}
+                  {marginPreview.max_discount_without_floor != null && (
+                    <> · max discount without breach: {fmt(marginPreview.max_discount_without_floor, ccy)}</>
+                  )}
+                </p>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>

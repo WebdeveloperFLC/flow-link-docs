@@ -86,6 +86,7 @@ Performance Hub migrations (Lovable Publish — approve ALL that still show as p
   [ ] 20260704120000_incentive_platform_phase5r.sql  — offer A/B tests O11, shared period bar X8
   [ ] 20260705120000_incentive_platform_phase5s.sql  — margin floor O16, waiver guard
   [ ] 20260706120000_incentive_platform_phase5t.sql  — propensity I5, realtime I8
+  [ ] 20260707120000_incentive_platform_phase5u.sql  — service floors O16b, WIR lite
 
 EOF
 }
