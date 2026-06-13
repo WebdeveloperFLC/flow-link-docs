@@ -66,6 +66,10 @@ export default function PerformanceApprovals() {
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [floorPct, setFloorPct] = useState("80");
   const [floorSaving, setFloorSaving] = useState(false);
+  const [floorPolicies, setFloorPolicies] = useState<
+    { scope_key: string; min_net_pct: number }[]
+  >([]);
+  const [serviceEdits, setServiceEdits] = useState<Record<string, string>>({});
 
   const canReview =
     hasRole(["admin", "administrator"]) || hasRole("manager");
@@ -128,9 +132,16 @@ export default function PerformanceApprovals() {
 
   useEffect(() => {
     if (!isAdmin) return;
-    supabase.rpc("fn_get_discount_margin_floor_policy").then(({ data }) => {
-      const row = data as { min_net_pct?: number } | null;
-      if (row?.min_net_pct != null) setFloorPct(String(row.min_net_pct));
+    supabase.rpc("fn_list_discount_margin_floor_policies").then(({ data }) => {
+      const rows = (data ?? []) as { scope_key: string; min_net_pct: number }[];
+      setFloorPolicies(rows);
+      const global = rows.find((r) => r.scope_key === "global");
+      if (global?.min_net_pct != null) setFloorPct(String(global.min_net_pct));
+      const edits: Record<string, string> = {};
+      rows.forEach((r) => {
+        if (r.scope_key !== "global") edits[r.scope_key] = String(r.min_net_pct);
+      });
+      setServiceEdits(edits);
     });
   }, [isAdmin]);
 
@@ -147,7 +158,33 @@ export default function PerformanceApprovals() {
         _block_counselor_waiver: true,
       });
       if (error) throw error;
-      toast({ title: "Margin floor policy saved", description: `Min net ${pct}% of invoice base` });
+      toast({ title: "Global floor saved", description: `Min net ${pct}% of invoice base` });
+    } catch (e: unknown) {
+      toast({
+        title: "Save failed",
+        description: formatSupabaseError(e, "Could not save policy"),
+        variant: "destructive",
+      });
+    } finally {
+      setFloorSaving(false);
+    }
+  }
+
+  async function saveServiceFloor(scopeKey: string) {
+    const pct = Number(serviceEdits[scopeKey]);
+    if (!pct || pct <= 0 || pct > 100) {
+      toast({ title: "Enter min net % between 1 and 100", variant: "destructive" });
+      return;
+    }
+    setFloorSaving(true);
+    try {
+      const { error } = await supabase.rpc("fn_upsert_discount_margin_floor_policy", {
+        _scope_key: scopeKey,
+        _min_net_pct: pct,
+        _block_counselor_waiver: true,
+      });
+      if (error) throw error;
+      toast({ title: "Service floor saved", description: `${scopeKey} → min net ${pct}%` });
     } catch (e: unknown) {
       toast({
         title: "Save failed",
@@ -260,10 +297,10 @@ export default function PerformanceApprovals() {
 
         {isAdmin && (
           <Card className="p-4 space-y-3 border-dashed">
-            <h2 className="font-semibold text-sm">Margin floor policy (O16)</h2>
+            <h2 className="font-semibold text-sm">Margin floor policy (O16 / O16b)</h2>
             <div className="flex flex-wrap items-end gap-3">
               <div>
-                <label className="text-xs text-muted-foreground">Min net % of invoice base</label>
+                <label className="text-xs text-muted-foreground">Global min net %</label>
                 <Input
                   className="w-24 mt-1"
                   value={floorPct}
@@ -271,9 +308,37 @@ export default function PerformanceApprovals() {
                 />
               </div>
               <Button size="sm" disabled={floorSaving} onClick={saveFloorPolicy}>
-                Save policy
+                Save global
               </Button>
             </div>
+            {floorPolicies.filter((p) => p.scope_key !== "global").length > 0 && (
+              <div className="pt-2 border-t space-y-2">
+                <p className="text-xs text-muted-foreground">Per-service overrides (fallback to global when unset)</p>
+                {floorPolicies
+                  .filter((p) => p.scope_key !== "global")
+                  .map((p) => (
+                    <div key={p.scope_key} className="flex flex-wrap items-end gap-2">
+                      <span className="text-sm font-medium w-40">{p.scope_key.replace(/_/g, " ")}</span>
+                      <Input
+                        className="w-20 h-8"
+                        value={serviceEdits[p.scope_key] ?? String(p.min_net_pct)}
+                        onChange={(e) =>
+                          setServiceEdits((prev) => ({ ...prev, [p.scope_key]: e.target.value }))
+                        }
+                      />
+                      <span className="text-xs text-muted-foreground pb-2">% min net</span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={floorSaving}
+                        onClick={() => saveServiceFloor(p.scope_key)}
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  ))}
+              </div>
+            )}
           </Card>
         )}
 

@@ -36,6 +36,11 @@ export default function PerformanceHome() {
   const [hotClients, setHotClients] = useState<
     { client_id: string; full_name: string; propensity_score: number; propensity_band: string }[]
   >([]);
+  const [walletImpact, setWalletImpact] = useState<{
+    wallet_impact_revenue: number;
+    wallet_used: number;
+    roi: number | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -49,7 +54,24 @@ export default function PerformanceHome() {
         }[]).filter((r) => r.propensity_band === "hot" || r.propensity_score >= 35),
       );
     });
-  }, [user?.id]);
+    supabase.rpc("fn_counselor_wallet_impact", { _period_key: period }).then(({ data }) => {
+      const row = data as {
+        found?: boolean;
+        wallet_impact_revenue?: number;
+        wallet_used?: number;
+        roi?: number | null;
+      } | null;
+      if (row?.found) {
+        setWalletImpact({
+          wallet_impact_revenue: Number(row.wallet_impact_revenue ?? 0),
+          wallet_used: Number(row.wallet_used ?? 0),
+          roi: row.roi ?? null,
+        });
+      } else {
+        setWalletImpact(null);
+      }
+    });
+  }, [user?.id, period]);
 
   const isTelecallerOnly =
     hasRole("telecaller") && !roles.some((r) => HIGHER_THAN_TELECALLER.includes(r as (typeof HIGHER_THAN_TELECALLER)[number]));
@@ -164,6 +186,26 @@ export default function PerformanceHome() {
             }
           />
         </div>
+
+        {walletImpact && (walletImpact.wallet_impact_revenue > 0 || walletImpact.wallet_used > 0) && (
+          <Card className="p-4 border-l-4 border-l-violet-500 bg-violet-500/5">
+            <p className="text-sm">
+              <span className="font-medium">Wallet impact revenue (WIR)</span> —{" "}
+              {formatInr(walletImpact.wallet_impact_revenue)} influenced via wallet discounts ·{" "}
+              {formatInr(walletImpact.wallet_used)} wallet spent
+              {walletImpact.roi != null && (
+                <>
+                  {" "}
+                  · ROI{" "}
+                  <span className="font-semibold">{walletImpact.roi.toFixed(1)}×</span>
+                </>
+              )}
+            </p>
+            <Link to="/performance/offers/analytics" className="text-xs text-primary hover:underline mt-2 inline-block">
+              Full offer analytics →
+            </Link>
+          </Card>
+        )}
 
         {hotClients.length > 0 && (
           <Card className="p-5 border-l-4 border-l-red-500">
