@@ -37,6 +37,22 @@ interface WeightsForm {
   weight_satisfaction: number;
 }
 
+interface UnlockBandRow {
+  id: string;
+  min_achievement_pct: number;
+  max_achievement_pct: number | null;
+  unlock_pct_of_potential: number;
+  sort_order: number;
+}
+
+interface PolicySettings {
+  unlock_threshold_pct: number;
+  no_full_burn_enabled: boolean;
+  no_full_burn_week1_max_pct: number;
+  use_stepped_unlock_bands: boolean;
+  unspent_unlock_close_policy: "forfeit" | "ignore";
+}
+
 const WEIGHT_LABELS: Record<keyof WeightsForm, string> = {
   weight_revenue_achievement: "Revenue achievement",
   weight_conversion_rate: "Conversion rate",
@@ -51,12 +67,14 @@ export default function PerformanceWalletPolicy() {
   const [bands, setBands] = useState<BandRow[]>([]);
   const [rules, setRules] = useState<TopupRule[]>([]);
   const [weights, setWeights] = useState<WeightsForm | null>(null);
+  const [unlockBands, setUnlockBands] = useState<UnlockBandRow[]>([]);
+  const [policy, setPolicy] = useState<PolicySettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
   async function load() {
     setLoading(true);
-    const [b, r, w] = await Promise.all([
+    const [b, r, w, ub, ws] = await Promise.all([
       supabase
         .from("wallet_multiplier_bands")
         .select("id, min_achievement_pct, max_achievement_pct, multiplier, sort_order")
@@ -74,11 +92,26 @@ export default function PerformanceWalletPolicy() {
         )
         .eq("id", 1)
         .maybeSingle(),
+      supabase
+        .from("wallet_unlock_bands")
+        .select("id, min_achievement_pct, max_achievement_pct, unlock_pct_of_potential, sort_order")
+        .eq("is_active", true)
+        .order("sort_order"),
+      supabase
+        .from("wallet_settings")
+        .select(
+          "unlock_threshold_pct, no_full_burn_enabled, no_full_burn_week1_max_pct, use_stepped_unlock_bands, unspent_unlock_close_policy",
+        )
+        .eq("id", 1)
+        .maybeSingle(),
     ]);
     setBands((b.data ?? []) as BandRow[]);
     setRules((r.data ?? []) as TopupRule[]);
+    setUnlockBands((ub.data ?? []) as UnlockBandRow[]);
     const wr = w.data as WeightsForm | null;
     if (wr) setWeights(wr);
+    const ps = ws.data as PolicySettings | null;
+    if (ps) setPolicy(ps);
     setLoading(false);
   }
 
@@ -118,6 +151,44 @@ export default function PerformanceWalletPolicy() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function savePolicy() {
+    if (!policy) return;
+    setBusy(true);
+    const { error } = await supabase.from("wallet_settings").update(policy).eq("id", 1);
+    setBusy(false);
+    if (error) toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    else toast({ title: "Advanced policy saved" });
+  }
+
+  async function saveUnlockBand(b: UnlockBandRow) {
+    setBusy(true);
+    const { error } = await supabase
+      .from("wallet_unlock_bands")
+      .update({
+        min_achievement_pct: b.min_achievement_pct,
+        max_achievement_pct: b.max_achievement_pct,
+        unlock_pct_of_potential: b.unlock_pct_of_potential,
+        sort_order: b.sort_order,
+      })
+      .eq("id", b.id);
+    setBusy(false);
+    if (error) toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    else toast({ title: "Unlock band saved" });
+  }
+
+  async function addUnlockBand() {
+    setBusy(true);
+    const { error } = await supabase.from("wallet_unlock_bands").insert({
+      min_achievement_pct: 0,
+      max_achievement_pct: null,
+      unlock_pct_of_potential: 0,
+      sort_order: unlockBands.length + 1,
+    });
+    setBusy(false);
+    if (error) toast({ title: "Add failed", description: error.message, variant: "destructive" });
+    else load();
   }
 
   async function saveBand(b: BandRow) {
@@ -365,6 +436,170 @@ export default function PerformanceWalletPolicy() {
             </p>
             <Button onClick={saveWeights} disabled={busy || weightSum !== 100}>
               <Save className="size-4 mr-1" /> Save weights
+            </Button>
+          </Card>
+        )}
+
+        {policy && (
+          <Card className="p-5 space-y-4">
+            <h2 className="text-lg font-semibold">Advanced spend rules (W4 · W5 · W6)</h2>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-3 border rounded-lg p-4">
+                <h3 className="font-medium text-sm">W4 — No-full-burn (week 1)</h3>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={policy.no_full_burn_enabled}
+                    onChange={(e) => setPolicy({ ...policy, no_full_burn_enabled: e.target.checked })}
+                  />
+                  Cap spend in first 7 days of period
+                </label>
+                <div>
+                  <Label className="text-xs">Max % of unlocked spendable in week 1</Label>
+                  <Input
+                    type="number"
+                    className="mt-1 w-32"
+                    value={policy.no_full_burn_week1_max_pct}
+                    onChange={(e) =>
+                      setPolicy({ ...policy, no_full_burn_week1_max_pct: Number(e.target.value) || 40 })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3 border rounded-lg p-4">
+                <h3 className="font-medium text-sm">W6 — Period close</h3>
+                <Label className="text-xs">Unused unlock capacity at close</Label>
+                <select
+                  className="w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm"
+                  value={policy.unspent_unlock_close_policy}
+                  onChange={(e) =>
+                    setPolicy({
+                      ...policy,
+                      unspent_unlock_close_policy: e.target.value as "forfeit" | "ignore",
+                    })
+                  }
+                >
+                  <option value="forfeit">Forfeit (use-it-or-lose-it)</option>
+                  <option value="ignore">Ignore — no forfeit log</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-3 border rounded-lg p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h3 className="font-medium text-sm">W5 — Stepped unlock bands</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    When enabled, replaces linear unlock from threshold ({policy.unlock_threshold_pct}%).
+                  </p>
+                </div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={policy.use_stepped_unlock_bands}
+                    onChange={(e) => setPolicy({ ...policy, use_stepped_unlock_bands: e.target.checked })}
+                  />
+                  Use stepped bands
+                </label>
+              </div>
+              {!policy.use_stepped_unlock_bands && (
+                <div>
+                  <Label className="text-xs">Linear unlock threshold (%)</Label>
+                  <Input
+                    type="number"
+                    className="mt-1 w-32"
+                    value={policy.unlock_threshold_pct}
+                    onChange={(e) =>
+                      setPolicy({ ...policy, unlock_threshold_pct: Number(e.target.value) || 50 })
+                    }
+                  />
+                </div>
+              )}
+              {policy.use_stepped_unlock_bands && (
+                <div className="space-y-3">
+                  <Button variant="outline" size="sm" onClick={addUnlockBand} disabled={busy}>
+                    <Plus className="size-4 mr-1" /> Add unlock band
+                  </Button>
+                  {unlockBands.map((b) => (
+                    <div key={b.id} className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-end border rounded-lg p-3">
+                      <div>
+                        <Label className="text-xs">Min achievement %</Label>
+                        <Input
+                          type="number"
+                          value={b.min_achievement_pct}
+                          onChange={(e) =>
+                            setUnlockBands((rows) =>
+                              rows.map((x) =>
+                                x.id === b.id ? { ...x, min_achievement_pct: Number(e.target.value) } : x,
+                              ),
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Max %</Label>
+                        <Input
+                          type="number"
+                          value={b.max_achievement_pct ?? ""}
+                          placeholder="∞"
+                          onChange={(e) =>
+                            setUnlockBands((rows) =>
+                              rows.map((x) =>
+                                x.id === b.id
+                                  ? {
+                                      ...x,
+                                      max_achievement_pct:
+                                        e.target.value === "" ? null : Number(e.target.value),
+                                    }
+                                  : x,
+                              ),
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Unlock % of potential</Label>
+                        <Input
+                          type="number"
+                          value={b.unlock_pct_of_potential}
+                          onChange={(e) =>
+                            setUnlockBands((rows) =>
+                              rows.map((x) =>
+                                x.id === b.id
+                                  ? { ...x, unlock_pct_of_potential: Number(e.target.value) }
+                                  : x,
+                              ),
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Sort</Label>
+                        <Input
+                          type="number"
+                          value={b.sort_order}
+                          onChange={(e) =>
+                            setUnlockBands((rows) =>
+                              rows.map((x) =>
+                                x.id === b.id ? { ...x, sort_order: Number(e.target.value) } : x,
+                              ),
+                            )
+                          }
+                        />
+                      </div>
+                      <Button size="sm" variant="secondary" disabled={busy} onClick={() => saveUnlockBand(b)}>
+                        <Save className="size-3.5 mr-1" /> Save
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Button onClick={savePolicy} disabled={busy}>
+              <Save className="size-4 mr-1" /> Save advanced policy
             </Button>
           </Card>
         )}

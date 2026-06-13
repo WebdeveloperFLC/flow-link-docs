@@ -102,6 +102,12 @@ export default function GiveDiscount() {
   const [percent, setPercent] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [busy, setBusy] = useState(false);
+  const [spendLimits, setSpendLimits] = useState<{
+    effective_remaining?: number;
+    week1_cap_active?: boolean;
+    week1_remaining?: number;
+    week1_max_spendable?: number;
+  } | null>(null);
 
   const wallet = useMemo(
     () => wallets.find((w) => w.id === walletId) ?? wallets[0] ?? null,
@@ -177,6 +183,20 @@ export default function GiveDiscount() {
     loadAll();
     /* eslint-disable-next-line */
   }, [user?.id, period]);
+
+  useEffect(() => {
+    if (!wallet?.id) {
+      setSpendLimits(null);
+      return;
+    }
+    let cancelled = false;
+    supabase.rpc("fn_wallet_spend_limits", { _wallet_id: wallet.id }).then(({ data }) => {
+      if (!cancelled) setSpendLimits((data as typeof spendLimits) ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [wallet?.id, allocs]);
 
   useEffect(() => {
     const clientId = searchParams.get("client");
@@ -271,6 +291,8 @@ export default function GiveDiscount() {
   );
 
   const remainingUnlocked = Math.max((wallet?.unlocked_amount ?? 0) - spent, 0);
+  const effectiveRemaining =
+    spendLimits?.effective_remaining != null ? spendLimits.effective_remaining : remainingUnlocked;
 
   const selectedOffer = offers.find((o) => o.id === offerId) ?? null;
 
@@ -289,7 +311,7 @@ export default function GiveDiscount() {
   const overPctCap = mode === "percent" && pctNum > cap;
   const amtNum = Number(amount) || 0;
   const overBalance = walletDebitPreview > (wallet?.balance ?? 0);
-  const overUnlock = sizingActive && walletDebitPreview > remainingUnlocked;
+  const overUnlock = sizingActive && walletDebitPreview > effectiveRemaining;
   const depthPct = mode === "percent" ? pctNum : cap > 0 ? Math.min(100, (amtNum / Math.max(wallet?.balance ?? 1, 1)) * 100) : 0;
   const depthLabel =
     depthPct <= 10 || amtNum <= 5000
@@ -465,9 +487,15 @@ export default function GiveDiscount() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Unlocked spend cap</span>
                     <span className="font-medium">
-                      {fmt(remainingUnlocked, ccy)} / {fmt(wallet.potential_wallet, ccy)} potential
+                      {fmt(effectiveRemaining, ccy)} / {fmt(wallet.potential_wallet, ccy)} potential
                     </span>
                   </div>
+                  {spendLimits?.week1_cap_active && (
+                    <p className="text-xs text-amber-700">
+                      Week 1 no-full-burn (W4): max {fmt(spendLimits.week1_max_spendable ?? 0, ccy)} spendable this
+                      week · {fmt(spendLimits.week1_remaining ?? 0, ccy)} left
+                    </p>
+                  )}
                   <div className="h-2.5 rounded-full bg-muted overflow-hidden">
                     <div
                       className={cn(
@@ -479,7 +507,7 @@ export default function GiveDiscount() {
                   </div>
                   {overUnlock && (
                     <p className="text-sm text-destructive font-medium">
-                      Only {fmt(remainingUnlocked, ccy)} unlocked — reduce the discount or wait for achievement.
+                      Only {fmt(effectiveRemaining, ccy)} available — reduce the discount or wait for achievement.
                       Submit blocked (allocation trigger).
                     </p>
                   )}
