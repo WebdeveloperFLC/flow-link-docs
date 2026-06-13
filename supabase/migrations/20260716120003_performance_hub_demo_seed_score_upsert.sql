@@ -1,64 +1,5 @@
--- Fix Give Discount empty wallet: rebind demo wallets to ph.counselor1 / ph.counselor2
--- and ensure fn_counselor_wallets_for_period is executable by authenticated users.
-
--- Rebind PH demo wallets to ph.counselor1 / ph.counselor2 when those accounts exist.
--- Fixes "No wallet this period" when seed ran before demo users were created.
-
-CREATE OR REPLACE FUNCTION public.fn_rebind_ph_demo_wallets()
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_priya uuid;
-  v_rohit uuid;
-BEGIN
-  SELECT id INTO v_priya FROM auth.users WHERE email = 'ph.counselor1@flowlink.demo' LIMIT 1;
-  SELECT id INTO v_rohit FROM auth.users WHERE email = 'ph.counselor2@flowlink.demo' LIMIT 1;
-
-  IF v_priya IS NOT NULL THEN
-    UPDATE public.discount_wallets
-       SET counselor_id = v_priya,
-           period_key = '2026-06',
-           closed_at = NULL,
-           updated_at = now()
-     WHERE id IN (
-       'a0020001-0001-4000-8000-000000000001',
-       'a0020004-0004-4000-8000-000000000004'
-     );
-
-    UPDATE public.wallet_allocations
-       SET counselor_id = v_priya
-     WHERE wallet_id IN (
-       'a0020001-0001-4000-8000-000000000001',
-       'a0020004-0004-4000-8000-000000000004'
-     );
-
-    UPDATE public.clients
-       SET assigned_counselor_id = v_priya
-     WHERE application_id LIKE 'PH-DEMO-%';
-  END IF;
-
-  IF v_rohit IS NOT NULL THEN
-    UPDATE public.discount_wallets
-       SET counselor_id = v_rohit,
-           period_key = '2026-06',
-           closed_at = NULL,
-           updated_at = now()
-     WHERE id = 'a0020002-0002-4000-8000-000000000002';
-  END IF;
-END;
-$$;
-
-COMMENT ON FUNCTION public.fn_rebind_ph_demo_wallets() IS
-  'Reassigns fixed PH demo wallet UUIDs to ph.counselor1 / ph.counselor2 auth users.';
-
-GRANT EXECUTE ON FUNCTION public.fn_rebind_ph_demo_wallets() TO authenticated, service_role;
-
-SELECT public.fn_rebind_ph_demo_wallets();
-
-GRANT EXECUTE ON FUNCTION public.fn_counselor_wallets_for_period(text, uuid, uuid) TO authenticated;
+-- Fix demo seed re-run: counselor_performance_scores upsert on id (not counselor_id+period_key)
+-- After wallet rebind, Rohit row id a0100002 already exists with old counselor_id → pkey conflict.
 
 CREATE OR REPLACE FUNCTION public.fn_seed_performance_hub_demo()
 RETURNS void
@@ -1014,6 +955,7 @@ $$;
 COMMENT ON FUNCTION public.fn_seed_performance_hub_demo() IS
   'Loads PH-DEMO-* clients, wallets, queues, offers studio, incentives for period 2026-06 (UAT).';
 
-GRANT EXECUTE ON FUNCTION public.fn_seed_performance_hub_demo() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.fn_seed_performance_hub_demo() TO authenticated, service_role;;
+
 
 SELECT public.fn_seed_performance_hub_demo();

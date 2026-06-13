@@ -67,6 +67,7 @@ Run in Supabase **SQL Editor** or Lovable **Database → Migrations**. **Never c
 | 5 | `20260716120000_performance_hub_demo_seed.sql` — **loads all PH-DEMO mock data** (runs `fn_seed_performance_hub_demo()`) |
 | 6 | `20260716120001_performance_hub_demo_seed_idempotent.sql` — idempotent upsert fix + re-run seed |
 | 7 | `20260716120002_performance_hub_demo_wallet_rebind.sql` — rebind demo wallets to `ph.counselor1` / `ph.counselor2` (fixes empty Give Discount wallet) |
+| 8 | `20260716120003_performance_hub_demo_seed_score_upsert.sql` — fix `counselor_performance_scores` re-seed after rebind (if seed fails on `a0100002` duplicate) |
 
 **Verify migrations:**
 

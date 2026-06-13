@@ -489,7 +489,9 @@ BEGIN
     64, 80000, 10000, 8.0,
     72, 88, 95000, 78
   )
-  ON CONFLICT (counselor_id, period_key) DO UPDATE SET
+  ON CONFLICT (id) DO UPDATE SET
+    counselor_id = EXCLUDED.counselor_id,
+    period_key = EXCLUDED.period_key,
     revenue_achievement = EXCLUDED.revenue_achievement,
     wallet_impact_revenue = EXCLUDED.wallet_impact_revenue,
     wallet_used = EXCLUDED.wallet_used,
@@ -885,7 +887,9 @@ BEGIN
       0, 52000, 3500, 14.9,
       58, 82, 137000, 62
     )
-    ON CONFLICT (counselor_id, period_key) DO UPDATE SET
+    ON CONFLICT (id) DO UPDATE SET
+      counselor_id = EXCLUDED.counselor_id,
+      period_key = EXCLUDED.period_key,
       revenue_achievement = EXCLUDED.revenue_achievement,
       wallet_impact_revenue = EXCLUDED.wallet_impact_revenue,
       wallet_used = EXCLUDED.wallet_used,
