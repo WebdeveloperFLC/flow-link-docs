@@ -1,0 +1,22 @@
+# Copy to repo root:  cp scripts/ship.local.example .ship.local
+# (.ship.local is gitignored via *.local)
+
+# Opens after every ship:
+# LOVABLE_PROJECT_URL=https://lovable.dev/projects/YOUR-PROJECT-ID
+
+# Auto-deploy incentive-calculate-run when that file is in the ship list:
+# SUPABASE_ACCESS_TOKEN=sbp_...
+# Get token: https://supabase.com/dashboard/account/tokens
+
+# ── YOUR ACTION pattern (use every time) ─────────────────────────────────────
+#
+# npm run ship -- "feat(performance): Phase 5E — period lock gates" -- \
+#   supabase/migrations/20260622120000_incentive_platform_phase5e.sql \
+#   supabase/functions/incentive-calculate-run/index.ts \
+#   src/pages/IncentivesAdmin.tsx \
+#   docs/INCENTIVE_PHASE5E_DEPLOY.md
+#
+# Then: Lovable → Sync from GitHub → Publish (approve migrations listed in output)
+#
+# Escape hatch (add everything — use sparingly):
+# npm run ship -- "wip: snapshot" --all

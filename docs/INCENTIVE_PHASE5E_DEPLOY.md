@@ -67,7 +67,9 @@ Period + branch persist in `localStorage` (`flc-performance-period-v1`) across P
 ## YOUR ACTION
 
 ```bash
-git add supabase/migrations/20260622120000_incentive_platform_phase5e.sql \
+npm run ship -- "feat(performance): Phase 5E — period lock gates, shared period bar, executive read-only" -- \
+  supabase/migrations/20260621120000_incentive_runs_unique_scope.sql \
+  supabase/migrations/20260622120000_incentive_platform_phase5e.sql \
   supabase/functions/incentive-calculate-run/index.ts \
   src/contexts/PerformancePeriodContext.tsx \
   src/components/performance/PerformancePeriodBar.tsx \
@@ -75,10 +77,15 @@ git add supabase/migrations/20260622120000_incentive_platform_phase5e.sql \
   src/pages/IncentivesAdmin.tsx \
   src/pages/PerformanceCommandCenter.tsx \
   src/pages/PerformanceExecutive.tsx \
+  src/pages/PerformanceUnclassifiedPayments.tsx \
+  src/pages/PerformanceApprovals.tsx \
   src/components/layout/AppLayout.tsx \
   src/App.tsx \
+  scripts/ship.sh \
+  scripts/ship.local.example \
+  package.json \
   docs/INCENTIVE_PHASE5E_DEPLOY.md
-git commit -m "feat(performance): Phase 5E — period lock gates, shared period bar, executive read-only"
-git push origin HEAD
-# Lovable → Publish (migration: 20260622120000_incentive_platform_phase5e.sql + edge function)
+# Lovable → Sync from GitHub → Publish
+#   migrations: 20260621120000_incentive_runs_unique_scope.sql, 20260622120000_incentive_platform_phase5e.sql
+#   edge function: incentive-calculate-run
 ```
