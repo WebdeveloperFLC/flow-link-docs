@@ -107,6 +107,8 @@ Work through [`PERFORMANCE_HUB_UAT.md`](./PERFORMANCE_HUB_UAT.md) one case at a 
 
 Send bugs to your **UAT lead** or project tracker — your lead will tell you the exact channel (email, ticket system, shared sheet).
 
+**Standard template:** Log every defect in [`PERFORMANCE_HUB_DEFECT_TRACKER.csv`](./PERFORMANCE_HUB_DEFECT_TRACKER.csv) (open in Excel or Google Sheets). Copy the example row format; delete the example before go-live. Use **Module** values such as: Setup, Command center, Counselor home, Give discount, Admin queues, Offers studio, Client workspace, Incentives.
+
 ---
 
 ## 6. Screenshot naming convention
@@ -161,7 +163,7 @@ When you finish (or pause) UAT:
 1. Open [`PERFORMANCE_HUB_UAT_SIGNOFF.md`](./PERFORMANCE_HUB_UAT_SIGNOFF.md).  
 2. Fill in **environment**, **dates**, **your name**, and **counts**: executed / passed / failed / blocked.  
 3. List **failed** and **blocked** test IDs with short reasons.  
-4. Log **bugs** by severity (Critical, High, Medium, Low) — see sign-off sections 9–12.  
+4. Log **bugs** in [`PERFORMANCE_HUB_DEFECT_TRACKER.csv`](./PERFORMANCE_HUB_DEFECT_TRACKER.csv) by severity (Critical, High, Medium, Low) — see sign-off sections 9–12.  
 5. Enter **screenshot folder** path and total screenshots captured.  
 6. Choose **one recommendation**: Ready for Production · Ready for Limited Pilot · Requires Fixes Before Release (definitions are on the form).  
 7. **Sign** with tester, manager, and project owner as required.
