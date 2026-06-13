@@ -10,11 +10,12 @@ import { useToast } from "@/hooks/use-toast";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { PerformanceMetricCard } from "@/components/performance/PerformanceMetricCard";
 import { cn } from "@/lib/utils";
-import { Gift, RotateCcw } from "lucide-react";
+import { Gift, RotateCcw, Target } from "lucide-react";
 import { OFFER_FUNDING_LABELS, type OfferFundingSource } from "@/lib/offers/lifecycle";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
 import { walletScopeLabel } from "@/lib/walletScope";
 import { formatInr, currentPeriodKey } from "@/lib/performanceHubTheme";
+import { noTargetAchievementDetail, NO_TARGET_WALLET_NOTE } from "@/lib/performanceNoTargetCopy";
 
 type AllocStatus = "reserved" | "applied" | "reversed";
 
@@ -307,6 +308,7 @@ export default function GiveDiscount() {
   const ccy = wallet?.currency ?? "INR";
   const cap = wallet?.max_percent_per_client ?? 0;
   const sizingActive = (wallet?.potential_wallet ?? 0) > 0 || wallet?.assigned_target != null;
+  const hasNoTarget = Boolean(wallet) && wallet!.assigned_target == null;
 
   const spent = useMemo(
     () =>
@@ -516,6 +518,18 @@ export default function GiveDiscount() {
           showModuleLegend={false}
         />
 
+        {hasNoTarget && !loading && (
+          <Card className="p-4 border-l-4 border-l-amber-500 bg-amber-500/5">
+            <div className="flex gap-3">
+              <Target className="size-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="text-sm space-y-1">
+                <p className="font-medium">{noTargetAchievementDetail(period)}</p>
+                <p className="text-muted-foreground">{NO_TARGET_WALLET_NOTE}</p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {wallet && sizingActive && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <PerformanceMetricCard module="wallet" label="Spendable" value={fmt(remainingUnlocked, ccy)} />
@@ -556,6 +570,12 @@ export default function GiveDiscount() {
                 Max {cap}% per client
                 {wallet.max_amount_per_client ? `, up to ${fmt(wallet.max_amount_per_client, ccy)} each` : ""}
                 {wallet.achievement_pct != null ? ` · Achievement ${wallet.achievement_pct}%` : ""}
+                {hasNoTarget && (
+                  <>
+                    {" · "}
+                    <span className="text-amber-700">{NO_TARGET_WALLET_NOTE}</span>
+                  </>
+                )}
               </div>
               {sizingActive && (
                 <div className="space-y-2 pt-2 border-t">

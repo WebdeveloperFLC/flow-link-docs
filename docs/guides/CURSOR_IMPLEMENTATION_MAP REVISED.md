@@ -131,3 +131,36 @@ payouts ₹4.374L (TDS 10%). Slabs 0–60 @3 · 60–100 @5 · 100+ @7.
 **Dark mode:** light/dark toggle in the global context bar. Prototype swaps a token object at runtime; production should implement the same two palettes as CSS variables / ThemeProvider. Phase 1A.
 
 **Director permission rule (add to §2 matrix):** Director = firm-wide read on everything; **no** calculate/lock/close/payout/approve actions. Executive-dashboard alert buttons label as "Open in Finance workflow" — navigate for Admin, hand-off toast for Director. Enforce server-side (RLS + edge-function role check), not just nav.
+
+---
+
+## 6. Paste-ready Cursor tasks — closing the final design gaps
+
+Paste after loading `FutureLink_PerformanceHub_FULL.jsx` and this map. Tasks 1–5 are build work; Task 6 only creates backlog tickets.
+
+| Task | Scope | Map phase | Ship status |
+|------|--------|-----------|-------------|
+| **1** | Mobile Give Discount (W8) — sticky submit, 390px layout | 2A | 🔲 Phase 6C |
+| **2** | `service_offers` → `offers` convergence banner (O14) + flag | 2C | 🔲 Phase 6D |
+| **3** | “No target set” empty state on Home + Give Discount | 2B | ✅ **Phase 6A** |
+| **4** | Director read-only enforced server-side (`DIRECTOR_READ_ONLY`) | 1B | 🔲 Phase 6B |
+| **5** | Production theming — prototype LIGHT/DARK tokens as CSS variables | 1A | 🔲 Phase 6E |
+| **6** | Backlog tickets only — DO NOT BUILD | deferred | See below |
+
+### Task 6 — revised backlog (Jun 2026)
+
+**Already shipped (remove from backlog):** O11 A/B (5R, 5X) · O7 journeys (5O, 5Q) · I4 split (5P) · I7 stacking (5P) · I8 ticker (5T) · O10/WIR (5L, 5U, 5V) · O16 floor (5S, 5U) · I3/I6/I1/I2 (5M).
+
+**Still deferred:** O8 per-person codes + QR · O9 fraud guards · O15 landing pages · bundle builder UI · dedicated adjustments export · omni-channel composer · AI auto-send L2+ · ML propensity (D4).
+
+---
+
+## 7. Phase ship log (Performance Hub)
+
+| Phase | Theme |
+|-------|--------|
+| 5A–5L | Hub shell, wiring, offers studio, settlement governance |
+| 5M–5W | Intelligence layer + readiness gate |
+| 5X | Multi-variant A/B O11b |
+| **6A** | No target empty state (§6 Task 3) |
+| 6B–6E | Director RLS · mobile give discount · O14 banner · theming |
