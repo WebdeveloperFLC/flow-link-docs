@@ -1,4 +1,4 @@
--- Fix fn_rebind_ph_demo_wallets: uuid columns need ::text for LIKE pattern match.
+-- Rebind all PH demo incentive run rows to ph.counselor1 (fixes My Performance cash incentive ₹0).
 
 CREATE OR REPLACE FUNCTION public.fn_rebind_ph_demo_wallets()
 RETURNS void
@@ -78,4 +78,3 @@ END;
 $$;
 
 SELECT public.fn_rebind_ph_demo_wallets();
-SELECT public.fn_sync_wallet_metrics('a0020001-0001-4000-8000-000000000001');

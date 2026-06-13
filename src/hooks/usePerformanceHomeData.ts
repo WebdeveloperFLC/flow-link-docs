@@ -76,10 +76,12 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
         supabase.from("profiles").select("full_name, branch_id").eq("id", userId).maybeSingle(),
         supabase
           .from("discount_wallets")
-          .select("id, currency, assigned_target, potential_wallet, unlocked_amount, achievement_pct")
+          .select(
+            "id, currency, assigned_target, potential_wallet, unlocked_amount, achievement_pct, budget_kind",
+          )
           .eq("counselor_id", userId)
           .eq("period_key", period)
-          .maybeSingle(),
+          .is("closed_at", null),
         supabase.rpc("fn_incentive_counselor_revenue_breakdown", {
           _counselor_id: userId,
           _period_key: period,
@@ -115,14 +117,28 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
         branchName = (br as { name?: string } | null)?.name ?? null;
       }
 
-      const walletRow = w.data as {
+      const walletRows = (w.data ?? []) as {
         id?: string;
         currency?: string;
         assigned_target?: number;
         potential_wallet?: number;
         unlocked_amount?: number;
         achievement_pct?: number;
-      } | null;
+        budget_kind?: string;
+      }[];
+
+      let walletRow =
+        walletRows.find((row) => row.budget_kind === "month_to_month") ??
+        walletRows.find((row) => row.budget_kind === "personal") ??
+        walletRows[0] ??
+        null;
+
+      if (walletRow?.id) {
+        const { data: synced } = await supabase.rpc("fn_sync_wallet_metrics", { _wallet_id: walletRow.id });
+        if (synced) {
+          walletRow = synced as typeof walletRow;
+        }
+      }
 
       let spent = 0;
       if (walletRow?.id) {

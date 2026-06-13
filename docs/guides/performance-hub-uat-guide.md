@@ -71,6 +71,7 @@ Run in Supabase **SQL Editor** or Lovable **Database → Migrations**. **Never c
 | 9 | `20260716120004_performance_hub_demo_wallet_unlock.sql` — fix ₹0 spendable (achievement threshold + scoped wallet unlock) |
 | 10 | `20260716120005_performance_hub_demo_target_rebind.sql` — rebind `incentive_targets` to `ph.counselor1` (fixes NULL achievement / unlocked=0 on Priya wallet) |
 | 11 | `20260716120006_performance_hub_demo_rebind_uuid_cast.sql` — fix `id::text LIKE` in rebind (if 200005 failed with `uuid ~~ unknown`) |
+| 12 | `20260716120007_performance_hub_demo_incentive_rebind.sql` — rebind demo incentive line items to `ph.counselor1` (fixes My Performance cash ₹0) |
 
 **Verify migrations:**
 
