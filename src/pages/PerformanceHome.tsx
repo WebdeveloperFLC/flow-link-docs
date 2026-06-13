@@ -14,6 +14,7 @@ import { PerformanceTelecallerHome } from "@/components/performance/PerformanceT
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformanceHomeData } from "@/hooks/usePerformanceHomeData";
 import { formatInr } from "@/lib/performanceHubTheme";
+import { noTargetAchievementDetail, NO_TARGET_WALLET_NOTE } from "@/lib/performanceNoTargetCopy";
 import { toast } from "sonner";
 import { Trophy, TrendingUp, Wallet, Megaphone } from "lucide-react";
 
@@ -129,10 +130,12 @@ export default function PerformanceHome() {
 
   const achPct = data.wallet?.achievementPct;
   const target = data.wallet?.assignedTarget;
-  const targetLabel =
-    target != null
+  const hasNoTarget = !data.loading && target == null;
+  const targetLabel = hasNoTarget
+    ? noTargetAchievementDetail(data.period)
+    : target != null
       ? `${formatInr(data.revenueAchieved, data.revenueCurrency)} of ${formatInr(target, data.wallet?.currency ?? "INR")} · net revenue`
-      : "No target assigned — contact admin";
+      : null;
 
   async function submitWalletException() {
     const amount = Number(exceptionAmount);
@@ -178,7 +181,7 @@ export default function PerformanceHome() {
           <PerformanceMetricCard
             module="cash"
             label="Target achievement"
-            value={data.loading ? "…" : achPct != null ? `${achPct}%` : "—"}
+            value={data.loading ? "…" : hasNoTarget ? "—" : achPct != null ? `${achPct}%` : "—"}
             detail={data.loading ? null : targetLabel}
           />
           <PerformanceMetricCard
@@ -200,6 +203,12 @@ export default function PerformanceHome() {
                   {formatInr(data.wallet.potential, data.wallet.currency)} potential
                   {" · "}
                   {formatInr(data.wallet.spent, data.wallet.currency)} spent
+                  {hasNoTarget && (
+                    <>
+                      <br />
+                      <span className="text-amber-700">{NO_TARGET_WALLET_NOTE}</span>
+                    </>
+                  )}
                 </>
               ) : (
                 "No wallet this period"
