@@ -34,6 +34,9 @@ interface Suggestion {
   suggested_journey_id?: string;
   ab_experiment_id?: string;
   ab_variant_code?: string;
+  propensity_score?: number;
+  propensity_band?: string;
+  propensity_factors?: string[];
   wallet_unlocked?: number;
   wallet_potential?: number;
   wallet_spendable?: number;
@@ -226,6 +229,20 @@ export function ClientPromotionsStrip({ clientId, clientName, clientPhone }: Cli
                 A/B · {suggestion.ab_variant_code}
               </Badge>
             )}
+            {suggestion.propensity_band && suggestion.propensity_score != null && (
+              <Badge
+                variant="outline"
+                className={
+                  suggestion.propensity_band === "hot"
+                    ? "shrink-0 text-xs border-red-500/40 text-red-700"
+                    : suggestion.propensity_band === "warm"
+                      ? "shrink-0 text-xs border-amber-500/40 text-amber-800"
+                      : "shrink-0 text-xs"
+                }
+              >
+                I5 · {suggestion.propensity_band} · {suggestion.propensity_score}
+              </Badge>
+            )}
             <div className="text-sm space-y-2 flex-1">
               <p className="font-semibold">Suggested offer for this client</p>
               <p className="font-medium">
@@ -247,6 +264,13 @@ export function ClientPromotionsStrip({ clientId, clientName, clientPhone }: Cli
               </p>
               {suggestion.reason && suggestion.why_detail && (
                 <p className="text-muted-foreground text-xs">{suggestion.reason}</p>
+              )}
+              {suggestion.propensity_factors && suggestion.propensity_factors.length > 0 && (
+                <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-0.5">
+                  {suggestion.propensity_factors.slice(0, 4).map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
               )}
               <p className="text-xs text-muted-foreground">
                 Wallet:{" "}
