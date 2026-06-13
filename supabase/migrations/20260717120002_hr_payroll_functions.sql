@@ -211,8 +211,9 @@ begin
     sandwich_count=excluded.sandwich_count, unpaid_training=excluded.unpaid_training,
     late_deduction=excluded.late_deduction, mispunch_deduction=excluded.mispunch_deduction,
     payable_days=excluded.payable_days, daily_rate=excluded.daily_rate, gross_earned=excluded.gross_earned,
-    incentive=excluded.incentive, bonus=excluded.bonus, pf_employee=excluded.pf_employee,
-    esic_employee=excluded.esic_employee, net_salary=excluded.net_salary
+    incentive=excluded.incentive, bonus=excluded.bonus,     pf_employee=excluded.pf_employee,
+    esic_employee=excluded.esic_employee, net_salary=excluded.net_salary,
+    is_overridden=excluded.is_overridden, override_json=excluded.override_json
   returning * into row;
   return row;
 end; $$;
@@ -257,5 +258,6 @@ begin
   end if;
   return new;
 end; $$;
+drop trigger if exists attendance_derive on attendance;
 create trigger attendance_derive before insert or update of check_in, check_out, break_start, break_end, status
   on attendance for each row execute function trg_attendance_derive();
