@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { invokeError } from "@/lib/invokeError";
+import { directorReadOnlyMessage, isDirectorReadOnlyError } from "@/lib/performanceDirectorReadOnly";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
@@ -52,7 +53,9 @@ const fmt = (n: number, ccy: string) =>
 
 export default function IncentivesAdmin() {
   const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { isAdmin, hasRole } = useAuth();
+  const isDirectorOnly =
+    hasRole("director") && !isAdmin && !hasRole(["manager", "administrator"]);
   const { period, branchId, branches } = usePerformancePeriod();
   const lockReadiness = usePerformanceLockReadiness(period);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -131,8 +134,13 @@ export default function IncentivesAdmin() {
         toast({ title: "Run locked", description: "Run approved and frozen." });
         await loadAll();
       }
-    } catch (e: any) {
-      toast({ title: "Error", description: String(e?.message ?? e), variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast({
+        title: "Error",
+        description: directorReadOnlyMessage(msg),
+        variant: isDirectorReadOnlyError(msg) ? "default" : "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -179,6 +187,12 @@ export default function IncentivesAdmin() {
         </div>
 
         <PerformancePeriodBar />
+
+        {isDirectorOnly && (
+          <p className="text-sm text-muted-foreground border border-dashed rounded-md px-3 py-2">
+            Director accounts are read-only here — use admin/finance workflow to calculate, lock, or pay out.
+          </p>
+        )}
 
         {/* Run controls */}
         <Card className="p-5 space-y-4">
@@ -242,15 +256,15 @@ export default function IncentivesAdmin() {
             </p>
           )}
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" disabled={busy} onClick={() => callFn("preview")}>
+            <Button variant="outline" disabled={busy || isDirectorOnly} onClick={() => callFn("preview")}>
               {busy ? "Working…" : "Preview"}
             </Button>
-            <Button disabled={busy || isSelectionLocked} onClick={() => callFn("calculate")}>
+            <Button disabled={busy || isSelectionLocked || isDirectorOnly} onClick={() => callFn("calculate")}>
               <Calculator className="size-4 mr-1" /> Calculate &amp; save
             </Button>
             <Button
               variant="secondary"
-              disabled={busy || isSelectionLocked || lockBlockedByQueues || !calculatedRunForSelection}
+              disabled={busy || isSelectionLocked || lockBlockedByQueues || !calculatedRunForSelection || isDirectorOnly}
               onClick={() => callFn("lock")}
             >
               <Lock className="size-4 mr-1" /> Approve &amp; lock

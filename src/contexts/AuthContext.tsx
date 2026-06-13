@@ -3,7 +3,7 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export type AppRole = "admin" | "administrator" | "counselor" | "documentation" | "viewer" | "telecaller" | "client" | "commission_admin" | "manager";
+export type AppRole = "admin" | "administrator" | "counselor" | "documentation" | "viewer" | "director" | "telecaller" | "client" | "commission_admin" | "manager";
 
 interface AuthCtx {
   user: User | null;
@@ -104,7 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Documentation. Section management (rename/delete section, permanent
     // delete from trash) intentionally remains Admin-only via isAdmin.
     canDeleteDocs: hasRole(["admin", "administrator", "counselor", "documentation"]),
-    isClient: roles.includes("client") && !roles.some((r) => ["admin","administrator","counselor","documentation","telecaller","viewer","commission_admin","manager"].includes(r)),
+    isClient: roles.includes("client") && !roles.some((r) => ["admin","administrator","counselor","documentation","telecaller","viewer","director","commission_admin","manager"].includes(r)),
     canEdit: hasRole(["admin", "administrator", "counselor", "documentation", "telecaller", "commission_admin", "manager"]),
     canUpload: hasRole(["admin", "administrator", "counselor", "documentation", "telecaller", "commission_admin", "manager"]),
     canCreateClient: !!user,

@@ -407,6 +407,14 @@ Deno.serve(async (req: Request) => {
 
     const svc = createClient(SUPABASE_URL, SERVICE_KEY);
 
+    const { data: directorOnly } = await svc.rpc("fn_is_director_only", { _user_id: callerId });
+    if (directorOnly === true) {
+      return json(
+        { error: "Director is read-only for operational workflows", code: "DIRECTOR_READ_ONLY" },
+        403,
+      );
+    }
+
     // role gate: admin / administrator / manager
     const roleChecks = await Promise.all(
       ["admin", "administrator", "manager"].map((r) =>
