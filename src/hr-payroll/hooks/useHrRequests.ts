@@ -132,6 +132,8 @@ export function useHrPolicies() {
   });
 }
 
+import type { EmployeeDocumentRow } from "../lib/types";
+
 export function useHrDocuments(employeeId?: string) {
   return useQuery({
     queryKey: ["hr-documents", employeeId],
@@ -142,7 +144,7 @@ export function useHrDocuments(employeeId?: string) {
         .select("*")
         .eq("employee_id", employeeId!);
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as EmployeeDocumentRow[];
     },
   });
 }

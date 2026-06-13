@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { inr, initials } from "../../lib/format";
 import type { EmployeeRow } from "../../lib/types";
+import { EmployeeDocumentsPanel } from "./EmployeeDocumentsPanel";
 
-type Tab = "profile" | "employment" | "salary" | "statutory" | "bank";
+type Tab = "profile" | "employment" | "salary" | "statutory" | "bank" | "documents";
 
 export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClose: () => void }) {
   const [tab, setTab] = useState<Tab>("profile");
@@ -14,7 +15,7 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
     </div>
   );
 
-  const tabs: Tab[] = ["profile", "employment", "salary", "statutory", "bank"];
+  const tabs: Tab[] = ["profile", "employment", "salary", "statutory", "bank", "documents"];
 
   return (
     <div className="modal-bg" onClick={onClose}>
@@ -164,6 +165,7 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
               ))}
             </div>
           )}
+          {tab === "documents" && <EmployeeDocumentsPanel emp={emp} />}
         </div>
         <div className="modal-f">
           <button type="button" className="btn btn-primary" onClick={onClose}>

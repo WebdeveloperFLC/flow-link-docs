@@ -41,6 +41,17 @@ export type CrmStaffRow = {
   employee_name: string | null;
 };
 
+export type EmployeeDocumentRow = {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  doc_type: string;
+  file_name: string | null;
+  storage_path: string | null;
+  mime: string | null;
+  created_at?: string;
+};
+
 export type EmployeeRow = {
   id: string;
   org_id: string;
@@ -252,15 +263,6 @@ export type LeaveBalanceRow = {
   entitled: number;
   accrued: number;
   taken: number;
-};
-
-export type EmployeeDocumentRow = {
-  id: string;
-  employee_id: string;
-  doc_type: string;
-  file_name: string | null;
-  storage_path: string | null;
-  mime: string | null;
 };
 
 export type PayrollComputeResult = {
