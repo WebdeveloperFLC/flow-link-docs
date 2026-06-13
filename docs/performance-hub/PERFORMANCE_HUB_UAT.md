@@ -2,6 +2,7 @@
 
 **Environment:** Staging / Lovable preview after Phase **6B** publish  
 **Demo data:** [`PERFORMANCE_HUB_DEMO_DATA.md`](./PERFORMANCE_HUB_DEMO_DATA.md) — load before executing tests  
+**Demo coverage audit:** [`PERFORMANCE_HUB_UAT_DEMO_COVERAGE.md`](./PERFORMANCE_HUB_UAT_DEMO_COVERAGE.md)
 **Readiness review:** [`PERFORMANCE_HUB_READINESS_REVIEW.md`](./PERFORMANCE_HUB_READINESS_REVIEW.md) — fix/blockers before team UAT  
 **UAT blockers:** [`PERFORMANCE_HUB_UAT_BLOCKERS.md`](./PERFORMANCE_HUB_UAT_BLOCKERS.md) — execution order & fix plan  
 **Demo period:** `2026-06`  
@@ -234,8 +235,8 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-Q4 |
-| **2. Preconditions** | Priya logged in; run `r1000001` with line item `li100001`. |
-| **3. Steps** | 1. Open `/performance`; note earning card total.<br>2. In another tab/session (admin), add or update an `incentive_line_items` row for Priya in run `r1000001` OR trigger calculate-run.<br>3. Wait up to 60s without full page refresh. |
+| **2. Preconditions** | Priya logged in; run `r1000001` with line items `li100001`, `li100002`. |
+| **3. Steps** | 1. Open `/performance`; note earning card total.<br>2. In another tab/session (admin), **update** `li100002` earned amount (e.g. 8000 → 9500) OR trigger calculate-run.<br>3. Wait up to 60s without full page refresh. |
 | **4. Expected Result** | Cash card footer indicates live / ~60s refresh; earned total updates without manual reload (realtime or poll). |
 | **5. Screenshot Required** | Yes (before + after) |
 | **6. Screenshot Name Format** | `PH-UAT-Q4-before_{YYYYMMDD}.png`, `PH-UAT-Q4-after_{YYYYMMDD}.png` |
@@ -251,13 +252,13 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-T2 |
-| **2. Preconditions** | Priya logged in; client **Aman Shah** (`PH-DEMO-001`, `c1000001`); optional §4.1 verified payment loaded. |
+| **2. Preconditions** | Priya logged in; client **Aman Shah** (`PH-DEMO-001`, `c1000001`); verified payment `pay100001` in main seed. |
 | **3. Steps** | 1. Open `/performance`.<br>2. Locate **Hot clients for offers** section. |
 | **4. Expected Result** | **Aman Shah** listed with hot/warm band; propensity score ≥35 or band `hot`. |
 | **5. Screenshot Required** | Yes |
 | **6. Screenshot Name Format** | `PH-UAT-T2_{YYYYMMDD}.png` |
 | **7. Pass / Fail** | ☐ Pass ☐ Fail |
-| **8. Notes** | If empty, run demo doc §4.1 payment seed first. |
+| **8. Notes** | |
 | **9. Bug Severity** | |
 | **10. Reproducible** | ☐ Yes ☐ No |
 
@@ -786,7 +787,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-T1 |
-| **2. Preconditions** | Priya logged in; **Aman Shah** with verified payment (demo §4.1 if needed). |
+| **2. Preconditions** | Priya logged in; **Aman Shah** with verified payment `pay100001` (main §4 seed). |
 | **3. Steps** | 1. Open `PH-DEMO-001` promotions strip. |
 | **4. Expected Result** | **I5 · hot** or **warm** badge with factor bullets (verified payment, coaching-only cross-sell, recent activity). |
 | **5. Screenshot Required** | Yes |
