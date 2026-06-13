@@ -69,9 +69,22 @@ Deno.serve(async (req) => {
   let skippedNoDob = 0;
   let campaignsActivated = 0;
   let campaignsCompleted = 0;
+  let journeyProcessed = 0;
+  let journeyCompleted = 0;
   const errors: string[] = [];
 
   try {
+    // 0a. Automation journeys (O7)
+    const { data: journeyResult, error: journeyErr } = await admin.rpc("fn_process_due_journey_steps", {
+      _limit: 200,
+    });
+    if (journeyErr) {
+      errors.push(`journey_process: ${journeyErr.message}`);
+    } else {
+      journeyProcessed = Number((journeyResult as { processed?: number })?.processed ?? 0);
+      journeyCompleted = Number((journeyResult as { completed?: number })?.completed ?? 0);
+    }
+
     // 0. Campaign calendar — planned → live on start_date; live → completed after end_date
     const { data: toActivate, error: actErr } = await admin
       .from("campaign_calendar")
@@ -263,7 +276,7 @@ Deno.serve(async (req) => {
     }
 
     console.log(
-      `${DEBUG} done generated=${generated} skipped_no_dob=${skippedNoDob} campaigns_activated=${campaignsActivated} campaigns_completed=${campaignsCompleted} errors=${errors.length}`,
+      `${DEBUG} done generated=${generated} skipped_no_dob=${skippedNoDob} campaigns_activated=${campaignsActivated} campaigns_completed=${campaignsCompleted} journey_processed=${journeyProcessed} journey_completed=${journeyCompleted} errors=${errors.length}`,
     );
     return new Response(
       JSON.stringify({
@@ -272,6 +285,8 @@ Deno.serve(async (req) => {
         skipped_no_dob: skippedNoDob,
         campaigns_activated: campaignsActivated,
         campaigns_completed: campaignsCompleted,
+        journey_processed: journeyProcessed,
+        journey_completed: journeyCompleted,
         errors,
       }),
       {

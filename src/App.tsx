@@ -184,6 +184,7 @@ import PerformanceOfferAiStudio from "@/pages/PerformanceOfferAiStudio";
 import PerformanceOffersCalendar from "@/pages/PerformanceOffersCalendar";
 import PerformanceOffersSegments from "@/pages/PerformanceOffersSegments";
 import PerformanceOffersAutomation from "@/pages/PerformanceOffersAutomation";
+import PerformanceOffersJourneys from "@/pages/PerformanceOffersJourneys";
 import AiHelpPage from "./ai-help/pages/AiHelpPage";
 import GuidesIndexPage from "./guides/pages/GuidesIndexPage";
 import GuideDetailPage from "./guides/pages/GuideDetailPage";
@@ -664,6 +665,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceOffersAutomation />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/offers/journeys"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceOffersJourneys />
                       </ProtectedRoute>
                     }
                   />
