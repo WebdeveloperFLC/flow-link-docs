@@ -34,6 +34,27 @@ interface CommandCenterSnapshot {
   next_wallet_preview_count?: number;
 }
 
+interface HubReadiness {
+  ready_for_period_lock?: boolean;
+  blockers?: string[];
+  queues?: {
+    unclassified_payments?: number;
+    pending_discount_approvals?: number;
+    promotion_requests?: number;
+    wallet_exceptions?: number;
+  };
+  offers_intelligence?: {
+    running_ab_experiments?: number;
+    active_automation_journeys?: number;
+    margin_floor_policies?: number;
+  };
+  period_state?: {
+    open_wallets?: number;
+    incentive_runs_locked?: number;
+    counselor_scores_rows?: number;
+  };
+}
+
 const QUEUE_LINKS = [
   {
     to: "/performance/admin/unclassified",
@@ -69,6 +90,9 @@ const ADMIN_LINKS = [
   { to: "/incentives/simulator", label: "Simulator", icon: FlaskConical },
   { to: "/incentives/payouts", label: "Payout desk", icon: Banknote },
   { to: "/incentives/wallet-topups", label: "Wallet top-ups", icon: Gift },
+  { to: "/performance/offers", label: "Offers studio", icon: Tag },
+  { to: "/performance/offers/ab-tests", label: "A/B tests", icon: FlaskConical },
+  { to: "/performance/offers/journeys", label: "Automation journeys", icon: Tag },
   { to: "/offers-admin", label: "Offers library", icon: Tag },
 ] as const;
 
@@ -78,15 +102,21 @@ export default function PerformanceCommandCenter() {
   const queues = usePerformanceQueueCounts(period);
   const lockReadiness = usePerformanceLockReadiness(period);
   const [snapshot, setSnapshot] = useState<CommandCenterSnapshot | null>(null);
+  const [hubReadiness, setHubReadiness] = useState<HubReadiness | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data } = await supabase.rpc("fn_period_command_center", {
-        _period_key: period,
-        _branch_name: branchLabel,
-      });
-      if (!cancelled) setSnapshot((data ?? null) as CommandCenterSnapshot | null);
+      const [cc, hub] = await Promise.all([
+        supabase.rpc("fn_period_command_center", {
+          _period_key: period,
+          _branch_name: branchLabel,
+        }),
+        supabase.rpc("fn_performance_hub_readiness_check", { _period_key: period }),
+      ]);
+      if (cancelled) return;
+      setSnapshot((cc.data ?? null) as CommandCenterSnapshot | null);
+      setHubReadiness((hub.data ?? null) as HubReadiness | null);
     })();
     return () => {
       cancelled = true;
@@ -118,6 +148,51 @@ export default function PerformanceCommandCenter() {
         />
 
         <PerformancePeriodBar />
+
+        {hubReadiness && (
+          <Card
+            className={`p-4 border-l-4 ${
+              hubReadiness.ready_for_period_lock
+                ? "border-l-emerald-500 bg-emerald-500/5"
+                : "border-l-amber-500 bg-amber-500/5"
+            }`}
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="font-semibold flex items-center gap-2">
+                  Hub readiness · {period}
+                  {hubReadiness.ready_for_period_lock ? (
+                    <span className="text-xs font-normal text-emerald-700">Ready for period lock</span>
+                  ) : (
+                    <span className="text-xs font-normal text-amber-700">Blockers present</span>
+                  )}
+                </h2>
+                {!hubReadiness.ready_for_period_lock && (hubReadiness.blockers?.length ?? 0) > 0 && (
+                  <ul className="text-sm text-muted-foreground mt-2 list-disc ml-4">
+                    {hubReadiness.blockers!.map((b) => (
+                      <li key={b}>{b}</li>
+                    ))}
+                  </ul>
+                )}
+                <p className="text-xs text-muted-foreground mt-2">
+                  Queues: {hubReadiness.queues?.unclassified_payments ?? 0} unclassified ·{" "}
+                  {hubReadiness.queues?.pending_discount_approvals ?? 0} approvals ·{" "}
+                  {hubReadiness.queues?.wallet_exceptions ?? 0} wallet exceptions · Intelligence:{" "}
+                  {hubReadiness.offers_intelligence?.running_ab_experiments ?? 0} A/B running ·{" "}
+                  {hubReadiness.offers_intelligence?.active_automation_journeys ?? 0} journeys ·{" "}
+                  {hubReadiness.offers_intelligence?.margin_floor_policies ?? 0} floor policies
+                </p>
+              </div>
+              <Link
+                to="/performance/how-it-works"
+                className="inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline shrink-0"
+              >
+                How it works
+                <ChevronRight className="size-4" />
+              </Link>
+            </div>
+          </Card>
+        )}
 
         {snapshot && (
           <Card className="p-4 border-l-4 border-l-emerald-500 bg-emerald-500/5">
