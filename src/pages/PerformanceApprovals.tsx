@@ -6,6 +6,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
@@ -27,6 +28,10 @@ interface ApprovalRow {
   approval_level: string;
   status: string;
   request_note: string | null;
+  reference_amount: number | null;
+  net_after_discount: number | null;
+  below_floor: boolean;
+  is_waiver: boolean;
   created_at: string;
   counselor?: { full_name: string | null } | null;
   client?: { full_name: string | null } | null;
@@ -53,11 +58,14 @@ export default function PerformanceApprovals() {
   const { hasRole, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const { period } = usePerformancePeriod();
+  const isAdmin = hasRole(["admin", "administrator"]);
   const [rows, setRows] = useState<ApprovalRow[]>([]);
   const [walletRows, setWalletRows] = useState<WalletExceptionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [floorPct, setFloorPct] = useState("80");
+  const [floorSaving, setFloorSaving] = useState(false);
 
   const canReview =
     hasRole(["admin", "administrator"]) || hasRole("manager");
@@ -71,7 +79,8 @@ export default function PerformanceApprovals() {
           `
         id, period_key, counselor_id, client_id, lead_id,
         discount_amount, discount_percent, wallet_debit, approval_level,
-        status, request_note, created_at,
+        status, request_note, reference_amount, net_after_discount, below_floor, is_waiver,
+        created_at,
         counselor:profiles!discount_approval_requests_counselor_id_fkey(full_name),
         client:clients(full_name),
         offer:offers(title)
@@ -116,6 +125,39 @@ export default function PerformanceApprovals() {
     if (!canReview) return;
     load();
   }, [period, canReview]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    supabase.rpc("fn_get_discount_margin_floor_policy").then(({ data }) => {
+      const row = data as { min_net_pct?: number } | null;
+      if (row?.min_net_pct != null) setFloorPct(String(row.min_net_pct));
+    });
+  }, [isAdmin]);
+
+  async function saveFloorPolicy() {
+    const pct = Number(floorPct);
+    if (!pct || pct <= 0 || pct > 100) {
+      toast({ title: "Enter min net % between 1 and 100", variant: "destructive" });
+      return;
+    }
+    setFloorSaving(true);
+    try {
+      const { error } = await supabase.rpc("fn_set_discount_margin_floor_policy", {
+        _min_net_pct: pct,
+        _block_counselor_waiver: true,
+      });
+      if (error) throw error;
+      toast({ title: "Margin floor policy saved", description: `Min net ${pct}% of invoice base` });
+    } catch (e: unknown) {
+      toast({
+        title: "Save failed",
+        description: formatSupabaseError(e, "Could not save policy"),
+        variant: "destructive",
+      });
+    } finally {
+      setFloorSaving(false);
+    }
+  }
 
   async function review(id: string, action: "approve" | "decline") {
     setBusyId(id);
@@ -195,6 +237,46 @@ export default function PerformanceApprovals() {
           </Link>
         </div>
 
+        <Card className="p-4 space-y-3">
+          <h2 className="font-semibold">Depth matrix</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+            {[
+              ["≤ 10% or ≤ ₹5,000", "Counselor — instant"],
+              ["11 – 20%", "Branch manager"],
+              ["> 20% / below floor", "Admin / director"],
+              ["Scholarship / waiver", "Admin only — counselor submit blocked"],
+            ].map(([depth, approver]) => (
+              <div key={depth} className="rounded-md border bg-muted/30 p-3">
+                <p className="font-semibold text-foreground">{depth}</p>
+                <p className="text-muted-foreground mt-1">{approver}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Floor-price protection (O16): any discount below the margin floor escalates to admin, regardless of depth
+            band.
+          </p>
+        </Card>
+
+        {isAdmin && (
+          <Card className="p-4 space-y-3 border-dashed">
+            <h2 className="font-semibold text-sm">Margin floor policy (O16)</h2>
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground">Min net % of invoice base</label>
+                <Input
+                  className="w-24 mt-1"
+                  value={floorPct}
+                  onChange={(e) => setFloorPct(e.target.value)}
+                />
+              </div>
+              <Button size="sm" disabled={floorSaving} onClick={saveFloorPolicy}>
+                Save policy
+              </Button>
+            </div>
+          </Card>
+        )}
+
         {rows.length === 0 && walletRows.length === 0 && !loading ? (
           <Card className="p-6 flex items-center gap-3 text-emerald-700 bg-emerald-500/5 border-emerald-500/30">
             <CheckCircle2 className="size-5 shrink-0" />
@@ -211,6 +293,16 @@ export default function PerformanceApprovals() {
                   <div>
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <Badge variant="outline">{LEVEL_LABELS[row.approval_level] ?? row.approval_level}</Badge>
+                      {row.below_floor && (
+                        <Badge variant="destructive" className="text-xs">
+                          Below floor
+                        </Badge>
+                      )}
+                      {row.is_waiver && (
+                        <Badge variant="secondary" className="text-xs">
+                          Waiver
+                        </Badge>
+                      )}
                       <span className="font-medium">
                         {formatInr(row.discount_amount)}
                         {row.discount_percent != null && ` (${row.discount_percent}%)`}
@@ -224,6 +316,12 @@ export default function PerformanceApprovals() {
                     {row.wallet_debit > 0 && (
                       <p className="text-xs text-muted-foreground mt-1">
                         Wallet debit: {formatInr(row.wallet_debit)}
+                      </p>
+                    )}
+                    {row.reference_amount != null && row.reference_amount > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Invoice base {formatInr(row.reference_amount)}
+                        {row.net_after_discount != null && <> · net {formatInr(row.net_after_discount)}</>}
                       </p>
                     )}
                     {row.request_note && (
