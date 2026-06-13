@@ -144,7 +144,7 @@ Paste after loading `FutureLink_PerformanceHub_FULL.jsx` and this map. Tasks 1�
 | **2** | `service_offers` → `offers` convergence banner (O14) + flag | 2C | ✅ **Phase 6D** |
 | **3** | “No target set” empty state on Home + Give Discount | 2B | ✅ **Phase 6A** |
 | **4** | Director read-only enforced server-side (`DIRECTOR_READ_ONLY`) | 1B | ✅ **Phase 6B** |
-| **5** | Production theming — prototype LIGHT/DARK tokens as CSS variables | 1A | 🔲 Phase 6E |
+| **5** | Production theming — prototype LIGHT/DARK tokens as CSS variables | 1A | ✅ **Phase 6E** |
 | **6** | Backlog tickets only — DO NOT BUILD | deferred | See below |
 
 ### Task 6 — revised backlog (Jun 2026)
@@ -166,4 +166,4 @@ Paste after loading `FutureLink_PerformanceHub_FULL.jsx` and this map. Tasks 1�
 | **6B** | Director read-only + server 403 (§6 Task 4) |
 | **6C** | Mobile Give Discount W8 (§6 Task 1) |
 | **6D** | O14 service_offers convergence banner (§6 Task 2) |
-| 6E | Hub theming tokens |
+| **6E** | Hub prototype LIGHT/DARK tokens (§6 Task 5) |

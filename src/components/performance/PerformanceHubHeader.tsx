@@ -27,11 +27,11 @@ export function PerformanceHubHeader({
     <div className="space-y-4">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          <p className="text-xs font-semibold uppercase tracking-widest ph-muted">
             Future Link · Performance Hub
           </p>
-          <h1 className="text-2xl font-semibold mt-1">{title}</h1>
-          {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
+          <h1 className="text-2xl font-semibold mt-1 ph-heading">{title}</h1>
+          {subtitle && <p className="text-sm ph-muted mt-1">{subtitle}</p>}
           {(profileName || branchName) && (
             <p className="text-sm font-medium mt-2">
               {profileName?.toUpperCase()}
@@ -40,9 +40,9 @@ export function PerformanceHubHeader({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="rounded-lg border bg-card px-3 py-2 text-sm">
-            <span className="text-muted-foreground text-xs block">Period</span>
-            <span className="font-semibold">{period}</span>
+          <div className="rounded-lg border ph-surface-card px-3 py-2 text-sm">
+            <span className="ph-muted text-xs block">Period</span>
+            <span className="font-semibold ph-heading">{period}</span>
           </div>
           {primaryAction && (
             <Button asChild className="gap-2">

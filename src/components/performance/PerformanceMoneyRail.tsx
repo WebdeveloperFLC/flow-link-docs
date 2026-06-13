@@ -19,12 +19,13 @@ export function PerformanceMoneyRail({ steps, loading }: { steps: MoneyRailStep[
             <div key={step.label} className="flex flex-1 items-center min-w-0">
               <div
                 className={cn(
-                  "flex-1 rounded-lg border bg-card p-3 text-center min-w-[120px]",
+                  "flex-1 rounded-lg border ph-surface-card p-3 text-center min-w-[120px]",
+                  m.card,
                   m.border,
                   "border-l-4",
                 )}
               >
-                <p className={cn("text-[10px] font-bold uppercase tracking-wide", m.text)}>{step.label}</p>
+                <p className={cn("text-[10px] font-bold uppercase tracking-wide", m.labelClass, m.text)}>{step.label}</p>
                 <p className="text-lg font-semibold mt-1 tabular-nums">
                   {loading ? "…" : formatInr(step.value, "INR")}
                 </p>
@@ -57,9 +58,9 @@ export function PerformanceKpiGrid({
         return (
           <div
             key={item.label}
-            className={cn("rounded-lg border bg-card p-3 border-l-4", m.border, m.bg)}
+            className={cn("rounded-lg border ph-surface-card p-3 border-l-4", m.card, m.border)}
           >
-            <p className={cn("text-[10px] font-bold uppercase tracking-wide", m.text)}>{item.label}</p>
+            <p className={cn("text-[10px] font-bold uppercase tracking-wide", m.labelClass, m.text)}>{item.label}</p>
             <p className="text-xl font-semibold mt-1 tabular-nums">{loading ? "…" : item.value}</p>
             {item.hint && <p className="text-[10px] text-muted-foreground mt-1">{item.hint}</p>}
           </div>
