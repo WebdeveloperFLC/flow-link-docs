@@ -133,6 +133,7 @@ const crmNav: NavItem[] = [
 const performanceNav: NavItem[] = [
   { to: "/performance", icon: LayoutGrid, label: "My performance", end: true },
   { to: "/performance/give-discount", icon: Gift, label: "Give discount" },
+  { to: "/performance/offers", icon: Tag, label: "Offers studio", roles: ["manager", "admin", "administrator"] },
   { to: "/performance/offers/requests", icon: Megaphone, label: "Promotion requests" },
   { to: "/performance/team", icon: Users, label: "Team · branch", roles: ["manager", "admin", "administrator"] },
   { to: "/performance/executive", icon: BarChart2, label: "Executive dashboard", roles: ["admin", "administrator", "viewer"] },
@@ -157,8 +158,6 @@ const performanceNav: NavItem[] = [
   { to: "/incentives/payouts", icon: Banknote, label: "Payout desk", adminOnly: true },
   { to: "/incentives/wallet-topups", icon: Wallet, label: "Wallet top-ups", adminOnly: true },
   { to: "/incentives/period-close", icon: CalendarClock, label: "Period close", adminOnly: true },
-  { to: "/offers-admin", icon: Tag, label: "Offers library", adminOnly: true },
-  { to: "/offers-analytics", icon: BarChart2, label: "Offer analytics", adminOnly: true },
 ];
 
 const adminNav: NavItem[] = [

@@ -174,6 +174,10 @@ import PerformanceWalletPolicy from "@/pages/PerformanceWalletPolicy";
 import PerformanceUnclassifiedPayments from "@/pages/PerformanceUnclassifiedPayments";
 import PerformanceApprovals from "@/pages/PerformanceApprovals";
 import PerformancePromotionRequests from "@/pages/PerformancePromotionRequests";
+import PerformanceOffersStudio from "@/pages/PerformanceOffersStudio";
+import PerformanceOffersLibrary from "@/pages/PerformanceOffersLibrary";
+import PerformanceOfferWizard from "@/pages/PerformanceOfferWizard";
+import PerformanceOffersAnalytics from "@/pages/PerformanceOffersAnalytics";
 import AiHelpPage from "./ai-help/pages/AiHelpPage";
 import GuidesIndexPage from "./guides/pages/GuidesIndexPage";
 import GuideDetailPage from "./guides/pages/GuideDetailPage";
@@ -593,6 +597,39 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/performance/offers/library"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceOffersLibrary />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/offers/new"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceOfferWizard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/offers/analytics"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceOffersAnalytics />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/offers"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceOffersStudio />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/offers-admin" element={<Navigate to="/performance/offers/library" replace />} />
                   <Route
                     path="/incentives"
                     element={
