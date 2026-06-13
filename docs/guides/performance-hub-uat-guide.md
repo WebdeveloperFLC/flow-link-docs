@@ -65,6 +65,7 @@ Run in Supabase **SQL Editor** or Lovable **Database → Migrations**. **Never c
 | 3 | `20260712120000_performance_hub_offer_events_sent.sql` — `offer_events` `sent` type |
 | 4 | `20260715120000_performance_hub_offers_studio_rls.sql` — MarCom offers library write + lifecycle RPC |
 | 5 | `20260716120000_performance_hub_demo_seed.sql` — **loads all PH-DEMO mock data** (runs `fn_seed_performance_hub_demo()`) |
+| 6 | `20260716120001_performance_hub_demo_seed_idempotent.sql` — idempotent upsert fix + re-run seed |
 
 **Verify migrations:**
 
