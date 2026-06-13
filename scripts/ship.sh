@@ -55,6 +55,35 @@ scan_paths_for_hints() {
   done
 }
 
+# Performance Hub phases 5C–5F — print every ship so nothing is skipped in Lovable Publish.
+print_performance_migration_checklist() {
+  cat <<'EOF'
+
+Performance Hub migrations (Lovable Publish — approve ALL that still show as pending):
+  [ ] 20260619120000_incentive_platform_phase5c.sql  — promotion_requests, approvals, unclassified
+  [ ] 20260620120000_incentive_platform_phase5d.sql  — telecaller home, lead_converted, publish promo
+  [ ] 20260621120000_incentive_runs_unique_scope.sql — runs dedupe
+  [ ] 20260622120000_incentive_platform_phase5e.sql  — period lock gates
+  [ ] 20260623120000_incentive_platform_phase5f.sql  — enrolment / stage qualifying events
+
+EOF
+}
+
+print_sql_reminder() {
+  echo ""
+  echo "┌──────────────────────────────────────────────────────────────────┐"
+  echo "│  npm run ship = GitHub ONLY. It does NOT run SQL on Supabase.   │"
+  echo "│  SQL applies only: Lovable → Sync → Publish → approve migrations │"
+  echo "│  (Supabase admin is in Lovable — no SQL editor, no CLI token.)  │"
+  echo "└──────────────────────────────────────────────────────────────────┘"
+  print_performance_migration_checklist
+  echo "YOUR ACTION after ship:"
+  echo "  Step 1 — Lovable → Sync from GitHub"
+  echo "  Step 2 — Lovable → Publish → approve every pending migration above (not just this ship's file)"
+  echo "  Step 3 — Refresh app and UAT"
+  echo ""
+}
+
 if [[ $# -lt 1 ]]; then
   usage
   exit 1
@@ -179,11 +208,13 @@ if [[ "$EDGE_TOUCHED" == "1" ]]; then
   echo "#   edge function: incentive-calculate-run (deploys on Lovable Publish)"
 fi
 
+print_sql_reminder
+
 echo ""
 echo "═══════════════════════════════════════════════════════════"
 if [[ -n "$LOVABLE_URL" ]]; then
   echo "→ Open Lovable: $LOVABLE_URL"
   command -v open >/dev/null 2>&1 && open "$LOVABLE_URL"
 fi
-echo "Done. Finish: Lovable → Sync → Publish → approve migrations."
+echo "Done. Finish: Lovable → Sync → Publish → approve migrations (see checklist above)."
 echo "═══════════════════════════════════════════════════════════"
