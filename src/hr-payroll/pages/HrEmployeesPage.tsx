@@ -7,6 +7,7 @@ import { inr, initials } from "../lib/format";
 import type { EmployeeRow } from "../lib/types";
 import { EmployeeFormModal } from "../components/employees/EmployeeFormModal";
 import { EmployeeDetailModal } from "../components/employees/EmployeeDetailModal";
+import { CrmImportModal } from "../components/team/CrmImportModal";
 
 export default function HrEmployeesPage() {
   const { can, fire, dbReady } = useHrAccess();
@@ -16,6 +17,7 @@ export default function HrEmployeesPage() {
   const [q, setQ] = useState("");
   const [edit, setEdit] = useState<EmployeeRow | "new" | null>(null);
   const [detail, setDetail] = useState<EmployeeRow | null>(null);
+  const [crmImport, setCrmImport] = useState(false);
 
   const list = useMemo(() => {
     const s = q.toLowerCase();
@@ -59,9 +61,14 @@ export default function HrEmployeesPage() {
           onChange={(e) => setQ(e.target.value)}
         />
         {can("manageEmp") && (
-          <button type="button" className="btn btn-primary" onClick={() => setEdit("new")}>
-            + Add Employee
-          </button>
+          <div className="row-flex">
+            <button type="button" className="btn" onClick={() => setCrmImport(true)}>
+              Import from CRM
+            </button>
+            <button type="button" className="btn btn-primary" onClick={() => setEdit("new")}>
+              + Add Employee
+            </button>
+          </div>
         )}
       </div>
       <div className="card" style={{ padding: 0, overflow: "auto" }}>
@@ -164,6 +171,7 @@ export default function HrEmployeesPage() {
         />
       )}
       {detail && <EmployeeDetailModal emp={detail} onClose={() => setDetail(null)} />}
+      <CrmImportModal open={crmImport} onClose={() => setCrmImport(false)} />
     </div>
   );
 }

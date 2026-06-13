@@ -5,6 +5,7 @@ import { HR_ORG_ID, DEPARTMENTS, MANAGERS } from "../../lib/constants";
 import { fillSalaryComponents, initials, inr } from "../../lib/format";
 import type { BranchRow, CompanyRow, EmployeeRow, ShiftRow } from "../../lib/types";
 import { fetchNextEmpCode } from "../../hooks/useHrEmployees";
+import { useHrCrmStaff } from "../../hooks/useHrTeam";
 import { useHrAccess } from "../../context/HrPayrollProvider";
 
 type FormTab = "basic" | "employment" | "shift" | "salary" | "statutory" | "bank";
@@ -55,6 +56,7 @@ type FormState = {
   bank_branch: string;
   bank_account_type: string;
   bank_verified: boolean;
+  staff_id: string;
 };
 
 function fromEmployee(e: EmployeeRow): FormState {
@@ -96,6 +98,7 @@ function fromEmployee(e: EmployeeRow): FormState {
     bank_branch: e.bank_branch ?? "",
     bank_account_type: e.bank_account_type ?? "Savings",
     bank_verified: e.bank_verified,
+    staff_id: e.staff_id ?? "",
   };
 }
 
@@ -137,11 +140,13 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
   bank_branch: "",
   bank_account_type: "Savings",
   bank_verified: false,
+  staff_id: "",
 });
 
 export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }: Props) {
   const { fire } = useHrAccess();
   const qc = useQueryClient();
+  const { data: crmStaff = [] } = useHrCrmStaff();
   const [tab, setTab] = useState<FormTab>("basic");
   const [f, setF] = useState<FormState>(
     emp ? fromEmployee(emp) : blank(shifts, companies, branches),
@@ -216,6 +221,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
       bank_branch: f.bank_branch || null,
       bank_account_type: f.bank_account_type || "Savings",
       bank_verified: f.bank_verified,
+      staff_id: f.staff_id || null,
     };
 
     try {
@@ -370,6 +376,23 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
               {T("notice_period", "Notice Period", ["30 days", "60 days", "90 days", "15 days"])}
               {T("work_week", "Work Week", ["6-Day", "5-Day"])}
               {T("status", "Status", ["On Probation", "Confirmed", "Resigned", "Terminated", "On Notice"])}
+              <label className="fld">
+                <span className="l">CRM login (ESS self-access)</span>
+                <select
+                  className="input"
+                  value={f.staff_id}
+                  onChange={(e) => set("staff_id", e.target.value)}
+                >
+                  <option value="">— not linked —</option>
+                  {crmStaff
+                    .filter((s) => !s.employee_id || s.employee_id === emp?.id)
+                    .map((s) => (
+                      <option key={s.staff_id} value={s.staff_id}>
+                        {s.full_name} {s.email ? `(${s.email})` : ""}
+                      </option>
+                    ))}
+                </select>
+              </label>
             </div>
           )}
           {tab === "shift" && (

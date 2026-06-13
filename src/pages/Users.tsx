@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, AppRole } from "@/contexts/AuthContext";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { Shield, UserCog, Plus, MoreHorizontal, Eye, EyeOff, KeyRound, ChevronDown, Search, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -189,9 +189,21 @@ const Users = () => {
     <AppLayout>
       <PageHeader
         title="Team & roles"
-        description="Assign roles to team members. Only admins can change permissions."
+        description="Assign CRM app roles and module permissions. HR Payroll module roles are managed separately."
       />
-      <div className="p-8">
+      <div className="px-8 pt-4">
+        <Card className="p-4 border-primary/20 bg-primary/5">
+          <p className="text-sm text-muted-foreground">
+            <strong className="text-foreground">HR Payroll access</strong> — assign HR module roles
+            (HR Manager, Employee, etc.) and link CRM logins to employee records in{" "}
+            <Link to="/hr/roles" className="text-primary font-medium hover:underline">
+              HR Payroll → Roles &amp; Access → Team &amp; CRM
+            </Link>
+            .
+          </p>
+        </Card>
+      </div>
+      <div className="p-8 pt-4">
         <div className="flex flex-wrap gap-2 items-center mb-4">
           <div className="relative flex-1 min-w-[220px] max-w-md">
             <Search className="size-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />

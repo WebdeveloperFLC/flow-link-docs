@@ -173,7 +173,7 @@ const performanceNav: NavItem[] = [
 const hrPayrollNav: NavItem[] = [
   { to: "/hr", icon: Briefcase, label: "HR Payroll", end: true },
   { to: "/hr/employees", icon: Users, label: "Employee Master" },
-  { to: "/hr/roles", icon: Shield, label: "Roles & Access", adminOnly: true },
+  { to: "/hr/roles", icon: Shield, label: "Team & Roles (HR)", adminOnly: true },
 ];
 
 const adminNav: NavItem[] = [
