@@ -145,11 +145,12 @@ Create users in **Team & Roles** (or Supabase Auth invite) **before** running SQ
 ## 3. Prerequisites
 
 1. Apply all migrations through **Phase 6B** (`20260711120000` + `20260711120001`).
-2. Lovable Publish complete (Edge functions: `incentive-calculate-run`, etc.).
-3. Create the seven test users (§2.1) and assign roles/modules (**MarCom needs `offers` + `offers_ai` edit**).
-4. Confirm **`service_library`** contains at least one IELTS/coaching row (for unclassified classify UI — W2 / UNCL-001).
-5. Run the SQL in §4 in order (Supabase SQL editor or `psql`).
-6. Set Performance Hub period bar to **`2026-06`** (defaults to current month — switch if testing in another calendar month).
+2. Apply **`20260712120000_performance_hub_offer_events_sent.sql`** (`offer_events` `sent` type).
+3. Lovable Publish complete (Edge functions: `incentive-calculate-run`, etc.).
+4. Create the seven test users (§2.1) and assign roles/modules (**MarCom needs `offers` + `offers_ai` edit**).
+5. Confirm **`service_library`** contains at least one IELTS/coaching row (for unclassified classify UI — W2 / UNCL-001).
+6. Run the SQL in §4 in order (Supabase SQL editor or `psql`).
+7. Set Performance Hub period bar to **`2026-06`** and run UAT in calendar month **June 2026** when possible (promotions strip wallet RPC uses `current_date`).
 
 **Verify load:**
 
