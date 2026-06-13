@@ -8,7 +8,8 @@
 #
 #   npm run ship -- "fix: hotfix" --all          # git add -A (escape hatch)
 #
-# Then in Lovable: Sync from GitHub → Publish → approve migrations.
+# Then in Lovable: Sync from GitHub → Publish → approve migrations + edge functions.
+# Supabase admin (DB + edge functions) is via Lovable — not Supabase dashboard CLI.
 #
 # One-time: cp scripts/ship.local.example .ship.local
 
@@ -33,8 +34,25 @@ Example (matches deploy doc YOUR ACTION):
     src/pages/IncentivesAdmin.tsx \
     docs/INCENTIVE_PHASE5E_DEPLOY.md
 
-Then: Lovable → Sync from GitHub → Publish (approve listed migrations)
+Then: Lovable → Sync from GitHub → Publish (migrations + edge functions)
+
+Supabase is managed in Lovable — ship only pushes to GitHub.
 EOF
+}
+
+scan_paths_for_hints() {
+  MIGRATIONS=()
+  EDGE_TOUCHED=0
+  local f
+  for f in "$@"; do
+    [[ -z "$f" ]] && continue
+    if [[ "$f" == supabase/migrations/* ]]; then
+      MIGRATIONS+=("$(basename "$f")")
+    fi
+    if [[ "$f" == supabase/functions/incentive-calculate-run/* ]]; then
+      EDGE_TOUCHED=1
+    fi
+  done
 }
 
 if [[ $# -lt 1 ]]; then
@@ -74,7 +92,8 @@ BRANCH="${SHIP_BRANCH:-$(git branch --show-current)}"
 REMOTE="${SHIP_REMOTE:-origin}"
 PROJECT_REF="${SUPABASE_PROJECT_REF:-auofttkyosgjhxcbhscw}"
 LOVABLE_URL="${LOVABLE_PROJECT_URL:-}"
-DEPLOY_EDGE="${SHIP_DEPLOY_EDGE:-1}"
+# Default off: edge functions deploy on Lovable Publish, not Supabase CLI.
+DEPLOY_EDGE="${SHIP_DEPLOY_EDGE:-0}"
 
 echo "═══════════════════════════════════════════════════════════"
 echo "  YOUR ACTION — GitHub → Lovable → Publish"
@@ -99,42 +118,52 @@ echo ""
 
 MIGRATIONS=()
 EDGE_TOUCHED=0
+HINT_PATHS=()
 
 if [[ "$ADD_ALL" == "1" ]]; then
+  while IFS= read -r p; do
+    [[ -n "$p" ]] && HINT_PATHS+=("$p")
+  done < <(git status --porcelain | awk '{print $NF}')
+  scan_paths_for_hints "${HINT_PATHS[@]}"
   git add -A
 else
   for f in "${FILES[@]}"; do
     if [[ ! -e "$f" ]]; then
       echo "Error: file not found: $f" >&2
+      echo "Tip: use real paths — do not paste template placeholders like YYYYMMDD_phase.sql" >&2
       exit 1
     fi
   done
+  scan_paths_for_hints "${FILES[@]}"
   git add "${FILES[@]}"
 fi
 
-while IFS= read -r f; do
-  [[ -z "$f" ]] && continue
-  if [[ "$f" == supabase/migrations/* ]]; then
-    MIGRATIONS+=("$(basename "$f")")
-  fi
-  if [[ "$f" == supabase/functions/incentive-calculate-run/* ]]; then
-    EDGE_TOUCHED=1
-  fi
-done < <(git diff --cached --name-only)
-
+COMMITTED=0
 if git diff --cached --quiet; then
-  echo "Nothing staged to commit (files unchanged or already committed)."
+  echo "✓ Nothing new to commit (these files are already on GitHub)."
+  echo "  → Skip to Lovable: Sync from GitHub → Publish"
 else
   git commit -m "$MSG"
+  COMMITTED=1
+  echo "✓ Committed."
 fi
 
 git push -u "$REMOTE" HEAD
+echo "✓ Pushed to $REMOTE/$BRANCH"
 
-if [[ "$DEPLOY_EDGE" == "1" && "$EDGE_TOUCHED" == "1" && -n "${SUPABASE_ACCESS_TOKEN:-}" ]]; then
-  CLI="npx --yes supabase@2.105.0"
-  echo ""
-  echo "→ Deploying edge function incentive-calculate-run…"
-  $CLI functions deploy incentive-calculate-run --project-ref "$PROJECT_REF"
+if [[ "$EDGE_TOUCHED" == "1" && "$DEPLOY_EDGE" == "1" ]]; then
+  tok="${SUPABASE_ACCESS_TOKEN:-}"
+  if [[ "$tok" == sbp_* ]]; then
+    CLI="npx --yes supabase@2.105.0"
+    echo ""
+    echo "→ Deploying edge function incentive-calculate-run (CLI)…"
+    if ! $CLI functions deploy incentive-calculate-run --project-ref "$PROJECT_REF"; then
+      echo "⚠ CLI edge deploy failed — use Lovable → Publish instead." >&2
+    fi
+  elif [[ -n "$tok" ]]; then
+    echo ""
+    echo "⚠ Skipping CLI edge deploy (invalid token). Supabase admin is via Lovable → Publish." >&2
+  fi
 fi
 
 echo ""
@@ -144,10 +173,10 @@ if [[ ${#MIGRATIONS[@]} -gt 0 ]]; then
     echo "#   migration: $m"
   done
 else
-  echo "#   (no new migration in this ship — UI / edge only)"
+  echo "#   (no migration files in this ship list)"
 fi
 if [[ "$EDGE_TOUCHED" == "1" ]]; then
-  echo "#   edge function: incentive-calculate-run (confirm deployed after Publish or CLI above)"
+  echo "#   edge function: incentive-calculate-run (deploys on Lovable Publish)"
 fi
 
 echo ""

@@ -30,7 +30,7 @@ Creates / updates:
 
 ## Edge function
 
-Redeploy **`incentive-calculate-run`** — processes qualifying events for rules with milestones:
+On **Lovable Publish**, redeploy **`incentive-calculate-run`** (Supabase admin is in Lovable — no CLI token needed). It processes qualifying events for rules with milestones:
 
 - `offer_received`
 - `visa_lodged`
@@ -93,13 +93,12 @@ npm run ship -- "feat(performance): Phase 5F — enrolment/stage qualifying even
 
 Open Lovable → **Sync from GitHub** (pull latest commit).
 
-**Step 3 — Publish**
+**Step 3 — Publish (Supabase admin — all in Lovable)**
 
-Lovable → **Publish** → approve migration:
+Lovable → **Publish** → approve:
 
-- `20260623120000_incentive_platform_phase5f.sql`
-
-Redeploy edge function: **`incentive-calculate-run`**
+- Migration: `20260623120000_incentive_platform_phase5f.sql`
+- Edge function: **`incentive-calculate-run`** (included in Publish — no Supabase dashboard)
 
 If Phase 5E was never published, also approve in this publish (or prior):
 

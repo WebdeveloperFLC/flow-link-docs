@@ -1,22 +1,29 @@
 # Copy to repo root:  cp scripts/ship.local.example .ship.local
 # (.ship.local is gitignored via *.local)
 
-# Opens after every ship:
+# ── FLC deploy path (standard) ───────────────────────────────────────────────
+# GitHub  →  npm run ship  →  Lovable Sync  →  Lovable Publish
+#
+# Supabase (migrations, edge functions, DB) is managed in Lovable — not via
+# Supabase dashboard or CLI. Do NOT set SUPABASE_ACCESS_TOKEN unless you have
+# direct Supabase org access outside Lovable.
+
+# Optional: open Lovable after every ship
 # LOVABLE_PROJECT_URL=https://lovable.dev/projects/YOUR-PROJECT-ID
 
-# Auto-deploy incentive-calculate-run when that file is in the ship list:
+# Optional: only if you have direct Supabase CLI access (NOT the Lovable workflow)
+# SHIP_DEPLOY_EDGE=1
 # SUPABASE_ACCESS_TOKEN=sbp_...
-# Get token: https://supabase.com/dashboard/account/tokens
 
 # ── YOUR ACTION pattern (use every time) ─────────────────────────────────────
 #
-# npm run ship -- "feat(performance): Phase 5E — period lock gates" -- \
-#   supabase/migrations/20260622120000_incentive_platform_phase5e.sql \
+# npm run ship -- "feat(performance): Phase 5F — …" -- \
+#   supabase/migrations/20260623120000_incentive_platform_phase5f.sql \
 #   supabase/functions/incentive-calculate-run/index.ts \
 #   src/pages/IncentivesAdmin.tsx \
-#   docs/INCENTIVE_PHASE5E_DEPLOY.md
+#   docs/INCENTIVE_PHASE5F_DEPLOY.md
 #
-# Then: Lovable → Sync from GitHub → Publish (approve migrations listed in output)
+# Then: Lovable → Sync from GitHub → Publish (approve migrations; edge fn redeploys)
 #
 # Escape hatch (add everything — use sparingly):
 # npm run ship -- "wip: snapshot" --all
