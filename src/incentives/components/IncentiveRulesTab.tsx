@@ -11,6 +11,7 @@ import type { ScopeJson } from "@/incentives/lib/incentiveScopeLogic";
 const SOURCE_TYPES = ["service_revenue", "ancillary", "direct_visa_commission", "b2b_admission_commission"];
 const METRICS = ["count", "gross_revenue", "net_revenue", "commission_received", "enrolment_count"];
 const RATE_TYPES = ["flat", "per_unit", "percent", "slab"];
+const STACKING_MODES = ["additive", "exclusive", "cap"];
 const sel = "w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm";
 
 export interface IncentiveRule {
@@ -49,6 +50,8 @@ export function IncentiveRulesTab({ activePlan, plans, rules, onReload }: Props)
     metric: "net_revenue",
     rate_type: "percent",
     rate_value: "5",
+    stacking_mode: "additive",
+    cap_amount: "",
     milestone: "",
     settlement_currency: "",
     scope: emptyScope,
@@ -78,6 +81,10 @@ export function IncentiveRulesTab({ activePlan, plans, rules, onReload }: Props)
           metric: form.metric,
           rate_type: form.rate_type,
           rate_value: Number(form.rate_value) || 0,
+          stacking_mode: form.stacking_mode,
+          cap_amount: form.stacking_mode === "cap" && form.cap_amount.trim()
+            ? Number(form.cap_amount)
+            : null,
           milestone: form.milestone.trim() || null,
           settlement_currency: form.settlement_currency.trim() || null,
         },
@@ -90,6 +97,8 @@ export function IncentiveRulesTab({ activePlan, plans, rules, onReload }: Props)
         metric: "net_revenue",
         rate_type: "percent",
         rate_value: "5",
+        stacking_mode: "additive",
+        cap_amount: "",
         milestone: "",
         settlement_currency: "",
         scope: emptyScope,
@@ -163,6 +172,18 @@ export function IncentiveRulesTab({ activePlan, plans, rules, onReload }: Props)
             <Input className="mt-1" value={form.rate_value} onChange={(e) => setForm({ ...form, rate_value: e.target.value })} />
           </div>
           <div>
+            <label className="text-xs text-muted-foreground">Stacking</label>
+            <select className={sel} value={form.stacking_mode} onChange={(e) => setForm({ ...form, stacking_mode: e.target.value })}>
+              {STACKING_MODES.map((x) => <option key={x} value={x}>{x}</option>)}
+            </select>
+          </div>
+          {form.stacking_mode === "cap" && (
+            <div>
+              <label className="text-xs text-muted-foreground">Cap amount</label>
+              <Input className="mt-1" value={form.cap_amount} onChange={(e) => setForm({ ...form, cap_amount: e.target.value })} placeholder="Max earn for this rule" />
+            </div>
+          )}
+          <div>
             <label className="text-xs text-muted-foreground">Settlement currency override (Phase 2)</label>
             <Input className="mt-1" value={form.settlement_currency} onChange={(e) => setForm({ ...form, settlement_currency: e.target.value })} placeholder="blank = plan default" />
           </div>
@@ -186,6 +207,7 @@ export function IncentiveRulesTab({ activePlan, plans, rules, onReload }: Props)
                   <th className="py-2 pr-4">Scope</th>
                   <th className="py-2 pr-4">Metric</th>
                   <th className="py-2 pr-4">Pay</th>
+                  <th className="py-2 pr-4">Stack</th>
                   <th className="py-2 pr-4">CCY</th>
                   <th className="py-2 pr-4"></th>
                 </tr>
@@ -197,6 +219,10 @@ export function IncentiveRulesTab({ activePlan, plans, rules, onReload }: Props)
                     <td className="py-2 pr-4 text-muted-foreground">{r.scope_preset ?? "custom"}</td>
                     <td className="py-2 pr-4">{r.metric.replace(/_/g, " ")}</td>
                     <td className="py-2 pr-4">{r.rate_type} {r.rate_value}{r.rate_type === "percent" ? "%" : ""}</td>
+                    <td className="py-2 pr-4 text-muted-foreground">
+                      {r.stacking_mode ?? "additive"}
+                      {r.stacking_mode === "cap" && r.cap_amount != null ? ` · cap ${r.cap_amount}` : ""}
+                    </td>
                     <td className="py-2 pr-4">{r.settlement_currency ?? "plan"}</td>
                     <td className="py-2 pr-4 text-right">
                       <Button variant="ghost" size="sm" onClick={() => deleteRule(r.id)}><Trash2 className="size-4" /></Button>
