@@ -33,6 +33,7 @@ interface Contest {
   metric: string;
   status: string;
   is_active: boolean;
+  prize_settlement?: string;
 }
 
 interface Standing {
@@ -67,6 +68,7 @@ export default function IncentiveCompetitions() {
     pool_amount: "50000",
     metric: "net_revenue",
     min_branch_total: "0",
+    prize_settlement: "cash" as "cash" | "wallet_topup",
     branch_ids: [] as string[],
   });
 
@@ -133,6 +135,7 @@ export default function IncentiveCompetitions() {
           pool_amount: Number(contestForm.pool_amount) || 0,
           metric: contestForm.metric,
           min_branch_total: Number(contestForm.min_branch_total) || 0,
+          prize_settlement: contestForm.prize_settlement,
           status: "active",
         },
       ])
@@ -174,7 +177,7 @@ export default function IncentiveCompetitions() {
           <Trophy className="size-6 text-primary" />
           <div>
             <h1 className="text-2xl font-semibold">Competitions &amp; Campaigns</h1>
-            <p className="text-sm text-muted-foreground">Phase 3 — branch contests and additive campaign overlays</p>
+            <p className="text-sm text-muted-foreground">Branch contests, campaign overlays, prize settlement (cash or wallet)</p>
           </div>
         </div>
 
@@ -274,6 +277,22 @@ export default function IncentiveCompetitions() {
                   <label className="text-xs text-muted-foreground">Min branch total to qualify</label>
                   <Input className="mt-1" value={contestForm.min_branch_total} onChange={(e) => setContestForm({ ...contestForm, min_branch_total: e.target.value })} />
                 </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Prize settlement (X6)</label>
+                  <select
+                    className={sel}
+                    value={contestForm.prize_settlement}
+                    onChange={(e) =>
+                      setContestForm({
+                        ...contestForm,
+                        prize_settlement: e.target.value as "cash" | "wallet_topup",
+                      })
+                    }
+                  >
+                    <option value="cash">Cash — incentive line on calculate</option>
+                    <option value="wallet_topup">Wallet top-up — credit discount wallet</option>
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="text-xs text-muted-foreground mb-2 block">Participating branches (pick 2+)</label>
@@ -299,7 +318,10 @@ export default function IncentiveCompetitions() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">{c.name}</p>
-                        <p className="text-xs text-muted-foreground">{c.period_key} · pool ₹{Number(c.pool_amount).toLocaleString()} · {c.metric}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {c.period_key} · pool ₹{Number(c.pool_amount).toLocaleString()} · {c.metric}
+                          · prize: {c.prize_settlement === "wallet_topup" ? "wallet top-up" : "cash"}
+                        </p>
                       </div>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => { setSelectedContest(c.id); loadStandings(c.id); }}>Refresh standings</Button>

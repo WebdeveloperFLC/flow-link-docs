@@ -7,7 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Loader2, TrendingUp, Tag, Users, Percent } from "lucide-react";
+import { Loader2, TrendingUp, Tag, Users, Percent, Wallet } from "lucide-react";
+import { currentPeriodKey } from "@/lib/performanceHubTheme";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import {
   ResponsiveContainer,
@@ -39,6 +40,21 @@ interface CounselorRow {
   attributed_revenue: number;
 }
 
+interface InfluenceBreakdown {
+  direct_revenue: number;
+  assisted_revenue: number;
+  multi_service_revenue: number;
+  total_influenced: number;
+}
+
+interface WalletImpactRow {
+  counselor_id: string;
+  counselor_name: string;
+  wallet_impact_revenue: number;
+  wallet_used: number;
+  roi: number | null;
+}
+
 type RangeKey = "30d" | "90d" | "365d" | "all";
 
 function rangeToDates(r: RangeKey): { from: string | null; to: string | null } {
@@ -60,18 +76,25 @@ export default function OffersAnalytics({ embedded = false }: { embedded?: boole
   const [range, setRange] = useState<RangeKey>("90d");
   const [roi, setRoi] = useState<RoiRow[]>([]);
   const [counselors, setCounselors] = useState<CounselorRow[]>([]);
+  const [influence, setInfluence] = useState<InfluenceBreakdown | null>(null);
+  const [walletImpact, setWalletImpact] = useState<WalletImpactRow[]>([]);
   const [busy, setBusy] = useState(true);
+  const impactPeriod = currentPeriodKey();
 
   const load = useCallback(async () => {
     setBusy(true);
     try {
       const { from, to } = rangeToDates(range);
-      const [r, c] = await Promise.all([
+      const [r, c, inf, wi] = await Promise.all([
         supabase.rpc("offer_roi_stats", { _date_from: from, _date_to: to }),
         supabase.rpc("counselor_offer_stats", { _date_from: from, _date_to: to }),
+        supabase.rpc("fn_offer_influence_breakdown", { _date_from: from, _date_to: to }),
+        supabase.rpc("fn_wallet_impact_summary", { _period_key: impactPeriod }),
       ]);
       if (r.error) throw r.error;
       if (c.error) throw c.error;
+      if (inf.error) throw inf.error;
+      if (wi.error) throw wi.error;
       setRoi(((r.data ?? []) as any[]).map((x) => ({
         offer_id: x.offer_id,
         title: x.title,
@@ -90,12 +113,28 @@ export default function OffersAnalytics({ embedded = false }: { embedded?: boole
         total_discount: Number(x.total_discount) || 0,
         attributed_revenue: Number(x.attributed_revenue) || 0,
       })));
+      const ib = (inf.data ?? {}) as Record<string, number>;
+      setInfluence({
+        direct_revenue: Number(ib.direct_revenue) || 0,
+        assisted_revenue: Number(ib.assisted_revenue) || 0,
+        multi_service_revenue: Number(ib.multi_service_revenue) || 0,
+        total_influenced: Number(ib.total_influenced) || 0,
+      });
+      setWalletImpact(
+        ((wi.data ?? []) as any[]).map((x) => ({
+          counselor_id: x.counselor_id,
+          counselor_name: x.counselor_name ?? "Unknown",
+          wallet_impact_revenue: Number(x.wallet_impact_revenue) || 0,
+          wallet_used: Number(x.wallet_used) || 0,
+          roi: x.roi != null ? Number(x.roi) : null,
+        })),
+      );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to load analytics");
     } finally {
       setBusy(false);
     }
-  }, [range]);
+  }, [range, impactPeriod]);
 
   useEffect(() => {
     if (allowed) load();
@@ -177,6 +216,34 @@ export default function OffersAnalytics({ embedded = false }: { embedded?: boole
               </Card>
             </div>
 
+            {/* O10 — influence breakdown */}
+            {influence && (
+              <Card className="p-4">
+                <h3 className="font-semibold mb-1">Offer influence revenue (O10)</h3>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Direct invoice attribution, assisted follow-on payments, and multi-service clients.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="rounded-md border p-3">
+                    <p className="text-xs text-muted-foreground">Direct</p>
+                    <p className="text-xl font-bold tabular-nums mt-1">{fmtMoney(influence.direct_revenue)}</p>
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <p className="text-xs text-muted-foreground">Assisted (90d)</p>
+                    <p className="text-xl font-bold tabular-nums mt-1">{fmtMoney(influence.assisted_revenue)}</p>
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <p className="text-xs text-muted-foreground">Multi-service</p>
+                    <p className="text-xl font-bold tabular-nums mt-1">{fmtMoney(influence.multi_service_revenue)}</p>
+                  </div>
+                  <div className="rounded-md border p-3 bg-primary/5">
+                    <p className="text-xs text-muted-foreground">Total influenced</p>
+                    <p className="text-xl font-bold tabular-nums mt-1">{fmtMoney(influence.total_influenced)}</p>
+                  </div>
+                </div>
+              </Card>
+            )}
+
             {/* Revenue vs discount by offer */}
             <Card className="p-4">
               <h3 className="font-semibold mb-3">Revenue & discount by offer (top 8)</h3>
@@ -231,6 +298,46 @@ export default function OffersAnalytics({ embedded = false }: { embedded?: boole
                           <td className="py-2 px-2 text-right tabular-nums">{r.redemption_rate}%</td>
                           <td className="py-2 px-2 text-right tabular-nums">{fmtMoney(r.total_discount)}</td>
                           <td className="py-2 px-2 text-right tabular-nums font-medium">{fmtMoney(r.influenced_revenue)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {/* Wallet impact — current period */}
+            <Card className="p-4">
+              <h3 className="font-semibold mb-1 flex items-center gap-2">
+                <Wallet className="size-4" /> Wallet impact
+              </h3>
+              <p className="text-xs text-muted-foreground mb-3">Period {impactPeriod} — revenue attributed vs wallet used (ROI).</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-xs uppercase text-muted-foreground border-b">
+                    <tr>
+                      <th className="text-left py-2 px-2">Counselor</th>
+                      <th className="text-right py-2 px-2">Impact revenue</th>
+                      <th className="text-right py-2 px-2">Wallet used</th>
+                      <th className="text-right py-2 px-2">ROI</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {walletImpact.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="text-center text-muted-foreground py-6">
+                          No wallet impact scores for {impactPeriod}.
+                        </td>
+                      </tr>
+                    ) : (
+                      walletImpact.map((w) => (
+                        <tr key={w.counselor_id} className="border-b last:border-0">
+                          <td className="py-2 px-2">{w.counselor_name}</td>
+                          <td className="py-2 px-2 text-right tabular-nums">{fmtMoney(w.wallet_impact_revenue)}</td>
+                          <td className="py-2 px-2 text-right tabular-nums">{fmtMoney(w.wallet_used)}</td>
+                          <td className="py-2 px-2 text-right tabular-nums font-medium">
+                            {w.roi != null ? `${w.roi}×` : "—"}
+                          </td>
                         </tr>
                       ))
                     )}
