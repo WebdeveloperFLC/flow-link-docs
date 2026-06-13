@@ -115,6 +115,31 @@ export default function PerformancePromotionRequests() {
     }
   }
 
+  async function publishRequest(id: string) {
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("fn_publish_promotion_from_request", {
+        _request_id: id,
+      });
+      if (error) throw error;
+      const result = data as { ok?: boolean; offer_id?: string };
+      if (!result?.ok) throw new Error("Publish failed");
+      toast({
+        title: "Draft offer created",
+        description: "Open Offers library to activate and schedule.",
+      });
+      await load();
+    } catch (e: unknown) {
+      toast({
+        title: "Publish failed",
+        description: formatSupabaseError(e, "Could not publish"),
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function updateStatus(id: string, status: string, reviewNote?: string) {
     setBusy(true);
     try {
@@ -238,11 +263,14 @@ export default function PerformancePromotionRequests() {
                     <Button size="sm" disabled={busy} onClick={() => updateStatus(row.id, "approved")}>
                       Approve
                     </Button>
+                    <Button size="sm" disabled={busy} onClick={() => publishRequest(row.id)}>
+                      Publish draft offer
+                    </Button>
                     <Button size="sm" variant="outline" disabled={busy} onClick={() => updateStatus(row.id, "declined")}>
                       Decline
                     </Button>
                     <Button size="sm" variant="ghost" asChild>
-                      <Link to="/offers-admin">Publish via library</Link>
+                      <Link to="/offers-admin">Offers library</Link>
                     </Button>
                   </div>
                 )}

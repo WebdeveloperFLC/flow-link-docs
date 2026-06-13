@@ -4,6 +4,7 @@
 // and surface in NotificationCenter like all other events.
 import { ReactNode } from "react";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { ThemeModeToggle } from "@/components/theme/ThemeModeToggle";
 import { cn } from "@/lib/utils";
 
 export interface TopbarProps {
@@ -27,6 +28,7 @@ export function Topbar({ searchSlot, quickActionsSlot, className }: TopbarProps)
     >
       {searchSlot ? <div className="hidden md:block">{searchSlot}</div> : null}
       {quickActionsSlot ? <div className="hidden sm:block">{quickActionsSlot}</div> : null}
+      <ThemeModeToggle />
       <NotificationCenter />
     </div>
   );

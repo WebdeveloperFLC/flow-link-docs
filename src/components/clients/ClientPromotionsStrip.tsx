@@ -5,14 +5,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Gift, Sparkles, Wallet } from "lucide-react";
+import { Gift, MessageCircle, Sparkles, Wallet } from "lucide-react";
 import { ClientOffersPanel } from "@/components/clients/ClientOffersPanel";
 import { OFFER_FUNDING_LABELS, type OfferFundingSource } from "@/lib/offers/lifecycle";
+import { openWhatsApp } from "@/lib/whatsappShare";
+import { formatSupabaseError } from "@/lib/formatSupabaseError";
+import { useToast } from "@/hooks/use-toast";
 import { formatInr, currentPeriodKey } from "@/lib/performanceHubTheme";
 
 interface ClientPromotionsStripProps {
   clientId: string;
   clientName?: string;
+  clientPhone?: string | null;
 }
 
 interface Suggestion {
@@ -35,14 +39,16 @@ function personalWallet(
   );
 }
 
-/** Phase 5B/5C — in-context promotions: offers panel + wallet headroom + live L0 suggestion */
-export function ClientPromotionsStrip({ clientId, clientName }: ClientPromotionsStripProps) {
+/** Phase 5B/5C/5D — promotions strip + L0 suggestion + WhatsApp send */
+export function ClientPromotionsStrip({ clientId, clientName, clientPhone }: ClientPromotionsStripProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const period = currentPeriodKey();
   const [spendable, setSpendable] = useState<number | null>(null);
   const [potential, setPotential] = useState<number | null>(null);
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
   const [suggestionLoading, setSuggestionLoading] = useState(true);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -89,6 +95,44 @@ export function ClientPromotionsStrip({ clientId, clientName }: ClientPromotions
   const suggestUrl = suggestion?.offer_id
     ? `${giveDiscountUrl}&offer=${suggestion.offer_id}`
     : giveDiscountUrl;
+
+  async function acceptAndSend() {
+    if (!user || !suggestion?.offer_id) return;
+    if (!clientPhone?.trim()) {
+      toast({ title: "No phone number", description: "Add a client phone to send on WhatsApp.", variant: "destructive" });
+      return;
+    }
+    const discountLabel =
+      suggestion.discount_type === "percentage" && suggestion.discount_value != null
+        ? `${suggestion.discount_value}% off`
+        : suggestion.discount_value != null
+          ? formatInr(suggestion.discount_value)
+          : "a special offer";
+    const message = `Hi${clientName ? ` ${clientName.split(" ")[0]}` : ""}, Future Link Consultants has ${discountLabel} for you: ${suggestion.title ?? "our promotion"}. Reply here if you'd like to proceed.`;
+    setSending(true);
+    try {
+      const { error } = await supabase.rpc("log_offer_event", {
+        _offer_id: suggestion.offer_id,
+        _client_id: clientId,
+        _counselor_id: user.id,
+        _event_type: "sent",
+        _channel: "whatsapp",
+        _revenue_amount: 0,
+        _tracking_code: "l0_suggestion",
+      });
+      if (error) throw error;
+      openWhatsApp(clientPhone, message);
+      toast({ title: "Offer sent", description: "Logged and opened in WhatsApp." });
+    } catch (e: unknown) {
+      toast({
+        title: "Could not send",
+        description: formatSupabaseError(e, "Send failed"),
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -149,7 +193,10 @@ export function ClientPromotionsStrip({ clientId, clientName }: ClientPromotions
                 </p>
               )}
               <div className="flex flex-wrap gap-2">
-                <Button size="sm" asChild>
+                <Button size="sm" className="gap-1" disabled={sending} onClick={acceptAndSend}>
+                  <MessageCircle className="size-3.5" /> Accept &amp; send
+                </Button>
+                <Button size="sm" variant="secondary" asChild>
                   <Link to={suggestUrl}>Use suggestion</Link>
                 </Button>
                 <Button size="sm" variant="ghost" asChild>
