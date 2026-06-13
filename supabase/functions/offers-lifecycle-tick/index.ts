@@ -1,6 +1,6 @@
 // ============================================================
 // offers-lifecycle-tick
-// Daily cron worker — generates birthday offers.
+// Daily cron worker — birthday offers + campaign calendar activation.
 //
 // For each client whose date_of_birth is set and whose birthday is
 // exactly N days ahead (default 7), generate a concrete offer from each
@@ -63,12 +63,56 @@ Deno.serve(async (req) => {
   });
 
   const now = new Date();
+  const today = ymd(now);
   const year = now.getUTCFullYear();
   let generated = 0;
   let skippedNoDob = 0;
+  let campaignsActivated = 0;
+  let campaignsCompleted = 0;
   const errors: string[] = [];
 
   try {
+    // 0. Campaign calendar — planned → live on start_date; live → completed after end_date
+    const { data: toActivate, error: actErr } = await admin
+      .from("campaign_calendar")
+      .select("id, linked_offer_id")
+      .eq("status", "planned")
+      .lte("start_date", today)
+      .gte("end_date", today);
+    if (actErr) throw actErr;
+
+    for (const row of toActivate ?? []) {
+      const { error: uErr } = await admin.from("campaign_calendar").update({ status: "live" }).eq("id", row.id);
+      if (uErr) {
+        errors.push(`campaign_activate ${row.id}: ${uErr.message}`);
+        continue;
+      }
+      if (row.linked_offer_id) {
+        const { error: oErr } = await admin
+          .from("offers")
+          .update({ status: "active", is_active: true })
+          .eq("id", row.linked_offer_id);
+        if (oErr) errors.push(`campaign_offer_activate ${row.linked_offer_id}: ${oErr.message}`);
+      }
+      campaignsActivated++;
+    }
+
+    const { data: toComplete, error: compErr } = await admin
+      .from("campaign_calendar")
+      .select("id, linked_offer_id")
+      .eq("status", "live")
+      .lt("end_date", today);
+    if (compErr) throw compErr;
+
+    for (const row of toComplete ?? []) {
+      const { error: uErr } = await admin.from("campaign_calendar").update({ status: "completed" }).eq("id", row.id);
+      if (uErr) {
+        errors.push(`campaign_complete ${row.id}: ${uErr.message}`);
+        continue;
+      }
+      campaignsCompleted++;
+    }
+
     // 1. Active birthday templates
     const { data: templates, error: tErr } = await admin
       .from("offer_templates")
@@ -218,10 +262,22 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`${DEBUG} done generated=${generated} skipped_no_dob=${skippedNoDob} errors=${errors.length}`);
-    return new Response(JSON.stringify({ ok: true, generated, skipped_no_dob: skippedNoDob, errors }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    console.log(
+      `${DEBUG} done generated=${generated} skipped_no_dob=${skippedNoDob} campaigns_activated=${campaignsActivated} campaigns_completed=${campaignsCompleted} errors=${errors.length}`,
+    );
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        generated,
+        skipped_no_dob: skippedNoDob,
+        campaigns_activated: campaignsActivated,
+        campaigns_completed: campaignsCompleted,
+        errors,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (e) {
     console.error(`${DEBUG} fatal`, e);
     return new Response(JSON.stringify({ ok: false, error: e instanceof Error ? e.message : String(e), generated }), {

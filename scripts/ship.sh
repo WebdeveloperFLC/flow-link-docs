@@ -55,6 +55,9 @@ scan_paths_for_hints() {
     if [[ "$f" == supabase/functions/offer-ai-studio/* ]]; then
       EDGE_TOUCHED=1
     fi
+    if [[ "$f" == supabase/functions/offers-lifecycle-tick/* ]]; then
+      EDGE_TOUCHED=1
+    fi
   done
 }
 
@@ -70,6 +73,7 @@ Performance Hub migrations (Lovable Publish — approve ALL that still show as p
   [ ] 20260623120000_incentive_platform_phase5f.sql  — enrolment / stage qualifying events
   [ ] 20260624120000_incentive_platform_phase5g.sql  — offers studio dashboard RPC
   [ ] 20260625120000_incentive_platform_phase5h.sql  — AI studio gate + L0 suggestion polish
+  [ ] 20260626120000_incentive_platform_phase5i.sql  — calendar, segments, auto-offer rules
 
 EOF
 }
