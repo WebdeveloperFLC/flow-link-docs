@@ -43,6 +43,14 @@ interface EnrollmentRow {
   journey_id: string;
 }
 
+const TRIGGER_LABELS: Record<string, string> = {
+  manual: "Manual",
+  cold_lead: "Cold lead win-back",
+  lapsed_client: "Lapsed client",
+  cross_sell_coaching: "Cross-sell · coaching → abroad",
+  cross_sell_allied: "Cross-sell · allied bundle",
+};
+
 const sel = "w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm";
 
 export default function PerformanceOffersJourneys() {
@@ -164,7 +172,7 @@ export default function PerformanceOffersJourneys() {
     <AppLayout>
       <PerformanceHubHeader
         title="Automation journeys"
-        subtitle="O7 — win-back day 2/7/15/30 sequences · processed daily via offers-lifecycle-tick"
+        subtitle="O7 — win-back + cross-sell templates · processed daily via offers-lifecycle-tick"
       />
       <div className="p-6 max-w-7xl mx-auto space-y-4">
         <OffersStudioNav />
@@ -193,7 +201,10 @@ export default function PerformanceOffersJourneys() {
                   <span className="font-medium">{j.name}</span>
                   <Badge variant={j.is_active ? "default" : "outline"}>{j.is_active ? "active" : "off"}</Badge>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{j.description ?? j.trigger_type}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {TRIGGER_LABELS[j.trigger_type] ?? j.trigger_type}
+                  {j.description ? ` · ${j.description}` : ""}
+                </p>
                 <p className="text-xs text-muted-foreground mt-1">{j.step_count ?? 0} step(s)</p>
                 {canManage && (
                   <Button
