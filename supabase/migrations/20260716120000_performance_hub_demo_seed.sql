@@ -483,7 +483,15 @@ BEGIN
     64, 80000, 10000, 8.0,
     72, 88, 95000, 78
   )
-  ON CONFLICT (id) DO UPDATE SET wallet_impact_revenue = EXCLUDED.wallet_impact_revenue;
+  ON CONFLICT (counselor_id, period_key) DO UPDATE SET
+    revenue_achievement = EXCLUDED.revenue_achievement,
+    wallet_impact_revenue = EXCLUDED.wallet_impact_revenue,
+    wallet_used = EXCLUDED.wallet_used,
+    wallet_roi = EXCLUDED.wallet_roi,
+    conversion_rate = EXCLUDED.conversion_rate,
+    client_satisfaction = EXCLUDED.client_satisfaction,
+    collections_received = EXCLUDED.collections_received,
+    total_score = EXCLUDED.total_score;
 
   -- ── Incentive plan + open run + line item ────────────────────────────────
   INSERT INTO public.incentive_plans (
@@ -776,14 +784,18 @@ BEGIN
     'c1000005-0005-4000-8000-000000000005',
     'a0200006-0006-4000-8000-000000000006', 'active', NULL, v_priya, 'auto'
   )
-  ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status;
+  ON CONFLICT (client_id, offer_id) DO UPDATE SET
+    status = EXCLUDED.status,
+    used_at = EXCLUDED.used_at,
+    attached_by = EXCLUDED.attached_by,
+    source = EXCLUDED.source;
 
   INSERT INTO public.offer_tracking_codes (id, offer_id, counselor_id, code)
   VALUES (
     'a0150001-0001-4000-8000-000000000001',
     'a0200001-0001-4000-8000-000000000001', v_priya, 'PHDEMO-PRIYA-IELTS'
   )
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (code) DO NOTHING;
 
   UPDATE public.clients SET date_of_birth = '1998-06-12'
    WHERE id = 'c1000001-0001-4000-8000-000000000001';
@@ -857,16 +869,26 @@ BEGIN
     ON CONFLICT (id) DO NOTHING;
   END IF;
 
-  INSERT INTO public.counselor_performance_scores (
-    id, counselor_id, period_key,
-    revenue_achievement, wallet_impact_revenue, wallet_used, wallet_roi,
-    conversion_rate, client_satisfaction, collections_received, total_score
-  ) VALUES (
-    'a0100002-0002-4000-8000-000000000002', v_rohit, v_period,
-    0, 52000, 3500, 14.9,
-    58, 82, 137000, 62
-  )
-  ON CONFLICT (id) DO UPDATE SET wallet_impact_revenue = EXCLUDED.wallet_impact_revenue;
+  IF v_rohit IS DISTINCT FROM v_priya THEN
+    INSERT INTO public.counselor_performance_scores (
+      id, counselor_id, period_key,
+      revenue_achievement, wallet_impact_revenue, wallet_used, wallet_roi,
+      conversion_rate, client_satisfaction, collections_received, total_score
+    ) VALUES (
+      'a0100002-0002-4000-8000-000000000002', v_rohit, v_period,
+      0, 52000, 3500, 14.9,
+      58, 82, 137000, 62
+    )
+    ON CONFLICT (counselor_id, period_key) DO UPDATE SET
+      revenue_achievement = EXCLUDED.revenue_achievement,
+      wallet_impact_revenue = EXCLUDED.wallet_impact_revenue,
+      wallet_used = EXCLUDED.wallet_used,
+      wallet_roi = EXCLUDED.wallet_roi,
+      conversion_rate = EXCLUDED.conversion_rate,
+      client_satisfaction = EXCLUDED.client_satisfaction,
+      collections_received = EXCLUDED.collections_received,
+      total_score = EXCLUDED.total_score;
+  END IF;
 
   INSERT INTO public.incentive_line_items (
     id, run_id, counselor_id, source_type, client_id,

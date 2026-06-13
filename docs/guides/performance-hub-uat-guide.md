@@ -65,6 +65,12 @@ Run in Supabase **SQL Editor** or Lovable **Database → Migrations**. **Never c
 | 3 | `20260712120000_performance_hub_offer_events_sent.sql` — `offer_events` `sent` type |
 | 4 | `20260715120000_performance_hub_offers_studio_rls.sql` — MarCom offers library write + lifecycle RPC |
 | 5 | `20260716120000_performance_hub_demo_seed.sql` — **loads all PH-DEMO mock data** (runs `fn_seed_performance_hub_demo()`) |
+| 6 | `20260716120001_performance_hub_demo_seed_idempotent.sql` — idempotent upsert fix + re-run seed |
+| 7 | `20260716120002_performance_hub_demo_wallet_rebind.sql` — rebind demo wallets to `ph.counselor1` / `ph.counselor2` (fixes empty Give Discount wallet) |
+| 8 | `20260716120003_performance_hub_demo_seed_score_upsert.sql` — fix `counselor_performance_scores` re-seed after rebind (if seed fails on `a0100002` duplicate) |
+| 9 | `20260716120004_performance_hub_demo_wallet_unlock.sql` — fix ₹0 spendable (achievement threshold + scoped wallet unlock) |
+| 10 | `20260716120005_performance_hub_demo_target_rebind.sql` — rebind `incentive_targets` to `ph.counselor1` (fixes NULL achievement / unlocked=0 on Priya wallet) |
+| 11 | `20260716120006_performance_hub_demo_rebind_uuid_cast.sql` — fix `id::text LIKE` in rebind (if 200005 failed with `uuid ~~ unknown`) |
 
 **Verify migrations:**
 
@@ -219,6 +225,42 @@ SELECT branch_name, total_amount, rank
 - **3** calendar campaigns, **3** segments, **3** auto-rules (after §4.4)
 - **13** PH Demo offers spanning lifecycle statuses
 - Contest standings: **Genda Circle** rank 1 with non-zero total; **Ajwa** rank 2 with non-zero total
+
+### 3.3 Give Discount shows “No wallet this period”
+
+**Cause:** `/performance/give-discount` loads wallets via `fn_counselor_wallets_for_period`, which returns rows only when `discount_wallets.counselor_id = auth.uid()`. If demo seed ran **before** Phase 2 users existed, wallets may be tied to a fallback counselor UUID — not `ph.counselor1@flowlink.demo`.
+
+**Fix:**
+
+1. Complete **Phase 2** (create `ph.counselor1@flowlink.demo`).
+2. Apply migration **`20260716120002_performance_hub_demo_wallet_rebind.sql`** (or run manually):
+
+```sql
+SELECT public.fn_rebind_ph_demo_wallets();
+```
+
+3. Log in as **`ph.counselor1@flowlink.demo`** (not admin/manager — they do not get a personal wallet on this screen).
+4. Set period bar to **`2026-06`**.
+
+**Verify:**
+
+```sql
+SELECT dw.name, dw.balance, u.email
+FROM discount_wallets dw
+JOIN auth.users u ON u.id = dw.counselor_id
+WHERE dw.period_key = '2026-06'
+  AND dw.name LIKE 'PH Demo%';
+```
+
+**Expected:** `ph.counselor1@flowlink.demo` owns **PH Demo · Priya Jun-2026** with balance **15000**.
+
+### 3.4 Spendable / Unlocked shows ₹0 (wallet balance visible)
+
+**Cause:** Give Discount calls `fn_sync_wallet_metrics` on load. Month-to-month wallets unlock only when period achievement ≥ **50%** (`wallet_settings.unlock_threshold_pct`). Demo verified payments total ~**₹195.5k** against a **₹500k** target → **~39%** → unlocked zeroed while **balance** stays at seeded value. Scoped wallets (Strategic DE) were also gated by achievement instead of manual balance.
+
+**Fix:** Apply migration **`20260716120004_performance_hub_demo_wallet_unlock.sql`** (lowers demo target to ₹300k → ~65% achievement; scoped wallets unlock from balance).
+
+**UI tip:** Use the **Wallet to debit** dropdown → select **PH Demo · Priya Jun-2026** for primary UAT (not Strategic DE unless testing Germany scope).
 
 ---
 
