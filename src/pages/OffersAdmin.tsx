@@ -13,7 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Plus, Trash2, Tag, Users, Pencil, Ticket, Copy, History } from "lucide-react";
+import { Plus, Trash2, Tag, Users, Pencil, Ticket, Copy, History, Loader2 } from "lucide-react";
+import { formatSupabaseError } from "@/lib/formatSupabaseError";
 import { OfferTrackingCodes } from "@/components/offers/OfferTrackingCodes";
 import { useMasterLabels } from "@/lib/masters";
 import { useModulePermission } from "@/hooks/useModulePermission";
@@ -92,9 +93,14 @@ export function OffersTab({ canEdit }: { canEdit: boolean }) {
   const [historyRows, setHistoryRows] = useState<
     { from_status: string | null; to_status: string; note: string | null; created_at: string }[]
   >([]);
+  const [statusBusyId, setStatusBusyId] = useState<string | null>(null);
 
   const load = async () => {
-    const { data } = await supabase.from("offers").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("offers").select("*").order("created_at", { ascending: false });
+    if (error) {
+      toast.error(formatSupabaseError(error, "Could not load offers"));
+      return;
+    }
     setOffers((data ?? []) as Offer[]);
   };
   useEffect(() => {
@@ -115,14 +121,23 @@ export function OffersTab({ canEdit }: { canEdit: boolean }) {
   };
 
   const setStatus = async (id: string, to: OfferStatus) => {
-    const { error } = await supabase.rpc("fn_offer_set_status", {
-      _offer_id: id,
-      _to_status: to,
-    });
-    if (error) toast.error(error.message);
-    else {
+    if (statusBusyId) return;
+    setStatusBusyId(id);
+    try {
+      const { data, error } = await supabase.rpc("fn_offer_set_status", {
+        _offer_id: id,
+        _to_status: to,
+      });
+      if (error) throw error;
+      if (data) {
+        setOffers((prev) => prev.map((o) => (o.id === id ? ({ ...o, ...(data as Offer) } as Offer) : o)));
+      }
       toast.success(`Status → ${offerStatusLabel(to)}`);
-      load();
+      await load();
+    } catch (e: unknown) {
+      toast.error(formatSupabaseError(e, "Could not update offer status"));
+    } finally {
+      setStatusBusyId(null);
     }
   };
 
@@ -239,7 +254,15 @@ export function OffersTab({ canEdit }: { canEdit: boolean }) {
             {canEdit && offerStatusActions(o.status).length > 0 && (
               <div className="flex flex-wrap gap-1 pt-1">
                 {offerStatusActions(o.status).map((a) => (
-                  <Button key={a.key} size="sm" variant="outline" className="h-7 text-xs" onClick={() => setStatus(o.id, a.key)}>
+                  <Button
+                    key={a.key}
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    disabled={!!statusBusyId}
+                    onClick={() => setStatus(o.id, a.key)}
+                  >
+                    {statusBusyId === o.id ? <Loader2 className="size-3 animate-spin mr-1" /> : null}
                     {a.label}
                   </Button>
                 ))}
@@ -307,6 +330,7 @@ function OfferDialog({
   const [serviceOptions, setServiceOptions] = useState<{ id: string; service_name: string }[]>([]);
   const [selCountries, setSelCountries] = useState<Set<string>>(new Set());
   const [selServices, setSelServices] = useState<Set<string>>(new Set());
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -364,11 +388,12 @@ function OfferDialog({
   }, [search, form.audience, open]);
 
   const save = async () => {
-    if (!canEdit) return;
+    if (!canEdit || saving) return;
     if (!form.title) {
       toast.error("Title required");
       return;
     }
+    const nextStatus = (form.status ?? "draft") as OfferStatus;
     const payload = {
       title: form.title,
       description: form.description ?? null,
@@ -389,34 +414,45 @@ function OfferDialog({
           : form.funding_source === "university"
             ? 100
             : null,
-      status: (form.status ?? "draft") as OfferStatus,
     };
-    let offerId = offer?.id;
-    if (offer) {
-      const { error } = await supabase.from("offers").update(payload).eq("id", offer.id);
-      if (error) {
-        toast.error(error.message);
-        return;
+    setSaving(true);
+    try {
+      let offerId = offer?.id;
+      if (offer) {
+        const { error } = await supabase.from("offers").update(payload).eq("id", offer.id);
+        if (error) throw error;
+        if ((offer.status ?? "draft") !== nextStatus) {
+          const { error: statusError } = await supabase.rpc("fn_offer_set_status", {
+            _offer_id: offer.id,
+            _to_status: nextStatus,
+          });
+          if (statusError) throw statusError;
+        }
+      } else {
+        const { data, error } = await supabase
+          .from("offers")
+          .insert({ ...payload, status: "draft" as OfferStatus })
+          .select("id")
+          .single();
+        if (error) throw error;
+        offerId = data.id;
       }
-    } else {
-      const { data, error } = await supabase.from("offers").insert(payload).select("id").single();
-      if (error) {
-        toast.error(error.message);
-        return;
+      // Replace audience targets
+      if (offerId) {
+        await supabase.from("offer_audience_targets").delete().eq("offer_id", offerId);
+        const rows: any[] = [];
+        if (payload.audience === "group") selGroups.forEach((g) => rows.push({ offer_id: offerId, group_id: g }));
+        if (payload.audience === "individual") selClients.forEach((c) => rows.push({ offer_id: offerId, client_id: c }));
+        if (rows.length) await supabase.from("offer_audience_targets").insert(rows);
       }
-      offerId = data.id;
+      toast.success("Saved");
+      onSaved();
+      onOpenChange(false);
+    } catch (e: unknown) {
+      toast.error(formatSupabaseError(e, "Save failed"));
+    } finally {
+      setSaving(false);
     }
-    // Replace audience targets
-    if (offerId) {
-      await supabase.from("offer_audience_targets").delete().eq("offer_id", offerId);
-      const rows: any[] = [];
-      if (payload.audience === "group") selGroups.forEach((g) => rows.push({ offer_id: offerId, group_id: g }));
-      if (payload.audience === "individual") selClients.forEach((c) => rows.push({ offer_id: offerId, client_id: c }));
-      if (rows.length) await supabase.from("offer_audience_targets").insert(rows);
-    }
-    toast.success("Saved");
-    onSaved();
-    onOpenChange(false);
   };
 
   return (
@@ -655,7 +691,12 @@ function OfferDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            {canEdit && <Button onClick={save}>Save</Button>}
+            {canEdit && (
+              <Button onClick={save} disabled={saving}>
+                {saving ? <Loader2 className="size-4 animate-spin mr-1" /> : null}
+                Save
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>

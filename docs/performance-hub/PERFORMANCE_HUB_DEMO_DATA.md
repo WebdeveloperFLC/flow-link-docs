@@ -67,7 +67,7 @@ Create users in **Team & Roles** (or Supabase Auth invite) **before** running SQ
 | `ph.admin@flowlink.demo` | Admin Demo | `admin` | Genda Circle | `b1000004-0004-4000-8000-000000000004` |
 | `ph.director@flowlink.demo` | Director Demo | `director` | Genda Circle | `b1000005-0005-4000-8000-000000000005` |
 | `ph.telecaller@flowlink.demo` | Tara Telecaller | `telecaller` | Genda Circle | `b1000006-0006-4000-8000-000000000006` |
-| `ph.marcom@flowlink.demo` | Maya MarCom | `counselor` + module `offers` edit | Genda Circle | `b1000007-0007-4000-8000-000000000007` |
+| `ph.marcom@flowlink.demo` | Maya MarCom | `counselor` + modules **`offers`** edit + **`offers_ai`** edit | Genda Circle | `b1000007-0007-4000-8000-000000000007` |
 
 > **Note:** If invite flow generates different UUIDs, update the SQL variables in §4 to match `auth.users.id` / `profiles.id` from:
 > `SELECT id, email FROM auth.users WHERE email LIKE 'ph.%@flowlink.demo';`
@@ -132,6 +132,8 @@ Create users in **Team & Roles** (or Supabase Auth invite) **before** running SQ
 | Incentive plan | `pl100001-0001-4000-8000-000000000001` | PH Demo Counselor Plan |
 | Incentive run (open) | `r1000001-0001-4000-8000-000000000001` | `2026-06`, `locked=false` |
 | Incentive line item | `li100001-0001-4000-8000-000000000001` | Priya earned ₹12,500 |
+| Incentive line item (Q4 ticker) | `li100002-0002-4000-8000-000000000002` | Second line — admin updates for live refresh |
+| Applied wallet allocation | `wa100001-0001-4000-8000-000000000001` | ₹4,500 applied — V1/V2 analytics |
 | Incentive payout (approved) | `py100001-0001-4000-8000-000000000001` | Priya net ₹11,250 |
 | Counselor performance score | `s1000001-0001-4000-8000-000000000001` | WIR card: impact ₹80,000 / used ₹10,000 |
 | Branch contest Jun-2026 | `ct100001-0001-4000-8000-000000000001` | Genda Circle vs Ajwa |
@@ -143,10 +145,12 @@ Create users in **Team & Roles** (or Supabase Auth invite) **before** running SQ
 ## 3. Prerequisites
 
 1. Apply all migrations through **Phase 6B** (`20260711120000` + `20260711120001`).
-2. Lovable Publish complete (Edge functions: `incentive-calculate-run`, etc.).
-3. Create the seven test users (§2.1) and assign roles/modules.
-4. Run the SQL in §4 in order (Supabase SQL editor or `psql`).
-5. Set Performance Hub period bar to **`2026-06`** (defaults to current month — switch if testing in another calendar month).
+2. Apply **`20260712120000_performance_hub_offer_events_sent.sql`** (`offer_events` `sent` type).
+3. Lovable Publish complete (Edge functions: `incentive-calculate-run`, etc.).
+4. Create the seven test users (§2.1) and assign roles/modules (**MarCom needs `offers` + `offers_ai` edit**).
+5. Confirm **`service_library`** contains at least one IELTS/coaching row (for unclassified classify UI — W2 / UNCL-001).
+6. Run the SQL in §4 in order (Supabase SQL editor or `psql`).
+7. Set Performance Hub period bar to **`2026-06`** and run UAT in calendar month **June 2026** when possible (promotions strip wallet RPC uses `current_date`).
 
 **Verify load:**
 
@@ -191,6 +195,18 @@ DECLARE
     (SELECT id FROM auth.users WHERE email = 'ph.admin@flowlink.demo'),
     'b1000004-0004-4000-8000-000000000004'::uuid
   );
+  v_director uuid := coalesce(
+    (SELECT id FROM auth.users WHERE email = 'ph.director@flowlink.demo'),
+    'b1000005-0005-4000-8000-000000000005'::uuid
+  );
+  v_telecaller uuid := coalesce(
+    (SELECT id FROM auth.users WHERE email = 'ph.telecaller@flowlink.demo'),
+    'b1000006-0006-4000-8000-000000000006'::uuid
+  );
+  v_marcom uuid := coalesce(
+    (SELECT id FROM auth.users WHERE email = 'ph.marcom@flowlink.demo'),
+    'b1000007-0007-4000-8000-000000000007'::uuid
+  );
   v_journey_coaching uuid;
 BEGIN
   SELECT id INTO v_branch_genda FROM public.branches WHERE name = 'Genda Circle' LIMIT 1;
@@ -213,6 +229,12 @@ BEGIN
    WHERE id = v_manager;
   UPDATE public.profiles SET branch_id = v_branch_genda, full_name = 'Admin Demo'
    WHERE id = v_admin;
+  UPDATE public.profiles SET branch_id = v_branch_genda, full_name = 'Director Demo'
+   WHERE id = v_director;
+  UPDATE public.profiles SET branch_id = v_branch_genda, full_name = 'Tara Telecaller'
+   WHERE id = v_telecaller;
+  UPDATE public.profiles SET branch_id = v_branch_genda, full_name = 'Maya MarCom'
+   WHERE id = v_marcom;
 
   -- ── Clients ──────────────────────────────────────────────────────────────
   INSERT INTO public.clients (
@@ -407,6 +429,32 @@ BEGIN
       'amount', 22000
     )),
     v_priya
+  ),
+  (
+    'inv100002-0002-4000-8000-000000000002',
+    'c1000002-0002-4000-8000-000000000002',
+    'PH-DEMO-INV-002',
+    120000, 'INR', 'paid',
+    jsonb_build_array(jsonb_build_object(
+      'master_key', 'admission_services',
+      'service_code', 'UNIV_APP',
+      'description', 'PH Demo university application',
+      'amount', 120000
+    )),
+    v_priya
+  ),
+  (
+    'inv100003-0003-4000-8000-000000000003',
+    'c1000002-0002-4000-8000-000000000002',
+    'PH-DEMO-INV-003',
+    8500, 'INR', 'paid',
+    jsonb_build_array(jsonb_build_object(
+      'master_key', 'allied_services',
+      'service_code', 'FOREX',
+      'description', 'PH Demo forex allied',
+      'amount', 8500
+    )),
+    v_priya
   )
   ON CONFLICT (id) DO NOTHING;
 
@@ -426,6 +474,20 @@ BEGIN
     'c1000004-0004-4000-8000-000000000004',
     'inv100004-0004-4000-8000-000000000004',
     22000, 'INR', 'bank_transfer', '2026-06-12',
+    'verified', 'verified'
+  ),
+  (
+    'pay100002-0002-4000-8000-000000000002',
+    'c1000002-0002-4000-8000-000000000002',
+    'inv100002-0002-4000-8000-000000000002',
+    120000, 'INR', 'bank_transfer', '2026-06-08',
+    'verified', 'verified'
+  ),
+  (
+    'pay100003-0003-4000-8000-000000000003',
+    'c1000002-0002-4000-8000-000000000002',
+    'inv100003-0003-4000-8000-000000000003',
+    8500, 'INR', 'bank_transfer', '2026-06-10',
     'verified', 'verified'
   )
   ON CONFLICT (id) DO NOTHING;
@@ -502,6 +564,20 @@ BEGIN
   )
   ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status;
 
+  -- ── Applied wallet allocation (O10 / analytics V2) ───────────────────────
+  INSERT INTO public.wallet_allocations (
+    id, wallet_id, counselor_id, client_id, offer_id, invoice_id,
+    amount, currency, percent, status, exceeded_cap, created_by, applied_at
+  ) VALUES (
+    'wa100001-0001-4000-8000-000000000001',
+    'w1000001-0001-4000-8000-000000000001', v_priya,
+    'c1000001-0001-4000-8000-000000000001',
+    'o1000001-0001-4000-8000-000000000001',
+    'inv100001-0001-4000-8000-000000000001',
+    4500, 'INR', 10, 'applied', false, v_priya, '2026-06-05'::timestamptz
+  )
+  ON CONFLICT (id) DO NOTHING;
+
   -- ── Promotion requests ───────────────────────────────────────────────────
   INSERT INTO public.promotion_requests (
     id, title, description, requested_by, branch_id, funding_source,
@@ -573,11 +649,18 @@ BEGIN
   INSERT INTO public.incentive_line_items (
     id, run_id, counselor_id, source_type, client_id,
     base_amount, base_currency, earned_amount, settlement_currency, note
-  ) VALUES (
+  ) VALUES
+  (
     'li100001-0001-4000-8000-000000000001',
     'r1000001-0001-4000-8000-000000000001', v_priya, 'service_revenue',
     'c1000001-0001-4000-8000-000000000001',
     45000, 'INR', 12500, 'INR', 'PH Demo calculated line'
+  ),
+  (
+    'li100002-0002-4000-8000-000000000002',
+    'r1000001-0001-4000-8000-000000000001', v_priya, 'service_revenue',
+    'c1000002-0002-4000-8000-000000000002',
+    120000, 'INR', 8000, 'INR', 'PH Demo second line — update for Q4 ticker test'
   )
   ON CONFLICT (id) DO NOTHING;
 
@@ -750,7 +833,11 @@ DELETE FROM public.offer_ab_assignments WHERE id = 'a1000001-0001-4000-8000-0000
 DELETE FROM public.offer_ab_variants WHERE experiment_id = 'ab100001-0001-4000-8000-000000000001';
 DELETE FROM public.offer_ab_experiments WHERE id = 'ab100001-0001-4000-8000-000000000001';
 DELETE FROM public.incentive_payouts WHERE id = 'py100001-0001-4000-8000-000000000001';
-DELETE FROM public.incentive_line_items WHERE id = 'li100001-0001-4000-8000-000000000001';
+DELETE FROM public.incentive_line_items WHERE id IN (
+  'li100001-0001-4000-8000-000000000001',
+  'li100002-0002-4000-8000-000000000002'
+);
+DELETE FROM public.wallet_allocations WHERE id = 'wa100001-0001-4000-8000-000000000001';
 DELETE FROM public.incentive_runs WHERE id = 'r1000001-0001-4000-8000-000000000001';
 DELETE FROM public.incentive_plans WHERE id = 'pl100001-0001-4000-8000-000000000001';
 DELETE FROM public.counselor_performance_scores WHERE id = 's1000001-0001-4000-8000-000000000001';
