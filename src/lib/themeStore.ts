@@ -8,6 +8,7 @@ export type NavSectionKey =
   | 'digital'
   | 'institution'
   | 'commissions'
+  | 'hr_payroll'
   | 'guide'
   | 'accounts'
   | 'admin';
@@ -81,6 +82,7 @@ export const DEFAULT_NAV_SECTION_COLORS: Record<NavSectionKey, string> = {
   digital: '280 78% 56%',
   institution: '24 95% 53%',
   commissions: '199 89% 48%',
+  hr_payroll: '210 70% 45%',
   guide: '170 70% 42%',
   accounts: '215 25% 55%',
   admin: '221 83% 53%',

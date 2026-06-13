@@ -1,0 +1,218 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+[data-hr-payroll] {
+  --ink: #1a2233;
+  --ink-soft: #4a5468;
+  --paper: #f6f8fc;
+  --card: #fff;
+  --line: #e6eaf2;
+  --moss: #3b82c4;
+  --moss-deep: #1e4e7e;
+  --clay: #e8732e;
+  --gold: #e0a82e;
+  --sky: #3a6ea5;
+  --rose: #e5484d;
+  --good: #16a06a;
+  --warn: #e8732e;
+  --bad: #e5484d;
+  --mut: #8a93a6;
+  --violet: #7c5cdb;
+  --teal: #0fae9b;
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+[data-hr-payroll] .mono { font-family: "JetBrains Mono", monospace; }
+[data-hr-payroll] .serif { font-family: "Fraunces", serif; }
+[data-hr-payroll] .app { display: flex; min-height: 100vh; }
+[data-hr-payroll] .sidebar {
+  width: 252px; background: var(--card); color: var(--ink); flex-shrink: 0;
+  display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh;
+  border-right: 1px solid var(--line);
+}
+[data-hr-payroll] .brand { padding: 18px 20px 14px; border-bottom: 1px solid var(--line); }
+[data-hr-payroll] .brand .logo { display: flex; align-items: center; gap: 10px; }
+[data-hr-payroll] .brand .mark {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: linear-gradient(135deg, var(--moss), var(--violet));
+  display: flex; align-items: center; justify-content: center;
+  font-family: "Fraunces"; font-weight: 700; color: #fff; font-size: 17px;
+  box-shadow: 0 3px 8px rgba(59, 130, 196, 0.3);
+}
+[data-hr-payroll] .brand h1 { font-family: "Fraunces"; font-size: 17px; font-weight: 600; color: var(--ink); margin: 0; }
+[data-hr-payroll] .brand .sub { font-size: 10px; color: var(--mut); letter-spacing: 1.4px; text-transform: uppercase; margin-top: 2px; }
+[data-hr-payroll] .nav { flex: 1; overflow-y: auto; padding: 8px 12px; }
+[data-hr-payroll] .nav-label { font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); padding: 12px 10px 4px; font-weight: 600; }
+[data-hr-payroll] .nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 9px;
+  font-size: 12.6px; color: var(--ink-soft); cursor: pointer; transition: 0.13s;
+  border: none; background: none; width: 100%; text-align: left; font-family: inherit;
+  position: relative; font-weight: 500; text-decoration: none;
+}
+[data-hr-payroll] .nav-item:hover { background: var(--paper); color: var(--ink); }
+[data-hr-payroll] .nav-item.active {
+  background: linear-gradient(135deg, var(--moss), var(--moss-deep)); color: #fff; font-weight: 600;
+  box-shadow: 0 3px 10px rgba(59, 130, 196, 0.28);
+}
+[data-hr-payroll] .nav-item .ic { width: 16px; text-align: center; font-size: 13px; opacity: 0.7; }
+[data-hr-payroll] .nav-item.active .ic { opacity: 1; }
+[data-hr-payroll] .nav-item .ct {
+  margin-left: auto; background: var(--clay); color: #fff; font-size: 10px; font-weight: 700;
+  border-radius: 999px; padding: 1px 7px; min-width: 18px; text-align: center;
+}
+[data-hr-payroll] .nav-item.active .ct { background: rgba(255, 255, 255, 0.25); }
+[data-hr-payroll] .nav-foot { padding: 11px 14px; border-top: 1px solid var(--line); font-size: 10px; color: var(--mut); line-height: 1.5; }
+[data-hr-payroll] .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+[data-hr-payroll] .topbar {
+  background: var(--card); border-bottom: 1px solid var(--line); padding: 11px 28px;
+  display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20;
+}
+[data-hr-payroll] .topbar .crumb { font-size: 12px; color: var(--mut); }
+[data-hr-payroll] .topbar h2 { font-family: "Fraunces"; font-size: 20px; font-weight: 600; margin: 4px 0 0; }
+[data-hr-payroll] .topbar-right { display: flex; align-items: center; gap: 12px; }
+[data-hr-payroll] .role-pill {
+  display: flex; align-items: center; gap: 7px; background: var(--paper);
+  border: 1px solid var(--line); border-radius: 999px; padding: 5px 6px 5px 13px; font-size: 13px;
+}
+[data-hr-payroll] .role-pill select {
+  border: none; background: none; font-family: inherit; font-size: 13px;
+  color: var(--ink); font-weight: 500; cursor: pointer; outline: none;
+}
+[data-hr-payroll] .role-banner {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  background: linear-gradient(135deg, #eef5ff, #f3f0ff); border: 1px solid #d8e3f7;
+  border-radius: 11px; padding: 9px 14px; margin-bottom: 16px; font-size: 13px;
+}
+[data-hr-payroll] .role-banner .rb-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--good);
+  box-shadow: 0 0 0 3px #d4f0e0;
+}
+[data-hr-payroll] .role-banner strong { color: var(--moss-deep); }
+[data-hr-payroll] .rb-perm {
+  font-size: 10.5px; font-weight: 600; text-transform: capitalize; background: #fff;
+  border: 1px solid #d8e3f7; color: var(--moss); border-radius: 6px; padding: 2px 8px;
+}
+[data-hr-payroll] .avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--moss), var(--sky)); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;
+  overflow: hidden;
+}
+[data-hr-payroll] .content { padding: 22px 28px 60px; max-width: 1320px; width: 100%; }
+[data-hr-payroll] .card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 20px; box-shadow: 0 1px 3px rgba(26, 34, 51, 0.04);
+}
+[data-hr-payroll] .card-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+[data-hr-payroll] .card-h h3 { font-family: "Fraunces"; font-size: 17px; font-weight: 600; margin: 0; }
+[data-hr-payroll] .grid { display: grid; gap: 16px; }
+[data-hr-payroll] .g6 { grid-template-columns: repeat(6, 1fr); }
+[data-hr-payroll] .g4 { grid-template-columns: repeat(4, 1fr); }
+[data-hr-payroll] .g3 { grid-template-columns: repeat(3, 1fr); }
+[data-hr-payroll] .g2 { grid-template-columns: repeat(2, 1fr); }
+[data-hr-payroll] table { width: 100%; border-collapse: collapse; font-size: 13px; }
+[data-hr-payroll] th {
+  text-align: left; font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase;
+  color: var(--mut); font-weight: 700; padding: 9px; border-bottom: 1.5px solid var(--line);
+  white-space: nowrap; background: var(--paper);
+}
+[data-hr-payroll] td { padding: 9px; border-bottom: 1px solid var(--line); color: var(--ink-soft); }
+[data-hr-payroll] tr:hover td { background: #f3f8ff; }
+[data-hr-payroll] td.strong { color: var(--ink); font-weight: 600; }
+[data-hr-payroll] .badge {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600;
+  padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+}
+[data-hr-payroll] .b-present { background: #dcfae8; color: #0f7a4d; }
+[data-hr-payroll] .b-pending { background: #fcf2d4; color: #9a7610; }
+[data-hr-payroll] .b-approved { background: #dcfae8; color: #0f7a4d; }
+[data-hr-payroll] .btn {
+  font-family: inherit; font-size: 13px; font-weight: 500; border-radius: 9px; padding: 8px 15px;
+  cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--ink); transition: 0.13s;
+}
+[data-hr-payroll] .btn:hover { border-color: var(--moss); color: var(--moss); }
+[data-hr-payroll] .btn-primary { background: var(--moss); color: #fff; border-color: var(--moss); }
+[data-hr-payroll] .btn-primary:hover { background: var(--moss-deep); color: #fff; }
+[data-hr-payroll] .btn-sm { padding: 5px 10px; font-size: 12px; }
+[data-hr-payroll] .btn-bad { color: var(--bad); border-color: #ecd4d4; }
+[data-hr-payroll] .btn-bad:hover { background: #f9eded; color: var(--bad); }
+[data-hr-payroll] .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+[data-hr-payroll] .input,
+[data-hr-payroll] select.input,
+[data-hr-payroll] textarea.input {
+  width: 100%; font-family: inherit; font-size: 13.5px; padding: 8px 11px;
+  border: 1px solid var(--line); border-radius: 9px; background: #fafbfd; color: var(--ink); outline: none;
+}
+[data-hr-payroll] .input:focus { border-color: var(--moss); background: #fff; }
+[data-hr-payroll] .input.err { border-color: var(--rose); background: #fdf2f2; }
+[data-hr-payroll] label.fld { display: block; margin-bottom: 11px; }
+[data-hr-payroll] label.fld .l {
+  font-size: 11px; font-weight: 600; color: var(--ink-soft); letter-spacing: 0.3px;
+  margin-bottom: 5px; display: block;
+}
+[data-hr-payroll] .errmsg { font-size: 11px; color: var(--rose); margin-top: 4px; }
+[data-hr-payroll] .pill-tab { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+[data-hr-payroll] .pill-tab button {
+  border: 1px solid var(--line); background: var(--card); font-family: inherit; font-size: 13px;
+  padding: 6px 14px; border-radius: 999px; cursor: pointer; color: var(--ink-soft);
+}
+[data-hr-payroll] .pill-tab button.on {
+  background: linear-gradient(135deg, var(--moss), var(--moss-deep)); color: #fff; border-color: var(--moss-deep);
+}
+[data-hr-payroll] .modal-bg {
+  position: fixed; inset: 0; background: rgba(22, 32, 28, 0.42);
+  display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px;
+  backdrop-filter: blur(2px);
+}
+[data-hr-payroll] .modal {
+  background: var(--card); border-radius: 16px; width: 100%; max-width: 600px; max-height: 92vh;
+  overflow-y: auto; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+[data-hr-payroll] .modal.wide { max-width: 760px; }
+[data-hr-payroll] .modal-h {
+  padding: 16px 24px; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; background: var(--card); z-index: 2;
+}
+[data-hr-payroll] .modal-h h3 { font-family: "Fraunces"; font-size: 18px; margin: 0; }
+[data-hr-payroll] .modal-b { padding: 18px 24px; }
+[data-hr-payroll] .modal-f {
+  padding: 13px 24px; border-top: 1px solid var(--line);
+  display: flex; justify-content: flex-end; gap: 10px;
+  position: sticky; bottom: 0; background: var(--card);
+}
+[data-hr-payroll] .x { border: none; background: none; font-size: 21px; cursor: pointer; color: var(--mut); line-height: 1; }
+[data-hr-payroll] .toast {
+  position: fixed; bottom: 24px; right: 24px; background: var(--moss-deep); color: #fff;
+  padding: 12px 18px; border-radius: 11px; font-size: 13.5px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); z-index: 90;
+}
+[data-hr-payroll] .muted { color: var(--mut); }
+[data-hr-payroll] .row-flex { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+[data-hr-payroll] .divider { height: 1px; background: var(--line); margin: 14px 0; }
+[data-hr-payroll] .tag {
+  font-size: 11px; background: var(--paper); border: 1px solid var(--line);
+  border-radius: 6px; padding: 2px 8px; color: var(--ink-soft);
+}
+[data-hr-payroll] .sec-label {
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--moss);
+  font-weight: 700; margin: 6px 0 10px; padding-bottom: 5px; border-bottom: 1px solid var(--line);
+}
+[data-hr-payroll] .empty { text-align: center; padding: 36px 20px; color: var(--mut); }
+[data-hr-payroll] .empty .ico { font-size: 28px; opacity: 0.4; margin-bottom: 8px; }
+[data-hr-payroll] .photo-up {
+  width: 84px; height: 84px; border-radius: 12px; border: 2px dashed var(--line);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  overflow: hidden; background: #fafbfd; flex-shrink: 0;
+}
+[data-hr-payroll] .photo-up img { width: 100%; height: 100%; object-fit: cover; }
+[data-hr-payroll] .denied { text-align: center; padding: 50px 20px; color: var(--mut); }
+@media (max-width: 880px) {
+  [data-hr-payroll] .sidebar { display: none; }
+  [data-hr-payroll] .g6, [data-hr-payroll] .g4, [data-hr-payroll] .g3, [data-hr-payroll] .g2 { grid-template-columns: 1fr 1fr; }
+  [data-hr-payroll] .content { padding: 16px 12px 50px; }
+  [data-hr-payroll] .topbar { padding: 10px 14px; }
+}

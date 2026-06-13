@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Future Link HRMS — Full Prototype</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#1a2233;--ink-soft:#4a5468;--paper:#f6f8fc;--card:#fff;--line:#e6eaf2;--moss:#3b82c4;--moss-deep:#1e4e7e;--clay:#e8732e;--gold:#e0a82e;--sky:#3a6ea5;--rose:#e5484d;--good:#16a06a;--warn:#e8732e;--bad:#e5484d;--mut:#8a93a6;--violet:#7c5cdb;--teal:#0fae9b;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+  #root{min-height:100vh}.mono{font-family:'JetBrains Mono',monospace}.serif{font-family:'Fraunces',serif}
+  .app{display:flex;min-height:100vh}
+  .sidebar{width:252px;background:var(--card);color:var(--ink);flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:1px solid var(--line)}
+  .brand{padding:18px 20px 14px;border-bottom:1px solid var(--line)}
+  .brand .logo{display:flex;align-items:center;gap:10px}
+  .brand .mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--moss),var(--violet));display:flex;align-items:center;justify-content:center;font-family:'Fraunces';font-weight:700;color:#fff;font-size:17px;box-shadow:0 3px 8px rgba(59,130,196,.3)}
+  .brand h1{font-family:'Fraunces';font-size:17px;font-weight:600;color:var(--ink)}
+  .brand .sub{font-size:10px;color:var(--mut);letter-spacing:1.4px;text-transform:uppercase;margin-top:2px}
+  .nav{flex:1;overflow-y:auto;padding:8px 12px}
+  .nav-label{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);padding:12px 10px 4px;font-weight:600}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:7px 11px;border-radius:9px;font-size:12.6px;color:var(--ink-soft);cursor:pointer;transition:.13s;border:none;background:none;width:100%;text-align:left;font-family:inherit;position:relative;font-weight:500}
+  .nav-item:hover{background:var(--paper);color:var(--ink)}
+  .nav-item.active{background:linear-gradient(135deg,var(--moss),var(--moss-deep));color:#fff;font-weight:600;box-shadow:0 3px 10px rgba(59,130,196,.28)}
+  .nav-item.active .ic{opacity:1}
+  .nav-item .ic{width:16px;text-align:center;font-size:13px;opacity:.7}
+  .nav-item .ct{margin-left:auto;background:var(--clay);color:#fff;font-size:10px;font-weight:700;border-radius:999px;padding:1px 7px;min-width:18px;text-align:center}
+  .nav-item.active .ct{background:rgba(255,255,255,.25)}
+  .nav-foot{padding:11px 14px;border-top:1px solid var(--line);font-size:10px;color:var(--mut);line-height:1.5}
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .topbar{background:var(--card);border-bottom:1px solid var(--line);padding:11px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+  .topbar .crumb{font-size:12px;color:var(--mut)}
+  .topbar h2{font-family:'Fraunces';font-size:20px;font-weight:600;margin-top:1px}
+  .topbar-right{display:flex;align-items:center;gap:12px}
+  .role-pill{display:flex;align-items:center;gap:7px;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:5px 6px 5px 13px;font-size:13px}
+  .role-pill select{border:none;background:none;font-family:inherit;font-size:13px;color:var(--ink);font-weight:500;cursor:pointer;outline:none}
+  .role-banner{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:linear-gradient(135deg,#eef5ff,#f3f0ff);border:1px solid #d8e3f7;border-radius:11px;padding:9px 14px;margin-bottom:16px;font-size:13px}
+  .role-banner .rb-dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px #d4f0e0}
+  .role-banner strong{color:var(--moss-deep)}
+  .rb-perm{font-size:10.5px;font-weight:600;text-transform:capitalize;background:#fff;border:1px solid #d8e3f7;color:var(--moss);border-radius:6px;padding:2px 8px}
+  .denied{text-align:center;padding:50px 20px;color:var(--mut)}
+  .denied .ico{font-size:34px;margin-bottom:10px}
+  .avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--moss),var(--sky));color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;object-fit:cover;overflow:hidden}
+  .avatar img{width:100%;height:100%;object-fit:cover}
+  .content{padding:22px 28px 60px;max-width:1320px;width:100%}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(26,34,51,.04)}
+  .card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+  .card-h h3{font-family:'Fraunces';font-size:17px;font-weight:600}
+  .grid{display:grid;gap:16px}.g6{grid-template-columns:repeat(6,1fr)}.g5{grid-template-columns:repeat(5,1fr)}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px 15px 18px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(26,34,51,.04)}
+  .stat .accent{position:absolute;left:0;top:0;bottom:0;width:5px}
+  .stat .lab{font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:var(--mut);font-weight:700}
+  .stat .val{font-family:'Fraunces';font-size:24px;font-weight:600;margin-top:6px;line-height:1;color:var(--ink)}
+  .stat .meta{font-size:11px;color:var(--ink-soft);margin-top:4px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--mut);font-weight:700;padding:9px 9px;border-bottom:1.5px solid var(--line);white-space:nowrap;background:var(--paper)}
+  td{padding:9px 9px;border-bottom:1px solid var(--line);color:var(--ink-soft)}
+  tr:hover td{background:#f3f8ff}td.strong{color:var(--ink);font-weight:600}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .b-present{background:#dcfae8;color:#0f7a4d}.b-leave{background:#eae4fb;color:#5b3fb0}.b-half{background:#ffeede;color:#c25a18}.b-absent{background:#fde1e2;color:#c0282d}.b-holiday{background:#dcecfb;color:#1e5a96}.b-weekoff{background:#eef0f5;color:#5a6478}.b-pending{background:#fcf2d4;color:#9a7610}.b-approved{background:#dcfae8;color:#0f7a4d}.b-rejected{background:#fde1e2;color:#c0282d}.b-training{background:#d4f3ef;color:#0a8576}
+  .btn{font-family:inherit;font-size:13px;font-weight:500;border-radius:9px;padding:8px 15px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);transition:.13s}
+  .btn:hover{border-color:var(--moss);color:var(--moss)}
+  .btn-primary{background:var(--moss);color:#fff;border-color:var(--moss)}.btn-primary:hover{background:var(--moss-deep);color:#fff}
+  .btn-sm{padding:5px 10px;font-size:12px}.btn-ghost{background:none;border-color:transparent}
+  .btn-good{color:var(--good);border-color:#cfe3d4}.btn-good:hover{background:#eef6f0;color:var(--good)}
+  .btn-bad{color:var(--bad);border-color:#ecd4d4}.btn-bad:hover{background:#f9eded;color:var(--bad)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .input,select.input,textarea.input{width:100%;font-family:inherit;font-size:13.5px;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:#fafbfd;color:var(--ink);outline:none}
+  .input:focus{border-color:var(--moss);background:#fff}
+  .input.err{border-color:var(--rose);background:#fdf2f2}
+  label.fld{display:block;margin-bottom:11px}
+  label.fld .l{font-size:11px;font-weight:600;color:var(--ink-soft);letter-spacing:.3px;margin-bottom:5px;display:block}
+  .errmsg{font-size:11px;color:var(--rose);margin-top:4px}
+  .seg{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:3px;flex-wrap:wrap}
+  .seg button{border:none;background:none;font-family:inherit;font-size:12.5px;padding:6px 12px;border-radius:7px;cursor:pointer;color:var(--ink-soft);font-weight:500}
+  .seg button.on{background:var(--moss);color:#fff;box-shadow:0 2px 6px rgba(59,130,196,.3)}
+  .pill-tab{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+  .pill-tab button{border:1px solid var(--line);background:var(--card);font-family:inherit;font-size:13px;padding:6px 14px;border-radius:999px;cursor:pointer;color:var(--ink-soft)}
+  .pill-tab button.on{background:linear-gradient(135deg,var(--moss),var(--moss-deep));color:#fff;border-color:var(--moss-deep)}
+  .modal-bg{position:fixed;inset:0;background:rgba(22,32,28,.42);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;backdrop-filter:blur(2px)}
+  .modal{background:var(--card);border-radius:16px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.28)}
+  .modal.wide{max-width:760px}
+  .modal-h{padding:16px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:2}
+  .modal-h h3{font-family:'Fraunces';font-size:18px}
+  .modal-b{padding:18px 24px}
+  .modal-f{padding:13px 24px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:var(--card)}
+  .x{border:none;background:none;font-size:21px;cursor:pointer;color:var(--mut);line-height:1}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--moss-deep);color:#fff;padding:12px 18px;border-radius:11px;font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:90;display:flex;align-items:center;gap:10px;animation:si .25s ease;max-width:360px}
+  @keyframes si{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .doc-chip{display:flex;align-items:center;gap:10px;padding:9px 13px;border:1px solid var(--line);border-radius:10px;font-size:13px;background:#fafbfd}
+  .doc-chip .ext{font-size:10px;font-weight:700;padding:3px 7px;border-radius:5px;background:var(--paper);color:var(--ink-soft)}
+  .muted{color:var(--mut)}.row-flex{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .divider{height:1px;background:var(--line);margin:14px 0}
+  .tag{font-size:11px;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--ink-soft)}
+  .bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:13px}
+  .bar-row .nm{width:150px;flex-shrink:0;color:var(--ink-soft)}
+  .bar-row .tr{flex:1;height:22px;background:#e6eaf2;border-radius:6px;overflow:hidden}
+  .bar-row .tr>i{display:block;height:100%;border-radius:6px;transition:width .4s ease}
+  .bar-row .vv{width:96px;text-align:right;font-family:'JetBrains Mono';font-size:12px}
+  .calc-input{width:58px;text-align:center;font-family:'JetBrains Mono';font-size:13px;padding:6px 4px;border:1px solid var(--line);border-radius:7px;background:#fafbfd;outline:none}
+  .calc-input:focus{border-color:var(--moss);background:#fff}
+  .calc-input.ovr{border-color:var(--gold);background:#fff4d6}
+  .formula-box{background:#1a2233;color:#c7d6ee;border-radius:12px;padding:16px 18px;font-family:'JetBrains Mono';font-size:12.5px;line-height:1.85;overflow-x:auto}
+  .formula-box .op{color:#f0c14b}.formula-box .neg{color:#ff9b94}.formula-box .res{color:#5fe0a0;font-weight:600}
+  .kpi-big{font-family:'Fraunces';font-size:38px;font-weight:600;line-height:1}
+  .slabtable td,.slabtable th{text-align:center;padding:6px 9px}.hl{background:#fbf2d8 !important}
+  .empty{text-align:center;padding:36px 20px;color:var(--mut)}
+  .empty .ico{font-size:28px;opacity:.4;margin-bottom:8px}
+  .punch-cell{cursor:pointer;border-radius:6px;padding:5px 7px;font-family:'JetBrains Mono';font-size:12px;border:1px dashed transparent}
+  .punch-cell:hover{border-color:var(--moss);background:#f0f5f1}
+  .chip-toggle{font-size:11.5px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-family:inherit}
+  .chip-toggle.on{background:var(--moss);color:#fff;border-color:var(--moss)}
+  .photo-up{width:84px;height:84px;border-radius:12px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:#fafbfd;flex-shrink:0}
+  .photo-up img{width:100%;height:100%;object-fit:cover}
+  .photo-up:hover{border-color:var(--moss)}
+  .sec-label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--moss);font-weight:700;margin:6px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+  @media(max-width:880px){.sidebar{display:none}.g6,.g5,.g4,.g3,.g2{grid-template-columns:1fr 1fr}.content{padding:16px 12px 50px}.topbar{padding:10px 14px}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+var {useState, useEffect, useMemo, useCallback, createContext, useContext} = React;
+
+/* ============ PERSISTENCE ============ */
+const KEY='flhrms_v2';
+const mem={data:null};
+const Persist={
+  load(){try{const s=localStorage.getItem(KEY);if(s)return JSON.parse(s);}catch(e){}return mem.data;},
+  save(d){mem.data=d;try{localStorage.setItem(KEY,JSON.stringify(d));}catch(e){}},
+  clear(){mem.data=null;try{localStorage.removeItem(KEY);}catch(e){}}
+};
+
+/* ============ PAYROLL ENGINE (exact Excel) ============ */
+function lateDeduction(l){if(l<=3)return 0;if(l<=6)return .5;if(l<=9)return 1;if(l<=12)return 1.5;if(l<=15)return 2;if(l<=18)return 2.5;if(l<=21)return 3;if(l<=24)return 3.5;if(l<=27)return 4;return 5;}
+function mispunchDeduction(m){return m<=2?0:(m-2)*.5;}
+function computePayroll(r){
+  const K=lateDeduction(r.late||0), N=mispunchDeduction(r.mispunch||0), co=r.compoff||0;
+  const trainingUnpaid=r.trainingUnpaid||0;
+  const payable=(r.payrollDays||30)-(r.leaves||0)+(r.paidLeaves||0)+co-K-((r.ul||0)*2)-(r.sandwich||0)-N-trainingUnpaid;
+  const monthly=r.monthly||0;
+  const daily=monthly/(r.payrollDays||30);
+  const gross=Math.round(daily*payable);
+  // statutory (illustrative standard rates)
+  const basic=r.basic!=null?r.basic:Math.round(monthly*0.5);
+  const pfWage=Math.min(basic,15000);
+  const pfEmp=r.pfApplicable!==false?Math.round(pfWage*0.12):0;
+  const esicEmp=(r.esicApplicable!==false && monthly<=21000)?Math.round(gross*0.0075):0;
+  const incentive=r.incentive||0, bonus=r.bonus||0;
+  const net=gross+incentive+bonus-pfEmp-esicEmp;
+  return {K,N,payable:Math.round(payable*100)/100,daily:Math.round(daily*100)/100,gross,pfEmp,esicEmp,incentive,bonus,net:Math.round(net),compoff:co,trainingUnpaid};
+}
+
+/* ============ ATTENDANCE ROLL-UP ============ */
+function toMin(t){if(!t)return null;const[h,m]=t.split(':').map(Number);return h*60+m;}
+function fmtDur(min){if(min==null||isNaN(min))return '—';const h=Math.floor(min/60),m=Math.round(min%60);return (h?h+'h ':'')+m+'m';}
+function dayMetrics(a,shift){
+  // returns {net, breakMin, otMin, lateMin}
+  const ci=toMin(a.in), co=toMin(a.out), bs=toMin(a.bStart), be=toMin(a.bEnd);
+  let breakMin=a.breakMin!=null?a.breakMin:((bs!=null&&be!=null)?be-bs:0);
+  let gross = (ci!=null&&co!=null)? (co-ci):null;
+  let net = gross!=null? gross-breakMin : null;
+  const target = shift? (toMin(shift.logout)-toMin(shift.login)-(shift.breakDur||0)) : null;
+  let otMin = (net!=null&&target!=null&&net>target)? net-target : 0;
+  const login = shift? toMin(shift.login) : toMin('10:00');
+  const grace = shift? (shift.grace||5) : 5;
+  let lateMin = (ci!=null&&login!=null)? Math.max(0, ci-login) : 0;
+  return {net, breakMin, otMin, lateMin, lateBeyondGrace: lateMin>grace};
+}
+function rollup(att,shift){
+  let lateCount=0,mispunch=0,leaves=0,working=0,wOff=0,half=0,absent=0,otMin=0,breakMin=0,netMin=0;
+  att.forEach(a=>{
+    const m=dayMetrics(a,shift);
+    if(a.status==='Week Off'||a.status==='Holiday'){wOff++;return;}
+    if(a.status==='Leave'||a.status==='Sick Leave'){leaves++;return;}
+    if(a.status==='Unauthorized Leave')return;
+    if(a.status==='Absent'){absent++;return;}
+    if(a.status==='Half Day'){half++;working+=0.5;}
+    else if(a.status==='Present'){working++;}
+    if(m.lateBeyondGrace)lateCount++;
+    if(a.mispunch)mispunch++;
+    otMin+=m.otMin; breakMin+=m.breakMin; if(m.net!=null)netMin+=m.net;
+  });
+  return {lateCount,mispunch,leaves,working:Math.round(working*10)/10,wOff,half,absent,otMin,breakMin,netMin};
+}
+// Derive the day status + mispunch flag from the punches, given the shift rules.
+// Leave/Week Off/Holiday are manual statuses and are preserved; punch-driven days resolve to Present/Half Day/Absent.
+const MANUAL_STATUSES=['Leave','Sick Leave','Week Off','Holiday','Unauthorized Leave'];
+function derivePunchStatus(a,shift){
+  if(MANUAL_STATUSES.includes(a.status)) return {status:a.status, mispunch:a.mispunch};
+  const ci=toMin(a.in), co=toMin(a.out);
+  const login=shift?toMin(shift.login):toMin('10:00');
+  const halfAfter=shift?(shift.halfDayAfter||60):60;
+  if(ci==null && co==null) return {status:'Absent', mispunch:false};
+  // exactly one punch present = mispunch
+  const mispunch=(ci==null)!==(co==null);
+  let status='Present';
+  if(ci!=null && login!=null && (ci-login)>halfAfter) status='Half Day';
+  return {status, mispunch};
+}
+
+/* ============ SEED ============ */
+function seed(){
+  const baseProfile=(over)=>({gender:'—',dob:'',mobile:'',email:'',addrCurrent:'',addrPermanent:'',emergency:'',doj:'01 Jan 2024',empType:'Full-Time',notice:'30 days',photo:null,
+    basic:0,hra:0,conveyance:0,special:0,incentive:0,bonus:0,pfApplicable:true,esicApplicable:false,...over});
+  const mk=(o)=>{const monthly=o.monthly;return {override:{on:false},manual:{paidLeaves:0,ul:0,sandwich:0,compoff:0},docs:['Offer Letter|PDF'],shiftId:'S1',
+    ...baseProfile({basic:Math.round(monthly*0.5),hra:Math.round(monthly*0.2),conveyance:1600,special:monthly-Math.round(monthly*0.5)-Math.round(monthly*0.2)-1600}),...o};};
+  return {
+    cycle:{start:'26 May 2026',end:'25 Jun 2026',days:30,approved:false},
+    shifts:[
+      {id:'S1',name:'Day Shift',login:'10:00',logout:'19:00',workHrs:9,grace:5,breakDur:45,halfDayAfter:60,otEligible:true,type:'Day'},
+      {id:'S2',name:'Night Shift',login:'19:00',logout:'04:00',workHrs:9,grace:5,breakDur:30,halfDayAfter:60,otEligible:true,type:'Night'},
+      {id:'S3',name:'Part-Time',login:'10:00',logout:'14:00',workHrs:4,grace:5,breakDur:15,halfDayAfter:30,otEligible:false,type:'Custom'},
+    ],
+    employees:[
+      mk({id:'FL-1042',name:'Isha Sikligar',dept:'Counselling',desig:'Sr. Counsellor',branch:'Vadodara',mgr:'Santosh Sir',co:'FL Pvt. Ltd.',week:'6-Day',monthly:42000,login:'10:00',logout:'19:00',pf:'GJ/VAD/0099123',uan:'100928374651',esic:'31009912345',status:'Confirmed',probation:false,esicApplicable:false,gender:'Female',dob:'14 Mar 1994',mobile:'+91 98250 11223',email:'isha.s@futurelink.in',addrCurrent:'12 Alkapuri, Vadodara',addrPermanent:'12 Alkapuri, Vadodara',emergency:'Ramesh S · +91 99999 00011',doj:'10 Jan 2022',empType:'Full-Time',docs:['Offer Letter|PDF','Appointment Letter|PDF','Aadhaar|JPG','PAN|PDF']}),
+      mk({id:'FL-1043',name:'Karan Joshi',dept:'IELTS Training',desig:'Trainer',branch:'Ahmedabad',mgr:'S. Nair',co:'FL Academic',week:'6-Day',monthly:38000,login:'10:00',logout:'19:00',pf:'GJ/AHM/0044871',uan:'100928374652',esic:'31004487122',status:'On Probation',probation:true,esicApplicable:false,gender:'Male',dob:'02 Aug 1997',mobile:'+91 98765 44556',email:'karan.j@futurelink.in',doj:'05 Apr 2026',empType:'Full-Time',docs:['Offer Letter|PDF','Resume|PDF']}),
+      mk({id:'FL-1044',name:'Priya Sharma',dept:'Documentation',desig:'Visa Officer',branch:'Vadodara',mgr:'Santosh Sir',co:'FL Pvt. Ltd.',week:'6-Day',monthly:45000,login:'10:00',logout:'19:00',pf:'GJ/VAD/0099201',uan:'100928374653',esic:'31009920188',status:'Confirmed',probation:false,gender:'Female',dob:'21 Nov 1992',mobile:'+91 90000 12345',email:'priya.s@futurelink.in',doj:'18 Jun 2021',empType:'Full-Time',docs:['Offer Letter|PDF','PAN|PDF','Passport|PDF']}),
+      mk({id:'FL-1046',name:'Sneha Patel',dept:'Counselling',desig:'Counsellor',branch:'Surat',mgr:'A. Verma',co:'FL Pvt. Ltd.',week:'5-Day',monthly:34000,login:'10:00',logout:'19:00',pf:'GJ/SUR/0033451',uan:'100928374654',esic:'31003345109',status:'Confirmed',probation:false,esicApplicable:false,gender:'Female',dob:'09 Feb 1996',mobile:'+91 91111 22233',email:'sneha.p@futurelink.in',doj:'12 Mar 2023',empType:'Full-Time',manual:{paidLeaves:0,ul:1,sandwich:0,compoff:0},docs:['Offer Letter|PDF','Aadhaar|JPG']}),
+      mk({id:'FL-1047',name:'Imran Shaikh',dept:'IELTS Training',desig:'Sr. Trainer',branch:'Ahmedabad',mgr:'S. Nair',co:'FL Academic',week:'6-Day',monthly:52000,login:'10:00',logout:'19:00',pf:'GJ/AHM/0044120',uan:'100928374655',esic:'31004412055',status:'Confirmed',probation:false,gender:'Male',dob:'30 Jul 1989',mobile:'+91 93333 44455',email:'imran.s@futurelink.in',doj:'22 Sep 2020',empType:'Full-Time',manual:{paidLeaves:0,ul:0,sandwich:1,compoff:0},docs:['Offer Letter|PDF','Appointment Letter|PDF','Form 16|PDF']}),
+    ],
+    attendance:{
+      'FL-1042':[
+        {date:'05 Jun',day:'Fri',in:'10:04',out:null,bStart:'13:30',bEnd:'14:10',breakMin:40,status:'Present',mispunch:true},
+        {date:'06 Jun',day:'Sat',in:'10:22',out:'19:05',bStart:'13:30',bEnd:'14:15',breakMin:45,status:'Present',mispunch:false},
+        {date:'07 Jun',day:'Sun',in:null,out:null,status:'Week Off',mispunch:false},
+        {date:'08 Jun',day:'Mon',in:'10:02',out:'19:30',bStart:'13:30',bEnd:'14:14',breakMin:44,status:'Present',mispunch:false},
+        {date:'09 Jun',day:'Tue',in:'10:01',out:'19:00',bStart:'13:30',bEnd:'14:12',breakMin:42,status:'Present',mispunch:false},
+        {date:'10 Jun',day:'Wed',in:'10:03',out:'19:02',bStart:'13:30',bEnd:'14:13',breakMin:43,status:'Present',mispunch:false},
+        {date:'11 Jun',day:'Thu',in:'10:00',out:'19:01',bStart:'13:30',bEnd:'14:10',breakMin:40,status:'Present',mispunch:false},
+        {date:'12 Jun',day:'Fri',in:'10:02',out:'19:04',bStart:'13:30',bEnd:'14:12',breakMin:42,status:'Present',mispunch:false},
+      ],
+      'FL-1043':[
+        {date:'05 Jun',day:'Fri',in:null,out:'19:00',status:'Present',mispunch:true},
+        {date:'06 Jun',day:'Sat',in:'10:30',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+        {date:'07 Jun',day:'Sun',in:null,out:null,status:'Week Off',mispunch:false},
+        {date:'08 Jun',day:'Mon',in:'10:20',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+        {date:'09 Jun',day:'Tue',in:null,out:null,status:'Leave',mispunch:false},
+        {date:'10 Jun',day:'Wed',in:null,out:null,status:'Leave',mispunch:false},
+        {date:'11 Jun',day:'Thu',in:'10:15',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+        {date:'12 Jun',day:'Fri',in:'10:08',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+      ],
+      'FL-1044':[
+        {date:'05 Jun',day:'Fri',in:'10:30',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+        {date:'06 Jun',day:'Sat',in:'10:25',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+        {date:'07 Jun',day:'Sun',in:null,out:null,status:'Week Off',mispunch:false},
+        {date:'08 Jun',day:'Mon',in:'10:40',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+        {date:'09 Jun',day:'Tue',in:'10:35',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+        {date:'10 Jun',day:'Wed',in:'11:12',out:'19:10',breakMin:45,status:'Half Day',mispunch:false},
+        {date:'11 Jun',day:'Thu',in:'10:20',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+        {date:'12 Jun',day:'Fri',in:'10:18',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+      ],
+      'FL-1046':[
+        {date:'05 Jun',day:'Fri',in:'10:01',out:'18:00',breakMin:30,status:'Present',mispunch:false},
+        {date:'06 Jun',day:'Sat',in:null,out:null,status:'Week Off',mispunch:false},
+        {date:'07 Jun',day:'Sun',in:null,out:null,status:'Week Off',mispunch:false},
+        {date:'08 Jun',day:'Mon',in:null,out:null,status:'Unauthorized Leave',mispunch:false},
+        {date:'09 Jun',day:'Tue',in:null,out:null,status:'Leave',mispunch:false},
+        {date:'10 Jun',day:'Wed',in:null,out:null,status:'Leave',mispunch:false},
+        {date:'11 Jun',day:'Thu',in:null,out:null,status:'Leave',mispunch:false},
+        {date:'12 Jun',day:'Fri',in:'10:00',out:'18:00',breakMin:30,status:'Present',mispunch:false},
+      ],
+      'FL-1047':[
+        {date:'05 Jun',day:'Fri',in:'10:00',out:'19:30',breakMin:45,status:'Present',mispunch:false},
+        {date:'06 Jun',day:'Sat',in:'10:00',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+        {date:'07 Jun',day:'Sun',in:null,out:null,status:'Week Off',mispunch:false},
+        {date:'08 Jun',day:'Mon',in:'10:00',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+        {date:'09 Jun',day:'Tue',in:null,out:null,status:'Leave',mispunch:false},
+        {date:'10 Jun',day:'Wed',in:null,out:null,status:'Leave',mispunch:false},
+        {date:'11 Jun',day:'Thu',in:'10:00',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+        {date:'12 Jun',day:'Fri',in:'10:00',out:'19:00',breakMin:45,status:'Present',mispunch:false},
+      ],
+    },
+    leaves:[
+      {id:'LV-2210',empId:'FL-1042',type:'Annual Leave',from:'09 Jun',to:'09 Jun',days:1,reason:'Personal work',doc:true,status:'Approved'},
+      {id:'LV-2211',empId:'FL-1043',type:'Sick Leave',from:'09 Jun',to:'10 Jun',days:2,reason:'Fever — medical attached',doc:true,status:'Pending'},
+      {id:'LV-2212',empId:'FL-1044',type:'Casual Leave',from:'12 Jun',to:'12 Jun',days:0.5,reason:'Bank visit',doc:false,status:'Pending'},
+    ],
+    compoff:[
+      {id:'CO-110',empId:'FL-1043',worked:'08 Jun (Sun)',occasion:'Worked on weekly off',reason:'Batch demo',status:'Approved'},
+      {id:'CO-111',empId:'FL-1047',worked:'02 Jun (Holiday)',occasion:'Worked on festival holiday',reason:'Exam invigilation',status:'Pending'},
+    ],
+    late:[
+      {id:'LC-880',empId:'FL-1044',date:'10 Jun',official:'10:00',actual:'11:12',delay:72,reason:'Doctor appointment',status:'Pending'},
+      {id:'LC-881',empId:'FL-1046',date:'05 Jun',official:'10:00',actual:'10:01',delay:1,reason:'Within grace',status:'Pending'},
+    ],
+    mispunch:[
+      {id:'MP-330',empId:'FL-1042',date:'05 Jun',issue:'Missing Punch Out',doc:'Screenshot',status:'Pending'},
+      {id:'MP-331',empId:'FL-1043',date:'05 Jun',issue:'Missing Punch In',doc:'Manager email',status:'Approved'},
+    ],
+    training:[
+      {id:'TR-50',empId:'FL-1043',type:'Paid Training',duration:'30 days',unpaidDays:0,start:'05 Apr 2026',status:'In Progress'},
+    ],
+    holidays:[
+      {id:'H1',date:'15 Aug 2026',name:'Independence Day',type:'National',scope:'All'},
+      {id:'H2',date:'19 Aug 2026',name:'Raksha Bandhan',type:'Festival',scope:'All'},
+      {id:'H3',date:'02 Oct 2026',name:'Gandhi Jayanti',type:'National',scope:'All'},
+      {id:'H4',date:'20 Oct 2026',name:'Diwali',type:'Festival',scope:'All'},
+      {id:'H5',date:'31 Dec 2026',name:'Year-End (optional)',type:'Optional',scope:'All'},
+    ],
+    audit:[{user:'System',action:'Seed loaded',target:'Prototype initialised',time:'now',prev:'—',next:'—'}],
+    seq:{LV:2213,CO:112,LC:882,MP:332,EMP:1048,H:6,TR:51,SH:4},
+    access:defaultAccess(),
+  };
+}
+// PERMISSIONS: view, apply, approve, override, export, configure, manageEmp
+// SCREENS: which modules each role may open
+function defaultAccess(){
+  const ALL=['dashboard','ess','emp360','employees','shifts','training','calculator','verify','attendance','leave','compoff','late','mispunch','holiday','config','roles','audit'];
+  const mk=(perms,screens)=>({perms,screens:Object.fromEntries(ALL.map(s=>[s,screens==='*'||screens.includes(s)]))});
+  return {
+    'Super Admin':mk({view:1,apply:1,approve:1,override:1,export:1,configure:1,manageEmp:1},'*'),
+    'Admin':mk({view:1,apply:1,approve:1,override:1,export:1,configure:1,manageEmp:1},'*'),
+    'HR Manager':mk({view:1,apply:1,approve:1,override:1,export:1,configure:0,manageEmp:1},['dashboard','ess','emp360','employees','shifts','training','calculator','verify','attendance','leave','compoff','late','mispunch','holiday','roles','audit']),
+    'HR Executive':mk({view:1,apply:1,approve:1,override:0,export:1,configure:0,manageEmp:1},['dashboard','ess','emp360','employees','training','calculator','verify','attendance','leave','compoff','late','mispunch','holiday','audit']),
+    'Manager':mk({view:1,apply:1,approve:1,override:0,export:0,configure:0,manageEmp:0},['dashboard','ess','emp360','attendance','leave','compoff','late','mispunch','training']),
+    'Employee':mk({view:1,apply:1,approve:0,override:0,export:0,configure:0,manageEmp:0},['ess','leave','compoff','late','mispunch','holiday']),
+  };
+}
+window.__defaultAccess=defaultAccess;
+window.__seed=seed;
+</script>
+
+<script type="text/babel">
+var {useState, useEffect, useCallback, createContext, useContext} = React;
+
+/* ============ STORE ============ */
+const Store=createContext();
+function useStore(){return useContext(Store);}
+
+function StoreProvider({children}){
+  const [db,setDb]=useState(()=>Persist.load()||window.__seed());
+  const [toast,setToast]=useState(null);
+  useEffect(()=>{Persist.save(db);},[db]);
+  const fire=useCallback(m=>{setToast(m);setTimeout(()=>setToast(null),2600);},[]);
+  const stamp=()=>new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  const audit=(d,action,target,prev,next)=>({...d,audit:[{user:'You (HR Manager)',action,target,time:stamp(),prev:String(prev??'—'),next:String(next??'—')},...d.audit]});
+
+  const deriveInputs=useCallback((emp,d)=>{
+    const data=d||db;
+    const shift=data.shifts.find(s=>s.id===emp.shiftId)||data.shifts[0];
+    const att=data.attendance[emp.id]||[];
+    const ru=rollup(att,shift);
+    const approvedPaidLeave=data.leaves.filter(l=>l.empId===emp.id&&l.status==='Approved'&&l.type!=='Unpaid Leave').reduce((s,l)=>s+l.days,0);
+    const approvedCompoff=data.compoff.filter(c=>c.empId===emp.id&&c.status==='Approved').length;
+    const lateExempt=data.late.filter(x=>x.empId===emp.id&&x.status==='Approved'&&x.delay>(shift?shift.grace:5)).length;
+    const misApproved=data.mispunch.filter(x=>x.empId===emp.id&&x.status==='Approved').length;
+    const trainingUnpaid=data.training.filter(t=>t.empId===emp.id&&t.status!=='Cancelled').reduce((s,t)=>s+(t.unpaidDays||0),0);
+    const auto={
+      late:Math.max(0,ru.lateCount-lateExempt),
+      mispunch:Math.max(0,ru.mispunch-misApproved),
+      leaves:ru.leaves, wOff:ru.wOff, working:ru.working,
+      otMin:ru.otMin, breakMin:ru.breakMin, netMin:ru.netMin,
+      paidLeaves:approvedPaidLeave, compoff:approvedCompoff,
+      ul:att.filter(a=>a.status==='Unauthorized Leave').length,
+      sandwich:emp.manual.sandwich||0, trainingUnpaid,
+    };
+    if(emp.override&&emp.override.on){
+      const o=emp.override;
+      return {...auto, late:o.late??auto.late,mispunch:o.mispunch??auto.mispunch,leaves:o.leaves??auto.leaves,wOff:o.wOff??auto.wOff,paidLeaves:o.paidLeaves??auto.paidLeaves,compoff:o.compoff??auto.compoff,ul:o.ul??auto.ul,sandwich:o.sandwich??auto.sandwich,overridden:true};
+    }
+    return {...auto,overridden:false};
+  },[db]);
+
+  const empRow=useCallback((emp,d)=>{
+    const data=d||db;
+    const inp=deriveInputs(emp,data);
+    const calc=computePayroll({payrollDays:data.cycle.days,monthly:emp.monthly,basic:emp.basic,incentive:emp.incentive,bonus:emp.bonus,pfApplicable:emp.pfApplicable,esicApplicable:emp.esicApplicable,leaves:inp.leaves,paidLeaves:inp.paidLeaves,late:inp.late,ul:inp.ul,sandwich:inp.sandwich,mispunch:inp.mispunch,compoff:inp.compoff,trainingUnpaid:inp.trainingUnpaid});
+    return {...emp,...inp,...calc};
+  },[db,deriveInputs]);
+
+  const actions={
+    addEmployee(e){setDb(d=>{const id='FL-'+d.seq.EMP;const ne={id,override:{on:false},manual:{paidLeaves:0,ul:0,sandwich:0,compoff:0},docs:[],shiftId:e.shiftId||'S1',...e};let nd={...d,employees:[...d.employees,ne],attendance:{...d.attendance,[id]:[]},seq:{...d.seq,EMP:d.seq.EMP+1}};return audit(nd,'Employee Added',e.name+' · '+id,'—',e.name);});fire('Employee '+e.name+' added');},
+    updateEmployee(id,patch){setDb(d=>{const e=d.employees.find(x=>x.id===id);let nd={...d,employees:d.employees.map(x=>x.id===id?{...x,...patch}:x)};return audit(nd,'Employee Updated',e.name+' · '+id,'—','edited');});fire('Employee updated');},
+    deleteEmployee(id){setDb(d=>{const e=d.employees.find(x=>x.id===id);let nd={...d,employees:d.employees.filter(x=>x.id!==id)};return audit(nd,'Employee Removed',e.name+' · '+id,e.name,'—');});fire('Employee removed');},
+    setOverride(id,override){setDb(d=>{const e=d.employees.find(x=>x.id===id);let nd={...d,employees:d.employees.map(x=>x.id===id?{...x,override}:x)};return audit(nd,'Payroll Override',e.name,override.on?'auto':'override',override.on?'manual':'auto');});fire(override.on?'Manual override on':'Reverted to auto roll-up');},
+    addDoc(id,doc){setDb(d=>({...d,employees:d.employees.map(e=>e.id===id?{...e,docs:[...e.docs,doc]}:e)}));fire('Document uploaded');},
+    removeDoc(id,doc){setDb(d=>({...d,employees:d.employees.map(e=>e.id===id?{...e,docs:e.docs.filter(x=>x!==doc)}:e)}));fire('Document removed');},
+    setPhoto(id,photo){setDb(d=>({...d,employees:d.employees.map(e=>e.id===id?{...e,photo}:e)}));fire('Photo updated');},
+    setPunch(empId,idx,patch){setDb(d=>{const emp=d.employees.find(e=>e.id===empId);const shift=d.shifts.find(s=>s.id===(emp&&emp.shiftId))||d.shifts[0];const arr=(d.attendance[empId]||[]).map((a,i)=>{if(i!==idx)return a;let na={...a,...patch};
+        // if the edit touched punch fields (not an explicit status/mispunch override), re-derive status
+        if(('in' in patch||'out' in patch)&&!('status' in patch)){const der=derivePunchStatus(na,shift);na.status=der.status;na.mispunch=der.mispunch;}
+        return na;});let nd={...d,attendance:{...d.attendance,[empId]:arr}};return audit(nd,'Attendance Edited',empId+' · '+arr[idx].date,'—',patch.status||arr[idx].status);});fire('Attendance updated — payroll recalculated');},
+    // live punch: stamp current HH:MM into the given field and re-derive status
+    punch(empId,idx,field){setDb(d=>{const emp=d.employees.find(e=>e.id===empId);const shift=d.shifts.find(s=>s.id===(emp&&emp.shiftId))||d.shifts[0];const now=new Date();const hhmm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+        const arr=(d.attendance[empId]||[]).map((a,i)=>{if(i!==idx)return a;let na={...a,[field]:hhmm};if(field==='bEnd'&&na.bStart){na.breakMin=Math.max(0,toMin(hhmm)-toMin(na.bStart));}const der=derivePunchStatus(na,shift);na.status=der.status;na.mispunch=der.mispunch;return na;});
+        let nd={...d,attendance:{...d.attendance,[empId]:arr}};const lbl={in:'Check In',out:'Check Out',bStart:'Break Start',bEnd:'Break End'}[field];return audit(nd,lbl,empId+' · '+arr[idx].date,'—',hhmm);});
+      const lbl={in:'Checked in',out:'Checked out',bStart:'Break started',bEnd:'Break ended'}[field];fire(lbl+' — payroll recalculated');},
+    addToday(empId){setDb(d=>{const now=new Date();const date=String(now.getDate()).padStart(2,'0')+' '+now.toLocaleString('en-US',{month:'short'});const day=now.toLocaleString('en-US',{weekday:'short'});const arr=d.attendance[empId]||[];if(arr.some(a=>a.date===date))return d;const nd={...d,attendance:{...d.attendance,[empId]:[...arr,{date,day,in:null,out:null,bStart:null,bEnd:null,breakMin:0,status:'Absent',mispunch:false}]}};return audit(nd,'Day Started',empId+' · '+date,'—','new row');});fire("Today's row added — punch in to begin");},
+    startAndCheckIn(empId){setDb(d=>{const emp=d.employees.find(e=>e.id===empId);const shift=d.shifts.find(s=>s.id===(emp&&emp.shiftId))||d.shifts[0];const now=new Date();const date=String(now.getDate()).padStart(2,'0')+' '+now.toLocaleString('en-US',{month:'short'});const day=now.toLocaleString('en-US',{weekday:'short'});const hhmm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');let arr=d.attendance[empId]||[];let idx=arr.findIndex(a=>a.date===date);if(idx<0){arr=[...arr,{date,day,in:null,out:null,bStart:null,bEnd:null,breakMin:0,status:'Absent',mispunch:false}];idx=arr.length-1;}arr=arr.map((a,i)=>{if(i!==idx)return a;let na={...a,in:hhmm};const der=derivePunchStatus(na,shift);na.status=der.status;na.mispunch=der.mispunch;return na;});const nd={...d,attendance:{...d.attendance,[empId]:arr}};return audit(nd,'Check In',empId+' · '+date,'—',hhmm);});fire('Checked in — payroll recalculated');},
+    // shifts
+    addShift(s){setDb(d=>{const id='S'+d.seq.SH;let nd={...d,shifts:[...d.shifts,{id,...s}],seq:{...d.seq,SH:d.seq.SH+1}};return audit(nd,'Shift Created',s.name,'—',s.login+'–'+s.logout);});fire('Shift created');},
+    updateShift(id,patch){setDb(d=>({...d,shifts:d.shifts.map(s=>s.id===id?{...s,...patch}:s)}));fire('Shift updated');},
+    deleteShift(id){setDb(d=>({...d,shifts:d.shifts.filter(s=>s.id!==id)}));fire('Shift deleted');},
+    // leave
+    addLeave(l){setDb(d=>{const id='LV-'+d.seq.LV;const e=d.employees.find(x=>x.id===l.empId);let nd={...d,leaves:[...d.leaves,{id,status:'Pending',...l}],seq:{...d.seq,LV:d.seq.LV+1}};return audit(nd,'Leave Applied',id+' · '+(e?e.name:''),'—','Pending');});fire('Leave request submitted');},
+    setLeaveStatus(id,status){setDb(d=>{const l=d.leaves.find(x=>x.id===id);const e=d.employees.find(x=>x.id===l.empId);let nd={...d,leaves:d.leaves.map(x=>x.id===id?{...x,status}:x)};return audit(nd,'Leave '+status,id+' · '+(e?e.name:''),l.status,status);});fire('Leave '+status.toLowerCase()+' — payroll recalculated');},
+    deleteLeave(id){setDb(d=>({...d,leaves:d.leaves.filter(x=>x.id!==id)}));fire('Leave deleted');},
+    // compoff
+    addCompoff(c){setDb(d=>{const id='CO-'+d.seq.CO;const e=d.employees.find(x=>x.id===c.empId);let nd={...d,compoff:[...d.compoff,{id,status:'Pending',...c}],seq:{...d.seq,CO:d.seq.CO+1}};return audit(nd,'Comp-Off Requested',id+' · '+(e?e.name:''),'—','Pending');});fire('Comp-off submitted');},
+    setCompoffStatus(id,status){setDb(d=>{const c=d.compoff.find(x=>x.id===id);const e=d.employees.find(x=>x.id===c.empId);let nd={...d,compoff:d.compoff.map(x=>x.id===id?{...x,status}:x)};return audit(nd,'Comp-Off '+status,id+' · '+(e?e.name:''),c.status,status);});fire('Comp-off '+status.toLowerCase()+(status==='Approved'?' — added to payable':''));},
+    deleteCompoff(id){setDb(d=>({...d,compoff:d.compoff.filter(x=>x.id!==id)}));fire('Comp-off deleted');},
+    // late
+    addLate(l){setDb(d=>{const id='LC-'+d.seq.LC;let nd={...d,late:[...d.late,{id,status:'Pending',...l}],seq:{...d.seq,LC:d.seq.LC+1}};return audit(nd,'Late Exemption Filed',id,'—','Pending');});fire('Late exemption filed');},
+    setLateStatus(id,status){setDb(d=>{const x=d.late.find(z=>z.id===id);const e=d.employees.find(z=>z.id===x.empId);let nd={...d,late:d.late.map(z=>z.id===id?{...z,status}:z)};return audit(nd,'Late Exemption '+status,id+' · '+(e?e.name:''),x.status,status);});fire('Late exemption '+status.toLowerCase()+' — recalculated');},
+    // mispunch
+    setMispunchStatus(id,status){setDb(d=>{const x=d.mispunch.find(z=>z.id===id);const e=d.employees.find(z=>z.id===x.empId);let nd={...d,mispunch:d.mispunch.map(z=>z.id===id?{...z,status}:z)};return audit(nd,'Mispunch '+status,id+' · '+(e?e.name:''),x.status,status);});fire('Mispunch '+status.toLowerCase()+' — recalculated');},
+    // training
+    addTraining(t){setDb(d=>{const id='TR-'+d.seq.TR;const e=d.employees.find(x=>x.id===t.empId);let nd={...d,training:[...d.training,{id,status:'In Progress',...t}],seq:{...d.seq,TR:d.seq.TR+1}};return audit(nd,'Training Assigned',id+' · '+(e?e.name:''),'—',t.type);});fire('Training assigned — unpaid days affect payroll');},
+    updateTraining(id,patch){setDb(d=>{const t=d.training.find(x=>x.id===id);let nd={...d,training:d.training.map(x=>x.id===id?{...x,...patch}:x)};return audit(nd,'Training Updated',id,t.status,patch.status||'edited');});fire('Training updated');},
+    deleteTraining(id){setDb(d=>({...d,training:d.training.filter(x=>x.id!==id)}));fire('Training removed');},
+    // holidays
+    addHoliday(h){setDb(d=>{const id='H'+d.seq.H;let nd={...d,holidays:[...d.holidays,{id,...h}],seq:{...d.seq,H:d.seq.H+1}};return audit(nd,'Holiday Added',h.name,'—',h.date);});fire('Holiday added');},
+    deleteHoliday(id){setDb(d=>{const h=d.holidays.find(x=>x.id===id);let nd={...d,holidays:d.holidays.filter(x=>x.id!==id)};return audit(nd,'Holiday Removed',h.name,h.date,'—');});fire('Holiday removed');},
+    // cycle
+    setCycle(patch){setDb(d=>({...d,cycle:{...d.cycle,...patch}}));fire('Cycle saved');},
+    approvePayroll(){setDb(d=>{let nd={...d,cycle:{...d.cycle,approved:true}};return audit(nd,'Payroll Approved','Cycle '+d.cycle.start,'Draft','Approved');});fire('Payroll approved & locked');},
+    reopenPayroll(){setDb(d=>({...d,cycle:{...d.cycle,approved:false}}));fire('Payroll reopened');},
+    setPerm(role,p,val){setDb(d=>{const access=JSON.parse(JSON.stringify(d.access||window.__defaultAccess()));access[role].perms[p]=val?1:0;let nd={...d,access};return audit(nd,'Permission '+(val?'Granted':'Revoked'),role+' · '+p,val?'off':'on',val?'on':'off');});fire(role+': '+p+' '+(val?'granted':'revoked'));},
+    setScreen(role,screen,val){setDb(d=>{const access=JSON.parse(JSON.stringify(d.access||window.__defaultAccess()));access[role].screens[screen]=!!val;let nd={...d,access};return audit(nd,'Screen '+(val?'Shown':'Hidden'),role+' · '+screen,val?'hidden':'shown',val?'shown':'hidden');});fire(role+': '+screen+' '+(val?'shown':'hidden'));},
+    resetAccess(){setDb(d=>{let nd={...d,access:window.__defaultAccess()};return audit(nd,'Access Reset','All roles → defaults','custom','default');});fire('Access matrix reset to defaults');},
+    reset(){Persist.clear();setDb(window.__seed());fire('Reset to seed data');},
+  };
+  return <Store.Provider value={{db,empRow,deriveInputs,actions,fire,toast}}>{children}</Store.Provider>;
+}
+
+/* ============ HELPERS ============ */
+const sBadge=(s)=>{const m={'Present':'b-present','Half Day':'b-half','Leave':'b-leave','Sick Leave':'b-leave','Holiday':'b-holiday','Week Off':'b-weekoff','Absent':'b-absent','Unauthorized Leave':'b-absent','Approved':'b-approved','Pending':'b-pending','Rejected':'b-rejected','In Progress':'b-training','Completed':'b-approved','Extended':'b-pending'};return <span className={'badge '+(m[s]||'b-weekoff')}>{s}</span>;};
+const inr=n=>'₹'+Math.round(n||0).toLocaleString('en-IN');
+const Stat=({lab,val,meta,color})=><div className="stat" style={{background:'linear-gradient(135deg,'+color+'0d,'+color+'03)'}}><span className="accent" style={{background:color}}></span><div className="lab" style={{color}}>{lab}</div><div className="val">{val}</div><div className="meta">{meta}</div></div>;
+const STATUSES=['Present','Half Day','Absent','Leave','Sick Leave','Holiday','Week Off','Unauthorized Leave'];
+const DOC_TYPES=['Employee Photograph','Resume / CV','Aadhaar Card','PAN Card','Passport','Driving License','Educational Certificate','Degree Certificate','Diploma Certificate','Mark Sheet','Professional Certification','Experience Letter','Relieving Letter','Previous Appointment Letter','Previous Salary Slip','Bank Statement','Offer Letter','Appointment Letter','Employment Agreement','Confirmation Letter','Promotion Letter','Increment Letter','Transfer Letter','Warning Letter','Show Cause Notice','Termination Letter','Salary Slip','Form 16','Other'];
+function name(db,id){const e=db.employees.find(x=>x.id===id);return e?e.name:id;}
+function initials(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2);}
+</script>
+
+<script type="text/babel">
+var {useState, useEffect, useCallback} = React;
+
+/* ============ SHELL ============ */
+/* ============ ROLE ACCESS MODEL ============ */
+// permissions: view, apply, approve, override, export, configure, manageEmp
+const ALL_SCREENS=['dashboard','ess','emp360','employees','shifts','training','calculator','verify','attendance','leave','compoff','late','mispunch','holiday','config','roles','audit'];
+const ROLE_LIST=['Super Admin','Admin','HR Manager','HR Executive','Manager','Employee'];
+const PERM_LIST=['view','apply','approve','override','export','configure','manageEmp'];
+const PERM_LABELS={view:'View',apply:'Apply',approve:'Approve',override:'Override',export:'Export',configure:'Configure',manageEmp:'Manage Emp'};
+// store-driven: access object lives in db.access and is editable
+function canSeeIn(access,role,screen){const a=access&&access[role];return a?!!a.screens[screen]:false;}
+function permIn(access,role,p){const a=access&&access[role];return a?!!a.perms[p]:false;}
+const RoleCtx=createContext({role:'Super Admin',can:()=>true,canSee:()=>true});
+function useRole(){return useContext(RoleCtx);}
+
+function Shell(){
+  const {db,actions,toast}=useStore();
+  const [view,setView]=useState('dashboard');
+  const [role,setRole]=useState('HR Manager');
+  const access=db.access||window.__defaultAccess();
+  const can=useCallback((p)=>permIn(access,role,p),[access,role]);
+  const canSee=useCallback((s)=>canSeeIn(access,role,s),[access,role]);
+  const allowedScreens=ALL_SCREENS.filter(s=>canSeeIn(access,role,s));
+  // if current screen not allowed for this role, redirect to first allowed
+  useEffect(()=>{
+    if(!canSeeIn(access,role,view)){
+      setView(allowedScreens[0]||'ess');
+    }
+  },[role,view,access]);
+  const pend=(arr)=>arr.filter(x=>x.status==='Pending').length;
+  const NAV=[
+    {grp:'Workspace',items:[{k:'dashboard',ic:'◧',t:'Payroll Dashboard'},{k:'ess',ic:'◔',t:'My Portal (ESS)'},{k:'emp360',ic:'⊚',t:'Employee 360°'}]},
+    {grp:'People',items:[{k:'employees',ic:'⊞',t:'Employee Master'},{k:'shifts',ic:'◐',t:'Shift Management'},{k:'training',ic:'◵',t:'Training'}]},
+    {grp:'Payroll',items:[{k:'calculator',ic:'∑',t:'Payable Days Engine'},{k:'verify',ic:'▤',t:'Payroll Verification'}]},
+    {grp:'Time & Attendance',items:[{k:'attendance',ic:'◰',t:'Attendance'},{k:'leave',ic:'⊟',t:'Leave',ct:pend(db.leaves)},{k:'compoff',ic:'⇄',t:'Comp-Off',ct:pend(db.compoff)},{k:'late',ic:'◷',t:'Late Coming',ct:pend(db.late)},{k:'mispunch',ic:'⊠',t:'Mispunch',ct:pend(db.mispunch)},{k:'holiday',ic:'◇',t:'Holidays'}]},
+    {grp:'Configuration',items:[{k:'config',ic:'⚙',t:'Payroll & Policy'},{k:'roles',ic:'⊕',t:'Roles & Access'},{k:'audit',ic:'≡',t:'Audit Logs'}]},
+  ];
+  const titles={dashboard:'Payroll Dashboard',ess:'Employee Self-Service',emp360:'Employee 360° View',employees:'Employee Master',shifts:'Shift Management',training:'Training Management',calculator:'Payable Days Engine',verify:'Payroll Verification',attendance:'Attendance',leave:'Leave Management',compoff:'Comp-Off Management',late:'Late Coming',mispunch:'Mispunch Regularization',holiday:'Holiday Management',config:'Payroll & Policy Configuration',roles:'Role Based Access',audit:'Audit Logs'};
+  const V={dashboard:Dashboard,ess:ESS,emp360:Emp360,employees:Employees,shifts:Shifts,training:Training,calculator:Calculator,verify:Verify,attendance:Attendance,leave:Leave,compoff:CompOff,late:LateComing,mispunch:Mispunch,holiday:Holidays,config:Config,roles:Roles,audit:Audit};
+  const Cur=canSee(view)?(V[view]||Dashboard):(V[allowedScreens[0]]||ESS);
+  const permList=PERM_LIST.filter(p=>permIn(access,role,p));
+  return (
+    <RoleCtx.Provider value={{role,can,canSee}}>
+    <div className="app">
+      <aside className="sidebar">
+        <div className="brand"><div className="logo"><div className="mark">FL</div><div><h1>Future Link HRMS</h1><div className="sub">Full Prototype</div></div></div></div>
+        <nav className="nav">{NAV.map(g=>{const items=g.items.filter(it=>canSee(it.k));if(items.length===0)return null;return (<div key={g.grp}><div className="nav-label">{g.grp}</div>{items.map(it=>(<button key={it.k} className={'nav-item'+(view===it.k?' active':'')} onClick={()=>setView(it.k)}><span className="ic">{it.ic}</span>{it.t}{it.ct>0&&<span className="ct">{it.ct}</span>}</button>))}</div>);})}</nav>
+        <div className="nav-foot">Cycle · {db.cycle.start} – {db.cycle.end}<br/>Days: {db.cycle.days} · {db.cycle.approved?<span style={{color:'var(--good)',fontWeight:600}}>Approved ✓</span>:'Draft'}<br/><button onClick={actions.reset} style={{marginTop:8,background:'none',border:'1px solid var(--line)',color:'var(--ink-soft)',borderRadius:7,padding:'5px 10px',fontSize:11,cursor:'pointer',fontFamily:'inherit'}}>↺ Reset data</button></div>
+      </aside>
+      <main className="main">
+        <header className="topbar"><div><div className="crumb">Future Link Consultants</div><h2 className="serif">{titles[view]}</h2></div>
+          <div className="topbar-right"><div className="role-pill"><span className="muted" style={{fontSize:11}}>View as</span><select value={role} onChange={e=>setRole(e.target.value)}>{ROLE_LIST.map(r=><option key={r}>{r}</option>)}</select></div><div className="avatar">MK</div></div>
+        </header>
+        <div className="content">
+          <div className="role-banner"><span className="rb-dot"></span><strong>{role}</strong><span className="muted">· can:</span>{permList.length?permList.map(p=><span key={p} className="rb-perm">{PERM_LABELS[p]}</span>):<span className="muted" style={{fontSize:11.5}}>no permissions</span>}<span className="muted" style={{marginLeft:'auto',fontSize:11.5}}>Edit access in Roles &amp; Access · changes apply instantly</span></div>
+          <Cur go={setView}/>
+        </div>
+      </main>
+      {toast&&<div className="toast">✓ {toast}</div>}
+    </div>
+    </RoleCtx.Provider>
+  );
+}
+
+/* ============ DASHBOARD ============ */
+function Dashboard({go}){
+  const {db,empRow}=useStore();
+  const rows=db.employees.map(e=>empRow(e));
+  const liability=rows.reduce((s,r)=>s+r.net,0);
+  const grossSum=rows.reduce((s,r)=>s+r.gross,0);
+  const incentives=rows.reduce((s,r)=>s+r.incentive,0);
+  const bonuses=rows.reduce((s,r)=>s+r.bonus,0);
+  const deductions=rows.reduce((s,r)=>s+r.pfEmp+r.esicEmp,0);
+  const branches=[...new Set(db.employees.map(e=>e.branch))];
+  const queue=[
+    ...db.leaves.filter(l=>l.status==='Pending').map(l=>({t:'Leave · '+name(db,l.empId),s:l.type,k:'leave'})),
+    ...db.compoff.filter(c=>c.status==='Pending').map(c=>({t:'Comp-off · '+name(db,c.empId),s:c.occasion,k:'compoff'})),
+    ...db.late.filter(l=>l.status==='Pending').map(l=>({t:'Late · '+name(db,l.empId),s:l.delay+'m',k:'late'})),
+    ...db.mispunch.filter(m=>m.status==='Pending').map(m=>({t:'Mispunch · '+name(db,m.empId),s:m.issue,k:'mispunch'})),
+  ].slice(0,6);
+  return (
+    <div className="grid" style={{gap:18}}>
+      <div className="grid g6">
+        <Stat lab="Employees" val={db.employees.length} meta="active" color="var(--moss)"/>
+        <Stat lab="Net Payroll" val={inr(liability)} meta="payable · live" color="var(--sky)"/>
+        <Stat lab="Gross" val={inr(grossSum)} meta="before stat." color="var(--moss-deep)"/>
+        <Stat lab="Deductions" val={inr(deductions)} meta="PF + ESIC" color="var(--clay)"/>
+        <Stat lab="Incentives" val={inr(incentives)} meta="this cycle" color="var(--gold)"/>
+        <Stat lab="Pending" val={queue.length} meta="approvals" color="var(--rose)"/>
+      </div>
+      <div className="grid g2">
+        <div className="card"><div className="card-h"><h3>Net liability by branch</h3><span className="tag">live</span></div>
+          {branches.map((b,i)=>{const v=rows.filter(r=>r.branch===b).reduce((s,r)=>s+r.net,0);const max=Math.max(1,...branches.map(bb=>rows.filter(r=>r.branch===bb).reduce((s,r)=>s+r.net,0)));return <div className="bar-row" key={b}><div className="nm">{b}</div><div className="tr"><i style={{width:(v/max*100)+'%',background:i%2?'var(--sky)':'var(--moss)'}}></i></div><div className="vv">{inr(v)}</div></div>;})}
+        </div>
+        <div className="card"><div className="card-h"><h3>Action queue</h3><button className="btn btn-sm" onClick={()=>go('verify')}>Verify →</button></div>
+          {queue.length===0?<div className="empty"><div className="ico">✓</div>All caught up.</div>:queue.map((q,i)=>(<div key={i} className="row-flex" style={{justifyContent:'space-between',padding:'8px 0',borderBottom:i<queue.length-1?'1px solid #eef0f5':'none'}}><div><div style={{fontSize:13.5,fontWeight:500,color:'var(--ink)'}}>{q.t}</div><div style={{fontSize:12,color:'var(--mut)'}}>{q.s}</div></div><button className="btn btn-sm" onClick={()=>go(q.k)}>Review</button></div>))}
+        </div>
+      </div>
+      <div className="card"><div className="card-h"><h3>Salary register — live (Gross → Net)</h3><button className="btn btn-sm" onClick={()=>go('verify')}>Full register →</button></div>
+        <div style={{overflowX:'auto'}}><table style={{minWidth:880}}><thead><tr><th>Employee</th><th>Branch</th><th>Monthly</th><th>Payable</th><th>Gross</th><th>PF</th><th>ESIC</th><th>Net Salary</th></tr></thead>
+          <tbody>{rows.map(r=>(<tr key={r.id}><td className="strong">{r.name}{r.overridden&&<span className="tag" style={{marginLeft:5,color:'var(--clay)'}}>ovr</span>}<div className="muted mono" style={{fontSize:11}}>{r.id}</div></td><td>{r.branch}</td><td className="mono">{inr(r.monthly)}</td><td style={{textAlign:'center',fontWeight:600,color:'var(--moss)'}}>{r.payable}</td><td className="mono">{inr(r.gross)}</td><td className="mono" style={{color:'var(--rose)'}}>{inr(r.pfEmp)}</td><td className="mono" style={{color:'var(--rose)'}}>{inr(r.esicEmp)}</td><td className="mono strong">{inr(r.net)}</td></tr>))}</tbody>
+        </table></div>
+      </div>
+    </div>
+  );
+}
+
+/* ============ EMPLOYEE MASTER (full profile) ============ */
+function Employees(){
+  const {db,actions}=useStore();const {can}=useRole();
+  const [q,setQ]=useState('');
+  const [edit,setEdit]=useState(null);
+  const [detail,setDetail]=useState(null);
+  const list=db.employees.filter(e=>(e.name+e.id+e.dept).toLowerCase().includes(q.toLowerCase()));
+  return (
+    <div className="grid" style={{gap:16}}>
+      <div className="card-h"><input className="input" style={{maxWidth:300}} placeholder="Search name, ID, dept…" value={q} onChange={e=>setQ(e.target.value)}/>{can('manageEmp')&&<button className="btn btn-primary" onClick={()=>setEdit('new')}>+ Add Employee</button>}</div>
+      <div className="card" style={{padding:0,overflow:'auto'}}>
+        {list.length===0?<div className="empty"><div className="ico">⊞</div>No employees match.</div>:
+        <table style={{minWidth:900}}><thead><tr><th>Employee</th><th>Contact</th><th>Dept</th><th>Designation</th><th>Branch</th><th>Type</th><th>Monthly</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>{list.map(e=>(<tr key={e.id}>
+            <td className="strong"><div className="row-flex"><div className="avatar" style={{width:30,height:30,fontSize:11}}>{e.photo?<img src={e.photo}/>:initials(e.name)}</div><div>{e.name}<div className="muted mono" style={{fontSize:11}}>{e.id}</div></div></div></td>
+            <td style={{fontSize:11.5}}>{e.mobile||'—'}<div className="muted">{e.email||''}</div></td>
+            <td>{e.dept}</td><td>{e.desig}</td><td>{e.branch}</td><td style={{fontSize:12}}>{e.empType}</td><td className="mono">{inr(e.monthly)}</td>
+            <td>{e.probation?<span className="badge b-pending">Probation</span>:<span className="badge b-present">Confirmed</span>}</td>
+            <td><div className="row-flex"><button className="btn btn-sm" onClick={()=>setDetail(e)}>View</button>{can('manageEmp')&&<><button className="btn btn-sm" onClick={()=>setEdit(e)}>Edit</button><button className="btn btn-sm btn-bad" onClick={()=>{if(confirm('Remove '+e.name+'?'))actions.deleteEmployee(e.id);}}>Del</button></>}</div></td>
+          </tr>))}</tbody>
+        </table>}
+      </div>
+      {edit&&<EmployeeForm emp={edit==='new'?null:edit} close={()=>setEdit(null)}/>}
+      {detail&&<EmpDetail emp={detail} close={()=>setDetail(null)}/>}
+    </div>
+  );
+}
+
+function EmployeeForm({emp,close}){
+  const {db,actions}=useStore();
+  const blank={name:'',gender:'Female',dob:'',mobile:'',email:'',addrCurrent:'',addrPermanent:'',emergency:'',photo:null,
+    dept:'Counselling',desig:'',branch:'Vadodara',mgr:'Santosh Sir',co:'FL Pvt. Ltd.',week:'6-Day',empType:'Full-Time',doj:'',notice:'30 days',status:'On Probation',shiftId:'S1',login:'10:00',logout:'19:00',
+    monthly:'',basic:'',hra:'',conveyance:'',special:'',incentive:0,bonus:0,
+    pfApplicable:true,pf:'',uan:'',esicApplicable:false,esic:''};
+  const [f,setF]=useState(emp||blank);
+  const [tab,setTab]=useState('basic');
+  const [err,setErr]=useState({});
+  const set=(k,v)=>setF({...f,[k]:v});
+  const num=(k,v)=>setF({...f,[k]:v===''?'':parseFloat(v)});
+  // auto-suggest components when monthly typed and components empty
+  const fillComponents=(m)=>{const mm=parseFloat(m)||0;setF(fp=>({...fp,monthly:m===''?'':mm,basic:Math.round(mm*0.5),hra:Math.round(mm*0.2),conveyance:1600,special:mm-Math.round(mm*0.5)-Math.round(mm*0.2)-1600}));};
+  const save=()=>{const e={};if(!f.name.trim())e.name='Name required';if(!f.desig.trim())e.desig='Designation required';if(!f.monthly||isNaN(f.monthly)||f.monthly<=0)e.monthly='Valid monthly salary required';setErr(e);if(Object.keys(e).length){setTab(e.name||e.desig?'basic':'salary');return;}
+    const payload={...f,monthly:parseFloat(f.monthly),basic:parseFloat(f.basic)||0,hra:parseFloat(f.hra)||0,conveyance:parseFloat(f.conveyance)||0,special:parseFloat(f.special)||0,incentive:parseFloat(f.incentive)||0,bonus:parseFloat(f.bonus)||0,probation:f.status==='On Probation'};
+    if(emp)actions.updateEmployee(emp.id,payload);else actions.addEmployee(payload);close();};
+  const T=(k,label,opts,type)=>(<label className="fld"><span className="l">{label}</span>{opts?<select className="input" value={f[k]} onChange={e=>set(k,e.target.value)}>{opts.map(o=><option key={o}>{o}</option>)}</select>:<input className={'input'+(err[k]?' err':'')} type={type||'text'} value={f[k]} onChange={e=>set(k,e.target.value)}/>}{err[k]&&<div className="errmsg">{err[k]}</div>}</label>);
+  const Tn=(k,label)=>(<label className="fld"><span className="l">{label}</span><input className={'input mono'+(err[k]?' err':'')} type="number" value={f[k]} onChange={e=>num(k,e.target.value)}/>{err[k]&&<div className="errmsg">{err[k]}</div>}</label>);
+  const grossComp=(parseFloat(f.basic)||0)+(parseFloat(f.hra)||0)+(parseFloat(f.conveyance)||0)+(parseFloat(f.special)||0);
+  return (
+    <div className="modal-bg" onClick={close}><div className="modal wide" onClick={e=>e.stopPropagation()}>
+      <div className="modal-h"><h3>{emp?'Edit Employee':'Add Employee'}</h3><button className="x" onClick={close}>×</button></div>
+      <div style={{padding:'12px 24px 0'}}><div className="pill-tab">{['basic','employment','shift','salary','statutory'].map(t=><button key={t} className={tab===t?'on':''} onClick={()=>setTab(t)} style={{textTransform:'capitalize'}}>{t}</button>)}</div></div>
+      <div className="modal-b" style={{paddingTop:4}}>
+        {tab==='basic'&&<>
+          <div className="row-flex" style={{gap:16,marginBottom:14,alignItems:'flex-start'}}>
+            <PhotoPicker value={f.photo} onChange={v=>set('photo',v)}/>
+            <div style={{flex:1,minWidth:200}}><div className="grid g2" style={{gap:'0 16px'}}>{T('name','Full Name')}{T('gender','Gender',['Female','Male','Other'])}</div></div>
+          </div>
+          <div className="grid g2" style={{gap:'0 16px'}}>{T('dob','Date of Birth')}{T('mobile','Mobile Number')}{T('email','Email Address','',)}{T('emergency','Emergency Contact')}</div>
+          {T('addrCurrent','Current Address')}{T('addrPermanent','Permanent Address')}
+        </>}
+        {tab==='employment'&&<div className="grid g2" style={{gap:'0 16px'}}>
+          {T('desig','Designation')}{T('dept','Department',['Counselling','IELTS Training','Documentation','Operations'])}
+          {T('branch','Branch',['Vadodara','Ahmedabad','Surat'])}{T('co','Payroll Company',['FL Pvt. Ltd.','FL Academic'])}
+          {T('mgr','Reporting Manager',['Santosh Sir','S. Nair','A. Verma','CEO Office'])}{T('empType','Employment Type',['Full-Time','Part-Time','Intern','Temporary','Contract'])}
+          {T('doj','Date of Joining')}{T('notice','Notice Period',['30 days','60 days','90 days','15 days'])}
+          {T('week','Work Week',['6-Day','5-Day'])}{T('status','Status',['On Probation','Confirmed'])}
+        </div>}
+        {tab==='shift'&&<div className="grid g2" style={{gap:'0 16px'}}>
+          <label className="fld"><span className="l">Assigned Shift</span><select className="input" value={f.shiftId} onChange={e=>set('shiftId',e.target.value)}>{db.shifts.map(s=><option key={s.id} value={s.id}>{s.name} ({s.login}–{s.logout})</option>)}</select></label>
+          {T('login','Login Time','','time')}{T('logout','Logout Time','','time')}
+          <div className="card" style={{gridColumn:'1/3',background:'#eef5ff',borderColor:'#cfe1f7',marginTop:4}}><div style={{fontSize:12.5,color:'var(--ink-soft)'}}>Shift defines grace time, break duration & overtime target used in attendance roll-up. Manage shifts under <strong>Shift Management</strong>.</div></div>
+        </div>}
+        {tab==='salary'&&<>
+          <label className="fld"><span className="l">Monthly Gross Salary (₹) — fills components</span><input className={'input mono'+(err.monthly?' err':'')} type="number" value={f.monthly} onChange={e=>fillComponents(e.target.value)}/>{err.monthly&&<div className="errmsg">{err.monthly}</div>}</label>
+          <div className="sec-label">Components</div>
+          <div className="grid g2" style={{gap:'0 16px'}}>{Tn('basic','Basic Salary')}{Tn('hra','HRA')}{Tn('conveyance','Conveyance Allowance')}{Tn('special','Special Allowance')}{Tn('incentive','Incentive')}{Tn('bonus','Bonus')}</div>
+          <div style={{fontSize:12.5,color:grossComp===parseFloat(f.monthly)?'var(--good)':'var(--clay)',marginTop:4}}>Components total: {inr(grossComp)} {grossComp===parseFloat(f.monthly)?'✓ matches gross':'(gross is '+inr(f.monthly||0)+')'}</div>
+        </>}
+        {tab==='statutory'&&<>
+          <div className="sec-label">Provident Fund</div>
+          <label className="row-flex" style={{fontSize:13,cursor:'pointer',marginBottom:10}}><input type="checkbox" checked={f.pfApplicable} onChange={e=>set('pfApplicable',e.target.checked)}/> PF Applicable (12% of basic, capped at ₹15,000 wage)</label>
+          <div className="grid g2" style={{gap:'0 16px'}}>{T('pf','PF Number')}{T('uan','UAN Number')}</div>
+          <div className="sec-label">ESIC</div>
+          <label className="row-flex" style={{fontSize:13,cursor:'pointer',marginBottom:10}}><input type="checkbox" checked={f.esicApplicable} onChange={e=>set('esicApplicable',e.target.checked)}/> ESIC Applicable (0.75%, only if gross ≤ ₹21,000)</label>
+          {T('esic','ESIC Number')}
+        </>}
+      </div>
+      <div className="modal-f"><button className="btn" onClick={close}>Cancel</button><button className="btn btn-primary" onClick={save}>{emp?'Save Changes':'Add Employee'}</button></div>
+    </div></div>
+  );
+}
+function PhotoPicker({value,onChange}){
+  const onFile=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>onChange(r.result);r.readAsDataURL(file);};
+  return <label className="photo-up" title="Upload photo">{value?<img src={value}/>:<span style={{fontSize:11,color:'var(--mut)',textAlign:'center'}}>＋<br/>Photo</span>}<input type="file" accept="image/*" style={{display:'none'}} onChange={onFile}/></label>;
+}
+
+function EmpDetail({emp,close}){
+  const {actions,empRow}=useStore();
+  const [tab,setTab]=useState('profile');
+  const r=empRow(emp);
+  const Row=(k,v)=>(<div><div style={{fontSize:11,color:'var(--mut)',fontWeight:600}}>{k}</div><div style={{fontSize:13.5,marginTop:3}}>{v||'—'}</div></div>);
+  return (
+    <div className="modal-bg" onClick={close}><div className="modal wide" onClick={e=>e.stopPropagation()}>
+      <div className="modal-h"><div className="row-flex"><div className="avatar" style={{width:38,height:38,fontSize:14}}>{emp.photo?<img src={emp.photo}/>:initials(emp.name)}</div><h3>{emp.name}</h3></div><button className="x" onClick={close}>×</button></div>
+      <div style={{padding:'12px 24px 0'}}><div className="pill-tab">{['profile','employment','salary','statutory','documents'].map(t=><button key={t} className={tab===t?'on':''} onClick={()=>setTab(t)} style={{textTransform:'capitalize'}}>{t}</button>)}</div></div>
+      <div className="modal-b" style={{paddingTop:4}}>
+        {tab==='profile'&&<div className="grid g3" style={{gap:'12px 22px'}}>{Row('Employee ID',emp.id)}{Row('Gender',emp.gender)}{Row('Date of Birth',emp.dob)}{Row('Mobile',emp.mobile)}{Row('Email',emp.email)}{Row('Emergency Contact',emp.emergency)}{Row('Current Address',emp.addrCurrent)}{Row('Permanent Address',emp.addrPermanent)}</div>}
+        {tab==='employment'&&<div className="grid g3" style={{gap:'12px 22px'}}>{Row('Designation',emp.desig)}{Row('Department',emp.dept)}{Row('Branch',emp.branch)}{Row('Reporting Manager',emp.mgr)}{Row('Payroll Company',emp.co)}{Row('Employment Type',emp.empType)}{Row('Date of Joining',emp.doj)}{Row('Notice Period',emp.notice)}{Row('Work Week',emp.week)}{Row('Login',emp.login)}{Row('Logout',emp.logout)}{Row('Status',emp.status)}</div>}
+        {tab==='salary'&&<div className="grid g2" style={{gap:10}}>{[['Monthly Gross',inr(emp.monthly)],['Basic',inr(emp.basic)],['HRA',inr(emp.hra)],['Conveyance',inr(emp.conveyance)],['Special Allowance',inr(emp.special)],['Incentive',inr(emp.incentive)],['Bonus',inr(emp.bonus)],['Daily Rate',inr(r.daily)],['Payable Days',r.payable],['Net Payable',inr(r.net)]].map(([k,v])=><div key={k} style={{display:'flex',justifyContent:'space-between',padding:'10px 13px',background:'var(--paper)',borderRadius:9}}><span style={{fontSize:12,color:'var(--mut)',fontWeight:600}}>{k}</span><span className="mono" style={{fontSize:13}}>{v}</span></div>)}</div>}
+        {tab==='statutory'&&<div className="grid" style={{gap:10}}>{[['PF Applicable',emp.pfApplicable?'Yes':'No'],['PF Number',emp.pf],['UAN',emp.uan],['Employee PF (calc)',inr(r.pfEmp)],['ESIC Applicable',emp.esicApplicable?'Yes':'No'],['ESIC Number',emp.esic],['Employee ESIC (calc)',inr(r.esicEmp)]].map(([k,v])=><div key={k} style={{display:'flex',justifyContent:'space-between',padding:'11px 14px',background:'var(--paper)',borderRadius:9}}><span style={{fontSize:12,color:'var(--mut)',fontWeight:600}}>{k}</span><span className="mono" style={{fontSize:13}}>{v||'—'}</span></div>)}</div>}
+        {tab==='documents'&&<div className="grid" style={{gap:9}}>
+          {emp.docs.length===0&&<div className="empty" style={{padding:18}}>No documents yet.</div>}
+          {emp.docs.map(d=>{const[n,x]=d.split('|');return <div className="doc-chip" key={d}><span className="ext">{x}</span><span style={{flex:1}}>{n}</span><button className="btn btn-sm btn-ghost btn-bad" onClick={()=>actions.removeDoc(emp.id,d)}>Remove</button></div>;})}
+          <UploadDoc onAdd={(n,x)=>actions.addDoc(emp.id,n+'|'+x)}/>
+        </div>}
+      </div>
+      <div className="modal-f"><button className="btn btn-primary" onClick={close}>Close</button></div>
+    </div></div>
+  );
+}
+function UploadDoc({onAdd}){
+  const [n,setN]=useState(DOC_TYPES[16]);const [x,setX]=useState('PDF');
+  return <div style={{marginTop:8}}><div className="sec-label">Add document</div><div className="row-flex">
+    <select className="input" style={{flex:1}} value={n} onChange={e=>setN(e.target.value)}>{DOC_TYPES.map(o=><option key={o}>{o}</option>)}</select>
+    <select className="input" style={{width:90}} value={x} onChange={e=>setX(e.target.value)}>{['PDF','JPG','JPEG','PNG'].map(o=><option key={o}>{o}</option>)}</select>
+    <button className="btn" onClick={()=>onAdd(n,x)}>⬆ Add</button>
+  </div></div>;
+}
+</script>
+
+<script type="text/babel">
+var {useState, useEffect} = React;
+
+/* ============ SHIFT MANAGEMENT ============ */
+function Shifts(){
+  const {db,actions}=useStore();const {can}=useRole();
+  const [edit,setEdit]=useState(null);
+  const count=(id)=>db.employees.filter(e=>e.shiftId===id).length;
+  const mng=can('manageEmp');
+  return (
+    <div className="grid" style={{gap:16}}>
+      <div className="card-h"><span className="tag">Day / Night / Rotational / Custom · drives late, break & OT</span>{mng&&<button className="btn btn-primary" onClick={()=>setEdit('new')}>+ Create Shift</button>}</div>
+      <div className="grid g3">{db.shifts.map(s=>(
+        <div className="card" key={s.id}>
+          <div className="card-h" style={{marginBottom:8}}><h3 style={{fontSize:16}}>{s.name}</h3><span className="badge b-holiday">{s.type}</span></div>
+          {[['Login',s.login],['Logout',s.logout],['Working hrs',s.workHrs+'h'],['Grace',s.grace+' min'],['Break',s.breakDur+' min'],['Half-day after',s.halfDayAfter+' min'],['Overtime',s.otEligible?'Eligible':'No']].map(([k,v])=><div key={k} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',fontSize:12.5,borderBottom:'1px solid #eef0f5'}}><span className="muted">{k}</span><span className="mono">{v}</span></div>)}
+          <div className="row-flex" style={{marginTop:10,justifyContent:'space-between'}}><span className="tag">{count(s.id)} employees</span>{mng&&<div className="row-flex"><button className="btn btn-sm" onClick={()=>setEdit(s)}>Edit</button><button className="btn btn-sm btn-bad" disabled={count(s.id)>0} onClick={()=>actions.deleteShift(s.id)}>Del</button></div>}</div>
+        </div>
+      ))}</div>
+      {edit&&<ShiftForm shift={edit==='new'?null:edit} close={()=>setEdit(null)}/>}
+    </div>
+  );
+}
+function ShiftForm({shift,close}){
+  const {actions}=useStore();
+  const [f,setF]=useState(shift||{name:'',type:'Day',login:'10:00',logout:'19:00',workHrs:9,grace:5,breakDur:45,halfDayAfter:60,otEligible:true});
+  const [err,setErr]=useState({});
+  const set=(k,v)=>setF({...f,[k]:v});
+  const save=()=>{if(!f.name.trim()){setErr({name:'Required'});return;}const p={...f,workHrs:parseFloat(f.workHrs),grace:parseInt(f.grace),breakDur:parseInt(f.breakDur),halfDayAfter:parseInt(f.halfDayAfter)};if(shift)actions.updateShift(shift.id,p);else actions.addShift(p);close();};
+  return (
+    <div className="modal-bg" onClick={close}><div className="modal" onClick={e=>e.stopPropagation()}>
+      <div className="modal-h"><h3>{shift?'Edit Shift':'Create Shift'}</h3><button className="x" onClick={close}>×</button></div>
+      <div className="modal-b">
+        <div className="grid g2" style={{gap:'0 16px'}}>
+          <label className="fld"><span className="l">Shift Name</span><input className={'input'+(err.name?' err':'')} value={f.name} onChange={e=>set('name',e.target.value)}/>{err.name&&<div className="errmsg">{err.name}</div>}</label>
+          <label className="fld"><span className="l">Type</span><select className="input" value={f.type} onChange={e=>set('type',e.target.value)}>{['Day','Night','Rotational','Custom'].map(o=><option key={o}>{o}</option>)}</select></label>
+          <label className="fld"><span className="l">Login Time</span><input className="input" type="time" value={f.login} onChange={e=>set('login',e.target.value)}/></label>
+          <label className="fld"><span className="l">Logout Time</span><input className="input" type="time" value={f.logout} onChange={e=>set('logout',e.target.value)}/></label>
+          <label className="fld"><span className="l">Working Hours</span><input className="input mono" type="number" value={f.workHrs} onChange={e=>set('workHrs',e.target.value)}/></label>
+          <label className="fld"><span className="l">Grace (min)</span><input className="input mono" type="number" value={f.grace} onChange={e=>set('grace',e.target.value)}/></label>
+          <label className="fld"><span className="l">Break Duration (min)</span><input className="input mono" type="number" value={f.breakDur} onChange={e=>set('breakDur',e.target.value)}/></label>
+          <label className="fld"><span className="l">Half-Day After (min late)</span><input className="input mono" type="number" value={f.halfDayAfter} onChange={e=>set('halfDayAfter',e.target.value)}/></label>
+        </div>
+        <label className="row-flex" style={{fontSize:13,cursor:'pointer'}}><input type="checkbox" checked={f.otEligible} onChange={e=>set('otEligible',e.target.checked)}/> Overtime eligible</label>
+      </div>
+      <div className="modal-f"><button className="btn" onClick={close}>Cancel</button><button className="btn btn-primary" onClick={save}>{shift?'Save':'Create'}</button></div>
+    </div></div>
+  );
+}
+
+/* ============ TRAINING ============ */
+function Training(){
+  const {db,actions}=useStore();const {can}=useRole();
+  const [open,setOpen]=useState(false);
+  const mng=can('approve');
+  return (
+    <div className="grid" style={{gap:16}}>
+      <div className="card-h"><span className="tag">Up to 7 unpaid training days · unpaid days reduce payable</span>{mng&&<button className="btn btn-primary" onClick={()=>setOpen(true)}>+ Assign Training</button>}</div>
+      <div className="card" style={{padding:0,overflow:'auto'}}>
+        {db.training.length===0?<div className="empty"><div className="ico">◵</div>No training records.</div>:
+        <table style={{minWidth:760}}><thead><tr><th>Ref</th><th>Employee</th><th>Type</th><th>Duration</th><th>Unpaid Days</th><th>Start</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>{db.training.map(t=>(<tr key={t.id}><td className="mono" style={{fontSize:12}}>{t.id}</td><td className="strong">{name(db,t.empId)}</td><td>{t.type}</td><td>{t.duration}</td><td style={{textAlign:'center',color:t.unpaidDays>0?'var(--rose)':'inherit'}}>{t.unpaidDays}</td><td>{t.start}</td><td>{sBadge(t.status)}</td>
+            <td><div className="row-flex">
+              {mng?<>{t.status==='In Progress'&&<><button className="btn btn-sm btn-good" onClick={()=>actions.updateTraining(t.id,{status:'Completed'})}>Complete</button><button className="btn btn-sm" onClick={()=>{const days=prompt('Extend by how many days?','15');if(days)actions.updateTraining(t.id,{status:'Extended',duration:t.duration+' +'+days+'d'});}}>Extend</button></>}
+              <button className="btn btn-sm btn-ghost btn-bad" onClick={()=>actions.deleteTraining(t.id)}>✕</button></>:<span className="muted" style={{fontSize:11.5}}>view only</span>}
+            </div></td>
+          </tr>))}</tbody>
+        </table>}
+      </div>
+      <div className="card" style={{background:'#fff7ed',borderColor:'#fed7aa'}}><div style={{fontSize:13,color:'var(--ink-soft)'}}>Management may place an employee on training before confirmation, and may increase/decrease/extend it. Up to 7 days can be marked unpaid; unpaid training days are deducted from payable days in the engine.</div></div>
+      {open&&<TrainingModal close={()=>setOpen(false)}/>}
+    </div>
+  );
+}
+function TrainingModal({close}){
+  const {db,actions}=useStore();
+  const [f,setF]=useState({empId:db.employees[0].id,type:'Paid Training',duration:'30 days',unpaidDays:0,start:''});
+  const save=()=>{actions.addTraining({...f,unpaidDays:parseInt(f.unpaidDays)||0});close();};
+  return (
+    <div className="modal-bg" onClick={close}><div className="modal" onClick={e=>e.stopPropagation()}>
+      <div className="modal-h"><h3>Assign Training</h3><button className="x" onClick={close}>×</button></div>
+      <div className="modal-b">
+        <label className="fld"><span className="l">Employee</span><select className="input" value={f.empId} onChange={e=>setF({...f,empId:e.target.value})}>{db.employees.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</select></label>
+        <div className="grid g2" style={{gap:'0 16px'}}>
+          <label className="fld"><span className="l">Type</span><select className="input" value={f.type} onChange={e=>setF({...f,type:e.target.value})}>{['Paid Training','Unpaid Training'].map(o=><option key={o}>{o}</option>)}</select></label>
+          <label className="fld"><span className="l">Duration</span><input className="input" value={f.duration} onChange={e=>setF({...f,duration:e.target.value})}/></label>
+          <label className="fld"><span className="l">Unpaid Days (max 7)</span><input className="input mono" type="number" max="7" value={f.unpaidDays} onChange={e=>setF({...f,unpaidDays:e.target.value})}/></label>
+          <label className="fld"><span className="l">Start Date</span><input className="input" placeholder="e.g. 05 Apr 2026" value={f.start} onChange={e=>setF({...f,start:e.target.value})}/></label>
+        </div>
+      </div>
+      <div className="modal-f"><button className="btn" onClick={close}>Cancel</button><button className="btn btn-primary" onClick={save}>Assign</button></div>
+    </div></div>
+  );
+}
+
+/* ============ PAYABLE DAYS ENGINE ============ */
+function Calculator(){
+  const [r,setR]=useState({payrollDays:30,leaves:0,paidLeaves:0,late:4,ul:0,sandwich:0,mispunch:3,compoff:1,trainingUnpaid:0,monthly:42000});
+  const out=computePayroll(r);
+  const set=(k,v)=>setR({...r,[k]:v===''?0:parseFloat(v)});
+  const N=(k,label,hint)=>(<div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #eef0f5'}}><div><div style={{fontSize:13.5,color:'var(--ink)',fontWeight:500}}>{label}</div>{hint&&<div style={{fontSize:11.5,color:'var(--mut)'}}>{hint}</div>}</div><input className="calc-input" type="number" step="0.5" value={r[k]} onChange={e=>set(k,e.target.value)}/></div>);
+  const slabs=[[3,0],[6,0.5],[9,1],[12,1.5],[15,2],[18,2.5],[21,3],[24,3.5],[27,4],[99,5]];let prev=0;const slabRows=slabs.map(([hi,d])=>{const lo=prev+1;prev=hi;return{range:hi===99?'28+':lo+'–'+hi,d,active:(r.late>=lo&&r.late<=hi)||(hi===99&&r.late>=28)};});
+  return (
+    <div className="grid g2" style={{gap:16,alignItems:'start'}}>
+      <div className="grid" style={{gap:16}}>
+        <div className="card"><div className="card-h"><h3>Inputs — live</h3></div>
+          <div style={{display:'flex',gap:12,marginBottom:6}}><label className="fld" style={{flex:1,marginBottom:0}}><span className="l">Payroll Days</span><input className="input mono" type="number" value={r.payrollDays} onChange={e=>set('payrollDays',e.target.value)}/></label><label className="fld" style={{flex:1,marginBottom:0}}><span className="l">Monthly Salary</span><input className="input mono" type="number" value={r.monthly} onChange={e=>set('monthly',e.target.value)}/></label></div>
+          <div className="divider" style={{margin:'10px 0'}}></div>
+          {N('leaves','Leaves Taken','reduces payable')}{N('paidLeaves','Paid Leave Days','added back')}{N('compoff','Approved Comp-Off','added')}{N('late','Late Comings','feeds slab')}{N('mispunch','Mispunch + Absent','first 2 free, 0.5 each')}{N('ul','Unauthorized Leave','×2')}{N('sandwich','Sandwich Leave','×1 incl off-day')}{N('trainingUnpaid','Unpaid Training Days','deducted')}
+        </div>
+        <div className="card"><div className="card-h" style={{marginBottom:8}}><h3 style={{fontSize:15}}>Late slab</h3><span className="tag">live</span></div><table className="slabtable"><thead><tr><th>Late count</th><th>Deduction</th></tr></thead><tbody>{slabRows.map((s,i)=><tr key={i} className={s.active?'hl':''}><td>{s.range}</td><td>{s.d}</td></tr>)}</tbody></table></div>
+      </div>
+      <div className="grid" style={{gap:16,position:'sticky',top:76}}>
+        <div className="card" style={{background:'linear-gradient(160deg,#eef5ff,#e8efe6)',borderColor:'#cfe1f7'}}>
+          <div style={{fontSize:11,letterSpacing:.7,textTransform:'uppercase',color:'var(--mut)',fontWeight:600}}>Final Payable Days</div>
+          <div className="kpi-big" style={{color:'var(--moss-deep)',margin:'8px 0 4px'}}>{out.payable}</div>
+          <div style={{fontSize:13,color:'var(--ink-soft)'}}>of {r.payrollDays} payroll days</div><div className="divider"></div>
+          <div className="grid g3" style={{gap:10}}>
+            <div><div style={{fontSize:10,textTransform:'uppercase',color:'var(--mut)',fontWeight:600}}>Daily</div><div className="serif" style={{fontSize:18,fontWeight:600}}>{inr(out.daily)}</div></div>
+            <div><div style={{fontSize:10,textTransform:'uppercase',color:'var(--mut)',fontWeight:600}}>Gross</div><div className="serif" style={{fontSize:18,fontWeight:600}}>{inr(out.gross)}</div></div>
+            <div><div style={{fontSize:10,textTransform:'uppercase',color:'var(--mut)',fontWeight:600}}>Net</div><div className="serif" style={{fontSize:18,fontWeight:600,color:'var(--moss-deep)'}}>{inr(out.net)}</div></div>
+          </div>
+        </div>
+        <div className="card"><div className="card-h" style={{marginBottom:10}}><h3 style={{fontSize:15}}>How it computed</h3></div>
+          <div className="formula-box">Payable = {r.payrollDays}<span className="neg"> − {r.leaves}</span> + {r.paidLeaves} + {out.compoff}<br/><span style={{paddingLeft:62}} className="neg">− {out.K} (late) − {r.ul*2} (UL)</span><br/><span style={{paddingLeft:62}} className="neg">− {r.sandwich} (sand) − {out.N} (mis) − {out.trainingUnpaid} (train)</span><br/><span style={{borderTop:'1px solid #3a4a42',display:'block',marginTop:6,paddingTop:6}}>= <span className="res">{out.payable} days</span></span><br/>Gross = {inr(out.daily)} × {out.payable} = <span className="res">{inr(out.gross)}</span><br/>Net = Gross + inc/bonus − PF({inr(out.pfEmp)}) − ESIC({inr(out.esicEmp)}) = <span className="res">{inr(out.net)}</span></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============ PAYROLL VERIFICATION (Gross→Net) ============ */
+function Verify(){
+  const {db,actions,empRow}=useStore();const {can}=useRole();
+  const [branch,setBranch]=useState('All');
+  const [ovrEmp,setOvrEmp]=useState(null);
+  const branches=['All',...new Set(db.employees.map(e=>e.branch))];
+  const rows=db.employees.filter(e=>branch==='All'||e.branch===branch).map(e=>empRow(e));
+  const totG=rows.reduce((s,r)=>s+r.gross,0),totN=rows.reduce((s,r)=>s+r.net,0);
+  return (
+    <div className="grid" style={{gap:16}}>
+      <div className="card-h">
+        <div className="row-flex"><select className="input" style={{width:140}} value={branch} onChange={e=>setBranch(e.target.value)}>{branches.map(b=><option key={b}>{b}</option>)}</select><span className="tag">{db.cycle.start} – {db.cycle.end} · {db.cycle.days}d</span>{db.cycle.approved&&<span className="badge b-approved">Approved & Locked</span>}</div>
+        <div className="row-flex">{can('export')&&['Excel','CSV','PDF'].map(f=><button key={f} className="btn btn-sm" onClick={()=>exportRows(rows,f,db)}>↓ {f}</button>)}{can('approve')&&(db.cycle.approved?<button className="btn btn-sm" onClick={actions.reopenPayroll}>Reopen</button>:<button className="btn btn-primary btn-sm" onClick={actions.approvePayroll}>Approve Payroll</button>)}{!can('export')&&!can('approve')&&<span className="muted" style={{fontSize:12}}>read-only access</span>}</div>
+      </div>
+      <div className="card" style={{padding:0,overflow:'auto'}}>
+        <table style={{minWidth:1500}}><thead><tr><th>Employee</th><th>PF No.</th><th>Branch</th><th>Mis+Abs</th><th>Late</th><th>Leaves</th><th>W/Off</th><th>Paid Lv</th><th>C-Off</th><th>UL</th><th>Sand</th><th>Train</th><th>L-Ded</th><th>M-Ded</th><th>Payable</th><th>Daily</th><th>Gross</th><th>Inc</th><th>Bonus</th><th>PF</th><th>ESIC</th><th>Net Salary</th><th></th></tr></thead>
+          <tbody>{rows.map(r=>(<tr key={r.id}>
+            <td className="strong">{r.name}{r.overridden&&<span className="tag" style={{marginLeft:4,color:'var(--clay)'}}>ovr</span>}<div className="muted mono" style={{fontSize:10}}>{r.id}</div></td>
+            <td className="mono" style={{fontSize:10}}>{r.pf}</td><td>{r.branch}</td>
+            <td style={{textAlign:'center',color:r.mispunch?'var(--clay)':'inherit'}}>{r.mispunch}</td><td style={{textAlign:'center'}}>{r.late}</td><td style={{textAlign:'center'}}>{r.leaves}</td><td style={{textAlign:'center'}}>{r.wOff}</td><td style={{textAlign:'center'}}>{r.paidLeaves}</td><td style={{textAlign:'center',color:r.compoff?'var(--good)':'inherit'}}>{r.compoff}</td><td style={{textAlign:'center',color:r.ul?'var(--rose)':'inherit'}}>{r.ul}</td><td style={{textAlign:'center',color:r.sandwich?'var(--rose)':'inherit'}}>{r.sandwich}</td><td style={{textAlign:'center',color:r.trainingUnpaid?'var(--rose)':'inherit'}}>{r.trainingUnpaid}</td>
+            <td style={{textAlign:'center'}}>{r.K}</td><td style={{textAlign:'center'}}>{r.N}</td><td style={{textAlign:'center',fontWeight:700,color:'var(--moss)'}}>{r.payable}</td>
+            <td className="mono" style={{fontSize:11}}>{inr(r.daily)}</td><td className="mono">{inr(r.gross)}</td><td className="mono">{inr(r.incentive)}</td><td className="mono">{inr(r.bonus)}</td><td className="mono" style={{color:'var(--rose)'}}>{inr(r.pfEmp)}</td><td className="mono" style={{color:'var(--rose)'}}>{inr(r.esicEmp)}</td><td className="mono strong">{inr(r.net)}</td>
+            <td>{can('override')?<button className="btn btn-sm" disabled={db.cycle.approved} onClick={()=>setOvrEmp(r)}>Ovr</button>:<span className="muted" style={{fontSize:11}}>—</span>}</td>
+          </tr>))}</tbody>
+          <tfoot><tr style={{borderTop:'2px solid var(--line)'}}><td className="strong" colSpan="16" style={{textAlign:'right'}}>Totals</td><td className="mono strong">{inr(totG)}</td><td colSpan="4"></td><td className="mono strong" style={{color:'var(--moss)'}}>{inr(totN)}</td><td></td></tr></tfoot>
+        </table>
+      </div>
+      <div className="card" style={{background:'#f1f5f1',borderColor:'#cfe1f7'}}><div style={{fontSize:13,color:'var(--ink-soft)'}}><strong>Payable</strong> = Days − Leaves + PaidLeaves + CompOff − LateDed − (UL×2) − Sandwich − MispunchDed − UnpaidTraining (matches Excel). <strong>Gross</strong> = Daily × Payable. <strong>Net</strong> = Gross + Incentive + Bonus − PF − ESIC.</div></div>
+      {ovrEmp&&<OverrideModal emp={ovrEmp} close={()=>setOvrEmp(null)}/>}
+    </div>
+  );
+}
+function OverrideModal({emp,close}){
+  const {actions,deriveInputs,db}=useStore();
+  const auto=deriveInputs({...emp,override:{on:false}},db);
+  const [f,setF]=useState({on:true,late:emp.late,mispunch:emp.mispunch,leaves:emp.leaves,wOff:emp.wOff,paidLeaves:emp.paidLeaves,compoff:emp.compoff,ul:emp.ul,sandwich:emp.sandwich});
+  const set=(k,v)=>setF({...f,[k]:v===''?0:parseFloat(v)});
+  const calc=computePayroll({payrollDays:db.cycle.days,monthly:emp.monthly,basic:emp.basic,incentive:emp.incentive,bonus:emp.bonus,pfApplicable:emp.pfApplicable,esicApplicable:emp.esicApplicable,trainingUnpaid:emp.trainingUnpaid,...f});
+  const Row=(k,label)=>(<div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid #eef0f5'}}><div><div style={{fontSize:13,fontWeight:500}}>{label}</div><div style={{fontSize:11,color:'var(--mut)'}}>auto: {auto[k]}</div></div><input className={'calc-input'+(f[k]!==auto[k]?' ovr':'')} type="number" step="0.5" value={f[k]} onChange={e=>set(k,e.target.value)}/></div>);
+  return (
+    <div className="modal-bg" onClick={close}><div className="modal" onClick={e=>e.stopPropagation()}>
+      <div className="modal-h"><h3>Override — {emp.name}</h3><button className="x" onClick={close}>×</button></div>
+      <div className="modal-b"><div style={{fontSize:12.5,color:'var(--ink-soft)',marginBottom:10}}>Auto = attendance roll-up + approvals. Override any field (gold = changed).</div>
+        {Row('late','Late Comings')}{Row('mispunch','Mispunch + Absent')}{Row('leaves','Leaves')}{Row('paidLeaves','Paid Leaves')}{Row('compoff','Comp-Off')}{Row('ul','Unauthorized Leave')}{Row('sandwich','Sandwich Leave')}
+        <div className="card" style={{marginTop:12,background:'#eef5ff',borderColor:'#cfe1f7',display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><div style={{fontSize:11,textTransform:'uppercase',color:'var(--mut)',fontWeight:600}}>Payable</div><div className="serif" style={{fontSize:22,fontWeight:600,color:'var(--moss-deep)'}}>{calc.payable}</div></div><div style={{textAlign:'right'}}><div style={{fontSize:11,textTransform:'uppercase',color:'var(--mut)',fontWeight:600}}>Net Salary</div><div className="serif" style={{fontSize:22,fontWeight:600,color:'var(--moss-deep)'}}>{inr(calc.net)}</div></div></div>
+      </div>
+      <div className="modal-f"><button className="btn btn-bad" onClick={()=>{actions.setOverride(emp.id,{on:false});close();}}>Clear</button><button className="btn" onClick={close}>Cancel</button><button className="btn btn-primary" onClick={()=>{actions.setOverride(emp.id,f);close();}}>Apply Override</button></div>
+    </div></div>
+  );
+}
+function exportRows(rows,fmt,db){
+  const headers=['Employee','ID','PF','ESIC','Branch','MisAbs','Late','Leaves','WOff','PaidLv','CompOff','UL','Sandwich','UnpaidTrain','LateDed','MisDed','Payable','Daily','Gross','Incentive','Bonus','PF','ESICded','Net'];
+  const data=rows.map(r=>[r.name,r.id,r.pf,r.esic,r.branch,r.mispunch,r.late,r.leaves,r.wOff,r.paidLeaves,r.compoff,r.ul,r.sandwich,r.trainingUnpaid,r.K,r.N,r.payable,r.daily,r.gross,r.incentive,r.bonus,r.pfEmp,r.esicEmp,r.net]);
+  if(fmt==='PDF'){const w=window.open('','_blank');w.document.write('<h2>Salary Register — '+db.cycle.start+' to '+db.cycle.end+'</h2><table border=1 cellpadding=5 style="border-collapse:collapse;font:11px sans-serif"><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr>'+data.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</table>');w.document.close();w.print();return;}
+  const sep=fmt==='CSV'?',':'\t';const csv=[headers.join(sep),...data.map(r=>r.join(sep))].join('\n');
+  const blob=new Blob([csv],{type:'text/'+(fmt==='CSV'?'csv':'tab-separated-values')});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='salary_register.'+(fmt==='CSV'?'csv':'xls');a.click();
+}
+</script>
+
+<script type="text/babel">
+var {useState, useEffect} = React;
+
+/* ============ ATTENDANCE (break + OT) ============ */
+function Attendance(){
+  const {db,actions,empRow}=useStore();const {can}=useRole();
+  const [empId,setEmpId]=useState(db.employees[0].id);
+  const emp=db.employees.find(e=>e.id===empId)||db.employees[0];
+  const shift=db.shifts.find(s=>s.id===emp.shiftId)||db.shifts[0];
+  const att=db.attendance[empId]||[];
+  const r=empRow(emp);
+  const ru=rollup(att,shift);
+  const mng=can('manageEmp')||can('approve');
+  // today's row, if present
+  const now=new Date();const todayDate=String(now.getDate()).padStart(2,'0')+' '+now.toLocaleString('en-US',{month:'short'});
+  const todayIdx=att.findIndex(a=>a.date===todayDate);
+  return (
+    <div className="grid" style={{gap:16}}>
+      <div className="card-h"><div className="seg">{db.employees.map(e=><button key={e.id} className={empId===e.id?'on':''} onClick={()=>setEmpId(e.id)}>{e.name.split(' ')[0]}</button>)}</div><span className="tag">{emp.name} · {shift.name} ({shift.login}–{shift.logout}, grace {shift.grace}m)</span></div>
+      <PunchStation empId={empId} emp={emp} shift={shift} att={att} todayIdx={todayIdx} todayDate={todayDate}/>
+      <div className="grid g6">
+        <Stat lab="Working" val={ru.working} meta="present days" color="var(--moss)"/>
+        <Stat lab="Late (>grace)" val={ru.lateCount} meta="feeds slab" color="var(--clay)"/>
+        <Stat lab="Mispunch" val={ru.mispunch} meta="raw count" color="var(--rose)"/>
+        <Stat lab="Break total" val={fmtDur(ru.breakMin)} meta="this cycle" color="var(--sky)"/>
+        <Stat lab="Overtime" val={fmtDur(ru.otMin)} meta="beyond target" color="var(--gold)"/>
+        <Stat lab="Payable" val={r.payable} meta="after rules" color="var(--moss-deep)"/>
+      </div>
+      <div className="card" style={{padding:0,overflow:'auto'}}>
+        <div className="card-h" style={{padding:'14px 16px 0',marginBottom:0}}><h3 style={{fontSize:15}}>Daily punch register</h3>{mng&&todayIdx<0&&<button className="btn btn-sm btn-primary" onClick={()=>actions.addToday(empId)}>+ Add today ({todayDate})</button>}</div>
+        <table style={{minWidth:1120}}><thead><tr><th>Date</th><th>Day</th><th>In</th><th>Out</th><th>Break In</th><th>Break Out</th><th>Break</th><th>Net Hrs</th><th>Late</th><th>OT</th><th>Mispunch</th><th>Status</th></tr></thead>
+          <tbody>{att.map((a,i)=>{const m=dayMetrics(a,shift);const isToday=a.date===todayDate;return (<tr key={i} style={isToday?{background:'#f3f8ff'}:{}}>
+            <td className="strong">{a.date}{isToday&&<span className="tag" style={{marginLeft:5,color:'var(--moss)'}}>today</span>}</td><td>{a.day}</td>
+            <td><EditCell value={a.in||'—'} onSave={v=>actions.setPunch(empId,i,{in:v==='—'?null:v})}/></td>
+            <td><EditCell value={a.out||'—'} onSave={v=>actions.setPunch(empId,i,{out:v==='—'?null:v})}/></td>
+            <td><EditCell value={a.bStart||'—'} onSave={v=>actions.setPunch(empId,i,{bStart:v==='—'?null:v})}/></td>
+            <td><EditCell value={a.bEnd||'—'} onSave={v=>actions.setPunch(empId,i,{bEnd:v==='—'?null:v})}/></td>
+            <td className="mono" style={{fontSize:11.5}}>{fmtDur(m.breakMin)}</td>
+            <td className="mono" style={{fontSize:11.5}}>{fmtDur(m.net)}</td>
+            <td style={{color:m.lateBeyondGrace?'var(--clay)':'inherit',fontWeight:m.lateBeyondGrace?600:400}}>{m.lateMin?m.lateMin+'m':'—'}</td>
+            <td className="mono" style={{fontSize:11.5,color:m.otMin?'var(--gold)':'inherit'}}>{m.otMin?fmtDur(m.otMin):'—'}</td>
+            <td><button className={'chip-toggle'+(a.mispunch?' on':'')} onClick={()=>actions.setPunch(empId,i,{mispunch:!a.mispunch})}>{a.mispunch?'Yes':'No'}</button></td>
+            <td><select className="input" style={{padding:'5px 7px',width:150}} value={a.status} onChange={e=>actions.setPunch(empId,i,{status:e.target.value})}>{STATUSES.map(s=><option key={s}>{s}</option>)}</select></td>
+          </tr>);})}</tbody>
+        </table>
+      </div>
+      <div className="card" style={{background:'#fff7ed',borderColor:'#fed7aa'}}><div style={{fontSize:13,color:'var(--ink-soft)'}}><strong>How it works:</strong> use the punch station above to Check In / Break / Check Out — it stamps the live time and auto-sets the day's status (late beyond {shift.halfDayAfter||60}m → Half Day, only one punch → Mispunch, none → Absent). You can still click any cell to correct a time. Break = Break Out − Break In · Net = Out − In − Break · OT = Net beyond shift target. Late counts only beyond grace ({shift.grace}m). Every punch rolls into payable days instantly.{r.overridden&&<span style={{color:'var(--clay)'}}> Override active — roll-up paused for payroll.</span>}</div></div>
+    </div>
+  );
+}
+function PunchStation({empId,emp,shift,att,todayIdx,todayDate}){
+  const {actions}=useStore();
+  const [clock,setClock]=useState(new Date());
+  useEffect(()=>{const t=setInterval(()=>setClock(new Date()),1000);return ()=>clearInterval(t);},[]);
+  const today=todayIdx>=0?att[todayIdx]:null;
+  const hhmmss=clock.toLocaleTimeString('en-IN',{hour12:false});
+  const checkedIn=today&&today.in, checkedOut=today&&today.out;
+  const onBreak=today&&today.bStart&&!today.bEnd;
+  const m=today?dayMetrics(today,shift):null;
+  const Btn=({field,label,color,disabled,done,doneVal})=>(
+    <button onClick={()=>actions.punch(empId,todayIdx,field)} disabled={disabled}
+      style={{flex:1,minWidth:120,border:'none',borderRadius:12,padding:'14px 12px',cursor:disabled?'not-allowed':'pointer',
+        background:done?'#eef5ff':disabled?'#f0f1f4':color,color:done?'var(--ink-soft)':disabled?'var(--mut)':'#fff',
+        fontFamily:'inherit',fontWeight:600,fontSize:14,boxShadow:disabled||done?'none':'0 4px 12px '+color+'55',transition:'.15s'}}>
+      <div style={{fontSize:18,marginBottom:3}}>{done?'✓':''} {label}</div>
+      <div style={{fontSize:12,fontWeight:500,opacity:.85}}>{done?'at '+doneVal:disabled?'—':'tap to stamp'}</div>
+    </button>
+  );
+  return (
+    <div className="card" style={{background:'linear-gradient(135deg,#1a2233,#1e4e7e)',color:'#fff',border:'none'}}>
+      <div className="row-flex" style={{justifyContent:'space-between',marginBottom:14,flexWrap:'wrap',gap:10}}>
+        <div><div style={{fontSize:11,letterSpacing:1,textTransform:'uppercase',opacity:.7,fontWeight:600}}>Punch Station · {emp.name.split(' ')[0]}</div>
+          <div className="mono" style={{fontFamily:'JetBrains Mono',fontSize:30,fontWeight:600,marginTop:2}}>{hhmmss}</div>
+          <div style={{fontSize:12,opacity:.8}}>{clock.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})} · Shift {shift.login}–{shift.logout}</div>
+        </div>
+        <div style={{textAlign:'right'}}>
+          {today?<>
+            <div style={{fontSize:11,opacity:.7,textTransform:'uppercase',letterSpacing:.5,fontWeight:600}}>Today</div>
+            <div style={{fontSize:15,fontWeight:600,marginTop:2}}>{today.status}{today.mispunch?' · mispunch':''}</div>
+            <div className="mono" style={{fontSize:12,opacity:.85}}>Net {fmtDur(m&&m.net)} · {m&&m.lateMin?('late '+m.lateMin+'m'):'on time'}</div>
+          </>:<div style={{fontSize:12.5,opacity:.85,maxWidth:200}}>No row for {todayDate} yet. Use “Add today” below the table to start punching.</div>}
+        </div>
+      </div>
+      {today&&<div className="row-flex" style={{gap:10}}>
+        <Btn field="in" label="Check In" color="#16a06a" disabled={!!checkedIn} done={!!checkedIn} doneVal={checkedIn}/>
+        <Btn field="bStart" label="Break Start" color="#e0a82e" disabled={!checkedIn||!!checkedOut||!!today.bStart} done={!!today.bStart} doneVal={today.bStart}/>
+        <Btn field="bEnd" label="Break End" color="#e8732e" disabled={!onBreak} done={!!today.bEnd} doneVal={today.bEnd}/>
+        <Btn field="out" label="Check Out" color="#e5484d" disabled={!checkedIn||!!checkedOut} done={!!checkedOut} doneVal={checkedOut}/>
+      </div>}
+    </div>
+  );
+}
+function EditCell({value,onSave}){
+  const [editing,setEditing]=useState(false);const [v,setV]=useState(value);
+  useEffect(()=>setV(value),[value]);
+  if(editing)return <input className="calc-input" style={{width:72}} value={v} autoFocus onChange={e=>setV(e.target.value)} onBlur={()=>{setEditing(false);onSave(v);}} onKeyDown={e=>{if(e.key==='Enter'){setEditing(false);onSave(v);}}}/>;
+  return <span className="punch-cell" onClick={()=>setEditing(true)}>{value}</span>;
+}
+
+/* ============ LEAVE ============ */
+function Leave(){
+  const {db,actions}=useStore();const {can}=useRole();const [open,setOpen]=useState(false);
+  return (<div className="grid" style={{gap:16}}>
+    <div className="card-h"><span className="tag">6-Day: 18/yr (1.5/mo) · 5-Day: 10/yr · Sick cap 8 · final approval: HR</span>{can('apply')&&<button className="btn btn-primary" onClick={()=>setOpen(true)}>+ Apply Leave</button>}</div>
+    <div className="card" style={{padding:0,overflow:'auto'}}>{db.leaves.length===0?<div className="empty"><div className="ico">⊟</div>No leave requests.</div>:
+      <table style={{minWidth:800}}><thead><tr><th>Ref</th><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Doc</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>{db.leaves.map(l=>(<tr key={l.id}><td className="mono strong" style={{fontSize:12}}>{l.id}</td><td>{name(db,l.empId)}<div className="muted" style={{fontSize:11.5}}>{l.reason}</div></td><td>{l.type}</td><td>{l.from}{l.from!==l.to?' – '+l.to:''}</td><td style={{textAlign:'center'}}>{l.days}</td><td>{l.doc?<span className="tag">📎</span>:<span className="muted">—</span>}</td><td>{sBadge(l.status)}</td><td><div className="row-flex">{can('approve')?(l.status==='Pending'?<><button className="btn btn-sm btn-good" onClick={()=>actions.setLeaveStatus(l.id,'Approved')}>Approve</button><button className="btn btn-sm btn-bad" onClick={()=>actions.setLeaveStatus(l.id,'Rejected')}>Reject</button></>:<button className="btn btn-sm" onClick={()=>actions.setLeaveStatus(l.id,'Pending')}>Reopen</button>):<span className="muted" style={{fontSize:11.5}}>view only</span>}{can('approve')&&<button className="btn btn-sm btn-ghost btn-bad" onClick={()=>actions.deleteLeave(l.id)}>✕</button>}</div></td></tr>))}</tbody></table>}
+    </div>
+    {open&&<LeaveModal close={()=>setOpen(false)}/>}
+  </div>);
+}
+function LeaveModal({close}){
+  const {db,actions}=useStore();
+  const [f,setF]=useState({empId:db.employees[0].id,type:'Annual Leave',from:'',to:'',days:1,reason:'',doc:false});
+  const [err,setErr]=useState({});const set=(k,v)=>setF({...f,[k]:v});
+  const save=()=>{const e={};if(!f.from)e.from='Required';if(!f.reason.trim())e.reason='Reason required';if(!f.days||f.days<=0)e.days='> 0';setErr(e);if(Object.keys(e).length)return;actions.addLeave({...f,to:f.to||f.from,days:parseFloat(f.days)});close();};
+  return (<div className="modal-bg" onClick={close}><div className="modal" onClick={e=>e.stopPropagation()}>
+    <div className="modal-h"><h3>Apply for Leave</h3><button className="x" onClick={close}>×</button></div>
+    <div className="modal-b">
+      <label className="fld"><span className="l">Employee</span><select className="input" value={f.empId} onChange={e=>set('empId',e.target.value)}>{db.employees.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</select></label>
+      <label className="fld"><span className="l">Leave Type</span><select className="input" value={f.type} onChange={e=>set('type',e.target.value)}>{['Annual Leave','Sick Leave','Casual Leave','Comp-Off Leave','Special Leave','Unpaid Leave'].map(o=><option key={o}>{o}</option>)}</select></label>
+      <div className="grid g3" style={{gap:'0 14px'}}><label className="fld"><span className="l">From</span><input className={'input'+(err.from?' err':'')} type="date" value={f.from} onChange={e=>set('from',e.target.value)}/></label><label className="fld"><span className="l">To</span><input className="input" type="date" value={f.to} onChange={e=>set('to',e.target.value)}/></label><label className="fld"><span className="l">Days</span><input className={'input mono'+(err.days?' err':'')} type="number" step="0.5" value={f.days} onChange={e=>set('days',e.target.value)}/></label></div>
+      <label className="fld"><span className="l">Reason</span><textarea className={'input'+(err.reason?' err':'')} rows="2" value={f.reason} onChange={e=>set('reason',e.target.value)}></textarea>{err.reason&&<div className="errmsg">{err.reason}</div>}</label>
+      <label className="row-flex" style={{fontSize:13,cursor:'pointer'}}><input type="checkbox" checked={f.doc} onChange={e=>set('doc',e.target.checked)}/> Document attached (medical/proof)</label>
+    </div>
+    <div className="modal-f"><button className="btn" onClick={close}>Cancel</button><button className="btn btn-primary" onClick={save}>Submit</button></div>
+  </div></div>);
+}
+
+/* ============ COMP-OFF ============ */
+function CompOff(){
+  const {db,actions}=useStore();const {can}=useRole();const [open,setOpen]=useState(false);
+  return (<div className="grid" style={{gap:16}}>
+    <div className="card-h"><span className="tag">Flow: Employee → Manager → HR · approved adds to payable</span>{can('apply')&&<button className="btn btn-primary" onClick={()=>setOpen(true)}>+ Request Comp-Off</button>}</div>
+    <div className="grid g3"><Stat lab="Approved" val={db.compoff.filter(c=>c.status==='Approved').length} meta="in payroll" color="var(--moss)"/><Stat lab="Pending" val={db.compoff.filter(c=>c.status==='Pending').length} meta="awaiting" color="var(--clay)"/><Stat lab="Total" val={db.compoff.length} meta="requests" color="var(--sky)"/></div>
+    <div className="card" style={{padding:0,overflow:'auto'}}>{db.compoff.length===0?<div className="empty"><div className="ico">⇄</div>No comp-off requests.</div>:
+      <table style={{minWidth:680}}><thead><tr><th>Ref</th><th>Employee</th><th>Date Worked</th><th>Occasion</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>{db.compoff.map(c=>(<tr key={c.id}><td className="mono strong" style={{fontSize:12}}>{c.id}</td><td>{name(db,c.empId)}</td><td>{c.worked}</td><td style={{fontSize:12.5}}>{c.occasion}<div className="muted" style={{fontSize:11}}>{c.reason}</div></td><td>{sBadge(c.status)}</td><td><div className="row-flex">{can('approve')?(c.status==='Pending'?<><button className="btn btn-sm btn-good" onClick={()=>actions.setCompoffStatus(c.id,'Approved')}>Approve</button><button className="btn btn-sm btn-bad" onClick={()=>actions.setCompoffStatus(c.id,'Rejected')}>Reject</button></>:<button className="btn btn-sm" onClick={()=>actions.setCompoffStatus(c.id,'Pending')}>Reopen</button>):<span className="muted" style={{fontSize:11.5}}>view only</span>}{can('approve')&&<button className="btn btn-sm btn-ghost btn-bad" onClick={()=>actions.deleteCompoff(c.id)}>✕</button>}</div></td></tr>))}</tbody></table>}
+    </div>
+    {open&&<CompoffModal close={()=>setOpen(false)}/>}
+  </div>);
+}
+function CompoffModal({close}){
+  const {db,actions}=useStore();const [f,setF]=useState({empId:db.employees[0].id,worked:'',occasion:'Worked on Weekly Off',reason:''});const [err,setErr]=useState({});
+  const save=()=>{if(!f.worked){setErr({worked:'Required'});return;}actions.addCompoff(f);close();};
+  return (<div className="modal-bg" onClick={close}><div className="modal" onClick={e=>e.stopPropagation()}>
+    <div className="modal-h"><h3>Request Comp-Off</h3><button className="x" onClick={close}>×</button></div>
+    <div className="modal-b">
+      <label className="fld"><span className="l">Employee</span><select className="input" value={f.empId} onChange={e=>setF({...f,empId:e.target.value})}>{db.employees.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</select></label>
+      <label className="fld"><span className="l">Date Worked</span><input className={'input'+(err.worked?' err':'')} placeholder="e.g. 08 Jun (Sun)" value={f.worked} onChange={e=>setF({...f,worked:e.target.value})}/>{err.worked&&<div className="errmsg">{err.worked}</div>}</label>
+      <label className="fld"><span className="l">Occasion</span><select className="input" value={f.occasion} onChange={e=>setF({...f,occasion:e.target.value})}>{['Worked on Sunday','Worked on Weekly Off','Worked on Public Holiday','Worked on Festival Holiday','Worked on Approved Leave Day'].map(o=><option key={o}>{o}</option>)}</select></label>
+      <label className="fld"><span className="l">Remarks</span><textarea className="input" rows="2" value={f.reason} onChange={e=>setF({...f,reason:e.target.value})}></textarea></label>
+    </div>
+    <div className="modal-f"><button className="btn" onClick={close}>Cancel</button><button className="btn btn-primary" onClick={save}>Submit</button></div>
+  </div></div>);
+}
+
+/* ============ LATE ============ */
+function LateComing(){
+  const {db,actions}=useStore();const {can}=useRole();
+  return (<div className="grid" style={{gap:16}}>
+    <div className="card" style={{background:'#fff7ed',borderColor:'#fed7aa'}}><div style={{fontSize:13,color:'var(--ink-soft)'}}><strong>Rule:</strong> report 10:00, grace to 10:05, &gt;1hr = Half Day. Approving an exemption removes one late, shifting the slab & recalculating salary. Watch Verification.</div></div>
+    <div className="card" style={{padding:0,overflow:'auto'}}>{db.late.length===0?<div className="empty"><div className="ico">◷</div>No requests.</div>:
+      <table style={{minWidth:860}}><thead><tr><th>Ref</th><th>Employee</th><th>Date</th><th>Official</th><th>Actual</th><th>Delay</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>{db.late.map(l=>(<tr key={l.id}><td className="mono" style={{fontSize:12}}>{l.id}</td><td className="strong">{name(db,l.empId)}</td><td>{l.date}</td><td className="mono">{l.official}</td><td className="mono">{l.actual}</td><td style={{color:'var(--clay)',fontWeight:600}}>{l.delay}m{l.delay>60&&<div style={{fontSize:10,color:'var(--rose)'}}>→ Half Day</div>}</td><td style={{fontSize:12}}>{l.reason}</td><td>{sBadge(l.status)}</td><td><div className="row-flex">{can('approve')?(l.status==='Pending'?<><button className="btn btn-sm btn-good" onClick={()=>actions.setLateStatus(l.id,'Approved')}>Approve</button><button className="btn btn-sm btn-bad" onClick={()=>actions.setLateStatus(l.id,'Rejected')}>Reject</button></>:<button className="btn btn-sm" onClick={()=>actions.setLateStatus(l.id,'Pending')}>Reopen</button>):<span className="muted" style={{fontSize:11.5}}>view only</span>}</div></td></tr>))}</tbody></table>}
+    </div>
+  </div>);
+}
+
+/* ============ MISPUNCH ============ */
+function Mispunch(){
+  const {db,actions}=useStore();const {can}=useRole();
+  return (<div className="grid" style={{gap:16}}>
+    <div className="card" style={{background:'#fff7ed',borderColor:'#fed7aa'}}><div style={{fontSize:13,color:'var(--ink-soft)'}}><strong>Rule:</strong> 2 free per month, then <span className="mono">(count − 2) × 0.5</span> day each. Approving a correction removes one mispunch from payroll.</div></div>
+    <div className="card" style={{padding:0,overflow:'auto'}}>{db.mispunch.length===0?<div className="empty"><div className="ico">⊠</div>No requests.</div>:
+      <table style={{minWidth:680}}><thead><tr><th>Ref</th><th>Employee</th><th>Date</th><th>Issue</th><th>Evidence</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>{db.mispunch.map(m=>(<tr key={m.id}><td className="mono" style={{fontSize:12}}>{m.id}</td><td className="strong">{name(db,m.empId)}</td><td>{m.date}</td><td>{m.issue}</td><td><span className="tag">📎 {m.doc}</span></td><td>{sBadge(m.status)}</td><td><div className="row-flex">{can('approve')?(m.status==='Pending'?<><button className="btn btn-sm btn-good" onClick={()=>actions.setMispunchStatus(m.id,'Approved')}>Approve</button><button className="btn btn-sm btn-bad" onClick={()=>actions.setMispunchStatus(m.id,'Rejected')}>Reject</button></>:<button className="btn btn-sm" onClick={()=>actions.setMispunchStatus(m.id,'Pending')}>Reopen</button>):<span className="muted" style={{fontSize:11.5}}>view only</span>}</div></td></tr>))}</tbody></table>}
+    </div>
+  </div>);
+}
+
+/* ============ HOLIDAYS ============ */
+function Holidays(){
+  const {db,actions}=useStore();const {can}=useRole();const [open,setOpen]=useState(false);
+  const mng=can('manageEmp');
+  return (<div className="grid" style={{gap:16}}>
+    <div className="card-h"><span className="tag">National/Festival always payable · Optional configurable</span>{mng&&<button className="btn btn-primary" onClick={()=>setOpen(true)}>+ Add Holiday</button>}</div>
+    <div className="card" style={{padding:0,overflow:'auto'}}>{db.holidays.length===0?<div className="empty"><div className="ico">◇</div>No holidays.</div>:
+      <table style={{minWidth:640}}><thead><tr><th>Date</th><th>Holiday</th><th>Type</th><th>Applies To</th><th>Payable</th><th>Action</th></tr></thead>
+      <tbody>{db.holidays.map(h=>(<tr key={h.id}><td className="strong mono" style={{fontSize:12.5}}>{h.date}</td><td className="strong">{h.name}</td><td><span className={'badge '+(h.type==='National'?'b-holiday':h.type==='Festival'?'b-half':h.type==='Optional'?'b-pending':'b-weekoff')}>{h.type}</span></td><td style={{fontSize:12.5}}>{h.scope}</td><td>{h.type==='Optional'?<span className="muted">Optional</span>:<span className="badge b-present">Payable</span>}</td><td>{mng?<button className="btn btn-sm btn-bad" onClick={()=>actions.deleteHoliday(h.id)}>Remove</button>:<span className="muted" style={{fontSize:11.5}}>—</span>}</td></tr>))}</tbody></table>}
+    </div>
+    {open&&<HolidayModal close={()=>setOpen(false)}/>}
+  </div>);
+}
+function HolidayModal({close}){
+  const {actions}=useStore();const [f,setF]=useState({name:'',date:'',type:'Festival',scope:'All'});const [err,setErr]=useState({});
+  const save=()=>{const e={};if(!f.name.trim())e.name='Required';if(!f.date.trim())e.date='Required';setErr(e);if(Object.keys(e).length)return;actions.addHoliday(f);close();};
+  return (<div className="modal-bg" onClick={close}><div className="modal" onClick={e=>e.stopPropagation()}>
+    <div className="modal-h"><h3>Add Holiday</h3><button className="x" onClick={close}>×</button></div>
+    <div className="modal-b">
+      <label className="fld"><span className="l">Holiday Name</span><input className={'input'+(err.name?' err':'')} value={f.name} onChange={e=>setF({...f,name:e.target.value})}/>{err.name&&<div className="errmsg">{err.name}</div>}</label>
+      <div className="grid g2" style={{gap:'0 16px'}}><label className="fld"><span className="l">Date</span><input className={'input'+(err.date?' err':'')} placeholder="e.g. 14 Jan 2027" value={f.date} onChange={e=>setF({...f,date:e.target.value})}/>{err.date&&<div className="errmsg">{err.date}</div>}</label><label className="fld"><span className="l">Type</span><select className="input" value={f.type} onChange={e=>setF({...f,type:e.target.value})}>{['National','Festival','Company','Optional'].map(o=><option key={o}>{o}</option>)}</select></label></div>
+      <label className="fld"><span className="l">Applies To</span><select className="input" value={f.scope} onChange={e=>setF({...f,scope:e.target.value})}>{['All','Vadodara','Ahmedabad','Surat'].map(o=><option key={o}>{o}</option>)}</select></label>
+    </div>
+    <div className="modal-f"><button className="btn" onClick={close}>Cancel</button><button className="btn btn-primary" onClick={save}>Add</button></div>
+  </div></div>);
+}
+
+/* ============ ESS ============ */
+function ESS(){
+  const {db,actions,empRow}=useStore();const {can}=useRole();const [empId,setEmpId]=useState(db.employees[0].id);
+  const emp=db.employees.find(e=>e.id===empId);const r=empRow(emp);
+  const shift=db.shifts.find(s=>s.id===emp.shiftId)||db.shifts[0];
+  const att=db.attendance[empId]||[];
+  const now=new Date();const todayDate=String(now.getDate()).padStart(2,'0')+' '+now.toLocaleString('en-US',{month:'short'});
+  const todayIdx=att.findIndex(a=>a.date===todayDate);
+  return (<div className="grid" style={{gap:16}}>
+    <div className="card-h"><div className="seg">{db.employees.map(e=><button key={e.id} className={empId===e.id?'on':''} onClick={()=>setEmpId(e.id)}>{e.name.split(' ')[0]}</button>)}</div><span className="tag">own portal</span></div>
+    <div className="card" style={{display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}><div className="avatar" style={{width:56,height:56,fontSize:19}}>{emp.photo?<img src={emp.photo}/>:initials(emp.name)}</div><div style={{flex:1,minWidth:200}}><div className="serif" style={{fontSize:21,fontWeight:600}}>{emp.name}</div><div style={{color:'var(--ink-soft)',fontSize:13.5}}>{emp.desig} · {emp.dept} · {emp.branch}</div><div className="row-flex" style={{marginTop:6}}><span className="tag">{emp.id}</span><span className="tag">Reports to {emp.mgr}</span><span className="tag">{emp.empType}</span></div></div></div>
+    {can('apply')&&<>
+      {todayIdx>=0?<PunchStation empId={empId} emp={emp} shift={shift} att={att} todayIdx={todayIdx} todayDate={todayDate}/>:
+      <div className="card" style={{background:'linear-gradient(135deg,#1a2233,#1e4e7e)',color:'#fff',border:'none',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
+        <div><div style={{fontSize:11,letterSpacing:1,textTransform:'uppercase',opacity:.7,fontWeight:600}}>Punch Station</div><div style={{fontSize:15,fontWeight:600,marginTop:3}}>No attendance row for {todayDate} yet</div><div style={{fontSize:12.5,opacity:.8}}>Start your day to begin punching in/out.</div></div>
+        <button className="btn" style={{background:'#16a06a',color:'#fff',border:'none'}} onClick={()=>actions.startAndCheckIn(empId)}>● Start today &amp; Check In</button>
+      </div>}
+    </>}
+    <div className="grid g4"><Stat lab="Earned Today" val={inr(r.daily)} meta="daily rate" color="var(--moss)"/><Stat lab="Net This Cycle" val={inr(r.net)} meta={r.payable+' payable days'} color="var(--gold)"/><Stat lab="Late Comings" val={r.late} meta={r.K+'d deduction'} color="var(--clay)"/><Stat lab="Comp-Off" val={r.compoff} meta="approved" color="var(--sky)"/></div>
+    <div className="grid g2">
+      <div className="card"><div className="card-h"><h3>Salary breakdown</h3></div>{[['Monthly Gross',inr(emp.monthly)],['Basic',inr(emp.basic)],['HRA',inr(emp.hra)],['Daily Rate',inr(r.daily)],['Payable Days',r.payable],['Earned Gross',inr(r.gross)],['Incentive',inr(r.incentive)],['Bonus',inr(r.bonus)],['PF (−)',inr(r.pfEmp)],['ESIC (−)',inr(r.esicEmp)],['Net Payable',inr(r.net)]].map(([k,v],i,a)=><div key={k} style={{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:i<a.length-1?'1px solid #eef0f5':'none'}}><span style={{fontSize:13,color:'var(--ink-soft)'}}>{k}</span><span className="mono" style={{fontWeight:i===a.length-1?700:400,color:i===a.length-1?'var(--moss)':'inherit'}}>{v}</span></div>)}</div>
+      <div className="card"><div className="card-h"><h3>My documents & statutory</h3></div>
+        <div className="grid g3" style={{gap:8,marginBottom:12}}>{[['PF',emp.pf?emp.pf.split('/').pop():'—'],['UAN',emp.uan||'—'],['ESIC',emp.esic||'—']].map(([a,b])=><div key={a} style={{textAlign:'center',padding:8,background:'var(--paper)',borderRadius:8}}><div style={{fontSize:10,color:'var(--mut)',fontWeight:600}}>{a}</div><div className="mono" style={{fontSize:11,marginTop:3}}>{b}</div></div>)}</div>
+        {emp.docs.length===0?<div className="empty" style={{padding:16}}>No documents.</div>:<div className="grid" style={{gap:7}}>{emp.docs.map(d=>{const[n,x]=d.split('|');return <div className="doc-chip" key={d}><span className="ext">{x}</span><span style={{flex:1}}>{n}</span><button className="btn btn-sm btn-ghost">↓</button></div>;})}</div>}
+      </div>
+    </div>
+  </div>);
+}
+
+/* ============ EMPLOYEE 360 ============ */
+function Emp360(){
+  const {db,empRow}=useStore();const [empId,setEmpId]=useState(db.employees[1]?db.employees[1].id:db.employees[0].id);
+  const emp=db.employees.find(e=>e.id===empId)||db.employees[0];const r=empRow(emp);
+  const leaves=db.leaves.filter(l=>l.empId===emp.id),co=db.compoff.filter(c=>c.empId===emp.id),tr=db.training.filter(t=>t.empId===emp.id);
+  const audit=db.audit.filter(a=>a.target.includes(emp.name)||a.target.includes(emp.id)).slice(0,6);
+  return (<div className="grid" style={{gap:16}}>
+    <div className="seg">{db.employees.map(e=><button key={e.id} className={empId===e.id?'on':''} onClick={()=>setEmpId(e.id)}>{e.name.split(' ')[0]}</button>)}</div>
+    <div className="card" style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap'}}><div className="avatar" style={{width:52,height:52,fontSize:17}}>{emp.photo?<img src={emp.photo}/>:initials(emp.name)}</div><div style={{flex:1,minWidth:200}}><div className="serif" style={{fontSize:20,fontWeight:600}}>{emp.name}</div><div style={{fontSize:13,color:'var(--ink-soft)'}}>{emp.desig} · {emp.dept} · {emp.branch} · {emp.co}</div><div className="muted" style={{fontSize:12,marginTop:3}}>{emp.mobile} · {emp.email}</div></div>{emp.probation?<span className="badge b-pending">Probation</span>:<span className="badge b-present">Confirmed</span>}</div>
+    <div className="grid g4">
+      <Sum title="Attendance" rows={[['Working',r.working],['Leaves',r.leaves],['Week Offs',r.wOff],['OT',fmtDur(r.otMin)]]}/>
+      <Sum title="Late & Mispunch" rows={[['Late',r.late],['Late ded',r.K+'d'],['Mispunch',r.mispunch],['Mis ded',r.N+'d']]}/>
+      <Sum title="Leave & Comp-Off" rows={[['Paid lv',r.paidLeaves],['Comp-off',r.compoff],['Sandwich',r.sandwich],['UL',r.ul]]}/>
+      <Sum title="Payroll" rows={[['Gross',inr(r.gross)],['PF/ESIC',inr(r.pfEmp+r.esicEmp)],['Payable',r.payable+'d'],['Net',inr(r.net)]]} hl/>
+    </div>
+    <div className="grid g3">
+      <div className="card"><div className="card-h"><h3 style={{fontSize:15}}>Leave history</h3></div>{leaves.length===0?<div className="empty" style={{padding:16}}>None</div>:leaves.map(l=><div key={l.id} className="row-flex" style={{justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid #eef0f5'}}><span style={{fontSize:12.5}}>{l.type} · {l.from}</span>{sBadge(l.status)}</div>)}</div>
+      <div className="card"><div className="card-h"><h3 style={{fontSize:15}}>Comp-off & Training</h3></div>{co.length===0&&tr.length===0?<div className="empty" style={{padding:16}}>None</div>:<>{co.map(c=><div key={c.id} className="row-flex" style={{justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid #eef0f5'}}><span style={{fontSize:12.5}}>Comp-off · {c.worked}</span>{sBadge(c.status)}</div>)}{tr.map(t=><div key={t.id} className="row-flex" style={{justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid #eef0f5'}}><span style={{fontSize:12.5}}>{t.type}</span>{sBadge(t.status)}</div>)}</>}</div>
+      <div className="card"><div className="card-h"><h3 style={{fontSize:15}}>Activity timeline</h3></div>{audit.length===0?<div className="empty" style={{padding:16}}>No recent activity</div>:audit.map((a,i)=><div key={i} className="row-flex" style={{padding:'7px 0',borderBottom:'1px solid #eef0f5',alignItems:'flex-start'}}><span className="mono" style={{fontSize:10.5,color:'var(--mut)',width:78,flexShrink:0}}>{a.time}</span><span style={{fontSize:12.5}}>{a.action}</span></div>)}</div>
+    </div>
+  </div>);
+}
+function Sum({title,rows,hl}){return <div className="card" style={hl?{background:'#eef5ff',borderColor:'#cfe1f7'}:{}}><div style={{fontSize:11,letterSpacing:.6,textTransform:'uppercase',color:'var(--mut)',fontWeight:600,marginBottom:9}}>{title}</div>{rows.map(([k,v])=><div key={k} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',fontSize:13}}><span style={{color:'var(--ink-soft)'}}>{k}</span><span className="mono" style={{fontWeight:500}}>{v}</span></div>)}</div>;}
+
+/* ============ CONFIG ============ */
+function Config(){
+  const {db,actions,fire}=useStore();const [tab,setTab]=useState('Payroll Cycle');const [days,setDays]=useState(db.cycle.days);
+  const tabs=['Payroll Cycle','Late Coming','Mispunch','Leave','Sandwich & UL'];
+  return (<div className="grid" style={{gap:16}}>
+    <div className="pill-tab">{tabs.map(t=><button key={t} className={tab===t?'on':''} onClick={()=>setTab(t)}>{t}</button>)}</div>
+    <div className="card"><div className="card-h"><h3>{tab}</h3><span className="tag">versioned · effective date</span></div>
+      {tab==='Payroll Cycle'?<><div className="grid g3" style={{gap:'0 16px'}}><label className="fld"><span className="l">Cycle Start</span><input className="input" defaultValue={db.cycle.start}/></label><label className="fld"><span className="l">Cycle End</span><input className="input" defaultValue={db.cycle.end}/></label><label className="fld"><span className="l">Total Payroll Days (live)</span><input className="input mono" type="number" value={days} onChange={e=>setDays(parseInt(e.target.value)||30)}/></label></div><div className="row-flex" style={{justifyContent:'space-between'}}><span className="muted" style={{fontSize:12}}>Changing payroll days recalculates everyone's daily rate & salary.</span><button className="btn btn-primary" onClick={()=>actions.setCycle({days})}>Save Cycle</button></div></>
+      :<><div className="grid g2" style={{gap:'0 24px'}}>
+        {tab==='Late Coming'&&<><Fld l="Report Time" v="10:00"/><Fld l="Grace until" v="10:05"/><Fld l="Half Day after" v="60 min"/><Fld l="Slab base" v="1–3 = 1 day"/></>}
+        {tab==='Mispunch'&&<><Fld l="Free per month" v="2"/><Fld l="Beyond" v="(n−2)×0.5"/><Fld l="Report window" v="Same day"/><Fld l="Approval" v="Mgr → HR"/></>}
+        {tab==='Leave'&&<><Fld l="6-Day annual" v="18 (1.5/mo)"/><Fld l="5-Day annual" v="10"/><Fld l="Sick cap" v="8/yr"/><Fld l="Carry forward" v="Mgmt approval"/><Fld l="Encashment" v="Eligible after confirm"/><Fld l="Probation leave" v="None"/></>}
+        {tab==='Sandwich & UL'&&<><Fld l="Sandwich ×" v="1"/><Fld l="Sandwich cap" v="2/yr"/><Fld l="UL ×" v="2"/><Fld l="Auto-resign" v="3 consec. UL"/></>}
+      </div><div className="row-flex" style={{justifyContent:'flex-end'}}><button className="btn btn-primary" onClick={()=>fire('Policy saved as new version')}>Save Changes</button></div></>}
+    </div>
+  </div>);
+}
+function Fld({l,v}){return <label className="fld"><span className="l">{l}</span><input className="input" defaultValue={v}/></label>;}
+
+/* ============ ROLES ============ */
+function Roles(){
+  const {db,actions}=useStore();const {role,can}=useRole();const editable=can('configure');
+  const [tab,setTab]=useState('perms');
+  const access=db.access||window.__defaultAccess();
+  const Dot=({on,onClick,locked})=><button onClick={onClick} disabled={!editable||locked} title={locked?'Locked to keep at least one admin':''} style={{border:'none',background:'none',cursor:(editable&&!locked)?'pointer':'not-allowed',fontSize:17,color:on?'var(--good)':'#d0d6e0',opacity:locked?.5:1}}>{on?'●':'○'}</button>;
+  // guard: never let both admin roles lose configure (avoid lockout)
+  const wouldLockOut=(r,p)=>{
+    if(p!=='configure')return false;
+    const others=ROLE_LIST.filter(x=>x!==r).some(x=>access[x].perms.configure);
+    return access[r].perms.configure && !others; // turning off the last configure
+  };
+  return (<div className="grid" style={{gap:16}}>
+    <div className="card" style={{background:'linear-gradient(135deg,#eef5ff,#f3f0ff)',borderColor:'#d8e3f7'}}><div style={{fontSize:13,color:'var(--ink-soft)'}}>This matrix is <strong>live</strong>. Toggle a dot and the change applies instantly — switch the role selector (top-right) to feel it. You are <strong>{role}</strong>. {editable?'You can edit (you have Configure).':'Editing is locked — only roles with Configure can change access. Switch to Admin to edit.'}</div></div>
+    <div className="pill-tab">
+      <button className={tab==='perms'?'on':''} onClick={()=>setTab('perms')}>Action Permissions</button>
+      <button className={tab==='screens'?'on':''} onClick={()=>setTab('screens')}>Screen Access</button>
+    </div>
+    {tab==='perms'?
+      <div className="card" style={{padding:0,overflow:'auto'}}><table style={{minWidth:720}}><thead><tr><th>Role</th>{PERM_LIST.map(p=><th key={p} style={{textAlign:'center'}}>{PERM_LABELS[p]}</th>)}</tr></thead>
+        <tbody>{ROLE_LIST.map(r=>(<tr key={r} style={r===role?{background:'#f3f8ff'}:{}}><td className="strong">{r}{r===role&&<span className="tag" style={{marginLeft:6,color:'var(--moss)'}}>you</span>}</td>{PERM_LIST.map(p=>{const on=!!access[r].perms[p];const locked=wouldLockOut(r,p);return <td key={p} style={{textAlign:'center'}}><Dot on={on} locked={locked} onClick={()=>actions.setPerm(r,p,!on)}/></td>;})}</tr>))}</tbody>
+      </table></div>
+    :
+      <div className="card" style={{padding:0,overflow:'auto'}}><table style={{minWidth:900}}><thead><tr><th>Role</th>{ALL_SCREENS.map(s=><th key={s} style={{textAlign:'center',writingMode:'vertical-rl',transform:'rotate(180deg)',height:78,padding:'4px 2px'}}>{s}</th>)}</tr></thead>
+        <tbody>{ROLE_LIST.map(r=>(<tr key={r} style={r===role?{background:'#f3f8ff'}:{}}><td className="strong">{r}{r===role&&<span className="tag" style={{marginLeft:6,color:'var(--moss)'}}>you</span>}</td>{ALL_SCREENS.map(s=>{const on=!!access[r].screens[s];return <td key={s} style={{textAlign:'center'}}><Dot on={on} onClick={()=>actions.setScreen(r,s,!on)}/></td>;})}</tr>))}</tbody>
+      </table></div>
+    }
+    <div className="row-flex" style={{justifyContent:'space-between'}}>
+      <span className="muted" style={{fontSize:12}}>{tab==='perms'?'Permissions gate action buttons (approve, override, export, add/edit, etc.) across every screen.':'Screen access controls which menu items each role can open. Turning all screens off for a role hides the whole app for them.'}</span>
+      {editable&&<button className="btn" onClick={()=>{if(confirm('Reset all roles to default access?'))actions.resetAccess();}}>↺ Reset to defaults</button>}
+    </div>
+    <div className="card" style={{background:'#fff7ed',borderColor:'#fed7aa'}}><div style={{fontSize:13,color:'var(--ink-soft)'}}>Changes persist (saved with your data) and are recorded in Audit Logs. The last Configure permission is locked so you can't accidentally lock everyone out — use Reset to defaults to recover.</div></div>
+  </div>);
+}
+
+/* ============ AUDIT ============ */
+function Audit(){
+  const {db}=useStore();const [q,setQ]=useState('');
+  const rows=db.audit.filter(a=>(a.action+a.target+a.user).toLowerCase().includes(q.toLowerCase()));
+  return (<div className="grid" style={{gap:16}}>
+    <div className="card-h"><span className="tag">{db.audit.length} entries · live</span><input className="input" style={{maxWidth:240}} placeholder="Search logs…" value={q} onChange={e=>setQ(e.target.value)}/></div>
+    <div className="card" style={{padding:0,overflow:'auto'}}><table style={{minWidth:760}}><thead><tr><th>User</th><th>Action</th><th>Target</th><th>Previous</th><th>New</th><th>When</th></tr></thead><tbody>{rows.map((a,i)=>(<tr key={i}><td className="strong">{a.user}</td><td><span className="tag">{a.action}</span></td><td style={{fontSize:12.5}}>{a.target}</td><td className="muted mono" style={{fontSize:12}}>{a.prev}</td><td className="mono" style={{fontSize:12,color:'var(--moss)'}}>{a.next}</td><td className="muted mono" style={{fontSize:12}}>{a.time}</td></tr>))}</tbody></table></div>
+  </div>);
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<StoreProvider><Shell/></StoreProvider>);
+</script>
+</body>
+</html>
