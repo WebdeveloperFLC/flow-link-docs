@@ -69,7 +69,13 @@ function fmtMoney(n: number): string {
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n || 0);
 }
 
-export default function OffersAnalytics({ embedded = false }: { embedded?: boolean }) {
+export default function OffersAnalytics({
+  embedded = false,
+  periodKey,
+}: {
+  embedded?: boolean;
+  periodKey?: string;
+}) {
   const { isAdmin, hasRole, loading } = useAuth();
   const { canView, loading: permLoading } = useModulePermission("offers_analytics");
   const allowed = isAdmin || hasRole(["manager", "administrator"]) || canView;
@@ -79,7 +85,7 @@ export default function OffersAnalytics({ embedded = false }: { embedded?: boole
   const [influence, setInfluence] = useState<InfluenceBreakdown | null>(null);
   const [walletImpact, setWalletImpact] = useState<WalletImpactRow[]>([]);
   const [busy, setBusy] = useState(true);
-  const impactPeriod = currentPeriodKey();
+  const impactPeriod = periodKey ?? currentPeriodKey();
 
   const load = useCallback(async () => {
     setBusy(true);
