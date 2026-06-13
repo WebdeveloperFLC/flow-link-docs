@@ -83,7 +83,7 @@ export default function OffersAdmin() {
   );
 }
 
-function OffersTab({ canEdit }: { canEdit: boolean }) {
+export function OffersTab({ canEdit }: { canEdit: boolean }) {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [editing, setEditing] = useState<Offer | null>(null);
   const [open, setOpen] = useState(false);

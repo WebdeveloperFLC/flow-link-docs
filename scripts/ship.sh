@@ -65,6 +65,7 @@ Performance Hub migrations (Lovable Publish — approve ALL that still show as p
   [ ] 20260621120000_incentive_runs_unique_scope.sql — runs dedupe
   [ ] 20260622120000_incentive_platform_phase5e.sql  — period lock gates
   [ ] 20260623120000_incentive_platform_phase5f.sql  — enrolment / stage qualifying events
+  [ ] 20260624120000_incentive_platform_phase5g.sql  — offers studio dashboard RPC
 
 EOF
 }

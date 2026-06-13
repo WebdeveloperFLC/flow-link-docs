@@ -43,8 +43,14 @@ export const OFFER_FUNDING_LABELS: Record<OfferFundingSource, string> = {
   joint: "Joint",
 };
 
-/** Statuses visible in client eligibility (synced with is_active). */
-export const OFFER_LIVE_STATUSES: OfferStatus[] = ["active", "expiring_soon"];
+export const OFFER_DISTRIBUTION_CHANNELS = [
+  { key: "portal", label: "Client portal" },
+  { key: "whatsapp", label: "WhatsApp" },
+  { key: "email", label: "Email" },
+  { key: "counselor_desk", label: "Counselor desk (Give Discount)" },
+] as const;
+
+export type OfferDistributionChannel = (typeof OFFER_DISTRIBUTION_CHANNELS)[number]["key"];
 
 export function offerStatusLabel(s: string | null | undefined): string {
   if (!s) return "Draft";

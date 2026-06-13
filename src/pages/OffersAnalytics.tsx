@@ -53,7 +53,7 @@ function fmtMoney(n: number): string {
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n || 0);
 }
 
-export default function OffersAnalytics() {
+export default function OffersAnalytics({ embedded = false }: { embedded?: boolean }) {
   const { isAdmin, hasRole, loading } = useAuth();
   const { canView, loading: permLoading } = useModulePermission("offers_analytics");
   const allowed = isAdmin || hasRole(["manager", "administrator"]) || canView;
@@ -117,10 +117,8 @@ export default function OffersAnalytics() {
     Discount: Math.round(r.total_discount),
   }));
 
-  return (
-    <AppLayout>
-      <PageHeader title="Offer Analytics" />
-      <div className="p-4 space-y-6">
+  const body = (
+    <div className={embedded ? "space-y-6" : "p-4 space-y-6"}>
         {/* Range selector */}
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
@@ -279,7 +277,15 @@ export default function OffersAnalytics() {
             </Card>
           </>
         )}
-      </div>
+    </div>
+  );
+
+  if (embedded) return body;
+
+  return (
+    <AppLayout>
+      <PageHeader title="Offer Analytics" />
+      {body}
     </AppLayout>
   );
 }
