@@ -5,11 +5,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
+import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
+import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { useToast } from "@/hooks/use-toast";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
-import { currentPeriodKey, formatInr } from "@/lib/performanceHubTheme";
+import { formatInr } from "@/lib/performanceHubTheme";
 import { AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
 
 interface UnclassifiedRow {
@@ -33,7 +34,7 @@ interface ServiceOption {
 export default function PerformanceUnclassifiedPayments() {
   const { isAdmin, hasRole, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [period, setPeriod] = useState(currentPeriodKey());
+  const { period } = usePerformancePeriod();
   const [rows, setRows] = useState<UnclassifiedRow[]>([]);
   const [services, setServices] = useState<ServiceOption[]>([]);
   const [selection, setSelection] = useState<Record<string, string>>({});
@@ -138,11 +139,9 @@ export default function PerformanceUnclassifiedPayments() {
           showModuleLegend={false}
         />
 
+        <PerformancePeriodBar showBranch={false} compact />
+
         <div className="flex flex-wrap gap-3 items-end">
-          <div>
-            <label className="text-xs text-muted-foreground">Period</label>
-            <Input className="w-32 mt-1" value={period} onChange={(e) => setPeriod(e.target.value)} />
-          </div>
           <Button variant="outline" size="sm" className="gap-2" onClick={loadRows} disabled={loading}>
             <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>

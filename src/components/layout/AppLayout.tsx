@@ -135,7 +135,7 @@ const performanceNav: NavItem[] = [
   { to: "/performance/give-discount", icon: Gift, label: "Give discount" },
   { to: "/performance/offers/requests", icon: Megaphone, label: "Promotion requests" },
   { to: "/performance/team", icon: Users, label: "Team · branch", roles: ["manager", "admin", "administrator"] },
-  { to: "/performance/executive", icon: BarChart2, label: "Executive dashboard", adminOnly: true },
+  { to: "/performance/executive", icon: BarChart2, label: "Executive dashboard", roles: ["admin", "administrator", "viewer"] },
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
   {
     to: "/performance/admin/approvals",

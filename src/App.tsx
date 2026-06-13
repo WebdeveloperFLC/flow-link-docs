@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { PerformancePeriodProvider } from "@/contexts/PerformancePeriodContext";
 import { CallProvider } from "@/contexts/CallContext";
 import { BrowserPhoneProvider } from "@/contexts/BrowserPhoneContext";
 import { PostCallNotesDialog } from "@/components/telephony/PostCallNotesDialog";
@@ -188,6 +189,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <PerformancePeriodProvider>
             <BrowserPhoneProvider>
               <CallProvider>
                 <PostCallNotesDialog />
@@ -1405,6 +1407,7 @@ const App = () => (
                 </Routes>
               </CallProvider>
             </BrowserPhoneProvider>
+            </PerformancePeriodProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

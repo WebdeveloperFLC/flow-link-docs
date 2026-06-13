@@ -1,17 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { invokeError } from "@/lib/invokeError";
+import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
+import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
+import { usePerformanceLockReadiness } from "@/hooks/usePerformanceLockReadiness";
 import { Calculator, Lock } from "lucide-react";
-
-function currentPeriodKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
 
 interface Plan {
   id: string;
@@ -42,26 +40,25 @@ const fmt = (n: number, ccy: string) =>
 
 export default function IncentivesAdmin() {
   const { toast } = useToast();
+  const { period, branchId, branches } = usePerformancePeriod();
+  const lockReadiness = usePerformanceLockReadiness(period);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [runs, setRuns] = useState<RunRow[]>([]);
   const [planId, setPlanId] = useState<string>("");
-  const [periodKey, setPeriodKey] = useState<string>(currentPeriodKey());
-  const [branchId, setBranchId] = useState<string>("");
-  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<{ summary: SummaryRow[]; grand_total: number; settlement: string; fx: Record<string, number> } | null>(null);
   const [names, setNames] = useState<Record<string, string>>({});
 
+  const scopeBranchId = branchId.trim() || null;
+
   async function loadAll() {
-    const [pl, rn, prof, br] = await Promise.all([
+    const [pl, rn, prof] = await Promise.all([
       supabase.from("incentive_plans").select("id, name, period_type, settlement_currency, is_active").order("created_at", { ascending: false }),
       supabase.from("incentive_runs").select("id, plan_id, period_key, branch_id, status, total_settlement, settlement_currency, locked, calculated_at").order("calculated_at", { ascending: false }).limit(50),
       supabase.from("profiles").select("id, full_name"),
-      supabase.from("branches").select("id, name").order("name"),
     ]);
     setPlans((pl.data ?? []) as Plan[]);
     setRuns((rn.data ?? []) as RunRow[]);
-    setBranches((br.data ?? []) as { id: string; name: string }[]);
     const map: Record<string, string> = {};
     for (const p of (prof.data ?? []) as any[]) map[p.id] = p.full_name ?? p.id;
     setNames(map);
@@ -70,12 +67,39 @@ export default function IncentivesAdmin() {
 
   useEffect(() => { loadAll(); /* eslint-disable-next-line */ }, []);
 
+  const lockedRunForSelection = useMemo(
+    () =>
+      runs.find(
+        (r) =>
+          r.plan_id === planId &&
+          r.period_key === period &&
+          (r.branch_id ?? null) === scopeBranchId &&
+          r.locked,
+      ) ?? null,
+    [runs, planId, period, scopeBranchId],
+  );
+  const calculatedRunForSelection = useMemo(
+    () =>
+      runs.find(
+        (r) =>
+          r.plan_id === planId &&
+          r.period_key === period &&
+          (r.branch_id ?? null) === scopeBranchId &&
+          !r.locked &&
+          r.status === "calculated",
+      ) ?? null,
+    [runs, planId, period, scopeBranchId],
+  );
+
+  const isSelectionLocked = !!lockedRunForSelection;
+  const lockBlockedByQueues = !lockReadiness.loading && !lockReadiness.canLock;
+
   async function callFn(action: "preview" | "calculate" | "lock") {
     if (!planId) { toast({ title: "Pick a plan first", variant: "destructive" }); return; }
     setBusy(true);
     try {
-      const body: any = { action, plan_id: planId, period_key: periodKey };
-      if (branchId.trim()) body.branch_id = branchId.trim();
+      const body: any = { action, plan_id: planId, period_key: period };
+      if (scopeBranchId) body.branch_id = scopeBranchId;
       const { data, error } = await supabase.functions.invoke("incentive-calculate-run", { body });
       if (error || data?.error) {
         const msg = await invokeError(error, data);
@@ -107,10 +131,12 @@ export default function IncentivesAdmin() {
           <h1 className="text-2xl font-semibold">Incentives — Runs</h1>
         </div>
 
+        <PerformancePeriodBar />
+
         {/* Run controls */}
         <Card className="p-5 space-y-4">
           <h2 className="text-lg font-semibold">Calculate a run</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-muted-foreground">Plan</label>
               <select
@@ -124,35 +150,65 @@ export default function IncentivesAdmin() {
                 ))}
               </select>
             </div>
-            <div>
-              <label className="text-xs text-muted-foreground">Period key</label>
-              <Input className="mt-1" value={periodKey} onChange={(e) => setPeriodKey(e.target.value)} placeholder="2026-05 / 2026-Q2 / 2026-H1 / 2026" />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">Branch (optional)</label>
-              <select
-                className="w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm"
-                value={branchId}
-                onChange={(e) => setBranchId(e.target.value)}
-              >
-                <option value="">All branches</option>
-                {branches.map((b) => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
-              </select>
+            <div className="text-xs text-muted-foreground flex items-end pb-2">
+              Using period <span className="font-semibold text-foreground mx-1">{period}</span>
+              · {scopeBranchId ? branches.find((b) => b.id === scopeBranchId)?.name ?? "Branch" : "All branches"}
             </div>
           </div>
+          {isSelectionLocked && (
+            <p className="text-sm text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-md px-3 py-2">
+              <Lock className="inline size-3.5 mr-1.5 -mt-0.5 shrink-0" />
+              This plan and period are already locked
+              {scopeBranchId ? " for the selected branch" : ""}. Recalculate is blocked — use{" "}
+              <Link to="/incentives/payouts" className="underline font-medium">
+                Payout desk
+              </Link>{" "}
+              adjustments instead (R2).
+            </p>
+          )}
+          {!isSelectionLocked && lockBlockedByQueues && (
+            <p className="text-sm text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-md px-3 py-2">
+              <Lock className="inline size-3.5 mr-1.5 -mt-0.5 shrink-0" />
+              Approve &amp; lock is blocked for {period} until queues are cleared:
+              <ul className="list-disc ml-5 mt-1 space-y-0.5">
+                {lockReadiness.blockers.map((b) => (
+                  <li key={b}>{b}</li>
+                ))}
+              </ul>
+              <span className="block mt-2">
+                {lockReadiness.unclassifiedCount > 0 && (
+                  <Link to="/performance/admin/unclassified" className="underline font-medium mr-3">
+                    Unclassified →
+                  </Link>
+                )}
+                {lockReadiness.pendingApprovals > 0 && (
+                  <Link to="/performance/admin/approvals" className="underline font-medium">
+                    Approvals →
+                  </Link>
+                )}
+              </span>
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" disabled={busy} onClick={() => callFn("preview")}>
               {busy ? "Working…" : "Preview"}
             </Button>
-            <Button disabled={busy} onClick={() => callFn("calculate")}>
+            <Button disabled={busy || isSelectionLocked} onClick={() => callFn("calculate")}>
               <Calculator className="size-4 mr-1" /> Calculate &amp; save
             </Button>
-            <Button variant="secondary" disabled={busy} onClick={() => callFn("lock")}>
+            <Button
+              variant="secondary"
+              disabled={busy || isSelectionLocked || lockBlockedByQueues || !calculatedRunForSelection}
+              onClick={() => callFn("lock")}
+            >
               <Lock className="size-4 mr-1" /> Approve &amp; lock
             </Button>
           </div>
+          {!calculatedRunForSelection && !isSelectionLocked && (
+            <p className="text-xs text-muted-foreground">
+              Run Calculate &amp; save before Approve &amp; lock.
+            </p>
+          )}
         </Card>
 
         {/* Preview result */}

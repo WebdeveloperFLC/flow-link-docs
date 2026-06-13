@@ -396,6 +396,20 @@ Deno.serve(async (req: Request) => {
 
     // --- LOCK path: snapshot plan version + freeze run ---
     if (action === "lock") {
+      const { data: readiness, error: readyErr } = await svc.rpc("fn_period_lock_readiness", {
+        _period_key: period_key,
+      });
+      if (readyErr) return json({ error: readyErr.message }, 500);
+      if (readiness && (readiness as { can_lock?: boolean }).can_lock === false) {
+        const blockers = ((readiness as { blockers?: string[] }).blockers ?? []) as string[];
+        return json({
+          error: blockers.length
+            ? `Period not ready to lock: ${blockers.join("; ")}`
+            : "Period not ready to lock — clear open queues first.",
+          blockers,
+        }, 409);
+      }
+
       const snap = await loadFxSnapshot(svc, period_key);
       const runs = await listRunsForScope(svc, plan_id, period_key, branch_id);
       if (runs.some((r) => r.locked)) {
