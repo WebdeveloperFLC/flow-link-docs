@@ -8,6 +8,7 @@ import { ModalShell } from "../components/ui/ModalShell";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { inr } from "../lib/format";
 import { rebuildPayrollLine } from "../lib/hrApi";
+import { printSalarySlip } from "../lib/salarySlip";
 import type { PayrollCycleRow, PayrollLineRow } from "../lib/types";
 
 type OverrideFields = {
@@ -408,20 +409,33 @@ export default function HrVerifyPage() {
                   </td>
                   <td className="mono strong">{inr(r.net_salary)}</td>
                   <td>
-                    {can("override") ? (
-                      <button
-                        type="button"
-                        className="btn btn-sm"
-                        disabled={locked}
-                        onClick={() => setOvrLine(r)}
-                      >
-                        Ovr
-                      </button>
-                    ) : (
-                      <span className="muted" style={{ fontSize: 11 }}>
-                        —
-                      </span>
-                    )}
+                    <div className="row-flex">
+                      {can("export") && r.employees && cycle && (
+                        <button
+                          type="button"
+                          className="btn btn-sm"
+                          onClick={() => printSalarySlip(r.employees!, r, cycle)}
+                        >
+                          Slip
+                        </button>
+                      )}
+                      {can("override") ? (
+                        <button
+                          type="button"
+                          className="btn btn-sm"
+                          disabled={locked}
+                          onClick={() => setOvrLine(r)}
+                        >
+                          Ovr
+                        </button>
+                      ) : (
+                        !can("export") && (
+                          <span className="muted" style={{ fontSize: 11 }}>
+                            —
+                          </span>
+                        )
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

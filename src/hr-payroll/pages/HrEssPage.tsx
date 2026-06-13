@@ -11,6 +11,7 @@ import { Stat } from "../components/ui/Stat";
 import { PunchStation } from "../components/attendance/PunchStation";
 import { formatWorkDate, todayIso } from "../lib/attendanceMetrics";
 import { inr, initials } from "../lib/format";
+import { printSalarySlip } from "../lib/salarySlip";
 
 export default function HrEssPage() {
   const { can, cycle, fire } = useHrAccess();
@@ -109,6 +110,15 @@ export default function HrEssPage() {
         <div className="card">
           <div className="card-h">
             <h3>Salary breakdown</h3>
+            {line && cycle && can("export") && (
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => printSalarySlip(emp, line, cycle)}
+              >
+                ↓ Salary Slip
+              </button>
+            )}
           </div>
           {(
             [
