@@ -170,6 +170,9 @@ import PerformanceCommandCenter from "@/pages/PerformanceCommandCenter";
 import PerformanceExecutive from "@/pages/PerformanceExecutive";
 import PerformanceTeam from "@/pages/PerformanceTeam";
 import PerformanceWalletPolicy from "@/pages/PerformanceWalletPolicy";
+import PerformanceUnclassifiedPayments from "@/pages/PerformanceUnclassifiedPayments";
+import PerformanceApprovals from "@/pages/PerformanceApprovals";
+import PerformancePromotionRequests from "@/pages/PerformancePromotionRequests";
 import AiHelpPage from "./ai-help/pages/AiHelpPage";
 import GuidesIndexPage from "./guides/pages/GuidesIndexPage";
 import GuideDetailPage from "./guides/pages/GuideDetailPage";
@@ -561,6 +564,30 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceWalletPolicy />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/admin/unclassified"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceUnclassifiedPayments />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/admin/approvals"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceApprovals />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/offers/requests"
+                    element={
+                      <ProtectedRoute>
+                        <PerformancePromotionRequests />
                       </ProtectedRoute>
                     }
                   />

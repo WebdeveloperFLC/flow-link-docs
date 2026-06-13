@@ -133,9 +133,22 @@ const crmNav: NavItem[] = [
 const performanceNav: NavItem[] = [
   { to: "/performance", icon: LayoutGrid, label: "My performance", end: true },
   { to: "/performance/give-discount", icon: Gift, label: "Give discount" },
+  { to: "/performance/offers/requests", icon: Megaphone, label: "Promotion requests" },
   { to: "/performance/team", icon: Users, label: "Team · branch", roles: ["manager", "admin", "administrator"] },
   { to: "/performance/executive", icon: BarChart2, label: "Executive dashboard", adminOnly: true },
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
+  {
+    to: "/performance/admin/approvals",
+    icon: ClipboardCheck,
+    label: "Discount approvals",
+    roles: ["manager", "admin", "administrator"],
+  },
+  {
+    to: "/performance/admin/unclassified",
+    icon: ScanLine,
+    label: "Unclassified payments",
+    roles: ["manager", "admin", "administrator"],
+  },
   { to: "/incentives/plans", icon: Settings2, label: "Plans & rules", adminOnly: true },
   { to: "/incentives/admin", icon: Calculator, label: "Runs (preview / lock)", adminOnly: true },
   { to: "/incentives/fx-rates", icon: DollarSign, label: "FX rates", adminOnly: true },
