@@ -241,8 +241,8 @@ Uses calendar month, not `PerformancePeriodContext`. When UAT period is **2026-0
 
 ### PH-R-003 — Unclassified demo mismatch (**Critical** for demo UAT)
 
-- **`fn_unclassified_payment_count`** counts `incentive_qualifying_events` where `master_key` / `service_code` null → seed row **`q1000004`** satisfies this (readiness count ≥ 1).
-- **`fn_unclassified_payments_for_period`** **JOINs `client_invoice_payments`** on `source_id` → payment **`pay100004` is not in main seed** → **Unclassified admin screen empty** while command center shows count ≥ 1.
+- **`fn_unclassified_payment_count`** counts `incentive_qualifying_events` where `master_key` / `service_code` null → seed row **`a00e0004`** satisfies this (readiness count ≥ 1).
+- **`fn_unclassified_payments_for_period`** **JOINs `client_invoice_payments`** on `source_id` → payment **`a00d0004` is not in main seed** → **Unclassified admin screen empty** while command center shows count ≥ 1.
 
 **Affected UAT:** PH-UAT-UNCL-001, PH-UAT-W1, PH-UAT-W2.
 
@@ -357,7 +357,7 @@ Uses calendar month, not `PerformancePeriodContext`. When UAT period is **2026-0
 | 1 | Apply migrations **5C through 6B** (enum split first) in target Supabase | DevOps | ✓ |
 | 2 | Lovable Publish + republish `incentive-calculate-run` if needed | DevOps | ✓ |
 | 3 | Create 7 demo users + run demo seed SQL | QA / DevOps | ✓ |
-| 4 | Add **`pay100004`** (or §4.1) so unclassified UI matches readiness count | QA | ✓ |
+| 4 | Add **`a00d0004`** (or §4.1) so unclassified UI matches readiness count | QA | ✓ |
 | 5 | Fix **`budget_kind` filter** in `usePerformancePeriodMetrics` + `usePerformanceTeamRows` | Engineering | Recommended |
 | 6 | Wire **`GiveDiscount`** to `usePerformancePeriod()` | Engineering | Recommended |
 | 7 | Add migration for **`offer_events.sent`** OR document demo ALTER as mandatory step | Engineering | Recommended |
