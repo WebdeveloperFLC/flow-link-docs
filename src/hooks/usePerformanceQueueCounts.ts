@@ -6,6 +6,7 @@ export interface PerformanceQueueCounts {
   unclassified: number;
   pendingApprovals: number;
   promotionRequests: number;
+  walletExceptions: number;
 }
 
 export function usePerformanceQueueCounts(period: string): PerformanceQueueCounts {
@@ -14,6 +15,7 @@ export function usePerformanceQueueCounts(period: string): PerformanceQueueCount
     unclassified: 0,
     pendingApprovals: 0,
     promotionRequests: 0,
+    walletExceptions: 0,
   });
 
   useEffect(() => {
@@ -22,7 +24,7 @@ export function usePerformanceQueueCounts(period: string): PerformanceQueueCount
     (async () => {
       setState((s) => ({ ...s, loading: true }));
 
-      const [uncl, appr, promo] = await Promise.all([
+      const [uncl, appr, promo, walletExc] = await Promise.all([
         supabase.rpc("fn_unclassified_payment_count", { _period_key: period }),
         supabase
           .from("discount_approval_requests")
@@ -33,6 +35,7 @@ export function usePerformanceQueueCounts(period: string): PerformanceQueueCount
           .from("promotion_requests")
           .select("id", { count: "exact", head: true })
           .in("status", ["pending", "in_review"]),
+        supabase.rpc("fn_wallet_exception_pending_count", { _period_key: period }),
       ]);
 
       if (cancelled) return;
@@ -42,6 +45,7 @@ export function usePerformanceQueueCounts(period: string): PerformanceQueueCount
         unclassified: Number(uncl.data ?? 0),
         pendingApprovals: appr.count ?? 0,
         promotionRequests: promo.count ?? 0,
+        walletExceptions: Number(walletExc.data ?? 0),
       });
     })();
 

@@ -75,6 +75,7 @@ Performance Hub migrations (Lovable Publish — approve ALL that still show as p
   [ ] 20260625120000_incentive_platform_phase5h.sql  — AI studio gate + L0 suggestion polish
   [ ] 20260626120000_incentive_platform_phase5i.sql  — calendar, segments, auto-offer rules
   [ ] 20260627120000_incentive_platform_phase5j.sql  — admin unlock/void, wallet preview
+  [ ] 20260628120000_incentive_platform_phase5k.sql  — wallet policy CRUD, exception requests
 
 EOF
 }

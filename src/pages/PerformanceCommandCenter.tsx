@@ -43,8 +43,8 @@ const QUEUE_LINKS = [
   },
   {
     to: "/performance/admin/approvals",
-    label: "Discount approvals",
-    hint: "Depth-matrix queue",
+    label: "Discount & wallet approvals",
+    hint: "Depth matrix + exceptions",
     countKey: "pendingApprovals" as const,
   },
   {
@@ -150,7 +150,7 @@ export default function PerformanceCommandCenter() {
           </Card>
         )}
 
-        {(queues.unclassified > 0 || queues.pendingApprovals > 0 || queues.promotionRequests > 0) && (
+        {(queues.unclassified > 0 || queues.pendingApprovals > 0 || queues.promotionRequests > 0 || queues.walletExceptions > 0) && (
           <Card className="p-4 border-amber-500/30 bg-amber-500/5">
             <div className="flex items-center gap-2 mb-3">
               <AlertTriangle className="size-4 text-amber-600" />
@@ -158,7 +158,10 @@ export default function PerformanceCommandCenter() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {QUEUE_LINKS.map((q) => {
-                const count = queues[q.countKey];
+                const count =
+                  q.countKey === "pendingApprovals"
+                    ? queues.pendingApprovals + queues.walletExceptions
+                    : queues[q.countKey];
                 if (count === 0 && !queues.loading) return null;
                 return (
                   <Link
