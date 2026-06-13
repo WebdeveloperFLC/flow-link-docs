@@ -5,13 +5,38 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { PerformanceMetricCard } from "@/components/performance/PerformanceMetricCard";
+import { PerformanceTelecallerHome } from "@/components/performance/PerformanceTelecallerHome";
 import { usePerformanceHomeData } from "@/hooks/usePerformanceHomeData";
 import { formatInr } from "@/lib/performanceHubTheme";
 import { Trophy, TrendingUp } from "lucide-react";
 
+const HIGHER_THAN_TELECALLER = [
+  "admin",
+  "administrator",
+  "counselor",
+  "manager",
+  "documentation",
+  "commission_admin",
+] as const;
+
 export default function PerformanceHome() {
-  const { user } = useAuth();
+  const { user, roles, hasRole } = useAuth();
   const data = usePerformanceHomeData(user?.id);
+
+  const isTelecallerOnly =
+    hasRole("telecaller") && !roles.some((r) => HIGHER_THAN_TELECALLER.includes(r as (typeof HIGHER_THAN_TELECALLER)[number]));
+
+  if (isTelecallerOnly && user) {
+    return (
+      <AppLayout>
+        <PerformanceTelecallerHome
+          userId={user.id}
+          profileName={data.profileName}
+          branchName={data.branchName}
+        />
+      </AppLayout>
+    );
+  }
 
   const achPct = data.wallet?.achievementPct;
   const target = data.wallet?.assignedTarget;

@@ -1095,7 +1095,11 @@ const ClientDetail = () => {
 
           <ClientProgramsCard clientId={client.id} canEdit={canUpload} />
 
-          <ClientPromotionsStrip clientId={client.id} clientName={client.full_name ?? undefined} />
+          <ClientPromotionsStrip
+            clientId={client.id}
+            clientName={client.full_name ?? undefined}
+            clientPhone={(client as Client & { phone?: string | null }).phone ?? null}
+          />
 
           <ClientPaymentsCard clientId={client.id} activeServiceCode={serviceCtx.activeServiceCode} />
 
