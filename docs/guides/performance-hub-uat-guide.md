@@ -64,8 +64,9 @@ Run in Supabase **SQL Editor** or Lovable **Database → Migrations**. **Never c
 | 2 | `20260711120001_incentive_platform_phase6b.sql` — RLS + mutation guards |
 | 3 | `20260712120000_performance_hub_offer_events_sent.sql` — `offer_events` `sent` type |
 | 4 | `20260715120000_performance_hub_offers_studio_rls.sql` — MarCom offers library write + lifecycle RPC |
+| 5 | `20260716120000_performance_hub_demo_seed.sql` — **loads all PH-DEMO mock data** (runs `fn_seed_performance_hub_demo()`) |
 
-**Verify:**
+**Verify migrations:**
 
 ```sql
 SELECT 'director' = ANY(enum_range(NULL::app_role)::text[]);
@@ -73,6 +74,8 @@ SELECT 'director' = ANY(enum_range(NULL::app_role)::text[]);
 SELECT conname FROM pg_constraint
  WHERE conrelid = 'public.offer_events'::regclass
    AND conname LIKE '%event_type%';
+
+SELECT proname FROM pg_proc WHERE proname = 'fn_seed_performance_hub_demo';
 ```
 
 ### 1.3 Edge functions
@@ -159,20 +162,27 @@ ORDER BY u.email;
 ## Phase 3 — Load demo data
 
 **Owner:** DevOps / Engineering  
-**Prerequisite:** Phase 2 complete (users must exist).
+**Prerequisite:** Phase 2 complete (at least one **counselor** + **admin** must exist in `auth.users`).
 
-### 3.1 Run seed scripts (two steps)
+### 3.0 Automatic seed (preferred)
 
-1. Open **`docs/performance-hub/PERFORMANCE_HUB_DEMO_DATA.md`** in the repository.
-2. Copy the full **`$seed$` block** from **Section 4** and execute in **Supabase SQL Editor** (service-role / admin context).
-3. Copy the **`$seed_ext$` block** from **Section 4.4** and execute immediately after §4 succeeds.
+Migration **`20260716120000_performance_hub_demo_seed.sql`** (Phase 1 step 5) creates and runs:
 
-Both scripts are idempotent (`ON CONFLICT` on fixed UUIDs). Safe to re-run after a partial UAT cycle to reset queues.
+```sql
+SELECT public.fn_seed_performance_hub_demo();
+```
 
-| Step | Section | Purpose |
-|------|---------|---------|
-| 1 | §4 | Core UAT: clients, wallets, queues, incentives, A/B, journeys |
-| 2 | §4.4 | Studio + reports: calendar, segments, automation, lifecycle offers, analytics ROI, contest standings, plan rules, team metrics |
+This loads **all** mock data: 6 clients, 13 offers, wallets, queues, calendar, segments, automation, analytics events, contests, plan rules, incentives.
+
+If migration ran **before** Phase 2 users existed, the seed may have skipped. Re-run after users are created:
+
+```sql
+SELECT public.fn_seed_performance_hub_demo();
+```
+
+### 3.1 Manual seed (fallback)
+
+If migration 5 cannot be applied, copy **`$seed$`** + **`$seed_ext$`** from **`docs/performance-hub/PERFORMANCE_HUB_DEMO_DATA.md`** §4 + §4.4 into Supabase SQL Editor.
 
 ### 3.2 Verify seed
 
