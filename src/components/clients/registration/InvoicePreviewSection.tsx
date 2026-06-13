@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Lock, Tag } from "lucide-react";
 import { fetchActiveOffers, fetchAccountingEntities, type ServiceOffer, type BillingEntity, type InvoiceLineDraft } from "@/lib/clientRegistration";
+import { ServiceOffersConvergenceBanner } from "@/components/performance/ServiceOffersConvergenceBanner";
+import { LEGACY_OFFERS_READ_ONLY } from "@/lib/legacyOffersConvergence";
 import type { ServiceCatalogueItem } from "@/lib/leads";
 import type { FamilyMember } from "@/lib/clientRegistration";
 import { cn } from "@/lib/utils";
@@ -141,6 +143,10 @@ export const InvoicePreviewSection = ({
 
   return (
     <Card className="p-6 space-y-4 sticky top-4">
+      {isCounselor && (
+        <ServiceOffersConvergenceBanner scope="registration-invoice" />
+      )}
+
       <div className="flex items-center justify-between">
         <h3 className="font-semibold">Invoice Preview</h3>
         <Badge variant="outline">DRAFT</Badge>
@@ -178,6 +184,11 @@ export const InvoicePreviewSection = ({
             </Button>
             {showOffers && (
               <div className="space-y-1.5 border rounded-md p-2 bg-muted/30">
+                {LEGACY_OFFERS_READ_ONLY && (
+                  <p className="text-xs text-amber-800 dark:text-amber-200">
+                    Legacy offers are read-only — create new promotions in the Offer Library.
+                  </p>
+                )}
                 {offers.length === 0 && <div className="text-xs text-muted-foreground">No active offers.</div>}
                 {offers.map((o) => (
                   <div key={o.id} className="flex items-center justify-between text-xs">
@@ -189,10 +200,12 @@ export const InvoicePreviewSection = ({
                         {o.valid_until ? ` · expires ${o.valid_until}` : ""}
                       </div>
                     </div>
-                    {appliedOfferId === o.id ? (
-                      <Button type="button" size="sm" variant="outline" onClick={() => setAppliedOfferId(null)}>Remove</Button>
-                    ) : (
-                      <Button type="button" size="sm" variant="secondary" onClick={() => setAppliedOfferId(o.id)}>Apply</Button>
+                    {!LEGACY_OFFERS_READ_ONLY && (
+                      appliedOfferId === o.id ? (
+                        <Button type="button" size="sm" variant="outline" onClick={() => setAppliedOfferId(null)}>Remove</Button>
+                      ) : (
+                        <Button type="button" size="sm" variant="secondary" onClick={() => setAppliedOfferId(o.id)}>Apply</Button>
+                      )
                     )}
                   </div>
                 ))}

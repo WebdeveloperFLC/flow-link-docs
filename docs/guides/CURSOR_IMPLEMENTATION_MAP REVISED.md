@@ -141,7 +141,7 @@ Paste after loading `FutureLink_PerformanceHub_FULL.jsx` and this map. Tasks 1�
 | Task | Scope | Map phase | Ship status |
 |------|--------|-----------|-------------|
 | **1** | Mobile Give Discount (W8) — sticky submit, 390px layout | 2A | ✅ **Phase 6C** |
-| **2** | `service_offers` → `offers` convergence banner (O14) + flag | 2C | 🔲 Phase 6D |
+| **2** | `service_offers` → `offers` convergence banner (O14) + flag | 2C | ✅ **Phase 6D** |
 | **3** | “No target set” empty state on Home + Give Discount | 2B | ✅ **Phase 6A** |
 | **4** | Director read-only enforced server-side (`DIRECTOR_READ_ONLY`) | 1B | ✅ **Phase 6B** |
 | **5** | Production theming — prototype LIGHT/DARK tokens as CSS variables | 1A | 🔲 Phase 6E |
@@ -165,4 +165,5 @@ Paste after loading `FutureLink_PerformanceHub_FULL.jsx` and this map. Tasks 1�
 | **6A** | No target empty state (§6 Task 3) |
 | **6B** | Director read-only + server 403 (§6 Task 4) |
 | **6C** | Mobile Give Discount W8 (§6 Task 1) |
-| 6D–6E | O14 banner · theming |
+| **6D** | O14 service_offers convergence banner (§6 Task 2) |
+| 6E | Hub theming tokens |
