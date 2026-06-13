@@ -305,7 +305,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-V1 |
-| **2. Preconditions** | Priya logged in; offer events seeded for `o1000001` on `c1000001`. |
+| **2. Preconditions** | Priya logged in; offer events seeded for `a0200001` on `c1000001`. |
 | **3. Steps** | 1. Open `/performance`.<br>2. Locate **Your offer influence (O10)** card. |
 | **4. Expected Result** | Card visible with offers sent ≥1, redemptions ≥1, total influenced > 0 or wallet discount spent > 0. |
 | **5. Screenshot Required** | Yes |
@@ -375,8 +375,8 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-S2 |
-| **2. Preconditions** | Priya logged in; client **Farhan Ali** (`PH-DEMO-003`); offer **PH Demo · FL 10% IELTS** (`o1000001`); wallet `a0020001` has spendable balance. |
-| **3. Steps** | 1. Open `/performance/give-discount`.<br>2. Select client `PH-DEMO-003`, offer `o1000001`.<br>3. Enter **10%** discount on reference amount ≤ ₹50,000.<br>4. Submit. |
+| **2. Preconditions** | Priya logged in; client **Farhan Ali** (`PH-DEMO-003`); offer **PH Demo · FL 10% IELTS** (`a0200001`); wallet `a0020001` has spendable balance. |
+| **3. Steps** | 1. Open `/performance/give-discount`.<br>2. Select client `PH-DEMO-003`, offer `a0200001`.<br>3. Enter **10%** discount on reference amount ≤ ₹50,000.<br>4. Submit. |
 | **4. Expected Result** | Approval level **instant**; discount applies without manager queue; wallet debited or allocation created; no admin escalation. |
 | **5. Screenshot Required** | Yes |
 | **6. Screenshot Name Format** | `PH-UAT-S2_{YYYYMMDD}.png` |
@@ -426,8 +426,8 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-S3 |
-| **2. Preconditions** | Priya logged in; offer **PH Demo · Full Waiver** (`o1000004`, 100%). |
-| **3. Steps** | 1. Open `/performance/give-discount`.<br>2. Select client `PH-DEMO-003` and waiver offer `o1000004`.<br>3. Attempt submit as counselor. |
+| **2. Preconditions** | Priya logged in; offer **PH Demo · Full Waiver** (`a0200004`, 100%). |
+| **3. Steps** | 1. Open `/performance/give-discount`.<br>2. Select client `PH-DEMO-003` and waiver offer `a0200004`.<br>3. Attempt submit as counselor. |
 | **4. Expected Result** | UI or API blocks counselor from submitting 100% waiver (`block_counselor_waiver`); error or disabled submit; seeded pending `d1000004` shows admin-only path. |
 | **5. Screenshot Required** | Yes |
 | **6. Screenshot Name Format** | `PH-UAT-S3_{YYYYMMDD}.png` |
@@ -583,9 +583,9 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-OFF-LIB-001 |
-| **2. Preconditions** | MarCom logged in; offers `o1000001`–`o1000005` seeded. |
+| **2. Preconditions** | MarCom logged in; offers `a0200001`–`a0200005` seeded. |
 | **3. Steps** | 1. Open `/performance/offers/library`.<br>2. Filter/search **PH Demo**. |
-| **4. Expected Result** | Active offers (`o1000001`–`o1000004`, `o1000006`, `o1000007`) and draft `o1000005` listed with correct funding badges (FL / university / joint). |
+| **4. Expected Result** | Active offers (`a0200001`–`a0200004`, `a0200006`, `a0200007`) and draft `a0200005` listed with correct funding badges (FL / university / joint). |
 | **5. Screenshot Required** | Yes |
 | **6. Screenshot Name Format** | `PH-UAT-OFF-LIB-001_{YYYYMMDD}.png` |
 | **7. Pass / Fail** | ☐ Pass ☐ Fail |
@@ -634,7 +634,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-OFF-CAL-001 |
-| **2. Preconditions** | MarCom logged in; offers valid Jun 2026 (`o1000001`). |
+| **2. Preconditions** | MarCom logged in; offers valid Jun 2026 (`a0200001`). |
 | **3. Steps** | 1. Open `/performance/offers/calendar`.<br>2. Navigate to June 2026. |
 | **4. Expected Result** | **PH Demo · FL 10% IELTS Coaching** appears on calendar in validity window. |
 | **5. Screenshot Required** | Yes |
@@ -687,7 +687,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | **1. Test Case ID** | PH-UAT-R1 |
 | **2. Preconditions** | Admin logged in; experiment `ab100001` status `running`. |
 | **3. Steps** | 1. Open `/performance/offers/ab-tests`.<br>2. Open **PH Demo · IELTS discount test**. |
-| **4. Expected Result** | Experiment shows variants **A** (`o1000006`, 12%) and **B** (`o1000007`, 8%); status **running**. |
+| **4. Expected Result** | Experiment shows variants **A** (`a0200006`, 12%) and **B** (`a0200007`, 8%); status **running**. |
 | **5. Screenshot Required** | Yes |
 | **6. Screenshot Name Format** | `PH-UAT-R1_{YYYYMMDD}.png` |
 | **7. Pass / Fail** | ☐ Pass ☐ Fail |
