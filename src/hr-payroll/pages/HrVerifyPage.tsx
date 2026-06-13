@@ -1,0 +1,478 @@
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useHrAccess } from "../context/HrPayrollProvider";
+import { useHrPayrollLines, rpcRollupInputs } from "../hooks/useHrPayroll";
+import { ModalShell } from "../components/ui/ModalShell";
+import { StatusBadge } from "../components/ui/StatusBadge";
+import { inr } from "../lib/format";
+import { rebuildPayrollLine } from "../lib/hrApi";
+import { printSalarySlip } from "../lib/salarySlip";
+import type { PayrollCycleRow, PayrollLineRow } from "../lib/types";
+
+type OverrideFields = {
+  late: number;
+  mispunch: number;
+  leaves: number;
+  paid_leaves: number;
+  comp_off: number;
+  ul: number;
+  sandwich: number;
+  unpaid_training: number;
+};
+
+function exportRegister(lines: PayrollLineRow[], fmt: "CSV" | "Excel", cycle: PayrollCycleRow) {
+  const headers = [
+    "Employee",
+    "Code",
+    "Branch",
+    "MisAbs",
+    "Late",
+    "Leaves",
+    "PaidLv",
+    "CompOff",
+    "UL",
+    "Sandwich",
+    "Train",
+    "LateDed",
+    "MisDed",
+    "Payable",
+    "Daily",
+    "Gross",
+    "Incentive",
+    "Bonus",
+    "PF",
+    "ESIC",
+    "Net",
+  ];
+  const data = lines.map((r) => [
+    r.employees?.full_name ?? "",
+    r.employees?.emp_code ?? "",
+    r.employees?.branches?.name ?? "",
+    r.mispunch_count,
+    r.late_count,
+    r.leaves_taken,
+    r.paid_leaves,
+    r.comp_off,
+    r.ul_count,
+    r.sandwich_count,
+    r.unpaid_training,
+    r.late_deduction,
+    r.mispunch_deduction,
+    r.payable_days,
+    r.daily_rate,
+    r.gross_earned,
+    r.incentive,
+    r.bonus,
+    r.pf_employee,
+    r.esic_employee,
+    r.net_salary,
+  ]);
+  const sep = fmt === "CSV" ? "," : "\t";
+  const csv = [headers.join(sep), ...data.map((r) => r.join(sep))].join("\n");
+  const blob = new Blob([csv], {
+    type: fmt === "CSV" ? "text/csv" : "application/vnd.ms-excel",
+  });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `salary_register_${cycle.label.replace(/\s+/g, "_")}.${fmt === "CSV" ? "csv" : "xls"}`;
+  a.click();
+}
+
+function OverrideModal({
+  line,
+  cycleId,
+  onClose,
+  onSaved,
+}: {
+  line: PayrollLineRow;
+  cycleId: string;
+  onClose: () => void;
+  onSaved: (msg: string) => void;
+}) {
+  const qc = useQueryClient();
+  const [auto, setAuto] = useState<OverrideFields | null>(null);
+  const [f, setF] = useState<OverrideFields>({
+    late: line.late_count,
+    mispunch: line.mispunch_count,
+    leaves: line.leaves_taken,
+    paid_leaves: line.paid_leaves,
+    comp_off: line.comp_off,
+    ul: line.ul_count,
+    sandwich: line.sandwich_count,
+    unpaid_training: line.unpaid_training,
+  });
+  useEffect(() => {
+    void rpcRollupInputs(line.employee_id, cycleId).then((d) => {
+      setAuto({
+        late: Number(d.late ?? 0),
+        mispunch: Number(d.mispunch ?? 0),
+        leaves: Number(d.leaves ?? 0),
+        paid_leaves: Number(d.paid_leaves ?? 0),
+        comp_off: Number(d.comp_off ?? 0),
+        ul: Number(d.ul ?? 0),
+        sandwich: Number(d.sandwich ?? 0),
+        unpaid_training: Number(d.unpaid_training ?? 0),
+      });
+    });
+  }, [line.employee_id, cycleId]);
+
+  const setNum = (k: keyof OverrideFields, v: string) => {
+    setF((prev) => ({ ...prev, [k]: v === "" ? 0 : parseFloat(v) }));
+  };
+
+  const apply = async () => {
+    const overrideJson = { ...f };
+    const { error: updErr } = await supabase
+      .from("payroll_lines" as never)
+      .update({ is_overridden: true, override_json: overrideJson } as never)
+      .eq("id", line.id);
+    if (updErr) {
+      onSaved(updErr.message);
+      return;
+    }
+    try {
+      await rebuildPayrollLine(line.employee_id, cycleId);
+    } catch (e) {
+      onSaved(e instanceof Error ? e.message : "Rebuild failed");
+      return;
+    }
+    await qc.invalidateQueries({ queryKey: ["hr-payroll-lines"] });
+    onSaved("Override applied");
+    onClose();
+  };
+
+  const clear = async () => {
+    const { error } = await supabase.rpc("fn_clear_payroll_override" as never, {
+      p_employee: line.employee_id,
+      p_cycle: cycleId,
+    } as never);
+    if (error) {
+      onSaved(error.message);
+      return;
+    }
+    await qc.invalidateQueries({ queryKey: ["hr-payroll-lines"] });
+    onSaved("Override cleared");
+    onClose();
+  };
+
+  const Row = (k: keyof OverrideFields, label: string) => (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "7px 0",
+        borderBottom: "1px solid #eef0f5",
+      }}
+    >
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 500 }}>{label}</div>
+        <div style={{ fontSize: 11, color: "var(--mut)" }}>auto: {auto?.[k] ?? "…"}</div>
+      </div>
+      <input
+        className={`calc-input${auto && f[k] !== auto[k] ? " ovr" : ""}`}
+        type="number"
+        step="0.5"
+        value={f[k]}
+        onChange={(e) => setNum(k, e.target.value)}
+      />
+    </div>
+  );
+
+  return (
+    <ModalShell
+      title={`Override — ${line.employees?.full_name ?? "Employee"}`}
+      onClose={onClose}
+      footer={
+        <>
+          <button type="button" className="btn btn-bad" onClick={() => void clear()}>
+            Clear
+          </button>
+          <button type="button" className="btn" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="button" className="btn btn-primary" onClick={() => void apply()}>
+            Apply Override
+          </button>
+        </>
+      }
+    >
+      <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginBottom: 10 }}>
+        Auto = attendance roll-up + approvals. Override any field (gold = changed).
+      </div>
+      {Row("late", "Late Comings")}
+      {Row("mispunch", "Mispunch + Absent")}
+      {Row("leaves", "Leaves")}
+      {Row("paid_leaves", "Paid Leaves")}
+      {Row("comp_off", "Comp-Off")}
+      {Row("ul", "Unauthorized Leave")}
+      {Row("sandwich", "Sandwich Leave")}
+      {Row("unpaid_training", "Unpaid Training")}
+    </ModalShell>
+  );
+}
+
+export default function HrVerifyPage() {
+  const { cycleId } = useParams<{ cycleId?: string }>();
+  const { cycle: ctxCycle, can, fire } = useHrAccess();
+  const qc = useQueryClient();
+  const [branch, setBranch] = useState("All");
+  const [ovrLine, setOvrLine] = useState<PayrollLineRow | null>(null);
+
+  const cycle = ctxCycle;
+  const effectiveCycleId = cycleId ?? cycle?.id;
+  const { data: lines = [], isLoading } = useHrPayrollLines(effectiveCycleId);
+
+  const branches = useMemo(
+    () => ["All", ...new Set(lines.map((l) => l.employees?.branches?.name ?? "Unknown"))],
+    [lines],
+  );
+
+  const filtered = useMemo(
+    () =>
+      lines.filter((l) => branch === "All" || l.employees?.branches?.name === branch),
+    [lines, branch],
+  );
+
+  const totG = filtered.reduce((s, r) => s + r.gross_earned, 0);
+  const totN = filtered.reduce((s, r) => s + r.net_salary, 0);
+  const locked = cycle?.status === "Locked";
+
+  const lockCycle = async () => {
+    if (!effectiveCycleId) return;
+    const { error } = await supabase.rpc("fn_lock_payroll_cycle" as never, {
+      p_cycle: effectiveCycleId,
+    } as never);
+    if (error) {
+      const fallback = await supabase
+        .from("payroll_cycles" as never)
+        .update({ status: "Locked" } as never)
+        .eq("id", effectiveCycleId);
+      if (fallback.error) {
+        fire(fallback.error.message);
+        return;
+      }
+    }
+    fire("Payroll approved & locked");
+    await qc.invalidateQueries({ queryKey: ["hr-payroll-cycle"] });
+  };
+
+  const reopenCycle = async () => {
+    if (!effectiveCycleId) return;
+    const { error } = await supabase.rpc("fn_reopen_payroll_cycle" as never, {
+      p_cycle: effectiveCycleId,
+    } as never);
+    if (error) {
+      fire(error.message);
+      return;
+    }
+    fire("Payroll reopened");
+    await qc.invalidateQueries({ queryKey: ["hr-payroll-cycle"] });
+  };
+
+  if (!cycle) return <div className="empty">No payroll cycle loaded.</div>;
+
+  return (
+    <div className="grid" style={{ gap: 16 }}>
+      <div className="card-h">
+        <div className="row-flex">
+          <select
+            className="input"
+            style={{ width: 140 }}
+            value={branch}
+            onChange={(e) => setBranch(e.target.value)}
+          >
+            {branches.map((b) => (
+              <option key={b}>{b}</option>
+            ))}
+          </select>
+          <span className="tag">
+            {cycle.start_date} – {cycle.end_date} · {cycle.payroll_days}d
+          </span>
+          {locked && <StatusBadge status="Locked" />}
+        </div>
+        <div className="row-flex">
+          {can("export") &&
+            (["Excel", "CSV"] as const).map((f) => (
+              <button
+                key={f}
+                type="button"
+                className="btn btn-sm"
+                onClick={() => exportRegister(filtered, f === "CSV" ? "CSV" : "Excel", cycle)}
+              >
+                ↓ {f}
+              </button>
+            ))}
+          {can("approve") &&
+            (locked ? (
+              <button type="button" className="btn btn-sm" onClick={() => void reopenCycle()}>
+                Reopen
+              </button>
+            ) : (
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => void lockCycle()}>
+                Approve Payroll
+              </button>
+            ))}
+          {!can("export") && !can("approve") && (
+            <span className="muted" style={{ fontSize: 12 }}>
+              read-only access
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="card" style={{ padding: 0, overflow: "auto" }}>
+        {isLoading ? (
+          <div className="empty">Loading register…</div>
+        ) : (
+          <table style={{ minWidth: 1500 }}>
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>PF No.</th>
+                <th>Branch</th>
+                <th>Mis+Abs</th>
+                <th>Late</th>
+                <th>Leaves</th>
+                <th>Paid Lv</th>
+                <th>C-Off</th>
+                <th>UL</th>
+                <th>Sand</th>
+                <th>Train</th>
+                <th>L-Ded</th>
+                <th>M-Ded</th>
+                <th>Payable</th>
+                <th>Daily</th>
+                <th>Gross</th>
+                <th>Inc</th>
+                <th>Bonus</th>
+                <th>PF</th>
+                <th>ESIC</th>
+                <th>Net Salary</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((r) => (
+                <tr key={r.id}>
+                  <td className="strong">
+                    {r.employees?.full_name}
+                    {r.is_overridden && (
+                      <span className="tag" style={{ marginLeft: 4, color: "var(--clay)" }}>
+                        ovr
+                      </span>
+                    )}
+                    <div className="muted mono" style={{ fontSize: 10 }}>
+                      {r.employees?.emp_code}
+                    </div>
+                  </td>
+                  <td className="mono" style={{ fontSize: 10 }}>
+                    {r.employees?.pf_number ?? "—"}
+                  </td>
+                  <td>{r.employees?.branches?.name}</td>
+                  <td style={{ textAlign: "center", color: r.mispunch_count ? "var(--clay)" : "inherit" }}>
+                    {r.mispunch_count}
+                  </td>
+                  <td style={{ textAlign: "center" }}>{r.late_count}</td>
+                  <td style={{ textAlign: "center" }}>{r.leaves_taken}</td>
+                  <td style={{ textAlign: "center" }}>{r.paid_leaves}</td>
+                  <td style={{ textAlign: "center", color: r.comp_off ? "var(--good)" : "inherit" }}>
+                    {r.comp_off}
+                  </td>
+                  <td style={{ textAlign: "center", color: r.ul_count ? "var(--rose)" : "inherit" }}>
+                    {r.ul_count}
+                  </td>
+                  <td style={{ textAlign: "center", color: r.sandwich_count ? "var(--rose)" : "inherit" }}>
+                    {r.sandwich_count}
+                  </td>
+                  <td style={{ textAlign: "center", color: r.unpaid_training ? "var(--rose)" : "inherit" }}>
+                    {r.unpaid_training}
+                  </td>
+                  <td style={{ textAlign: "center" }}>{r.late_deduction}</td>
+                  <td style={{ textAlign: "center" }}>{r.mispunch_deduction}</td>
+                  <td style={{ textAlign: "center", fontWeight: 700, color: "var(--moss)" }}>
+                    {r.payable_days}
+                  </td>
+                  <td className="mono" style={{ fontSize: 11 }}>
+                    {inr(r.daily_rate)}
+                  </td>
+                  <td className="mono">{inr(r.gross_earned)}</td>
+                  <td className="mono">{inr(r.incentive)}</td>
+                  <td className="mono">{inr(r.bonus)}</td>
+                  <td className="mono" style={{ color: "var(--rose)" }}>
+                    {inr(r.pf_employee)}
+                  </td>
+                  <td className="mono" style={{ color: "var(--rose)" }}>
+                    {inr(r.esic_employee)}
+                  </td>
+                  <td className="mono strong">{inr(r.net_salary)}</td>
+                  <td>
+                    <div className="row-flex">
+                      {can("export") && r.employees && cycle && (
+                        <button
+                          type="button"
+                          className="btn btn-sm"
+                          onClick={() => printSalarySlip(r.employees!, r, cycle)}
+                        >
+                          Slip
+                        </button>
+                      )}
+                      {can("override") ? (
+                        <button
+                          type="button"
+                          className="btn btn-sm"
+                          disabled={locked}
+                          onClick={() => setOvrLine(r)}
+                        >
+                          Ovr
+                        </button>
+                      ) : (
+                        !can("export") && (
+                          <span className="muted" style={{ fontSize: 11 }}>
+                            —
+                          </span>
+                        )
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr style={{ borderTop: "2px solid var(--line)" }}>
+                <td className="strong" colSpan={15} style={{ textAlign: "right" }}>
+                  Totals
+                </td>
+                <td className="mono strong">{inr(totG)}</td>
+                <td colSpan={4} />
+                <td className="mono strong" style={{ color: "var(--moss)" }}>
+                  {inr(totN)}
+                </td>
+                <td />
+              </tr>
+            </tfoot>
+          </table>
+        )}
+      </div>
+
+      <div className="card" style={{ background: "#f1f5f1", borderColor: "#cfe1f7" }}>
+        <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>
+          <strong>Payable</strong> = Days − Leaves + PaidLeaves + CompOff − LateDed − (UL×2) −
+          Sandwich − MispunchDed − UnpaidTraining. <strong>Gross</strong> = Daily × Payable.{" "}
+          <strong>Net</strong> = Gross + Incentive + Bonus − PF − ESIC.
+        </div>
+      </div>
+
+      {ovrLine && effectiveCycleId && (
+        <OverrideModal
+          line={ovrLine}
+          cycleId={effectiveCycleId}
+          onClose={() => setOvrLine(null)}
+          onSaved={fire}
+        />
+      )}
+    </div>
+  );
+}

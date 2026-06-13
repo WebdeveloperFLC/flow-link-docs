@@ -99,7 +99,9 @@ begin
     count(*) filter (where status in ('Leave','Sick Leave')),
     count(*) filter (where status in ('Week Off','Holiday')),
     count(*) filter (where status='Unauthorized Leave'),
-    count(*) filter (where is_mispunch),
+    -- Excel "mispunch + absent" column: missed punches and unexplained absents share allowance
+    count(*) filter (where is_mispunch)
+      + count(*) filter (where status='Absent'),
     count(*) filter (where check_in is not null
        and (extract(epoch from check_in)/60) - (extract(epoch from coalesce(sh.login_time,'10:00'))/60) > coalesce(sh.grace_min,5)
        and status not in ('Week Off','Holiday','Leave','Sick Leave','Unauthorized Leave','Absent'))

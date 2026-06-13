@@ -1,31 +1,46 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { HrPayrollShell } from "./components/HrPayrollLayout";
+import HrDashboardPage from "./pages/HrDashboardPage";
+import HrEssPage from "./pages/HrEssPage";
+import HrEmp360Page from "./pages/HrEmp360Page";
 import HrEmployeesPage from "./pages/HrEmployeesPage";
+import HrShiftsPage from "./pages/HrShiftsPage";
+import HrTrainingPage from "./pages/HrTrainingPage";
+import HrCalculatorPage from "./pages/HrCalculatorPage";
+import HrVerifyPage from "./pages/HrVerifyPage";
+import HrAttendancePage from "./pages/HrAttendancePage";
+import HrLeavePage from "./pages/HrLeavePage";
+import HrCompoffPage from "./pages/HrCompoffPage";
+import HrLatePage from "./pages/HrLatePage";
+import HrMispunchPage from "./pages/HrMispunchPage";
+import HrHolidaysPage from "./pages/HrHolidaysPage";
+import HrConfigPage from "./pages/HrConfigPage";
 import HrRolesPage from "./pages/HrRolesPage";
-import { HrPlaceholderPage } from "./pages/HrPlaceholderPage";
-import { HR_SCREEN_TITLES } from "./lib/constants";
+import HrAuditPage from "./pages/HrAuditPage";
+import HrImportPage from "./pages/HrImportPage";
 
 export default function HrPayrollRoutes() {
   return (
     <Routes>
       <Route element={<HrPayrollShell />}>
-        <Route index element={<HrPlaceholderPage label={HR_SCREEN_TITLES.dashboard} />} />
-        <Route path="me" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.ess} />} />
-        <Route path="employee/:id" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.emp360} />} />
+        <Route index element={<HrDashboardPage />} />
+        <Route path="me" element={<HrEssPage />} />
+        <Route path="employee/:id" element={<HrEmp360Page />} />
         <Route path="employees" element={<HrEmployeesPage />} />
-        <Route path="shifts" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.shifts} />} />
-        <Route path="training" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.training} />} />
-        <Route path="calculator" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.calculator} />} />
-        <Route path="payroll/:cycleId?" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.verify} />} />
-        <Route path="attendance" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.attendance} />} />
-        <Route path="leave" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.leave} />} />
-        <Route path="compoff" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.compoff} />} />
-        <Route path="late" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.late} />} />
-        <Route path="mispunch" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.mispunch} />} />
-        <Route path="holidays" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.holiday} />} />
-        <Route path="config" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.config} />} />
+        <Route path="shifts" element={<HrShiftsPage />} />
+        <Route path="training" element={<HrTrainingPage />} />
+        <Route path="calculator" element={<HrCalculatorPage />} />
+        <Route path="payroll/:cycleId?" element={<HrVerifyPage />} />
+        <Route path="attendance" element={<HrAttendancePage />} />
+        <Route path="leave" element={<HrLeavePage />} />
+        <Route path="compoff" element={<HrCompoffPage />} />
+        <Route path="late" element={<HrLatePage />} />
+        <Route path="mispunch" element={<HrMispunchPage />} />
+        <Route path="holidays" element={<HrHolidaysPage />} />
+        <Route path="config" element={<HrConfigPage />} />
+        <Route path="import" element={<HrImportPage />} />
         <Route path="roles" element={<HrRolesPage />} />
-        <Route path="audit" element={<HrPlaceholderPage label={HR_SCREEN_TITLES.audit} />} />
+        <Route path="audit" element={<HrAuditPage />} />
         <Route path="*" element={<Navigate to="/hr" replace />} />
       </Route>
     </Routes>

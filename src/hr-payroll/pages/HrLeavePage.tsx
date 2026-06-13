@@ -1,0 +1,304 @@
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useHrAccess } from "../context/HrPayrollProvider";
+import { useHrEmployees } from "../hooks/useHrEmployees";
+import { useHrLeaveRequests } from "../hooks/useHrRequests";
+import { StatusBadge } from "../components/ui/StatusBadge";
+import { ModalShell } from "../components/ui/ModalShell";
+import { HR_ORG_ID } from "../lib/constants";
+import { hrAudit } from "../lib/hrApi";
+import type { LeaveRequestRow } from "../lib/types";
+
+function LeaveModal({
+  onClose,
+  onSaved,
+}: {
+  onClose: () => void;
+  onSaved: (msg: string) => void;
+}) {
+  const { data: employees = [] } = useHrEmployees();
+  const [f, setF] = useState({
+    employee_id: employees[0]?.id ?? "",
+    type: "Annual Leave",
+    from_date: "",
+    to_date: "",
+    days: 1,
+    reason: "",
+    has_document: false,
+  });
+  const [err, setErr] = useState<Record<string, string>>({});
+
+  const save = async () => {
+    const e: Record<string, string> = {};
+    if (!f.from_date) e.from_date = "Required";
+    if (!f.reason.trim()) e.reason = "Reason required";
+    if (!f.days || f.days <= 0) e.days = "> 0";
+    setErr(e);
+    if (Object.keys(e).length) return;
+
+    const { error } = await supabase.from("leave_requests" as never).insert({
+      org_id: HR_ORG_ID,
+      employee_id: f.employee_id,
+      type: f.type,
+      from_date: f.from_date,
+      to_date: f.to_date || f.from_date,
+      days: f.days,
+      reason: f.reason.trim(),
+      has_document: f.has_document,
+      status: "Pending",
+    } as never);
+    if (error) {
+      onSaved(error.message);
+      return;
+    }
+    await hrAudit("Leave Applied", f.type, "—", f.from_date);
+    onSaved("Leave submitted");
+    onClose();
+  };
+
+  return (
+    <ModalShell
+      title="Apply for Leave"
+      onClose={onClose}
+      footer={
+        <>
+          <button type="button" className="btn" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="button" className="btn btn-primary" onClick={() => void save()}>
+            Submit
+          </button>
+        </>
+      }
+    >
+      <label className="fld">
+        <span className="l">Employee</span>
+        <select
+          className="input"
+          value={f.employee_id}
+          onChange={(e) => setF({ ...f, employee_id: e.target.value })}
+        >
+          {employees.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.full_name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="fld">
+        <span className="l">Leave Type</span>
+        <select className="input" value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })}>
+          {[
+            "Annual Leave",
+            "Sick Leave",
+            "Casual Leave",
+            "Comp-Off Leave",
+            "Special Leave",
+            "Unpaid Leave",
+          ].map((o) => (
+            <option key={o}>{o}</option>
+          ))}
+        </select>
+      </label>
+      <div className="grid g3" style={{ gap: "0 14px" }}>
+        <label className="fld">
+          <span className="l">From</span>
+          <input
+            className={`input${err.from_date ? " err" : ""}`}
+            type="date"
+            value={f.from_date}
+            onChange={(e) => setF({ ...f, from_date: e.target.value })}
+          />
+        </label>
+        <label className="fld">
+          <span className="l">To</span>
+          <input
+            className="input"
+            type="date"
+            value={f.to_date}
+            onChange={(e) => setF({ ...f, to_date: e.target.value })}
+          />
+        </label>
+        <label className="fld">
+          <span className="l">Days</span>
+          <input
+            className={`input mono${err.days ? " err" : ""}`}
+            type="number"
+            step="0.5"
+            value={f.days}
+            onChange={(e) => setF({ ...f, days: parseFloat(e.target.value) || 0 })}
+          />
+        </label>
+      </div>
+      <label className="fld">
+        <span className="l">Reason</span>
+        <textarea
+          className={`input${err.reason ? " err" : ""}`}
+          rows={2}
+          value={f.reason}
+          onChange={(e) => setF({ ...f, reason: e.target.value })}
+        />
+      </label>
+      <label className="row-flex" style={{ fontSize: 13, cursor: "pointer" }}>
+        <input
+          type="checkbox"
+          checked={f.has_document}
+          onChange={(e) => setF({ ...f, has_document: e.target.checked })}
+        />
+        Document attached (medical/proof)
+      </label>
+    </ModalShell>
+  );
+}
+
+export default function HrLeavePage() {
+  const { can, fire } = useHrAccess();
+  const qc = useQueryClient();
+  const { data: leaves = [], isLoading } = useHrLeaveRequests();
+  const [open, setOpen] = useState(false);
+
+  const setStatus = async (row: LeaveRequestRow, status: string) => {
+    const { error } = await supabase
+      .from("leave_requests" as never)
+      .update({ status } as never)
+      .eq("id", row.id);
+    if (error) {
+      fire(error.message);
+      return;
+    }
+    await hrAudit(`Leave ${status}`, row.employees?.full_name ?? row.id, row.status, status);
+    fire(`Leave ${status.toLowerCase()}`);
+    await qc.invalidateQueries({ queryKey: ["hr-leaves"] });
+    await qc.invalidateQueries({ queryKey: ["hr-pending-counts"] });
+  };
+
+  const remove = async (row: LeaveRequestRow) => {
+    if (!confirm("Delete this leave request?")) return;
+    const { error } = await supabase.from("leave_requests" as never).delete().eq("id", row.id);
+    if (error) {
+      fire(error.message);
+      return;
+    }
+    fire("Leave deleted");
+    await qc.invalidateQueries({ queryKey: ["hr-leaves"] });
+  };
+
+  return (
+    <div className="grid" style={{ gap: 16 }}>
+      <div className="card-h">
+        <span className="tag">6-Day: 18/yr (1.5/mo) · 5-Day: 10/yr · Sick cap 8 · final approval: HR</span>
+        {can("apply") && (
+          <button type="button" className="btn btn-primary" onClick={() => setOpen(true)}>
+            + Apply Leave
+          </button>
+        )}
+      </div>
+      <div className="card" style={{ padding: 0, overflow: "auto" }}>
+        {isLoading ? (
+          <div className="empty">Loading…</div>
+        ) : leaves.length === 0 ? (
+          <div className="empty">
+            <div className="ico">⊟</div>
+            No leave requests.
+          </div>
+        ) : (
+          <table style={{ minWidth: 800 }}>
+            <thead>
+              <tr>
+                <th>Ref</th>
+                <th>Employee</th>
+                <th>Type</th>
+                <th>Dates</th>
+                <th>Days</th>
+                <th>Doc</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leaves.map((l) => (
+                <tr key={l.id}>
+                  <td className="mono strong" style={{ fontSize: 12 }}>
+                    {l.id.slice(0, 8)}
+                  </td>
+                  <td>
+                    {l.employees?.full_name}
+                    <div className="muted" style={{ fontSize: 11.5 }}>
+                      {l.reason}
+                    </div>
+                  </td>
+                  <td>{l.type}</td>
+                  <td>
+                    {l.from_date}
+                    {l.from_date !== l.to_date ? ` – ${l.to_date}` : ""}
+                  </td>
+                  <td style={{ textAlign: "center" }}>{l.days}</td>
+                  <td>{l.has_document ? <span className="tag">📎</span> : <span className="muted">—</span>}</td>
+                  <td>
+                    <StatusBadge status={l.status} />
+                  </td>
+                  <td>
+                    <div className="row-flex">
+                      {can("approve") ? (
+                        l.status === "Pending" ? (
+                          <>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-good"
+                              onClick={() => void setStatus(l, "Approved")}
+                            >
+                              Approve
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-bad"
+                              onClick={() => void setStatus(l, "Rejected")}
+                            >
+                              Reject
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-sm"
+                            onClick={() => void setStatus(l, "Pending")}
+                          >
+                            Reopen
+                          </button>
+                        )
+                      ) : (
+                        <span className="muted" style={{ fontSize: 11.5 }}>
+                          view only
+                        </span>
+                      )}
+                      {can("approve") && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-ghost btn-bad"
+                          onClick={() => void remove(l)}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      {open && (
+        <LeaveModal
+          onClose={() => setOpen(false)}
+          onSaved={(m) => {
+            fire(m);
+            void qc.invalidateQueries({ queryKey: ["hr-leaves"] });
+            void qc.invalidateQueries({ queryKey: ["hr-pending-counts"] });
+          }}
+        />
+      )}
+    </div>
+  );
+}

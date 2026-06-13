@@ -8,7 +8,7 @@ import {
   type HrScreenKey,
 } from "../lib/constants";
 import { HR_NAV, screenKeyFromPath } from "../lib/nav";
-import { HR_ROLE_LIST, useHrAccess } from "../context/HrPayrollProvider";
+import { HR_ROLE_LIST, HrPayrollProvider, useHrAccess } from "../context/HrPayrollProvider";
 
 function firstAllowedScreen(canSee: (s: HrScreenKey) => boolean): string {
   for (const g of HR_NAV) {
