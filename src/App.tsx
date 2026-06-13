@@ -72,7 +72,6 @@ import PortalAppointments from "./pages/portal/PortalAppointments";
 import PortalNotifications from "./pages/portal/PortalNotifications";
 import PortalSettings from "./pages/portal/PortalSettings";
 import PortalInviteRedeem from "./pages/portal/PortalInviteRedeem";
-import OffersAdmin from "./pages/OffersAdmin";
 import OffersAnalytics from "./pages/OffersAnalytics";
 import AssessmentLanding from "./pages/assessment/AssessmentLanding";
 import AssessmentInvite from "./pages/assessment/AssessmentInvite";
@@ -450,14 +449,6 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <Users />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/offers-admin"
-                    element={
-                      <ProtectedRoute>
-                        <OffersAdmin />
                       </ProtectedRoute>
                     }
                   />

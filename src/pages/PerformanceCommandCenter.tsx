@@ -93,7 +93,7 @@ const ADMIN_LINKS = [
   { to: "/performance/offers", label: "Offers studio", icon: Tag },
   { to: "/performance/offers/ab-tests", label: "A/B tests", icon: FlaskConical },
   { to: "/performance/offers/journeys", label: "Automation journeys", icon: Tag },
-  { to: "/offers-admin", label: "Offers library", icon: Tag },
+  { to: "/performance/offers/library", label: "Offers library", icon: Tag },
 ] as const;
 
 export default function PerformanceCommandCenter() {

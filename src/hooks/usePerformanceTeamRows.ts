@@ -96,7 +96,7 @@ export function usePerformanceTeamRows(
         unlocked_amount?: number;
         budget_kind?: string;
       }[]) {
-        if ((w.budget_kind ?? "personal") !== "personal") continue;
+        if (w.budget_kind !== "month_to_month" && w.budget_kind !== "personal") continue;
         walletsByCounselor.set(w.counselor_id, {
           id: w.id,
           unlocked: Number(w.unlocked_amount ?? 0),

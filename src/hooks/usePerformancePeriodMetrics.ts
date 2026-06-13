@@ -88,7 +88,9 @@ export function usePerformancePeriodMetrics(
         potential_wallet?: number;
         budget_kind?: string;
       }[]).filter(
-        (w) => inSet(w.counselor_id, counselorFilter) && (w.budget_kind ?? "personal") === "personal",
+        (w) =>
+          inSet(w.counselor_id, counselorFilter) &&
+          (w.budget_kind === "month_to_month" || w.budget_kind === "personal"),
       );
 
       const walletUnlocked = wallets.reduce((s, w) => s + Number(w.unlocked_amount ?? 0), 0);
