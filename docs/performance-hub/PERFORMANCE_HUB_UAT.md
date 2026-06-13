@@ -1,6 +1,7 @@
 # Performance Hub — User Acceptance Testing (UAT)
 
 **Environment:** Staging / Lovable preview after Phase **6B** publish  
+**Full setup & workflow (team handoff):** [`../guides/performance-hub-uat-guide.md`](../guides/performance-hub-uat-guide.md) — in-app **Guide → Performance Hub UAT** (`/guides/performance-hub-uat`)  
 **Tester quick start (non-technical):** [`PERFORMANCE_HUB_TESTER_QUICKSTART.md`](./PERFORMANCE_HUB_TESTER_QUICKSTART.md)  
 **Demo data:** [`PERFORMANCE_HUB_DEMO_DATA.md`](./PERFORMANCE_HUB_DEMO_DATA.md) — load before executing tests  
 **Demo coverage audit:** [`PERFORMANCE_HUB_UAT_DEMO_COVERAGE.md`](./PERFORMANCE_HUB_UAT_DEMO_COVERAGE.md)

@@ -1,6 +1,7 @@
 # Performance Hub — Tester Quick Start
 
 **Audience:** Non-technical UAT testers  
+**Team setup & full workflow:** [`../guides/performance-hub-uat-guide.md`](../guides/performance-hub-uat-guide.md) — **Guide → Performance Hub UAT** (`/guides/performance-hub-uat`)  
 **Full test pack:** [`PERFORMANCE_HUB_UAT.md`](./PERFORMANCE_HUB_UAT.md) (51 cases)  
 **Sign-off form:** [`PERFORMANCE_HUB_UAT_SIGNOFF.md`](./PERFORMANCE_HUB_UAT_SIGNOFF.md)
 

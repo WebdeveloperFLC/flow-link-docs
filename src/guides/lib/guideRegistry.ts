@@ -162,6 +162,16 @@ export const STAFF_GUIDES: StaffGuideDef[] = [
     contentFile: "performance-hub-prototype-gaps.md",
     relatedModule: "incentives",
   },
+  {
+    slug: "performance-hub-uat",
+    title: "Performance Hub — Full UAT & Testing Guide",
+    navLabel: "Performance Hub UAT",
+    description:
+      "Complete UAT handoff: migrations, 7 demo users, demo seed, smoke gate, 51 test cases, defect tracker, and sign-off.",
+    category: "Product / Finance",
+    contentFile: "performance-hub-uat-guide.md",
+    relatedModule: "incentives",
+  },
 ];
 
 /** Staff guides only — intentionally excludes `docs/governance/`. */
