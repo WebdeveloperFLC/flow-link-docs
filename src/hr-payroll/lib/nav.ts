@@ -55,6 +55,9 @@ export const HR_NAV: NavGroup[] = [
   },
 ];
 
+/** Extra route not in ALL_HR_SCREENS — linked from Config in app */
+export const HR_IMPORT_ROUTE = "/hr/import";
+
 export function screenKeyFromPath(pathname: string): HrScreenKey {
   if (pathname === "/hr" || pathname === "/hr/") return "dashboard";
   if (pathname.startsWith("/hr/me")) return "ess";
