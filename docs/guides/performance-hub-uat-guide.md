@@ -68,6 +68,7 @@ Run in Supabase **SQL Editor** or Lovable **Database → Migrations**. **Never c
 | 6 | `20260716120001_performance_hub_demo_seed_idempotent.sql` — idempotent upsert fix + re-run seed |
 | 7 | `20260716120002_performance_hub_demo_wallet_rebind.sql` — rebind demo wallets to `ph.counselor1` / `ph.counselor2` (fixes empty Give Discount wallet) |
 | 8 | `20260716120003_performance_hub_demo_seed_score_upsert.sql` — fix `counselor_performance_scores` re-seed after rebind (if seed fails on `a0100002` duplicate) |
+| 9 | `20260716120004_performance_hub_demo_wallet_unlock.sql` — fix ₹0 spendable (achievement threshold + scoped wallet unlock) |
 
 **Verify migrations:**
 
@@ -250,6 +251,14 @@ WHERE dw.period_key = '2026-06'
 ```
 
 **Expected:** `ph.counselor1@flowlink.demo` owns **PH Demo · Priya Jun-2026** with balance **15000**.
+
+### 3.4 Spendable / Unlocked shows ₹0 (wallet balance visible)
+
+**Cause:** Give Discount calls `fn_sync_wallet_metrics` on load. Month-to-month wallets unlock only when period achievement ≥ **50%** (`wallet_settings.unlock_threshold_pct`). Demo verified payments total ~**₹195.5k** against a **₹500k** target → **~39%** → unlocked zeroed while **balance** stays at seeded value. Scoped wallets (Strategic DE) were also gated by achievement instead of manual balance.
+
+**Fix:** Apply migration **`20260716120004_performance_hub_demo_wallet_unlock.sql`** (lowers demo target to ₹300k → ~65% achievement; scoped wallets unlock from balance).
+
+**UI tip:** Use the **Wallet to debit** dropdown → select **PH Demo · Priya Jun-2026** for primary UAT (not Strategic DE unless testing Germany scope).
 
 ---
 

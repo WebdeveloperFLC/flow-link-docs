@@ -223,7 +223,7 @@ BEGIN
   (
     'a0020001-0001-4000-8000-000000000001', v_priya, v_branch_genda, v_period, 'INR',
     'PH Demo · Priya Jun-2026', 'month_to_month',
-    500000, 25000, 15000, 15000, 25000,
+    300000, 25000, 15000, 15000, 25000,
     320000, 64, 15
   ),
   (
@@ -264,7 +264,7 @@ BEGIN
   ) VALUES (
     'a0030001-0001-4000-8000-000000000001',
     v_priya, v_branch_genda, v_period, 'monthly',
-    'net_revenue', 500000, 'INR', NULL
+    'net_revenue', 300000, 'INR', NULL
   )
   ON CONFLICT (id) DO NOTHING;
 
