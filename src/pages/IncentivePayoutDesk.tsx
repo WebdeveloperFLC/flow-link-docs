@@ -22,6 +22,8 @@ interface PayoutRow {
   status: string;
   paid_at: string | null;
   accounting_ap_bill_id: string | null;
+  payroll_status?: string;
+  payroll_batch_ref?: string | null;
 }
 
 const fmt = (n: number, ccy: string) =>
@@ -37,6 +39,8 @@ export default function IncentivePayoutDesk() {
   const [tdsPct, setTdsPct] = useState("10");
   const [busy, setBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
+  const [payrollBatchRef, setPayrollBatchRef] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   async function load() {
     const [po, prof] = await Promise.all([
@@ -177,12 +181,58 @@ export default function IncentivePayoutDesk() {
       );
       const suffix = exportRunId.trim() ? exportRunId.trim().slice(0, 8) : "all";
       downloadCsv(`incentive-payouts-${suffix}.csv`, csv);
+      if (exportRows.length) {
+        await supabase
+          .from("incentive_payouts")
+          .update({ payroll_status: "exported" })
+          .in(
+            "id",
+            exportRows.map((r) => r.payout_id),
+          );
+        await load();
+      }
       toast({ title: `Exported ${exportRows.length} row(s)` });
     } catch (e: any) {
       toast({ title: "Export failed", description: e.message, variant: "destructive" });
     } finally {
       setExportBusy(false);
     }
+  }
+
+  async function markPayrollSent() {
+    const ids = [...selectedIds];
+    if (!ids.length) {
+      toast({ title: "Select payout rows", variant: "destructive" });
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("fn_mark_payouts_payroll_sent", {
+        _payout_ids: ids,
+        _batch_ref: payrollBatchRef.trim() || null,
+      });
+      if (error) throw error;
+      toast({ title: `Marked ${ids.length} payout(s) sent to payroll` });
+      setSelectedIds(new Set());
+      await load();
+    } catch (e: unknown) {
+      toast({
+        title: "Error",
+        description: e instanceof Error ? e.message : String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   }
 
   return (
@@ -228,6 +278,28 @@ export default function IncentivePayoutDesk() {
           </p>
         </Card>
 
+        <Card className="p-5 space-y-3">
+          <h2 className="text-lg font-semibold">Payroll handoff (I1)</h2>
+          <p className="text-sm text-muted-foreground">
+            After CSV export, mark selected rows as sent to payroll with an optional batch reference.
+          </p>
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground">Batch reference</label>
+              <Input
+                className="mt-1 w-48"
+                value={payrollBatchRef}
+                onChange={(e) => setPayrollBatchRef(e.target.value)}
+                placeholder="PAY-2026-06"
+              />
+            </div>
+            <Button variant="outline" disabled={busy || selectedIds.size === 0} onClick={markPayrollSent}>
+              <CheckCircle className="size-4 mr-1" />
+              Mark {selectedIds.size || ""} sent to payroll
+            </Button>
+          </div>
+        </Card>
+
         <Card className="p-5">
           <h2 className="text-lg font-semibold mb-4">Payout queue</h2>
           {rows.length === 0 ? (
@@ -237,11 +309,13 @@ export default function IncentivePayoutDesk() {
               <table className="w-full text-sm">
                 <thead className="text-left text-muted-foreground border-b">
                   <tr>
+                    <th className="py-2 pr-2 w-8"></th>
                     <th className="py-2 pr-4">Counselor</th>
                     <th className="py-2 pr-4 text-right">Gross</th>
                     <th className="py-2 pr-4 text-right">TDS</th>
                     <th className="py-2 pr-4 text-right">Net</th>
                     <th className="py-2 pr-4">Status</th>
+                    <th className="py-2 pr-4">Payroll</th>
                     <th className="py-2 pr-4">AP bill ID</th>
                     <th className="py-2 pr-4">Actions</th>
                   </tr>
@@ -249,11 +323,22 @@ export default function IncentivePayoutDesk() {
                 <tbody>
                   {rows.map((r) => (
                     <tr key={r.id} className="border-b last:border-0">
+                      <td className="py-2 pr-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(r.id)}
+                          onChange={() => toggleSelect(r.id)}
+                        />
+                      </td>
                       <td className="py-2 pr-4">{names[r.counselor_id] ?? r.counselor_id}</td>
                       <td className="py-2 pr-4 text-right">{fmt(r.gross_amount, r.settlement_currency)}</td>
                       <td className="py-2 pr-4 text-right">{fmt(r.tds_amount, r.settlement_currency)}</td>
                       <td className="py-2 pr-4 text-right font-medium">{fmt(r.net_amount, r.settlement_currency)}</td>
                       <td className="py-2 pr-4">{r.status}</td>
+                      <td className="py-2 pr-4 text-xs">
+                        {r.payroll_status ?? "pending"}
+                        {r.payroll_batch_ref ? ` · ${r.payroll_batch_ref}` : ""}
+                      </td>
                       <td className="py-2 pr-4">
                         <Input
                           className="h-8 w-36 text-xs"

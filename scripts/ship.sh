@@ -78,6 +78,7 @@ Performance Hub migrations (Lovable Publish — approve ALL that still show as p
   [ ] 20260628120000_incentive_platform_phase5k.sql  — wallet policy CRUD, exception requests
   [ ] 20260629120000_incentive_platform_phase5l.sql  — branch_pool enum, contest prize_settlement
   [ ] 20260629120001_incentive_platform_phase5l_branch_pool.sql  — pool RPCs, O10, wallet impact
+  [ ] 20260630120000_incentive_platform_phase5m.sql  — scheme templates, disputes, payroll, FX audit
 
 EOF
 }
