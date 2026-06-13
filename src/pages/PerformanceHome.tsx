@@ -1,14 +1,20 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { PerformanceMetricCard } from "@/components/performance/PerformanceMetricCard";
 import { PerformanceTelecallerHome } from "@/components/performance/PerformanceTelecallerHome";
 import { usePerformanceHomeData } from "@/hooks/usePerformanceHomeData";
 import { formatInr } from "@/lib/performanceHubTheme";
-import { Trophy, TrendingUp } from "lucide-react";
+import { toast } from "sonner";
+import { Trophy, TrendingUp, Wallet } from "lucide-react";
 
 const HIGHER_THAN_TELECALLER = [
   "admin",
@@ -22,6 +28,9 @@ const HIGHER_THAN_TELECALLER = [
 export default function PerformanceHome() {
   const { user, roles, hasRole } = useAuth();
   const data = usePerformanceHomeData(user?.id);
+  const [exceptionAmount, setExceptionAmount] = useState("");
+  const [exceptionReason, setExceptionReason] = useState("");
+  const [submittingException, setSubmittingException] = useState(false);
 
   const isTelecallerOnly =
     hasRole("telecaller") && !roles.some((r) => HIGHER_THAN_TELECALLER.includes(r as (typeof HIGHER_THAN_TELECALLER)[number]));
@@ -44,6 +53,34 @@ export default function PerformanceHome() {
     target != null
       ? `${formatInr(data.revenueAchieved, data.revenueCurrency)} of ${formatInr(target, data.wallet?.currency ?? "INR")} · net revenue`
       : "No target assigned — contact admin";
+
+  async function submitWalletException() {
+    const amount = Number(exceptionAmount);
+    if (!amount || amount <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+    if (!exceptionReason.trim()) {
+      toast.error("Reason required");
+      return;
+    }
+    setSubmittingException(true);
+    try {
+      const { data: res, error } = await supabase.rpc("fn_submit_wallet_exception_request", {
+        _amount: amount,
+        _reason: exceptionReason.trim(),
+        _period_key: data.period,
+      });
+      if (error) throw error;
+      toast.success(String((res as { message?: string })?.message ?? "Submitted for manager approval"));
+      setExceptionAmount("");
+      setExceptionReason("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Submit failed");
+    } finally {
+      setSubmittingException(false);
+    }
+  }
 
   return (
     <AppLayout>
@@ -112,6 +149,41 @@ export default function PerformanceHome() {
               {formatInr(data.walletDiscountTotal, data.wallet?.currency ?? "INR")} this period (wallet allocations
               subtract pro-rata from net revenue).
             </p>
+          </Card>
+        )}
+
+        {data.wallet && (
+          <Card className="p-4 border-l-4 border-l-amber-500 bg-amber-500/5">
+            <div className="flex items-center gap-2 mb-3">
+              <Wallet className="size-4 text-amber-600" />
+              <h2 className="font-semibold text-sm">Request wallet exception</h2>
+            </div>
+            <p className="text-sm text-muted-foreground mb-3">
+              Need extra budget this period? Submit to your branch manager — approved requests add an exception top-up.
+            </p>
+            <div className="grid sm:grid-cols-2 gap-3 mb-3">
+              <div>
+                <Label className="text-xs">Amount (₹)</Label>
+                <Input
+                  type="number"
+                  value={exceptionAmount}
+                  onChange={(e) => setExceptionAmount(e.target.value)}
+                  placeholder="5000"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <Label className="text-xs">Reason</Label>
+                <Textarea
+                  value={exceptionReason}
+                  onChange={(e) => setExceptionReason(e.target.value)}
+                  placeholder="Key deal closing this week…"
+                  rows={2}
+                />
+              </div>
+            </div>
+            <Button size="sm" disabled={submittingException} onClick={submitWalletException}>
+              Submit to manager
+            </Button>
           </Card>
         )}
 

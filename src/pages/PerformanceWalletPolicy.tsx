@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Calculator, RefreshCw } from "lucide-react";
+import { Calculator, Plus, RefreshCw, Save } from "lucide-react";
 
 interface BandRow {
   id: string;
@@ -27,12 +29,28 @@ interface TopupRule {
   currency: string;
 }
 
+interface WeightsForm {
+  weight_revenue_achievement: number;
+  weight_conversion_rate: number;
+  weight_wallet_roi: number;
+  weight_collections: number;
+  weight_satisfaction: number;
+}
+
+const WEIGHT_LABELS: Record<keyof WeightsForm, string> = {
+  weight_revenue_achievement: "Revenue achievement",
+  weight_conversion_rate: "Conversion rate",
+  weight_wallet_roi: "Wallet ROI",
+  weight_collections: "Collections",
+  weight_satisfaction: "Satisfaction",
+};
+
 export default function PerformanceWalletPolicy() {
   const { isAdmin, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [bands, setBands] = useState<BandRow[]>([]);
   const [rules, setRules] = useState<TopupRule[]>([]);
-  const [weightRow, setWeightRow] = useState<Record<string, number> | null>(null);
+  const [weights, setWeights] = useState<WeightsForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
@@ -59,28 +77,26 @@ export default function PerformanceWalletPolicy() {
     ]);
     setBands((b.data ?? []) as BandRow[]);
     setRules((r.data ?? []) as TopupRule[]);
-    const wr = w.data as {
-      weight_revenue_achievement?: number;
-      weight_conversion_rate?: number;
-      weight_wallet_roi?: number;
-      weight_collections?: number;
-      weight_satisfaction?: number;
-    } | null;
-    if (wr) {
-      setWeightRow({
-        "Revenue achievement": Number(wr.weight_revenue_achievement ?? 0),
-        "Conversion rate": Number(wr.weight_conversion_rate ?? 0),
-        "Wallet ROI": Number(wr.weight_wallet_roi ?? 0),
-        Collections: Number(wr.weight_collections ?? 0),
-        Satisfaction: Number(wr.weight_satisfaction ?? 0),
-      });
-    }
+    const wr = w.data as WeightsForm | null;
+    if (wr) setWeights(wr);
     setLoading(false);
   }
 
   useEffect(() => {
     load();
   }, []);
+
+  const weightSum = useMemo(
+    () =>
+      weights
+        ? weights.weight_revenue_achievement +
+          weights.weight_conversion_rate +
+          weights.weight_wallet_roi +
+          weights.weight_collections +
+          weights.weight_satisfaction
+        : 0,
+    [weights],
+  );
 
   async function applySizing() {
     const d = new Date();
@@ -104,6 +120,62 @@ export default function PerformanceWalletPolicy() {
     }
   }
 
+  async function saveBand(b: BandRow) {
+    setBusy(true);
+    const { error } = await supabase
+      .from("wallet_multiplier_bands")
+      .update({
+        min_achievement_pct: b.min_achievement_pct,
+        max_achievement_pct: b.max_achievement_pct,
+        multiplier: b.multiplier,
+        sort_order: b.sort_order,
+      })
+      .eq("id", b.id);
+    setBusy(false);
+    if (error) toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    else toast({ title: "Band saved" });
+  }
+
+  async function saveRule(r: TopupRule) {
+    setBusy(true);
+    const { error } = await supabase
+      .from("wallet_topup_rules")
+      .update({
+        min_achievement_pct: r.min_achievement_pct,
+        max_achievement_pct: r.max_achievement_pct,
+        topup_amount: r.topup_amount,
+      })
+      .eq("id", r.id);
+    setBusy(false);
+    if (error) toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    else toast({ title: "Rule saved" });
+  }
+
+  async function saveWeights() {
+    if (!weights || weightSum !== 100) {
+      toast({ title: "Weights must sum to 100%", variant: "destructive" });
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.from("performance_score_weights").update(weights).eq("id", 1);
+    setBusy(false);
+    if (error) toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    else toast({ title: "Score weights saved" });
+  }
+
+  async function addBand() {
+    setBusy(true);
+    const { error } = await supabase.from("wallet_multiplier_bands").insert({
+      min_achievement_pct: 0,
+      max_achievement_pct: null,
+      multiplier: 1,
+      sort_order: bands.length + 1,
+    });
+    setBusy(false);
+    if (error) toast({ title: "Add failed", description: error.message, variant: "destructive" });
+    else load();
+  }
+
   if (authLoading) return null;
   if (!isAdmin) return <Navigate to="/performance" replace />;
 
@@ -112,7 +184,7 @@ export default function PerformanceWalletPolicy() {
       <div className="p-6 space-y-6 max-w-4xl">
         <PerformanceHubHeader
           title="Wallet policy"
-          subtitle="Multiplier bands, top-up rules, and performance score weights (read from live config)"
+          subtitle="Finance-configurable bands, top-up rules, and performance score weights"
           showModuleLegend={false}
         />
 
@@ -131,30 +203,82 @@ export default function PerformanceWalletPolicy() {
         </Card>
 
         <Card className="p-5">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Calculator className="size-5" /> Performance multiplier bands
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Calculator className="size-5" /> Performance multiplier bands
+            </h2>
+            <Button variant="outline" size="sm" onClick={addBand} disabled={busy}>
+              <Plus className="size-4 mr-1" /> Add band
+            </Button>
+          </div>
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead className="text-left text-muted-foreground border-b">
-                <tr>
-                  <th className="py-2">Achievement %</th>
-                  <th className="py-2 text-right">Multiplier</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bands.map((b) => (
-                  <tr key={b.id} className="border-b last:border-0">
-                    <td className="py-2">
-                      {b.min_achievement_pct} – {b.max_achievement_pct ?? "∞"}%
-                    </td>
-                    <td className="py-2 text-right font-medium">{b.multiplier}×</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="space-y-3">
+              {bands.map((b) => (
+                <div key={b.id} className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-end border rounded-lg p-3">
+                  <div>
+                    <Label className="text-xs">Min %</Label>
+                    <Input
+                      type="number"
+                      value={b.min_achievement_pct}
+                      onChange={(e) =>
+                        setBands((rows) =>
+                          rows.map((x) =>
+                            x.id === b.id ? { ...x, min_achievement_pct: Number(e.target.value) } : x,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Max % (blank = ∞)</Label>
+                    <Input
+                      type="number"
+                      value={b.max_achievement_pct ?? ""}
+                      placeholder="∞"
+                      onChange={(e) =>
+                        setBands((rows) =>
+                          rows.map((x) =>
+                            x.id === b.id
+                              ? { ...x, max_achievement_pct: e.target.value === "" ? null : Number(e.target.value) }
+                              : x,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Multiplier</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={b.multiplier}
+                      onChange={(e) =>
+                        setBands((rows) =>
+                          rows.map((x) => (x.id === b.id ? { ...x, multiplier: Number(e.target.value) } : x)),
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Sort</Label>
+                    <Input
+                      type="number"
+                      value={b.sort_order}
+                      onChange={(e) =>
+                        setBands((rows) =>
+                          rows.map((x) => (x.id === b.id ? { ...x, sort_order: Number(e.target.value) } : x)),
+                        )
+                      }
+                    />
+                  </div>
+                  <Button size="sm" variant="secondary" disabled={busy} onClick={() => saveBand(b)}>
+                    <Save className="size-3.5 mr-1" /> Save
+                  </Button>
+                </div>
+              ))}
+            </div>
           )}
         </Card>
 
@@ -163,44 +287,85 @@ export default function PerformanceWalletPolicy() {
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : rules.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No active rules — seed via migration or Wallet Top-ups.</p>
+            <p className="text-sm text-muted-foreground">No active rules.</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead className="text-left text-muted-foreground border-b">
-                <tr>
-                  <th className="py-2">Band</th>
-                  <th className="py-2">Scope</th>
-                  <th className="py-2 text-right">Base amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rules.map((r) => (
-                  <tr key={r.id} className="border-b last:border-0">
-                    <td className="py-2">
-                      {r.min_achievement_pct} – {r.max_achievement_pct ?? "∞"}%
-                    </td>
-                    <td className="py-2 capitalize">{r.scope_type}</td>
-                    <td className="py-2 text-right">
-                      ₹{Number(r.topup_amount).toLocaleString("en-IN")} {r.currency}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="space-y-3">
+              {rules.map((r) => (
+                <div key={r.id} className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-end border rounded-lg p-3">
+                  <div>
+                    <Label className="text-xs">Min %</Label>
+                    <Input
+                      type="number"
+                      value={r.min_achievement_pct}
+                      onChange={(e) =>
+                        setRules((rows) =>
+                          rows.map((x) =>
+                            x.id === r.id ? { ...x, min_achievement_pct: Number(e.target.value) } : x,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Max %</Label>
+                    <Input
+                      type="number"
+                      value={r.max_achievement_pct ?? ""}
+                      placeholder="∞"
+                      onChange={(e) =>
+                        setRules((rows) =>
+                          rows.map((x) =>
+                            x.id === r.id
+                              ? { ...x, max_achievement_pct: e.target.value === "" ? null : Number(e.target.value) }
+                              : x,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Base ₹</Label>
+                    <Input
+                      type="number"
+                      value={r.topup_amount}
+                      onChange={(e) =>
+                        setRules((rows) =>
+                          rows.map((x) => (x.id === r.id ? { ...x, topup_amount: Number(e.target.value) } : x)),
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="text-sm text-muted-foreground pb-2 capitalize">{r.scope_type}</div>
+                  <Button size="sm" variant="secondary" disabled={busy} onClick={() => saveRule(r)}>
+                    <Save className="size-3.5 mr-1" /> Save
+                  </Button>
+                </div>
+              ))}
+            </div>
           )}
         </Card>
 
-        {weightRow && (
+        {weights && (
           <Card className="p-5">
             <h2 className="text-lg font-semibold mb-4">Performance score weights</h2>
-            <ul className="text-sm space-y-1">
-              {Object.entries(weightRow).map(([k, v]) => (
-                <li key={k} className="flex justify-between border-b last:border-0 py-1.5">
-                  <span>{k}</span>
-                  <span className="font-medium">{v}%</span>
-                </li>
+            <div className="grid sm:grid-cols-2 gap-3 mb-3">
+              {(Object.keys(WEIGHT_LABELS) as (keyof WeightsForm)[]).map((key) => (
+                <div key={key}>
+                  <Label className="text-xs">{WEIGHT_LABELS[key]}</Label>
+                  <Input
+                    type="number"
+                    value={weights[key]}
+                    onChange={(e) => setWeights({ ...weights, [key]: Number(e.target.value) })}
+                  />
+                </div>
               ))}
-            </ul>
+            </div>
+            <p className={`text-sm mb-3 ${weightSum === 100 ? "text-muted-foreground" : "text-destructive"}`}>
+              Total: {weightSum}% {weightSum !== 100 && "(must equal 100%)"}
+            </p>
+            <Button onClick={saveWeights} disabled={busy || weightSum !== 100}>
+              <Save className="size-4 mr-1" /> Save weights
+            </Button>
           </Card>
         )}
 

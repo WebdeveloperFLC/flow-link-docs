@@ -38,11 +38,23 @@ const LEVEL_LABELS: Record<string, string> = {
   admin: "Admin / director",
 };
 
+interface WalletExceptionRow {
+  id: string;
+  period_key: string;
+  counselor_id: string;
+  requested_amount: number;
+  reason: string;
+  status: string;
+  created_at: string;
+  counselor?: { full_name: string | null } | null;
+}
+
 export default function PerformanceApprovals() {
   const { hasRole, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const { period } = usePerformancePeriod();
   const [rows, setRows] = useState<ApprovalRow[]>([]);
+  const [walletRows, setWalletRows] = useState<WalletExceptionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
@@ -52,10 +64,11 @@ export default function PerformanceApprovals() {
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("discount_approval_requests")
-      .select(
-        `
+    const [disc, wallet] = await Promise.all([
+      supabase
+        .from("discount_approval_requests")
+        .select(
+          `
         id, period_key, counselor_id, client_id, lead_id,
         discount_amount, discount_percent, wallet_debit, approval_level,
         status, request_note, created_at,
@@ -63,20 +76,38 @@ export default function PerformanceApprovals() {
         client:clients(full_name),
         offer:offers(title)
       `,
-      )
-      .eq("status", "pending")
-      .eq("period_key", period)
-      .order("created_at", { ascending: true });
+        )
+        .eq("status", "pending")
+        .eq("period_key", period)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("wallet_exception_requests")
+        .select(
+          `
+          id, period_key, counselor_id, requested_amount, reason, status, created_at,
+          counselor:profiles!wallet_exception_requests_counselor_id_fkey(full_name)
+        `,
+        )
+        .eq("status", "pending")
+        .eq("period_key", period)
+        .order("created_at", { ascending: true }),
+    ]);
 
-    if (error) {
+    if (disc.error) {
       toast({
         title: "Could not load approvals",
-        description: formatSupabaseError(error, "Load failed"),
+        description: formatSupabaseError(disc.error, "Load failed"),
         variant: "destructive",
       });
       setRows([]);
     } else {
-      setRows((data ?? []) as ApprovalRow[]);
+      setRows((disc.data ?? []) as ApprovalRow[]);
+    }
+
+    if (wallet.error) {
+      setWalletRows([]);
+    } else {
+      setWalletRows((wallet.data ?? []) as WalletExceptionRow[]);
     }
     setLoading(false);
   }
@@ -116,6 +147,30 @@ export default function PerformanceApprovals() {
     }
   }
 
+  async function reviewWallet(id: string, action: "approve" | "decline") {
+    setBusyId(id);
+    try {
+      const { data, error } = await supabase.rpc("fn_review_wallet_exception_request", {
+        _request_id: id,
+        _action: action,
+        _note: notes[id]?.trim() || null,
+      });
+      if (error) throw error;
+      toast({
+        title: action === "approve" ? "Wallet exception approved" : "Request declined",
+      });
+      await load();
+    } catch (e: unknown) {
+      toast({
+        title: "Action failed",
+        description: formatSupabaseError(e, "Could not update request"),
+        variant: "destructive",
+      });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   if (authLoading) return null;
   if (!canReview) return <Navigate to="/performance" replace />;
 
@@ -123,8 +178,8 @@ export default function PerformanceApprovals() {
     <AppLayout>
       <div className="p-6 space-y-6 max-w-6xl">
         <PerformanceHubHeader
-          title="Discount approvals"
-          subtitle="Depth-matrix queue — instant applies skip this list"
+          title="Approvals"
+          subtitle="Deep discounts and wallet exception requests"
           period={period}
           showModuleLegend={false}
         />
@@ -140,14 +195,17 @@ export default function PerformanceApprovals() {
           </Link>
         </div>
 
-        {rows.length === 0 && !loading ? (
+        {rows.length === 0 && walletRows.length === 0 && !loading ? (
           <Card className="p-6 flex items-center gap-3 text-emerald-700 bg-emerald-500/5 border-emerald-500/30">
             <CheckCircle2 className="size-5 shrink-0" />
-            <p className="font-medium">No pending discount approvals for {period}</p>
+            <p className="font-medium">No pending approvals for {period}</p>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {rows.map((row) => (
+          <div className="space-y-6">
+            {rows.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="font-semibold">Deep discount requests</h2>
+                {rows.map((row) => (
               <Card key={row.id} className="p-4 space-y-3">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
@@ -203,6 +261,54 @@ export default function PerformanceApprovals() {
                 </div>
               </Card>
             ))}
+              </div>
+            )}
+
+            {walletRows.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="font-semibold">Wallet exception requests (W7)</h2>
+                {walletRows.map((row) => (
+                  <Card key={row.id} className="p-4 space-y-3 border-dashed border-amber-500/40">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <p className="font-medium">
+                          {row.counselor?.full_name ?? "Counselor"} — +{formatInr(row.requested_amount)}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">{row.reason}</p>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(row.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                    <Textarea
+                      placeholder="Review note (optional)"
+                      rows={2}
+                      value={notes[row.id] ?? ""}
+                      onChange={(e) => setNotes((n) => ({ ...n, [row.id]: e.target.value }))}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="gap-1"
+                        disabled={busyId === row.id}
+                        onClick={() => reviewWallet(row.id, "approve")}
+                      >
+                        <CheckCircle2 className="size-4" /> Approve top-up
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1"
+                        disabled={busyId === row.id}
+                        onClick={() => reviewWallet(row.id, "decline")}
+                      >
+                        <XCircle className="size-4" /> Decline
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
