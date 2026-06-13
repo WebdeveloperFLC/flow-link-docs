@@ -66,6 +66,7 @@ Run in Supabase **SQL Editor** or Lovable **Database → Migrations**. **Never c
 | 4 | `20260715120000_performance_hub_offers_studio_rls.sql` — MarCom offers library write + lifecycle RPC |
 | 5 | `20260716120000_performance_hub_demo_seed.sql` — **loads all PH-DEMO mock data** (runs `fn_seed_performance_hub_demo()`) |
 | 6 | `20260716120001_performance_hub_demo_seed_idempotent.sql` — idempotent upsert fix + re-run seed |
+| 7 | `20260716120002_performance_hub_demo_wallet_rebind.sql` — rebind demo wallets to `ph.counselor1` / `ph.counselor2` (fixes empty Give Discount wallet) |
 
 **Verify migrations:**
 
@@ -220,6 +221,34 @@ SELECT branch_name, total_amount, rank
 - **3** calendar campaigns, **3** segments, **3** auto-rules (after §4.4)
 - **13** PH Demo offers spanning lifecycle statuses
 - Contest standings: **Genda Circle** rank 1 with non-zero total; **Ajwa** rank 2 with non-zero total
+
+### 3.3 Give Discount shows “No wallet this period”
+
+**Cause:** `/performance/give-discount` loads wallets via `fn_counselor_wallets_for_period`, which returns rows only when `discount_wallets.counselor_id = auth.uid()`. If demo seed ran **before** Phase 2 users existed, wallets may be tied to a fallback counselor UUID — not `ph.counselor1@flowlink.demo`.
+
+**Fix:**
+
+1. Complete **Phase 2** (create `ph.counselor1@flowlink.demo`).
+2. Apply migration **`20260716120002_performance_hub_demo_wallet_rebind.sql`** (or run manually):
+
+```sql
+SELECT public.fn_rebind_ph_demo_wallets();
+```
+
+3. Log in as **`ph.counselor1@flowlink.demo`** (not admin/manager — they do not get a personal wallet on this screen).
+4. Set period bar to **`2026-06`**.
+
+**Verify:**
+
+```sql
+SELECT dw.name, dw.balance, u.email
+FROM discount_wallets dw
+JOIN auth.users u ON u.id = dw.counselor_id
+WHERE dw.period_key = '2026-06'
+  AND dw.name LIKE 'PH Demo%';
+```
+
+**Expected:** `ph.counselor1@flowlink.demo` owns **PH Demo · Priya Jun-2026** with balance **15000**.
 
 ---
 
