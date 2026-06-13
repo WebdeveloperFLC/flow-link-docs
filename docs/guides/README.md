@@ -54,6 +54,7 @@ Guides
 | **Sprint 2 Complete** | [SPRINT_2_COMPLETE.md](./SPRINT_2_COMPLETE.md) | Engineering | — |
 | **Sprint 5 Complete** | [SPRINT_5_COMPLETE.md](./SPRINT_5_COMPLETE.md) | Engineering | — |
 | **Performance Hub — prototype gaps** | [performance-hub-prototype-gaps.md](./performance-hub-prototype-gaps.md) | Product / Design | ✅ `/guides/performance-hub-gaps` |
+| **Performance Hub — Full UAT & testing** | [performance-hub-uat-guide.md](./performance-hub-uat-guide.md) | Product / Finance | ✅ `/guides/performance-hub-uat` |
 
 ## Adding a guide
 
