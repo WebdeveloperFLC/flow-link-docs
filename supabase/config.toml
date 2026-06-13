@@ -72,6 +72,9 @@ verify_jwt = false
 [functions.incentive-calculate-run]
 verify_jwt = false
 
+[functions.offer-ai-studio]
+verify_jwt = true
+
 [functions.offers-lifecycle-tick]
 verify_jwt = false
 

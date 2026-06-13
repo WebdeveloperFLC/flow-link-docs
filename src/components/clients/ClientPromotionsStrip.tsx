@@ -21,6 +21,7 @@ interface ClientPromotionsStripProps {
 
 interface Suggestion {
   found: boolean;
+  suggestion_level?: string;
   offer_id?: string;
   title?: string;
   discount_type?: string;
@@ -49,6 +50,11 @@ export function ClientPromotionsStrip({ clientId, clientName, clientPhone }: Cli
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
   const [suggestionLoading, setSuggestionLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    setDismissed(sessionStorage.getItem(`flc-suggest-dismiss:${clientId}`) === "1");
+  }, [clientId]);
 
   useEffect(() => {
     if (!user) return;
@@ -166,11 +172,11 @@ export function ClientPromotionsStrip({ clientId, clientName, clientPhone }: Cli
 
       {suggestionLoading ? (
         <Card className="p-4 border border-dashed text-sm text-muted-foreground">Loading suggestion…</Card>
-      ) : suggestion?.found ? (
+      ) : suggestion?.found && !dismissed ? (
         <Card className="p-4 border border-dashed border-violet-500/40 bg-muted/30">
           <div className="flex items-start gap-2">
             <Badge variant="outline" className="shrink-0 text-violet-700 border-violet-500/30">
-              Suggested (L0)
+              Suggested ({suggestion.suggestion_level ?? "L0"})
             </Badge>
             <div className="text-sm space-y-2">
               <p className="font-medium">
@@ -201,6 +207,16 @@ export function ClientPromotionsStrip({ clientId, clientName, clientPhone }: Cli
                 </Button>
                 <Button size="sm" variant="ghost" asChild>
                   <Link to={giveDiscountUrl}>Adjust amount</Link>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    sessionStorage.setItem(`flc-suggest-dismiss:${clientId}`, "1");
+                    setDismissed(true);
+                  }}
+                >
+                  Dismiss
                 </Button>
               </div>
             </div>

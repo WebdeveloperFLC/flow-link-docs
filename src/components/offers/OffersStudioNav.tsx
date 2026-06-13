@@ -1,8 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, Library, Plus, Megaphone, BarChart2 } from "lucide-react";
+import { LayoutGrid, Library, Plus, Megaphone, BarChart2, Sparkles } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useModulePermission } from "@/hooks/useModulePermission";
 
-const LINKS = [
+const BASE_LINKS = [
   { to: "/performance/offers", label: "Dashboard", icon: LayoutGrid, end: true },
   { to: "/performance/offers/library", label: "Library", icon: Library },
   { to: "/performance/offers/new", label: "Create", icon: Plus },
@@ -12,9 +14,15 @@ const LINKS = [
 
 export function OffersStudioNav() {
   const { pathname } = useLocation();
+  const { hasRole } = useAuth();
+  const { canEdit: canAi } = useModulePermission("offers_ai");
+  const showAi = canAi || hasRole(["admin", "administrator"]);
+  const links = showAi
+    ? [...BASE_LINKS, { to: "/performance/offers/ai-studio", label: "AI Studio", icon: Sparkles, end: false }]
+    : BASE_LINKS;
   return (
     <nav className="flex flex-wrap gap-1 border-b pb-3 mb-4">
-      {LINKS.map(({ to, label, icon: Icon, end }) => {
+      {links.map(({ to, label, icon: Icon, end }) => {
         const active = end ? pathname === to : pathname.startsWith(to);
         return (
           <Link

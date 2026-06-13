@@ -52,6 +52,9 @@ scan_paths_for_hints() {
     if [[ "$f" == supabase/functions/incentive-calculate-run/* ]]; then
       EDGE_TOUCHED=1
     fi
+    if [[ "$f" == supabase/functions/offer-ai-studio/* ]]; then
+      EDGE_TOUCHED=1
+    fi
   done
 }
 
@@ -66,6 +69,7 @@ Performance Hub migrations (Lovable Publish — approve ALL that still show as p
   [ ] 20260622120000_incentive_platform_phase5e.sql  — period lock gates
   [ ] 20260623120000_incentive_platform_phase5f.sql  — enrolment / stage qualifying events
   [ ] 20260624120000_incentive_platform_phase5g.sql  — offers studio dashboard RPC
+  [ ] 20260625120000_incentive_platform_phase5h.sql  — AI studio gate + L0 suggestion polish
 
 EOF
 }
@@ -206,7 +210,7 @@ else
   echo "#   (no migration files in this ship list)"
 fi
 if [[ "$EDGE_TOUCHED" == "1" ]]; then
-  echo "#   edge function: incentive-calculate-run (deploys on Lovable Publish)"
+  echo "#   edge functions: incentive-calculate-run, offer-ai-studio (deploy on Lovable Publish)"
 fi
 
 print_sql_reminder
