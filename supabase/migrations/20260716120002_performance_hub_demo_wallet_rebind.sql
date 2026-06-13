@@ -51,10 +51,15 @@ BEGIN
 
     UPDATE public.incentive_line_items
        SET counselor_id = v_priya
-     WHERE id IN (
-       'a0060001-0001-4000-8000-000000000001',
-       'a0060002-0002-4000-8000-000000000002'
-     );
+     WHERE run_id = 'a0050001-0001-4000-8000-000000000001';
+
+    UPDATE public.incentive_payouts
+       SET counselor_id = v_priya
+     WHERE run_id = 'a0050001-0001-4000-8000-000000000001';
+
+    UPDATE public.counselor_performance_scores
+       SET counselor_id = v_priya
+     WHERE id = 'a0100001-0001-4000-8000-000000000001';
   END IF;
 
   IF v_rohit IS NOT NULL THEN
@@ -64,6 +69,14 @@ BEGIN
            closed_at = NULL,
            updated_at = now()
      WHERE id = 'a0020002-0002-4000-8000-000000000002';
+
+    UPDATE public.incentive_line_items
+       SET counselor_id = v_rohit
+     WHERE id = 'a0060003-0003-4000-8000-000000000003';
+
+    UPDATE public.counselor_performance_scores
+       SET counselor_id = v_rohit
+     WHERE id = 'a0100002-0002-4000-8000-000000000002';
   END IF;
 END;
 $$;
