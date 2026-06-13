@@ -4,12 +4,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { invokeError } from "@/lib/invokeError";
+import { useAuth } from "@/contexts/AuthContext";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
 import { usePerformanceLockReadiness } from "@/hooks/usePerformanceLockReadiness";
-import { Calculator, Lock } from "lucide-react";
+import { Calculator, Lock, Unlock, Trash2 } from "lucide-react";
 
 interface Plan {
   id: string;
@@ -40,6 +52,7 @@ const fmt = (n: number, ccy: string) =>
 
 export default function IncentivesAdmin() {
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
   const { period, branchId, branches } = usePerformancePeriod();
   const lockReadiness = usePerformanceLockReadiness(period);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -48,6 +61,8 @@ export default function IncentivesAdmin() {
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<{ summary: SummaryRow[]; grand_total: number; settlement: string; fx: Record<string, number> } | null>(null);
   const [names, setNames] = useState<Record<string, string>>({});
+  const [adminAction, setAdminAction] = useState<{ runId: string; action: "unlock" | "void" } | null>(null);
+  const [adminReason, setAdminReason] = useState("");
 
   const scopeBranchId = branchId.trim() || null;
 
@@ -123,6 +138,38 @@ export default function IncentivesAdmin() {
     }
   }
 
+  async function confirmAdminAction() {
+    if (!adminAction || !adminReason.trim()) {
+      toast({ title: "Reason required", variant: "destructive" });
+      return;
+    }
+    setBusy(true);
+    try {
+      const fn =
+        adminAction.action === "unlock" ? "fn_admin_unlock_incentive_run" : "fn_admin_void_incentive_run";
+      const { data, error } = await supabase.rpc(fn, {
+        _run_id: adminAction.runId,
+        _reason: adminReason.trim(),
+      });
+      if (error) throw error;
+      toast({
+        title: adminAction.action === "unlock" ? "Run unlocked" : "Run voided",
+        description: String((data as { message?: string })?.message ?? "Done"),
+      });
+      setAdminAction(null);
+      setAdminReason("");
+      await loadAll();
+    } catch (e: unknown) {
+      toast({
+        title: "Admin action failed",
+        description: e instanceof Error ? e.message : String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
@@ -164,6 +211,11 @@ export default function IncentivesAdmin() {
                 Payout desk
               </Link>{" "}
               adjustments instead (R2).
+              {isAdmin && lockedRunForSelection && (
+                <span className="block mt-2">
+                  Admin: unlock from the Recent runs table below if no payouts are approved yet.
+                </span>
+              )}
             </p>
           )}
           {!isSelectionLocked && lockBlockedByQueues && (
@@ -265,6 +317,7 @@ export default function IncentivesAdmin() {
                     <th className="py-2 pr-4 text-right">Total</th>
                     <th className="py-2 pr-4">Calculated</th>
                     <th className="py-2 pr-4">Audit</th>
+                    {isAdmin && <th className="py-2 pr-4">Admin</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -277,8 +330,48 @@ export default function IncentivesAdmin() {
                       <td className="py-2 pr-4 text-right">{fmt(r.total_settlement, r.settlement_currency)}</td>
                       <td className="py-2 pr-4">{r.calculated_at ? new Date(r.calculated_at).toLocaleDateString() : "—"}</td>
                       <td className="py-2 pr-4">
-                        <a href={`/incentives/runs/${r.id}`} className="text-primary text-xs underline">Line items</a>
+                        <Link to={`/incentives/runs/${r.id}`} className="text-primary text-xs underline">
+                          Line items
+                        </Link>
                       </td>
+                      {isAdmin && (
+                        <td className="py-2 pr-4">
+                          <div className="flex flex-wrap gap-1">
+                            {r.locked && r.status !== "void" && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs"
+                                disabled={busy}
+                                onClick={() => {
+                                  setAdminReason("");
+                                  setAdminAction({ runId: r.id, action: "unlock" });
+                                }}
+                              >
+                                <Unlock className="size-3 mr-1" />
+                                Unlock
+                              </Button>
+                            )}
+                            {r.status !== "void" && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs text-destructive"
+                                disabled={busy}
+                                onClick={() => {
+                                  setAdminReason("");
+                                  setAdminAction({ runId: r.id, action: "void" });
+                                }}
+                              >
+                                <Trash2 className="size-3 mr-1" />
+                                Void
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -286,6 +379,33 @@ export default function IncentivesAdmin() {
             </div>
           )}
         </Card>
+
+        <AlertDialog open={!!adminAction} onOpenChange={(open) => !open && setAdminAction(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {adminAction?.action === "unlock" ? "Unlock locked run?" : "Void incentive run?"}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {adminAction?.action === "unlock"
+                  ? "Allows recalculate for this plan/period. Blocked if payouts are already approved or paid."
+                  : "Marks the run void and deletes line items. Blocked if any payout rows exist."}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <Textarea
+              placeholder="Reason (required for audit log)"
+              value={adminReason}
+              onChange={(e) => setAdminReason(e.target.value)}
+              rows={3}
+            />
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
+              <AlertDialogAction disabled={busy || !adminReason.trim()} onClick={confirmAdminAction}>
+                Confirm
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );

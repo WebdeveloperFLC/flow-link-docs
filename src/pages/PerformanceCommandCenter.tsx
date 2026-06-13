@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
@@ -22,6 +23,16 @@ import {
   Tag,
   Trophy,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface CommandCenterSnapshot {
+  period_fully_closed?: boolean;
+  wallets_open?: number;
+  wallets_closed?: number;
+  next_period_key?: string;
+  next_wallet_total_potential?: number;
+  next_wallet_preview_count?: number;
+}
 
 const QUEUE_LINKS = [
   {
@@ -65,6 +76,21 @@ export default function PerformanceCommandCenter() {
   const metrics = usePerformancePeriodMetrics(period, branchLabel);
   const queues = usePerformanceQueueCounts(period);
   const lockReadiness = usePerformanceLockReadiness(period);
+  const [snapshot, setSnapshot] = useState<CommandCenterSnapshot | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.rpc("fn_period_command_center", {
+        _period_key: period,
+        _branch_name: branchLabel,
+      });
+      if (!cancelled) setSnapshot((data ?? null) as CommandCenterSnapshot | null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [period, branchLabel]);
 
   const workflow = [
     { step: 1, label: "Period close (wallets)", to: "/incentives/period-close", icon: CalendarClock, blocked: false },
@@ -91,6 +117,38 @@ export default function PerformanceCommandCenter() {
         />
 
         <PerformancePeriodBar />
+
+        {snapshot && (
+          <Card className="p-4 border-l-4 border-l-emerald-500 bg-emerald-500/5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="font-semibold">Period close &amp; next-month wallets</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {snapshot.period_fully_closed
+                    ? `${period} wallets closed (${snapshot.wallets_closed ?? 0})`
+                    : `${snapshot.wallets_open ?? 0} wallet(s) still open for ${period}`}
+                  {snapshot.next_period_key && (
+                    <>
+                      {" · "}
+                      Next period <span className="font-medium text-foreground">{snapshot.next_period_key}</span> preview:{" "}
+                      <span className="font-medium text-foreground">
+                        ₹{Number(snapshot.next_wallet_total_potential ?? 0).toLocaleString("en-IN")} potential
+                      </span>{" "}
+                      across {snapshot.next_wallet_preview_count ?? 0} counselor(s)
+                    </>
+                  )}
+                </p>
+              </div>
+              <Link
+                to="/incentives/period-close"
+                className="inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Period close
+                <ChevronRight className="size-4" />
+              </Link>
+            </div>
+          </Card>
+        )}
 
         {(queues.unclassified > 0 || queues.pendingApprovals > 0 || queues.promotionRequests > 0) && (
           <Card className="p-4 border-amber-500/30 bg-amber-500/5">
