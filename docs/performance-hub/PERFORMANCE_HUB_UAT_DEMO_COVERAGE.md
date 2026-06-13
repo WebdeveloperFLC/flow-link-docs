@@ -88,7 +88,7 @@ All UAT actors are defined in demo pack **§2.1**. §4 SQL updates profile names
 | Record | UUID / key | UAT cases | In §4? |
 |--------|------------|-----------|:------:|
 | Demo clients ×6 | `c1000001`–`c1000006` | Most | ✓ |
-| Offers ×7 | `o1000001`–`o1000007` | Library, give discount, A/B | ✓ |
+| Offers ×7 | `a0200001`–`a0200007` | Library, give discount, A/B | ✓ |
 | Legacy service offer | `a0010001` | 6D-001 | ✓ |
 | Wallets ×4 | `a0020001`–`a0020004` | Home, period close, branch pool | ✓ |
 | Qualifying events | `a00e0001`–`a00e0004` | Revenue, unclassified | ✓ |
@@ -99,7 +99,7 @@ All UAT actors are defined in demo pack **§2.1**. §4 SQL updates profile names
 | Incentive run / lines | `a0050001`, `a0060001`, `a0060002` | HOME-001, Q4, INC-RUN-001 | ✓ |
 | Wallet allocation | `a0080001` | V1, V2 | ✓ |
 | Performance score | `a0100001` | U3 | ✓ |
-| Offer events | sent + redeemed on `o1000001` | V1 | ✓ (needs migration #2) |
+| Offer events | sent + redeemed on `a0200001` | V1 | ✓ (needs migration #2) |
 | A/B experiment | `ab100001`, variants, `a1000001` | R1, R2, R3 | ✓ |
 | Journey enrollment | `a00a0001` | Q1, Q2 | ✓ (if 5Q migration) |
 | Branch contest | `a0090001` | INC-COMP-001 | ✓ |
@@ -107,8 +107,8 @@ All UAT actors are defined in demo pack **§2.1**. §4 SQL updates profile names
 | Campaign calendar ×3 | `cc100001`–`cc100003` | OFF-CAL-001 | ✓ §4.4 |
 | Segments ×3 | `a0110001`–`a0110003` | OFF-SEG-001 | ✓ §4.4 |
 | Auto-rules ×3 | `a0140001`–`a0140003` | OFF-AUTO-001 | ✓ §4.4 |
-| Lifecycle offers ×6 | `o1000008`–`o1000013` | OFF-LIB-001 filters | ✓ §4.4 |
-| Analytics ROI events | `oe100001`–`oe100008`, invoice attribution | V2, analytics | ✓ §4.4 |
+| Lifecycle offers ×6 | `a0200008`–`a0200013` | OFF-LIB-001 filters | ✓ §4.4 |
+| Analytics ROI events | `a0220001`–`a0220008`, invoice attribution | V2, analytics | ✓ §4.4 |
 | Plan rules + slabs | `a0160001`, `a0160002`, `a0170001`–`a0170002` | INC-PLAN-001 | ✓ §4.4 |
 | Rohit team metrics | `a00e0005`, `a00e0006`, `a0100002`, `a0060003` | TEAM-001, HOME-002 | ✓ §4.4 |
 | Plan / payout | `a0040001`, `a0070001` | INC-PLAN-001, INC-PAY-001 | ✓ |
@@ -148,10 +148,10 @@ All UAT actors are defined in demo pack **§2.1**. §4 SQL updates profile names
 | PH-UAT-TEAM-001 | ✓ | Manager, `a00e0001–3` |
 | PH-UAT-R4 | ✓ | Period context |
 | PH-UAT-TC-001 | ✓ | Telecaller user |
-| PH-UAT-S2 | ✓ | `c1000003`, `o1000001` |
+| PH-UAT-S2 | ✓ | `c1000003`, `a0200001` |
 | PH-UAT-U1 | ✓ | `c1000003`, floor preview |
 | PH-UAT-S1 | ✓ | `d1000003` pattern |
-| PH-UAT-S3 | ✓ | `o1000004`, `d1000004` |
+| PH-UAT-S3 | ✓ | `a0200004`, `d1000004` |
 | PH-UAT-6C-001 | ✓ | Mobile give discount |
 | PH-UAT-WALLET-001 | ✓ | Migration bands |
 | PH-UAT-WALLET-002 | ✓* | `a0020003` — allocate in-step |
@@ -160,10 +160,10 @@ All UAT actors are defined in demo pack **§2.1**. §4 SQL updates profile names
 | PH-UAT-U2 | ✓* | Floor policy — edit in-step |
 | PH-UAT-6B-001 | ✓ | Director, approvals queue |
 | PH-UAT-PROMO-001 | ✓ | `a00f0001–3`, publish in-step |
-| PH-UAT-OFF-LIB-001 | ✓ | `o1000001–7` |
+| PH-UAT-OFF-LIB-001 | ✓ | `a0200001–7` |
 | PH-UAT-OFF-NEW-001 | ✓* | Creates draft in-step |
 | PH-UAT-V2 | ✓ | `a0080001` |
-| PH-UAT-OFF-CAL-001 | ✓ | `o1000001` Jun 2026 |
+| PH-UAT-OFF-CAL-001 | ✓ | `a0200001` Jun 2026 |
 | PH-UAT-OFF-AUTO-001 | ✓ | 5Q journey template |
 | PH-UAT-Q2 | ✓ | `a00a0001` |
 | PH-UAT-R1 | ✓ | `ab100001` |

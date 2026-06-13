@@ -59,7 +59,7 @@ After seed (with blockers intentionally present for queue UAT): expect `ready_fo
 
 ## 2. Demo record registry
 
-All IDs are fixed UUIDs using **hex-only** segments (`0-9`, `a-f` only — PostgreSQL rejects letters like `t`, `q`, `s` in UUID strings). Prefix `a00x` maps entity type; users/clients/offers keep `b1000001`, `c1000001`, `o1000001` style where already valid.
+All IDs are fixed UUIDs using **hex-only** segments (`0-9`, `a-f` only — PostgreSQL rejects letters like `t`, `q`, `s` in UUID strings). Prefix `a00x` maps entity type; users/clients/offers keep `b1000001`, `c1000001`, `a0200001` style where already valid.
 
 ### 2.1 Test users (auth + profiles)
 
@@ -93,29 +93,29 @@ Create users in **Team & Roles** (or Supabase Auth invite) **before** running SQ
 
 | Title | UUID | Status | Funding | Discount |
 |-------|------|--------|---------|----------|
-| PH Demo · FL 10% IELTS Coaching | `o1000001-0001-4000-8000-000000000001` | `active` | `future_link` | 10% |
-| PH Demo · University 15% Admission | `o1000002-0002-4000-8000-000000000002` | `active` | `university` | 15% |
-| PH Demo · Joint 60/40 Bundle | `o1000003-0003-4000-8000-000000000003` | `active` | `joint` | 20% (60% FL / 40% uni) |
-| PH Demo · Full Waiver (admin) | `o1000004-0004-4000-8000-000000000004` | `active` | `future_link` | 100% |
-| PH Demo · Draft Pending Review | `o1000005-0005-4000-8000-000000000005` | `draft` | `future_link` | 12% |
-| PH Demo · AB Variant A (12%) | `o1000006-0006-4000-8000-000000000006` | `active` | `future_link` | 12% |
-| PH Demo · AB Variant B (8%) | `o1000007-0007-4000-8000-000000000007` | `active` | `future_link` | 8% |
+| PH Demo · FL 10% IELTS Coaching | `a0200001-0001-4000-8000-000000000001` | `active` | `future_link` | 10% |
+| PH Demo · University 15% Admission | `a0200002-0002-4000-8000-000000000002` | `active` | `university` | 15% |
+| PH Demo · Joint 60/40 Bundle | `a0200003-0003-4000-8000-000000000003` | `active` | `joint` | 20% (60% FL / 40% uni) |
+| PH Demo · Full Waiver (admin) | `a0200004-0004-4000-8000-000000000004` | `active` | `future_link` | 100% |
+| PH Demo · Draft Pending Review | `a0200005-0005-4000-8000-000000000005` | `draft` | `future_link` | 12% |
+| PH Demo · AB Variant A (12%) | `a0200006-0006-4000-8000-000000000006` | `active` | `future_link` | 12% |
+| PH Demo · AB Variant B (8%) | `a0200007-0007-4000-8000-000000000007` | `active` | `future_link` | 8% |
 
 **Extended lifecycle & studio rows (§4.4 — run after main §4):**
 
 | Title | UUID | Status | Screen |
 |-------|------|--------|--------|
-| PH Demo · Approved Canada push | `o1000008-0008-4000-8000-000000000008` | `approved` | Offers library lifecycle |
-| PH Demo · Scheduled July intake | `o1000009-0009-4000-8000-000000000009` | `scheduled` | Library + calendar |
-| PH Demo · Pending review draft | `o1000010-0010-4000-8000-000000000010` | `pending_review` | Library review queue |
-| PH Demo · Expiring soon IELTS | `o1000011-0011-4000-8000-000000000011` | `expiring_soon` | Library expiry badge |
-| PH Demo · Archived winter promo | `o1000012-0012-4000-8000-000000000012` | `archived` | Library archive filter |
-| PH Demo · Published field offer 8% | `o1000013-0013-4000-8000-000000000013` | `active` | Library + analytics ROI |
+| PH Demo · Approved Canada push | `a0200008-0008-4000-8000-000000000008` | `approved` | Offers library lifecycle |
+| PH Demo · Scheduled July intake | `a0200009-0009-4000-8000-000000000009` | `scheduled` | Library + calendar |
+| PH Demo · Pending review draft | `a0200010-0010-4000-8000-000000000010` | `pending_review` | Library review queue |
+| PH Demo · Expiring soon IELTS | `a0200011-0011-4000-8000-000000000011` | `expiring_soon` | Library expiry badge |
+| PH Demo · Archived winter promo | `a0200012-0012-4000-8000-000000000012` | `archived` | Library archive filter |
+| PH Demo · Published field offer 8% | `a0200013-0013-4000-8000-000000000013` | `active` | Library + analytics ROI |
 
 | Studio entity | UUID | Notes |
 |---------------|------|-------|
-| Campaign · Monsoon IELTS | `cc100001-0001-4000-8000-000000000001` | Linked `o1000001`, status `live` |
-| Campaign · Canada intake | `cc100002-0002-4000-8000-000000000002` | Linked `o1000002`, status `planned` |
+| Campaign · Monsoon IELTS | `cc100001-0001-4000-8000-000000000001` | Linked `a0200001`, status `live` |
+| Campaign · Canada intake | `cc100002-0002-4000-8000-000000000002` | Linked `a0200002`, status `planned` |
 | Campaign · Rakhi branch push | `cc100003-0003-4000-8000-000000000003` | Festival type, no linked offer |
 | Segment · Coaching hot list | `a0110001-0001-4000-8000-000000000001` | Members `c1000001`, `c1000005` |
 | Segment · Study abroad prospects | `a0110002-0002-4000-8000-000000000002` | Members `c1000002`, `c1000003` |
@@ -167,7 +167,7 @@ Create users in **Team & Roles** (or Supabase Auth invite) **before** running SQ
 | Incentive payout (approved) | `a0070001-0001-4000-8000-000000000001` | Priya net ₹11,250 |
 | Counselor performance score | `a0100001-0001-4000-8000-000000000001` | WIR card: impact ₹80,000 / used ₹10,000 |
 | Branch contest Jun-2026 | `a0090001-0001-4000-8000-000000000001` | Genda Circle vs Ajwa |
-| A/B experiment | `ab100001-0001-4000-8000-000000000001` | `running`; variants A/B on `o1000006` / `o1000007` |
+| A/B experiment | `ab100001-0001-4000-8000-000000000001` | `running`; variants A/B on `a0200006` / `a0200007` |
 | Journey enrollment (Aman) | `a00a0001-0001-4000-8000-000000000001` | Active on template `cross_sell_coaching_abroad` |
 
 ---
@@ -339,49 +339,49 @@ BEGIN
     applicable_services, target_countries, valid_from, valid_to
   ) VALUES
   (
-    'o1000001-0001-4000-8000-000000000001',     'PH Demo · FL 10% IELTS Coaching',
+    'a0200001-0001-4000-8000-000000000001',     'PH Demo · FL 10% IELTS Coaching',
     'UAT active FL-funded coaching discount', 'percentage', 10, 'active', 'future_link',
     'global', 'INR', true, false, 1,
     100, NULL, v_priya, v_branch_genda,
     ARRAY['IELTS Coaching'], ARRAY['IN'], '2026-06-01', '2026-06-30'
   ),
   (
-    'o1000002-0002-4000-8000-000000000002', 'PH Demo · University 15% Admission',
+    'a0200002-0002-4000-8000-000000000002', 'PH Demo · University 15% Admission',
     'University-funded admission discount', 'percentage', 15, 'active', 'university',
     'global', 'INR', true, true, 1,
     0, 100, v_admin, v_branch_genda,
     ARRAY['University Application'], ARRAY['IN','CA'], '2026-06-01', '2026-06-30'
   ),
   (
-    'o1000003-0003-4000-8000-000000000003', 'PH Demo · Joint 60/40 Bundle',
+    'a0200003-0003-4000-8000-000000000003', 'PH Demo · Joint 60/40 Bundle',
     'Joint funding split', 'percentage', 20, 'active', 'joint',
     'global', 'INR', true, false, 2,
     60, 40, v_admin, v_branch_genda,
     ARRAY['IELTS Coaching','University Application'], ARRAY['IN'], '2026-06-01', '2026-06-30'
   ),
   (
-    'o1000004-0004-4000-8000-000000000004',     'PH Demo · Full Waiver (admin)',
+    'a0200004-0004-4000-8000-000000000004',     'PH Demo · Full Waiver (admin)',
     '100% waiver — admin only', 'percentage', 100, 'active', 'future_link',
     'global', 'INR', true, true, 1,
     100, NULL, v_admin, v_branch_genda,
     ARRAY['University Application'], ARRAY['IN'], '2026-06-01', '2026-06-30'
   ),
   (
-    'o1000005-0005-4000-8000-000000000005', 'PH Demo · Draft Pending Review',
+    'a0200005-0005-4000-8000-000000000005', 'PH Demo · Draft Pending Review',
     'Draft for library review flow', 'percentage', 12, 'draft', 'future_link',
     'global', 'INR', false, true, 1,
     100, NULL, v_admin, v_branch_genda,
     ARRAY['IELTS Coaching'], ARRAY['IN'], NULL, NULL
   ),
   (
-    'o1000006-0006-4000-8000-000000000006', 'PH Demo · AB Variant A (12%)',
+    'a0200006-0006-4000-8000-000000000006', 'PH Demo · AB Variant A (12%)',
     'A/B experiment variant A', 'percentage', 12, 'active', 'future_link',
     'global', 'INR', true, false, 1,
     100, NULL, v_admin, v_branch_genda,
     ARRAY['IELTS Coaching'], ARRAY['IN'], '2026-06-01', '2026-06-30'
   ),
   (
-    'o1000007-0007-4000-8000-000000000007', 'PH Demo · AB Variant B (8%)',
+    'a0200007-0007-4000-8000-000000000007', 'PH Demo · AB Variant B (8%)',
     'A/B experiment variant B', 'percentage', 8, 'active', 'future_link',
     'global', 'INR', true, false, 1,
     100, NULL, v_admin, v_branch_genda,
@@ -571,28 +571,28 @@ BEGIN
   (
     'd1000001-0001-4000-8000-000000000001', v_period, v_priya,
     'c1000001-0001-4000-8000-000000000001', 'a0020001-0001-4000-8000-000000000001',
-    'o1000001-0001-4000-8000-000000000001',
+    'a0200001-0001-4000-8000-000000000001',
     4500, 10, 4500, 'instant', 'applied',
     45000, 40500, false, false, 'PH Demo instant apply (historical)'
   ),
   (
     'd1000002-0002-4000-8000-000000000002', v_period, v_priya,
     'c1000002-0002-4000-8000-000000000002', 'a0020001-0001-4000-8000-000000000001',
-    'o1000002-0002-4000-8000-000000000002',
+    'a0200002-0002-4000-8000-000000000002',
     18000, 15, 0, 'manager', 'pending',
     120000, 102000, false, false, 'PH Demo manager queue'
   ),
   (
     'd1000003-0003-4000-8000-000000000003', v_period, v_priya,
     'c1000003-0003-4000-8000-000000000003', 'a0020001-0001-4000-8000-000000000001',
-    'o1000002-0002-4000-8000-000000000002',
+    'a0200002-0002-4000-8000-000000000002',
     30000, 25, 30000, 'admin', 'pending',
     100000, 70000, true, false, 'PH Demo below admission floor (85%)'
   ),
   (
     'd1000004-0004-4000-8000-000000000004', v_period, v_priya,
     'c1000003-0003-4000-8000-000000000003', 'a0020001-0001-4000-8000-000000000001',
-    'o1000004-0004-4000-8000-000000000004',
+    'a0200004-0004-4000-8000-000000000004',
     100000, 100, 100000, 'admin', 'pending',
     100000, 0, true, true, 'PH Demo full waiver — counselor blocked'
   )
@@ -606,7 +606,7 @@ BEGIN
     'a0080001-0001-4000-8000-000000000001',
     'a0020001-0001-4000-8000-000000000001', v_priya,
     'c1000001-0001-4000-8000-000000000001',
-    'o1000001-0001-4000-8000-000000000001',
+    'a0200001-0001-4000-8000-000000000001',
     'a00c0001-0001-4000-8000-000000000001',
     4500, 'INR', 10, 'applied', false, v_priya, '2026-06-05'::timestamptz
   )
@@ -714,21 +714,21 @@ BEGIN
 
   INSERT INTO public.offer_events (counselor_id, client_id, offer_id, event_type, channel)
   SELECT v_priya, 'c1000001-0001-4000-8000-000000000001',
-         'o1000001-0001-4000-8000-000000000001', 'sent', 'ph-demo'
+         'a0200001-0001-4000-8000-000000000001', 'sent', 'ph-demo'
    WHERE NOT EXISTS (
      SELECT 1 FROM public.offer_events oe
       WHERE oe.counselor_id = v_priya AND oe.event_type = 'sent'
-        AND oe.offer_id = 'o1000001-0001-4000-8000-000000000001'
+        AND oe.offer_id = 'a0200001-0001-4000-8000-000000000001'
         AND oe.created_at::date >= '2026-06-01'
    );
 
   INSERT INTO public.offer_events (counselor_id, client_id, offer_id, event_type, channel)
   SELECT v_priya, 'c1000001-0001-4000-8000-000000000001',
-         'o1000001-0001-4000-8000-000000000001', 'redeemed', 'ph-demo'
+         'a0200001-0001-4000-8000-000000000001', 'redeemed', 'ph-demo'
    WHERE NOT EXISTS (
      SELECT 1 FROM public.offer_events oe
       WHERE oe.counselor_id = v_priya AND oe.event_type = 'redeemed'
-        AND oe.offer_id = 'o1000001-0001-4000-8000-000000000001'
+        AND oe.offer_id = 'a0200001-0001-4000-8000-000000000001'
         AND oe.created_at::date >= '2026-06-01'
    );
 
@@ -745,9 +745,9 @@ BEGIN
   INSERT INTO public.offer_ab_variants (id, experiment_id, offer_id, variant_code, label)
   VALUES
   ('a00b0001-0001-4000-8000-000000000001', 'ab100001-0001-4000-8000-000000000001',
-   'o1000006-0006-4000-8000-000000000006', 'A', 'Variant A · 12%'),
+   'a0200006-0006-4000-8000-000000000006', 'A', 'Variant A · 12%'),
   ('a00b0002-0002-4000-8000-000000000002', 'ab100001-0001-4000-8000-000000000001',
-   'o1000007-0007-4000-8000-000000000007', 'B', 'Variant B · 8%')
+   'a0200007-0007-4000-8000-000000000007', 'B', 'Variant B · 8%')
   ON CONFLICT (id) DO NOTHING;
 
   INSERT INTO public.offer_ab_assignments (
@@ -908,42 +908,42 @@ BEGIN
     applicable_services, target_countries, valid_from, valid_to
   ) VALUES
   (
-    'o1000008-0008-4000-8000-000000000008', 'PH Demo · Approved Canada push',
+    'a0200008-0008-4000-8000-000000000008', 'PH Demo · Approved Canada push',
     'Approved — awaiting schedule', 'percentage', 12, 'approved', 'university',
     'global', 'INR', false, true, 1,
     0, 100, v_marcom, v_branch_genda,
     ARRAY['University Application'], ARRAY['CA'], '2026-07-01', '2026-07-31'
   ),
   (
-    'o1000009-0009-4000-8000-000000000009', 'PH Demo · Scheduled July intake',
+    'a0200009-0009-4000-8000-000000000009', 'PH Demo · Scheduled July intake',
     'Scheduled activation', 'percentage', 10, 'scheduled', 'future_link',
     'global', 'INR', false, false, 1,
     100, NULL, v_marcom, v_branch_genda,
     ARRAY['IELTS Coaching'], ARRAY['IN'], '2026-06-25', '2026-07-15'
   ),
   (
-    'o1000010-0010-4000-8000-000000000010', 'PH Demo · Pending review draft',
+    'a0200010-0010-4000-8000-000000000010', 'PH Demo · Pending review draft',
     'Submitted for MarCom review', 'percentage', 14, 'pending_review', 'future_link',
     'global', 'INR', false, true, 1,
     100, NULL, v_marcom, v_branch_genda,
     ARRAY['IELTS Coaching'], ARRAY['IN'], NULL, NULL
   ),
   (
-    'o1000011-0011-4000-8000-000000000011', 'PH Demo · Expiring soon IELTS',
+    'a0200011-0011-4000-8000-000000000011', 'PH Demo · Expiring soon IELTS',
     'Ends this month', 'percentage', 8, 'expiring_soon', 'future_link',
     'global', 'INR', true, false, 1,
     100, NULL, v_marcom, v_branch_genda,
     ARRAY['IELTS Coaching'], ARRAY['IN'], '2026-06-01', '2026-06-28'
   ),
   (
-    'o1000012-0012-4000-8000-000000000012', 'PH Demo · Archived winter promo',
+    'a0200012-0012-4000-8000-000000000012', 'PH Demo · Archived winter promo',
     'Past campaign — archived', 'percentage', 15, 'archived', 'future_link',
     'global', 'INR', false, false, 1,
     100, NULL, v_admin, v_branch_genda,
     ARRAY['IELTS Coaching'], ARRAY['IN'], '2025-12-01', '2025-12-31'
   ),
   (
-    'o1000013-0013-4000-8000-000000000013', 'PH Demo · Published field offer 8%',
+    'a0200013-0013-4000-8000-000000000013', 'PH Demo · Published field offer 8%',
     'Sample published promotion offer', 'percentage', 8, 'active', 'future_link',
     'group', 'INR', true, false, 2,
     100, NULL, v_marcom, v_branch_genda,
@@ -953,11 +953,11 @@ BEGIN
 
   INSERT INTO public.offer_status_history (id, offer_id, from_status, to_status, changed_by, note, created_at)
   VALUES
-  ('a0120001-0001-4000-8000-000000000001', 'o1000008-0008-4000-8000-000000000008', 'draft', 'pending_review', v_marcom, 'PH Demo submitted', '2026-06-02'::timestamptz),
-  ('a0120002-0002-4000-8000-000000000002', 'o1000008-0008-4000-8000-000000000008', 'pending_review', 'approved', v_admin, 'PH Demo approved', '2026-06-04'::timestamptz),
-  ('a0120003-0003-4000-8000-000000000003', 'o1000009-0009-4000-8000-000000000009', 'approved', 'scheduled', v_marcom, 'PH Demo scheduled', '2026-06-05'::timestamptz),
-  ('a0120004-0004-4000-8000-000000000004', 'o1000011-0011-4000-8000-000000000011', 'active', 'expiring_soon', NULL, 'PH Demo expiry tick', '2026-06-20'::timestamptz),
-  ('a0120005-0005-4000-8000-000000000005', 'o1000012-0012-4000-8000-000000000012', 'expired', 'archived', v_admin, 'PH Demo archived', '2026-01-05'::timestamptz)
+  ('a0120001-0001-4000-8000-000000000001', 'a0200008-0008-4000-8000-000000000008', 'draft', 'pending_review', v_marcom, 'PH Demo submitted', '2026-06-02'::timestamptz),
+  ('a0120002-0002-4000-8000-000000000002', 'a0200008-0008-4000-8000-000000000008', 'pending_review', 'approved', v_admin, 'PH Demo approved', '2026-06-04'::timestamptz),
+  ('a0120003-0003-4000-8000-000000000003', 'a0200009-0009-4000-8000-000000000009', 'approved', 'scheduled', v_marcom, 'PH Demo scheduled', '2026-06-05'::timestamptz),
+  ('a0120004-0004-4000-8000-000000000004', 'a0200011-0011-4000-8000-000000000011', 'active', 'expiring_soon', NULL, 'PH Demo expiry tick', '2026-06-20'::timestamptz),
+  ('a0120005-0005-4000-8000-000000000005', 'a0200012-0012-4000-8000-000000000012', 'expired', 'archived', v_admin, 'PH Demo archived', '2026-01-05'::timestamptz)
   ON CONFLICT (id) DO NOTHING;
 
   -- ── Corporate calendar (Offers studio → Calendar) ────────────────────────
@@ -967,12 +967,12 @@ BEGIN
   (
     'cc100001-0001-4000-8000-000000000001', 'PH Demo · Monsoon IELTS push', 'seasonal',
     '2026-06-01', '2026-06-30', 'Maya MarCom', 'live',
-    'o1000001-0001-4000-8000-000000000001', 'Linked to active IELTS offer', v_marcom
+    'a0200001-0001-4000-8000-000000000001', 'Linked to active IELTS offer', v_marcom
   ),
   (
     'cc100002-0002-4000-8000-000000000002', 'PH Demo · Canada intake window', 'intake',
     '2026-06-15', '2026-07-15', 'Maya MarCom', 'planned',
-    'o1000002-0002-4000-8000-000000000002', 'Admission discount campaign', v_marcom
+    'a0200002-0002-4000-8000-000000000002', 'Admission discount campaign', v_marcom
   ),
   (
     'cc100003-0003-4000-8000-000000000003', 'PH Demo · Rakhi branch celebration', 'festival',
@@ -1009,14 +1009,14 @@ BEGIN
 
   INSERT INTO public.offer_audience_targets (id, offer_id, group_id)
   VALUES
-  ('a0130001-0001-4000-8000-000000000001', 'o1000001-0001-4000-8000-000000000001', 'a0110001-0001-4000-8000-000000000001'),
-  ('a0130002-0002-4000-8000-000000000002', 'o1000013-0013-4000-8000-000000000013', 'a0110002-0002-4000-8000-000000000002')
+  ('a0130001-0001-4000-8000-000000000001', 'a0200001-0001-4000-8000-000000000001', 'a0110001-0001-4000-8000-000000000001'),
+  ('a0130002-0002-4000-8000-000000000002', 'a0200013-0013-4000-8000-000000000013', 'a0110002-0002-4000-8000-000000000002')
   ON CONFLICT (id) DO NOTHING;
 
   UPDATE public.offers SET audience = 'group'
    WHERE id IN (
-     'o1000001-0001-4000-8000-000000000001',
-     'o1000013-0013-4000-8000-000000000013'
+     'a0200001-0001-4000-8000-000000000001',
+     'a0200013-0013-4000-8000-000000000013'
    );
 
   -- ── Auto-offer rules (Offers studio → Automation) ──────────────────────────
@@ -1046,26 +1046,26 @@ BEGIN
   INSERT INTO public.client_offers (id, client_id, offer_id, status, used_at, attached_by, source)
   VALUES
   (
-    'co100001-0001-4000-8000-000000000001',
+    'a0210001-0001-4000-8000-000000000001',
     'c1000001-0001-4000-8000-000000000001',
-    'o1000001-0001-4000-8000-000000000001', 'active', NULL, v_priya, 'counselor'
+    'a0200001-0001-4000-8000-000000000001', 'active', NULL, v_priya, 'counselor'
   ),
   (
-    'co100002-0002-4000-8000-000000000002',
+    'a0210002-0002-4000-8000-000000000002',
     'c1000003-0003-4000-8000-000000000003',
-    'o1000001-0001-4000-8000-000000000001', 'used', '2026-06-06'::timestamptz, v_priya, 'counselor'
+    'a0200001-0001-4000-8000-000000000001', 'used', '2026-06-06'::timestamptz, v_priya, 'counselor'
   ),
   (
-    'co100003-0003-4000-8000-000000000003',
+    'a0210003-0003-4000-8000-000000000003',
     'c1000005-0005-4000-8000-000000000005',
-    'o1000006-0006-4000-8000-000000000006', 'active', NULL, v_priya, 'auto'
+    'a0200006-0006-4000-8000-000000000006', 'active', NULL, v_priya, 'auto'
   )
   ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status;
 
   INSERT INTO public.offer_tracking_codes (id, offer_id, counselor_id, code)
   VALUES (
     'a0150001-0001-4000-8000-000000000001',
-    'o1000001-0001-4000-8000-000000000001', v_priya, 'PHDEMO-PRIYA-IELTS'
+    'a0200001-0001-4000-8000-000000000001', v_priya, 'PHDEMO-PRIYA-IELTS'
   )
   ON CONFLICT (id) DO NOTHING;
 
@@ -1074,13 +1074,13 @@ BEGIN
 
   -- ── Analytics ROI (invoices + offer_events) ──────────────────────────────
   UPDATE public.client_invoices
-     SET applied_offer_id = 'o1000001-0001-4000-8000-000000000001',
+     SET applied_offer_id = 'a0200001-0001-4000-8000-000000000001',
          offer_discount_amount = 4500,
          attributed_counselor_id = v_priya
    WHERE id = 'a00c0001-0001-4000-8000-000000000001';
 
   UPDATE public.client_invoices
-     SET applied_offer_id = 'o1000002-0002-4000-8000-000000000002',
+     SET applied_offer_id = 'a0200002-0002-4000-8000-000000000002',
          offer_discount_amount = 18000,
          attributed_counselor_id = v_priya
    WHERE id = 'a00c0002-0002-4000-8000-000000000002';
@@ -1088,14 +1088,14 @@ BEGIN
   INSERT INTO public.offer_events (
     id, offer_id, client_id, counselor_id, event_type, channel, revenue_amount, created_at
   ) VALUES
-  ('oe100001-0001-4000-8000-000000000001', 'o1000001-0001-4000-8000-000000000001', 'c1000001-0001-4000-8000-000000000001', v_priya, 'viewed', 'ph-demo', 0, '2026-06-04'::timestamptz),
-  ('oe100002-0002-4000-8000-000000000002', 'o1000001-0001-4000-8000-000000000001', 'c1000001-0001-4000-8000-000000000001', v_priya, 'viewed', 'ph-demo', 0, '2026-06-05'::timestamptz),
-  ('oe100003-0003-4000-8000-000000000003', 'o1000001-0001-4000-8000-000000000001', 'c1000001-0001-4000-8000-000000000001', v_priya, 'claimed', 'ph-demo', 0, '2026-06-05'::timestamptz),
-  ('oe100004-0004-4000-8000-000000000004', 'o1000002-0002-4000-8000-000000000002', 'c1000002-0002-4000-8000-000000000002', v_priya, 'viewed', 'email', 0, '2026-06-07'::timestamptz),
-  ('oe100005-0005-4000-8000-000000000005', 'o1000002-0002-4000-8000-000000000002', 'c1000002-0002-4000-8000-000000000002', v_priya, 'claimed', 'email', 0, '2026-06-08'::timestamptz),
-  ('oe100006-0006-4000-8000-000000000006', 'o1000002-0002-4000-8000-000000000002', 'c1000002-0002-4000-8000-000000000002', v_priya, 'redeemed', 'ph-demo', 120000, '2026-06-08'::timestamptz),
-  ('oe100007-0007-4000-8000-000000000007', 'o1000013-0013-4000-8000-000000000013', 'c1000003-0003-4000-8000-000000000003', v_priya, 'sent', 'ph-demo', 0, '2026-06-09'::timestamptz),
-  ('oe100008-0008-4000-8000-000000000008', 'o1000006-0006-4000-8000-000000000006', 'c1000005-0005-4000-8000-000000000005', v_priya, 'sent', 'ph-demo', 0, '2026-06-10'::timestamptz)
+  ('a0220001-0001-4000-8000-000000000001', 'a0200001-0001-4000-8000-000000000001', 'c1000001-0001-4000-8000-000000000001', v_priya, 'viewed', 'ph-demo', 0, '2026-06-04'::timestamptz),
+  ('a0220002-0002-4000-8000-000000000002', 'a0200001-0001-4000-8000-000000000001', 'c1000001-0001-4000-8000-000000000001', v_priya, 'viewed', 'ph-demo', 0, '2026-06-05'::timestamptz),
+  ('a0220003-0003-4000-8000-000000000003', 'a0200001-0001-4000-8000-000000000001', 'c1000001-0001-4000-8000-000000000001', v_priya, 'claimed', 'ph-demo', 0, '2026-06-05'::timestamptz),
+  ('a0220004-0004-4000-8000-000000000004', 'a0200002-0002-4000-8000-000000000002', 'c1000002-0002-4000-8000-000000000002', v_priya, 'viewed', 'email', 0, '2026-06-07'::timestamptz),
+  ('a0220005-0005-4000-8000-000000000005', 'a0200002-0002-4000-8000-000000000002', 'c1000002-0002-4000-8000-000000000002', v_priya, 'claimed', 'email', 0, '2026-06-08'::timestamptz),
+  ('a0220006-0006-4000-8000-000000000006', 'a0200002-0002-4000-8000-000000000002', 'c1000002-0002-4000-8000-000000000002', v_priya, 'redeemed', 'ph-demo', 120000, '2026-06-08'::timestamptz),
+  ('a0220007-0007-4000-8000-000000000007', 'a0200013-0013-4000-8000-000000000013', 'c1000003-0003-4000-8000-000000000003', v_priya, 'sent', 'ph-demo', 0, '2026-06-09'::timestamptz),
+  ('a0220008-0008-4000-8000-000000000008', 'a0200006-0006-4000-8000-000000000006', 'c1000005-0005-4000-8000-000000000005', v_priya, 'sent', 'ph-demo', 0, '2026-06-10'::timestamptz)
   ON CONFLICT (id) DO NOTHING;
 
   -- ── Team view + competitions (Rohit + Ajwa branch revenue) ───────────────
@@ -1253,19 +1253,19 @@ DELETE FROM public.campaign_calendar WHERE id IN (
 );
 DELETE FROM public.offer_tracking_codes WHERE id = 'a0150001-0001-4000-8000-000000000001';
 DELETE FROM public.client_offers WHERE id IN (
-  'co100001-0001-4000-8000-000000000001',
-  'co100002-0002-4000-8000-000000000002',
-  'co100003-0003-4000-8000-000000000003'
+  'a0210001-0001-4000-8000-000000000001',
+  'a0210002-0002-4000-8000-000000000002',
+  'a0210003-0003-4000-8000-000000000003'
 );
 DELETE FROM public.offer_events WHERE id IN (
-  'oe100001-0001-4000-8000-000000000001',
-  'oe100002-0002-4000-8000-000000000002',
-  'oe100003-0003-4000-8000-000000000003',
-  'oe100004-0004-4000-8000-000000000004',
-  'oe100005-0005-4000-8000-000000000005',
-  'oe100006-0006-4000-8000-000000000006',
-  'oe100007-0007-4000-8000-000000000007',
-  'oe100008-0008-4000-8000-000000000008'
+  'a0220001-0001-4000-8000-000000000001',
+  'a0220002-0002-4000-8000-000000000002',
+  'a0220003-0003-4000-8000-000000000003',
+  'a0220004-0004-4000-8000-000000000004',
+  'a0220005-0005-4000-8000-000000000005',
+  'a0220006-0006-4000-8000-000000000006',
+  'a0220007-0007-4000-8000-000000000007',
+  'a0220008-0008-4000-8000-000000000008'
 );
 DELETE FROM public.incentive_slabs WHERE id IN (
   'a0170001-0001-4000-8000-000000000001',
@@ -1329,19 +1329,19 @@ DELETE FROM public.discount_wallets WHERE id IN (
   'a0020004-0004-4000-8000-000000000004'
 );
 DELETE FROM public.offers WHERE id IN (
-  'o1000001-0001-4000-8000-000000000001',
-  'o1000002-0002-4000-8000-000000000002',
-  'o1000003-0003-4000-8000-000000000003',
-  'o1000004-0004-4000-8000-000000000004',
-  'o1000005-0005-4000-8000-000000000005',
-  'o1000006-0006-4000-8000-000000000006',
-  'o1000007-0007-4000-8000-000000000007',
-  'o1000008-0008-4000-8000-000000000008',
-  'o1000009-0009-4000-8000-000000000009',
-  'o1000010-0010-4000-8000-000000000010',
-  'o1000011-0011-4000-8000-000000000011',
-  'o1000012-0012-4000-8000-000000000012',
-  'o1000013-0013-4000-8000-000000000013'
+  'a0200001-0001-4000-8000-000000000001',
+  'a0200002-0002-4000-8000-000000000002',
+  'a0200003-0003-4000-8000-000000000003',
+  'a0200004-0004-4000-8000-000000000004',
+  'a0200005-0005-4000-8000-000000000005',
+  'a0200006-0006-4000-8000-000000000006',
+  'a0200007-0007-4000-8000-000000000007',
+  'a0200008-0008-4000-8000-000000000008',
+  'a0200009-0009-4000-8000-000000000009',
+  'a0200010-0010-4000-8000-000000000010',
+  'a0200011-0011-4000-8000-000000000011',
+  'a0200012-0012-4000-8000-000000000012',
+  'a0200013-0013-4000-8000-000000000013'
 );
 DELETE FROM public.service_offers WHERE id = 'a0010001-0001-4000-8000-000000000001';
 DELETE FROM public.clients WHERE application_id LIKE 'PH-DEMO-%';
@@ -1378,9 +1378,9 @@ Login as the user listed unless noted. Period = **2026-06**.
 
 | Screen | Route | User | Test record | Expected outcome |
 |--------|-------|------|-------------|------------------|
-| Give discount | `/performance/give-discount` | Priya | client `c1000003`, offer `o1000001` | ≤10% / ≤₹5k → instant apply path (5S S2) |
+| Give discount | `/performance/give-discount` | Priya | client `c1000003`, offer `a0200001` | ≤10% / ≤₹5k → instant apply path (5S S2) |
 | Give discount · floor | `/performance/give-discount` | Priya | client `c1000003`, admission line, 25% | Preview shows **85% floor** (5U U1); submit creates/queues `d1000003` (5S S1) |
-| Give discount · waiver | `/performance/give-discount` | Priya | offer `o1000004` | Counselor blocked from full waiver (5S S3) |
+| Give discount · waiver | `/performance/give-discount` | Priya | offer `a0200004` | Counselor blocked from full waiver (5S S3) |
 | Give discount mobile (6C) | `/performance/give-discount` | Priya | 390px viewport | Sticky submit, simplified fields |
 | Wallet policy | `/performance/wallet/policy` | Admin | multiplier/unlock bands | Seeded bands from migrations visible |
 | Branch pool | `/performance/wallet/branch-pool` | Manager | pool `a0020003` | Balance ₹50,000; allocate to Priya wallet `a0020001` |
@@ -1399,8 +1399,8 @@ Login as the user listed unless noted. Period = **2026-06**.
 
 | Screen | Route | User | Test record | Expected outcome |
 |--------|-------|------|-------------|------------------|
-| Offers library | `/performance/offers/library` | MarCom | `o1000001`–`o1000013` | All lifecycle statuses + funding badges |
-| New offer wizard | `/performance/offers/new` | MarCom | clone from `o1000001` | Creates new draft (do not reuse fixed UUIDs in UAT) |
+| Offers library | `/performance/offers/library` | MarCom | `a0200001`–`a0200013` | All lifecycle statuses + funding badges |
+| New offer wizard | `/performance/offers/new` | MarCom | clone from `a0200001` | Creates new draft (do not reuse fixed UUIDs in UAT) |
 | Offers studio hub | `/performance/offers` | MarCom | — | Navigation to sub-screens |
 | Analytics (5V V2) | `/performance/offers/analytics` | MarCom | period `2026-06` | ROI table non-empty; counselor attribution; wallet impact |
 | Calendar | `/performance/offers/calendar` | MarCom | `cc100001`–`cc100003` | Three campaigns (live + planned); two linked to offers |
@@ -1445,11 +1445,11 @@ Each row ties to `docs/INCENTIVE_PHASE5_BATCH_UAT.md`.
 | Q4 | Live cash footer | run `a0050001`, line `a0060001` | `/performance` | 60s / live refresh on earning card |
 | R1 | Create A/B | experiment `ab100001` | `/performance/offers/ab-tests` | Running experiment with 2 variants |
 | R2 | A/B badge | `c1000005`, assignment `a1000001` | Client promotions | Variant badge on suggestion |
-| R3 | Promote winner | `ab100001`, `o1000006`/`o1000007` | A/B tests | Stats + complete experiment |
+| R3 | Promote winner | `ab100001`, `a0200006`/`a0200007` | A/B tests | Stats + complete experiment |
 | R4 | Period bar sync | period `2026-06` | Team, plans, command center | Same period everywhere |
 | S1 | Below floor escalate | `c1000003`, `d1000003` | Give discount, approvals | Admin queue with floor badge |
-| S2 | Instant apply | `c1000001`, `o1000001`, `d1000001` | Give discount | ≤10% instant path |
-| S3 | Waiver blocked | `o1000004`, `d1000004` | Give discount | Counselor cannot submit 100% waiver |
+| S2 | Instant apply | `c1000001`, `a0200001`, `d1000001` | Give discount | ≤10% instant path |
+| S3 | Waiver blocked | `a0200004`, `d1000004` | Give discount | Counselor cannot submit 100% waiver |
 | S4 | Approvals matrix | `d1000002–4` | `/performance/admin/approvals` | manager + admin depths |
 | T1 | I5 hot badge | `c1000001` | Client promotions | hot/warm badge + factors |
 | T2 | Hot clients list | `c1000001` | `/performance` | Aman Shah on home list |
