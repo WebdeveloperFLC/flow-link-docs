@@ -1,9 +1,7 @@
 Bug ID,Date,Tester,Test Case ID,Module,Summary,Steps to Reproduce,Expected Result,Actual Result,Severity,Screenshot File,Status,Assigned To,Resolution Notes,Retest Result,Closed Date
-PH-BUG-001,2026-06-12,Example Tester,PH-UAT-S2,Give discount,Example: instant discount not applied,"1. Log in as ph.counselor1@flowlink.demo
-2. Open Give discount
-3. Select PH-DEMO-003 and 10% offer
-4. Submit",Discount applies instantly without manager queue,Submit button spins then error toast,Major,PH-UAT-S2_20260612.png,Open,,,,
-,,,,,,,,,,,,,,
+PH-BUG-001,2026-07-15,UAT,PH-UAT-OFFERS-004,Offers library,Activate now spinner runs forever,"1. Log in as ph.marcom@flowlink.demo
+2. Open /performance/offers/library
+3. On approved offer (e.g. after Submit for review → Approve on o1000005 or published promo draft), click Activate now",Offer status becomes Active with success toast,Spinner on lifecycle button never clears; status stays unchanged,High,PH-UAT-OFFERS-004_20260715.png,Fixed,Engineering,"Root cause: offers table lacked RLS write policy for MarCom module edit; lifecycle UI had no busy/finally guard. Fix: migration 20260715120000 (offers_studio_write + fn_offer_set_status guard) + OffersAdmin statusBusy handling.",,
 ,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,

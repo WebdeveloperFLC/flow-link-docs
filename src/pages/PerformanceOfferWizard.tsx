@@ -118,41 +118,43 @@ export default function PerformanceOfferWizard() {
   const save = async () => {
     if (!validateStep()) return;
     setBusy(true);
-    const payload = {
-      title: form.title.trim(),
-      description: form.description.trim() || null,
-      offer_category: form.offer_category.trim() || null,
-      discount_type: form.discount_type,
-      discount_value: form.discount_value,
-      promo_code: form.promo_code.trim() || null,
-      audience: form.audience,
-      target_countries: form.target_countries,
-      applicable_services: form.applicable_services,
-      funding_source: form.funding_source,
-      fl_contribution_pct:
-        form.funding_source === "joint" ? form.fl_contribution_pct : form.funding_source === "future_link" ? 100 : null,
-      university_contribution_pct:
-        form.funding_source === "joint"
-          ? form.university_contribution_pct
-          : form.funding_source === "university"
-            ? 100
-            : null,
-      valid_from: form.valid_from || null,
-      valid_to: form.valid_to || null,
-      per_client_limit: form.per_client_limit,
-      max_redemptions: form.max_redemptions,
-      distribution_channels: form.distribution_channels,
-      status: "draft" as const,
-      created_by: user?.id ?? null,
-    };
-    const { data, error } = await supabase.from("offers").insert(payload).select("id").single();
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const payload = {
+        title: form.title.trim(),
+        description: form.description.trim() || null,
+        offer_category: form.offer_category.trim() || null,
+        discount_type: form.discount_type,
+        discount_value: form.discount_value,
+        promo_code: form.promo_code.trim() || null,
+        audience: form.audience,
+        target_countries: form.target_countries,
+        applicable_services: form.applicable_services,
+        funding_source: form.funding_source,
+        fl_contribution_pct:
+          form.funding_source === "joint" ? form.fl_contribution_pct : form.funding_source === "future_link" ? 100 : null,
+        university_contribution_pct:
+          form.funding_source === "joint"
+            ? form.university_contribution_pct
+            : form.funding_source === "university"
+              ? 100
+              : null,
+        valid_from: form.valid_from || null,
+        valid_to: form.valid_to || null,
+        per_client_limit: form.per_client_limit,
+        max_redemptions: form.max_redemptions,
+        distribution_channels: form.distribution_channels,
+        status: "draft" as const,
+        created_by: user?.id ?? null,
+      };
+      const { error } = await supabase.from("offers").insert(payload).select("id").single();
+      if (error) throw error;
+      toast.success("Draft offer created — submit for review from the library");
+      navigate("/performance/offers/library");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
     }
-    toast.success("Draft offer created — submit for review from the library");
-    navigate("/performance/offers/library");
   };
 
   return (
