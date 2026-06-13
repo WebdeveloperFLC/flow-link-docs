@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { PerformanceMetricCard } from "@/components/performance/PerformanceMetricCard";
 import { cn } from "@/lib/utils";
@@ -107,6 +108,7 @@ const FLOOR_SERVICE_OPTIONS = [
 export default function GiveDiscount() {
   const { user, hasRole } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const period = currentPeriodKey();
 
@@ -374,6 +376,20 @@ export default function GiveDiscount() {
     return { text: ">20% — submitted to admin approval queue", tone: "escalate" as const };
   })();
 
+  const submitDisabled =
+    busy ||
+    overBalance ||
+    overUnlock ||
+    overPctCap ||
+    blockedWaiver ||
+    !wallet ||
+    !targetKey ||
+    amtNum <= 0;
+  const submitLabel =
+    depthLabel.tone === "ok" && !marginPreview?.below_floor && !blockedWaiver
+      ? "Apply discount"
+      : "Submit for approval";
+
   useEffect(() => {
     if (amtNum <= 0 && pctNum <= 0) {
       setMarginPreview(null);
@@ -510,7 +526,7 @@ export default function GiveDiscount() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 max-w-4xl">
+      <div className="mx-auto w-full max-w-[390px] md:max-w-4xl px-4 py-4 pb-28 md:p-6 md:pb-6 space-y-5 md:space-y-6">
         <PerformanceHubHeader
           title="Give discount"
           subtitle={`Full-page apply · hard unlock gate · period ${period}`}
@@ -681,32 +697,69 @@ export default function GiveDiscount() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-muted-foreground">
-                    Invoice base before discount ({ccy}) — for margin floor (O16)
-                  </label>
-                  <Input
-                    className="mt-1"
-                    value={invoiceBase}
-                    onChange={(e) => setInvoiceBase(e.target.value)}
-                    placeholder="e.g. 20000"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground">Service line (floor override O16b)</label>
-                  <select
-                    className="w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm"
-                    value={masterKey}
-                    onChange={(e) => setMasterKey(e.target.value)}
-                  >
-                    {FLOOR_SERVICE_OPTIONS.map((o) => (
-                      <option key={o.value || "auto"} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className={cn(isMobile ? "space-y-3" : "grid grid-cols-1 md:grid-cols-2 gap-3")}>
+                {isMobile ? (
+                  <details className="rounded-md border px-3 py-2 open:pb-3">
+                    <summary className="text-xs font-medium cursor-pointer select-none">
+                      Margin floor — optional (O16)
+                    </summary>
+                    <div className="mt-3 space-y-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground">
+                          Invoice base before discount ({ccy})
+                        </label>
+                        <Input
+                          className="mt-1"
+                          value={invoiceBase}
+                          onChange={(e) => setInvoiceBase(e.target.value)}
+                          placeholder="e.g. 20000"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Service line (floor override)</label>
+                        <select
+                          className="w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm"
+                          value={masterKey}
+                          onChange={(e) => setMasterKey(e.target.value)}
+                        >
+                          {FLOOR_SERVICE_OPTIONS.map((o) => (
+                            <option key={o.value || "auto"} value={o.value}>
+                              {o.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </details>
+                ) : (
+                  <>
+                    <div>
+                      <label className="text-xs text-muted-foreground">
+                        Invoice base before discount ({ccy}) — for margin floor (O16)
+                      </label>
+                      <Input
+                        className="mt-1"
+                        value={invoiceBase}
+                        onChange={(e) => setInvoiceBase(e.target.value)}
+                        placeholder="e.g. 20000"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground">Service line (floor override O16b)</label>
+                      <select
+                        className="w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm"
+                        value={masterKey}
+                        onChange={(e) => setMasterKey(e.target.value)}
+                      >
+                        {FLOOR_SERVICE_OPTIONS.map((o) => (
+                          <option key={o.value || "auto"} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
               </div>
               {baseNum > 0 && marginPreview?.min_net_required != null && (
                 <p className="text-xs text-muted-foreground">
@@ -795,8 +848,12 @@ export default function GiveDiscount() {
                 Enter the discount value in {ccy}. Unlock limits apply once your wallet has been sized for the period.
               </p>
 
-              <Button disabled={busy || overBalance || overUnlock || overPctCap || blockedWaiver} onClick={give}>
-                <Gift className="size-4 mr-1" /> Apply discount
+              <Button
+                disabled={submitDisabled}
+                onClick={give}
+                className={cn(isMobile && "hidden md:inline-flex")}
+              >
+                <Gift className="size-4 mr-1" /> {submitLabel}
               </Button>
             </>
           )}
@@ -808,6 +865,38 @@ export default function GiveDiscount() {
             <div className="text-sm text-muted-foreground">Loading…</div>
           ) : allocs.length === 0 ? (
             <div className="text-sm text-muted-foreground">No discounts given yet.</div>
+          ) : isMobile ? (
+            <div className="space-y-3">
+              {allocs.map((a) => (
+                <div key={a.id} className="rounded-lg border p-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-medium text-sm">{targetName(a)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(a.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-sm">{fmt(a.amount, a.currency)}</p>
+                      {a.percent != null && (
+                        <p className="text-xs text-muted-foreground">{a.percent}%</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t">
+                    <span className="text-xs capitalize text-muted-foreground">
+                      {a.status}
+                      {a.exceeded_cap && a.status !== "reversed" ? " · over cap" : ""}
+                    </span>
+                    {a.status !== "reversed" && (
+                      <Button variant="ghost" size="sm" disabled={busy} onClick={() => reverse(a.id)}>
+                        <RotateCcw className="size-4 mr-1" /> Reverse
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -847,6 +936,43 @@ export default function GiveDiscount() {
           )}
         </Card>
       </div>
+
+      {isMobile && wallet && (
+        <div className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 backdrop-blur md:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="mx-auto w-full max-w-[390px] px-4 pt-3 space-y-2">
+            {amtNum > 0 ? (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Discount</span>
+                <span className="font-semibold">{fmt(amtNum, ccy)}</span>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">Enter amount to apply</p>
+            )}
+            {walletDebitPreview > 0 && (
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Wallet debit</span>
+                <span>{fmt(walletDebitPreview, ccy)}</span>
+              </div>
+            )}
+            {sizingActive && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Unlocked left</span>
+                <span className={cn("font-medium", overUnlock && "text-destructive")}>
+                  {fmt(effectiveRemaining, ccy)}
+                </span>
+              </div>
+            )}
+            {overUnlock && (
+              <p className="text-xs text-destructive font-medium">
+                Only {fmt(effectiveRemaining, ccy)} unlocked — submit blocked
+              </p>
+            )}
+            <Button className="w-full h-11" disabled={submitDisabled} onClick={give}>
+              <Gift className="size-4 mr-1" /> {submitLabel}
+            </Button>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }
