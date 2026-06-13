@@ -89,6 +89,7 @@ Performance Hub migrations (Lovable Publish — approve ALL that still show as p
   [ ] 20260707120000_incentive_platform_phase5u.sql  — service floors O16b, WIR lite
   [ ] 20260708120000_incentive_platform_phase5v.sql  — counselor O10 influence, analytics period
   [ ] 20260709120000_incentive_platform_phase5w.sql  — hub readiness gate, batch UAT wrap
+  [ ] 20260710120000_incentive_platform_phase5x.sql  — multi-variant A/B O11b
 
 EOF
 }

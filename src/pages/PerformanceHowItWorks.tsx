@@ -85,7 +85,7 @@ const INTELLIGENCE_LINKS = [
   {
     icon: Megaphone,
     title: "Experiments & governance (5R · 5S · 5U)",
-    body: "Run two-variant offer A/B tests. Margin floor (O16) blocks below-floor discounts; per-service floors tighten admission vs coaching. Depth matrix routes deep discounts to managers and admins.",
+    body: "Run offer A/B tests with 2–5 variants (O11b). Margin floor (O16) blocks below-floor discounts; per-service floors tighten admission vs coaching. Depth matrix routes deep discounts to managers and admins.",
     links: [
       { to: "/performance/offers/ab-tests", label: "A/B tests" },
       { to: "/performance/admin/approvals", label: "Approvals & floors" },

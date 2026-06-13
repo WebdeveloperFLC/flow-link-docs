@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { toast } from "sonner";
-import { FlaskConical, Play, Trophy } from "lucide-react";
+import { FlaskConical, Play, Plus, Trash2, Trophy } from "lucide-react";
 
 interface ExperimentRow {
   id: string;
@@ -52,10 +52,45 @@ export default function PerformanceOffersAbTests() {
   const [form, setForm] = useState({
     name: "",
     description: "",
-    offer_a: "",
-    offer_b: "",
     min_conversions: "5",
+    variants: [
+      { offer_id: "", label: "Variant A" },
+      { offer_id: "", label: "Variant B" },
+    ],
   });
+
+  function updateVariant(index: number, patch: Partial<{ offer_id: string; label: string }>) {
+    setForm((prev) => ({
+      ...prev,
+      variants: prev.variants.map((v, i) => (i === index ? { ...v, ...patch } : v)),
+    }));
+  }
+
+  function addVariant() {
+    setForm((prev) => {
+      if (prev.variants.length >= 5) return prev;
+      const code = String.fromCharCode(65 + prev.variants.length);
+      return {
+        ...prev,
+        variants: [...prev.variants, { offer_id: "", label: `Variant ${code}` }],
+      };
+    });
+  }
+
+  function removeVariant(index: number) {
+    setForm((prev) => {
+      if (prev.variants.length <= 2) return prev;
+      return {
+        ...prev,
+        variants: prev.variants
+          .filter((_, i) => i !== index)
+          .map((v, i) => ({
+            ...v,
+            label: v.label || `Variant ${String.fromCharCode(65 + i)}`,
+          })),
+      };
+    });
+  }
 
   const load = useCallback(async () => {
     const [exp, off] = await Promise.all([
@@ -91,22 +126,35 @@ export default function PerformanceOffersAbTests() {
   }, [selected, experiments]);
 
   async function createExperiment() {
-    if (!canManage || !form.name.trim() || !form.offer_a || !form.offer_b) {
-      toast.error("Name and both offer variants required");
+    const filled = form.variants.filter((v) => v.offer_id);
+    const offerIds = filled.map((v) => v.offer_id);
+    const unique = new Set(offerIds);
+    if (!canManage || !form.name.trim() || filled.length < 2 || unique.size !== offerIds.length) {
+      toast.error("Name, at least 2 distinct offer variants, and no duplicate offers required");
       return;
     }
     setBusy(true);
     try {
-      const { data, error } = await supabase.rpc("fn_create_offer_ab_experiment", {
+      const { data, error } = await supabase.rpc("fn_create_offer_ab_experiment_multi", {
         _name: form.name.trim(),
-        _offer_id_a: form.offer_a,
-        _offer_id_b: form.offer_b,
+        _variants: filled.map((v, i) => ({
+          offer_id: v.offer_id,
+          label: v.label.trim() || `Variant ${String.fromCharCode(65 + i)}`,
+        })),
         _description: form.description.trim() || null,
         _min_conversions: Number(form.min_conversions) || 5,
       });
       if (error) throw error;
-      toast.success("Experiment created (draft)");
-      setForm({ name: "", description: "", offer_a: "", offer_b: "", min_conversions: "5" });
+      toast.success(`Experiment created with ${filled.length} variants (draft)`);
+      setForm({
+        name: "",
+        description: "",
+        min_conversions: "5",
+        variants: [
+          { offer_id: "", label: "Variant A" },
+          { offer_id: "", label: "Variant B" },
+        ],
+      });
       if (data) setSelected(data as string);
       await load();
     } catch (e: unknown) {
@@ -154,7 +202,7 @@ export default function PerformanceOffersAbTests() {
     <AppLayout>
       <PerformanceHubHeader
         title="Offer A/B tests"
-        subtitle="O11 — two variants · stable assignment per client · promote winner to catalogue"
+        subtitle="O11b — 2–5 variants · balanced assignment · promote winner to catalogue"
         showModuleLegend={false}
       />
       <div className="p-6 max-w-7xl mx-auto space-y-4">
@@ -175,23 +223,57 @@ export default function PerformanceOffersAbTests() {
                 <Label className="text-xs">Min conversions to promote</Label>
                 <Input className="mt-1" value={form.min_conversions} onChange={(e) => setForm({ ...form, min_conversions: e.target.value })} />
               </div>
-              <div>
-                <Label className="text-xs">Variant A offer</Label>
-                <select className={sel} value={form.offer_a} onChange={(e) => setForm({ ...form, offer_a: e.target.value })}>
-                  <option value="">—</option>
-                  {offers.map((o) => (
-                    <option key={o.id} value={o.id}>{o.title}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <Label className="text-xs">Variant B offer</Label>
-                <select className={sel} value={form.offer_b} onChange={(e) => setForm({ ...form, offer_b: e.target.value })}>
-                  <option value="">—</option>
-                  {offers.map((o) => (
-                    <option key={o.id} value={o.id}>{o.title}</option>
-                  ))}
-                </select>
+              <div className="md:col-span-2 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <Label className="text-xs">Offer variants (A–E)</Label>
+                  {form.variants.length < 5 && (
+                    <Button type="button" size="sm" variant="outline" onClick={addVariant}>
+                      <Plus className="size-3.5 mr-1" /> Add variant
+                    </Button>
+                  )}
+                </div>
+                {form.variants.map((variant, index) => (
+                  <div key={index} className="grid md:grid-cols-[auto_1fr_1fr] gap-2 items-end border rounded-lg p-3 bg-muted/20">
+                    <span className="text-sm font-semibold text-muted-foreground pb-2 w-6">
+                      {String.fromCharCode(65 + index)}
+                    </span>
+                    <div>
+                      <Label className="text-xs">Offer</Label>
+                      <select
+                        className={sel}
+                        value={variant.offer_id}
+                        onChange={(e) => updateVariant(index, { offer_id: e.target.value })}
+                      >
+                        <option value="">—</option>
+                        {offers.map((o) => (
+                          <option key={o.id} value={o.id}>{o.title}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <Label className="text-xs">Label</Label>
+                        <Input
+                          className="mt-1"
+                          value={variant.label}
+                          onChange={(e) => updateVariant(index, { label: e.target.value })}
+                        />
+                      </div>
+                      {form.variants.length > 2 && (
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="shrink-0 mt-5"
+                          onClick={() => removeVariant(index)}
+                          aria-label="Remove variant"
+                        >
+                          <Trash2 className="size-4 text-muted-foreground" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
               <div className="md:col-span-2">
                 <Label className="text-xs">Description</Label>
@@ -274,7 +356,7 @@ export default function PerformanceOffersAbTests() {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Promote requires min {active.min_conversions} conversion(s) on the winning variant. Loser offer is archived.
+                  Promote requires min {active.min_conversions} conversion(s) on the winning variant. Other offers are archived.
                 </p>
               </>
             )}
