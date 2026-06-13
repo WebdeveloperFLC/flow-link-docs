@@ -158,7 +158,7 @@ create or replace function fn_build_payroll_line(p_employee uuid, p_cycle uuid)
 returns payroll_lines language plpgsql security definer as $$
 declare
   c record; e record; inp jsonb; calc jsonb; row payroll_lines;
-  use_override boolean := false; ov jsonb;
+  use_override boolean; ov jsonb;
 begin
   select * into c from payroll_cycles where id = p_cycle;
   if c.status <> 'Draft' then
@@ -166,9 +166,12 @@ begin
   end if;
   select * into e from employees where id = p_employee;
 
-  -- existing override?
+  -- existing override? (SELECT INTO sets NULL when no row — coalesce before insert)
+  use_override := false;
+  ov := null;
   select is_overridden, override_json into use_override, ov
   from payroll_lines where cycle_id=p_cycle and employee_id=p_employee;
+  use_override := coalesce(use_override, false);
 
   if use_override then
     inp := ov;   -- manual inputs win
@@ -199,7 +202,7 @@ begin
     (calc->>'payable_days')::numeric, (calc->>'daily_rate')::numeric,
     (calc->>'gross_earned')::numeric, (calc->>'incentive')::numeric, (calc->>'bonus')::numeric,
     (calc->>'pf_employee')::numeric, (calc->>'esic_employee')::numeric, (calc->>'net_salary')::numeric,
-    use_override, ov
+    coalesce(use_override, false), ov
   )
   on conflict (cycle_id, employee_id) do update set
     payroll_days=excluded.payroll_days, monthly_gross=excluded.monthly_gross, basic=excluded.basic,
