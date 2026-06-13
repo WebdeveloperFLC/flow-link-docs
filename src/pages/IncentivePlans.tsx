@@ -10,6 +10,8 @@ import { Settings2, Plus, Trash2, Sparkles } from "lucide-react";
 import { priorPeriodKey } from "@/incentives/lib/incentiveFinanceExport";
 import { IncentiveRulesTab, type IncentiveRule } from "@/incentives/components/IncentiveRulesTab";
 import { IncentiveSchemeTemplatesTab } from "@/incentives/components/IncentiveSchemeTemplatesTab";
+import { IncentiveAttributionSplitsTab } from "@/incentives/components/IncentiveAttributionSplitsTab";
+import { IncentivePlanAssignmentsTab } from "@/incentives/components/IncentivePlanAssignmentsTab";
 import {
   auditSlabGroups,
   nextSlabMin,
@@ -35,7 +37,7 @@ interface Plan {
   id: string; name: string; description: string | null; scope_type: string;
   branch_id: string | null; role_key: string | null; period_type: string;
   settlement_currency: string; revenue_basis: string; active_from: string;
-  active_to: string | null; is_active: boolean;
+  active_to: string | null; is_active: boolean; plan_stack_role?: string;
 }
 interface Slab {
   id: string; plan_id: string; source_type: string; service_filter: string | null;
@@ -69,6 +71,7 @@ export default function IncentivePlans() {
     scope_type: string;
     branch_id: string;
     role_key: string;
+    plan_stack_role: string;
   }>({
     name: "",
     period_type: "monthly",
@@ -77,6 +80,7 @@ export default function IncentivePlans() {
     scope_type: "global",
     branch_id: "",
     role_key: "counselor",
+    plan_stack_role: "base",
   });
   const [newSlab, setNewSlab] = useState<{ source_type: SourceType; metric: Metric; rate_type: RateType; min_threshold: string; max_threshold: string; rate_value: string; service_filter: string }>({ source_type: "service_revenue", metric: "net_revenue", rate_type: "percent", min_threshold: "0", max_threshold: "", rate_value: "5", service_filter: "" });
   const [slabMinTouched, setSlabMinTouched] = useState(false);
@@ -121,6 +125,7 @@ export default function IncentivePlans() {
       scope_type: newPlan.scope_type,
       branch_id: newPlan.scope_type === "branch" ? (newPlan.branch_id.trim() || null) : null,
       role_key: newPlan.scope_type === "role" ? (newPlan.role_key || null) : null,
+      plan_stack_role: newPlan.plan_stack_role,
     }]);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Plan created" });
@@ -132,6 +137,7 @@ export default function IncentivePlans() {
       scope_type: "global",
       branch_id: "",
       role_key: "counselor",
+      plan_stack_role: "base",
     });
     await loadAll();
   }
@@ -328,6 +334,8 @@ export default function IncentivePlans() {
             <TabsTrigger value="slabs">Slabs</TabsTrigger>
             <TabsTrigger value="targets">Targets</TabsTrigger>
             <TabsTrigger value="templates">Scheme templates</TabsTrigger>
+            <TabsTrigger value="assignments">Plan stacking</TabsTrigger>
+            <TabsTrigger value="splits">Attribution splits</TabsTrigger>
           </TabsList>
 
           {/* ---------- PLANS ---------- */}
@@ -387,6 +395,13 @@ export default function IncentivePlans() {
                     </select>
                   </div>
                 )}
+                <div>
+                  <label className="text-xs text-muted-foreground">Stack role (I7)</label>
+                  <select className={sel} value={newPlan.plan_stack_role} onChange={(e) => setNewPlan({ ...newPlan, plan_stack_role: e.target.value })}>
+                    <option value="base">base — primary monthly plan</option>
+                    <option value="overlay">overlay — stacks on base</option>
+                  </select>
+                </div>
               </div>
               <Button onClick={createPlan}><Plus className="size-4 mr-1" /> Create plan</Button>
             </Card>
@@ -399,7 +414,7 @@ export default function IncentivePlans() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="text-left text-muted-foreground border-b">
-                      <tr><th className="py-2 pr-4">Name</th><th className="py-2 pr-4">Period</th><th className="py-2 pr-4">Scope</th><th className="py-2 pr-4">Currency</th><th className="py-2 pr-4">Basis</th><th className="py-2 pr-4">Active</th></tr>
+                      <tr><th className="py-2 pr-4">Name</th><th className="py-2 pr-4">Period</th><th className="py-2 pr-4">Scope</th><th className="py-2 pr-4">Stack</th><th className="py-2 pr-4">Currency</th><th className="py-2 pr-4">Basis</th><th className="py-2 pr-4">Active</th></tr>
                     </thead>
                     <tbody>
                       {plans.map((p) => (
@@ -411,6 +426,7 @@ export default function IncentivePlans() {
                             {p.branch_id ? ` · ${branches.find((b) => b.id === p.branch_id)?.name ?? "branch"}` : ""}
                             {p.role_key ? ` · ${p.role_key}` : ""}
                           </td>
+                          <td className="py-2 pr-4 capitalize">{p.plan_stack_role ?? "base"}</td>
                           <td className="py-2 pr-4">{p.settlement_currency}</td>
                           <td className="py-2 pr-4">{p.revenue_basis}</td>
                           <td className="py-2 pr-4">
@@ -697,6 +713,14 @@ export default function IncentivePlans() {
               branches={branches}
               onReload={loadAll}
             />
+          </TabsContent>
+
+          <TabsContent value="assignments" className="space-y-4">
+            <IncentivePlanAssignmentsTab plans={plans} profiles={profiles} />
+          </TabsContent>
+
+          <TabsContent value="splits" className="space-y-4">
+            <IncentiveAttributionSplitsTab profiles={profiles} />
           </TabsContent>
         </Tabs>
       </div>

@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   applySlabs,
+  applyRuleStacking,
   applyTargetBonus,
   classifySourceType,
   discountPenaltyMultiplier,
   effectiveDiscountPct,
   forecastMonthEnd,
+  resolveAttributionShares,
   resolveIncentiveCounselorId,
   revenueToNextSlab,
 } from "./incentiveEngineLogic";
@@ -40,6 +42,47 @@ describe("classifySourceType", () => {
     expect(classifySourceType("allied_services")).toBe("ancillary");
     expect(classifySourceType("travel_financial")).toBe("ancillary");
     expect(classifySourceType("coaching_services")).toBe("service_revenue");
+  });
+});
+
+describe("resolveAttributionShares", () => {
+  it("uses explicit splits when present", () => {
+    const shares = resolveAttributionShares(
+      "c1",
+      { c1: [{ counselorId: "a", sharePct: 50 }, { counselorId: "b", sharePct: 50 }] },
+      { c1: "a" },
+    );
+    expect(shares).toEqual([
+      { counselorId: "a", ratio: 0.5 },
+      { counselorId: "b", ratio: 0.5 },
+    ]);
+  });
+
+  it("falls back to closer-wins", () => {
+    expect(
+      resolveAttributionShares("c1", {}, { c1: "close" }),
+    ).toEqual([{ counselorId: "close", ratio: 1 }]);
+  });
+});
+
+describe("applyRuleStacking", () => {
+  it("picks highest exclusive rule", () => {
+    const r = applyRuleStacking([
+      { ruleId: "r1", stackingMode: "additive", capAmount: null, settlementEarned: 1000 },
+      { ruleId: "r2", stackingMode: "exclusive", capAmount: null, settlementEarned: 3000 },
+      { ruleId: "r3", stackingMode: "exclusive", capAmount: null, settlementEarned: 2500 },
+    ]);
+    expect(r.total).toBe(4000);
+    expect(r.allowedRuleIds.has("r1")).toBe(true);
+    expect(r.allowedRuleIds.has("r2")).toBe(true);
+    expect(r.allowedRuleIds.has("r3")).toBe(false);
+  });
+
+  it("caps additive rule earnings", () => {
+    const r = applyRuleStacking([
+      { ruleId: "r1", stackingMode: "cap", capAmount: 2000, settlementEarned: 5000 },
+    ]);
+    expect(r.total).toBe(2000);
   });
 });
 

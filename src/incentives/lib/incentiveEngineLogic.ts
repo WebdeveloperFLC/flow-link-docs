@@ -31,6 +31,54 @@ export function resolveIncentiveCounselorId(client: {
   return client.closing_counselor_id ?? client.assigned_counselor_id ?? client.owner_id ?? null;
 }
 
+export type AttributionShare = { counselorId: string; ratio: number };
+
+/** Resolve explicit splits or single closer-wins share */
+export function resolveAttributionShares(
+  clientId: string,
+  splitsByClient: Record<string, { counselorId: string; sharePct: number }[]>,
+  fallbackCounselorByClient: Record<string, string>,
+): AttributionShare[] {
+  const rows = splitsByClient[clientId];
+  if (rows?.length) {
+    const sum = rows.reduce((s, r) => s + r.sharePct, 0);
+    if (sum <= 0) return [];
+    return rows.map((r) => ({ counselorId: r.counselorId, ratio: r.sharePct / sum }));
+  }
+  const cid = fallbackCounselorByClient[clientId];
+  return cid ? [{ counselorId: cid, ratio: 1 }] : [];
+}
+
+export type RuleStackEntry = { ruleId: string; stackingMode: string; capAmount: number | null; settlementEarned: number };
+
+/** Mirror edge fn: additive sum + highest exclusive + per-rule cap */
+export function applyRuleStacking(entries: RuleStackEntry[]): { total: number; allowedRuleIds: Set<string> } {
+  let additiveSum = 0;
+  let maxExclusive = 0;
+  const allowed = new Set<string>();
+  let exclusiveWinner: string | null = null;
+
+  for (const e of entries) {
+    if (e.settlementEarned <= 0) continue;
+    const mode = e.stackingMode || "additive";
+    if (mode === "exclusive") {
+      if (e.settlementEarned >= maxExclusive) {
+        maxExclusive = e.settlementEarned;
+        exclusiveWinner = e.ruleId;
+      }
+    } else if (mode === "cap") {
+      additiveSum += Math.min(e.settlementEarned, e.capAmount ?? Infinity);
+      allowed.add(e.ruleId);
+    } else {
+      additiveSum += e.settlementEarned;
+      allowed.add(e.ruleId);
+    }
+  }
+
+  if (exclusiveWinner && maxExclusive > 0) allowed.add(exclusiveWinner);
+  return { total: additiveSum + maxExclusive, allowedRuleIds: allowed };
+}
+
 /** Map service master_key to incentive_source_type */
 export function classifySourceType(masterKey?: string | null): "service_revenue" | "ancillary" {
   const m = (masterKey ?? "").toLowerCase();

@@ -289,7 +289,57 @@ interface IncentiveRule {
   id: string; name: string; is_active: boolean;
   scope_preset: string | null; scope_json: ScopeJson;
   source_type: string; metric: string; rate_type: string; rate_value: number;
+  stacking_mode: string; cap_amount: number | null;
   milestone: string | null; settlement_currency: string | null;
+}
+
+type AttributionShare = { cid: string; ratio: number };
+
+function getClientAttributionShares(
+  clientId: string,
+  clientAttribution: Record<string, AttributionShare[]>,
+  clientToCounselor: Record<string, string>,
+): AttributionShare[] {
+  const splits = clientAttribution[clientId];
+  if (splits?.length) return splits;
+  const cid = clientToCounselor[clientId];
+  return cid ? [{ cid, ratio: 1 }] : [];
+}
+
+function applyRuleStacking(
+  entries: { rule: IncentiveRule; settlementEarned: number }[],
+): { total: number; allowed: Set<string> } {
+  let additiveSum = 0;
+  let maxExclusive = 0;
+  const allowed = new Set<string>();
+  const exclusiveIds: string[] = [];
+  let exclusiveWinner: string | null = null;
+
+  for (const e of entries) {
+    const mode = e.rule.stacking_mode ?? "additive";
+    if (mode === "exclusive") {
+      exclusiveIds.push(e.rule.id);
+      if (e.settlementEarned >= maxExclusive) {
+        maxExclusive = e.settlementEarned;
+        exclusiveWinner = e.rule.id;
+      }
+    } else if (mode === "cap") {
+      const cap = e.rule.cap_amount ?? Infinity;
+      if (e.settlementEarned > 0) {
+        additiveSum += Math.min(e.settlementEarned, cap);
+        allowed.add(e.rule.id);
+      }
+    } else if (e.settlementEarned > 0) {
+      additiveSum += e.settlementEarned;
+      allowed.add(e.rule.id);
+    }
+  }
+
+  if (exclusiveWinner && maxExclusive > 0) {
+    allowed.add(exclusiveWinner);
+  }
+
+  return { total: additiveSum + maxExclusive, allowed };
 }
 
 function slabGroupKey(s: Slab): string {
@@ -391,8 +441,38 @@ Deno.serve(async (req: Request) => {
         .eq("role", plan.role_key);
       roleEligible = new Set((roleRows ?? []).map((r: { user_id: string }) => r.user_id));
     }
-    const counselorInPlan = (cid: string | null | undefined): boolean =>
-      !!cid && (!roleEligible || roleEligible.has(cid));
+
+    const planStackRole = ((plan as { plan_stack_role?: string }).plan_stack_role ?? "base") as string;
+    const { data: assignRows } = await svc
+      .from("incentive_counselor_plan_assignments")
+      .select("counselor_id, plan_id, assignment_role, incentive_plans(plan_stack_role)")
+      .eq("period_key", period_key)
+      .eq("is_active", true);
+    const assignmentsByCounselor: Record<string, { plan_id: string; assignment_role: string; plan_stack_role: string }[]> = {};
+    const assignedToThisPlan = new Set<string>();
+    for (const a of (assignRows ?? []) as any[]) {
+      const cid = a.counselor_id as string;
+      const stackRole = (a.incentive_plans?.plan_stack_role ?? "base") as string;
+      (assignmentsByCounselor[cid] ||= []).push({
+        plan_id: a.plan_id,
+        assignment_role: a.assignment_role ?? "primary",
+        plan_stack_role: stackRole,
+      });
+      if (a.plan_id === plan_id) assignedToThisPlan.add(cid);
+    }
+    const periodHasAssignments = (assignRows ?? []).length > 0;
+
+    const counselorInPlan = (cid: string | null | undefined): boolean => {
+      if (!cid) return false;
+      if (roleEligible && !roleEligible.has(cid)) return false;
+      const mine = assignmentsByCounselor[cid] ?? [];
+      if (!periodHasAssignments || mine.length === 0) return true;
+      if (planStackRole === "overlay") return assignedToThisPlan.has(cid);
+      if (assignedToThisPlan.has(cid)) return true;
+      const primaryBase = mine.find((x) => x.assignment_role === "primary" && x.plan_stack_role === "base");
+      if (primaryBase && primaryBase.plan_id !== plan_id) return false;
+      return mine.every((x) => x.plan_stack_role === "overlay");
+    };
 
     // --- LOCK path: snapshot plan version + freeze run ---
     if (action === "lock") {
@@ -482,6 +562,27 @@ Deno.serve(async (req: Request) => {
       if (counselorInPlan(cid)) clientToCounselor[c.id] = cid!;
     }
     const clientIds = clientList.map((c) => c.id);
+
+    const clientAttribution: Record<string, AttributionShare[]> = {};
+    if (clientIds.length) {
+      const { data: splitRows } = await svc
+        .from("incentive_attribution_splits")
+        .select("client_id, counselor_id, share_pct")
+        .in("client_id", clientIds)
+        .eq("is_active", true);
+      const grouped: Record<string, { cid: string; pct: number }[]> = {};
+      for (const row of (splitRows ?? []) as any[]) {
+        const clientId = row.client_id as string;
+        const shareCid = row.counselor_id as string;
+        if (!counselorInPlan(shareCid)) continue;
+        (grouped[clientId] ||= []).push({ cid: shareCid, pct: Number(row.share_pct ?? 0) });
+      }
+      for (const [clientId, rows] of Object.entries(grouped)) {
+        const sum = rows.reduce((s, r) => s + r.pct, 0);
+        if (sum <= 0) continue;
+        clientAttribution[clientId] = rows.map((r) => ({ cid: r.cid, ratio: r.pct / sum }));
+      }
+    }
 
     // client dimension enrichment (country, institution, intake, program)
     const clientDims: Record<string, LineDims> = {};
@@ -578,8 +679,8 @@ Deno.serve(async (req: Request) => {
 
       for (const p of (pays ?? []) as any[]) {
         if (p.is_refund) continue;
-        const cid = clientToCounselor[p.client_id];
-        if (!cid) continue;
+        const shares = getClientAttributionShares(p.client_id, clientAttribution, clientToCounselor);
+        if (!shares.length) continue;
         let grossSettlement = convert(Number(p.amount), p.currency ?? "INR", settlement, snap);
         if (grossSettlement == null) continue;
         let inSettlement = grossSettlement;
@@ -612,36 +713,41 @@ Deno.serve(async (req: Request) => {
         dims.is_first_payment = isFirst;
         if (isFirst) seenFirstInPeriod.add(p.client_id);
 
-        const lineRec = {
-          source_type: src, source_payment_id: p.id, source_invoice_id: p.invoice_id,
-          client_id: p.client_id, base_amount: Number(p.amount), base_currency: p.currency ?? "INR",
-          fx_rate_used: p.currency === "INR" ? 1 : snap[p.currency] ?? null,
-          settlement_amount: inSettlement,
-          gross_settlement: grossSettlement,
-          dimensions: dims,
-        };
-
         const legacyGroups = new Set<string>();
         for (const sl of legacySlabs.filter((s) => s.source_type === src)) {
           if (matchesServiceFilter(sl.service_filter, dims)) legacyGroups.add(slabGroupKey(sl));
         }
         if (legacyGroups.size === 0) legacyGroups.add(`${src}|`);
 
-        for (const gk of legacyGroups) {
-          const b = ensureSlab(cid, gk);
-          b.count += 1;
-          b.revenue += inSettlement / legacyGroups.size;
-          b.lines.push(lineRec);
-        }
+        for (const { cid, ratio } of shares) {
+          const splitAmt = inSettlement * ratio;
+          const splitGross = grossSettlement * ratio;
+          const lineRec = {
+            source_type: src, source_payment_id: p.id, source_invoice_id: p.invoice_id,
+            client_id: p.client_id, base_amount: Number(p.amount) * ratio, base_currency: p.currency ?? "INR",
+            fx_rate_used: p.currency === "INR" ? 1 : snap[p.currency] ?? null,
+            settlement_amount: splitAmt,
+            gross_settlement: splitGross,
+            dimensions: dims,
+            note: ratio < 1 ? `Attribution split ${Math.round(ratio * 100)}%` : null,
+          };
 
-        for (const rule of rules) {
-          if (rule.source_type !== src) continue;
-          const scope = mergeScope(rule.scope_preset, rule.scope_json ?? {});
-          if (!matchesScope(scope, dims, rule.milestone === "first_payment")) continue;
-          const rb = ensureRule(cid, rule.id);
-          rb.count += 1;
-          rb.revenue += inSettlement;
-          rb.lines.push({ ...lineRec, rule_id: rule.id });
+          for (const gk of legacyGroups) {
+            const b = ensureSlab(cid, gk);
+            b.count += ratio;
+            b.revenue += splitAmt / legacyGroups.size;
+            b.lines.push(lineRec);
+          }
+
+          for (const rule of rules) {
+            if (rule.source_type !== src) continue;
+            const scope = mergeScope(rule.scope_preset, rule.scope_json ?? {});
+            if (!matchesScope(scope, dims, rule.milestone === "first_payment")) continue;
+            const rb = ensureRule(cid, rule.id);
+            rb.count += ratio;
+            rb.revenue += splitAmt;
+            rb.lines.push({ ...lineRec, rule_id: rule.id });
+          }
         }
       }
     }
@@ -654,8 +760,9 @@ Deno.serve(async (req: Request) => {
         .eq("commission_status", "paid")
         .gte("commission_paid_date", start).lt("commission_paid_date", end);
       for (const cm of (comm ?? []) as any[]) {
-        const cid = cm.client_id ? clientToCounselor[cm.client_id] : null;
-        if (!cid) continue;
+        if (!cm.client_id) continue;
+        const shares = getClientAttributionShares(cm.client_id, clientAttribution, clientToCounselor);
+        if (!shares.length) continue;
         const ruleCcy = settlement;
         const amt = convert(Number(cm.commission_amount ?? 0), cm.tuition_currency ?? "CAD", ruleCcy, snap);
         if (amt == null) continue;
@@ -671,32 +778,37 @@ Deno.serve(async (req: Request) => {
           intake: intake || clientDims[cm.client_id]?.intake,
           master_key: "admission_services",
         };
-        const lineRec = {
-          source_type: src, source_commission_id: cm.id, client_id: cm.client_id,
-          base_amount: Number(cm.commission_amount ?? 0), base_currency: cm.tuition_currency ?? "CAD",
-          fx_rate_used: (cm.tuition_currency ?? "CAD") === "INR" ? 1 : snap[cm.tuition_currency ?? "CAD"] ?? null,
-          settlement_amount: amt,
-          dimensions: dims,
-        };
         const legacyGroups = new Set<string>();
         for (const sl of legacySlabs.filter((s) => s.source_type === src)) {
           if (matchesServiceFilter(sl.service_filter, dims)) legacyGroups.add(slabGroupKey(sl));
         }
         if (legacyGroups.size === 0) legacyGroups.add(`${src}|`);
-        for (const gk of legacyGroups) {
-          const b = ensureSlab(cid, gk);
-          b.count += 1;
-          b.revenue += amt / legacyGroups.size;
-          b.lines.push(lineRec);
-        }
-        for (const rule of rules) {
-          if (rule.source_type !== src) continue;
-          const scope = mergeScope(rule.scope_preset, rule.scope_json ?? {});
-          if (!matchesScope(scope, dims, rule.milestone === "commission_paid")) continue;
-          const rb = ensureRule(cid, rule.id);
-          rb.count += 1;
-          rb.revenue += amt;
-          rb.lines.push({ ...lineRec, rule_id: rule.id });
+
+        for (const { cid, ratio } of shares) {
+          const splitAmt = amt * ratio;
+          const lineRec = {
+            source_type: src, source_commission_id: cm.id, client_id: cm.client_id,
+            base_amount: Number(cm.commission_amount ?? 0) * ratio, base_currency: cm.tuition_currency ?? "CAD",
+            fx_rate_used: (cm.tuition_currency ?? "CAD") === "INR" ? 1 : snap[cm.tuition_currency ?? "CAD"] ?? null,
+            settlement_amount: splitAmt,
+            dimensions: dims,
+            note: ratio < 1 ? `Attribution split ${Math.round(ratio * 100)}%` : null,
+          };
+          for (const gk of legacyGroups) {
+            const b = ensureSlab(cid, gk);
+            b.count += ratio;
+            b.revenue += splitAmt / legacyGroups.size;
+            b.lines.push(lineRec);
+          }
+          for (const rule of rules) {
+            if (rule.source_type !== src) continue;
+            const scope = mergeScope(rule.scope_preset, rule.scope_json ?? {});
+            if (!matchesScope(scope, dims, rule.milestone === "commission_paid")) continue;
+            const rb = ensureRule(cid, rule.id);
+            rb.count += ratio;
+            rb.revenue += splitAmt;
+            rb.lines.push({ ...lineRec, rule_id: rule.id });
+          }
         }
       }
     }
@@ -802,43 +914,81 @@ Deno.serve(async (req: Request) => {
         }
       }
 
+      const ruleEntries: {
+        rule: IncentiveRule;
+        earned: number;
+        settlementEarned: number;
+        ruleCcy: string;
+        rev: number;
+        slabId: string | null;
+        detailLines: any[];
+      }[] = [];
+
       for (const rule of rules) {
         const bucket = ruleAcc[cid]?.[rule.id];
         if (!bucket) continue;
         const ruleCcy = rule.settlement_currency ?? settlement;
         let earned = 0;
+        let rev = 0;
+        let slabId: string | null = null;
         if (rule.rate_type === "slab") {
           const ruleSlabs = slabs.filter((s) => s.rule_id === rule.id);
-          const rev = ruleCcy === settlement ? bucket.revenue : (convert(bucket.revenue, settlement, ruleCcy, snap) ?? bucket.revenue);
+          rev = ruleCcy === settlement ? bucket.revenue : (convert(bucket.revenue, settlement, ruleCcy, snap) ?? bucket.revenue);
           const res = applySlabs(rev, bucket.count, ruleSlabs);
           earned = res.earned;
-          perCounselor[cid].lines.push({
-            source_type: rule.source_type, slab_id: res.slabId, rule_id: rule.id, client_id: null,
-            base_amount: rev, base_currency: ruleCcy, fx_rate_used: null,
-            earned_amount: earned, settlement_currency: ruleCcy,
-            note: `Rule "${rule.name}" slab`,
-          });
+          slabId = res.slabId;
         } else {
-          const rev = rule.metric.includes("count") || rule.metric === "enrolment_count"
+          rev = rule.metric.includes("count") || rule.metric === "enrolment_count"
             ? bucket.count : bucket.revenue;
           earned = applyRuleRate(rule, bucket.revenue, bucket.count);
           if (ruleCcy !== settlement) {
             earned = convert(earned, settlement, ruleCcy, snap) ?? earned;
           }
-          perCounselor[cid].lines.push({
-            source_type: rule.source_type, slab_id: null, rule_id: rule.id, client_id: null,
-            base_amount: rev, base_currency: ruleCcy, fx_rate_used: null,
-            earned_amount: earned, settlement_currency: ruleCcy,
-            note: `Rule "${rule.name}" ${rule.rate_type}`,
-          });
         }
-        subtotalBeforePenalty += ruleCcy === settlement ? earned : (convert(earned, ruleCcy, settlement, snap) ?? earned);
-        for (const ln of bucket.lines) {
-          perCounselor[cid].lines.push({
+        const settlementEarned = ruleCcy === settlement ? earned : (convert(earned, ruleCcy, settlement, snap) ?? earned);
+        ruleEntries.push({
+          rule,
+          earned,
+          settlementEarned,
+          ruleCcy,
+          rev,
+          slabId,
+          detailLines: bucket.lines.map((ln) => ({
             ...ln, slab_id: null, earned_amount: 0, settlement_currency: ruleCcy,
+          })),
+        });
+      }
+
+      const { total: ruleStackTotal, allowed: allowedRules } = applyRuleStacking(
+        ruleEntries.map((e) => ({ rule: e.rule, settlementEarned: e.settlementEarned })),
+      );
+
+      for (const e of ruleEntries) {
+        const paysFull = allowedRules.has(e.rule.id);
+        const paidEarned = paysFull ? e.earned : 0;
+        const paidSettlement = paysFull ? e.settlementEarned : 0;
+        if (e.rule.rate_type === "slab") {
+          perCounselor[cid].lines.push({
+            source_type: e.rule.source_type, slab_id: e.slabId, rule_id: e.rule.id, client_id: null,
+            base_amount: e.rev, base_currency: e.ruleCcy, fx_rate_used: null,
+            earned_amount: paidEarned, settlement_currency: e.ruleCcy,
+            note: paysFull
+              ? `Rule "${e.rule.name}" slab`
+              : `Rule "${e.rule.name}" slab (${e.rule.stacking_mode} — not selected)`,
+          });
+        } else {
+          perCounselor[cid].lines.push({
+            source_type: e.rule.source_type, slab_id: null, rule_id: e.rule.id, client_id: null,
+            base_amount: e.rev, base_currency: e.ruleCcy, fx_rate_used: null,
+            earned_amount: paidEarned, settlement_currency: e.ruleCcy,
+            note: paysFull
+              ? `Rule "${e.rule.name}" ${e.rule.rate_type}`
+              : `Rule "${e.rule.name}" ${e.rule.rate_type} (${e.rule.stacking_mode} — not selected)`,
           });
         }
+        for (const ln of e.detailLines) perCounselor[cid].lines.push(ln);
       }
+      subtotalBeforePenalty += ruleStackTotal;
 
       const gross = counselorGross[cid] ?? subtotalBeforePenalty;
       const net = counselorNet[cid] ?? subtotalBeforePenalty;

@@ -31,6 +31,14 @@ export interface PerformanceHomeData {
   } | null;
   branchLeaderboard: { rank: number; label: string; amount: number; isYou: boolean }[];
   payouts: { date: string; status: string; net: number; currency: string }[];
+  planStack: {
+    plan_name: string;
+    plan_stack_role: string;
+    earned_amount: number;
+    settlement_currency: string;
+    run_locked: boolean;
+  }[];
+  planStackTotal: number;
 }
 
 export function usePerformanceHomeData(userId: string | undefined, period = currentPeriodKey()): PerformanceHomeData {
@@ -49,6 +57,8 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
     breakdown: null,
     branchLeaderboard: [],
     payouts: [],
+    planStack: [],
+    planStackTotal: 0,
   });
 
   useEffect(() => {
@@ -58,7 +68,7 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
     (async () => {
       setState((s) => ({ ...s, loading: true, period }));
 
-      const [prof, w, bdRes, runsRes, p, lbBranch, allocs] = await Promise.all([
+      const [prof, w, bdRes, runsRes, p, lbBranch, allocs, stackRes] = await Promise.all([
         supabase.from("profiles").select("full_name, branch_id").eq("id", userId).maybeSingle(),
         supabase
           .from("discount_wallets")
@@ -88,6 +98,10 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
           .eq("counselor_id", userId)
           .eq("status", "applied")
           .gte("created_at", `${period}-01`),
+        supabase.rpc("fn_counselor_plan_stack_summary", {
+          _counselor_id: userId,
+          _period_key: period,
+        }),
       ]);
 
       let branchName: string | null = null;
@@ -162,6 +176,15 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
         currency: string;
       }[]) ?? [];
 
+      const planStackRows = ((stackRes.data ?? []) as {
+        plan_name: string;
+        plan_stack_role: string;
+        earned_amount: number;
+        settlement_currency: string;
+        run_locked: boolean;
+      }[]) ?? [];
+      const planStackTotal = planStackRows.reduce((s, r) => s + Number(r.earned_amount ?? 0), 0);
+
       if (cancelled) return;
 
       setState({
@@ -203,6 +226,14 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
             currency: x.settlement_currency,
           }),
         ),
+        planStack: planStackRows.map((r) => ({
+          plan_name: r.plan_name,
+          plan_stack_role: r.plan_stack_role,
+          earned_amount: Number(r.earned_amount ?? 0),
+          settlement_currency: r.settlement_currency ?? "INR",
+          run_locked: Boolean(r.run_locked),
+        })),
+        planStackTotal,
       });
     })();
 

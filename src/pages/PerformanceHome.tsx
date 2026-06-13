@@ -142,6 +142,34 @@ export default function PerformanceHome() {
           />
         </div>
 
+        {data.planStack.length > 0 && (
+          <Card className="p-5">
+            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <Trophy className="size-5 text-primary" />
+              Stacked plans (I7)
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Combined earnings across your assigned base + overlay plans this period.
+            </p>
+            <div className="space-y-2 text-sm">
+              {data.planStack.map((row) => (
+                <div key={`${row.plan_name}-${row.plan_stack_role}`} className="flex justify-between border-b pb-2 last:border-0">
+                  <span>
+                    {row.plan_name}
+                    <span className="text-muted-foreground ml-2 capitalize">({row.plan_stack_role})</span>
+                    {row.run_locked ? " · locked" : ""}
+                  </span>
+                  <span className="font-medium">{formatInr(row.earned_amount, row.settlement_currency)}</span>
+                </div>
+              ))}
+              <div className="flex justify-between pt-2 font-semibold">
+                <span>Stack total</span>
+                <span>{formatInr(data.planStackTotal, "INR")}</span>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {data.walletDiscountTotal > 0 && (
           <Card className="p-4 border-l-4 border-l-violet-500 bg-violet-500/5">
             <p className="text-sm">
