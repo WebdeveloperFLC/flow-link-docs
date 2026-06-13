@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { PerformanceKpiGrid, PerformanceMoneyRail } from "@/components/performance/PerformanceMoneyRail";
 import { usePerformancePeriodMetrics } from "@/hooks/usePerformancePeriodMetrics";
+import { usePerformanceQueueCounts } from "@/hooks/usePerformanceQueueCounts";
 import { currentPeriodKey } from "@/lib/performanceHubTheme";
 import {
+  AlertTriangle,
   Banknote,
   Calculator,
   CalendarClock,
@@ -21,6 +23,27 @@ import {
   Trophy,
 } from "lucide-react";
 
+const QUEUE_LINKS = [
+  {
+    to: "/performance/admin/unclassified",
+    label: "Unclassified payments",
+    hint: "Map service library codes",
+    countKey: "unclassified" as const,
+  },
+  {
+    to: "/performance/admin/approvals",
+    label: "Discount approvals",
+    hint: "Depth-matrix queue",
+    countKey: "pendingApprovals" as const,
+  },
+  {
+    to: "/performance/offers/requests",
+    label: "Promotion requests",
+    hint: "Field → MarCom",
+    countKey: "promotionRequests" as const,
+  },
+] as const;
+
 const WORKFLOW = [
   { step: 1, label: "Period close (wallets)", to: "/incentives/period-close", icon: CalendarClock },
   { step: 2, label: "Preview & calculate run", to: "/incentives/admin", icon: Calculator },
@@ -29,6 +52,9 @@ const WORKFLOW = [
 ] as const;
 
 const ADMIN_LINKS = [
+  { to: "/performance/admin/unclassified", label: "Unclassified payments", icon: Calculator },
+  { to: "/performance/admin/approvals", label: "Discount approvals", icon: Gift },
+  { to: "/performance/offers/requests", label: "Promotion requests", icon: Tag },
   { to: "/performance/executive", label: "Executive dashboard", icon: Calculator },
   { to: "/performance/wallet/policy", label: "Wallet policy", icon: Gift },
   { to: "/incentives/admin", label: "Runs & preview", icon: Calculator },
@@ -44,6 +70,7 @@ const ADMIN_LINKS = [
 export default function PerformanceCommandCenter() {
   const [period, setPeriod] = useState(currentPeriodKey());
   const metrics = usePerformancePeriodMetrics(period, "All branches");
+  const queues = usePerformanceQueueCounts(period);
 
   return (
     <AppLayout>
@@ -59,6 +86,37 @@ export default function PerformanceCommandCenter() {
           <label className="text-xs text-muted-foreground">Period</label>
           <Input className="w-32 mt-1" value={period} onChange={(e) => setPeriod(e.target.value)} />
         </div>
+
+        {(queues.unclassified > 0 || queues.pendingApprovals > 0 || queues.promotionRequests > 0) && (
+          <Card className="p-4 border-amber-500/30 bg-amber-500/5">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="size-4 text-amber-600" />
+              <h2 className="font-semibold">Action queues</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {QUEUE_LINKS.map((q) => {
+                const count = queues[q.countKey];
+                if (count === 0 && !queues.loading) return null;
+                return (
+                  <Link
+                    key={q.to}
+                    to={q.to}
+                    className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+                  >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-sm font-semibold">
+                      {queues.loading ? "…" : count}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm">{q.label}</p>
+                      <p className="text-xs text-muted-foreground truncate">{q.hint}</p>
+                    </div>
+                    <ChevronRight className="size-4 text-muted-foreground ml-auto shrink-0" />
+                  </Link>
+                );
+              })}
+            </div>
+          </Card>
+        )}
 
         <PerformanceKpiGrid
           loading={metrics.loading}

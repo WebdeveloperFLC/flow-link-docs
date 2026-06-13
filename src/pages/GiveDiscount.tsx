@@ -70,6 +70,11 @@ interface ApplyResult {
   discount_value?: number;
   funding_source?: string;
   remaining_unlocked?: number;
+  pending_approval?: boolean;
+  approval_level?: string;
+  message?: string;
+  auto_applied?: boolean;
+  request_id?: string;
 }
 
 const fmt = (n: number, ccy: string) =>
@@ -181,6 +186,12 @@ export default function GiveDiscount() {
   }, [searchParams, targets]);
 
   useEffect(() => {
+    const offerParam = searchParams.get("offer");
+    if (!offerParam || offers.length === 0) return;
+    if (offers.some((o) => o.id === offerParam)) setOfferId(offerParam);
+  }, [searchParams, offers]);
+
+  useEffect(() => {
     if (!user || !targetKey) {
       if (user) loadWalletsForTarget(null, null);
       return;
@@ -284,8 +295,8 @@ export default function GiveDiscount() {
     depthPct <= 10 || amtNum <= 5000
       ? { text: "Instant apply — within wallet authority", tone: "ok" as const }
       : depthPct <= 20
-        ? { text: "11–20% — routes to branch manager approval (Phase 5C queue)", tone: "warn" as const }
-        : { text: ">20% — routes to admin / director (Phase 5C queue)", tone: "escalate" as const };
+        ? { text: "11–20% — submitted to branch manager approval queue", tone: "warn" as const }
+        : { text: ">20% — submitted to admin approval queue", tone: "escalate" as const };
 
   const unlockBarPct =
     wallet && wallet.potential_wallet > 0
@@ -309,13 +320,14 @@ export default function GiveDiscount() {
 
     setBusy(true);
     try {
-      const { data, error } = await supabase.rpc("fn_apply_offer_discount", {
+      const { data, error } = await supabase.rpc("fn_submit_discount_request", {
         _offer_id: offerId || null,
         _client_id: kind === "client" ? id : null,
         _lead_id: kind === "lead" ? id : null,
         _amount: amtNum,
         _percent: mode === "percent" ? pctNum : null,
         _wallet_id: wallet.id,
+        _note: null,
       });
       if (error) throw error;
 
@@ -328,6 +340,21 @@ export default function GiveDiscount() {
               ? JSON.stringify(result.reason)
               : "Could not apply discount";
         throw new Error(reason);
+      }
+
+      if (result.pending_approval) {
+        toast({
+          title: "Submitted for approval",
+          description:
+            result.message ??
+            `Awaiting ${result.approval_level ?? "manager"} review on the approvals queue.`,
+        });
+        setTargetKey("");
+        setOfferId("");
+        setPercent("");
+        setAmount("");
+        await loadAll();
+        return;
       }
 
       const debited = result.debited ?? 0;
