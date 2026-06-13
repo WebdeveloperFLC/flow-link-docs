@@ -51,6 +51,20 @@ interface PeriodCloseResult {
   next_wallets_funded?: number;
 }
 
+interface WalletPreviewRow {
+  counselor_id: string;
+  counselor_name: string;
+  prior_achievement_pct: number;
+  potential_wallet: number;
+  currency: string;
+}
+
+interface WalletPreview {
+  next_period_key?: string;
+  preview?: WalletPreviewRow[];
+  total_potential?: number;
+}
+
 export default function PeriodClose() {
   const { toast } = useToast();
   const [period, setPeriod] = useState(currentPeriodKey());
@@ -60,6 +74,7 @@ export default function PeriodClose() {
   const [scores, setScores] = useState<Record<string, ScoreRow>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [nextPreview, setNextPreview] = useState<WalletPreview | null>(null);
 
   async function loadAll() {
     setLoading(true);
@@ -99,6 +114,8 @@ export default function PeriodClose() {
     setProfiles(pmap);
     setAchievement(ach);
     setScores(smap);
+    const { data: previewData } = await supabase.rpc("fn_preview_next_period_wallets", { _period_key: period });
+    setNextPreview((previewData ?? null) as WalletPreview | null);
     setLoading(false);
   }
   useEffect(() => {
@@ -273,6 +290,49 @@ export default function PeriodClose() {
             </div>
           </div>
         </Card>
+
+        {nextPreview && (
+          <Card className="p-5 border-l-4 border-l-emerald-500">
+            <h2 className="text-lg font-semibold mb-2">
+              Next month preview — {nextPreview.next_period_key ?? "next period"}
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Sized from {period} achievement before you commit Close &amp; reseed. Total potential:{" "}
+              <span className="font-medium text-foreground">
+                ₹{Number(nextPreview.total_potential ?? 0).toLocaleString("en-IN")}
+              </span>
+            </p>
+            {(nextPreview.preview ?? []).length === 0 ? (
+              <p className="text-sm text-muted-foreground">No month-to-month wallets to reseed for this period.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-left text-muted-foreground border-b">
+                    <tr>
+                      <th className="py-2 pr-4">Counselor</th>
+                      <th className="py-2 pr-4 text-right">Prior achv %</th>
+                      <th className="py-2 pr-4 text-right">Potential wallet</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(nextPreview.preview ?? [])
+                      .slice()
+                      .sort((a, b) => b.potential_wallet - a.potential_wallet)
+                      .map((row) => (
+                        <tr key={row.counselor_id} className="border-b last:border-0">
+                          <td className="py-2 pr-4">{row.counselor_name}</td>
+                          <td className="py-2 pr-4 text-right">{row.prior_achievement_pct}%</td>
+                          <td className="py-2 pr-4 text-right">
+                            {fmt(row.potential_wallet, row.currency ?? "INR")}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+        )}
 
         <Card className="p-5">
           <div className="flex items-center justify-between flex-wrap gap-3">
