@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Settings2, Plus, Trash2, Sparkles } from "lucide-react";
 import { priorPeriodKey } from "@/incentives/lib/incentiveFinanceExport";
 import { IncentiveRulesTab, type IncentiveRule } from "@/incentives/components/IncentiveRulesTab";
+import { IncentiveSchemeTemplatesTab } from "@/incentives/components/IncentiveSchemeTemplatesTab";
 import {
   auditSlabGroups,
   nextSlabMin,
@@ -326,6 +327,7 @@ export default function IncentivePlans() {
             <TabsTrigger value="rules">Rules</TabsTrigger>
             <TabsTrigger value="slabs">Slabs</TabsTrigger>
             <TabsTrigger value="targets">Targets</TabsTrigger>
+            <TabsTrigger value="templates">Scheme templates</TabsTrigger>
           </TabsList>
 
           {/* ---------- PLANS ---------- */}
@@ -686,6 +688,15 @@ export default function IncentivePlans() {
                 </div>
               )}
             </Card>
+          </TabsContent>
+
+          <TabsContent value="templates" className="space-y-4">
+            <IncentiveSchemeTemplatesTab
+              activePlan={activePlan}
+              plans={plans}
+              branches={branches}
+              onReload={loadAll}
+            />
           </TabsContent>
         </Tabs>
       </div>

@@ -7,6 +7,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Plus, Trash2 } from "lucide-react";
+import { RunLineDisputePanel } from "@/incentives/components/RunLineDisputePanel";
+
+interface DisputeRow {
+  dispute_id: string;
+  line_item_id: string;
+  counselor_id: string;
+  counselor_name: string;
+  subject: string | null;
+  status: string;
+  messages: Array<{
+    id: string;
+    author_id: string;
+    author_name: string;
+    body: string;
+    created_at: string;
+  }>;
+}
 
 interface LineItem {
   id: string;
@@ -45,19 +62,22 @@ export default function IncentiveRunDetail() {
   const [lines, setLines] = useState<LineItem[]>([]);
   const [adjustments, setAdjustments] = useState<Adjustment[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
+  const [disputes, setDisputes] = useState<DisputeRow[]>([]);
   const [adjForm, setAdjForm] = useState({ counselor_id: "", amount: "", reason: "" });
 
   async function load() {
     if (!runId) return;
-    const [rn, li, adj, prof] = await Promise.all([
+    const [rn, li, adj, prof, disp] = await Promise.all([
       supabase.from("incentive_runs").select("id, period_key, status, locked, total_settlement, settlement_currency").eq("id", runId).single(),
       supabase.from("incentive_line_items").select("*").eq("run_id", runId).order("created_at"),
       supabase.from("incentive_adjustments").select("*").eq("run_id", runId).order("created_at", { ascending: false }),
       supabase.from("profiles").select("id, full_name"),
+      supabase.rpc("fn_list_run_disputes", { _run_id: runId }),
     ]);
     setRun((rn.data ?? null) as RunInfo | null);
     setLines((li.data ?? []) as LineItem[]);
     setAdjustments((adj.data ?? []) as Adjustment[]);
+    setDisputes(((disp.data ?? []) as DisputeRow[]) ?? []);
     const map: Record<string, string> = {};
     for (const p of (prof.data ?? []) as any[]) map[p.id] = p.full_name ?? p.id;
     setNames(map);
@@ -137,16 +157,26 @@ export default function IncentiveRunDetail() {
                     <th className="py-2 pr-4 text-right">Base</th>
                     <th className="py-2 pr-4 text-right">Earned</th>
                     <th className="py-2 pr-4">Note</th>
+                    <th className="py-2 pr-4">Dispute (I6)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {lines.map((l) => (
-                    <tr key={l.id} className="border-b last:border-0">
+                    <tr key={l.id} className="border-b last:border-0 align-top">
                       <td className="py-2 pr-4">{names[l.counselor_id] ?? l.counselor_id}</td>
                       <td className="py-2 pr-4">{l.source_type.replace(/_/g, " ")}</td>
                       <td className="py-2 pr-4 text-right">{Number(l.base_amount).toLocaleString()}</td>
                       <td className="py-2 pr-4 text-right font-medium">{Number(l.earned_amount).toLocaleString()}</td>
                       <td className="py-2 pr-4 text-muted-foreground text-xs">{l.note ?? "—"}</td>
+                      <td className="py-2 pr-4">
+                        <RunLineDisputePanel
+                          lineItemId={l.id}
+                          counselorId={l.counselor_id}
+                          counselorName={names[l.counselor_id] ?? l.counselor_id}
+                          disputes={disputes}
+                          onReload={load}
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>

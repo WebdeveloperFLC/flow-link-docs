@@ -32,11 +32,22 @@ interface FxRow {
   rate_purpose: string;
 }
 
+interface AuditRow {
+  id: string;
+  changed_at: string;
+  action: string;
+  old_values: Record<string, unknown> | null;
+  new_values: Record<string, unknown> | null;
+  changed_by: string | null;
+  author_name?: string;
+}
+
 const sel = "w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm";
 
 export default function IncentiveFxRates() {
   const { toast } = useToast();
   const [rows, setRows] = useState<FxRow[]>([]);
+  const [audit, setAudit] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     currency: "CAD",
@@ -48,13 +59,31 @@ export default function IncentiveFxRates() {
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("fx_rates")
-      .select("id, currency, period_key, base_rate_to_inr, rate_to_inr, buffer_fixed, buffer_pct, source, rate_purpose")
-      .order("period_key", { ascending: false })
-      .limit(50);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    setRows((data ?? []) as FxRow[]);
+    const [fx, log] = await Promise.all([
+      supabase
+        .from("fx_rates")
+        .select("id, currency, period_key, base_rate_to_inr, rate_to_inr, buffer_fixed, buffer_pct, source, rate_purpose")
+        .order("period_key", { ascending: false })
+        .limit(50),
+      supabase
+        .from("fx_rate_audit_log")
+        .select("id, changed_at, action, old_values, new_values, changed_by, profiles!fx_rate_audit_log_changed_by_fkey(full_name, email)")
+        .order("changed_at", { ascending: false })
+        .limit(30),
+    ]);
+    if (fx.error) toast({ title: "Error", description: fx.error.message, variant: "destructive" });
+    setRows((fx.data ?? []) as FxRow[]);
+    setAudit(
+      ((log.data ?? []) as any[]).map((a) => ({
+        id: a.id,
+        changed_at: a.changed_at,
+        action: a.action,
+        old_values: a.old_values,
+        new_values: a.new_values,
+        changed_by: a.changed_by,
+        author_name: a.profiles?.full_name ?? a.profiles?.email ?? "System",
+      })),
+    );
     setLoading(false);
   }
 
@@ -188,6 +217,47 @@ export default function IncentiveFxRates() {
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+
+        <Card className="p-5">
+          <h2 className="text-lg font-semibold mb-1">Change audit log (I2)</h2>
+          <p className="text-sm text-muted-foreground mb-4">Who changed FX rates, when, and before/after values.</p>
+          {audit.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No audit entries yet.</p>
+          ) : (
+            <div className="overflow-x-auto max-h-80 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="text-left text-muted-foreground border-b sticky top-0 bg-card">
+                  <tr>
+                    <th className="py-2 pr-4">When</th>
+                    <th className="py-2 pr-4">Action</th>
+                    <th className="py-2 pr-4">By</th>
+                    <th className="py-2 pr-4">Summary</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {audit.map((a) => {
+                    const nv = a.new_values ?? a.old_values ?? {};
+                    const cur = String(nv.currency ?? "—");
+                    const period = String(nv.period_key ?? "—");
+                    const eff = nv.rate_to_inr != null ? String(nv.rate_to_inr) : "—";
+                    return (
+                      <tr key={a.id} className="border-b last:border-0">
+                        <td className="py-2 pr-4 text-muted-foreground">
+                          {new Date(a.changed_at).toLocaleString()}
+                        </td>
+                        <td className="py-2 pr-4">{a.action}</td>
+                        <td className="py-2 pr-4">{a.author_name}</td>
+                        <td className="py-2 pr-4 text-xs">
+                          {cur} · {period} · eff {eff}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
