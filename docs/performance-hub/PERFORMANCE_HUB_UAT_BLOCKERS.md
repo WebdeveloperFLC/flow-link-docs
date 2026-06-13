@@ -48,9 +48,9 @@ These must be cleared before meaningful demo-driven UAT. None require new applic
 | Field | Detail |
 |-------|--------|
 | **1. Issue ID** | PH-R-003 |
-| **2. Root Cause** | `fn_unclassified_payment_count` counts `incentive_qualifying_events` with null `dimensions.master_key` / `service_code` (seed row **`q1000004`**). `fn_unclassified_payments_for_period` **INNER JOINs** `client_invoice_payments` on `qe.source_id`. Main seed inserts the qualifying event referencing **`pay100004`** but **does not insert** the payment (or invoice) row → readiness count ≥ 1, **Unclassified admin list empty**. |
+| **2. Root Cause** | `fn_unclassified_payment_count` counts `incentive_qualifying_events` with null `dimensions.master_key` / `service_code` (seed row **`a00e0004`**). `fn_unclassified_payments_for_period` **INNER JOINs** `client_invoice_payments` on `qe.source_id`. Main seed inserts the qualifying event referencing **`a00d0004`** but **does not insert** the payment (or invoice) row → readiness count ≥ 1, **Unclassified admin list empty**. |
 | **3. Affected Screens** | `/performance/admin` (readiness card), `/performance/admin/unclassified`, PH-UAT-UNCL-001, PH-UAT-W1, PH-UAT-W2 |
-| **4. Recommended Fix** | Extend main demo seed §4 with minimal `client_invoices` + `client_invoice_payments` for **`PH-DEMO-004`** / `pay100004` (mirror §4.1 pattern for Aman). Re-run seed on staging. No app code change. |
+| **4. Recommended Fix** | Extend main demo seed §4 with minimal `client_invoices` + `client_invoice_payments` for **`PH-DEMO-004`** / `a00d0004` (mirror §4.1 pattern for Aman). Re-run seed on staging. No app code change. |
 | **5. Estimated Effort** | **2 hours** (SQL + verify) |
 | **6. Migration Required** | **No** — demo doc / manual SQL only. Include in optional demo seed migration if PH-R-017 migration is added. |
 | **7. UAT Impact** | **Blocks unclassified + W2 readiness UAT** unless testers run extra SQL manually |
@@ -212,7 +212,7 @@ Design principles:
 │ STEP 1 — Demo data pack (0 app migrations)                  ~0.5 day   │
 ├─────────────────────────────────────────────────────────────────────────┤
 │ • PH-R-017: Create ph.*@flowlink.demo users + roles/modules             │
-│ • PH-R-003: Add pay100004 + invoice to PERFORMANCE_HUB_DEMO_DATA §4   │
+│ • PH-R-003: Add a00d0004 + invoice to PERFORMANCE_HUB_DEMO_DATA §4   │
 │ • PH-R-027: Add Aman payment block to main seed (not optional §4.1)   │
 │ • Run seed SQL; verify SETUP-001 queries                                │
 └─────────────────────────────────────────────────────────────────────────┘

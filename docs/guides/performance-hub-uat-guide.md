@@ -21,7 +21,7 @@
 |------|-----|
 | **This guide** | `docs/guides/performance-hub-uat-guide.md` — setup + workflow (in-app: **Guide → Performance Hub UAT**) |
 | Test case pack (51 cases) | `docs/performance-hub/PERFORMANCE_HUB_UAT.md` |
-| Demo seed SQL | `docs/performance-hub/PERFORMANCE_HUB_DEMO_DATA.md` — **§4** (run after users exist) |
+| Demo seed SQL | `docs/performance-hub/PERFORMANCE_HUB_DEMO_DATA.md` — **§4** + **§4.4** (run after users exist) |
 | Tester quick reference | `docs/performance-hub/PERFORMANCE_HUB_TESTER_QUICKSTART.md` |
 | Defect log | `docs/performance-hub/PERFORMANCE_HUB_DEFECT_TRACKER.csv` |
 | Sign-off form | `docs/performance-hub/PERFORMANCE_HUB_UAT_SIGNOFF.md` |
@@ -161,13 +161,18 @@ ORDER BY u.email;
 **Owner:** DevOps / Engineering  
 **Prerequisite:** Phase 2 complete (users must exist).
 
-### 3.1 Run seed script
+### 3.1 Run seed scripts (two steps)
 
 1. Open **`docs/performance-hub/PERFORMANCE_HUB_DEMO_DATA.md`** in the repository.
-2. Copy the full **`$seed$` block** from **Section 4**.
-3. Paste into **Supabase SQL Editor** and execute (service-role / admin context).
+2. Copy the full **`$seed$` block** from **Section 4** and execute in **Supabase SQL Editor** (service-role / admin context).
+3. Copy the **`$seed_ext$` block** from **Section 4.4** and execute immediately after §4 succeeds.
 
-The script is idempotent (`ON CONFLICT` on fixed UUIDs). Safe to re-run after a partial UAT cycle to reset queues.
+Both scripts are idempotent (`ON CONFLICT` on fixed UUIDs). Safe to re-run after a partial UAT cycle to reset queues.
+
+| Step | Section | Purpose |
+|------|---------|---------|
+| 1 | §4 | Core UAT: clients, wallets, queues, incentives, A/B, journeys |
+| 2 | §4.4 | Studio + reports: calendar, segments, automation, lifecycle offers, analytics ROI, contest standings, plan rules, team metrics |
 
 ### 3.2 Verify seed
 
@@ -182,10 +187,18 @@ SELECT jsonb_pretty(fn_performance_hub_readiness_check('2026-06'));
 SELECT title, status FROM offers WHERE title LIKE 'PH Demo%';
 
 -- Priya wallet June 2026
-SELECT id, unlocked_amount, balance_amount
+SELECT id, unlocked_amount, balance
 FROM discount_wallets
 WHERE period_key = '2026-06'
   AND counselor_id = (SELECT id FROM auth.users WHERE email = 'ph.counselor1@flowlink.demo');
+
+-- Extended studio (§4.4)
+SELECT count(*) AS calendar FROM campaign_calendar WHERE name LIKE 'PH Demo%';
+SELECT count(*) AS segments FROM offer_groups WHERE name LIKE 'PH Demo%';
+SELECT count(*) AS auto_rules FROM offer_templates WHERE name LIKE 'PH Demo%';
+
+SELECT branch_name, total_amount, rank
+  FROM fn_incentive_branch_contest_standings('a0090001-0001-4000-8000-000000000001');
 ```
 
 **Expected:**
@@ -193,6 +206,9 @@ WHERE period_key = '2026-06'
 - **6** demo clients (`PH-DEMO-001` … `006`)
 - Readiness shows `period_key: 2026-06`, queue counts ≥ 1, `ready_for_period_lock: false` (until W2 scenario)
 - Priya wallet unlocked amount **> 0**
+- **3** calendar campaigns, **3** segments, **3** auto-rules (after §4.4)
+- **13** PH Demo offers spanning lifecycle statuses
+- Contest standings: **Genda Circle** rank 1 with non-zero total; **Ajwa** rank 2 with non-zero total
 
 ---
 

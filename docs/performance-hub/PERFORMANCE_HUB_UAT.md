@@ -101,7 +101,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | **1. Test Case ID** | PH-UAT-W1 |
 | **2. Preconditions** | Logged in as `ph.admin@flowlink.demo`. Demo seed intact (queues not cleared). |
 | **3. Steps** | 1. Open `/performance/admin`.<br>2. Locate **Hub readiness** card.<br>3. Compare counts to SQL: `fn_performance_hub_readiness_check('2026-06')`. |
-| **4. Expected Result** | UI counts match RPC: unclassified payments ≥1 (`q1000004`), pending discount approvals ≥2 (`d1000002`, `d1000003`, `d1000004`), promotion requests ≥2 (`p1000001`, `p1000002`), wallet exceptions ≥1 (`e1000001`). Blockers list non-empty. |
+| **4. Expected Result** | UI counts match RPC: unclassified payments ≥1 (`a00e0004`), pending discount approvals ≥2 (`d1000002`, `d1000003`, `d1000004`), promotion requests ≥2 (`a00f0001`, `a00f0002`), wallet exceptions ≥1 (`e1000001`). Blockers list non-empty. |
 | **5. Screenshot Required** | Yes |
 | **6. Screenshot Name Format** | `PH-UAT-W1_{YYYYMMDD}.png` |
 | **7. Pass / Fail** | ☐ Pass ☐ Fail |
@@ -117,7 +117,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-W2 |
 | **2. Preconditions** | Admin user; fresh demo seed with blockers. |
-| **3. Steps** | 1. Classify unclassified event for **PH-DEMO-004** (`q1000004`) via `/performance/admin/unclassified` or SQL Option B in demo doc.<br>2. Resolve pending discount approvals `d1000002`, `d1000003`, `d1000004` (approve/decline as appropriate).<br>3. Resolve promotion requests `p1000001`, `p1000002` and wallet exception `e1000001`.<br>4. Refresh command center; run `fn_performance_hub_readiness_check('2026-06')`. |
+| **3. Steps** | 1. Classify unclassified event for **PH-DEMO-004** (`a00e0004`) via `/performance/admin/unclassified` or SQL Option B in demo doc.<br>2. Resolve pending discount approvals `d1000002`, `d1000003`, `d1000004` (approve/decline as appropriate).<br>3. Resolve promotion requests `a00f0001`, `a00f0002` and wallet exception `e1000001`.<br>4. Refresh command center; run `fn_performance_hub_readiness_check('2026-06')`. |
 | **4. Expected Result** | `ready_for_period_lock: true`; blockers array empty; Hub readiness card shows green / ready state. |
 | **5. Screenshot Required** | Yes |
 | **6. Screenshot Name Format** | `PH-UAT-W2_{YYYYMMDD}.png` |
@@ -167,7 +167,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-EXEC-001 |
-| **2. Preconditions** | Admin user; demo qualifying events `q1000001`–`q1000003` loaded. |
+| **2. Preconditions** | Admin user; demo qualifying events `a00e0001`–`a00e0003` loaded. |
 | **3. Steps** | 1. Open `/performance/executive`.<br>2. Confirm period **2026-06** and branch filter if present. |
 | **4. Expected Result** | Executive KPIs load without error; aggregates reflect seeded Jun-2026 revenue events. |
 | **5. Screenshot Required** | Yes |
@@ -186,9 +186,9 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-HOME-001 |
-| **2. Preconditions** | Priya logged in; wallet `w1000001`, target `t1000001`, run `r1000001`. |
+| **2. Preconditions** | Priya logged in; wallet `a0020001`, target `a0030001`, run `a0050001`. |
 | **3. Steps** | 1. Open `/performance`.<br>2. Read wallet card and cash / earning card. |
-| **4. Expected Result** | Wallet: assigned target **₹5,00,000**, achievement ~**64%**, spendable from unlocked **₹15,000** (minus any allocations). Earning card shows ~**₹12,500** from open run `r1000001`. |
+| **4. Expected Result** | Wallet: assigned target **₹5,00,000**, achievement ~**64%**, spendable from unlocked **₹15,000** (minus any allocations). Earning card shows ~**₹12,500** from open run `a0050001`. |
 | **5. Screenshot Required** | Yes |
 | **6. Screenshot Name Format** | `PH-UAT-HOME-001_{YYYYMMDD}.png` |
 | **7. Pass / Fail** | ☐ Pass ☐ Fail |
@@ -203,7 +203,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-HOME-002 |
-| **2. Preconditions** | Rohit logged in; wallet `w1000002` (`assigned_target` NULL). |
+| **2. Preconditions** | Rohit logged in; wallet `a0020002` (`assigned_target` NULL). |
 | **3. Steps** | 1. Open `/performance`.<br>2. Read wallet / target section. |
 | **4. Expected Result** | No-target messaging displayed (`NO_TARGET_WALLET_NOTE`); wallet balance/unlocked still shown without achievement target bar. |
 | **5. Screenshot Required** | Yes |
@@ -220,9 +220,9 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-HOME-003 |
-| **2. Preconditions** | Rohit logged in; wallet `w1000002`; no pending exception yet (or re-seed `e1000001`). |
+| **2. Preconditions** | Rohit logged in; wallet `a0020002`; no pending exception yet (or re-seed `e1000001`). |
 | **3. Steps** | 1. On `/performance`, submit wallet exception: amount **5000**, reason **PH UAT exception test**.<br>2. Log in as admin; check command center wallet exception count. |
-| **4. Expected Result** | Request created; appears in readiness queue; record links to Rohit wallet `w1000002`. |
+| **4. Expected Result** | Request created; appears in readiness queue; record links to Rohit wallet `a0020002`. |
 | **5. Screenshot Required** | Yes |
 | **6. Screenshot Name Format** | `PH-UAT-HOME-003_{YYYYMMDD}.png` |
 | **7. Pass / Fail** | ☐ Pass ☐ Fail |
@@ -237,8 +237,8 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-Q4 |
-| **2. Preconditions** | Priya logged in; run `r1000001` with line items `li100001`, `li100002`. |
-| **3. Steps** | 1. Open `/performance`; note earning card total.<br>2. In another tab/session (admin), **update** `li100002` earned amount (e.g. 8000 → 9500) OR trigger calculate-run.<br>3. Wait up to 60s without full page refresh. |
+| **2. Preconditions** | Priya logged in; run `a0050001` with line items `a0060001`, `a0060002`. |
+| **3. Steps** | 1. Open `/performance`; note earning card total.<br>2. In another tab/session (admin), **update** `a0060002` earned amount (e.g. 8000 → 9500) OR trigger calculate-run.<br>3. Wait up to 60s without full page refresh. |
 | **4. Expected Result** | Cash card footer indicates live / ~60s refresh; earned total updates without manual reload (realtime or poll). |
 | **5. Screenshot Required** | Yes (before + after) |
 | **6. Screenshot Name Format** | `PH-UAT-Q4-before_{YYYYMMDD}.png`, `PH-UAT-Q4-after_{YYYYMMDD}.png` |
@@ -254,7 +254,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-T2 |
-| **2. Preconditions** | Priya logged in; client **Aman Shah** (`PH-DEMO-001`, `c1000001`); verified payment `pay100001` in main seed. |
+| **2. Preconditions** | Priya logged in; client **Aman Shah** (`PH-DEMO-001`, `c1000001`); verified payment `a00d0001` in main seed. |
 | **3. Steps** | 1. Open `/performance`.<br>2. Locate **Hot clients for offers** section. |
 | **4. Expected Result** | **Aman Shah** listed with hot/warm band; propensity score ≥35 or band `hot`. |
 | **5. Screenshot Required** | Yes |
@@ -272,7 +272,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-T3 |
 | **2. Preconditions** | Same as PH-UAT-Q4. |
-| **3. Steps** | 1. Keep `/performance` open as Priya.<br>2. Admin locks or recalculates run `r1000001` via `/incentives/admin`. |
+| **3. Steps** | 1. Keep `/performance` open as Priya.<br>2. Admin locks or recalculates run `a0050001` via `/incentives/admin`. |
 | **4. Expected Result** | Earning snapshot updates on home without user refresh; live indicator active when subscribed. |
 | **5. Screenshot Required** | Yes |
 | **6. Screenshot Name Format** | `PH-UAT-T3_{YYYYMMDD}.png` |
@@ -288,7 +288,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-U3 |
-| **2. Preconditions** | Priya logged in; score `s1000001` (impact ₹80,000, used ₹10,000). |
+| **2. Preconditions** | Priya logged in; score `a0100001` (impact ₹80,000, used ₹10,000). |
 | **3. Steps** | 1. Open `/performance`.<br>2. Locate wallet impact / WIR card. |
 | **4. Expected Result** | Impact revenue **₹80,000**, wallet used **₹10,000**, ROI **8×** (or 8.0). |
 | **5. Screenshot Required** | Yes |
@@ -322,7 +322,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-TEAM-001 |
-| **2. Preconditions** | Manager logged in; events `q1000001`–`q1000003` for Priya. |
+| **2. Preconditions** | Manager logged in; events `a00e0001`–`a00e0003` for Priya. |
 | **3. Steps** | 1. Open `/performance/team`.<br>2. Confirm period bar shows **2026-06**.<br>3. Find Priya Mehta revenue breakdown. |
 | **4. Expected Result** | Team view loads; Priya shows core + allied revenue from seeded events; period matches command center. |
 | **5. Screenshot Required** | Yes |
@@ -375,7 +375,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-S2 |
-| **2. Preconditions** | Priya logged in; client **Farhan Ali** (`PH-DEMO-003`); offer **PH Demo · FL 10% IELTS** (`o1000001`); wallet `w1000001` has spendable balance. |
+| **2. Preconditions** | Priya logged in; client **Farhan Ali** (`PH-DEMO-003`); offer **PH Demo · FL 10% IELTS** (`o1000001`); wallet `a0020001` has spendable balance. |
 | **3. Steps** | 1. Open `/performance/give-discount`.<br>2. Select client `PH-DEMO-003`, offer `o1000001`.<br>3. Enter **10%** discount on reference amount ≤ ₹50,000.<br>4. Submit. |
 | **4. Expected Result** | Approval level **instant**; discount applies without manager queue; wallet debited or allocation created; no admin escalation. |
 | **5. Screenshot Required** | Yes |
@@ -477,7 +477,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-WALLET-002 |
-| **2. Preconditions** | Manager logged in; branch pool `w1000003` balance ₹50,000; Priya wallet `w1000001`. |
+| **2. Preconditions** | Manager logged in; branch pool `a0020003` balance ₹50,000; Priya wallet `a0020001`. |
 | **3. Steps** | 1. Open `/performance/wallet/branch-pool`.<br>2. Allocate **₹5,000** to Priya Mehta for period **2026-06**.<br>3. Log in as Priya; check wallet spendable balance. |
 | **4. Expected Result** | Pool balance decreases by ₹5,000; Priya wallet topup/applied allocation increases spendable amount. |
 | **5. Screenshot Required** | Yes |
@@ -496,7 +496,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-UNCL-001 |
-| **2. Preconditions** | Admin logged in; event `q1000004` for **PH-DEMO-004** (₹22,000, no `master_key`). |
+| **2. Preconditions** | Admin logged in; event `a00e0004` for **PH-DEMO-004** (₹22,000, no `master_key`). |
 | **3. Steps** | 1. Open `/performance/admin/unclassified`.<br>2. Locate **Unclassified Pay Client** / `PH-DEMO-004`. |
 | **4. Expected Result** | One row showing ₹22,000; counselor Priya Mehta; classify action available. |
 | **5. Screenshot Required** | Yes |
@@ -564,8 +564,8 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-PROMO-001 |
-| **2. Preconditions** | MarCom logged in; requests `p1000001` (pending), `p1000002` (in_review), `p1000003` (approved). |
-| **3. Steps** | 1. Open `/performance/offers/requests`.<br>2. Verify three demo titles visible.<br>3. Publish **PH Demo · Approved publish ready** (`p1000003`). |
+| **2. Preconditions** | MarCom logged in; requests `a00f0001` (pending), `a00f0002` (in_review), `a00f0003` (approved). |
+| **3. Steps** | 1. Open `/performance/offers/requests`.<br>2. Verify three demo titles visible.<br>3. Publish **PH Demo · Approved publish ready** (`a00f0003`). |
 | **4. Expected Result** | All three statuses render; publish creates draft offer linked to request; status → `published`. |
 | **5. Screenshot Required** | Yes |
 | **6. Screenshot Name Format** | `PH-UAT-PROMO-001_{YYYYMMDD}.png` |
@@ -668,7 +668,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-Q2 |
-| **2. Preconditions** | Enrollment `je100001` for Aman Shah OR eligible coaching-only client without enrollment. |
+| **2. Preconditions** | Enrollment `a00a0001` for Aman Shah OR eligible coaching-only client without enrollment. |
 | **3. Steps** | 1. Open `/performance/offers/journeys`.<br>2. Find enrollment for **Aman Shah** / `PH-DEMO-001`.<br>3. (Optional) Run SQL: `SELECT fn_process_cross_sell_journey_enrollments(10);` and refresh. |
 | **4. Expected Result** | Active enrollment visible on cross-sell journey; auto-enroll function adds eligible coaching-only clients. |
 | **5. Screenshot Required** | Yes |
@@ -755,7 +755,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-Q1 |
-| **2. Preconditions** | Priya logged in; client **Aman Shah** (`PH-DEMO-001`, `c1000001`); enrollment `je100001`. |
+| **2. Preconditions** | Priya logged in; client **Aman Shah** (`PH-DEMO-001`, `c1000001`); enrollment `a00a0001`. |
 | **3. Steps** | 1. Open client profile for `PH-DEMO-001`.<br>2. Open **Promotions** strip / suggestions panel. |
 | **4. Expected Result** | Cross-sell scenario shown: coaching-only client → study abroad pathway suggestion (O13 / 5Q). |
 | **5. Screenshot Required** | Yes |
@@ -789,7 +789,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-T1 |
-| **2. Preconditions** | Priya logged in; **Aman Shah** with verified payment `pay100001` (main §4 seed). |
+| **2. Preconditions** | Priya logged in; **Aman Shah** with verified payment `a00d0001` (main §4 seed). |
 | **3. Steps** | 1. Open `PH-DEMO-001` promotions strip. |
 | **4. Expected Result** | **I5 · hot** or **warm** badge with factor bullets (verified payment, coaching-only cross-sell, recent activity). |
 | **5. Screenshot Required** | Yes |
@@ -823,7 +823,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-6D-001 |
-| **2. Preconditions** | Priya logged in; client **Legacy Reg Client** (`PH-DEMO-006`); legacy offer `PH-LEGACY-10` (`s1000001`); feature flag for convergence banner **enabled**. |
+| **2. Preconditions** | Priya logged in; client **Legacy Reg Client** (`PH-DEMO-006`); legacy offer `PH-LEGACY-10` (`a0010001`); feature flag for convergence banner **enabled**. |
 | **3. Steps** | 1. Open client **Invoice** / registration preview for `PH-DEMO-006`.<br>2. Observe offers section. |
 | **4. Expected Result** | **Service offers convergence** banner visible (`ServiceOffersConvergenceBanner`); references migration from `service_offers` → `offers`. |
 | **5. Screenshot Required** | Yes |
@@ -842,7 +842,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-INC-PC-001 |
-| **2. Preconditions** | Admin logged in; wallets `w1000001`–`w1000004` open for **2026-06**. |
+| **2. Preconditions** | Admin logged in; wallets `a0020001`–`a0020004` open for **2026-06**. |
 | **3. Steps** | 1. Open `/incentives/period-close`.<br>2. Select period **2026-06**. |
 | **4. Expected Result** | Four open wallets listed (Priya personal, Rohit personal, Genda branch pool, strategic DE). |
 | **5. Screenshot Required** | Yes |
@@ -859,7 +859,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-INC-RUN-001 |
-| **2. Preconditions** | Admin logged in; run `r1000001`, line `li100001`. |
+| **2. Preconditions** | Admin logged in; run `a0050001`, line `a0060001`. |
 | **3. Steps** | 1. Open `/incentives/admin`.<br>2. Open run for **2026-06**. |
 | **4. Expected Result** | Run status calculated/open; Priya line item **₹12,500** visible; run not locked. |
 | **5. Screenshot Required** | Yes |
@@ -876,9 +876,9 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-INC-PLAN-001 |
-| **2. Preconditions** | Admin logged in; plan `pl100001`. |
+| **2. Preconditions** | Admin logged in; plan `a0040001`. |
 | **3. Steps** | 1. Open `/incentives/plans`.<br>2. Search **PH Demo Counselor Plan**. |
-| **4. Expected Result** | Plan `pl100001` visible and active for branch scope. |
+| **4. Expected Result** | Plan `a0040001` visible and active for branch scope. |
 | **5. Screenshot Required** | Yes |
 | **6. Screenshot Name Format** | `PH-UAT-INC-PLAN-001_{YYYYMMDD}.png` |
 | **7. Pass / Fail** | ☐ Pass ☐ Fail |
@@ -893,7 +893,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-INC-COMP-001 |
-| **2. Preconditions** | Admin logged in; contest `ct100001` (Genda Circle vs Ajwa). |
+| **2. Preconditions** | Admin logged in; contest `a0090001` (Genda Circle vs Ajwa). |
 | **3. Steps** | 1. Open `/incentives/competitions`.<br>2. Open **PH Demo · June branch challenge**. |
 | **4. Expected Result** | Contest active for **2026-06**; both branches listed; standings reflect seeded revenue. |
 | **5. Screenshot Required** | Yes |
@@ -910,7 +910,7 @@ Each test case includes all ten required fields. Fill in **Pass / Fail**, **Note
 | Field | Value |
 |-------|-------|
 | **1. Test Case ID** | PH-UAT-INC-PAY-001 |
-| **2. Preconditions** | Admin logged in; payout `py100001` for Priya. |
+| **2. Preconditions** | Admin logged in; payout `a0070001` for Priya. |
 | **3. Steps** | 1. Open `/incentives/payouts`.<br>2. Locate Priya Mehta payout. |
 | **4. Expected Result** | Approved payout net **₹11,250** (gross ₹12,500 − 10% TDS); status **approved**. |
 | **5. Screenshot Required** | Yes |

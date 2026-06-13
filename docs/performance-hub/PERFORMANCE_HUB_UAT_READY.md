@@ -14,7 +14,7 @@
 |----|-------|------------|
 | **PH-R-018** | Phase 6B migrations must apply in order | **Ops runbook below** — apply `20260711120000` then `20260711120001`; verify `director` in `app_role` enum |
 | **PH-R-017** | Demo seed not loaded automatically | **Ops runbook below** — create seven `ph.*@flowlink.demo` users; run [`PERFORMANCE_HUB_DEMO_DATA.md`](./PERFORMANCE_HUB_DEMO_DATA.md) §4 SQL |
-| **PH-R-003** | Unclassified count vs empty list | **Demo seed updated** — main §4 now inserts `client_invoices` + `client_invoice_payments` for `pay100004` (PH-DEMO-004) before qualifying events |
+| **PH-R-003** | Unclassified count vs empty list | **Demo seed updated** — main §4 now inserts `client_invoices` + `client_invoice_payments` for `a00d0004` (PH-DEMO-004) before qualifying events |
 
 ### Phase B — High (code + one migration)
 
@@ -111,7 +111,7 @@ SELECT conname FROM pg_constraint
 
 ### 3. Run main demo seed
 
-Paste and execute the full **`$seed$` block** from [`PERFORMANCE_HUB_DEMO_DATA.md`](./PERFORMANCE_HUB_DEMO_DATA.md) §4 (includes `pay100001`, `pay100004`, wallets, queues, offer_events).
+Paste and execute the full **`$seed$` block** from [`PERFORMANCE_HUB_DEMO_DATA.md`](./PERFORMANCE_HUB_DEMO_DATA.md) §4 (includes `a00d0001`, `a00d0004`, wallets, queues, offer_events).
 
 Verification queries (from demo doc):
 
