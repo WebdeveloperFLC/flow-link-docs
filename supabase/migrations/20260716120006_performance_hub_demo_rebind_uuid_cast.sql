@@ -1,5 +1,4 @@
--- Priya wallet unlocked=0 / achievement_pct=NULL: incentive_targets still on pre-rebind counselor.
--- fn_counselor_period_achievement joins target (old user) vs payments (ph.counselor1 clients) → no match.
+-- Fix fn_rebind_ph_demo_wallets: uuid columns need ::text for LIKE pattern match.
 
 CREATE OR REPLACE FUNCTION public.fn_rebind_ph_demo_wallets()
 RETURNS void

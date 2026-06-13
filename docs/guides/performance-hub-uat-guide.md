@@ -70,6 +70,7 @@ Run in Supabase **SQL Editor** or Lovable **Database → Migrations**. **Never c
 | 8 | `20260716120003_performance_hub_demo_seed_score_upsert.sql` — fix `counselor_performance_scores` re-seed after rebind (if seed fails on `a0100002` duplicate) |
 | 9 | `20260716120004_performance_hub_demo_wallet_unlock.sql` — fix ₹0 spendable (achievement threshold + scoped wallet unlock) |
 | 10 | `20260716120005_performance_hub_demo_target_rebind.sql` — rebind `incentive_targets` to `ph.counselor1` (fixes NULL achievement / unlocked=0 on Priya wallet) |
+| 11 | `20260716120006_performance_hub_demo_rebind_uuid_cast.sql` — fix `id::text LIKE` in rebind (if 200005 failed with `uuid ~~ unknown`) |
 
 **Verify migrations:**
 

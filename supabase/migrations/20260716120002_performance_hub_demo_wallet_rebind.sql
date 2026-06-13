@@ -47,7 +47,7 @@ BEGIN
 
     UPDATE public.incentive_qualifying_events
        SET counselor_id = v_priya
-     WHERE id LIKE 'a00e000%';
+     WHERE id::text LIKE 'a00e000%';
 
     UPDATE public.incentive_line_items
        SET counselor_id = v_priya
