@@ -170,6 +170,12 @@ const performanceNav: NavItem[] = [
   { to: "/incentives/period-close", icon: CalendarClock, label: "Period close", adminOnly: true },
 ];
 
+const hrPayrollNav: NavItem[] = [
+  { to: "/hr", icon: Briefcase, label: "HR Payroll", end: true },
+  { to: "/hr/employees", icon: Users, label: "Employee Master" },
+  { to: "/hr/roles", icon: Shield, label: "Roles & Access", adminOnly: true },
+];
+
 const adminNav: NavItem[] = [
   { to: "/ai-help", icon: Sparkles, label: "AI Help" },
   { to: "/forms-library", icon: FileStack, label: "Forms library", adminOnly: true },
@@ -260,6 +266,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { canView: canViewInstitutions } = useModulePermission("institutions");
   const { canView: canViewCommissions } = useModulePermission("commissions");
   const { canView: canViewDsh } = useModulePermission("digital_success_hub");
+  const { canView: canViewHrPayroll } = useModulePermission("hr_payroll");
   const { guides: visibleGuides } = useVisibleGuides();
   const { theme } = useTheme();
   const [hiddenOpen, setHiddenOpen] = useState(false);
@@ -425,6 +432,15 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
 
             {(isAdmin || isCommissionAdmin || canViewCommissions) &&
               renderSection("commissions", "Commissions", commissionsNav)}
+
+            {(isAdmin || canViewHrPayroll) &&
+              renderSection(
+                "hr_payroll",
+                "HR Payroll",
+                hrPayrollNav.filter(
+                  (i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never)),
+                ),
+              )}
 
             {renderSection("guide", "Guide", guideNav)}
 

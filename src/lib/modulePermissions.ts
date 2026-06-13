@@ -25,6 +25,7 @@ export const CRM_MODULES: ModuleDef[] = [
   { key: "letter_templates", label: "Letter Templates", description: "Manage letter templates." },
   { key: "settings", label: "Settings", description: "Org settings, integrations, branding." },
   { key: "digital_success_hub", label: "Digital Success Hub", description: "Promotional media, client links, branch notifications." },
+  { key: "hr_payroll", label: "HR Payroll", description: "Employee master, attendance, leave, and payroll processing." },
 ];
 
 export type RoleKey =
@@ -52,16 +53,19 @@ export const ROLE_DEFAULTS: Record<RoleKey, PermissionMap> = {
     reports: VIEW, letter_templates: EDIT, settings: NONE,
     incentives: VIEW, discount_wallet: VIEW,
     offers: VIEW, offers_analytics: NONE, offers_ai: NONE,
+    hr_payroll: VIEW,
   },
   documentation: {
     clients: EDIT, documents: EDIT, tasks: EDIT, telephony: NONE,
     institutions: VIEW, commissions: NONE, assessments: VIEW,
     reports: VIEW, letter_templates: EDIT, settings: NONE,
+    hr_payroll: VIEW,
   },
   telecaller: {
     clients: VIEW, documents: NONE, tasks: EDIT, telephony: EDIT,
     institutions: NONE, commissions: NONE, assessments: NONE,
     reports: NONE, letter_templates: NONE, settings: NONE,
+    hr_payroll: NONE,
   },
   viewer: Object.fromEntries(CRM_MODULES.map((m) => [m.key, VIEW])),
   client: Object.fromEntries(CRM_MODULES.map((m) => [m.key, NONE])),

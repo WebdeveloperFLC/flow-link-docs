@@ -180,6 +180,7 @@ import PerformanceOffersLibrary from "@/pages/PerformanceOffersLibrary";
 import PerformanceOfferWizard from "@/pages/PerformanceOfferWizard";
 import PerformanceOffersAnalytics from "@/pages/PerformanceOffersAnalytics";
 import PerformanceOfferAiStudio from "@/pages/PerformanceOfferAiStudio";
+import HrPayrollRoutes from "@/hr-payroll/HrPayrollRoutes";
 import PerformanceOffersCalendar from "@/pages/PerformanceOffersCalendar";
 import PerformanceOffersSegments from "@/pages/PerformanceOffersSegments";
 import PerformanceOffersAutomation from "@/pages/PerformanceOffersAutomation";
@@ -522,6 +523,14 @@ const App = () => (
                       <CommissionsProtectedRoute>
                         <CommissionsPage />
                       </CommissionsProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/hr/*"
+                    element={
+                      <ProtectedRoute>
+                        <HrPayrollRoutes />
+                      </ProtectedRoute>
                     }
                   />
                   <Route

@@ -1,0 +1,169 @@
+import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useHrAccess } from "../context/HrPayrollProvider";
+import { useHrEmployees, useHrReferenceData } from "../hooks/useHrEmployees";
+import { inr, initials } from "../lib/format";
+import type { EmployeeRow } from "../lib/types";
+import { EmployeeFormModal } from "../components/employees/EmployeeFormModal";
+import { EmployeeDetailModal } from "../components/employees/EmployeeDetailModal";
+
+export default function HrEmployeesPage() {
+  const { can, fire, dbReady } = useHrAccess();
+  const { data: employees = [], isLoading, error } = useHrEmployees();
+  const { data: ref } = useHrReferenceData();
+  const qc = useQueryClient();
+  const [q, setQ] = useState("");
+  const [edit, setEdit] = useState<EmployeeRow | "new" | null>(null);
+  const [detail, setDetail] = useState<EmployeeRow | null>(null);
+
+  const list = useMemo(() => {
+    const s = q.toLowerCase();
+    return employees.filter(
+      (e) =>
+        e.full_name.toLowerCase().includes(s) ||
+        e.emp_code.toLowerCase().includes(s) ||
+        (e.department ?? "").toLowerCase().includes(s),
+    );
+  }, [employees, q]);
+
+  const remove = async (e: EmployeeRow) => {
+    if (!confirm(`Remove ${e.full_name}?`)) return;
+    const { error: err } = await supabase.from("employees" as never).delete().eq("id", e.id);
+    if (err) {
+      fire(err.message);
+      return;
+    }
+    fire("Employee removed");
+    await qc.invalidateQueries({ queryKey: ["hr-employees"] });
+  };
+
+  if (!dbReady && error) {
+    return (
+      <div className="card" style={{ background: "#fff7ed", borderColor: "#fed7aa" }}>
+        <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>
+          HR database not ready. Apply SQL migrations in order (schema → RLS → functions → seed).
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid" style={{ gap: 16 }}>
+      <div className="card-h">
+        <input
+          className="input"
+          style={{ maxWidth: 300 }}
+          placeholder="Search name, ID, dept…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+        {can("manageEmp") && (
+          <button type="button" className="btn btn-primary" onClick={() => setEdit("new")}>
+            + Add Employee
+          </button>
+        )}
+      </div>
+      <div className="card" style={{ padding: 0, overflow: "auto" }}>
+        {isLoading ? (
+          <div className="empty">Loading…</div>
+        ) : list.length === 0 ? (
+          <div className="empty">
+            <div className="ico">⊞</div>
+            No employees match.
+          </div>
+        ) : (
+          <table style={{ minWidth: 900 }}>
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Contact</th>
+                <th>Dept</th>
+                <th>Designation</th>
+                <th>Branch</th>
+                <th>Type</th>
+                <th>Monthly</th>
+                <th>Bank</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((e) => (
+                <tr key={e.id}>
+                  <td className="strong">
+                    <div className="row-flex">
+                      <div className="avatar" style={{ width: 30, height: 30, fontSize: 11 }}>
+                        {initials(e.full_name)}
+                      </div>
+                      <div>
+                        {e.full_name}
+                        <div className="muted mono" style={{ fontSize: 11 }}>
+                          {e.emp_code}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ fontSize: 11.5 }}>
+                    {e.mobile || "—"}
+                    <div className="muted">{e.email || ""}</div>
+                  </td>
+                  <td>{e.department}</td>
+                  <td>{e.designation}</td>
+                  <td>{e.branches?.name}</td>
+                  <td style={{ fontSize: 12 }}>{e.employment_type}</td>
+                  <td className="mono">{inr(e.monthly_gross)}</td>
+                  <td>
+                    {e.bank_account_number ? (
+                      e.bank_verified ? (
+                        <span className="badge b-approved">Verified</span>
+                      ) : (
+                        <span className="badge b-pending">Pending</span>
+                      )
+                    ) : (
+                      <span className="badge b-pending">Missing</span>
+                    )}
+                  </td>
+                  <td>
+                    {e.status === "On Probation" ? (
+                      <span className="badge b-pending">Probation</span>
+                    ) : (
+                      <span className="badge b-present">Confirmed</span>
+                    )}
+                  </td>
+                  <td>
+                    <div className="row-flex">
+                      <button type="button" className="btn btn-sm" onClick={() => setDetail(e)}>
+                        View
+                      </button>
+                      {can("manageEmp") && (
+                        <>
+                          <button type="button" className="btn btn-sm" onClick={() => setEdit(e)}>
+                            Edit
+                          </button>
+                          <button type="button" className="btn btn-sm btn-bad" onClick={() => void remove(e)}>
+                            Del
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      {edit && ref && (
+        <EmployeeFormModal
+          emp={edit === "new" ? null : edit}
+          companies={ref.companies}
+          branches={ref.branches}
+          shifts={ref.shifts}
+          onClose={() => setEdit(null)}
+        />
+      )}
+      {detail && <EmployeeDetailModal emp={detail} onClose={() => setDetail(null)} />}
+    </div>
+  );
+}
