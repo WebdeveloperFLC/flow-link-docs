@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../lib/constants";
 import type {
   CompoffRequestRow,
+  EmployeeDocumentRow,
   LateExemptionRow,
   LeaveBalanceRow,
   LeaveRequestRow,
@@ -131,8 +132,6 @@ export function useHrPolicies() {
     },
   });
 }
-
-import type { EmployeeDocumentRow } from "../lib/types";
 
 export function useHrDocuments(employeeId?: string) {
   return useQuery({
