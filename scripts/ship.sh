@@ -91,7 +91,8 @@ Performance Hub migrations (Lovable Publish — approve ALL that still show as p
   [ ] 20260709120000_incentive_platform_phase5w.sql  — hub readiness gate, batch UAT wrap
   [ ] 20260710120000_incentive_platform_phase5x.sql  — multi-variant A/B O11b
   (UI-only: 6A — no migration)
-  [ ] 20260711120000_incentive_platform_phase6b.sql  — director read-only role + mutation guards
+  [ ] 20260711120000_incentive_platform_phase6b.sql  — director app_role enum (run first)
+  [ ] 20260711120001_incentive_platform_phase6b.sql  — director read-only RPCs + RLS
 
 EOF
 }

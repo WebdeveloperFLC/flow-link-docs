@@ -16,7 +16,12 @@
 
 ## Migration
 
-**`20260711120000_incentive_platform_phase6b.sql`**
+**Two files — must apply in order** (PostgreSQL enum rule: new values cannot be used in the same transaction):
+
+1. **`20260711120000_incentive_platform_phase6b.sql`** — `ALTER TYPE app_role ADD VALUE 'director'`
+2. **`20260711120001_incentive_platform_phase6b.sql`** — helpers, RLS, guarded RPCs
+
+If using **Lovable SQL editor manually**: run file 1 alone, wait for success, then run file 2. Do not paste both in one query.
 
 ## Edge function
 
@@ -43,8 +48,11 @@ Republish **`incentive-calculate-run`** after Lovable Sync (director guard added
 ```bash
 cd /Users/santoshramrakhiani/Downloads/REPOSITORY/flow-link-docs
 
-npm run ship -- "feat(performance): Phase 6B — director read-only server enforcement" -- \
+npm run ship -- "fix(performance): split Phase 6B migration for director enum" -- \
   supabase/migrations/20260711120000_incentive_platform_phase6b.sql \
+  supabase/migrations/20260711120001_incentive_platform_phase6b.sql \
+  docs/INCENTIVE_PHASE6B_DEPLOY.md \
+  scripts/ship.sh
   supabase/functions/incentive-calculate-run/index.ts \
   supabase/functions/admin-users/index.ts \
   src/lib/performanceDirectorReadOnly.ts \
