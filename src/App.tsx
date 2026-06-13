@@ -179,6 +179,9 @@ import PerformanceOffersLibrary from "@/pages/PerformanceOffersLibrary";
 import PerformanceOfferWizard from "@/pages/PerformanceOfferWizard";
 import PerformanceOffersAnalytics from "@/pages/PerformanceOffersAnalytics";
 import PerformanceOfferAiStudio from "@/pages/PerformanceOfferAiStudio";
+import PerformanceOffersCalendar from "@/pages/PerformanceOffersCalendar";
+import PerformanceOffersSegments from "@/pages/PerformanceOffersSegments";
+import PerformanceOffersAutomation from "@/pages/PerformanceOffersAutomation";
 import AiHelpPage from "./ai-help/pages/AiHelpPage";
 import GuidesIndexPage from "./guides/pages/GuidesIndexPage";
 import GuideDetailPage from "./guides/pages/GuideDetailPage";
@@ -619,6 +622,30 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceOffersAnalytics />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/offers/calendar"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceOffersCalendar />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/offers/segments"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceOffersSegments />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/offers/automation"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceOffersAutomation />
                       </ProtectedRoute>
                     }
                   />

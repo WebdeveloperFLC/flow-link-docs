@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, Library, Plus, Megaphone, BarChart2, Sparkles } from "lucide-react";
+import { LayoutGrid, Library, Plus, Megaphone, BarChart2, Sparkles, CalendarDays, Users, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useModulePermission } from "@/hooks/useModulePermission";
 
@@ -8,6 +8,9 @@ const BASE_LINKS = [
   { to: "/performance/offers", label: "Dashboard", icon: LayoutGrid, end: true },
   { to: "/performance/offers/library", label: "Library", icon: Library },
   { to: "/performance/offers/new", label: "Create", icon: Plus },
+  { to: "/performance/offers/calendar", label: "Calendar", icon: CalendarDays },
+  { to: "/performance/offers/segments", label: "Segments", icon: Users },
+  { to: "/performance/offers/automation", label: "Automation", icon: Zap },
   { to: "/performance/offers/requests", label: "Requests", icon: Megaphone },
   { to: "/performance/offers/analytics", label: "Analytics", icon: BarChart2 },
 ];
