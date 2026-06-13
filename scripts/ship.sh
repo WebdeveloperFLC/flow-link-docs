@@ -94,7 +94,7 @@ print_sql_reminder() {
   echo "YOUR ACTION after ship:"
   echo "  Step 1 — Lovable → Sync from GitHub"
   echo "  Step 2 — Lovable → Publish → approve every pending migration above (not just this ship's file)"
-  echo "  Step 3 — Refresh app; batch UAT when module is review-ready (5L = last planned phase slice)"
+  echo "  Step 3 — Refresh app; batch UAT when module is review-ready (through Phase 5M)"
   echo ""
 }
 
