@@ -117,10 +117,12 @@ begin
     values (v_org,'26 May 2026 – 25 Jun 2026','2026-05-26','2026-06-25',30,'Draft') returning id into v_cycle;
 
   -- ---- attendance sample (June window; mirrors prototype) ----
-  -- Isha: 1 late>5m, 1 mispunch (missing out on 05 Jun)
+  -- Isha TV02 anchor: mispunch+absent=3, no late, no paid-leave add-back → 29.5 payable / ₹39,500
   insert into attendance(org_id,employee_id,work_date,check_in,check_out,break_start,break_end,break_min,status,is_mispunch,source) values
+    (v_org,v_isha,'2026-05-27',null,null,null,null,null,'Absent',false,'manual'),
+    (v_org,v_isha,'2026-05-28',null,null,null,null,null,'Absent',false,'manual'),
     (v_org,v_isha,'2026-06-05','10:04',null,'13:30','14:10',40,'Present',true,'manual'),
-    (v_org,v_isha,'2026-06-06','10:22','19:05','13:30','14:15',45,'Present',false,'manual'),
+    (v_org,v_isha,'2026-06-06','10:04','19:05','13:30','14:15',45,'Present',false,'manual'),
     (v_org,v_isha,'2026-06-07',null,null,null,null,null,'Week Off',false,'manual'),
     (v_org,v_isha,'2026-06-08','10:02','19:30','13:30','14:14',44,'Present',false,'manual'),
     (v_org,v_isha,'2026-06-09','10:01','19:00','13:30','14:12',42,'Present',false,'manual'),
@@ -150,7 +152,7 @@ begin
 
   -- ---- requests ----
   insert into leave_requests(org_id,employee_id,type,from_date,to_date,days,reason,has_document,status) values
-    (v_org,v_isha,'Annual Leave','2026-06-09','2026-06-09',1,'Personal work',true,'Approved'),
+    (v_org,v_isha,'Annual Leave','2026-06-09','2026-06-09',1,'Personal work',true,'Pending'),
     (v_org,v_karan,'Sick Leave','2026-06-09','2026-06-10',2,'Fever — medical attached',true,'Pending'),
     (v_org,v_priya,'Casual Leave','2026-06-12','2026-06-12',0.5,'Bank visit',false,'Pending');
   insert into compoff_requests(org_id,employee_id,worked_date,occasion,reason,status) values
