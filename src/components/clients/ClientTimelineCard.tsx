@@ -4,14 +4,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { listTimeline, subscribeTimeline, type TimelineRow } from "@/lib/timeline";
 import { supabase } from "@/integrations/supabase/client";
-import { Phone, ArrowRightLeft, MessageSquare, FileText, StickyNote, CheckCircle2, Mic, History, Search, Activity, UserCog, Bell, Mail, Sparkles } from "lucide-react";
+import { Phone, ArrowRightLeft, MessageSquare, FileText, StickyNote, CheckCircle2, Mic, History, Search, Activity, UserCog, Bell, Mail, Sparkles, ShieldCheck, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<string, React.ElementType> = {
   call: Phone, handoff: ArrowRightLeft, chat: MessageSquare, file: FileText,
   note: StickyNote, task: CheckCircle2, recording: Mic, remark: History,
-  status_change: Activity, assignment: UserCog, reminder: Bell,
+  status_change: Activity, stage_change: Activity, assignment: UserCog, reminder: Bell,
   email: Mail, voice: Mic, ai_summary: Sparkles,
+  payment_verified: ShieldCheck, payment_submitted: ShieldCheck,
+  payment_awaiting_verification: ShieldCheck, payment_proof_uploaded: FileText,
+  incentive_event: Trophy,
 };
 
 const FILTERS: Array<{ key: string; label: string; types: string[] }> = [
@@ -25,8 +28,27 @@ const FILTERS: Array<{ key: string; label: string; types: string[] }> = [
   { key: "task", label: "Tasks", types: ["task", "reminder"] },
   { key: "file", label: "Documents", types: ["file"] },
   { key: "note", label: "Notes", types: ["note", "remark"] },
-  { key: "status", label: "Status", types: ["status_change"] },
+  { key: "status", label: "Status", types: ["status_change", "stage_change"] },
+  {
+    key: "performance",
+    label: "Performance",
+    types: [
+      "incentive_event",
+      "payment_verified",
+      "payment_submitted",
+      "payment_awaiting_verification",
+      "payment_proof_uploaded",
+    ],
+  },
 ];
+
+function timelineLabel(row: TimelineRow): string {
+  if (row.event_type === "incentive_event") {
+    const qeType = String(row.metadata?.qe_event_type ?? "event").replace(/_/g, " ");
+    return qeType.charAt(0).toUpperCase() + qeType.slice(1);
+  }
+  return row.event_type.replace(/_/g, " ");
+}
 const PAGE_SIZE = 50;
 
 export function ClientTimelineCard({ clientId }: { clientId: string }) {
@@ -107,7 +129,7 @@ export function ClientTimelineCard({ clientId }: { clientId: string }) {
               <div className="mt-0.5 rounded-full bg-muted p-1.5"><Icon className="size-3.5 text-muted-foreground" /></div>
               <div className="min-w-0 flex-1">
                 <div className="text-sm flex items-center gap-2">
-                  <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-semibold">{row.event_type.replace("_", " ")}</span>
+                  <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-semibold">{timelineLabel(row)}</span>
                   <span>{row.summary || row.event_type}</span>
                 </div>
                 <div className="text-[11px] text-muted-foreground">
