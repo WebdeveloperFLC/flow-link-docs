@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, Library, Plus, Megaphone, BarChart2, Sparkles, CalendarDays, Users, Zap, GitBranch } from "lucide-react";
+import { LayoutGrid, Library, Plus, Megaphone, BarChart2, Sparkles, CalendarDays, Users, Zap, GitBranch, FlaskConical } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useModulePermission } from "@/hooks/useModulePermission";
 
@@ -14,6 +14,7 @@ const BASE_LINKS = [
   { to: "/performance/offers/journeys", label: "Journeys", icon: GitBranch },
   { to: "/performance/offers/requests", label: "Requests", icon: Megaphone },
   { to: "/performance/offers/analytics", label: "Analytics", icon: BarChart2 },
+  { to: "/performance/offers/ab-tests", label: "A/B tests", icon: FlaskConical },
 ];
 
 export function OffersStudioNav() {
