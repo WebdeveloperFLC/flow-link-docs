@@ -51,7 +51,7 @@ $$;
 
 -- ---------- ENABLE RLS ----------
 alter table companies          enable row level security;
-alter table branches           enable row level security;
+-- public.branches: CRM RLS already active — do not add HR org_id policies
 alter table shifts             enable row level security;
 alter table employees          enable row level security;
 alter table employee_documents enable row level security;
@@ -75,8 +75,6 @@ alter table policies           enable row level security;
 -- ---------- REFERENCE TABLES: any org member may read ----------
 create policy ref_read_companies on companies for select
   using (current_hr_role(org_id) is not null or current_employee_id(org_id) is not null);
-create policy ref_read_branches on branches for select
-  using (current_hr_role(org_id) is not null or current_employee_id(org_id) is not null);
 create policy ref_read_shifts on shifts for select
   using (current_hr_role(org_id) is not null or current_employee_id(org_id) is not null);
 create policy ref_read_holidays on holidays for select
@@ -88,8 +86,6 @@ create policy ref_write_shifts on shifts for all
   with check (has_perm(org_id,'configure') or has_perm(org_id,'manage_emp'));
 create policy ref_write_holidays on holidays for all
   using (has_perm(org_id,'manage_emp')) with check (has_perm(org_id,'manage_emp'));
-create policy ref_write_branches on branches for all
-  using (has_perm(org_id,'configure')) with check (has_perm(org_id,'configure'));
 create policy ref_write_companies on companies for all
   using (has_perm(org_id,'configure')) with check (has_perm(org_id,'configure'));
 

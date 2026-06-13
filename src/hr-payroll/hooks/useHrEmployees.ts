@@ -26,7 +26,7 @@ export function useHrReferenceData() {
     queryFn: async () => {
       const [companies, branches, shifts] = await Promise.all([
         supabase.from("companies" as never).select("id, name").eq("org_id", HR_ORG_ID),
-        supabase.from("branches" as never).select("id, name").eq("org_id", HR_ORG_ID),
+        supabase.from("branches" as never).select("id, name").eq("is_active", true).order("display_order"),
         supabase
           .from("shifts" as never)
           .select("id, name, login_time, logout_time")

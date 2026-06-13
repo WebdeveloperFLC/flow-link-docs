@@ -8,42 +8,51 @@
 create extension if not exists "pgcrypto";      -- gen_random_uuid()
 create extension if not exists "pg_trgm";       -- search on names
 
--- ---------- ENUMS ----------
-create type employment_type   as enum ('Full-Time','Part-Time','Intern','Temporary','Contract');
-create type emp_status        as enum ('On Probation','Confirmed','Resigned','Terminated','On Notice');
-create type work_week         as enum ('6-Day','5-Day');
-create type shift_type        as enum ('Day','Night','Rotational','Custom');
-create type att_status        as enum ('Present','Half Day','Absent','Leave','Sick Leave','Holiday','Week Off','Unauthorized Leave');
-create type leave_type        as enum ('Annual Leave','Sick Leave','Casual Leave','Comp-Off Leave','Special Leave','Unpaid Leave');
-create type request_status    as enum ('Pending','Approved','Rejected','Cancelled');
-create type approval_stage    as enum ('Manager','HR','Final');           -- approval chain steps
-create type holiday_type      as enum ('National','Festival','Company','Optional');
-create type training_status   as enum ('In Progress','Completed','Extended','Cancelled');
-create type payroll_status    as enum ('Draft','Locked','Paid');
-create type hr_role           as enum ('Super Admin','Admin','HR Manager','HR Executive','Manager','Employee');
+-- ---------- ENUMS (idempotent — safe to re-run after partial apply) ----------
+DO $$ BEGIN CREATE TYPE employment_type AS ENUM ('Full-Time','Part-Time','Intern','Temporary','Contract');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE emp_status AS ENUM ('On Probation','Confirmed','Resigned','Terminated','On Notice');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE work_week AS ENUM ('6-Day','5-Day');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE shift_type AS ENUM ('Day','Night','Rotational','Custom');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE att_status AS ENUM ('Present','Half Day','Absent','Leave','Sick Leave','Holiday','Week Off','Unauthorized Leave');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE leave_type AS ENUM ('Annual Leave','Sick Leave','Casual Leave','Comp-Off Leave','Special Leave','Unpaid Leave');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE request_status AS ENUM ('Pending','Approved','Rejected','Cancelled');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE approval_stage AS ENUM ('Manager','HR','Final');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE holiday_type AS ENUM ('National','Festival','Company','Optional');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE training_status AS ENUM ('In Progress','Completed','Extended','Cancelled');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE payroll_status AS ENUM ('Draft','Locked','Paid');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE hr_role AS ENUM ('Super Admin','Admin','HR Manager','HR Executive','Manager','Employee');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- =====================================================================
 -- ORG / BRANCH / COMPANY
+-- branches: reuse existing CRM public.branches (Genda Circle, Ajwa, etc.)
 -- =====================================================================
-create table companies (
+create table if not exists companies (
   id          uuid primary key default gen_random_uuid(),
   org_id      uuid not null,                         -- FK to existing CRM org (Team & Roles)
   name        text not null,                          -- 'FL Pvt. Ltd.', 'FL Academic'
   created_at  timestamptz not null default now()
 );
 
-create table branches (
-  id          uuid primary key default gen_random_uuid(),
-  org_id      uuid not null,
-  name        text not null,                          -- Vadodara, Ahmedabad, Surat
-  timezone    text not null default 'Asia/Kolkata',
-  created_at  timestamptz not null default now()
-);
+-- CRM already owns public.branches — add HR-only column if missing
+alter table public.branches
+  add column if not exists timezone text not null default 'Asia/Kolkata';
 
 -- =====================================================================
 -- SHIFTS  (drives late / break / OT / half-day)
 -- =====================================================================
-create table shifts (
+create table if not exists shifts (
   id            uuid primary key default gen_random_uuid(),
   org_id        uuid not null,
   name          text not null,
@@ -61,7 +70,7 @@ create table shifts (
 -- =====================================================================
 -- EMPLOYEES  (the master; links to CRM staff via staff_id)
 -- =====================================================================
-create table employees (
+create table if not exists employees (
   id              uuid primary key default gen_random_uuid(),
   org_id          uuid not null,
   staff_id        uuid unique,                         -- FK → CRM staff/auth user (Team & Roles). NULL until linked.
@@ -80,7 +89,7 @@ create table employees (
   designation     text,
   department      text,
   company_id      uuid references companies(id),
-  branch_id       uuid references branches(id),
+  branch_id       uuid references public.branches(id),
   reporting_mgr_id uuid references employees(id),      -- self-ref for approval chain
   employment_type employment_type not null default 'Full-Time',
   date_of_joining date,
@@ -116,14 +125,14 @@ create table employees (
   updated_at      timestamptz not null default now(),
   unique (org_id, emp_code)
 );
-create index on employees (org_id);
-create index on employees (branch_id);
-create index on employees using gin (full_name gin_trgm_ops);
+create index if not exists idx_hr_employees_org on employees (org_id);
+create index if not exists idx_hr_employees_branch on employees (branch_id);
+create index if not exists idx_hr_employees_name_trgm on employees using gin (full_name gin_trgm_ops);
 
 -- =====================================================================
 -- DOCUMENTS  (metadata; files live in Supabase Storage bucket 'hr-docs')
 -- =====================================================================
-create table employee_documents (
+create table if not exists employee_documents (
   id           uuid primary key default gen_random_uuid(),
   org_id       uuid not null,
   employee_id  uuid not null references employees(id) on delete cascade,
@@ -134,12 +143,12 @@ create table employee_documents (
   uploaded_by  uuid,
   created_at   timestamptz not null default now()
 );
-create index on employee_documents (employee_id);
+create index if not exists idx_hr_employee_documents_emp on employee_documents (employee_id);
 
 -- =====================================================================
 -- PAYROLL CYCLES
 -- =====================================================================
-create table payroll_cycles (
+create table if not exists payroll_cycles (
   id            uuid primary key default gen_random_uuid(),
   org_id        uuid not null,
   label         text not null,                          -- '26 May 2026 – 25 Jun 2026'
@@ -156,7 +165,7 @@ create table payroll_cycles (
 -- =====================================================================
 -- ATTENDANCE  (one row per employee per day)
 -- =====================================================================
-create table attendance (
+create table if not exists attendance (
   id           uuid primary key default gen_random_uuid(),
   org_id       uuid not null,
   employee_id  uuid not null references employees(id) on delete cascade,
@@ -174,13 +183,13 @@ create table attendance (
   updated_at   timestamptz not null default now(),
   unique (employee_id, work_date)
 );
-create index on attendance (org_id, work_date);
-create index on attendance (employee_id, work_date);
+create index if not exists idx_hr_attendance_org_date on attendance (org_id, work_date);
+create index if not exists idx_hr_attendance_emp_date on attendance (employee_id, work_date);
 
 -- =====================================================================
 -- LEAVE  (+ balances + approval chain)
 -- =====================================================================
-create table leave_requests (
+create table if not exists leave_requests (
   id            uuid primary key default gen_random_uuid(),
   org_id        uuid not null,
   employee_id   uuid not null references employees(id) on delete cascade,
@@ -195,10 +204,10 @@ create table leave_requests (
   status        request_status not null default 'Pending',
   created_at    timestamptz not null default now()
 );
-create index on leave_requests (employee_id, status);
+create index if not exists idx_hr_leave_requests_emp on leave_requests (employee_id, status);
 
 -- per-step approval trail (Employee → Manager → HR → Final)
-create table approvals (
+create table if not exists approvals (
   id            uuid primary key default gen_random_uuid(),
   org_id        uuid not null,
   entity_type   text not null,                          -- 'leave'|'compoff'|'late'|'mispunch'|'training'
@@ -210,10 +219,10 @@ create table approvals (
   comment       text,
   created_at    timestamptz not null default now()
 );
-create index on approvals (entity_type, entity_id);
+create index if not exists idx_hr_approvals_entity on approvals (entity_type, entity_id);
 
 -- leave balances (per employee per leave_type per policy-year)
-create table leave_balances (
+create table if not exists leave_balances (
   id            uuid primary key default gen_random_uuid(),
   org_id        uuid not null,
   employee_id   uuid not null references employees(id) on delete cascade,
@@ -230,7 +239,7 @@ create table leave_balances (
 -- =====================================================================
 -- COMP-OFF / LATE / MISPUNCH
 -- =====================================================================
-create table compoff_requests (
+create table if not exists compoff_requests (
   id           uuid primary key default gen_random_uuid(),
   org_id       uuid not null,
   employee_id  uuid not null references employees(id) on delete cascade,
@@ -241,7 +250,7 @@ create table compoff_requests (
   created_at   timestamptz not null default now()
 );
 
-create table late_exemptions (
+create table if not exists late_exemptions (
   id           uuid primary key default gen_random_uuid(),
   org_id       uuid not null,
   employee_id  uuid not null references employees(id) on delete cascade,
@@ -254,7 +263,7 @@ create table late_exemptions (
   created_at   timestamptz not null default now()
 );
 
-create table mispunch_requests (
+create table if not exists mispunch_requests (
   id           uuid primary key default gen_random_uuid(),
   org_id       uuid not null,
   employee_id  uuid not null references employees(id) on delete cascade,
@@ -268,7 +277,7 @@ create table mispunch_requests (
 -- =====================================================================
 -- TRAINING  (unpaid days reduce payable)
 -- =====================================================================
-create table training_records (
+create table if not exists training_records (
   id           uuid primary key default gen_random_uuid(),
   org_id       uuid not null,
   employee_id  uuid not null references employees(id) on delete cascade,
@@ -283,20 +292,20 @@ create table training_records (
 -- =====================================================================
 -- HOLIDAYS
 -- =====================================================================
-create table holidays (
+create table if not exists holidays (
   id           uuid primary key default gen_random_uuid(),
   org_id       uuid not null,
   holiday_date date not null,
   name         text not null,
   type         holiday_type not null default 'Festival',
-  branch_id    uuid references branches(id),             -- null = all branches
+  branch_id    uuid references public.branches(id),             -- null = all branches
   created_at   timestamptz not null default now()
 );
 
 -- =====================================================================
 -- PAYROLL LINES  (one frozen row per employee per cycle; the audit-grade record)
 -- =====================================================================
-create table payroll_lines (
+create table if not exists payroll_lines (
   id            uuid primary key default gen_random_uuid(),
   org_id        uuid not null,
   cycle_id      uuid not null references payroll_cycles(id) on delete cascade,
@@ -332,12 +341,12 @@ create table payroll_lines (
   created_at    timestamptz not null default now(),
   unique (cycle_id, employee_id)
 );
-create index on payroll_lines (cycle_id);
+create index if not exists idx_hr_payroll_lines_cycle on payroll_lines (cycle_id);
 
 -- =====================================================================
 -- SALARY SLIPS  (PDF archive per locked payroll line — v1 Phase 4)
 -- =====================================================================
-create table salary_slips (
+create table if not exists salary_slips (
   id              uuid primary key default gen_random_uuid(),
   org_id          uuid not null,
   payroll_line_id uuid not null references payroll_lines(id) on delete cascade,
@@ -347,12 +356,12 @@ create table salary_slips (
   generated_at    timestamptz not null default now(),
   unique (payroll_line_id)
 );
-create index on salary_slips (employee_id, cycle_id);
+create index if not exists idx_hr_salary_slips_emp on salary_slips (employee_id, cycle_id);
 
 -- =====================================================================
 -- RBAC  (role → permission + screen visibility; editable, persisted)
 -- =====================================================================
-create table role_permissions (
+create table if not exists role_permissions (
   id          uuid primary key default gen_random_uuid(),
   org_id      uuid not null,
   role        hr_role not null,
@@ -370,19 +379,19 @@ create table role_permissions (
 );
 
 -- maps an org member to one HR role (extends CRM Team & Roles)
-create table role_assignments (
+create table if not exists role_assignments (
   id          uuid primary key default gen_random_uuid(),
   org_id      uuid not null,
   staff_id    uuid not null,                             -- CRM staff/auth uid
   role        hr_role not null,
-  scope_branch_id uuid references branches(id),          -- optional branch scoping
+  scope_branch_id uuid references public.branches(id),          -- optional branch scoping
   unique (org_id, staff_id)
 );
 
 -- =====================================================================
 -- AUDIT LOG
 -- =====================================================================
-create table audit_log (
+create table if not exists audit_log (
   id          uuid primary key default gen_random_uuid(),
   org_id      uuid not null,
   actor_id    uuid,
@@ -393,12 +402,12 @@ create table audit_log (
   new_value   text,
   created_at  timestamptz not null default now()
 );
-create index on audit_log (org_id, created_at desc);
+create index if not exists idx_hr_audit_log_org on audit_log (org_id, created_at desc);
 
 -- =====================================================================
 -- POLICY  (versioned config — see business rules doc §Policy Versioning)
 -- =====================================================================
-create table policies (
+create table if not exists policies (
   id            uuid primary key default gen_random_uuid(),
   org_id        uuid not null,
   domain        text not null,                            -- 'late'|'mispunch'|'leave'|'sandwich_ul'|'cycle'
@@ -409,10 +418,12 @@ create table policies (
   created_at    timestamptz not null default now(),
   unique (org_id, domain, version)
 );
-create index on policies (org_id, domain, effective_from desc);
+create index if not exists idx_hr_policies_org on policies (org_id, domain, effective_from desc);
 
 -- updated_at triggers
 create or replace function set_updated_at() returns trigger as $$
 begin new.updated_at = now(); return new; end; $$ language plpgsql;
+drop trigger if exists trg_emp_updated on employees;
 create trigger trg_emp_updated  before update on employees  for each row execute function set_updated_at();
+drop trigger if exists trg_att_updated on attendance;
 create trigger trg_att_updated  before update on attendance for each row execute function set_updated_at();

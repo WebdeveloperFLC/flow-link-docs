@@ -29,16 +29,21 @@ begin
   delete from employee_documents where org_id=v_org;
   delete from employees where org_id=v_org;
   delete from shifts where org_id=v_org;
-  delete from branches where org_id=v_org;
   delete from companies where org_id=v_org;
   delete from role_permissions where org_id=v_org;
 
   -- ---- companies & branches ----
   insert into companies(org_id,name) values (v_org,'FL Pvt. Ltd.') returning id into v_co_pl;
   insert into companies(org_id,name) values (v_org,'FL Academic') returning id into v_co_ac;
-  insert into branches(org_id,name) values (v_org,'Vadodara') returning id into v_vad;
-  insert into branches(org_id,name) values (v_org,'Ahmedabad') returning id into v_ahm;
-  insert into branches(org_id,name) values (v_org,'Surat') returning id into v_sur;
+  -- reuse CRM branches (Genda Circle = Vadodara demo, Anand, Bharuch)
+  select id into v_vad from public.branches where name = 'Genda Circle' limit 1;
+  if v_vad is null then
+    select id into v_vad from public.branches where is_active = true order by display_order limit 1;
+  end if;
+  select id into v_ahm from public.branches where name = 'Anand' limit 1;
+  if v_ahm is null then v_ahm := v_vad; end if;
+  select id into v_sur from public.branches where name = 'Bharuch' limit 1;
+  if v_sur is null then v_sur := v_vad; end if;
 
   -- ---- shifts ----
   insert into shifts(org_id,name,type,login_time,logout_time,work_hours,grace_min,break_min,half_day_after_min,ot_eligible)
