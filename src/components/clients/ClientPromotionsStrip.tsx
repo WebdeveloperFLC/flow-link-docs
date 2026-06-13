@@ -21,6 +21,7 @@ interface ClientPromotionsStripProps {
 
 interface Suggestion {
   found: boolean;
+  dismissed?: boolean;
   suggestion_level?: string;
   offer_id?: string;
   title?: string;
@@ -28,8 +29,13 @@ interface Suggestion {
   discount_value?: number;
   funding_source?: string;
   reason?: string;
+  why_detail?: string;
+  cross_sell_scenario?: string;
+  suggested_journey_id?: string;
   wallet_unlocked?: number;
   wallet_potential?: number;
+  wallet_spendable?: number;
+  within_wallet_cap?: boolean;
 }
 
 function personalWallet(
@@ -50,10 +56,11 @@ export function ClientPromotionsStrip({ clientId, clientName, clientPhone }: Cli
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
   const [suggestionLoading, setSuggestionLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [enrollingJourney, setEnrollingJourney] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    setDismissed(sessionStorage.getItem(`flc-suggest-dismiss:${clientId}`) === "1");
+    setDismissed(false);
   }, [clientId]);
 
   useEffect(() => {
@@ -92,7 +99,9 @@ export function ClientPromotionsStrip({ clientId, clientName, clientPhone }: Cli
     if (!user) return;
     setSuggestionLoading(true);
     supabase.rpc("fn_suggest_offer_for_client", { _client_id: clientId }).then(({ data }) => {
-      setSuggestion((data as Suggestion) ?? { found: false });
+      const row = (data as Suggestion) ?? { found: false };
+      setSuggestion(row);
+      setDismissed(Boolean(row.dismissed));
       setSuggestionLoading(false);
     });
   }, [user?.id, clientId]);
@@ -101,6 +110,38 @@ export function ClientPromotionsStrip({ clientId, clientName, clientPhone }: Cli
   const suggestUrl = suggestion?.offer_id
     ? `${giveDiscountUrl}&offer=${suggestion.offer_id}`
     : giveDiscountUrl;
+
+  async function dismissSuggestion() {
+    if (!user) return;
+    try {
+      const { error } = await supabase.rpc("fn_dismiss_client_offer_suggestion", {
+        _client_id: clientId,
+        _days: 7,
+      });
+      if (error) throw error;
+      setDismissed(true);
+      toast({ title: "Suggestion dismissed for 7 days" });
+    } catch (e: unknown) {
+      toast({ title: "Dismiss failed", description: formatSupabaseError(e, "Could not dismiss"), variant: "destructive" });
+    }
+  }
+
+  async function startCrossSellJourney() {
+    if (!suggestion?.suggested_journey_id) return;
+    setEnrollingJourney(true);
+    try {
+      const { error } = await supabase.rpc("fn_enroll_offer_journey", {
+        _journey_id: suggestion.suggested_journey_id,
+        _client_id: clientId,
+      });
+      if (error) throw error;
+      toast({ title: "Cross-sell journey started", description: "Steps will run on the daily lifecycle tick." });
+    } catch (e: unknown) {
+      toast({ title: "Could not enroll", description: formatSupabaseError(e, "Enrollment failed"), variant: "destructive" });
+    } finally {
+      setEnrollingJourney(false);
+    }
+  }
 
   async function acceptAndSend() {
     if (!user || !suggestion?.offer_id) return;
@@ -176,28 +217,43 @@ export function ClientPromotionsStrip({ clientId, clientName, clientPhone }: Cli
         <Card className="p-4 border border-dashed border-violet-500/40 bg-muted/30">
           <div className="flex items-start gap-2">
             <Badge variant="outline" className="shrink-0 text-violet-700 border-violet-500/30">
-              Suggested ({suggestion.suggestion_level ?? "L0"})
+              O13 · {suggestion.suggestion_level ?? "L0"}
             </Badge>
-            <div className="text-sm space-y-2">
+            <div className="text-sm space-y-2 flex-1">
+              <p className="font-semibold">Suggested offer for this client</p>
               <p className="font-medium">
-                {suggestion.title}
+                Recommended: {suggestion.title}
                 {suggestion.discount_value != null && (
                   <>
                     {" "}
-                    —{" "}
+                    (
                     {suggestion.discount_type === "percentage"
-                      ? `${suggestion.discount_value}%`
+                      ? `${suggestion.discount_value}% off`
                       : formatInr(suggestion.discount_value)}
+                    )
                   </>
                 )}
               </p>
-              <p className="text-muted-foreground text-xs">{suggestion.reason}</p>
-              {suggestion.funding_source && (
-                <p className="text-xs text-muted-foreground">
-                  Funding:{" "}
-                  {OFFER_FUNDING_LABELS[(suggestion.funding_source as OfferFundingSource) ?? "future_link"]}
-                </p>
+              <p className="text-muted-foreground text-xs">
+                <span className="font-medium text-foreground">Why:</span>{" "}
+                {suggestion.why_detail ?? suggestion.reason}
+              </p>
+              {suggestion.reason && suggestion.why_detail && (
+                <p className="text-muted-foreground text-xs">{suggestion.reason}</p>
               )}
+              <p className="text-xs text-muted-foreground">
+                Wallet:{" "}
+                {formatInr(suggestion.wallet_spendable ?? spendable ?? 0)} spendable
+                {suggestion.wallet_potential != null && suggestion.wallet_potential > 0 && (
+                  <> · {formatInr(suggestion.wallet_potential)} potential</>
+                )}
+                {suggestion.funding_source && (
+                  <> · {OFFER_FUNDING_LABELS[(suggestion.funding_source as OfferFundingSource) ?? "future_link"]}</>
+                )}
+                {suggestion.within_wallet_cap === false && (
+                  <span className="text-amber-700"> · may exceed wallet cap</span>
+                )}
+              </p>
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" className="gap-1" disabled={sending} onClick={acceptAndSend}>
                   <MessageCircle className="size-3.5" /> Accept &amp; send
@@ -208,14 +264,12 @@ export function ClientPromotionsStrip({ clientId, clientName, clientPhone }: Cli
                 <Button size="sm" variant="ghost" asChild>
                   <Link to={giveDiscountUrl}>Adjust amount</Link>
                 </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    sessionStorage.setItem(`flc-suggest-dismiss:${clientId}`, "1");
-                    setDismissed(true);
-                  }}
-                >
+                {suggestion.suggested_journey_id && (
+                  <Button size="sm" variant="outline" disabled={enrollingJourney} onClick={startCrossSellJourney}>
+                    Start cross-sell journey
+                  </Button>
+                )}
+                <Button size="sm" variant="ghost" onClick={dismissSuggestion}>
                   Dismiss
                 </Button>
               </div>

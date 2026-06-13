@@ -137,7 +137,9 @@ export default function PerformanceHome() {
             footer={
               data.hasLockedRun
                 ? `Locked run total ${formatInr(data.earnedLocked, "INR")} · projected month-end ${formatInr(data.earnedProjected, "INR")}`
-                : "Pays after finance locks the period run"
+                : data.earningRefreshedAt
+                  ? `Refreshes every 60s · last ${new Date(data.earningRefreshedAt).toLocaleTimeString()} · pays after finance locks the run`
+                  : "Pays after finance locks the period run"
             }
           />
         </div>

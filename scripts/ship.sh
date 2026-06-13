@@ -82,6 +82,7 @@ Performance Hub migrations (Lovable Publish — approve ALL that still show as p
   [ ] 20260631120000_incentive_platform_phase5n.sql  — wallet W4/W5/W6 policy
   [ ] 20260701120000_incentive_platform_phase5o.sql  — offer automation journeys O7
   [ ] 20260702120000_incentive_platform_phase5p.sql  — split attribution I4, multi-plan stacking I7
+  [ ] 20260703120000_incentive_platform_phase5q.sql  — cross-sell journeys, O13 suggestion, I8 poll
 
 EOF
 }

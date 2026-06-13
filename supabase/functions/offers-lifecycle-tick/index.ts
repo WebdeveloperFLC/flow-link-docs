@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
   let campaignsCompleted = 0;
   let journeyProcessed = 0;
   let journeyCompleted = 0;
+  let crossSellEnrolled = 0;
   const errors: string[] = [];
 
   try {
@@ -83,6 +84,17 @@ Deno.serve(async (req) => {
     } else {
       journeyProcessed = Number((journeyResult as { processed?: number })?.processed ?? 0);
       journeyCompleted = Number((journeyResult as { completed?: number })?.completed ?? 0);
+    }
+
+    // 0b. Cross-sell auto-enroll (5Q)
+    const { data: crossSellResult, error: crossSellErr } = await admin.rpc(
+      "fn_process_cross_sell_journey_enrollments",
+      { _limit: 50 },
+    );
+    if (crossSellErr) {
+      errors.push(`cross_sell_enroll: ${crossSellErr.message}`);
+    } else {
+      crossSellEnrolled = Number((crossSellResult as { enrolled?: number })?.enrolled ?? 0);
     }
 
     // 0. Campaign calendar — planned → live on start_date; live → completed after end_date
@@ -276,7 +288,7 @@ Deno.serve(async (req) => {
     }
 
     console.log(
-      `${DEBUG} done generated=${generated} skipped_no_dob=${skippedNoDob} campaigns_activated=${campaignsActivated} campaigns_completed=${campaignsCompleted} journey_processed=${journeyProcessed} journey_completed=${journeyCompleted} errors=${errors.length}`,
+      `${DEBUG} done generated=${generated} skipped_no_dob=${skippedNoDob} campaigns_activated=${campaignsActivated} campaigns_completed=${campaignsCompleted} journey_processed=${journeyProcessed} journey_completed=${journeyCompleted} cross_sell_enrolled=${crossSellEnrolled} errors=${errors.length}`,
     );
     return new Response(
       JSON.stringify({
@@ -287,6 +299,7 @@ Deno.serve(async (req) => {
         campaigns_completed: campaignsCompleted,
         journey_processed: journeyProcessed,
         journey_completed: journeyCompleted,
+        cross_sell_enrolled: crossSellEnrolled,
         errors,
       }),
       {

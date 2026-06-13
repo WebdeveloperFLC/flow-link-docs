@@ -22,6 +22,7 @@ export interface PerformanceHomeData {
   walletDiscountTotal: number;
   earnedLocked: number;
   earnedProjected: number;
+  earningRefreshedAt: string | null;
   hasLockedRun: boolean;
   breakdown: {
     core: number;
@@ -53,6 +54,7 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
     walletDiscountTotal: 0,
     earnedLocked: 0,
     earnedProjected: 0,
+    earningRefreshedAt: null,
     hasLockedRun: false,
     breakdown: null,
     branchLeaderboard: [],
@@ -208,6 +210,7 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
         walletDiscountTotal,
         earnedLocked: earned,
         earnedProjected: projected,
+        earningRefreshedAt: new Date().toISOString(),
         hasLockedRun,
         breakdown: bd
           ? { core, allied, travel, eventCount: Number(bd.event_count ?? 0) }
@@ -240,6 +243,27 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
     return () => {
       cancelled = true;
     };
+  }, [userId, period]);
+
+  // I8 lite — poll earning snapshot every 60s while period is open
+  useEffect(() => {
+    if (!userId) return;
+    const tick = async () => {
+      const { data } = await supabase.rpc("fn_counselor_earning_snapshot", {
+        _counselor_id: userId,
+        _period_key: period,
+      });
+      const snap = data as { earned_total?: number; has_locked_run?: boolean; refreshed_at?: string } | null;
+      if (!snap) return;
+      setState((s) => ({
+        ...s,
+        earnedLocked: Number(snap.earned_total ?? s.earnedLocked),
+        hasLockedRun: Boolean(snap.has_locked_run ?? s.hasLockedRun),
+        earningRefreshedAt: snap.refreshed_at ?? new Date().toISOString(),
+      }));
+    };
+    const id = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(id);
   }, [userId, period]);
 
   return state;
