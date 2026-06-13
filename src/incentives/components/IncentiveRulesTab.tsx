@@ -135,6 +135,9 @@ export function IncentiveRulesTab({ activePlan, plans, rules, onReload }: Props)
               <option value="">Any verified payment</option>
               <option value="first_payment">First verified payment only</option>
               <option value="commission_paid">Commission paid</option>
+              <option value="offer_received">Offer / LOA received</option>
+              <option value="visa_lodged">Visa lodged</option>
+              <option value="lead_converted">Lead converted (telecaller)</option>
             </select>
           </div>
           <div>

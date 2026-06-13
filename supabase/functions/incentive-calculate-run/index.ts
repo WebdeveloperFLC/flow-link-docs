@@ -701,6 +701,58 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // ---- qualifying events: stage milestones + lead_converted (not payment — handled above) ----
+    {
+      const qeMilestoneRules = rules.filter((r) =>
+        r.milestone && ["offer_received", "visa_lodged", "lead_converted"].includes(r.milestone),
+      );
+      if (qeMilestoneRules.length) {
+        const { data: qeMilestoneRows } = await svc
+          .from("incentive_qualifying_events")
+          .select("id, event_type, counselor_id, client_id, branch_id, amount, currency, dimensions")
+          .eq("period_key", period_key)
+          .in("event_type", ["stage_change", "lead_converted"]);
+
+        for (const ev of (qeMilestoneRows ?? []) as any[]) {
+          const cid = ev.counselor_id as string;
+          if (!counselorInPlan(cid)) continue;
+          if (branch_id && ev.branch_id && ev.branch_id !== branch_id) continue;
+
+          let eventMilestone: string | null = null;
+          if (ev.event_type === "lead_converted") eventMilestone = "lead_converted";
+          else if (ev.event_type === "stage_change") {
+            eventMilestone = (ev.dimensions?.milestone as string) ?? null;
+          }
+          if (!eventMilestone) continue;
+
+          const dims: LineDims = {
+            ...(clientDims[ev.client_id] ?? {}),
+            ...((ev.dimensions ?? {}) as LineDims),
+          };
+
+          for (const rule of qeMilestoneRules) {
+            if (rule.milestone !== eventMilestone) continue;
+            const scope = mergeScope(rule.scope_preset, rule.scope_json ?? {});
+            if (!matchesScope(scope, dims, false)) continue;
+            const rb = ensureRule(cid, rule.id);
+            rb.count += 1;
+            rb.revenue += Number(ev.amount ?? 0);
+            rb.lines.push({
+              source_type: rule.source_type,
+              source_qualifying_event_id: ev.id,
+              client_id: ev.client_id,
+              base_amount: Number(ev.amount ?? 1),
+              base_currency: ev.currency ?? settlement,
+              fx_rate_used: null,
+              settlement_amount: 0,
+              dimensions: dims,
+              rule_id: rule.id,
+            });
+          }
+        }
+      }
+    }
+
     // ---- apply legacy slabs + rules + target bonus + discount penalty ----
     const counselorGross: Record<string, number> = {};
     const counselorNet: Record<string, number> = {};
