@@ -1,14 +1,13 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { PerformanceKpiGrid, PerformanceMoneyRail } from "@/components/performance/PerformanceMoneyRail";
+import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
+import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformancePeriodMetrics } from "@/hooks/usePerformancePeriodMetrics";
 import { usePerformanceQueueCounts } from "@/hooks/usePerformanceQueueCounts";
-import { currentPeriodKey } from "@/lib/performanceHubTheme";
+import { usePerformanceLockReadiness } from "@/hooks/usePerformanceLockReadiness";
 import {
   AlertTriangle,
   Banknote,
@@ -18,6 +17,7 @@ import {
   DollarSign,
   FlaskConical,
   Gift,
+  Lock,
   Settings2,
   Tag,
   Trophy,
@@ -44,13 +44,6 @@ const QUEUE_LINKS = [
   },
 ] as const;
 
-const WORKFLOW = [
-  { step: 1, label: "Period close (wallets)", to: "/incentives/period-close", icon: CalendarClock },
-  { step: 2, label: "Preview & calculate run", to: "/incentives/admin", icon: Calculator },
-  { step: 3, label: "Lock run & audit lines", to: "/incentives/admin", icon: Calculator },
-  { step: 4, label: "Generate payouts & export", to: "/incentives/payouts", icon: Banknote },
-] as const;
-
 const ADMIN_LINKS = [
   { to: "/performance/admin/unclassified", label: "Unclassified payments", icon: Calculator },
   { to: "/performance/admin/approvals", label: "Discount approvals", icon: Gift },
@@ -68,9 +61,24 @@ const ADMIN_LINKS = [
 ] as const;
 
 export default function PerformanceCommandCenter() {
-  const [period, setPeriod] = useState(currentPeriodKey());
-  const metrics = usePerformancePeriodMetrics(period, "All branches");
+  const { period, branchLabel } = usePerformancePeriod();
+  const metrics = usePerformancePeriodMetrics(period, branchLabel);
   const queues = usePerformanceQueueCounts(period);
+  const lockReadiness = usePerformanceLockReadiness(period);
+
+  const workflow = [
+    { step: 1, label: "Period close (wallets)", to: "/incentives/period-close", icon: CalendarClock, blocked: false },
+    { step: 2, label: "Preview & calculate run", to: "/incentives/admin", icon: Calculator, blocked: false },
+    {
+      step: 3,
+      label: metrics.runLocked ? "Run locked" : "Lock run & audit lines",
+      to: "/incentives/admin",
+      icon: Lock,
+      blocked: !lockReadiness.canLock && !metrics.runLocked,
+      hint: lockReadiness.canLock ? undefined : lockReadiness.blockers.join(" · "),
+    },
+    { step: 4, label: "Generate payouts & export", to: "/incentives/payouts", icon: Banknote, blocked: !metrics.runLocked },
+  ] as const;
 
   return (
     <AppLayout>
@@ -82,10 +90,7 @@ export default function PerformanceCommandCenter() {
           showModuleLegend={false}
         />
 
-        <div>
-          <label className="text-xs text-muted-foreground">Period</label>
-          <Input className="w-32 mt-1" value={period} onChange={(e) => setPeriod(e.target.value)} />
-        </div>
+        <PerformancePeriodBar />
 
         {(queues.unclassified > 0 || queues.pendingApprovals > 0 || queues.promotionRequests > 0) && (
           <Card className="p-4 border-amber-500/30 bg-amber-500/5">
@@ -114,6 +119,22 @@ export default function PerformanceCommandCenter() {
                   </Link>
                 );
               })}
+            </div>
+          </Card>
+        )}
+
+        {!lockReadiness.loading && !lockReadiness.canLock && (
+          <Card className="p-4 border-l-4 border-l-amber-500 bg-amber-500/5">
+            <div className="flex items-start gap-2 text-sm">
+              <Lock className="size-4 text-amber-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium">Period {period} is not ready to lock</p>
+                <ul className="list-disc ml-4 mt-1 text-muted-foreground">
+                  {lockReadiness.blockers.map((b) => (
+                    <li key={b}>{b}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </Card>
         )}
@@ -161,7 +182,7 @@ export default function PerformanceCommandCenter() {
         />
 
         <Card className="p-5">
-          <h2 className="text-lg font-semibold mb-4">June money flow · {period}</h2>
+          <h2 className="text-lg font-semibold mb-4">Money flow · {period}</h2>
           <PerformanceMoneyRail
             loading={metrics.loading}
             steps={[
@@ -181,17 +202,22 @@ export default function PerformanceCommandCenter() {
         <Card className="p-5">
           <h2 className="text-lg font-semibold mb-4">Monthly workflow · {period}</h2>
           <ol className="space-y-2">
-            {WORKFLOW.map((w) => (
+            {workflow.map((w) => (
               <li key={w.step}>
                 <Link
                   to={w.to}
-                  className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+                  className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
+                    w.blocked ? "opacity-60 hover:bg-muted/30" : "hover:bg-muted/50"
+                  }`}
                 >
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold">
                     {w.step}
                   </span>
                   <w.icon className="size-4 text-muted-foreground" />
                   <span className="flex-1 font-medium">{w.label}</span>
+                  {w.blocked && w.hint && (
+                    <span className="text-xs text-amber-700 dark:text-amber-400 max-w-[12rem] truncate">{w.hint}</span>
+                  )}
                   <ChevronRight className="size-4 text-muted-foreground" />
                 </Link>
               </li>
@@ -203,12 +229,14 @@ export default function PerformanceCommandCenter() {
           <h2 className="text-lg font-semibold mb-4">Admin tools</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {ADMIN_LINKS.map((item) => (
-              <Button key={item.to} variant="outline" className="justify-start h-auto py-3" asChild>
-                <Link to={item.to}>
-                  <item.icon className="size-4 mr-2 shrink-0" />
-                  {item.label}
-                </Link>
-              </Button>
+              <Link
+                key={item.to}
+                to={item.to}
+                className="inline-flex items-center justify-start h-auto py-3 px-4 rounded-md border bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+              >
+                <item.icon className="size-4 mr-2 shrink-0" />
+                {item.label}
+              </Link>
             ))}
           </div>
         </Card>

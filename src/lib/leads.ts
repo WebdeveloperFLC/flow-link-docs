@@ -314,14 +314,27 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
     if (r.service_category === "visa_immigration") {
       const visaDisplayLabel = displayLabel ?? r.sub_service;
       const serviceNorm = r.service.trim().toLowerCase();
+      const mappedCountries = [
+        ...new Set((r.service_library_countries ?? []).map((c) => c.country).filter(Boolean)),
+      ];
+      const resolvedCountries = resolveServiceCountries(r.service, mappedCountries);
       const isCountryRow =
         VISA_COUNTRY_PRIORITY.some((c) => c.toLowerCase() === serviceNorm) ||
-        resolveServiceCountries(r.service, countries).some((c) => c.toLowerCase() === serviceNorm);
+        resolvedCountries.some((c) => c.toLowerCase() === serviceNorm);
       const hasAcademyContent = !!displayLabel;
       if (!isCountryRow && !hasAcademyContent) continue;
 
       // Emit one row per country so the per-country filter in ServiceTabs works.
-      const list = countries.length > 0 ? countries : [null];
+      let countryList = resolvedCountries.length > 0 ? resolvedCountries : [];
+      if (countryList.length === 0) {
+        const fromVariants = [
+          ...new Set(
+            variants.filter((pv) => pv.library_id === r.id).map((pv) => pv.country).filter(Boolean),
+          ),
+        ];
+        if (fromVariants.length > 0) countryList = fromVariants;
+      }
+      const list = countryList.length > 0 ? countryList : [null];
       for (const c of list) {
         const parentKey = c ? `${r.id}::${c}` : r.id;
         const parentVariants = c ? variantsByParent.get(`${r.id}::${c}`) : undefined;

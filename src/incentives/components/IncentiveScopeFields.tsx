@@ -15,6 +15,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  groupCatalogueItems,
+  shouldUseGroupedPicker,
+  type ServicePickerGroup,
+  type ServicePickerTab,
+} from "@/lib/leads/servicePickerGroups";
 
 const sel = "w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm";
 
@@ -26,12 +38,17 @@ function allLeadFormCountries(): string[] {
   return [...set].sort((a, b) => a.localeCompare(b));
 }
 
-const SERVICE_TABS = [
-  { key: "coaching", label: "Coaching", masterKeys: ["coaching_services"] },
-  { key: "visa", label: "Visa & Immigration", masterKeys: ["visa_immigration"] },
-  { key: "admission", label: "Admissions", masterKeys: ["admission_services"] },
-  { key: "allied", label: "Allied & Travel", masterKeys: ["allied_services", "travel_financial"] },
-] as const;
+const SERVICE_TABS: {
+  key: string;
+  label: string;
+  masterKeys: string[];
+  grouped: ServicePickerTab;
+}[] = [
+  { key: "coaching", label: "Coaching", masterKeys: ["coaching_services"], grouped: "coaching_services" },
+  { key: "visa", label: "Visa & Immigration", masterKeys: ["visa_immigration"], grouped: "visa_services" },
+  { key: "admission", label: "Admissions", masterKeys: ["admission_services"], grouped: "admission_services" },
+  { key: "allied", label: "Allied & Travel", masterKeys: ["allied_services", "travel_financial"], grouped: "allied_travel" },
+];
 
 export type ScopeFormState = {
   scope_preset: string;
@@ -145,6 +162,161 @@ function MultiSelectDropdown({
           </div>
         </PopoverContent>
       </Popover>
+    </div>
+  );
+}
+
+function matchesServiceSearch(item: ServiceCatalogueItem, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  return [
+    item.service_name,
+    item.group_label,
+    item.group_key,
+    item.sub_category,
+    item.country_tag,
+  ].some((part) => (part ?? "").toLowerCase().includes(q));
+}
+
+function filterTabCatalogue(
+  tabKey: string,
+  items: ServiceCatalogueItem[],
+  scopeCountries: string[],
+  query: string,
+): ServiceCatalogueItem[] {
+  let list = items;
+  if (tabKey === "visa" && scopeCountries.length > 0) {
+    const norms = new Set(scopeCountries.map((c) => c.toLowerCase()));
+    list = list.filter(
+      (s) =>
+        !s.country_tag ||
+        norms.has(s.country_tag.toLowerCase()) ||
+        norms.has((s.sub_category ?? "").toLowerCase()),
+    );
+  }
+  if (!query.trim()) return list;
+  return list.filter((s) => matchesServiceSearch(s, query));
+}
+
+function IncentiveServicePickerRow({
+  item,
+  checked,
+  onToggle,
+}: {
+  item: ServiceCatalogueItem;
+  checked: boolean;
+  onToggle: () => void;
+}) {
+  const code = catalogueItemCode(item);
+  return (
+    <button
+      key={code}
+      type="button"
+      onClick={onToggle}
+      className={cn(
+        "w-full flex items-start gap-2 rounded-md px-2 py-1.5 text-sm text-left hover:bg-accent",
+        checked && "bg-accent/60",
+      )}
+    >
+      <Checkbox checked={checked} className="pointer-events-none mt-0.5" />
+      <span className="min-w-0">
+        <span className="block truncate">{item.service_name}</span>
+        {(item.country_tag || item.group_label) && (
+          <span className="text-[10px] text-muted-foreground">
+            {[item.group_label, item.country_tag].filter(Boolean).join(" · ")}
+          </span>
+        )}
+      </span>
+    </button>
+  );
+}
+
+function IncentiveGroupedServicePicker({
+  groups,
+  selected,
+  onToggle,
+}: {
+  groups: ServicePickerGroup[];
+  selected: string[];
+  onToggle: (code: string) => void;
+}) {
+  const multi = groups.filter((g) => g.items.length > 1);
+  const single = groups.filter((g) => g.items.length === 1);
+
+  return (
+    <div className="divide-y">
+      {single.map((group) => {
+        const item = group.items[0]!;
+        const code = catalogueItemCode(item);
+        return (
+          <IncentiveServicePickerRow
+            key={code}
+            item={item}
+            checked={selected.includes(code)}
+            onToggle={() => onToggle(code)}
+          />
+        );
+      })}
+      {multi.length > 0 && (
+        <Accordion type="multiple" defaultValue={multi.map((g) => g.key)} className="divide-y">
+          {multi.map((group) => {
+            const selectedInGroup = group.items.filter((item) =>
+              selected.includes(catalogueItemCode(item)),
+            ).length;
+            return (
+              <AccordionItem key={group.key} value={group.key} className="border-0">
+                <AccordionTrigger className="px-2 py-2 hover:no-underline hover:bg-muted/30 text-sm gap-2">
+                  <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
+                    <span className="font-medium">{group.label}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      {group.items.length} options
+                    </span>
+                    {selectedInGroup > 0 && (
+                      <Badge variant="secondary" className="h-5 px-1.5 text-xs shrink-0">
+                        {selectedInGroup}
+                      </Badge>
+                    )}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-1 pt-0">
+                  {group.sections ? (
+                    group.sections.map((section) => (
+                      <div key={section.key}>
+                        <div className="px-2 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wide bg-muted/20">
+                          {section.label}
+                        </div>
+                        {section.items.map((item) => {
+                          const code = catalogueItemCode(item);
+                          return (
+                            <IncentiveServicePickerRow
+                              key={code}
+                              item={item}
+                              checked={selected.includes(code)}
+                              onToggle={() => onToggle(code)}
+                            />
+                          );
+                        })}
+                      </div>
+                    ))
+                  ) : (
+                    group.items.map((item) => {
+                      const code = catalogueItemCode(item);
+                      return (
+                        <IncentiveServicePickerRow
+                          key={code}
+                          item={item}
+                          checked={selected.includes(code)}
+                          onToggle={() => onToggle(code)}
+                        />
+                      );
+                    })
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      )}
     </div>
   );
 }
@@ -346,47 +518,47 @@ export function IncentiveScopeFields({ value, onChange }: Props) {
                 <Input
                   value={serviceQuery}
                   onChange={(e) => setServiceQuery(e.target.value)}
-                  placeholder="Search in this tab…"
+                  placeholder="Search services, groups (Student, Visitor…) or countries…"
                   className="h-8 text-sm"
                 />
               </div>
               {SERVICE_TABS.map((tab) => {
                 const tabItems = serviceOptionsByTab.get(tab.key) ?? [];
-                const q = serviceQuery.trim().toLowerCase();
-                const items = q
-                  ? tabItems.filter((s) => s.service_name.toLowerCase().includes(q))
-                  : tabItems;
+                const scopeCountries = sj.country_codes ?? [];
+                const items = filterTabCatalogue(tab.key, tabItems, scopeCountries, serviceQuery);
+                const useGrouped = shouldUseGroupedPicker(tab.grouped, items);
+                const groups = useGrouped ? groupCatalogueItems(items, tab.grouped) : [];
                 return (
-                <TabsContent key={tab.key} value={tab.key} className="mt-0 max-h-64 overflow-y-auto p-1">
-                  {items.length === 0 ? (
-                    <p className="text-xs text-muted-foreground px-2 py-3">No services in this tab.</p>
-                  ) : (
-                    items.map((s) => {
-                      const code = catalogueItemCode(s);
-                      const checked = selectedServices.includes(code);
-                      return (
-                        <button
-                          key={code}
-                          type="button"
-                          onClick={() => toggleService(code)}
-                          className={cn(
-                            "w-full flex items-start gap-2 rounded-md px-2 py-1.5 text-sm text-left hover:bg-accent",
-                            checked && "bg-accent/60",
-                          )}
-                        >
-                          <Checkbox checked={checked} className="pointer-events-none mt-0.5" />
-                          <span className="min-w-0">
-                            <span className="block truncate">{s.service_name}</span>
-                            {s.country_tag && (
-                              <span className="text-[10px] text-muted-foreground">{s.country_tag}</span>
-                            )}
-                          </span>
-                        </button>
-                      );
-                    })
-                  )}
-                </TabsContent>
-              );})}
+                  <TabsContent key={tab.key} value={tab.key} className="mt-0 max-h-72 overflow-y-auto p-1">
+                    {tab.key === "visa" && scopeCountries.length > 0 && items.length === 0 && (
+                      <p className="text-xs text-muted-foreground px-2 py-2">
+                        No visa services for selected countries — adjust Countries above or clear the filter.
+                      </p>
+                    )}
+                    {items.length === 0 ? (
+                      <p className="text-xs text-muted-foreground px-2 py-3">No services in this tab.</p>
+                    ) : useGrouped ? (
+                      <IncentiveGroupedServicePicker
+                        groups={groups}
+                        selected={selectedServices}
+                        onToggle={toggleService}
+                      />
+                    ) : (
+                      items.map((s) => {
+                        const code = catalogueItemCode(s);
+                        return (
+                          <IncentiveServicePickerRow
+                            key={code}
+                            item={s}
+                            checked={selectedServices.includes(code)}
+                            onToggle={() => toggleService(code)}
+                          />
+                        );
+                      })
+                    )}
+                  </TabsContent>
+                );
+              })}
             </Tabs>
           </PopoverContent>
         </Popover>

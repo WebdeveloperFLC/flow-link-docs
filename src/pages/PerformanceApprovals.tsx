@@ -5,13 +5,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
+import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
+import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { useToast } from "@/hooks/use-toast";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
-import { currentPeriodKey, formatInr } from "@/lib/performanceHubTheme";
+import { formatInr } from "@/lib/performanceHubTheme";
 import { CheckCircle2, RefreshCw, XCircle } from "lucide-react";
 
 interface ApprovalRow {
@@ -40,7 +41,7 @@ const LEVEL_LABELS: Record<string, string> = {
 export default function PerformanceApprovals() {
   const { hasRole, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [period, setPeriod] = useState(currentPeriodKey());
+  const { period } = usePerformancePeriod();
   const [rows, setRows] = useState<ApprovalRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -128,11 +129,9 @@ export default function PerformanceApprovals() {
           showModuleLegend={false}
         />
 
+        <PerformancePeriodBar showBranch={false} compact />
+
         <div className="flex flex-wrap gap-3 items-end">
-          <div>
-            <label className="text-xs text-muted-foreground">Period</label>
-            <Input className="w-32 mt-1" value={period} onChange={(e) => setPeriod(e.target.value)} />
-          </div>
           <Button variant="outline" size="sm" className="gap-2" onClick={load} disabled={loading}>
             <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>

@@ -1,25 +1,26 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { PerformanceKpiGrid, PerformanceMoneyRail } from "@/components/performance/PerformanceMoneyRail";
+import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
+import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformancePeriodMetrics } from "@/hooks/usePerformancePeriodMetrics";
 import { usePerformanceTeamRows } from "@/hooks/usePerformanceTeamRows";
-import { currentPeriodKey, formatInr } from "@/lib/performanceHubTheme";
-import { useToast } from "@/hooks/use-toast";
+import { formatInr } from "@/lib/performanceHubTheme";
 import { AlertTriangle } from "lucide-react";
 
 export default function PerformanceExecutive() {
-  const { isAdmin, loading: authLoading } = useAuth();
-  const { toast } = useToast();
-  const [period, setPeriod] = useState(currentPeriodKey());
-  const [branch, setBranch] = useState("All branches");
+  const { isAdmin, hasRole, loading: authLoading } = useAuth();
+  const { period, branchLabel } = usePerformancePeriod();
+  const readOnly = !isAdmin && hasRole(["viewer"]);
+  const canView = isAdmin || hasRole(["viewer"]);
 
-  const metrics = usePerformancePeriodMetrics(period, branch);
-  const { rows: teamRows, loading: teamLoading } = usePerformanceTeamRows(period, branch);
+  const metrics = usePerformancePeriodMetrics(period, branchLabel);
+  const { rows: teamRows, loading: teamLoading } = usePerformanceTeamRows(period, branchLabel);
 
   const branchRows = useMemo(() => {
     const map = new Map<
@@ -48,22 +49,17 @@ export default function PerformanceExecutive() {
       .sort((a, b) => b.revenue - a.revenue);
   }, [teamRows]);
 
-  const readOnlyHandoff = () => {
-    toast({
-      title: "Finance workflow",
-      description: "Lock, close, and payout actions are handled by Admin / Finance on the command center.",
-    });
-  };
-
   if (authLoading) return null;
-  if (!isAdmin) return <Navigate to="/performance/team" replace />;
+  if (!canView) return <Navigate to="/performance" replace />;
 
   const alerts = [
-    !metrics.runLocked && {
-      msg: `Run not locked for ${period}${metrics.cashIncentiveDue > 0 ? " — preview exists" : ""}`,
-      to: "/incentives/admin",
-    },
-    metrics.payoutCount === 0 &&
+    !readOnly &&
+      !metrics.runLocked && {
+        msg: `Run not locked for ${period}${metrics.cashIncentiveDue > 0 ? " — preview exists" : ""}`,
+        to: "/incentives/admin",
+      },
+    !readOnly &&
+      metrics.payoutCount === 0 &&
       metrics.runLocked && {
         msg: "Run locked — generate payouts",
         to: "/incentives/payouts",
@@ -75,38 +71,25 @@ export default function PerformanceExecutive() {
       <div className="p-6 space-y-6 max-w-6xl">
         <PerformanceHubHeader
           title="Executive dashboard"
-          subtitle={`Firm-wide performance · ${period} · ${branch}`}
+          subtitle={`Firm-wide performance · ${period} · ${branchLabel}`}
           period={period}
           showModuleLegend={false}
         />
 
-        <div className="flex flex-wrap gap-3 items-end">
-          <div>
-            <label className="text-xs text-muted-foreground">Period</label>
-            <Input className="w-32 mt-1" value={period} onChange={(e) => setPeriod(e.target.value)} />
+        {readOnly && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Badge variant="secondary">Read-only</Badge>
+            <span>Director view — operational actions live on the command center (admin/finance).</span>
           </div>
-          <div>
-            <label className="text-xs text-muted-foreground">Branch</label>
-            <select
-              className="mt-1 border rounded-md h-9 px-2 bg-background text-sm min-w-[160px]"
-              value={branch}
-              onChange={(e) => setBranch(e.target.value)}
-            >
-              <option>All branches</option>
-              {branchRows.map((b) => (
-                <option key={b.name} value={b.name === "Unassigned" ? "All branches" : b.name}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <Link
-            to="/performance/admin"
-            className="text-sm text-primary hover:underline ml-auto pb-2"
-          >
+        )}
+
+        <PerformancePeriodBar />
+
+        {!readOnly && (
+          <Link to="/performance/admin" className="text-sm text-primary hover:underline">
             Open command center →
           </Link>
-        </div>
+        )}
 
         <PerformanceKpiGrid
           loading={metrics.loading}
@@ -247,13 +230,11 @@ export default function PerformanceExecutive() {
               </table>
             </div>
           )}
-          <p className="text-xs text-muted-foreground mt-3">
-            Director-style read-only view: operational steps live under{" "}
-            <button type="button" className="text-primary underline" onClick={readOnlyHandoff}>
-              Finance workflow
-            </button>
-            .
-          </p>
+          {readOnly && (
+            <p className="text-xs text-muted-foreground mt-3">
+              Finance closes periods and locks runs from the command center — this view is read-only.
+            </p>
+          )}
         </Card>
 
         <Card className="p-5">
