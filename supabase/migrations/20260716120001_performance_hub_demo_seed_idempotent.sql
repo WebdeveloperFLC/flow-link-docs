@@ -266,7 +266,11 @@ BEGIN
     v_priya, v_branch_genda, v_period, 'monthly',
     'net_revenue', 300000, 'INR', NULL
   )
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (id) DO UPDATE SET
+    counselor_id = EXCLUDED.counselor_id,
+    target_value = EXCLUDED.target_value,
+    target_metric = EXCLUDED.target_metric,
+    period_key = EXCLUDED.period_key;
 
   -- ── Verified payments (unclassified list + hot propensity) ───────────────
   INSERT INTO public.client_invoices (

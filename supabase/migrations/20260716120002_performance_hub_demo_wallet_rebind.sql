@@ -38,6 +38,23 @@ BEGIN
     UPDATE public.clients
        SET assigned_counselor_id = v_priya
      WHERE application_id LIKE 'PH-DEMO-%';
+
+    UPDATE public.incentive_targets
+       SET counselor_id = v_priya,
+           target_value = 300000,
+           period_key = '2026-06'
+     WHERE id = 'a0030001-0001-4000-8000-000000000001';
+
+    UPDATE public.incentive_qualifying_events
+       SET counselor_id = v_priya
+     WHERE id LIKE 'a00e000%';
+
+    UPDATE public.incentive_line_items
+       SET counselor_id = v_priya
+     WHERE id IN (
+       'a0060001-0001-4000-8000-000000000001',
+       'a0060002-0002-4000-8000-000000000002'
+     );
   END IF;
 
   IF v_rohit IS NOT NULL THEN
