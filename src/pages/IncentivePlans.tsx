@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Settings2, Plus, Trash2, Sparkles } from "lucide-react";
+import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
 import { priorPeriodKey } from "@/incentives/lib/incentiveFinanceExport";
 import { IncentiveRulesTab, type IncentiveRule } from "@/incentives/components/IncentiveRulesTab";
 import { IncentiveSchemeTemplatesTab } from "@/incentives/components/IncentiveSchemeTemplatesTab";
@@ -326,6 +327,8 @@ export default function IncentivePlans() {
           <Settings2 className="size-6 text-primary" />
           <h1 className="text-2xl font-semibold">Incentive Plans &amp; Rules</h1>
         </div>
+
+        <PerformancePeriodBar compact showBranch={false} />
 
         <Tabs defaultValue="plans">
           <TabsList>

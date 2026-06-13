@@ -9,7 +9,8 @@ import { Navigate } from "react-router-dom";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { OffersStudioNav } from "@/components/offers/OffersStudioNav";
-import { currentPeriodKey } from "@/lib/performanceHubTheme";
+import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
+import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { offerStatusLabel, offerStatusClass } from "@/lib/offers/lifecycle";
 import { Tag, Clock, RefreshCw, Plus, Megaphone, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
@@ -37,7 +38,7 @@ export default function PerformanceOffersStudio() {
   const allowed = canView || hasRole(["manager", "administrator"]);
   const [data, setData] = useState<DashboardData | null>(null);
   const [busy, setBusy] = useState(true);
-  const periodKey = currentPeriodKey();
+  const { period: periodKey } = usePerformancePeriod();
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -75,6 +76,7 @@ export default function PerformanceOffersStudio() {
       />
       <div className="p-6 max-w-7xl mx-auto space-y-4">
         <OffersStudioNav />
+        <PerformancePeriodBar compact showBranch={false} />
         <div className="flex flex-wrap gap-2 justify-end">
           <Button variant="outline" size="sm" onClick={load} disabled={busy}>
             <RefreshCw className={busy ? "size-4 mr-1 animate-spin" : "size-4 mr-1"} />

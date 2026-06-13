@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { PerformanceMetricCard } from "@/components/performance/PerformanceMetricCard";
 import { PerformanceTelecallerHome } from "@/components/performance/PerformanceTelecallerHome";
+import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformanceHomeData } from "@/hooks/usePerformanceHomeData";
 import { formatInr } from "@/lib/performanceHubTheme";
 import { toast } from "sonner";
@@ -27,7 +28,8 @@ const HIGHER_THAN_TELECALLER = [
 
 export default function PerformanceHome() {
   const { user, roles, hasRole } = useAuth();
-  const data = usePerformanceHomeData(user?.id);
+  const { period } = usePerformancePeriod();
+  const data = usePerformanceHomeData(user?.id, period);
   const [exceptionAmount, setExceptionAmount] = useState("");
   const [exceptionReason, setExceptionReason] = useState("");
   const [submittingException, setSubmittingException] = useState(false);

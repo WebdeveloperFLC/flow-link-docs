@@ -32,6 +32,8 @@ interface Suggestion {
   why_detail?: string;
   cross_sell_scenario?: string;
   suggested_journey_id?: string;
+  ab_experiment_id?: string;
+  ab_variant_code?: string;
   wallet_unlocked?: number;
   wallet_potential?: number;
   wallet_spendable?: number;
@@ -219,6 +221,11 @@ export function ClientPromotionsStrip({ clientId, clientName, clientPhone }: Cli
             <Badge variant="outline" className="shrink-0 text-violet-700 border-violet-500/30">
               O13 · {suggestion.suggestion_level ?? "L0"}
             </Badge>
+            {suggestion.ab_variant_code && (
+              <Badge variant="secondary" className="shrink-0 text-xs">
+                A/B · {suggestion.ab_variant_code}
+              </Badge>
+            )}
             <div className="text-sm space-y-2 flex-1">
               <p className="font-semibold">Suggested offer for this client</p>
               <p className="font-medium">

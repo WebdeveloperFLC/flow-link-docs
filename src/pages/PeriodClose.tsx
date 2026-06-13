@@ -3,16 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarClock, Play, RotateCcw, RefreshCw, ArrowRightCircle, Calculator } from "lucide-react";
+import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
+import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
 
 type RolloverPolicy = "expire" | "partial" | "full";
-
-function currentPeriodKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
 const fmt = (n: number, ccy: string) =>
   `${ccy === "INR" ? "₹" : ""}${Number(n ?? 0).toLocaleString()} ${ccy !== "INR" ? ccy : ""}`.trim();
 
@@ -67,7 +63,7 @@ interface WalletPreview {
 
 export default function PeriodClose() {
   const { toast } = useToast();
-  const [period, setPeriod] = useState(currentPeriodKey());
+  const { period } = usePerformancePeriod();
   const [wallets, setWallets] = useState<WalletRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [achievement, setAchievement] = useState<Record<string, number | null>>({});
@@ -252,21 +248,14 @@ export default function PeriodClose() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <CalendarClock className="size-6 text-primary" />
             <h1 className="text-2xl font-semibold">Period Close</h1>
           </div>
-          <div>
-            <label className="text-xs text-muted-foreground mr-2">Period</label>
-            <Input
-              className="inline-block w-32"
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              placeholder="2026-05"
-            />
-          </div>
         </div>
+
+        <PerformancePeriodBar compact showBranch={false} />
 
         <Card className="p-5 space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-3">

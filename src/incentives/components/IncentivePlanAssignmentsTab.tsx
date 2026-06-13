@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Layers, Trash2 } from "lucide-react";
-import { currentPeriodKey } from "@/lib/performanceHubTheme";
+import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 
 const sel = "w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm";
 
@@ -33,7 +33,7 @@ interface Props {
 
 export function IncentivePlanAssignmentsTab({ plans, profiles }: Props) {
   const { toast } = useToast();
-  const [periodKey, setPeriodKey] = useState(currentPeriodKey());
+  const { period: periodKey } = usePerformancePeriod();
   const [counselorId, setCounselorId] = useState("");
   const [planId, setPlanId] = useState("");
   const [notes, setNotes] = useState("");
@@ -126,11 +126,7 @@ export function IncentivePlanAssignmentsTab({ plans, profiles }: Props) {
           One primary base plan per counselor; overlay plans stack additively.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div>
-            <label className="text-xs text-muted-foreground">Period key</label>
-            <Input className="mt-1" value={periodKey} onChange={(e) => setPeriodKey(e.target.value)} placeholder="2026-06" />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <label className="text-xs text-muted-foreground">Counselor</label>
             <select className={sel} value={counselorId} onChange={(e) => setCounselorId(e.target.value)}>

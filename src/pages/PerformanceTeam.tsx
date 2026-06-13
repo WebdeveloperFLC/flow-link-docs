@@ -3,28 +3,30 @@ import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { usePerformanceTeamRows } from "@/hooks/usePerformanceTeamRows";
-import { currentPeriodKey, formatInr } from "@/lib/performanceHubTheme";
+import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
+import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
+import { formatInr } from "@/lib/performanceHubTheme";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 import { Users } from "lucide-react";
 
 export default function PerformanceTeam() {
   const { user, isAdmin, hasRole, loading: authLoading } = useAuth();
-  const [period, setPeriod] = useState(currentPeriodKey());
+  const { period } = usePerformancePeriod();
   const [branchId, setBranchId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
+    if (isAdmin) return;
     supabase
       .from("profiles")
       .select("branch_id")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => setBranchId((data as { branch_id?: string } | null)?.branch_id ?? null));
-  }, [user?.id]);
+  }, [user?.id, isAdmin]);
 
   const isManager = hasRole("manager");
   const allowed = isAdmin || isManager;
@@ -62,11 +64,9 @@ export default function PerformanceTeam() {
           showModuleLegend={false}
         />
 
+        <PerformancePeriodBar compact />
+
         <div className="flex flex-wrap gap-3 items-end">
-          <div>
-            <label className="text-xs text-muted-foreground">Period</label>
-            <Input className="w-32 mt-1" value={period} onChange={(e) => setPeriod(e.target.value)} />
-          </div>
           {isAdmin && (
             <Link to="/performance/executive" className="text-sm text-primary hover:underline ml-auto pb-2">
               Executive dashboard →
