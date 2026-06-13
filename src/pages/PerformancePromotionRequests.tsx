@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useModulePermission } from "@/hooks/useModulePermission";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline" | "dest
 
 export default function PerformancePromotionRequests() {
   const { user, hasRole } = useAuth();
+  const { canEdit: canEditOffers } = useModulePermission("offers");
   const { toast } = useToast();
   const [rows, setRows] = useState<PromoRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +50,8 @@ export default function PerformancePromotionRequests() {
   const [proposedDiscount, setProposedDiscount] = useState("");
   const [targetAudience, setTargetAudience] = useState("");
 
-  const canReview = hasRole(["admin", "administrator", "manager"]);
+  const canReview =
+    hasRole(["admin", "administrator", "manager"]) || canEditOffers;
 
   async function load() {
     setLoading(true);
@@ -189,7 +192,7 @@ export default function PerformancePromotionRequests() {
           <Button variant="outline" size="sm" className="gap-2" onClick={load} disabled={loading}>
             <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
-          <Link to="/offers-admin" className="text-sm text-primary hover:underline ml-auto">
+          <Link to="/performance/offers/library" className="text-sm text-primary hover:underline ml-auto">
             Offers library →
           </Link>
         </div>
@@ -270,7 +273,7 @@ export default function PerformancePromotionRequests() {
                       Decline
                     </Button>
                     <Button size="sm" variant="ghost" asChild>
-                      <Link to="/offers-admin">Offers library</Link>
+                      <Link to="/performance/offers/library">Offers library</Link>
                     </Button>
                   </div>
                 )}

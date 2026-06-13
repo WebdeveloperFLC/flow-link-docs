@@ -15,7 +15,8 @@ import { Gift, RotateCcw, Target } from "lucide-react";
 import { OFFER_FUNDING_LABELS, type OfferFundingSource } from "@/lib/offers/lifecycle";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
 import { walletScopeLabel } from "@/lib/walletScope";
-import { formatInr, currentPeriodKey } from "@/lib/performanceHubTheme";
+import { formatInr } from "@/lib/performanceHubTheme";
+import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { noTargetAchievementDetail, NO_TARGET_WALLET_NOTE } from "@/lib/performanceNoTargetCopy";
 
 type AllocStatus = "reserved" | "applied" | "reversed";
@@ -110,7 +111,7 @@ export default function GiveDiscount() {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
-  const period = currentPeriodKey();
+  const { period } = usePerformancePeriod();
 
   const [wallets, setWallets] = useState<WalletRow[]>([]);
   const [walletId, setWalletId] = useState<string>("");

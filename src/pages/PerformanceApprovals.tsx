@@ -40,7 +40,7 @@ interface ApprovalRow {
 
 const LEVEL_LABELS: Record<string, string> = {
   manager: "Branch manager",
-  admin: "Admin / director",
+  admin: "Admin",
 };
 
 interface WalletExceptionRow {
@@ -55,10 +55,15 @@ interface WalletExceptionRow {
 }
 
 export default function PerformanceApprovals() {
-  const { hasRole, loading: authLoading } = useAuth();
+  const { hasRole, loading: authLoading, isAdmin } = useAuth();
   const { toast } = useToast();
   const { period } = usePerformancePeriod();
-  const isAdmin = hasRole(["admin", "administrator"]);
+  const isDirectorOnly =
+    hasRole("director") && !isAdmin && !hasRole(["manager", "administrator"]);
+  const readOnly = isDirectorOnly;
+  const canReview =
+    hasRole(["admin", "administrator"]) || hasRole("manager");
+  const canView = canReview || isDirectorOnly;
   const [rows, setRows] = useState<ApprovalRow[]>([]);
   const [walletRows, setWalletRows] = useState<WalletExceptionRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,9 +75,6 @@ export default function PerformanceApprovals() {
     { scope_key: string; min_net_pct: number }[]
   >([]);
   const [serviceEdits, setServiceEdits] = useState<Record<string, string>>({});
-
-  const canReview =
-    hasRole(["admin", "administrator"]) || hasRole("manager");
 
   async function load() {
     setLoading(true);
@@ -251,7 +253,7 @@ export default function PerformanceApprovals() {
   }
 
   if (authLoading) return null;
-  if (!canReview) return <Navigate to="/performance" replace />;
+  if (!canView) return <Navigate to="/performance" replace />;
 
   return (
     <AppLayout>
@@ -262,6 +264,13 @@ export default function PerformanceApprovals() {
           period={period}
           showModuleLegend={false}
         />
+
+        {readOnly && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Badge variant="secondary">Read-only</Badge>
+            <span>Director view — approve and decline actions require admin or branch manager.</span>
+          </div>
+        )}
 
         <PerformancePeriodBar showBranch={false} compact />
 
@@ -280,7 +289,7 @@ export default function PerformanceApprovals() {
             {[
               ["≤ 10% or ≤ ₹5,000", "Counselor — instant"],
               ["11 – 20%", "Branch manager"],
-              ["> 20% / below floor", "Admin / director"],
+              ["> 20% / below floor", "Admin"],
               ["Scholarship / waiver", "Admin only — counselor submit blocked"],
             ].map(([depth, approver]) => (
               <div key={depth} className="rounded-md border bg-muted/30 p-3">
@@ -397,31 +406,35 @@ export default function PerformanceApprovals() {
                     {new Date(row.created_at).toLocaleString()}
                   </span>
                 </div>
-                <Textarea
-                  placeholder="Review note (optional)"
-                  rows={2}
-                  value={notes[row.id] ?? ""}
-                  onChange={(e) => setNotes((n) => ({ ...n, [row.id]: e.target.value }))}
-                />
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    className="gap-1"
-                    disabled={busyId === row.id}
-                    onClick={() => review(row.id, "approve")}
-                  >
-                    <CheckCircle2 className="size-4" /> Approve &amp; apply
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-1"
-                    disabled={busyId === row.id}
-                    onClick={() => review(row.id, "decline")}
-                  >
-                    <XCircle className="size-4" /> Decline
-                  </Button>
-                </div>
+                {!readOnly && (
+                  <>
+                    <Textarea
+                      placeholder="Review note (optional)"
+                      rows={2}
+                      value={notes[row.id] ?? ""}
+                      onChange={(e) => setNotes((n) => ({ ...n, [row.id]: e.target.value }))}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="gap-1"
+                        disabled={busyId === row.id}
+                        onClick={() => review(row.id, "approve")}
+                      >
+                        <CheckCircle2 className="size-4" /> Approve &amp; apply
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1"
+                        disabled={busyId === row.id}
+                        onClick={() => review(row.id, "decline")}
+                      >
+                        <XCircle className="size-4" /> Decline
+                      </Button>
+                    </div>
+                  </>
+                )}
               </Card>
             ))}
               </div>
@@ -443,31 +456,35 @@ export default function PerformanceApprovals() {
                         {new Date(row.created_at).toLocaleString()}
                       </span>
                     </div>
-                    <Textarea
-                      placeholder="Review note (optional)"
-                      rows={2}
-                      value={notes[row.id] ?? ""}
-                      onChange={(e) => setNotes((n) => ({ ...n, [row.id]: e.target.value }))}
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        className="gap-1"
-                        disabled={busyId === row.id}
-                        onClick={() => reviewWallet(row.id, "approve")}
-                      >
-                        <CheckCircle2 className="size-4" /> Approve top-up
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="gap-1"
-                        disabled={busyId === row.id}
-                        onClick={() => reviewWallet(row.id, "decline")}
-                      >
-                        <XCircle className="size-4" /> Decline
-                      </Button>
-                    </div>
+                    {!readOnly && (
+                      <>
+                        <Textarea
+                          placeholder="Review note (optional)"
+                          rows={2}
+                          value={notes[row.id] ?? ""}
+                          onChange={(e) => setNotes((n) => ({ ...n, [row.id]: e.target.value }))}
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className="gap-1"
+                            disabled={busyId === row.id}
+                            onClick={() => reviewWallet(row.id, "approve")}
+                          >
+                            <CheckCircle2 className="size-4" /> Approve top-up
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1"
+                            disabled={busyId === row.id}
+                            onClick={() => reviewWallet(row.id, "decline")}
+                          >
+                            <XCircle className="size-4" /> Decline
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </Card>
                 ))}
               </div>
