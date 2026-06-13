@@ -1,6 +1,7 @@
 # Performance Hub — User Acceptance Testing (UAT)
 
 **Environment:** Staging / Lovable preview after Phase **6B** publish  
+**Tester quick start (non-technical):** [`PERFORMANCE_HUB_TESTER_QUICKSTART.md`](./PERFORMANCE_HUB_TESTER_QUICKSTART.md)  
 **Demo data:** [`PERFORMANCE_HUB_DEMO_DATA.md`](./PERFORMANCE_HUB_DEMO_DATA.md) — load before executing tests  
 **Demo coverage audit:** [`PERFORMANCE_HUB_UAT_DEMO_COVERAGE.md`](./PERFORMANCE_HUB_UAT_DEMO_COVERAGE.md)
 **Readiness review:** [`PERFORMANCE_HUB_READINESS_REVIEW.md`](./PERFORMANCE_HUB_READINESS_REVIEW.md) — fix/blockers before team UAT  
