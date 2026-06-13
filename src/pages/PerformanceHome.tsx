@@ -15,7 +15,7 @@ import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformanceHomeData } from "@/hooks/usePerformanceHomeData";
 import { formatInr } from "@/lib/performanceHubTheme";
 import { toast } from "sonner";
-import { Trophy, TrendingUp, Wallet } from "lucide-react";
+import { Trophy, TrendingUp, Wallet, Megaphone } from "lucide-react";
 
 const HIGHER_THAN_TELECALLER = [
   "admin",
@@ -40,6 +40,15 @@ export default function PerformanceHome() {
     wallet_impact_revenue: number;
     wallet_used: number;
     roi: number | null;
+  } | null>(null);
+  const [offerInfluence, setOfferInfluence] = useState<{
+    direct_revenue: number;
+    assisted_revenue: number;
+    multi_service_revenue: number;
+    total_influenced: number;
+    wallet_discount_spent: number;
+    offers_sent: number;
+    redemptions: number;
   } | null>(null);
 
   useEffect(() => {
@@ -69,6 +78,36 @@ export default function PerformanceHome() {
         });
       } else {
         setWalletImpact(null);
+      }
+    });
+    supabase.rpc("fn_counselor_offer_influence", { _period_key: period }).then(({ data }) => {
+      const row = data as {
+        found?: boolean;
+        direct_revenue?: number;
+        assisted_revenue?: number;
+        multi_service_revenue?: number;
+        total_influenced?: number;
+        wallet_discount_spent?: number;
+        offers_sent?: number;
+        redemptions?: number;
+      } | null;
+      if (
+        row?.found &&
+        (Number(row.total_influenced ?? 0) > 0 ||
+          Number(row.offers_sent ?? 0) > 0 ||
+          Number(row.wallet_discount_spent ?? 0) > 0)
+      ) {
+        setOfferInfluence({
+          direct_revenue: Number(row.direct_revenue ?? 0),
+          assisted_revenue: Number(row.assisted_revenue ?? 0),
+          multi_service_revenue: Number(row.multi_service_revenue ?? 0),
+          total_influenced: Number(row.total_influenced ?? 0),
+          wallet_discount_spent: Number(row.wallet_discount_spent ?? 0),
+          offers_sent: Number(row.offers_sent ?? 0),
+          redemptions: Number(row.redemptions ?? 0),
+        });
+      } else {
+        setOfferInfluence(null);
       }
     });
   }, [user?.id, period]);
@@ -186,6 +225,40 @@ export default function PerformanceHome() {
             }
           />
         </div>
+
+        {offerInfluence && (
+          <Card className="p-5 border-l-4 border-l-emerald-500">
+            <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
+              <Megaphone className="size-5 text-emerald-600" />
+              Your offer influence (O10) · {period}
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-muted-foreground">Direct</p>
+                <p className="font-semibold tabular-nums">{formatInr(offerInfluence.direct_revenue)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Assisted</p>
+                <p className="font-semibold tabular-nums">{formatInr(offerInfluence.assisted_revenue)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Multi-service</p>
+                <p className="font-semibold tabular-nums">{formatInr(offerInfluence.multi_service_revenue)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Total influenced</p>
+                <p className="font-semibold tabular-nums">{formatInr(offerInfluence.total_influenced)}</p>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              {offerInfluence.offers_sent} sent · {offerInfluence.redemptions} redeemed ·{" "}
+              {formatInr(offerInfluence.wallet_discount_spent)} wallet discounts applied
+            </p>
+            <Link to="/performance/offers/analytics" className="text-xs text-primary hover:underline mt-2 inline-block">
+              Branch-wide analytics →
+            </Link>
+          </Card>
+        )}
 
         {walletImpact && (walletImpact.wallet_impact_revenue > 0 || walletImpact.wallet_used > 0) && (
           <Card className="p-4 border-l-4 border-l-violet-500 bg-violet-500/5">
