@@ -76,6 +76,8 @@ Performance Hub migrations (Lovable Publish — approve ALL that still show as p
   [ ] 20260626120000_incentive_platform_phase5i.sql  — calendar, segments, auto-offer rules
   [ ] 20260627120000_incentive_platform_phase5j.sql  — admin unlock/void, wallet preview
   [ ] 20260628120000_incentive_platform_phase5k.sql  — wallet policy CRUD, exception requests
+  [ ] 20260629120000_incentive_platform_phase5l.sql  — branch_pool enum, contest prize_settlement
+  [ ] 20260629120001_incentive_platform_phase5l_branch_pool.sql  — pool RPCs, O10, wallet impact
 
 EOF
 }
@@ -91,7 +93,7 @@ print_sql_reminder() {
   echo "YOUR ACTION after ship:"
   echo "  Step 1 — Lovable → Sync from GitHub"
   echo "  Step 2 — Lovable → Publish → approve every pending migration above (not just this ship's file)"
-  echo "  Step 3 — Refresh app and UAT"
+  echo "  Step 3 — Refresh app; batch UAT when module is review-ready (5L = last planned phase slice)"
   echo ""
 }
 

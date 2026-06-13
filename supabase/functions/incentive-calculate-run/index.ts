@@ -880,6 +880,12 @@ Deno.serve(async (req: Request) => {
     }
 
     // ---- Phase 3: campaign overlays + branch contests ----
+    const contestWalletTopups: Array<{
+      counselor_id: string;
+      amount: number;
+      contest_name: string;
+      currency: string;
+    }> = [];
     {
       const { data: qeRows } = await svc
         .from("incentive_qualifying_events")
@@ -992,6 +998,15 @@ Deno.serve(async (req: Request) => {
 
         for (const [cid, amt] of Object.entries(contestPayouts)) {
           if (amt <= 0) continue;
+          if (contest.prize_settlement === "wallet_topup") {
+            contestWalletTopups.push({
+              counselor_id: cid,
+              amount: amt,
+              contest_name: contest.name,
+              currency: contest.settlement_currency ?? settlement,
+            });
+            continue;
+          }
           if (!perCounselor[cid]) perCounselor[cid] = { total: 0, lines: [] };
           perCounselor[cid].total += amt;
           perCounselor[cid].lines.push({
@@ -1010,7 +1025,17 @@ Deno.serve(async (req: Request) => {
     const grandTotal = Math.round(summary.reduce((s, r) => s + r.earned, 0) * 100) / 100;
 
     if (action === "preview") {
-      return json({ ok: true, action, period_key, branch_id, settlement, fx_snapshot: snap, summary, grand_total: grandTotal });
+      return json({
+        ok: true,
+        action,
+        period_key,
+        branch_id,
+        settlement,
+        fx_snapshot: snap,
+        summary,
+        grand_total: grandTotal,
+        contest_wallet_topups: contestWalletTopups,
+      });
     }
 
     // --- action === 'calculate': upsert run + replace line items ---
@@ -1067,6 +1092,27 @@ Deno.serve(async (req: Request) => {
         const { error: liErr } = await svc.from("incentive_line_items").insert(rows.slice(i, i + 500));
         if (liErr) return json({ error: liErr.message }, 400);
       }
+    }
+
+    for (const t of contestWalletTopups) {
+      const { data: wRow } = await svc
+        .from("discount_wallets")
+        .select("id")
+        .eq("counselor_id", t.counselor_id)
+        .eq("period_key", period_key)
+        .eq("budget_kind", "month_to_month")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!wRow?.id) continue;
+      await svc.from("wallet_topups").insert({
+        wallet_id: wRow.id,
+        amount: t.amount,
+        currency: t.currency,
+        topup_type: "contest_prize",
+        reason: `Contest prize (wallet): ${t.contest_name}`,
+        created_by: callerId,
+      });
     }
 
     await svc.from("activity_logs").insert({

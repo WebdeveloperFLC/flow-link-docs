@@ -61,6 +61,7 @@ const ADMIN_LINKS = [
   { to: "/performance/offers/requests", label: "Promotion requests", icon: Tag },
   { to: "/performance/executive", label: "Executive dashboard", icon: Calculator },
   { to: "/performance/wallet/policy", label: "Wallet policy", icon: Gift },
+  { to: "/performance/wallet/branch-pool", label: "Branch pool", icon: Gift },
   { to: "/incentives/admin", label: "Runs & preview", icon: Calculator },
   { to: "/incentives/plans", label: "Plans & rules", icon: Settings2 },
   { to: "/incentives/fx-rates", label: "FX rates", icon: DollarSign },

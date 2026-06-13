@@ -171,6 +171,8 @@ import PerformanceCommandCenter from "@/pages/PerformanceCommandCenter";
 import PerformanceExecutive from "@/pages/PerformanceExecutive";
 import PerformanceTeam from "@/pages/PerformanceTeam";
 import PerformanceWalletPolicy from "@/pages/PerformanceWalletPolicy";
+import PerformanceBranchPool from "@/pages/PerformanceBranchPool";
+import PerformanceHowItWorks from "@/pages/PerformanceHowItWorks";
 import PerformanceUnclassifiedPayments from "@/pages/PerformanceUnclassifiedPayments";
 import PerformanceApprovals from "@/pages/PerformanceApprovals";
 import PerformancePromotionRequests from "@/pages/PerformancePromotionRequests";
@@ -574,6 +576,22 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceWalletPolicy />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/wallet/branch-pool"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceBranchPool />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/how-it-works"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceHowItWorks />
                       </ProtectedRoute>
                     }
                   />
