@@ -74,6 +74,9 @@ Run in Supabase **SQL Editor** or Lovable **Database → Migrations**.
 | 12 | `20260717120012_hr_payroll_policy_engine_approvals.sql` | Policy engine, approval chains, preview view |
 | 13 | `20260717120013_hr_payroll_lock_export_punch.sql` | Lock snapshot, export RPC, punch guards |
 | 14 | `20260717120014_hr_payroll_overtime_pay.sql` | OT roll-up + paid/display policy (v1.1) |
+| 15 | `20260717120015_hr_payroll_punch_work_date.sql` | Punch `work_date` from client (timezone parity) |
+| 16 | `20260717120016_hr_payroll_ess_self_profile.sql` | ESS self profile RPC (`fn_ensure_my_employee_profile`) |
+| 17 | `20260717120017_hr_payroll_testing_changes.sql` | Names, PT, holidays seed, engine PT + OT merge |
 
 **Verify migrations:**
 

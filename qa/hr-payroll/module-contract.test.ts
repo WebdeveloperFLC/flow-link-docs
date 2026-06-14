@@ -54,6 +54,13 @@ describe("HR Payroll module contract", () => {
     for (const rpc of REQUIRED_RPCS) {
       expect(sql).toContain(rpc);
     }
+    const m17 = readFileSync(
+      join(MIGRATIONS, "20260717120017_hr_payroll_testing_changes.sql"),
+      "utf8",
+    );
+    expect(m17).toContain("p_ot_minutes");
+    expect(m17).toContain("p_pt_applicable");
+    expect(m17).toContain("pt_employee");
   });
 
   it("every HR screen has a route", () => {
