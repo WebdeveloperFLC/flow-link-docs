@@ -174,6 +174,7 @@ import PerformanceComparison from "@/pages/PerformanceComparison";
 import PerformanceClientCommercials from "@/pages/PerformanceClientCommercials";
 import PerformanceCombinations from "@/pages/PerformanceCombinations";
 import PerformanceProfitability from "@/pages/PerformanceProfitability";
+import PerformanceCrmIntegration from "@/pages/PerformanceCrmIntegration";
 import PerformanceTeam from "@/pages/PerformanceTeam";
 import PerformanceWalletPolicy from "@/pages/PerformanceWalletPolicy";
 import PerformanceWallets from "@/pages/PerformanceWallets";
@@ -611,6 +612,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceProfitability />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/crm-integration"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceCrmIntegration />
                       </ProtectedRoute>
                     }
                   />
