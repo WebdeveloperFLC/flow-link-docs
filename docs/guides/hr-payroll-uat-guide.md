@@ -21,7 +21,7 @@
 | File | Use |
 |------|-----|
 | **This guide** | `docs/guides/hr-payroll-uat-guide.md` — setup + workflow (in-app: **Guide → HR Payroll UAT**) |
-| Test case pack (50 cases) | `docs/hr-payroll/HR_PAYROLL_UAT.md` |
+| Test case pack (58 cases) | `docs/hr-payroll/HR_PAYROLL_UAT.md` |
 | Tester quick reference | `docs/hr-payroll/HR_PAYROLL_TESTER_QUICKSTART.md` |
 | Defect log | `docs/hr-payroll/HR_PAYROLL_DEFECT_TRACKER.csv` |
 | Sign-off form | `docs/hr-payroll/HR_PAYROLL_UAT_SIGNOFF.md` |
@@ -77,6 +77,9 @@ Run in Supabase **SQL Editor** or Lovable **Database → Migrations**.
 | 15 | `20260717120015_hr_payroll_punch_work_date.sql` | Punch `work_date` from client (timezone parity) |
 | 16 | `20260717120016_hr_payroll_ess_self_profile.sql` | ESS self profile RPC (`fn_ensure_my_employee_profile`) |
 | 17 | `20260717120017_hr_payroll_testing_changes.sql` | Names, PT, holidays seed, engine PT + OT merge |
+| 18 | `20260717120018_hr_payroll_add_up_requirements.sql` | add up.docx Phase 2A — profile, workflows, lifecycle enum |
+| 19 | `20260717120019_hr_payroll_lifecycle_salary_revision.sql` | Process / Approve / Lock / Paid + salary revision history |
+| 20 | `20260717120020_hr_payroll_canada_engine.sql` | Canada CPP/EI engine + `payroll_line_snapshots` on lock |
 
 **Verify migrations:**
 
@@ -89,7 +92,8 @@ ORDER BY 1;
 SELECT proname FROM pg_proc
 WHERE proname IN (
   'fn_compute_payroll', 'fn_build_payroll_line', 'fn_list_crm_staff',
-  'fn_process_approval_decision', 'fn_export_payroll_register', 'fn_record_punch'
+  'fn_process_approval_decision', 'fn_export_payroll_register', 'fn_record_punch',
+  'fn_process_payroll_cycle', 'fn_approve_payroll_cycle', 'fn_mark_payroll_paid'
 );
 
 SELECT id FROM storage.buckets WHERE id = 'hr-docs';

@@ -2,7 +2,7 @@
 
 **Audience:** Non-technical UAT testers  
 **Team setup & full workflow:** [`../guides/hr-payroll-uat-guide.md`](../guides/hr-payroll-uat-guide.md) — **Guide → HR Payroll UAT** (`/guides/hr-payroll-uat`)  
-**Full test pack:** [`HR_PAYROLL_UAT.md`](./HR_PAYROLL_UAT.md) (50 cases)  
+**Full test pack:** [`HR_PAYROLL_UAT.md`](./HR_PAYROLL_UAT.md) (58 cases — Sections A–I)  
 **Sign-off form:** [`HR_PAYROLL_UAT_SIGNOFF.md`](./HR_PAYROLL_UAT_SIGNOFF.md)
 
 ---
@@ -28,7 +28,7 @@ You test on **staging**, not production. Demo employees use codes **FL-1042** th
 | Step | Who | What you need |
 |------|-----|----------------|
 | 1 | Engineering | Staging URL + latest HR build published |
-| 2 | Engineering | SQL migrations **00–14** applied + demo seed loaded |
+| 2 | Engineering | SQL migrations **00–20** applied + demo seed loaded |
 | 3 | Admin | Your login has **HR Payroll** module access |
 | 4 | Admin | Your user has an **HR role** in `/hr/roles` → Team & CRM (or use View-as) |
 
@@ -66,6 +66,7 @@ Use the test pack’s **Preconditions** column — it says View-as or specific l
 |------|------|----------------|
 | **FL-1042** | Isha Sikligar | **Golden test:** 29.5 days, ₹39,500 net |
 | FL-1043 | Karan Joshi | Sick leave + training scenarios |
+| **FL-CA01** | Canada demo | CPP/EI payroll (~CA$4,157 net on CA$4,500 gross) |
 
 Payroll cycle for all tests: **26 May – 25 Jun 2026**.
 
@@ -95,7 +96,9 @@ Payroll cycle for all tests: **26 May – 25 Jun 2026**.
 
 ## 8. Sign-off
 
-When all **50** cases are done, UAT lead completes **HR_PAYROLL_UAT_SIGNOFF.md**.
+When all **58** cases are done (including **Section I — Phase 2**), UAT lead completes **HR_PAYROLL_UAT_SIGNOFF.md**.
+
+**Phase 2 priority cases:** HR-UAT-P2-003 (Process → Approve → Lock), HR-UAT-P2-007 (Canada FL-CA01), HR-UAT-P2-001 (profile fields).
 
 ---
 

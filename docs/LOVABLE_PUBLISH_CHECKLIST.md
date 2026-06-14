@@ -39,7 +39,7 @@ Deploy detail: `INCENTIVE_CMS_PHASE2P_DEPLOY.md` … `PHASE3D_DEPLOY.md`.
 
 ---
 
-## HR Payroll (00–17)
+## HR Payroll (00–20)
 
 | Order | Migration | Purpose |
 |------:|-----------|---------|
@@ -60,9 +60,12 @@ Deploy detail: `INCENTIVE_CMS_PHASE2P_DEPLOY.md` … `PHASE3D_DEPLOY.md`.
 | 15 | `20260717120015_hr_payroll_punch_work_date.sql` | Punch work_date |
 | 16 | `20260717120016_hr_payroll_ess_self_profile.sql` | ESS self profile |
 | 17 | `20260717120017_hr_payroll_testing_changes.sql` | PT + holidays + OT merge |
+| 18 | `20260717120018_hr_payroll_add_up_requirements.sql` | Phase 2A profile, doc verify, lifecycle columns |
+| 19 | `20260717120019_hr_payroll_lifecycle_salary_revision.sql` | Process→Approve→Lock→Paid RPCs |
+| 20 | `20260717120020_hr_payroll_canada_engine.sql` | Canada CPP/EI + lock snapshots |
 
 Setup: [`guides/hr-payroll-uat-guide.md`](./guides/hr-payroll-uat-guide.md)  
-**HR sign-off:** [`hr-payroll/HR_PAYROLL_UAT.md`](./hr-payroll/HR_PAYROLL_UAT.md)
+**HR sign-off:** [`hr-payroll/HR_PAYROLL_UAT.md`](./hr-payroll/HR_PAYROLL_UAT.md) (Sections A–I)
 
 **Pre-UAT gate:** `npm run test:hr-payroll`
 
