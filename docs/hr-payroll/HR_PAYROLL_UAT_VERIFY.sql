@@ -97,7 +97,16 @@ SELECT 'canada_net' AS check_name,
 FROM v_payroll_preview
 WHERE emp_code = 'FL-CA01';
 
--- 8) Employee roster
+-- 8) Isha ESS link (migration 07 — may need HR_PAYROLL_UAT_FIX_ISHA_LINK.sql on staging)
+SELECT 'isha_ess_link' AS check_name,
+       CASE WHEN staff_id IS NOT NULL THEN 'FL-1042 linked' ELSE 'FL-1042 not linked' END AS actual,
+       'FL-1042 linked' AS expected,
+       CASE WHEN staff_id IS NOT NULL THEN 'PASS' ELSE 'WARN' END AS status
+FROM employees
+WHERE org_id = '00000000-0000-0000-0000-0000000000f1'
+  AND emp_code = 'FL-1042';
+
+-- 9) Employee roster
 SELECT emp_code, full_name, salary_currency, payroll_country, staff_id IS NOT NULL AS crm_linked
 FROM employees
 WHERE org_id = '00000000-0000-0000-0000-0000000000f1'
