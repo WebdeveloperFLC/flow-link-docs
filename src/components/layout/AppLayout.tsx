@@ -137,6 +137,7 @@ const performanceNav: NavItem[] = [
   { to: "/performance", icon: LayoutGrid, label: "My performance", end: true },
   { to: "/performance/how-it-works", icon: BookOpen, label: "How it works" },
   { to: "/performance/give-discount", icon: Gift, label: "Give discount" },
+  { to: "/performance/wallets", icon: Wallet, label: "Discount wallets" },
   { to: "/performance/offers", icon: Tag, label: "Offers studio", roles: ["manager", "admin", "administrator"] },
   { to: "/performance/offers/requests", icon: Megaphone, label: "Promotion requests" },
   { to: "/performance/team", icon: Users, label: "Team · branch", roles: ["manager", "admin", "administrator"] },
