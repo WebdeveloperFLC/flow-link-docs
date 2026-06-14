@@ -21,6 +21,7 @@ import {
 } from "../lib/constants";
 import type { HrPerms, HrRolePermissionRow, PayrollCycleRow } from "../lib/types";
 import { defaultPermsForRole, defaultScreensForRole } from "../lib/defaultAccess";
+import { resetHrRolePermissions } from "../lib/hrApi";
 
 type HrAccessContextValue = {
   orgId: string;
@@ -224,8 +225,14 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
   );
 
   const resetAccess = useCallback(async () => {
-    fire("Reset requires re-running seed SQL");
-  }, [fire]);
+    try {
+      await resetHrRolePermissions(HR_ORG_ID);
+      refreshPermissions();
+      fire("Role matrix reset to defaults");
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Reset failed — apply migration 11");
+    }
+  }, [fire, refreshPermissions]);
 
   const value: HrAccessContextValue = {
     orgId: HR_ORG_ID,

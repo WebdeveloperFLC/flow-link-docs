@@ -35,12 +35,8 @@
 }
 [data-hr-payroll] .brand { padding: 18px 20px 14px; border-bottom: 1px solid var(--line); }
 [data-hr-payroll] .brand .logo { display: flex; align-items: center; gap: 10px; }
-[data-hr-payroll] .brand .mark {
-  width: 32px; height: 32px; border-radius: 9px;
-  background: linear-gradient(135deg, var(--moss), var(--violet));
-  display: flex; align-items: center; justify-content: center;
-  font-family: "Fraunces"; font-weight: 700; color: #fff; font-size: 17px;
-  box-shadow: 0 3px 8px rgba(59, 130, 196, 0.3);
+[data-hr-payroll] .brand .brand-logo {
+  width: 40px; height: 40px; object-fit: contain; flex-shrink: 0;
 }
 [data-hr-payroll] .brand h1 { font-family: "Fraunces"; font-size: 17px; font-weight: 600; color: var(--ink); margin: 0; }
 [data-hr-payroll] .brand .sub { font-size: 10px; color: var(--mut); letter-spacing: 1.4px; text-transform: uppercase; margin-top: 2px; }

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrPolicies } from "../hooks/useHrRequests";
 import { HR_ORG_ID } from "../lib/constants";
-import { hrAudit } from "../lib/hrApi";
+import { hrAudit, accrueLeaveBalances } from "../lib/hrApi";
 import type { PolicyRow } from "../lib/types";
 
 const TABS = ["Payroll Cycle", "Late Coming", "Mispunch", "Leave", "Sandwich & UL"] as const;
@@ -117,6 +117,18 @@ export default function HrConfigPage() {
     await qc.invalidateQueries({ queryKey: ["hr-policies"] });
   };
 
+  const runAccrual = async () => {
+    if (!can("configure")) return;
+    try {
+      const n = await accrueLeaveBalances(HR_ORG_ID);
+      await hrAudit("Leave Accrual", "All employees", "—", `${n} updated`);
+      fire(`Monthly accrual applied (${n} employees)`);
+      await qc.invalidateQueries({ queryKey: ["hr-leave-balances"] });
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Accrual failed — apply migration 11");
+    }
+  };
+
   return (
     <div className="grid" style={{ gap: 16 }}>
       <div className="pill-tab">
@@ -196,7 +208,17 @@ export default function HrConfigPage() {
                 />
               ))}
             </div>
-            <div className="row-flex" style={{ justifyContent: "flex-end" }}>
+            <div className="row-flex" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+              {tab === "Leave" && (
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={!can("configure")}
+                  onClick={() => void runAccrual()}
+                >
+                  Run monthly accrual
+                </button>
+              )}
               <button
                 type="button"
                 className="btn btn-primary"

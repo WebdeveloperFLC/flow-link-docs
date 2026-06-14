@@ -30,3 +30,29 @@ export async function rebuildAllPayrollLines(cycleId: string, employeeIds: strin
     await rebuildPayrollLine(id, cycleId);
   }
 }
+
+export async function processLeaveDecision(requestId: string, decision: string) {
+  const { data, error } = await supabase.rpc("fn_process_leave_decision" as never, {
+    p_request: requestId,
+    p_decision: decision,
+  } as never);
+  if (error) throw error;
+  return data;
+}
+
+export async function resetHrRolePermissions(orgId: string) {
+  const { data, error } = await supabase.rpc("fn_reset_hr_role_permissions" as never, {
+    p_org: orgId,
+  } as never);
+  if (error) throw error;
+  return data as number;
+}
+
+export async function accrueLeaveBalances(orgId: string, year?: number) {
+  const { data, error } = await supabase.rpc("fn_accrue_leave_balances" as never, {
+    p_org: orgId,
+    p_year: year ?? new Date().getFullYear(),
+  } as never);
+  if (error) throw error;
+  return data as number;
+}
