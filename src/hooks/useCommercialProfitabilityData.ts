@@ -18,7 +18,6 @@ export function useCommercialProfitabilityData(
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // @ts-expect-error fn_commercial_profitability added in Phase 3C migration
       const { data, error } = await supabase.rpc("fn_commercial_profitability", {
         _period_key: period,
         _group_by: dimension,

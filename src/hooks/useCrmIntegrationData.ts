@@ -20,9 +20,7 @@ export function useCrmIntegrationData() {
     setLoading(true);
     try {
       const [policyRes, healthRes] = await Promise.all([
-        // @ts-expect-error commercial_autoapply_policy added in Phase 3D migration
         supabase.from("commercial_autoapply_policy").select("entity_type,policy").order("entity_type"),
-        // @ts-expect-error fn_crm_integration_health added in Phase 3D migration
         supabase.rpc("fn_crm_integration_health"),
       ]);
 
@@ -49,7 +47,6 @@ export function useCrmIntegrationData() {
   }, [load]);
 
   const savePolicy = async (entityType: string, policy: AutoApplyPolicy) => {
-    // @ts-expect-error commercial_autoapply_policy added in Phase 3D migration
     const { error } = await supabase
       .from("commercial_autoapply_policy")
       .upsert({ entity_type: entityType, policy, updated_at: new Date().toISOString() });
