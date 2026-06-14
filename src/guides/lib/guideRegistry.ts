@@ -177,7 +177,7 @@ export const STAFF_GUIDES: StaffGuideDef[] = [
     title: "HR Payroll — Full UAT & Testing Guide",
     navLabel: "HR Payroll UAT",
     description:
-      "Complete UAT handoff: migrations 00–10, demo seed, TV02 anchor, smoke gate, 42 test cases, defect tracker, and sign-off.",
+      "Complete UAT handoff: migrations 00–21, demo seed, TV02 anchor, verify SQL, smoke gate, 58 test cases, progress tracker, and sign-off.",
     category: "Product / HR",
     contentFile: "hr-payroll-uat-guide.md",
     relatedModule: "hr_payroll",
