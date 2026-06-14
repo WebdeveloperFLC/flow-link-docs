@@ -206,11 +206,11 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
   const { data: liveEmp } = useHrEmployee(emp?.id);
   const sourceEmp = liveEmp ?? emp;
   const { data: crmStaff = [], isError: crmStaffError } = useHrCrmStaff();
-  const { data: linkedProfile } = useCrmProfile(f.staff_id || undefined);
   const [tab, setTab] = useState<FormTab>("basic");
   const [f, setF] = useState<FormState>(
     sourceEmp ? fromEmployee(sourceEmp) : blank(shifts, companies, branches),
   );
+  const { data: linkedProfile } = useCrmProfile(f.staff_id || sourceEmp?.staff_id || undefined);
   const [err, setErr] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
