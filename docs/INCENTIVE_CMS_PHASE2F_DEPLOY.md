@@ -31,4 +31,4 @@ UI-only — **no SQL**.
 
 ---
 
-*Phase 2 UI modernization core screens complete (2A–2F). Next: Phase 3 additive schema or QA automation expansion.*
+*Next: Phase 2G — Finance dashboard (`02b_Dashboard_Finance.png`)*
