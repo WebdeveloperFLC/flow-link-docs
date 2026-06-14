@@ -64,6 +64,7 @@ import {
   Link2,
   Combine,
   Coins,
+  Plug,
 } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -170,6 +171,12 @@ const performanceNav: NavItem[] = [
     to: "/performance/profitability",
     icon: Coins,
     label: "Profitability",
+    roles: ["admin", "administrator", "viewer", "director", "manager"],
+  },
+  {
+    to: "/performance/crm-integration",
+    icon: Plug,
+    label: "CRM integration",
     roles: ["admin", "administrator", "viewer", "director", "manager"],
   },
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
