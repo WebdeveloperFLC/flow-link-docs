@@ -11,6 +11,7 @@ import {
   Mail,
   Database,
   FileStack,
+  FileText,
   Share2,
   GraduationCap,
   Phone,
@@ -154,6 +155,12 @@ const performanceNav: NavItem[] = [
   { to: "/performance/executive", icon: BarChart2, label: "Executive dashboard", roles: ["admin", "administrator", "viewer", "director"] },
   { to: "/performance/finance", icon: Banknote, label: "Finance dashboard", adminOnly: true },
   { to: "/performance/analytics", icon: BarChart2, label: "Revenue analytics", roles: ["admin", "administrator", "viewer", "director", "manager"] },
+  {
+    to: "/performance/reports",
+    icon: FileText,
+    label: "Report builder",
+    roles: ["admin", "administrator", "viewer", "director", "manager"],
+  },
   { to: "/performance/compare", icon: GitMerge, label: "Comparison", roles: ["admin", "administrator", "viewer", "director", "manager"] },
   {
     to: "/performance/client-commercials",
