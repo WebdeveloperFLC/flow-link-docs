@@ -6,13 +6,15 @@ const COLORS = ["var(--cash)", "var(--blue)", "var(--wallet)", "var(--offer)", "
 export function PerformanceExecutiveServiceMix({
   slices,
   loading,
+  title = "Revenue by service line",
 }: {
   slices: MixSlice[];
   loading?: boolean;
+  title?: string;
 }) {
   return (
     <Card className="p-5 ph-surface-card h-full">
-      <h2 className="text-lg font-semibold ph-heading mb-4">Revenue by service line</h2>
+      <h2 className="text-lg font-semibold ph-heading mb-4">{title}</h2>
       {loading ? (
         <p className="text-sm ph-muted">Loading…</p>
       ) : slices.length === 0 ? (

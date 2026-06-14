@@ -34,4 +34,4 @@ UI-only — **no SQL**.
 
 ---
 
-*Phase 2 core UI modernization (2A–2J) complete. Next: Phase 3 additive schema or remaining CMS screens (Revenue analytics, Client commercials, etc.).*
+*Next: Phase 2K — Revenue analytics UI (`03_Revenue_Analytics.png`) or Phase 3 additive schema.*
