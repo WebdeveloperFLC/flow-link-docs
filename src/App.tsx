@@ -171,6 +171,7 @@ import PerformanceExecutive from "@/pages/PerformanceExecutive";
 import PerformanceFinance from "@/pages/PerformanceFinance";
 import PerformanceRevenueAnalytics from "@/pages/PerformanceRevenueAnalytics";
 import PerformanceComparison from "@/pages/PerformanceComparison";
+import PerformanceClientCommercials from "@/pages/PerformanceClientCommercials";
 import PerformanceTeam from "@/pages/PerformanceTeam";
 import PerformanceWalletPolicy from "@/pages/PerformanceWalletPolicy";
 import PerformanceWallets from "@/pages/PerformanceWallets";
@@ -583,6 +584,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceComparison />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/client-commercials"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceClientCommercials />
                       </ProtectedRoute>
                     }
                   />
