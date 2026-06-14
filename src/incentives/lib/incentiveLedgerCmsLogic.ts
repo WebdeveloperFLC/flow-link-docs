@@ -32,6 +32,14 @@ export interface PayoutCycleConfigSummary {
   minThreshold: number | null;
   carryBelowThreshold: boolean;
   thresholdNote: string;
+  planThresholds: PlanPayoutThreshold[];
+}
+
+export interface PlanPayoutThreshold {
+  planName: string;
+  periodType: string;
+  minThreshold: number | null;
+  carryBelowThreshold: boolean;
 }
 
 const PERIOD_LABEL: Record<string, string> = {
@@ -212,15 +220,38 @@ export function buildLiabilityForecast(
 }
 
 export function buildPayoutCycleConfig(
-  plans: { period_type: string; is_active: boolean }[],
+  plans: {
+    name: string;
+    period_type: string;
+    is_active: boolean;
+    min_payout_threshold?: number | null;
+    carry_below_threshold?: boolean;
+  }[],
 ): PayoutCycleConfigSummary {
   const active = plans.filter((p) => p.is_active);
   const periodTypes = [...new Set(active.map((p) => PERIOD_LABEL[p.period_type] ?? p.period_type))];
+  const planThresholds: PlanPayoutThreshold[] = active.map((p) => ({
+    planName: p.name,
+    periodType: PERIOD_LABEL[p.period_type] ?? p.period_type,
+    minThreshold: p.min_payout_threshold != null ? Number(p.min_payout_threshold) : null,
+    carryBelowThreshold: p.carry_below_threshold !== false,
+  }));
+  const thresholds = planThresholds.map((p) => p.minThreshold).filter((t): t is number => t != null && t > 0);
+  const uniformThreshold =
+    thresholds.length > 0 && thresholds.every((t) => t === thresholds[0]) ? thresholds[0] : null;
+  const anyCarryOff = planThresholds.some((p) => !p.carryBelowThreshold);
+
   return {
     periodTypes: periodTypes.length ? periodTypes : ["Monthly"],
-    minThreshold: null,
-    carryBelowThreshold: true,
-    thresholdNote: "Minimum payout threshold columns ship in §5.5 — carry-forward is enabled in policy.",
+    minThreshold: uniformThreshold,
+    carryBelowThreshold: !anyCarryOff,
+    thresholdNote:
+      thresholds.length === 0
+        ? "No minimum threshold set on active plans — all earned amounts are payout-eligible per run."
+        : uniformThreshold != null
+          ? `Example: pay only after ${uniformThreshold.toLocaleString()} earned; sub-threshold balance carries when enabled.`
+          : "Thresholds vary by plan — see per-plan rows below.",
+    planThresholds,
   };
 }
 

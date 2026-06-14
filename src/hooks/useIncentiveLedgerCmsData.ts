@@ -28,6 +28,7 @@ export function useIncentiveLedgerCmsData(period: string, branchId: string) {
     minThreshold: null,
     carryBelowThreshold: true,
     thresholdNote: "",
+    planThresholds: [],
   });
   const [loading, setLoading] = useState(true);
 
@@ -52,7 +53,7 @@ export function useIncentiveLedgerCmsData(period: string, branchId: string) {
         supabase.from("incentive_adjustments").select("counselor_id,amount,currency,adjustment_type,created_at").gte("created_at", `${y}-01-01`),
         supabase.from("profiles").select("id,full_name,branch_id"),
         supabase.from("branches").select("id,name"),
-        supabase.from("incentive_plans").select("period_type,is_active"),
+        supabase.from("incentive_plans").select("name,period_type,is_active,min_payout_threshold,carry_below_threshold"),
       ]);
 
       const branchMap = new Map(((branchRes.data ?? []) as { id: string; name: string }[]).map((b) => [b.id, b.name]));
@@ -100,7 +101,17 @@ export function useIncentiveLedgerCmsData(period: string, branchId: string) {
           (runsRes.data ?? []) as { period_key: string; total_settlement: number; locked: boolean }[],
         ),
       );
-      setPayoutConfig(buildPayoutCycleConfig((plansRes.data ?? []) as { period_type: string; is_active: boolean }[]));
+      setPayoutConfig(
+        buildPayoutCycleConfig(
+          (plansRes.data ?? []) as {
+            name: string;
+            period_type: string;
+            is_active: boolean;
+            min_payout_threshold: number | null;
+            carry_below_threshold: boolean;
+          }[],
+        ),
+      );
     } catch {
       setAllRows([]);
       setForecast({ eligibleNow: 0, pendingApproval: 0, forecastNextQuarter: 0, monthlyBars: [] });

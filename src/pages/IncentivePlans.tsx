@@ -39,6 +39,8 @@ interface Plan {
   branch_id: string | null; role_key: string | null; period_type: string;
   settlement_currency: string; revenue_basis: string; active_from: string;
   active_to: string | null; is_active: boolean; plan_stack_role?: string;
+  min_payout_threshold?: number | null;
+  carry_below_threshold?: boolean;
 }
 interface Slab {
   id: string; plan_id: string; source_type: string; service_filter: string | null;
@@ -90,6 +92,8 @@ export default function IncentivePlans() {
   const [suggestGrowth, setSuggestGrowth] = useState("10");
   const [suggestSourcePeriod, setSuggestSourcePeriod] = useState("");
   const [suggesting, setSuggesting] = useState(false);
+  const [thresholdDraft, setThresholdDraft] = useState({ min: "", carry: true });
+  const [savingThreshold, setSavingThreshold] = useState(false);
 
   async function loadAll() {
     setLoading(true);
@@ -112,6 +116,22 @@ export default function IncentivePlans() {
     setLoading(false);
   }
   useEffect(() => { loadAll(); /* eslint-disable-next-line */ }, []);
+
+  const activePlanRow = useMemo(() => plans.find((p) => p.id === activePlan), [plans, activePlan]);
+
+  useEffect(() => {
+    if (!activePlanRow) {
+      setThresholdDraft({ min: "", carry: true });
+      return;
+    }
+    setThresholdDraft({
+      min:
+        activePlanRow.min_payout_threshold != null && activePlanRow.min_payout_threshold > 0
+          ? String(activePlanRow.min_payout_threshold)
+          : "",
+      carry: activePlanRow.carry_below_threshold !== false,
+    });
+  }, [activePlanRow?.id, activePlanRow?.min_payout_threshold, activePlanRow?.carry_below_threshold]);
 
   const nameOf = (id: string) => profiles.find((p) => p.id === id)?.full_name ?? id;
   const planName = (id: string | null) => plans.find((p) => p.id === id)?.name ?? "—";
@@ -147,6 +167,37 @@ export default function IncentivePlans() {
     const { error } = await supabase.from("incentive_plans").update({ is_active: !p.is_active }).eq("id", p.id);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     await loadAll();
+  }
+
+  async function savePayoutThreshold() {
+    if (!activePlan) return;
+    setSavingThreshold(true);
+    try {
+      const trimmed = thresholdDraft.min.trim();
+      const min_payout_threshold = trimmed ? Number(trimmed) : null;
+      if (trimmed && (Number.isNaN(min_payout_threshold) || min_payout_threshold! < 0)) {
+        toast({ title: "Invalid threshold", variant: "destructive" });
+        return;
+      }
+      const { error } = await supabase
+        .from("incentive_plans")
+        .update({
+          min_payout_threshold,
+          carry_below_threshold: thresholdDraft.carry,
+        })
+        .eq("id", activePlan);
+      if (error) throw error;
+      toast({ title: "Payout threshold saved" });
+      await loadAll();
+    } catch (e: unknown) {
+      toast({
+        title: "Error",
+        description: e instanceof Error ? e.message : String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setSavingThreshold(false);
+    }
   }
 
   const planSlabs = useMemo(
@@ -409,6 +460,39 @@ export default function IncentivePlans() {
               <Button onClick={createPlan}><Plus className="size-4 mr-1" /> Create plan</Button>
             </Card>
 
+            {activePlanRow && (
+              <Card className="p-5 space-y-3">
+                <h2 className="text-lg font-semibold">Payout threshold — {activePlanRow.name}</h2>
+                <p className="text-xs text-muted-foreground">
+                  Minimum earned amount before the payout desk generates a row. Sub-threshold balances carry forward when enabled.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-xl">
+                  <div>
+                    <label className="text-xs text-muted-foreground">Minimum threshold ({activePlanRow.settlement_currency})</label>
+                    <Input
+                      className="mt-1"
+                      value={thresholdDraft.min}
+                      onChange={(e) => setThresholdDraft({ ...thresholdDraft, min: e.target.value })}
+                      placeholder="e.g. 50000 — blank = no threshold"
+                    />
+                  </div>
+                  <div className="flex items-end pb-1">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={thresholdDraft.carry}
+                        onChange={(e) => setThresholdDraft({ ...thresholdDraft, carry: e.target.checked })}
+                      />
+                      Carry forward below threshold
+                    </label>
+                  </div>
+                </div>
+                <Button disabled={savingThreshold} onClick={savePayoutThreshold}>
+                  {savingThreshold ? "Saving…" : "Save payout threshold"}
+                </Button>
+              </Card>
+            )}
+
             <Card className="p-5">
               <h2 className="text-lg font-semibold mb-4">Plans</h2>
               {loading ? <div className="text-sm text-muted-foreground">Loading…</div> : plans.length === 0 ? (
@@ -417,13 +501,20 @@ export default function IncentivePlans() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="text-left text-muted-foreground border-b">
-                      <tr><th className="py-2 pr-4">Name</th><th className="py-2 pr-4">Period</th><th className="py-2 pr-4">Scope</th><th className="py-2 pr-4">Stack</th><th className="py-2 pr-4">Currency</th><th className="py-2 pr-4">Basis</th><th className="py-2 pr-4">Active</th></tr>
+                      <tr><th className="py-2 pr-4">Name</th><th className="py-2 pr-4">Period</th><th className="py-2 pr-4">Threshold</th><th className="py-2 pr-4">Scope</th><th className="py-2 pr-4">Stack</th><th className="py-2 pr-4">Currency</th><th className="py-2 pr-4">Basis</th><th className="py-2 pr-4">Active</th></tr>
                     </thead>
                     <tbody>
                       {plans.map((p) => (
-                        <tr key={p.id} className="border-b last:border-0">
-                          <td className="py-2 pr-4">{p.name}</td>
+                        <tr key={p.id} className="border-b last:border-0 cursor-pointer hover:bg-muted/40" onClick={() => setActivePlan(p.id)}>
+                          <td className="py-2 pr-4">
+                            <span className={p.id === activePlan ? "font-semibold text-primary" : ""}>{p.name}</span>
+                          </td>
                           <td className="py-2 pr-4">{p.period_type}</td>
+                          <td className="py-2 pr-4 text-xs">
+                            {p.min_payout_threshold != null && p.min_payout_threshold > 0
+                              ? `${p.settlement_currency} ${Number(p.min_payout_threshold).toLocaleString()}`
+                              : "—"}
+                          </td>
                           <td className="py-2 pr-4">
                             {p.scope_type ?? "global"}
                             {p.branch_id ? ` · ${branches.find((b) => b.id === p.branch_id)?.name ?? "branch"}` : ""}
