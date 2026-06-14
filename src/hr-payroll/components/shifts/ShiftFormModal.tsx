@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ModalShell } from "../ui/ModalShell";
 import { HR_ORG_ID } from "../../lib/constants";
 import { hrAudit } from "../../lib/hrApi";
+import { weeklyOffDays } from "../../lib/format";
 import type { ShiftRow } from "../../lib/types";
 
 type Props = {
@@ -24,6 +25,7 @@ export function ShiftFormModal({ shift, onClose, onSaved }: Props) {
     break_min: shift?.break_min ?? 45,
     half_day_after_min: shift?.half_day_after_min ?? 60,
     ot_eligible: shift?.ot_eligible ?? true,
+    working_days_per_week: shift?.working_days_per_week ?? 6,
   });
   const [err, setErr] = useState<Record<string, string>>({});
 
@@ -44,6 +46,7 @@ export function ShiftFormModal({ shift, onClose, onSaved }: Props) {
       break_min: Number(f.break_min),
       half_day_after_min: Number(f.half_day_after_min),
       ot_eligible: f.ot_eligible,
+      working_days_per_week: Number(f.working_days_per_week),
     };
 
     if (shift) {
@@ -153,6 +156,20 @@ export function ShiftFormModal({ shift, onClose, onSaved }: Props) {
             value={f.half_day_after_min}
             onChange={(e) => setF({ ...f, half_day_after_min: Number(e.target.value) })}
           />
+        </label>
+        <label className="fld">
+          <span className="l">Working Days / Week</span>
+          <select
+            className="input"
+            value={f.working_days_per_week}
+            onChange={(e) => setF({ ...f, working_days_per_week: Number(e.target.value) })}
+          >
+            {[1, 2, 3, 4, 5, 6, 7].map((d) => (
+              <option key={d} value={d}>
+                {d} days ({weeklyOffDays(d)} weekly off)
+              </option>
+            ))}
+          </select>
         </label>
       </div>
       <label className="row-flex" style={{ fontSize: 13, cursor: "pointer", marginTop: 12 }}>

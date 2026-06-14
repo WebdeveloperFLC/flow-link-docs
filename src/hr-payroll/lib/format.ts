@@ -1,3 +1,5 @@
+import type { EmergencyContact } from "./types";
+
 export function inr(n: number | null | undefined): string {
   return formatMoney(n, "INR");
 }
@@ -12,11 +14,28 @@ export function formatMoney(n: number | null | undefined, currency = "INR"): str
 
 export function displayEmployeeName(e: {
   first_name?: string | null;
+  middle_name?: string | null;
   last_name?: string | null;
   full_name: string;
 }): string {
-  const fn = [e.first_name, e.last_name].filter(Boolean).join(" ").trim();
+  const fn = [e.first_name, e.middle_name, e.last_name].filter(Boolean).join(" ").trim();
   return fn || e.full_name;
+}
+
+export function parseEmergencyContacts(raw: unknown): EmergencyContact[] {
+  if (!Array.isArray(raw)) return [{ name: "", phone: "", relation: "" }, { name: "", phone: "", relation: "" }];
+  const rows = raw
+    .slice(0, 2)
+    .map((r) => {
+      const o = r as Record<string, string>;
+      return { name: o.name ?? "", phone: o.phone ?? "", relation: o.relation ?? "" };
+    });
+  while (rows.length < 2) rows.push({ name: "", phone: "", relation: "" });
+  return rows;
+}
+
+export function weeklyOffDays(workingDaysPerWeek: number): number {
+  return Math.max(0, 7 - Math.min(7, Math.max(1, workingDaysPerWeek)));
 }
 
 export function initials(name: string): string {

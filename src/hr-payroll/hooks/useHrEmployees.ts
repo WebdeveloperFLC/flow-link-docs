@@ -10,7 +10,7 @@ export function useHrEmployees() {
       const { data, error } = await supabase
         .from("employees" as never)
         .select(
-          "*, companies(name), branches(name), shifts(name, login_time, logout_time)",
+          "*, companies(name, legal_name, currency), branches(name), shifts(name, login_time, logout_time, working_days_per_week)",
         )
         .eq("org_id", HR_ORG_ID)
         .order("full_name");
@@ -25,11 +25,11 @@ export function useHrReferenceData() {
     queryKey: ["hr-reference", HR_ORG_ID],
     queryFn: async () => {
       const [companies, branches, shifts] = await Promise.all([
-        supabase.from("companies" as never).select("id, name").eq("org_id", HR_ORG_ID),
+        supabase.from("companies" as never).select("id, name, legal_name, currency").eq("org_id", HR_ORG_ID),
         supabase.from("branches" as never).select("id, name").eq("is_active", true).order("display_order"),
         supabase
           .from("shifts" as never)
-          .select("id, name, login_time, logout_time")
+          .select("id, name, login_time, logout_time, working_days_per_week")
           .eq("org_id", HR_ORG_ID),
       ]);
       if (companies.error) throw companies.error;

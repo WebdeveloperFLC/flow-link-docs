@@ -15,6 +15,7 @@ const MAP: Record<string, string> = {
   Completed: "b-approved",
   Extended: "b-half",
   Draft: "b-pending",
+  Processed: "b-half",
   Locked: "b-approved",
   Paid: "b-present",
   National: "b-holiday",

@@ -9,6 +9,8 @@ import { ModalShell } from "../components/ui/ModalShell";
 import { HR_ORG_ID } from "../lib/constants";
 import { hrAudit } from "../lib/hrApi";
 
+const HOLIDAY_TAGS = ["6-Day", "5-Day", "Day", "Full-Time", "Part-Time"] as const;
+
 function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: string) => void }) {
   const { data: ref } = useHrReferenceData();
   const [f, setF] = useState({
@@ -16,6 +18,7 @@ function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: 
     holiday_date: "",
     type: "Festival",
     branch_id: "",
+    applicable_tags: ["6-Day", "Day", "Full-Time"] as string[],
   });
   const [err, setErr] = useState<Record<string, string>>({});
 
@@ -32,6 +35,7 @@ function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: 
       holiday_date: f.holiday_date,
       type: f.type,
       branch_id: f.branch_id || null,
+      applicable_tags: f.applicable_tags,
     } as never);
     if (error) {
       onSaved(error.message);
@@ -99,6 +103,28 @@ function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: 
           ))}
         </select>
       </label>
+      <label className="fld">
+        <span className="l">Applicable tags (work week / employment)</span>
+        <div className="row-flex" style={{ flexWrap: "wrap", gap: 8, marginTop: 6 }}>
+          {HOLIDAY_TAGS.map((tag) => (
+            <label key={tag} className="row-flex" style={{ fontSize: 12.5, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={f.applicable_tags.includes(tag)}
+                onChange={(e) => {
+                  setF((prev) => ({
+                    ...prev,
+                    applicable_tags: e.target.checked
+                      ? [...prev.applicable_tags, tag]
+                      : prev.applicable_tags.filter((t) => t !== tag),
+                  }));
+                }}
+              />
+              {tag}
+            </label>
+          ))}
+        </div>
+      </label>
     </ModalShell>
   );
 }
@@ -148,6 +174,7 @@ export default function HrHolidaysPage() {
                 <th>Holiday</th>
                 <th>Type</th>
                 <th>Applies To</th>
+                <th>Tags</th>
                 <th>Payable</th>
                 <th>Action</th>
               </tr>
@@ -163,6 +190,11 @@ export default function HrHolidaysPage() {
                     <StatusBadge status={h.type} />
                   </td>
                   <td style={{ fontSize: 12.5 }}>{h.branches?.name ?? "All"}</td>
+                  <td style={{ fontSize: 11.5 }}>
+                    {(h.applicable_tags ?? []).length
+                      ? (h.applicable_tags ?? []).join(", ")
+                      : "—"}
+                  </td>
                   <td>
                     {h.type === "Optional" ? (
                       <span className="muted">Optional</span>

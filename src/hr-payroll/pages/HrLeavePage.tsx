@@ -175,12 +175,33 @@ export default function HrLeavePage() {
   const leaveIds = leaves.map((l) => l.id);
   const { data: approvals = [] } = useHrApprovals("leave", leaveIds);
   const [open, setOpen] = useState(false);
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+  const [rejectRow, setRejectRow] = useState<LeaveRequestRow | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
-  const setStatus = async (row: LeaveRequestRow, status: string) => {
+  const filteredLeaves = leaves.filter((l) => {
+    if (filterFrom && l.from_date < filterFrom) return false;
+    if (filterTo && l.from_date > filterTo) return false;
+    return true;
+  });
+
+  const setStatus = async (row: LeaveRequestRow, status: string, rejectionReason?: string) => {
     try {
-      const result = (await processApprovalDecision("leave", row.id, status)) as {
+      const result = (await processApprovalDecision(
+        "leave",
+        row.id,
+        status,
+        rejectionReason,
+      )) as {
         status?: string;
       } | null;
+      if (status === "Rejected" && rejectionReason) {
+        await supabase
+          .from("leave_requests" as never)
+          .update({ rejection_reason: rejectionReason } as never)
+          .eq("id", row.id);
+      }
       if (result?.status === "Approved" && cycle?.id) {
         await rebuildPayrollLine(row.employee_id, cycle.id);
       }
@@ -194,6 +215,20 @@ export default function HrLeavePage() {
     } catch (e) {
       fire(e instanceof Error ? e.message : "Update failed");
     }
+  };
+
+  const cancelLeave = async (row: LeaveRequestRow) => {
+    if (!confirm("Cancel this leave request?")) return;
+    const { error } = await supabase
+      .from("leave_requests" as never)
+      .update({ status: "Cancelled", cancelled_at: new Date().toISOString() } as never)
+      .eq("id", row.id);
+    if (error) {
+      fire(error.message);
+      return;
+    }
+    fire("Leave cancelled");
+    await qc.invalidateQueries({ queryKey: ["hr-leaves"] });
   };
 
   const remove = async (row: LeaveRequestRow) => {
@@ -211,16 +246,32 @@ export default function HrLeavePage() {
     <div className="grid" style={{ gap: 16 }}>
       <div className="card-h">
         <span className="tag">6-Day: 18/yr (1.5/mo) · 5-Day: 10/yr · Sick cap 8 · final approval: HR</span>
-        {can("apply") && (
-          <button type="button" className="btn btn-primary" onClick={() => setOpen(true)}>
-            + Apply Leave
-          </button>
-        )}
+        <div className="row-flex">
+          <input
+            className="input"
+            type="date"
+            value={filterFrom}
+            onChange={(e) => setFilterFrom(e.target.value)}
+            title="From date"
+          />
+          <input
+            className="input"
+            type="date"
+            value={filterTo}
+            onChange={(e) => setFilterTo(e.target.value)}
+            title="To date"
+          />
+          {can("apply") && (
+            <button type="button" className="btn btn-primary" onClick={() => setOpen(true)}>
+              + Apply Leave
+            </button>
+          )}
+        </div>
       </div>
       <div className="card" style={{ padding: 0, overflow: "auto" }}>
         {isLoading ? (
           <div className="empty">Loading…</div>
-        ) : leaves.length === 0 ? (
+        ) : filteredLeaves.length === 0 ? (
           <div className="empty">
             <div className="ico">⊟</div>
             No leave requests.
@@ -240,7 +291,7 @@ export default function HrLeavePage() {
               </tr>
             </thead>
             <tbody>
-              {leaves.map((l) => (
+              {filteredLeaves.map((l) => (
                 <tr key={l.id}>
                   <td className="mono strong" style={{ fontSize: 12 }}>
                     {l.id.slice(0, 8)}
@@ -249,6 +300,12 @@ export default function HrLeavePage() {
                     {l.employees?.full_name}
                     <div className="muted" style={{ fontSize: 11.5 }}>
                       {l.reason}
+                      {l.rejection_reason && (
+                        <span style={{ color: "var(--rose)" }}> · Rejected: {l.rejection_reason}</span>
+                      )}
+                      {l.cancelled_at && (
+                        <span style={{ color: "var(--mut)" }}> · Cancelled</span>
+                      )}
                     </div>
                   </td>
                   <td>{l.type}</td>
@@ -277,11 +334,18 @@ export default function HrLeavePage() {
                             <button
                               type="button"
                               className="btn btn-sm btn-bad"
-                              onClick={() => void setStatus(l, "Rejected")}
+                              onClick={() => {
+                                setRejectRow(l);
+                                setRejectReason("");
+                              }}
                             >
                               Reject
                             </button>
                           </>
+                        ) : l.status === "Pending" && can("apply") ? (
+                          <button type="button" className="btn btn-sm" onClick={() => void cancelLeave(l)}>
+                            Cancel
+                          </button>
                         ) : (
                           <button
                             type="button"
@@ -313,6 +377,42 @@ export default function HrLeavePage() {
           </table>
         )}
       </div>
+      {rejectRow && (
+        <ModalShell
+          title="Reject leave request"
+          onClose={() => setRejectRow(null)}
+          footer={
+            <>
+              <button type="button" className="btn" onClick={() => setRejectRow(null)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-bad"
+                disabled={!rejectReason.trim()}
+                onClick={() => {
+                  void setStatus(rejectRow, "Rejected", rejectReason.trim()).then(() =>
+                    setRejectRow(null),
+                  );
+                }}
+              >
+                Reject
+              </button>
+            </>
+          }
+        >
+          <label className="fld">
+            <span className="l">Rejection reason (required)</span>
+            <textarea
+              className="input"
+              rows={3}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Reason shown to employee"
+            />
+          </label>
+        </ModalShell>
+      )}
       {open && (
         <LeaveModal
           onClose={() => setOpen(false)}

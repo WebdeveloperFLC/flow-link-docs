@@ -7,7 +7,7 @@ import { useHrPayrollLines, rpcRollupInputs } from "../hooks/useHrPayroll";
 import { ModalShell } from "../components/ui/ModalShell";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { inr } from "../lib/format";
-import { rebuildPayrollLine, hrAudit, lockPayrollCycle, reopenPayrollCycle, fetchPayrollRegisterExport } from "../lib/hrApi";
+import { rebuildPayrollLine, hrAudit, lockPayrollCycle, reopenPayrollCycle, fetchPayrollRegisterExport, processPayrollCycle, approvePayrollCycle, markPayrollPaid } from "../lib/hrApi";
 import { printSalarySlip } from "../lib/salarySlip";
 import { downloadPayrollRegister, linesToRegisterRows, printRegisterPdf, printBatchSalarySlips } from "../lib/payrollExport";
 import type { PayrollLineRow } from "../lib/types";
@@ -183,7 +183,47 @@ export default function HrVerifyPage() {
 
   const totG = filtered.reduce((s, r) => s + r.gross_earned, 0);
   const totN = filtered.reduce((s, r) => s + r.net_salary, 0);
-  const locked = cycle?.status === "Locked";
+  const hasCanada = filtered.some(
+    (l) => l.employees?.payroll_country === "CA" || l.employees?.salary_currency === "CAD",
+  );
+  const dedLabels = hasCanada
+    ? { pf: "CPP", esic: "EI", pt: "Tax+" }
+    : { pf: "PF", esic: "ESIC", pt: "PT" };
+  const cycleStatus = cycle?.status ?? "Draft";
+  const locked = cycleStatus === "Locked" || cycleStatus === "Paid";
+  const editable = ["Draft", "Processed", "Approved"].includes(cycleStatus);
+
+  const refreshCycle = async () => {
+    await qc.invalidateQueries({ queryKey: ["hr-payroll-cycle"] });
+    await qc.invalidateQueries({ queryKey: ["hr-payroll-lines"] });
+    await qc.invalidateQueries({ queryKey: ["hr-payroll-preview"] });
+  };
+
+  const processCycle = async () => {
+    if (!effectiveCycleId || !cycle) return;
+    if (!confirm("Process payroll? All lines will be rebuilt from attendance and approvals.")) return;
+    try {
+      await processPayrollCycle(effectiveCycleId);
+      await hrAudit("Payroll Processed", cycle.label, "Draft", "Processed");
+      fire("Payroll processed — review register before approval");
+      await refreshCycle();
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Process failed — apply migration 19");
+    }
+  };
+
+  const approveCycle = async () => {
+    if (!effectiveCycleId || !cycle) return;
+    if (!confirm("Approve payroll register for locking?")) return;
+    try {
+      await approvePayrollCycle(effectiveCycleId);
+      await hrAudit("Payroll Approved", cycle.label, "Processed", "Approved");
+      fire("Payroll approved — ready to lock");
+      await refreshCycle();
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Approve failed — apply migration 19");
+    }
+  };
 
   const lockCycle = async () => {
     if (!effectiveCycleId || !cycle) return;
@@ -192,13 +232,24 @@ export default function HrVerifyPage() {
     }
     try {
       await lockPayrollCycle(effectiveCycleId);
-      await hrAudit("Payroll Locked", cycle.label, "Draft", "Locked");
-      fire("Payroll approved & locked — register frozen");
-      await qc.invalidateQueries({ queryKey: ["hr-payroll-cycle"] });
-      await qc.invalidateQueries({ queryKey: ["hr-payroll-lines"] });
-      await qc.invalidateQueries({ queryKey: ["hr-payroll-preview"] });
+      await hrAudit("Payroll Locked", cycle.label, cycleStatus, "Locked");
+      fire("Payroll locked — register frozen");
+      await refreshCycle();
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Lock failed — apply migration 13");
+      fire(e instanceof Error ? e.message : "Lock failed — apply migration 13/19");
+    }
+  };
+
+  const markPaid = async () => {
+    if (!effectiveCycleId || !cycle) return;
+    if (!confirm("Mark this payroll cycle as paid?")) return;
+    try {
+      await markPayrollPaid(effectiveCycleId);
+      await hrAudit("Payroll Paid", cycle.label, "Locked", "Paid");
+      fire("Payroll marked as paid");
+      await refreshCycle();
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Mark paid failed — apply migration 19");
     }
   };
 
@@ -206,11 +257,11 @@ export default function HrVerifyPage() {
     if (!effectiveCycleId || !cycle) return;
     try {
       await reopenPayrollCycle(effectiveCycleId, reopenReason.trim() || undefined);
-      await hrAudit("Payroll Reopened", cycle.label, "Locked", reopenReason.trim() || "—");
+      await hrAudit("Payroll Reopened", cycle.label, cycleStatus, reopenReason.trim() || "—");
       fire("Payroll reopened for corrections");
       setReopenOpen(false);
       setReopenReason("");
-      await qc.invalidateQueries({ queryKey: ["hr-payroll-cycle"] });
+      await refreshCycle();
     } catch (e) {
       fire(e instanceof Error ? e.message : "Reopen failed — apply migration 13");
     }
@@ -275,13 +326,16 @@ export default function HrVerifyPage() {
           <span className="tag">
             {cycle.start_date} – {cycle.end_date} · {cycle.payroll_days}d
           </span>
+          {cycleStatus !== "Draft" && (
+            <StatusBadge status={cycleStatus} />
+          )}
           {locked && (
-            <>
-              <StatusBadge status="Locked" />
-              <span className="tag" style={{ color: "var(--good)" }}>
-                snapshotted · attendance frozen
-              </span>
-            </>
+            <span className="tag" style={{ color: "var(--good)" }}>
+              snapshotted · attendance frozen
+            </span>
+          )}
+          {cycleStatus === "Paid" && cycle.paid_at && (
+            <span className="tag">paid {cycle.paid_at.slice(0, 10)}</span>
           )}
         </div>
         <div className="row-flex">
@@ -305,16 +359,40 @@ export default function HrVerifyPage() {
               </button>
             </>
           )}
-          {can("approve") &&
-            (locked ? (
-              <button type="button" className="btn btn-sm" onClick={() => setReopenOpen(true)}>
-                Reopen
-              </button>
-            ) : (
-              <button type="button" className="btn btn-primary btn-sm" onClick={() => void lockCycle()}>
-                Approve Payroll
-              </button>
-            ))}
+          {can("approve") && (
+            <>
+              {cycleStatus === "Draft" && (
+                <button type="button" className="btn btn-primary btn-sm" onClick={() => void processCycle()}>
+                  1. Process
+                </button>
+              )}
+              {cycleStatus === "Processed" && (
+                <button type="button" className="btn btn-primary btn-sm" onClick={() => void approveCycle()}>
+                  2. Approve
+                </button>
+              )}
+              {(cycleStatus === "Approved" || cycleStatus === "Draft") && (
+                <button type="button" className="btn btn-primary btn-sm" onClick={() => void lockCycle()}>
+                  {cycleStatus === "Draft" ? "Quick lock" : "3. Lock"}
+                </button>
+              )}
+              {cycleStatus === "Locked" && (
+                <>
+                  <button type="button" className="btn btn-good btn-sm" onClick={() => void markPaid()}>
+                    Mark paid
+                  </button>
+                  <button type="button" className="btn btn-sm" onClick={() => setReopenOpen(true)}>
+                    Reopen
+                  </button>
+                </>
+              )}
+              {cycleStatus === "Paid" && (
+                <span className="tag" style={{ color: "var(--good)" }}>
+                  Disbursement complete
+                </span>
+              )}
+            </>
+          )}
           {!can("export") && !can("approve") && (
             <span className="muted" style={{ fontSize: 12 }}>
               read-only access
@@ -348,8 +426,9 @@ export default function HrVerifyPage() {
                 <th>Gross</th>
                 <th>Inc</th>
                 <th>Bonus</th>
-                <th>PF</th>
-                <th>ESIC</th>
+                <th>{dedLabels.pf}</th>
+                <th>{dedLabels.esic}</th>
+                <th>{dedLabels.pt}</th>
                 <th>Net Salary</th>
                 <th />
               </tr>
@@ -407,6 +486,9 @@ export default function HrVerifyPage() {
                   <td className="mono" style={{ color: "var(--rose)" }}>
                     {inr(r.esic_employee)}
                   </td>
+                  <td className="mono" style={{ color: "var(--rose)" }}>
+                    {inr(r.pt_employee ?? 0)}
+                  </td>
                   <td className="mono strong">{inr(r.net_salary)}</td>
                   <td>
                     <div className="row-flex">
@@ -423,7 +505,7 @@ export default function HrVerifyPage() {
                         <button
                           type="button"
                           className="btn btn-sm"
-                          disabled={locked}
+                          disabled={!editable}
                           onClick={() => setOvrLine(r)}
                         >
                           Ovr
@@ -446,7 +528,7 @@ export default function HrVerifyPage() {
                   Totals
                 </td>
                 <td className="mono strong">{inr(totG)}</td>
-                <td colSpan={4} />
+                <td colSpan={5} />
                 <td className="mono strong" style={{ color: "var(--moss)" }}>
                   {inr(totN)}
                 </td>
@@ -461,7 +543,8 @@ export default function HrVerifyPage() {
         <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>
           <strong>Payable</strong> = Days − Leaves + PaidLeaves + CompOff − LateDed − (UL×2) −
           Sandwich − MispunchDed − UnpaidTraining. <strong>Gross</strong> = Daily × Payable.{" "}
-          <strong>Net</strong> = Gross + Incentive + Bonus − PF − ESIC.
+          <strong>Net</strong> = Gross + Incentive + Bonus − {dedLabels.pf} − {dedLabels.esic} − {dedLabels.pt}.
+          {hasCanada && " Canada employees use CPP/EI/tax mapping."}
         </div>
       </div>
 

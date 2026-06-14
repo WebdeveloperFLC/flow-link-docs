@@ -8,8 +8,8 @@ import {
   runVectorSuite,
 } from "@/hr-payroll/lib/payrollEngineLogic";
 
-describe("HR Payroll engine — 30 golden vectors", () => {
-  it("passes full TV01–TV30 suite", () => {
+describe("HR Payroll engine — golden vectors", () => {
+  it("passes full TV01–TV32 suite", () => {
     const { failures, passed, total } = runVectorSuite();
     if (failures.length) {
       console.error("Vector failures:", failures);
@@ -47,6 +47,20 @@ describe("HR Payroll engine — slab boundaries", () => {
   it("mispunch 2 free per month", () => {
     expect(mispunchDeductionDays(2)).toBe(0);
     expect(mispunchDeductionDays(3)).toBe(0.5);
+  });
+});
+
+describe("HR Payroll engine — Canada", () => {
+  it("TV31 CAD employee: CPP + EI on gross", () => {
+    const r = computePayroll({
+      payrollDays: 30,
+      monthly: 4500,
+      basic: 2250,
+      payrollCountry: "CA",
+    });
+    expect(r.pfEmployee).toBe(268);
+    expect(r.esicEmployee).toBe(75);
+    expect(r.netSalary).toBe(4157);
   });
 });
 

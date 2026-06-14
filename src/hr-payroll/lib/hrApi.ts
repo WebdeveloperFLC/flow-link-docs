@@ -81,6 +81,30 @@ export async function lockPayrollCycle(cycleId: string) {
   return data;
 }
 
+export async function processPayrollCycle(cycleId: string) {
+  const { data, error } = await supabase.rpc("fn_process_payroll_cycle" as never, {
+    p_cycle: cycleId,
+  } as never);
+  if (error) throw error;
+  return data;
+}
+
+export async function approvePayrollCycle(cycleId: string) {
+  const { data, error } = await supabase.rpc("fn_approve_payroll_cycle" as never, {
+    p_cycle: cycleId,
+  } as never);
+  if (error) throw error;
+  return data;
+}
+
+export async function markPayrollPaid(cycleId: string) {
+  const { data, error } = await supabase.rpc("fn_mark_payroll_paid" as never, {
+    p_cycle: cycleId,
+  } as never);
+  if (error) throw error;
+  return data;
+}
+
 export async function reopenPayrollCycle(cycleId: string, reason?: string) {
   const { data, error } = await supabase.rpc("fn_reopen_payroll_cycle" as never, {
     p_cycle: cycleId,

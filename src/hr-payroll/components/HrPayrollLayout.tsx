@@ -143,8 +143,14 @@ function HrPayrollLayout() {
                 Cycle · {cycle.label}
                 <br />
                 Days: {cycle.payroll_days} ·{" "}
-                {cycle.status === "Locked" ? (
-                  <span style={{ color: "var(--good)", fontWeight: 600 }}>Approved ✓</span>
+                {cycle.status === "Paid" ? (
+                  <span style={{ color: "var(--good)", fontWeight: 600 }}>Paid ✓</span>
+                ) : cycle.status === "Locked" ? (
+                  <span style={{ color: "var(--good)", fontWeight: 600 }}>Locked ✓</span>
+                ) : cycle.status === "Approved" ? (
+                  <span style={{ color: "var(--sky)", fontWeight: 600 }}>Approved</span>
+                ) : cycle.status === "Processed" ? (
+                  <span style={{ color: "var(--clay)", fontWeight: 600 }}>Processed</span>
                 ) : (
                   "Draft"
                 )}

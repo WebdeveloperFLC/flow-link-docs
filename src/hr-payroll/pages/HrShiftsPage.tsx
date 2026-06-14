@@ -8,6 +8,7 @@ import { useShiftEmployeeCounts } from "../hooks/useHrShifts";
 import { ShiftFormModal } from "../components/shifts/ShiftFormModal";
 import type { ShiftRow } from "../lib/types";
 import { hrAudit } from "../lib/hrApi";
+import { weeklyOffDays } from "../lib/format";
 
 export default function HrShiftsPage() {
   const { can, fire } = useHrAccess();
@@ -54,6 +55,7 @@ export default function HrShiftsPage() {
               </div>
               {(
                 [
+                  ["Working days/wk", `${s.working_days_per_week ?? 6} (${weeklyOffDays(s.working_days_per_week ?? 6)} off)`],
                   ["Login", s.login_time?.slice(0, 5)],
                   ["Logout", s.logout_time?.slice(0, 5)],
                   ["Working hrs", `${s.work_hours ?? 9}h`],
