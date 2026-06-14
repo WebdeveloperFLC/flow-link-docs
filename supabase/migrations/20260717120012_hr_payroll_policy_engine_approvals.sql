@@ -228,8 +228,7 @@ SELECT
   pl.esic_employee,
   pl.net_salary,
   pl.is_overridden,
-  pl.created_at,
-  pl.updated_at
+  pl.created_at
 FROM payroll_lines pl
 JOIN employees e ON e.id = pl.employee_id
 JOIN payroll_cycles cy ON cy.id = pl.cycle_id
