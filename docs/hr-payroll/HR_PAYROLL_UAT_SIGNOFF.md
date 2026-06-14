@@ -11,7 +11,7 @@ Complete after executing [`HR_PAYROLL_UAT.md`](./HR_PAYROLL_UAT.md). Setup per [
 | **Environment** | ☐ Staging ☐ Lovable preview ☐ Other: _______________ |
 | **Base URL** | |
 | **Supabase project** | |
-| **Migrations through** | `20260717120020` ☐ Yes ☐ No |
+| **Migrations through** | `20260717120021` ☐ Yes ☐ No |
 | **Demo seed loaded** | ☐ Yes ☐ No |
 | **Demo org** | `00000000-0000-0000-0000-0000000000f1` |
 | **Payroll cycle tested** | 26 May – 25 Jun 2026 |
@@ -39,10 +39,10 @@ Complete after executing [`HR_PAYROLL_UAT.md`](./HR_PAYROLL_UAT.md). Setup per [
 | B RBAC | 7 | | | | |
 | C Employee | 5 | | | | |
 | D Attendance | 8 | | | | |
-| E Workflows | 6 | | | | |
+| E Workflows | 7 | | | | |
 | F Payroll | 12 | | | | |
 | G Statutory | 4 | | | | |
-| H OT & polish | 8 | | | | |
+| H OT & polish | 7 | | | | |
 | I Phase 2 add-up | 8 | | | | |
 
 **TV02 anchor (HR-UAT-PAY-002):** ☐ Pass ☐ Fail — Isha 29.5 days / ₹39,500
