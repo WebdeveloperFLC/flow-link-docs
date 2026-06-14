@@ -4,12 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   HR_PERM_LIST,
   HR_PERM_LABELS,
+  HR_ROLE_LIST,
   HR_SCREEN_ROUTES,
   HR_SCREEN_TITLES,
   type HrScreenKey,
 } from "../lib/constants";
 import { HR_NAV, screenKeyFromPath } from "../lib/nav";
-import { HR_ROLE_LIST, HrPayrollProvider, useHrAccess } from "../context/HrPayrollProvider";
+import { useHrAccess } from "../context/HrAccessContext";
 
 function firstAllowedScreen(canSee: (s: HrScreenKey) => boolean): string | null {
   for (const g of HR_NAV) {
@@ -20,7 +21,7 @@ function firstAllowedScreen(canSee: (s: HrScreenKey) => boolean): string | null 
   return null;
 }
 
-function HrPayrollLayoutInner() {
+function HrPayrollLayout() {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -192,15 +193,4 @@ function HrPayrollLayoutInner() {
   );
 }
 
-/** Layout with provider — safe to use as the /hr route shell. */
-export function HrPayrollLayout() {
-  return (
-    <HrPayrollProvider>
-      <HrPayrollLayoutInner />
-    </HrPayrollProvider>
-  );
-}
-
-export function HrPayrollShell() {
-  return <HrPayrollLayout />;
-}
+export { HrPayrollLayout };
