@@ -136,3 +136,38 @@
 [data-performance-hub] .ph-context-accent {
   color: #9db8f0;
 }
+
+[data-performance-hub] .ph-util-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: var(--muteBg);
+}
+
+[data-performance-hub] .ph-util-used {
+  display: block;
+  height: 100%;
+  background: var(--offer);
+}
+
+[data-performance-hub] .ph-util-available {
+  display: block;
+  height: 100%;
+  background: var(--blue);
+}
+
+[data-performance-hub] .ph-tier-bar {
+  height: 8px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: var(--muteBg);
+}
+
+[data-performance-hub] .ph-tier-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--cash), var(--blue));
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}

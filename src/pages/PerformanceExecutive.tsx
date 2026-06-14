@@ -111,6 +111,7 @@ export default function PerformanceExecutive() {
               value: formatInr(metrics.verifiedRevenue),
               module: "cash",
               hint: "Qualifying achievement",
+              testId: "kpi-revenue",
             },
             {
               label: "Net after discounts",
@@ -131,6 +132,7 @@ export default function PerformanceExecutive() {
               value: formatInr(metrics.walletUnlocked),
               module: "wallet",
               hint: `${formatInr(metrics.walletPotential)} potential`,
+              testId: "kpi-wallet-unlocked",
             },
             {
               label: "Offers redeemed",

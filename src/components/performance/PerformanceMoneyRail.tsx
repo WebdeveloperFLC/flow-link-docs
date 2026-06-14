@@ -49,7 +49,7 @@ export function PerformanceKpiGrid({
   loading,
 }: {
   loading?: boolean;
-  items: { label: string; value: string; module: keyof typeof PERFORMANCE_MODULE; hint?: string }[];
+  items: { label: string; value: string; module: keyof typeof PERFORMANCE_MODULE; hint?: string; testId?: string }[];
 }) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
@@ -58,6 +58,7 @@ export function PerformanceKpiGrid({
         return (
           <div
             key={item.label}
+            data-testid={item.testId}
             className={cn("rounded-lg border ph-surface-card p-3 border-l-4", m.card, m.border)}
           >
             <p className={cn("text-[10px] font-bold uppercase tracking-wide", m.labelClass, m.text)}>{item.label}</p>
