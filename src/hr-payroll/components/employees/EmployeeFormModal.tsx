@@ -7,7 +7,7 @@ import { uploadEmployeePhoto } from "../../lib/hrStorage";
 import { EmployeeAvatar } from "../ui/EmployeeAvatar";
 import type { BranchRow, CompanyRow, EmergencyContact, EmployeeRow, ShiftRow, CrmStaffRow } from "../../lib/types";
 import { fetchNextEmpCode, useHrEmployee } from "../../hooks/useHrEmployees";
-import { useHrCrmStaff } from "../../hooks/useHrTeam";
+import { useHrCrmStaff, useCrmProfile } from "../../hooks/useHrTeam";
 import { useHrAccess } from "../../context/HrPayrollProvider";
 
 type FormTab = "basic" | "employment" | "shift" | "salary" | "statutory" | "bank";
@@ -206,6 +206,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
   const { data: liveEmp } = useHrEmployee(emp?.id);
   const sourceEmp = liveEmp ?? emp;
   const { data: crmStaff = [], isError: crmStaffError } = useHrCrmStaff();
+  const { data: linkedProfile } = useCrmProfile(f.staff_id || undefined);
   const [tab, setTab] = useState<FormTab>("basic");
   const [f, setF] = useState<FormState>(
     sourceEmp ? fromEmployee(sourceEmp) : blank(shifts, companies, branches),
@@ -229,8 +230,8 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
     if (!linked) {
       const fallback: CrmStaffRow = {
         staff_id: f.staff_id,
-        email: null,
-        full_name: "Linked CRM login",
+        email: linkedProfile?.email ?? null,
+        full_name: linkedProfile?.full_name ?? "Linked CRM login",
         profile_status: "active",
         crm_roles: [],
         hr_role: null,
@@ -245,14 +246,16 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
       return [fallback, ...available];
     }
     return available;
-  }, [crmStaff, emp?.id, emp?.emp_code, emp?.full_name, f.staff_id]);
+  }, [crmStaff, emp?.id, emp?.emp_code, emp?.full_name, f.staff_id, linkedProfile?.email, linkedProfile?.full_name]);
 
   const linkedCrmLabel = useMemo(() => {
     if (!f.staff_id) return null;
     const row = crmStaff.find((s) => s.staff_id === f.staff_id);
-    if (!row) return null;
-    return row.email ? `${row.full_name} (${row.email})` : row.full_name;
-  }, [crmStaff, f.staff_id]);
+    const email = row?.email ?? linkedProfile?.email;
+    const name = row?.full_name ?? linkedProfile?.full_name;
+    if (!name && !email) return null;
+    return email ? `${name ?? email} (${email})` : (name ?? null);
+  }, [crmStaff, f.staff_id, linkedProfile?.email, linkedProfile?.full_name]);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setF((prev) => ({ ...prev, [k]: v }));
@@ -611,14 +614,14 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                     Linked: {linkedCrmLabel}
                   </span>
                 )}
-                {f.staff_id && !linkedCrmLabel && (
+                {f.staff_id && !linkedCrmLabel && !crmStaffError && (
                   <span className="tag" style={{ marginTop: 6, fontSize: 11 }}>
-                    Linked in database — CRM staff list loading or restricted
+                    Linked in database — loading login details…
                   </span>
                 )}
-                {crmStaffError && (
+                {crmStaffError && !linkedCrmLabel && (
                   <span style={{ display: "block", marginTop: 6, fontSize: 11, color: "var(--rose)" }}>
-                    Could not load CRM users — link may still be saved in database
+                    CRM user list unavailable — apply migration 24. Link is still saved in database.
                   </span>
                 )}
               </label>
