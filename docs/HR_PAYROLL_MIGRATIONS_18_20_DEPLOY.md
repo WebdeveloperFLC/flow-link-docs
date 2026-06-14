@@ -35,6 +35,7 @@ HR_INTEGRATION_TEST=1 npm run test:hr-payroll
 ## UAT
 
 - Full pack: [`hr-payroll/HR_PAYROLL_UAT.md`](./hr-payroll/HR_PAYROLL_UAT.md) — **Section I** (8 Phase 2 cases)
+- Pre-flight SQL: [`hr-payroll/HR_PAYROLL_UAT_VERIFY.sql`](./hr-payroll/HR_PAYROLL_UAT_VERIFY.sql)
 - Golden anchor unchanged: Isha **FL-1042** → **29.5** payable, **₹39,500** net
 
 ## Publish

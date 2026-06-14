@@ -1,7 +1,7 @@
 # HR Payroll — Full UAT & Testing Guide
 
 **Audience:** QA / UAT team, DevOps, UAT lead  
-**Purpose:** Single checklist to set up staging, run all **50** HR Payroll test cases, log defects, and sign off — so engineering can proceed to production hardening.
+**Purpose:** Single checklist to set up staging, run all **58** HR Payroll test cases, log defects, and sign off — so engineering can proceed to production hardening.
 
 | Field | Value |
 |-------|-------|
@@ -24,6 +24,7 @@
 | Test case pack (58 cases) | `docs/hr-payroll/HR_PAYROLL_UAT.md` |
 | Tester quick reference | `docs/hr-payroll/HR_PAYROLL_TESTER_QUICKSTART.md` |
 | Defect log | `docs/hr-payroll/HR_PAYROLL_DEFECT_TRACKER.csv` |
+| **SQL verify script** | `docs/hr-payroll/HR_PAYROLL_UAT_VERIFY.sql` — run before Phase 5 |
 | Sign-off form | `docs/hr-payroll/HR_PAYROLL_UAT_SIGNOFF.md` |
 | Prototype reference | `docs/guides/hrms-full-prototype.html` |
 | Business rules / TV02 | `docs/guides/HRPAYROLL MODULE/HR PAYROLL ALL CLAUDE FILES/03_business_rules_and_test_vectors.md` |
@@ -37,7 +38,7 @@
 
 | Role | Responsibility |
 |------|----------------|
-| **DevOps / Engineering** | Apply migrations 00–17, publish Lovable build, run demo seed SQL, smoke checklist |
+| **DevOps / Engineering** | Apply migrations 00–20, publish Lovable build, run demo seed SQL, smoke checklist |
 | **Admin (existing staff)** | CRM roles via `/users`; HR module roles via `/hr/roles` → **Team & CRM** |
 | **UAT testers** | Execute `HR_PAYROLL_UAT.md` cases, screenshots, pass/fail |
 | **UAT lead** | Maintain defect tracker, triage severity, complete sign-off form |
@@ -150,7 +151,7 @@ WHERE e.org_id = '00000000-0000-0000-0000-0000000000f1'
 ORDER BY e.emp_code;
 ```
 
-**Expected:** 5 employees (FL-1042 … FL-1047); at least one with `hr_role` assigned.
+**Expected:** ≥5 employees (6 after migration 20 incl. **FL-CA01**); at least one with `hr_role` assigned.
 
 ---
 
@@ -172,7 +173,7 @@ If migrations **03** and **07** ran successfully, demo data is already loaded. T
 -- Employees
 SELECT count(*) FROM employees
 WHERE org_id = '00000000-0000-0000-0000-0000000000f1';
--- Expected: 5
+-- Expected: >= 5 (6 after migration 20 with FL-CA01)
 
 -- Active cycle
 SELECT label, status, payroll_days FROM payroll_cycles
@@ -205,6 +206,7 @@ WHERE org_id = '00000000-0000-0000-0000-0000000000f1' AND status = 'Pending';
 | FL-1044 | Priya Sharma | Genda Circle | Late → half day |
 | FL-1046 | Sneha Patel | Bharuch | UL override, 5-day week |
 | FL-1047 | Imran Shaikh | Anand | Sandwich override, comp-off |
+| FL-CA01 | Priya Sharma (CA) | Canada / Toronto | **CPP/EI** payroll (HR-UAT-P2-007) |
 
 ---
 
@@ -227,12 +229,14 @@ WHERE org_id = '00000000-0000-0000-0000-0000000000f1' AND status = 'Pending';
 | 10 | HR Manager | Export **PDF Register** + **All Slips PDF** from Verify | ☐ |
 | 11 | HR Manager | Leave approve shows **Manager · HR** stage trail | ☐ |
 | 12 | HR Manager | Config → **Overtime** tab shows mode (display/paid) | ☐ |
+| 13 | HR Manager | Verify → **1. Process** → **2. Approve** → **3. Lock** (Phase 2 lifecycle) | ☐ |
+| 14 | HR Manager | FL-CA01 row shows CPP/EI columns (~CA$4,157 net) | ☐ |
 
 If any item fails, fix setup (Phases 1–3) before Phase 5.
 
 ---
 
-## Phase 5 — Execute UAT (50 test cases)
+## Phase 5 — Execute UAT (58 test cases)
 
 **Owner:** UAT testers  
 **Primary document:** `docs/hr-payroll/HR_PAYROLL_UAT.md`
@@ -257,7 +261,8 @@ If any item fails, fix setup (Phases 1–3) before Phase 5.
 | F — Payroll & lock | 12 | Register, TV02, override, lock, export, PDF |
 | G — Statutory & engine | 4 | PF/ESIC, calculator parity |
 | H — OT, lock polish & v1.1 | 8 | OT policy, PDF batch, freeze, reopen audit |
-| **Total** | **50** | |
+| I — Phase 2 add-up | 8 | Profile, lifecycle, Canada, doc verify, ESS status |
+| **Total** | **58** | |
 
 ### 5.3 Suggested execution order
 
@@ -269,6 +274,9 @@ If any item fails, fix setup (Phases 1–3) before Phase 5.
 6. Section **F** — payroll verification (includes **TV02**)
 7. Section **G** — statutory + engine
 8. Section **H** — OT policy, PDF exports, lock polish
+9. Section **I** — Phase 2 add-up (migrations 18–20)
+
+**Pre-flight SQL:** run `docs/hr-payroll/HR_PAYROLL_UAT_VERIFY.sql` — all rows should show **PASS**.
 
 ### 5.4 Log defects
 
@@ -298,7 +306,7 @@ Re-run migrations **03** then **07** on staging (idempotent for enrich). Re-run 
 | Criterion | Done? |
 |-----------|-------|
 | Phases 1–4 documented on sign-off form | ☐ |
-| All **50** cases marked Pass, Fail, Blocked, or N/R | ☐ |
+| All **58** cases marked Pass, Fail, Blocked, or N/R | ☐ |
 | Every **Fail** has a defect tracker row | ☐ |
 | No open **Blocker** or **Critical** defects (or documented waiver) | ☐ |
 | **TV02 anchor** (Isha 29.5 / ₹39,500) verified Pass | ☐ |

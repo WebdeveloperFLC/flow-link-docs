@@ -27,8 +27,8 @@
 |-------|-------|
 | **Test Case ID** | HR-UAT-SETUP-001 |
 | **Preconditions** | Global preconditions met. |
-| **Steps** | 1. SQL: `SELECT count(*) FROM employees WHERE org_id = '00000000-0000-0000-0000-0000000000f1';`<br>2. SQL: Isha payroll line query from UAT guide Phase 3.2. |
-| **Expected Result** | 5 employees. Isha: payable **29.5**, net **39500**. |
+| **Steps** | 1. Run `docs/hr-payroll/HR_PAYROLL_UAT_VERIFY.sql` in SQL Editor (all **PASS**).<br>2. Confirm employee count ≥5 (6 with FL-CA01 after migration 20).<br>3. Confirm Isha anchor from verify script or UAT guide Phase 3.2. |
+| **Expected Result** | Verify script PASS. ≥5 employees. Isha: payable **29.5**, net **39500**. |
 | **Screenshot Required** | Yes |
 | **Pass / Fail** | ☐ Pass ☐ Fail |
 | **Notes** | |
