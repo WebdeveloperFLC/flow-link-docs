@@ -170,6 +170,7 @@ import PerformanceCommandCenter from "@/pages/PerformanceCommandCenter";
 import PerformanceExecutive from "@/pages/PerformanceExecutive";
 import PerformanceTeam from "@/pages/PerformanceTeam";
 import PerformanceWalletPolicy from "@/pages/PerformanceWalletPolicy";
+import PerformanceWallets from "@/pages/PerformanceWallets";
 import PerformanceBranchPool from "@/pages/PerformanceBranchPool";
 import PerformanceHowItWorks from "@/pages/PerformanceHowItWorks";
 import PerformanceUnclassifiedPayments from "@/pages/PerformanceUnclassifiedPayments";
@@ -570,6 +571,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <GiveDiscount />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/wallets"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceWallets />
                       </ProtectedRoute>
                     }
                   />

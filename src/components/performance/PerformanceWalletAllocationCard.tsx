@@ -88,6 +88,13 @@ export function PerformanceWalletAllocationCard({ data }: PerformanceWalletAlloc
         {data.walletExpiresLabel && (
           <p className="text-xs ph-muted mt-2">Expires {data.walletExpiresLabel}</p>
         )}
+        <Link
+          to="/performance/wallets"
+          className="text-xs font-medium mt-3 inline-block hover:underline"
+          style={{ color: "var(--blue)" }}
+        >
+          View all wallets →
+        </Link>
       </div>
 
       {data.recentDiscounts.length > 0 && (
