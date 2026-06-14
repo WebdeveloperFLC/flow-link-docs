@@ -116,3 +116,11 @@ export async function startAttendanceDay(employeeId: string, workDate: string) {
   if (error) throw error;
   return data as import("./types").AttendanceRow;
 }
+
+export async function ensureMyEmployeeProfile() {
+  const { data, error } = await supabase.rpc("fn_ensure_my_employee_profile" as never, {
+    p_org: HR_ORG_ID,
+  } as never);
+  if (error) throw error;
+  return data as import("./types").EmployeeRow;
+}

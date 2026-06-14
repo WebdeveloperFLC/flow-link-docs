@@ -1,5 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
@@ -14,10 +15,14 @@ import { EmployeeAvatar } from "../components/ui/EmployeeAvatar";
 import { formatWorkDate, todayIso } from "../lib/attendanceMetrics";
 import { inr } from "../lib/format";
 import { printSalarySlip } from "../lib/salarySlip";
+import { ensureMyEmployeeProfile } from "../lib/hrApi";
+import { HR_ORG_ID } from "../lib/constants";
 
 export default function HrEssPage() {
-  const { user } = useAuth();
-  const { can, cycle, fire } = useHrAccess();
+  const { user, isAdmin } = useAuth();
+  const { actualCan, assignedRole, can, cycle, fire } = useHrAccess();
+  const qc = useQueryClient();
+  const [setupBusy, setSetupBusy] = useState(false);
   const { data: employees = [] } = useHrEmployees();
   const { data: shifts = [] } = useHrShifts();
 
@@ -36,24 +41,51 @@ export default function HrEssPage() {
   const today = todayIso();
   const todayRow = att.find((a) => a.work_date === today) ?? null;
 
+  const setupMyProfile = async () => {
+    setSetupBusy(true);
+    try {
+      await ensureMyEmployeeProfile();
+      await qc.invalidateQueries({ queryKey: ["hr-employees", HR_ORG_ID] });
+      fire("Employee profile ready — you can check in now");
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Setup failed — apply migration 16");
+    } finally {
+      setSetupBusy(false);
+    }
+  };
+
   if (!emp) {
+    const canManageTeam = isAdmin || actualCan("manageEmp") || actualCan("configure");
+
     return (
       <div className="card" style={{ padding: 24 }}>
         <div className="serif" style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>
-          No employee profile linked
+          Set up My Portal to check in
         </div>
-        <p className="muted" style={{ fontSize: 13.5, marginBottom: 16, maxWidth: 520 }}>
-          My Portal (ESS) shows the employee record linked to your login. Admins and staff must be
-          linked in Team &amp; CRM before punching here — you cannot punch on behalf of another demo
-          employee from this screen.
+        <p className="muted" style={{ fontSize: 13.5, marginBottom: 16, maxWidth: 560 }}>
+          Check-in uses <strong>your login</strong> ({user?.email ?? "—"}), not the View-as role
+          picker. Admins, counselors, and other staff at Future Link need a one-time employee profile
+          linked to this account before punching.
         </p>
-        {can("configure") || can("manageEmp") ? (
-          <Link to="/hr/roles" className="btn btn-primary">
-            Open Team &amp; CRM
-          </Link>
-        ) : (
-          <p className="muted" style={{ fontSize: 13 }}>
-            Ask HR to link your staff account to an employee profile.
+        <div className="row-flex" style={{ gap: 10, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={setupBusy}
+            onClick={() => void setupMyProfile()}
+          >
+            {setupBusy ? "Setting up…" : "Create my employee profile"}
+          </button>
+          {canManageTeam && (
+            <Link to="/hr/roles" className="btn">
+              Team &amp; CRM (link to existing)
+            </Link>
+          )}
+        </div>
+        {assignedRole && (
+          <p className="muted" style={{ fontSize: 12, marginTop: 14 }}>
+            Your HR role: <strong>{assignedRole}</strong> — View-as only changes what menus you see;
+            it does not change who you punch as.
           </p>
         )}
       </div>
@@ -99,20 +131,18 @@ export default function HrEssPage() {
         </div>
       </div>
 
-      {can("apply") && (
-        <PunchStation
-          employee={emp}
-          shift={shift}
-          todayRow={todayRow}
-          todayDate={formatWorkDate(today)}
-          canPunch
-          onPunch={(field) => {
-            if (!todayRow) return;
-            void actions.punch(todayRow, field, emp.full_name, todayRow.work_date);
-          }}
-          onStartDay={() => void actions.startAndCheckIn(emp.id, emp.full_name)}
-        />
-      )}
+      <PunchStation
+        employee={emp}
+        shift={shift}
+        todayRow={todayRow}
+        todayDate={formatWorkDate(today)}
+        canPunch
+        onPunch={(field) => {
+          if (!todayRow) return;
+          void actions.punch(todayRow, field, emp.full_name, todayRow.work_date);
+        }}
+        onStartDay={() => void actions.startAndCheckIn(emp.id, emp.full_name)}
+      />
 
       <div className="grid g4">
         <Stat lab="Earned Today" val={inr(r.daily_rate)} meta="daily rate" color="var(--moss)" />

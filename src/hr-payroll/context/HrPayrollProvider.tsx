@@ -26,10 +26,13 @@ import { resetHrRolePermissions } from "../lib/hrApi";
 type HrAccessContextValue = {
   orgId: string;
   role: HrRole;
+  assignedRole: HrRole | null;
   setRole: (r: HrRole) => void;
   perms: HrPerms;
+  actualPerms: HrPerms;
   screens: Record<HrScreenKey, boolean>;
   can: (p: HrPerm) => boolean;
+  actualCan: (p: HrPerm) => boolean;
   canSee: (s: HrScreenKey) => boolean;
   cycle: PayrollCycleRow | null;
   pendingCounts: Record<string, number>;
@@ -161,11 +164,29 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
     [permissions, role],
   );
 
+  const assignedRole: HrRole | null = assignment?.role ?? (isAdmin ? "Admin" : null);
+
+  const assignedRoleRow = useMemo(
+    () => (assignedRole ? permissions.find((p) => p.role === assignedRole) : undefined),
+    [permissions, assignedRole],
+  );
+
   const useFallbackAccess = permissions.length === 0 || !roleRow;
+  const useFallbackActual =
+    permissions.length === 0 || (assignedRole != null && !assignedRoleRow);
 
   const perms = useMemo(
     () => (useFallbackAccess ? defaultPermsForRole(role) : rowToPerms(roleRow)),
     [useFallbackAccess, role, roleRow],
+  );
+  const actualPerms = useMemo(
+    () =>
+      assignedRole == null
+        ? { view: false, apply: false, approve: false, override: false, export: false, configure: false, manageEmp: false }
+        : useFallbackActual
+          ? defaultPermsForRole(assignedRole)
+          : rowToPerms(assignedRoleRow),
+    [assignedRole, useFallbackActual, assignedRoleRow],
   );
   const screens = useMemo(
     () => (useFallbackAccess ? defaultScreensForRole(role) : rowToScreens(roleRow)),
@@ -173,6 +194,7 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
   );
 
   const can = useCallback((p: HrPerm) => !!perms[p], [perms]);
+  const actualCan = useCallback((p: HrPerm) => !!actualPerms[p], [actualPerms]);
   const canSee = useCallback((s: HrScreenKey) => !!screens[s], [screens]);
 
   const refreshPermissions = useCallback(() => {
@@ -237,10 +259,13 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
   const value: HrAccessContextValue = {
     orgId: HR_ORG_ID,
     role,
+    assignedRole,
     setRole,
     perms,
+    actualPerms,
     screens,
     can,
+    actualCan,
     canSee,
     cycle,
     pendingCounts,
