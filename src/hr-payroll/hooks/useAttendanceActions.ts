@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../lib/constants";
-import { hrAudit, rebuildPayrollLine } from "../lib/hrApi";
+import { hrAudit, rebuildPayrollLine, recordPunch, startAttendanceDay } from "../lib/hrApi";
 import { nowHhmm, todayIso } from "../lib/attendanceMetrics";
 
 export function useAttendanceActions(cycleId: string | undefined, fire: (msg: string) => void) {
@@ -40,33 +40,13 @@ export function useAttendanceActions(cycleId: string | undefined, fire: (msg: st
 
   const startAndCheckIn = async (employeeId: string, empName: string) => {
     const work_date = todayIso();
-    const hhmm = nowHhmm();
-    const { data: existing } = await supabase
-      .from("attendance" as never)
-      .select("id")
-      .eq("employee_id", employeeId)
-      .eq("work_date", work_date)
-      .maybeSingle();
-
-    if (existing) {
-      const { error } = await supabase
-        .from("attendance" as never)
-        .update({ check_in: hhmm, source: "self" } as never)
-        .eq("id", (existing as { id: string }).id);
-      if (error) fire(error.message);
-    } else {
-      const { error } = await supabase.from("attendance" as never).insert({
-        org_id: HR_ORG_ID,
-        employee_id: employeeId,
-        work_date,
-        check_in: hhmm,
-        status: "Present",
-        is_mispunch: false,
-        source: "self",
-      } as never);
-      if (error) fire(error.message);
+    try {
+      await startAttendanceDay(employeeId);
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Check-in failed — apply migration 13");
+      return;
     }
-    await hrAudit("Check In", `${empName} · ${work_date}`, "—", hhmm);
+    await hrAudit("Check In", `${empName} · ${work_date}`, "—", nowHhmm());
     fire("Checked in");
     await invalidate(employeeId);
   };
@@ -77,16 +57,13 @@ export function useAttendanceActions(cycleId: string | undefined, fire: (msg: st
     empName: string,
     workDate: string,
   ) => {
-    const hhmm = nowHhmm();
-    const { error } = await supabase
-      .from("attendance" as never)
-      .update({ [field]: hhmm, source: "self" } as never)
-      .eq("id", row.id);
-    if (error) {
-      fire(error.message);
+    try {
+      await recordPunch(row.id, field);
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Punch failed — apply migration 13");
       return;
     }
-    await hrAudit("Punch", `${empName} · ${workDate}`, field, hhmm);
+    await hrAudit("Punch", `${empName} · ${workDate}`, field, nowHhmm());
     fire(`${field.replace("_", " ")} recorded`);
     await invalidate(row.employee_id);
   };

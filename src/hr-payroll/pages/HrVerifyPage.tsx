@@ -7,9 +7,10 @@ import { useHrPayrollLines, rpcRollupInputs } from "../hooks/useHrPayroll";
 import { ModalShell } from "../components/ui/ModalShell";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { inr } from "../lib/format";
-import { rebuildPayrollLine } from "../lib/hrApi";
+import { rebuildPayrollLine, hrAudit, lockPayrollCycle, reopenPayrollCycle, fetchPayrollRegisterExport } from "../lib/hrApi";
 import { printSalarySlip } from "../lib/salarySlip";
-import type { PayrollCycleRow, PayrollLineRow } from "../lib/types";
+import { downloadPayrollRegister, linesToRegisterRows } from "../lib/payrollExport";
+import type { PayrollLineRow } from "../lib/types";
 
 type OverrideFields = {
   late: number;
@@ -21,64 +22,6 @@ type OverrideFields = {
   sandwich: number;
   unpaid_training: number;
 };
-
-function exportRegister(lines: PayrollLineRow[], fmt: "CSV" | "Excel", cycle: PayrollCycleRow) {
-  const headers = [
-    "Employee",
-    "Code",
-    "Branch",
-    "MisAbs",
-    "Late",
-    "Leaves",
-    "PaidLv",
-    "CompOff",
-    "UL",
-    "Sandwich",
-    "Train",
-    "LateDed",
-    "MisDed",
-    "Payable",
-    "Daily",
-    "Gross",
-    "Incentive",
-    "Bonus",
-    "PF",
-    "ESIC",
-    "Net",
-  ];
-  const data = lines.map((r) => [
-    r.employees?.full_name ?? "",
-    r.employees?.emp_code ?? "",
-    r.employees?.branches?.name ?? "",
-    r.mispunch_count,
-    r.late_count,
-    r.leaves_taken,
-    r.paid_leaves,
-    r.comp_off,
-    r.ul_count,
-    r.sandwich_count,
-    r.unpaid_training,
-    r.late_deduction,
-    r.mispunch_deduction,
-    r.payable_days,
-    r.daily_rate,
-    r.gross_earned,
-    r.incentive,
-    r.bonus,
-    r.pf_employee,
-    r.esic_employee,
-    r.net_salary,
-  ]);
-  const sep = fmt === "CSV" ? "," : "\t";
-  const csv = [headers.join(sep), ...data.map((r) => r.join(sep))].join("\n");
-  const blob = new Blob([csv], {
-    type: fmt === "CSV" ? "text/csv" : "application/vnd.ms-excel",
-  });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `salary_register_${cycle.label.replace(/\s+/g, "_")}.${fmt === "CSV" ? "csv" : "xls"}`;
-  a.click();
-}
 
 function OverrideModal({
   line,
@@ -220,6 +163,8 @@ export default function HrVerifyPage() {
   const qc = useQueryClient();
   const [branch, setBranch] = useState("All");
   const [ovrLine, setOvrLine] = useState<PayrollLineRow | null>(null);
+  const [reopenOpen, setReopenOpen] = useState(false);
+  const [reopenReason, setReopenReason] = useState("");
 
   const cycle = ctxCycle;
   const effectiveCycleId = cycleId ?? cycle?.id;
@@ -241,35 +186,52 @@ export default function HrVerifyPage() {
   const locked = cycle?.status === "Locked";
 
   const lockCycle = async () => {
-    if (!effectiveCycleId) return;
-    const { error } = await supabase.rpc("fn_lock_payroll_cycle" as never, {
-      p_cycle: effectiveCycleId,
-    } as never);
-    if (error) {
-      const fallback = await supabase
-        .from("payroll_cycles" as never)
-        .update({ status: "Locked" } as never)
-        .eq("id", effectiveCycleId);
-      if (fallback.error) {
-        fire(fallback.error.message);
-        return;
-      }
+    if (!effectiveCycleId || !cycle) return;
+    if (!confirm("Lock payroll? All lines will be snapshotted and attendance frozen for this cycle.")) {
+      return;
     }
-    fire("Payroll approved & locked");
-    await qc.invalidateQueries({ queryKey: ["hr-payroll-cycle"] });
+    try {
+      await lockPayrollCycle(effectiveCycleId);
+      await hrAudit("Payroll Locked", cycle.label, "Draft", "Locked");
+      fire("Payroll approved & locked — register frozen");
+      await qc.invalidateQueries({ queryKey: ["hr-payroll-cycle"] });
+      await qc.invalidateQueries({ queryKey: ["hr-payroll-lines"] });
+      await qc.invalidateQueries({ queryKey: ["hr-payroll-preview"] });
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Lock failed — apply migration 13");
+    }
   };
 
   const reopenCycle = async () => {
-    if (!effectiveCycleId) return;
-    const { error } = await supabase.rpc("fn_reopen_payroll_cycle" as never, {
-      p_cycle: effectiveCycleId,
-    } as never);
-    if (error) {
-      fire(error.message);
-      return;
+    if (!effectiveCycleId || !cycle) return;
+    try {
+      await reopenPayrollCycle(effectiveCycleId, reopenReason.trim() || undefined);
+      await hrAudit("Payroll Reopened", cycle.label, "Locked", reopenReason.trim() || "—");
+      fire("Payroll reopened for corrections");
+      setReopenOpen(false);
+      setReopenReason("");
+      await qc.invalidateQueries({ queryKey: ["hr-payroll-cycle"] });
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Reopen failed — apply migration 13");
     }
-    fire("Payroll reopened");
-    await qc.invalidateQueries({ queryKey: ["hr-payroll-cycle"] });
+  };
+
+  const exportRegister = async (fmt: "CSV" | "Excel") => {
+    if (!effectiveCycleId || !cycle) return;
+    try {
+      const rows = await fetchPayrollRegisterExport(effectiveCycleId, branch);
+      if (rows.length > 0) {
+        downloadPayrollRegister(rows, cycle.label, fmt);
+        return;
+      }
+    } catch {
+      /* fallback to client lines if RPC not deployed */
+    }
+    downloadPayrollRegister(
+      linesToRegisterRows(filtered, cycle.label, cycle.status),
+      cycle.label,
+      fmt,
+    );
   };
 
   if (!cycle) return <div className="empty">No payroll cycle loaded.</div>;
@@ -291,7 +253,14 @@ export default function HrVerifyPage() {
           <span className="tag">
             {cycle.start_date} – {cycle.end_date} · {cycle.payroll_days}d
           </span>
-          {locked && <StatusBadge status="Locked" />}
+          {locked && (
+            <>
+              <StatusBadge status="Locked" />
+              <span className="tag" style={{ color: "var(--good)" }}>
+                snapshotted · attendance frozen
+              </span>
+            </>
+          )}
         </div>
         <div className="row-flex">
           {can("export") &&
@@ -300,14 +269,14 @@ export default function HrVerifyPage() {
                 key={f}
                 type="button"
                 className="btn btn-sm"
-                onClick={() => exportRegister(filtered, f === "CSV" ? "CSV" : "Excel", cycle)}
+                onClick={() => void exportRegister(f === "CSV" ? "CSV" : "Excel")}
               >
                 ↓ {f}
               </button>
             ))}
           {can("approve") &&
             (locked ? (
-              <button type="button" className="btn btn-sm" onClick={() => void reopenCycle()}>
+              <button type="button" className="btn btn-sm" onClick={() => setReopenOpen(true)}>
                 Reopen
               </button>
             ) : (
@@ -472,6 +441,37 @@ export default function HrVerifyPage() {
           onClose={() => setOvrLine(null)}
           onSaved={fire}
         />
+      )}
+
+      {reopenOpen && (
+        <ModalShell
+          title="Reopen payroll cycle"
+          onClose={() => setReopenOpen(false)}
+          footer={
+            <>
+              <button type="button" className="btn" onClick={() => setReopenOpen(false)}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-primary" onClick={() => void reopenCycle()}>
+                Reopen cycle
+              </button>
+            </>
+          }
+        >
+          <p style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 12 }}>
+            Attendance edits will be allowed again. Provide a reason for the audit trail.
+          </p>
+          <label className="fld">
+            <span className="l">Reason</span>
+            <textarea
+              className="input"
+              rows={3}
+              value={reopenReason}
+              onChange={(e) => setReopenReason(e.target.value)}
+              placeholder="e.g. Late exemption correction for Karan"
+            />
+          </label>
+        </ModalShell>
       )}
     </div>
   );
