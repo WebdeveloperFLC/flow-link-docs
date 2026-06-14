@@ -9,6 +9,7 @@ import type {
   LeaveRequestRow,
   MispunchRequestRow,
   TrainingRecordRow,
+  ApprovalRow,
 } from "../lib/types";
 
 export function useHrLeaveRequests() {
@@ -98,6 +99,22 @@ export function useHrLeaveBalances(employeeId?: string) {
         .eq("employee_id", employeeId!);
       if (error) throw error;
       return (data ?? []) as LeaveBalanceRow[];
+    },
+  });
+}
+
+export function useHrApprovals(entityType: string, entityIds: string[]) {
+  return useQuery({
+    queryKey: ["hr-approvals", entityType, entityIds],
+    enabled: entityIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("approvals" as never)
+        .select("*")
+        .eq("entity_type", entityType)
+        .in("entity_id", entityIds);
+      if (error) throw error;
+      return (data ?? []) as ApprovalRow[];
     },
   });
 }

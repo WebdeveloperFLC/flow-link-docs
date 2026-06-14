@@ -265,6 +265,38 @@ export type LeaveBalanceRow = {
   taken: number;
 };
 
+export type ApprovalRow = {
+  id: string;
+  org_id: string;
+  entity_type: string;
+  entity_id: string;
+  stage: string;
+  approver_id: string | null;
+  decision: string;
+  acted_at: string | null;
+  comment: string | null;
+};
+
+export type PayrollPreviewRow = {
+  id: string;
+  cycle_id: string;
+  employee_id: string;
+  emp_code: string;
+  full_name: string;
+  designation: string | null;
+  department: string | null;
+  company_name: string | null;
+  branch_name: string | null;
+  cycle_label: string;
+  cycle_status: string;
+  payable_days: number;
+  net_salary: number;
+  gross_earned: number;
+  late_count: number;
+  late_deduction: number;
+  is_overridden: boolean;
+};
+
 export type PayrollComputeResult = {
   late_deduction: number;
   mispunch_deduction: number;

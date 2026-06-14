@@ -1,29 +1,36 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
-import { useHrLateExemptions } from "../hooks/useHrRequests";
+import { useHrLateExemptions, useHrApprovals } from "../hooks/useHrRequests";
 import { StatusBadge } from "../components/ui/StatusBadge";
-import { hrAudit } from "../lib/hrApi";
+import { ApprovalTrail } from "../components/ui/ApprovalTrail";
+import { hrAudit, processApprovalDecision, rebuildPayrollLine } from "../lib/hrApi";
 import type { LateExemptionRow } from "../lib/types";
 
 export default function HrLatePage() {
-  const { can, fire } = useHrAccess();
+  const { can, fire, cycle } = useHrAccess();
   const qc = useQueryClient();
   const { data: late = [], isLoading } = useHrLateExemptions();
+  const lateIds = late.map((l) => l.id);
+  const { data: approvals = [] } = useHrApprovals("late", lateIds);
 
   const setStatus = async (row: LateExemptionRow, status: string) => {
-    const { error } = await supabase
-      .from("late_exemptions" as never)
-      .update({ status } as never)
-      .eq("id", row.id);
-    if (error) {
-      fire(error.message);
-      return;
+    try {
+      const result = (await processApprovalDecision("late", row.id, status)) as {
+        status?: string;
+      } | null;
+      if (result?.status === "Approved" && cycle?.id) {
+        await rebuildPayrollLine(row.employee_id, cycle.id);
+      }
+      await hrAudit(`Late ${status}`, row.employees?.full_name ?? row.id, row.status, status);
+      fire(result?.status === "Pending" ? "Stage approved — awaiting next approver" : `Late exemption ${status.toLowerCase()}`);
+      await qc.invalidateQueries({ queryKey: ["hr-late"] });
+      await qc.invalidateQueries({ queryKey: ["hr-pending-counts"] });
+      await qc.invalidateQueries({ queryKey: ["hr-approvals"] });
+      await qc.invalidateQueries({ queryKey: ["hr-payroll-lines"] });
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Update failed");
     }
-    await hrAudit(`Late ${status}`, row.employees?.full_name ?? row.id, row.status, status);
-    fire(`Late exemption ${status.toLowerCase()}`);
-    await qc.invalidateQueries({ queryKey: ["hr-late"] });
-    await qc.invalidateQueries({ queryKey: ["hr-pending-counts"] });
   };
 
   return (
@@ -76,6 +83,7 @@ export default function HrLatePage() {
                   <td style={{ fontSize: 12 }}>{l.reason}</td>
                   <td>
                     <StatusBadge status={l.status} />
+                    <ApprovalTrail entityId={l.id} approvals={approvals} />
                   </td>
                   <td>
                     <div className="row-flex">

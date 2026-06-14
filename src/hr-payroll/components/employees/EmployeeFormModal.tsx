@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID, DEPARTMENTS, MANAGERS } from "../../lib/constants";
-import { fillSalaryComponents, initials, inr } from "../../lib/format";
+import { fillSalaryComponents, inr } from "../../lib/format";
+import { uploadEmployeePhoto } from "../../lib/hrStorage";
+import { EmployeeAvatar } from "../ui/EmployeeAvatar";
 import type { BranchRow, CompanyRow, EmployeeRow, ShiftRow } from "../../lib/types";
 import { fetchNextEmpCode } from "../../hooks/useHrEmployees";
 import { useHrCrmStaff } from "../../hooks/useHrTeam";
@@ -153,6 +155,8 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
   );
   const [err, setErr] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setF((prev) => ({ ...prev, [k]: v }));
@@ -225,21 +229,29 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
     };
 
     try {
+      let employeeId = emp?.id;
       if (emp) {
         const { error } = await supabase
           .from("employees" as never)
           .update(payload as never)
           .eq("id", emp.id);
         if (error) throw error;
+        employeeId = emp.id;
         fire("Employee updated");
       } else {
         const emp_code = await fetchNextEmpCode();
-        const { error } = await supabase.from("employees" as never).insert({
-          ...payload,
-          emp_code,
-        } as never);
+        const { data, error } = await supabase
+          .from("employees" as never)
+          .insert({ ...payload, emp_code } as never)
+          .select("id")
+          .single();
         if (error) throw error;
+        employeeId = (data as { id: string }).id;
         fire(`Employee ${f.full_name} added`);
+      }
+      if (photoFile && employeeId) {
+        await uploadEmployeePhoto(employeeId, photoFile);
+        fire("Photo uploaded");
       }
       await qc.invalidateQueries({ queryKey: ["hr-employees"] });
       onClose();
@@ -313,10 +325,30 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
           {tab === "basic" && (
             <>
               <div className="row-flex" style={{ gap: 16, marginBottom: 14, alignItems: "flex-start" }}>
-                <div className="avatar" style={{ width: 84, height: 84, fontSize: 24 }}>
-                  {initials(f.full_name || "?")}
-                </div>
+                {photoPreview ? (
+                  <img
+                    src={photoPreview}
+                    alt={f.full_name}
+                    className="avatar"
+                    style={{ width: 84, height: 84, objectFit: "cover", borderRadius: "50%" }}
+                  />
+                ) : (
+                  <EmployeeAvatar name={f.full_name || "?"} photoUrl={emp?.photo_url} size={84} fontSize={24} />
+                )}
                 <div style={{ flex: 1, minWidth: 200 }}>
+                  <label className="fld" style={{ marginBottom: 10 }}>
+                    <span className="l">Profile photo</span>
+                    <input
+                      className="input"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] ?? null;
+                        setPhotoFile(file);
+                        setPhotoPreview(file ? URL.createObjectURL(file) : null);
+                      }}
+                    />
+                  </label>
                   <div className="grid g2" style={{ gap: "0 16px" }}>
                     {T("full_name", "Full Name")}
                     {T("gender", "Gender", ["Female", "Male", "Other"])}

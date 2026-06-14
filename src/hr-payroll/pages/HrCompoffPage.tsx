@@ -3,12 +3,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
-import { useHrCompoffRequests } from "../hooks/useHrRequests";
+import { useHrCompoffRequests, useHrApprovals } from "../hooks/useHrRequests";
 import { Stat } from "../components/ui/Stat";
 import { StatusBadge } from "../components/ui/StatusBadge";
+import { ApprovalTrail } from "../components/ui/ApprovalTrail";
 import { ModalShell } from "../components/ui/ModalShell";
 import { HR_ORG_ID } from "../lib/constants";
-import { hrAudit } from "../lib/hrApi";
+import { hrAudit, processApprovalDecision, rebuildPayrollLine } from "../lib/hrApi";
 import type { CompoffRequestRow } from "../lib/types";
 
 function CompoffModal({
@@ -115,24 +116,30 @@ function CompoffModal({
 }
 
 export default function HrCompoffPage() {
-  const { can, fire } = useHrAccess();
+  const { can, fire, cycle } = useHrAccess();
   const qc = useQueryClient();
   const { data: compoff = [], isLoading } = useHrCompoffRequests();
+  const compoffIds = compoff.map((c) => c.id);
+  const { data: approvals = [] } = useHrApprovals("compoff", compoffIds);
   const [open, setOpen] = useState(false);
 
   const setStatus = async (row: CompoffRequestRow, status: string) => {
-    const { error } = await supabase
-      .from("compoff_requests" as never)
-      .update({ status } as never)
-      .eq("id", row.id);
-    if (error) {
-      fire(error.message);
-      return;
+    try {
+      const result = (await processApprovalDecision("compoff", row.id, status)) as {
+        status?: string;
+      } | null;
+      if (result?.status === "Approved" && cycle?.id) {
+        await rebuildPayrollLine(row.employee_id, cycle.id);
+      }
+      await hrAudit(`Comp-off ${status}`, row.employees?.full_name ?? row.id, row.status, status);
+      fire(result?.status === "Pending" ? "Stage approved — awaiting next approver" : `Comp-off ${status.toLowerCase()}`);
+      await qc.invalidateQueries({ queryKey: ["hr-compoff"] });
+      await qc.invalidateQueries({ queryKey: ["hr-pending-counts"] });
+      await qc.invalidateQueries({ queryKey: ["hr-approvals"] });
+      await qc.invalidateQueries({ queryKey: ["hr-payroll-lines"] });
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Update failed");
     }
-    await hrAudit(`Comp-off ${status}`, row.employees?.full_name ?? row.id, row.status, status);
-    fire(`Comp-off ${status.toLowerCase()}`);
-    await qc.invalidateQueries({ queryKey: ["hr-compoff"] });
-    await qc.invalidateQueries({ queryKey: ["hr-pending-counts"] });
   };
 
   const remove = async (row: CompoffRequestRow) => {
@@ -206,6 +213,7 @@ export default function HrCompoffPage() {
                   </td>
                   <td>
                     <StatusBadge status={c.status} />
+                    <ApprovalTrail entityId={c.id} approvals={approvals} />
                   </td>
                   <td>
                     <div className="row-flex">

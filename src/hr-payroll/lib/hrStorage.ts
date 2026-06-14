@@ -71,3 +71,26 @@ export async function deleteHrDocument(docId: string, storagePath: string | null
     await supabase.storage.from("hr-docs").remove([storagePath]);
   }
 }
+
+export function hrPhotoStoragePath(employeeId: string, fileName: string): string {
+  const ext = fileName.split(".").pop()?.toLowerCase() || "jpg";
+  return `${HR_ORG_ID}/${employeeId}/photo.${ext}`;
+}
+
+export async function uploadEmployeePhoto(employeeId: string, file: File): Promise<string> {
+  const storagePath = hrPhotoStoragePath(employeeId, file.name);
+
+  const { error: upErr } = await supabase.storage.from("hr-docs").upload(storagePath, file, {
+    upsert: true,
+    contentType: file.type || undefined,
+  });
+  if (upErr) throw upErr;
+
+  const { error } = await supabase
+    .from("employees" as never)
+    .update({ photo_url: storagePath } as never)
+    .eq("id", employeeId);
+  if (error) throw error;
+
+  return storagePath;
+}
