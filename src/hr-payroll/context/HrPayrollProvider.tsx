@@ -77,7 +77,10 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
         .eq("org_id", HR_ORG_ID)
         .eq("staff_id", user!.id)
         .maybeSingle();
-      if (error) throw error;
+      if (error) {
+        console.warn("[HR] role_assignments:", error.message);
+        return null;
+      }
       return data as { role: HrRole } | null;
     },
     retry: false,
@@ -99,7 +102,10 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
         .order("start_date", { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (error) throw error;
+      if (error) {
+        console.warn("[HR] payroll_cycles:", error.message);
+        return null;
+      }
       return data as PayrollCycleRow | null;
     },
     retry: false,
@@ -166,10 +172,13 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
           : rowToPerms(assignedRoleRow),
     [assignedRole, useFallbackActual, assignedRoleRow],
   );
-  const screens = useMemo(
-    () => (useFallbackAccess ? defaultScreensForRole(role) : rowToScreens(roleRow)),
-    [useFallbackAccess, role, roleRow],
-  );
+  const screens = useMemo(() => {
+    const resolved = useFallbackAccess
+      ? defaultScreensForRole(role)
+      : rowToScreens(roleRow);
+    const anyVisible = ALL_HR_SCREENS.some((k) => resolved[k]);
+    return anyVisible ? resolved : defaultScreensForRole(role);
+  }, [useFallbackAccess, role, roleRow]);
 
   const can = useCallback((p: HrPerm) => !!perms[p], [perms]);
   const actualCan = useCallback((p: HrPerm) => !!actualPerms[p], [actualPerms]);

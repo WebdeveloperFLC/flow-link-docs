@@ -28,14 +28,23 @@ npm run test:hr-payroll
 
 ## Optional live DB smoke
 
-Against your **staging** Supabase (after migrations 00–17):
+Against your **staging** Supabase (after migrations 00–17). Use the **real** project URL from Lovable **Cloud → Database** — do **not** paste the `.env.example` placeholder into the shell (it overrides your real `.env`).
+
+**Connectivity only** (uses anon key from `.env`):
+
+```bash
+HR_INTEGRATION_TEST=1 npm run test:hr-payroll
+```
+
+**Full TV02 + employee checks** (needs service role — Lovable **Cloud → Secrets**):
 
 ```bash
 HR_INTEGRATION_TEST=1 \
-VITE_SUPABASE_URL=https://xxx.supabase.co \
-VITE_SUPABASE_PUBLISHABLE_KEY=eyJ... \
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi... \
 npm run test:hr-payroll
 ```
+
+If you see `ENOTFOUND your_project.supabase.co`, you copied the guide example literally — remove the inline `VITE_SUPABASE_URL=...` lines and rely on `.env`.
 
 ---
 

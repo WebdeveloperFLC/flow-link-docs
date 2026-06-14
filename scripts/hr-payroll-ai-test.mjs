@@ -16,5 +16,7 @@ const vitest = spawnSync(
 
 const ok = vitest.status === 0;
 console.log(`\nPre-UAT gate: ${ok ? "✓ PASS — safe to proceed to human UAT" : "✗ FAIL — fix before UAT"}\n`);
-console.log("Optional live DB: VITE_SUPABASE_URL + VITE_SUPABASE_PUBLISHABLE_KEY set → integration-smoke runs\n");
+console.log(
+  "Optional live DB: HR_INTEGRATION_TEST=1 (use .env URL; add SUPABASE_SERVICE_ROLE_KEY for TV02 checks)\n",
+);
 process.exit(ok ? 0 : 1);

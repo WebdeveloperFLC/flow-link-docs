@@ -39,6 +39,7 @@ BEGIN
   ])
   LOOP
     EXECUTE format('DROP POLICY IF EXISTS hr_demo_write_%I ON %I', t, t);
+    EXECUTE format('DROP POLICY IF EXISTS hr_demo_update_%I ON %I', t, t);
     EXECUTE format(
       'CREATE POLICY hr_demo_write_%I ON %I FOR INSERT TO authenticated WITH CHECK (org_id = %L::uuid)',
       t, t, v_demo

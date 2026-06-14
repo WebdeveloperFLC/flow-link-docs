@@ -10,6 +10,7 @@ import {
   type HrScreenKey,
 } from "../lib/constants";
 import { HR_NAV, screenKeyFromPath } from "../lib/nav";
+import { HrModuleErrorBoundary } from "./HrModuleErrorBoundary";
 import { useHrAccess } from "../context/HrAccessContext";
 
 function firstAllowedScreen(canSee: (s: HrScreenKey) => boolean): string | null {
@@ -46,15 +47,46 @@ function HrPayrollLayout() {
         <div className="serif" style={{ fontSize: 18, fontWeight: 600 }}>
           Loading HR module…
         </div>
+        <p className="muted" style={{ fontSize: 13, marginTop: 8 }}>
+          Fetching role permissions and payroll cycle
+        </p>
       </div>
     );
   }
 
+  const fallback = firstAllowedScreen(canSee);
+
   if (!canSee(viewKey)) {
-    const fallback = firstAllowedScreen(canSee);
     if (fallback && fallback !== location.pathname) {
       return <Navigate to={fallback} replace />;
     }
+    return (
+      <div data-hr-payroll className="app" style={{ padding: 48 }}>
+        <div className="card" style={{ maxWidth: 520, margin: "0 auto", padding: 24 }}>
+          <div className="serif" style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>
+            No access to this screen
+          </div>
+          <p className="muted" style={{ fontSize: 13.5, marginBottom: 16 }}>
+            Your current <strong>View as</strong> role ({role}) cannot open{" "}
+            <strong>{title}</strong>. Switch role in the top bar, or ask HR to grant screen access in
+            Team &amp; Roles.
+          </p>
+          {fallback ? (
+            <Link to={fallback} className="btn btn-primary">
+              Go to My Portal
+            </Link>
+          ) : (
+            <p className="muted" style={{ fontSize: 12 }}>
+              No HR screens are enabled for this role. Re-run migration{" "}
+              <code>20260717120008_hr_payroll_demo_rls_bootstrap.sql</code> or reset RBAC in Roles.
+            </p>
+          )}
+          <Link to="/" className="btn" style={{ marginLeft: 8 }}>
+            Main menu
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const permList = HR_PERM_LIST.filter((p) => can(p));
@@ -184,7 +216,9 @@ function HrPayrollLayout() {
                 Edit access in Roles &amp; Access · changes apply instantly
               </span>
             </div>
-            <Outlet />
+            <HrModuleErrorBoundary>
+              <Outlet />
+            </HrModuleErrorBoundary>
           </div>
         </main>
         {toast && <div className="toast">✓ {toast}</div>}
