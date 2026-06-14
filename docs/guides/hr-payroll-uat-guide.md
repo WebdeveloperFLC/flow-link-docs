@@ -22,6 +22,7 @@
 |------|-----|
 | **This guide** | `docs/guides/hr-payroll-uat-guide.md` — setup + workflow (in-app: **Guide → HR Payroll UAT**) |
 | Test case pack (58 cases) | `docs/hr-payroll/HR_PAYROLL_UAT.md` |
+| **UAT kickoff** | `docs/hr-payroll/HR_PAYROLL_UAT_KICKOFF.md` |
 | Tester quick reference | `docs/hr-payroll/HR_PAYROLL_TESTER_QUICKSTART.md` |
 | Defect log | `docs/hr-payroll/HR_PAYROLL_DEFECT_TRACKER.csv` |
 | **SQL verify script** | `docs/hr-payroll/HR_PAYROLL_UAT_VERIFY.sql` — run before Phase 5 |
@@ -38,7 +39,7 @@
 
 | Role | Responsibility |
 |------|----------------|
-| **DevOps / Engineering** | Apply migrations 00–20, publish Lovable build, run demo seed SQL, smoke checklist |
+| **DevOps / Engineering** | Apply migrations 00–21, publish Lovable build, run demo seed SQL, smoke checklist |
 | **Admin (existing staff)** | CRM roles via `/users`; HR module roles via `/hr/roles` → **Team & CRM** |
 | **UAT testers** | Execute `HR_PAYROLL_UAT.md` cases, screenshots, pass/fail |
 | **UAT lead** | Maintain defect tracker, triage severity, complete sign-off form |
@@ -81,6 +82,7 @@ Run in Supabase **SQL Editor** or Lovable **Database → Migrations**.
 | 18 | `20260717120018_hr_payroll_add_up_requirements.sql` | add up.docx Phase 2A — profile, workflows, lifecycle enum |
 | 19 | `20260717120019_hr_payroll_lifecycle_salary_revision.sql` | Process / Approve / Lock / Paid + salary revision history |
 | 20 | `20260717120020_hr_payroll_canada_engine.sql` | Canada CPP/EI engine + `payroll_line_snapshots` on lock |
+| 21 | `20260717120021_hr_payroll_uat_isha_link.sql` | Link Isha FL-1042 to free CRM admin (ESS UAT bootstrap) |
 
 **Verify migrations:**
 
@@ -133,7 +135,7 @@ For each UAT tester who needs HR sidebar access:
 
 3. **Link CRM login → employee** for ESS tests:
    - Team tab → **Import** or Employee Master → edit → **CRM login** = target user.
-   - Demo seed links first CRM **admin** to **Isha (FL-1042)** when admins exist.
+   - Demo seed + migration **21** link first free CRM **admin** to **Isha (FL-1042)**; or run `HR_PAYROLL_UAT_FIX_ISHA_LINK.sql`.
 
 ### 2.3 View-as switcher (RBAC without multiple logins)
 
