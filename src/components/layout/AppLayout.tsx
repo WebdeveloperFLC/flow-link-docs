@@ -203,6 +203,12 @@ const performanceNav: NavItem[] = [
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
   { to: "/performance/configuration", icon: SettingsIcon, label: "Configuration", adminOnly: true },
   {
+    to: "/performance/architecture",
+    icon: Database,
+    label: "Architecture",
+    roles: ["admin", "administrator", "viewer", "director", "manager"],
+  },
+  {
     to: "/performance/roles",
     icon: UserCog,
     label: "Roles & permissions",
