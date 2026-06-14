@@ -5,11 +5,22 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
-import { PerformanceKpiGrid, PerformanceMoneyRail } from "@/components/performance/PerformanceMoneyRail";
+import { PerformanceExecutiveKpiStrip } from "@/components/performance/PerformanceExecutiveKpiStrip";
+import { PerformanceExecutiveBranchChart } from "@/components/performance/PerformanceExecutiveBranchChart";
+import { PerformanceExecutiveServiceMix } from "@/components/performance/PerformanceExecutiveServiceMix";
+import { PerformanceExecutiveLeaderboards } from "@/components/performance/PerformanceExecutiveLeaderboards";
+import { PerformanceExecutiveApprovalsPanel } from "@/components/performance/PerformanceExecutiveApprovalsPanel";
 import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformancePeriodMetrics } from "@/hooks/usePerformancePeriodMetrics";
 import { usePerformanceTeamRows } from "@/hooks/usePerformanceTeamRows";
+import { usePerformanceQueueCounts } from "@/hooks/usePerformanceQueueCounts";
+import { useExecutiveDashboardExtras } from "@/hooks/useExecutiveDashboardExtras";
+import {
+  netMarginPct,
+  totalPendingApprovals,
+  walletUtilizationPct,
+} from "@/incentives/lib/executiveDashboardLogic";
 import { formatInr } from "@/lib/performanceHubTheme";
 import { DIRECTOR_READ_ONLY_TOAST } from "@/lib/performanceDirectorReadOnly";
 import { AlertTriangle } from "lucide-react";
@@ -24,19 +35,16 @@ export default function PerformanceExecutive() {
   const canView = isAdmin || hasRole(["viewer", "director"]);
 
   const metrics = usePerformancePeriodMetrics(period, branchLabel);
+  const queues = usePerformanceQueueCounts(period);
   const { rows: teamRows, loading: teamLoading } = usePerformanceTeamRows(period, branchLabel);
+  const extras = useExecutiveDashboardExtras(period);
 
   const branchRows = useMemo(() => {
-    const map = new Map<
-      string,
-      { revenue: number; walletSpent: number; headcount: number; achSum: number; achCount: number }
-    >();
+    const map = new Map<string, { revenue: number; achSum: number; achCount: number }>();
     for (const r of teamRows) {
       const key = r.branchName ?? "Unassigned";
-      const cur = map.get(key) ?? { revenue: 0, walletSpent: 0, headcount: 0, achSum: 0, achCount: 0 };
+      const cur = map.get(key) ?? { revenue: 0, achSum: 0, achCount: 0 };
       cur.revenue += r.netRevenue;
-      cur.walletSpent += r.walletSpent;
-      cur.headcount += 1;
       if (r.targetPct != null) {
         cur.achSum += r.targetPct;
         cur.achCount += 1;
@@ -47,11 +55,27 @@ export default function PerformanceExecutive() {
       .map(([name, v]) => ({
         name,
         revenue: v.revenue,
-        walletSpent: v.walletSpent,
         achievementPct: v.achCount ? Math.round(v.achSum / v.achCount) : null,
       }))
       .sort((a, b) => b.revenue - a.revenue);
   }, [teamRows]);
+
+  const counselorRows = useMemo(
+    () =>
+      [...teamRows]
+        .sort((a, b) => b.netRevenue - a.netRevenue)
+        .map((r) => ({
+          name: r.name,
+          branchName: r.branchName,
+          netRevenue: r.netRevenue,
+          targetPct: r.targetPct,
+        })),
+    [teamRows],
+  );
+
+  const margin = netMarginPct(metrics.netRevenue, metrics.verifiedRevenue);
+  const walletUtil = walletUtilizationPct(metrics.walletUnlocked, metrics.walletPotential);
+  const pendingTotal = totalPendingApprovals(queues);
 
   if (authLoading) return null;
   if (!canView) return <Navigate to="/performance" replace />;
@@ -70,16 +94,16 @@ export default function PerformanceExecutive() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 max-w-6xl">
+      <div className="p-6 space-y-6 max-w-7xl">
         <PerformanceHubHeader
-          title="Executive dashboard"
-          subtitle={`Firm-wide performance · ${period} · ${branchLabel}`}
+          title="Executive command center"
+          subtitle={`Firm-wide commercial performance · ${period} · ${branchLabel}`}
           period={period}
           showModuleLegend={false}
         />
 
         {readOnly && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm ph-muted">
             <Badge variant="secondary">Read-only</Badge>
             <span>
               {isDirectorOnly
@@ -92,64 +116,50 @@ export default function PerformanceExecutive() {
         <PerformancePeriodBar />
 
         {!readOnly && (
-          <Link to="/performance/admin" className="text-sm text-primary hover:underline">
+          <Link
+            to="/performance/admin"
+            className="text-sm hover:underline"
+            style={{ color: "var(--blue)" }}
+          >
             Open command center →
           </Link>
         )}
 
-        {isDirectorOnly && (
-          <p className="text-xs text-muted-foreground">
-            Alert actions open the Finance workflow — contact admin to calculate, lock, or pay out.
-          </p>
-        )}
-
-        <PerformanceKpiGrid
-          loading={metrics.loading}
+        <PerformanceExecutiveKpiStrip
+          loading={metrics.loading || queues.loading}
           items={[
             {
-              label: "Verified revenue",
-              value: formatInr(metrics.verifiedRevenue),
               module: "cash",
-              hint: "Qualifying achievement",
+              label: "Total revenue (INR base)",
+              value: formatInr(metrics.verifiedRevenue),
+              hint: `Net ${formatInr(metrics.netRevenue)} after discounts`,
               testId: "kpi-revenue",
             },
             {
-              label: "Net after discounts",
-              value: formatInr(metrics.netRevenue),
               module: "cash",
+              label: "Net margin",
+              value: margin != null ? `${margin}%` : "—",
+              hint: "Net revenue ÷ verified revenue",
             },
             {
-              label: "Cash incentive due",
-              value: metrics.runLocked
-                ? formatInr(metrics.cashIncentiveDue)
-                : metrics.cashIncentiveDue > 0
-                  ? `${formatInr(metrics.cashIncentiveDue)} (preview)`
-                  : "—",
-              module: "cash",
-            },
-            {
+              module: "wallet",
               label: "Wallet unlocked",
               value: formatInr(metrics.walletUnlocked),
-              module: "wallet",
-              hint: `${formatInr(metrics.walletPotential)} potential`,
+              hint: `${walletUtil}% utilization · ${formatInr(metrics.walletPotential)} potential`,
               testId: "kpi-wallet-unlocked",
             },
             {
-              label: "Offers redeemed",
-              value: String(metrics.offersRedeemed),
               module: "offers",
-            },
-            {
-              label: "Payouts",
-              value: metrics.payoutCount > 0 ? String(metrics.payoutCount) : metrics.runLocked ? "0 pending" : "—",
-              module: "cash",
+              label: "Pending approvals",
+              value: String(pendingTotal),
+              hint: `${queues.pendingApprovals} discounts · ${queues.walletExceptions} wallet · ${queues.promotionRequests} promos`,
             },
           ]}
         />
 
         {(isDirectorOnly || !readOnly) && alerts.length > 0 && (
-          <Card className="p-4 border-l-4 border-l-amber-500 bg-amber-500/5">
-            <div className="flex items-center gap-2 text-sm font-medium mb-2">
+          <Card className="p-4 ph-surface-card border-l-4 border-l-amber-500">
+            <div className="flex items-center gap-2 text-sm font-medium mb-2 ph-heading">
               <AlertTriangle className="size-4 text-amber-600" /> Alerts
             </div>
             <ul className="space-y-2 text-sm">
@@ -159,13 +169,14 @@ export default function PerformanceExecutive() {
                   {isDirectorOnly ? (
                     <button
                       type="button"
-                      className="text-primary font-medium shrink-0 underline-offset-4 hover:underline"
+                      className="font-medium shrink-0 hover:underline"
+                      style={{ color: "var(--blue)" }}
                       onClick={() => toast.info(DIRECTOR_READ_ONLY_TOAST)}
                     >
                       Open in Finance workflow
                     </button>
                   ) : (
-                    <Link to={a.to} className="text-primary font-medium shrink-0">
+                    <Link to={a.to} className="font-medium shrink-0" style={{ color: "var(--blue)" }}>
                       Open →
                     </Link>
                   )}
@@ -175,104 +186,22 @@ export default function PerformanceExecutive() {
           </Card>
         )}
 
-        <Card className="p-5">
-          <h2 className="text-lg font-semibold mb-4">Branch comparison</h2>
-          {teamLoading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : branchRows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No branch data this period.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-left text-muted-foreground border-b">
-                  <tr>
-                    <th className="py-2 pr-4">Branch</th>
-                    <th className="py-2 pr-4 text-right">Avg achievement</th>
-                    <th className="py-2 pr-4 text-right">Net revenue</th>
-                    <th className="py-2 pr-4 text-right">Wallet spent</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {branchRows.map((b) => (
-                    <tr key={b.name} className="border-b last:border-0">
-                      <td className="py-2 pr-4 font-medium">{b.name}</td>
-                      <td className="py-2 pr-4 text-right">
-                        {b.achievementPct != null ? `${b.achievementPct}%` : "—"}
-                      </td>
-                      <td className="py-2 pr-4 text-right tabular-nums">{formatInr(b.revenue)}</td>
-                      <td className="py-2 pr-4 text-right tabular-nums">{formatInr(b.walletSpent)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <PerformanceExecutiveBranchChart rows={branchRows} loading={teamLoading} />
+          <PerformanceExecutiveServiceMix slices={extras.serviceMix} loading={extras.loading} />
+        </div>
 
-        <Card className="p-5">
-          <h2 className="text-lg font-semibold mb-4">All-team performance</h2>
-          {teamLoading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : teamRows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No team members with targets or wallets this period.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-left text-muted-foreground border-b">
-                  <tr>
-                    <th className="py-2 pr-3">#</th>
-                    <th className="py-2 pr-3">Name</th>
-                    <th className="py-2 pr-3">Branch</th>
-                    <th className="py-2 pr-3">Role</th>
-                    <th className="py-2 pr-3 text-right">Target %</th>
-                    <th className="py-2 pr-3 text-right">Net revenue</th>
-                    <th className="py-2 pr-3 text-right">Wallet spendable</th>
-                    <th className="py-2 pr-3 text-right">Cash</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {teamRows.map((r, i) => (
-                    <tr key={r.counselorId} className="border-b last:border-0">
-                      <td className="py-2 pr-3 text-muted-foreground">{i + 1}</td>
-                      <td className="py-2 pr-3 font-medium">{r.name}</td>
-                      <td className="py-2 pr-3">{r.branchName ?? "—"}</td>
-                      <td className="py-2 pr-3 capitalize">{r.roleLabel.replace(/_/g, " ")}</td>
-                      <td className="py-2 pr-3 text-right">
-                        {r.targetPct != null ? `${Math.round(r.targetPct)}%` : "—"}
-                      </td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{formatInr(r.netRevenue)}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{formatInr(r.walletSpendable)}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">
-                        {r.cashLocked != null ? formatInr(r.cashLocked) : formatInr(r.cashProjected)}
-                        {r.cashLocked == null && (
-                          <span className="text-[10px] text-muted-foreground block">projected</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          {readOnly && (
-            <p className="text-xs text-muted-foreground mt-3">
-              Finance closes periods and locks runs from the command center — this view is read-only.
-            </p>
-          )}
-        </Card>
+        <PerformanceExecutiveLeaderboards
+          branchRows={branchRows}
+          counselorRows={counselorRows}
+          loading={teamLoading}
+        />
 
-        <Card className="p-5">
-          <h2 className="text-lg font-semibold mb-3">Money flow</h2>
-          <PerformanceMoneyRail
-            loading={metrics.loading}
-            steps={[
-              { label: "Verified revenue", value: metrics.verifiedRevenue, module: "cash" },
-              { label: "− Discounts", value: metrics.discountTotal, module: "offers" },
-              { label: "= Net revenue", value: metrics.netRevenue, module: "cash" },
-              { label: "Cash due", value: metrics.cashIncentiveDue, module: "cash" },
-            ]}
-          />
-        </Card>
+        <PerformanceExecutiveApprovalsPanel
+          items={extras.approvalPreview}
+          loading={extras.loading || queues.loading}
+          totalPending={pendingTotal}
+        />
       </div>
     </AppLayout>
   );
