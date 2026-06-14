@@ -12,7 +12,7 @@
 
 ## Global preconditions
 
-- Migrations `20260717120000` through `20260717120021` applied; Lovable Publish complete.
+- Migrations `20260717120000` through `20260717120022` applied; Lovable Publish complete.
 - Demo seed (migrations 03 + 07) loaded.
 - HR module visible in sidebar (module permission or admin).
 - At least one user with **HR Manager** in `/hr/roles` → Team & CRM.

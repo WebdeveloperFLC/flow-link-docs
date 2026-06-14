@@ -1,7 +1,7 @@
 # HR Payroll — UAT kickoff (staging ready)
 
 **Branch:** `feature/service-library-nav`  
-**When:** After migrations **00–21** applied + Lovable Publish
+**When:** After migrations **00–22** applied + Lovable Publish
 
 ---
 
