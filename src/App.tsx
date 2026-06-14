@@ -169,6 +169,7 @@ import PerformanceHome from "@/pages/PerformanceHome";
 import PerformanceCommandCenter from "@/pages/PerformanceCommandCenter";
 import PerformanceExecutive from "@/pages/PerformanceExecutive";
 import PerformanceFinance from "@/pages/PerformanceFinance";
+import PerformanceRevenueAnalytics from "@/pages/PerformanceRevenueAnalytics";
 import PerformanceTeam from "@/pages/PerformanceTeam";
 import PerformanceWalletPolicy from "@/pages/PerformanceWalletPolicy";
 import PerformanceWallets from "@/pages/PerformanceWallets";
@@ -565,6 +566,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceFinance />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/analytics"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceRevenueAnalytics />
                       </ProtectedRoute>
                     }
                   />
