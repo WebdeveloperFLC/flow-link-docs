@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
 import { useHrPayrollLine } from "../hooks/useHrPayroll";
@@ -6,7 +8,6 @@ import { useHrDocuments, useHrLeaveBalances } from "../hooks/useHrRequests";
 import { useHrShifts } from "../hooks/useHrShifts";
 import { useHrAttendance } from "../hooks/useHrAttendance";
 import { useAttendanceActions } from "../hooks/useAttendanceActions";
-import { EmployeeSeg } from "../components/ui/EmployeeSeg";
 import { Stat } from "../components/ui/Stat";
 import { PunchStation } from "../components/attendance/PunchStation";
 import { EmployeeAvatar } from "../components/ui/EmployeeAvatar";
@@ -15,27 +16,51 @@ import { inr } from "../lib/format";
 import { printSalarySlip } from "../lib/salarySlip";
 
 export default function HrEssPage() {
+  const { user } = useAuth();
   const { can, cycle, fire } = useHrAccess();
   const { data: employees = [] } = useHrEmployees();
   const { data: shifts = [] } = useHrShifts();
-  const [empId, setEmpId] = useState("");
-  const emp = employees.find((e) => e.id === empId) ?? employees[0];
-  const shift = shifts.find((s) => s.id === emp?.shift_id) ?? shifts[0];
 
-  useEffect(() => {
-    if (!empId && employees[0]) setEmpId(employees[0].id);
-  }, [empId, employees]);
+  const emp = useMemo(
+    () => employees.find((e) => e.staff_id === user?.id),
+    [employees, user?.id],
+  );
+  const shift = shifts.find((s) => s.id === emp?.shift_id) ?? shifts[0];
 
   const { data: att = [] } = useHrAttendance(emp?.id, cycle?.start_date, cycle?.end_date);
   const { data: line } = useHrPayrollLine(emp?.id, cycle?.id);
   const { data: docs = [] } = useHrDocuments(emp?.id);
   const { data: leaveBalances = [] } = useHrLeaveBalances(emp?.id);
-  const actions = useAttendanceActions(cycle?.id, fire);
+  const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, fire);
 
   const today = todayIso();
   const todayRow = att.find((a) => a.work_date === today) ?? null;
 
-  if (!emp || !shift) return <div className="empty">No employee profile linked.</div>;
+  if (!emp) {
+    return (
+      <div className="card" style={{ padding: 24 }}>
+        <div className="serif" style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>
+          No employee profile linked
+        </div>
+        <p className="muted" style={{ fontSize: 13.5, marginBottom: 16, maxWidth: 520 }}>
+          My Portal (ESS) shows the employee record linked to your login. Admins and staff must be
+          linked in Team &amp; CRM before punching here — you cannot punch on behalf of another demo
+          employee from this screen.
+        </p>
+        {can("configure") || can("manageEmp") ? (
+          <Link to="/hr/roles" className="btn btn-primary">
+            Open Team &amp; CRM
+          </Link>
+        ) : (
+          <p className="muted" style={{ fontSize: 13 }}>
+            Ask HR to link your staff account to an employee profile.
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  if (!shift) return <div className="empty">Shift not configured for your profile.</div>;
 
   const r = line ?? {
     daily_rate: emp.monthly_gross / (cycle?.payroll_days ?? 30),
@@ -54,8 +79,8 @@ export default function HrEssPage() {
   return (
     <div className="grid" style={{ gap: 16 }}>
       <div className="card-h">
-        <EmployeeSeg employees={employees} selectedId={emp.id} onSelect={setEmpId} />
-        <span className="tag">own portal</span>
+        <span className="tag">My Portal</span>
+        <span className="tag">{emp.emp_code}</span>
       </div>
 
       <div className="card" style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>

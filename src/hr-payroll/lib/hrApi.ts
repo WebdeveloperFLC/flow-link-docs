@@ -105,13 +105,14 @@ export async function recordPunch(attendanceId: string, field: string) {
     p_field: field,
   } as never);
   if (error) throw error;
-  return data;
+  return data as import("./types").AttendanceRow;
 }
 
-export async function startAttendanceDay(employeeId: string) {
+export async function startAttendanceDay(employeeId: string, workDate: string) {
   const { data, error } = await supabase.rpc("fn_start_attendance_day" as never, {
     p_employee: employeeId,
+    p_work_date: workDate,
   } as never);
   if (error) throw error;
-  return data;
+  return data as import("./types").AttendanceRow;
 }
