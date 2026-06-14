@@ -150,6 +150,7 @@ const performanceNav: NavItem[] = [
   { to: "/performance/executive", icon: BarChart2, label: "Executive dashboard", roles: ["admin", "administrator", "viewer", "director"] },
   { to: "/performance/finance", icon: Banknote, label: "Finance dashboard", adminOnly: true },
   { to: "/performance/analytics", icon: BarChart2, label: "Revenue analytics", roles: ["admin", "administrator", "viewer", "director", "manager"] },
+  { to: "/performance/compare", icon: GitMerge, label: "Comparison", roles: ["admin", "administrator", "viewer", "director", "manager"] },
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
   {
     to: "/performance/admin/approvals",
