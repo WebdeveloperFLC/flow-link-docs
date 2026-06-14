@@ -9,12 +9,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
-import { PerformanceMetricCard } from "@/components/performance/PerformanceMetricCard";
+import { PerformanceHomeKpiStrip } from "@/components/performance/PerformanceHomeKpiStrip";
+import { PerformanceWalletAllocationCard } from "@/components/performance/PerformanceWalletAllocationCard";
+import { PerformanceIncentiveProgressCard } from "@/components/performance/PerformanceIncentiveProgressCard";
+import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
 import { PerformanceTelecallerHome } from "@/components/performance/PerformanceTelecallerHome";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformanceHomeData } from "@/hooks/usePerformanceHomeData";
 import { formatInr } from "@/lib/performanceHubTheme";
-import { noTargetAchievementDetail, NO_TARGET_WALLET_NOTE } from "@/lib/performanceNoTargetCopy";
+import { noTargetAchievementDetail } from "@/lib/performanceNoTargetCopy";
 import { toast } from "sonner";
 import { Trophy, TrendingUp, Wallet, Megaphone } from "lucide-react";
 
@@ -169,70 +172,53 @@ export default function PerformanceHome() {
     <AppLayout>
       <div className="p-6 space-y-6 max-w-6xl">
         <PerformanceHubHeader
-          title="My performance"
-          subtitle={`Incentives, wallet and offers in one home — ${data.period}`}
+          title="My commercial performance"
+          subtitle={`Revenue, wallet and incentives — ${data.period}`}
           profileName={data.profileName}
           branchName={data.branchName}
           period={data.period}
           primaryAction={{ label: "Give discount", to: "/performance/give-discount" }}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <PerformanceMetricCard
-            module="cash"
-            label="Target achievement"
-            value={data.loading ? "…" : hasNoTarget ? "—" : achPct != null ? `${achPct}%` : "—"}
-            detail={data.loading ? null : targetLabel}
-          />
-          <PerformanceMetricCard
-            module="wallet"
-            label="Discount wallet"
-            value={
-              data.loading
-                ? "…"
-                : data.wallet
-                  ? formatInr(data.wallet.spendable, data.wallet.currency)
-                  : "—"
-            }
-            detail={
-              data.wallet ? (
-                <>
-                  <span className="font-medium text-foreground">Spendable now</span>
-                  {" · "}
-                  {formatInr(data.wallet.unlocked, data.wallet.currency)} unlocked of{" "}
-                  {formatInr(data.wallet.potential, data.wallet.currency)} potential
-                  {" · "}
-                  {formatInr(data.wallet.spent, data.wallet.currency)} spent
-                  {hasNoTarget && (
-                    <>
-                      <br />
-                      <span className="text-amber-700">{NO_TARGET_WALLET_NOTE}</span>
-                    </>
-                  )}
-                </>
-              ) : (
-                "No wallet this period"
-              )
-            }
-          />
-          <PerformanceMetricCard
-            module="cash"
-            label={data.hasLockedRun ? "Cash incentive (locked)" : "Cash incentive (projected)"}
-            value={
-              data.loading
-                ? "…"
-                : formatInr(data.hasLockedRun ? data.earnedLocked : data.earnedProjected, "INR")
-            }
-            footer={
-              data.hasLockedRun
-                ? `Locked run total ${formatInr(data.earnedLocked, "INR")} · projected month-end ${formatInr(data.earnedProjected, "INR")}`
-                : data.earningRefreshedAt
-                  ? data.earningLive
-                    ? `Live ticker · last ${new Date(data.earningRefreshedAt).toLocaleTimeString()} · 60s poll fallback`
-                    : `Refreshes every 60s · last ${new Date(data.earningRefreshedAt).toLocaleTimeString()} · pays after finance locks the run`
-                  : "Pays after finance locks the period run"
-            }
-          />
+        <PerformancePeriodBar />
+
+        <PerformanceHomeKpiStrip
+          loading={data.loading}
+          items={[
+            {
+              module: "cash",
+              label: "Revenue booked",
+              value: formatInr(data.revenueAchieved, data.revenueCurrency),
+              hint: data.breakdown
+                ? `${data.breakdown.eventCount} qualifying events this period`
+                : "Net qualifying revenue",
+              testId: "kpi-revenue",
+            },
+            {
+              module: "offers",
+              label: "Qualifying events",
+              value: data.breakdown ? String(data.breakdown.eventCount) : "—",
+              hint: "Coaching · visa · admissions · allied",
+            },
+            {
+              module: "wallet",
+              label: "Target achievement",
+              value: hasNoTarget ? "—" : achPct != null ? `${achPct}%` : "—",
+              hint: hasNoTarget ? noTargetAchievementDetail(data.period) : targetLabel,
+            },
+            {
+              module: "cash",
+              label: data.hasLockedRun ? "Incentive earned" : "Incentive projected",
+              value: formatInr(data.hasLockedRun ? data.earnedLocked : data.earnedProjected, "INR"),
+              hint: data.hasLockedRun ? "Locked run total" : "Month-end projection",
+              testId: "kpi-incentive-earned",
+            },
+          ]}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <PerformanceWalletAllocationCard data={data} />
+          <PerformanceIncentiveProgressCard data={data} />
         </div>
 
         {offerInfluence && (
@@ -315,8 +301,8 @@ export default function PerformanceHome() {
           </Card>
         )}
 
-        {data.planStack.length > 0 && (
-          <Card className="p-5">
+        {data.planStack.length > 0 && data.planStack.length > 4 && (
+          <Card className="p-5 ph-surface-card">
             <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
               <Trophy className="size-5 text-primary" />
               Stacked plans (I7)

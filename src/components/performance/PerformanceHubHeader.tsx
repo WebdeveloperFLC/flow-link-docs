@@ -28,7 +28,7 @@ export function PerformanceHubHeader({
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest ph-muted">
-            Future Link · Performance Hub
+            Future Link · Commercial Management
           </p>
           <h1 className="text-2xl font-semibold mt-1 ph-heading">{title}</h1>
           {subtitle && <p className="text-sm ph-muted mt-1">{subtitle}</p>}

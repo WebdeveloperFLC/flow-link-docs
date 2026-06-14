@@ -41,6 +41,16 @@ export interface PerformanceHomeData {
     run_locked: boolean;
   }[];
   planStackTotal: number;
+  walletLabel: string | null;
+  walletExpiresLabel: string | null;
+  recentDiscounts: {
+    id: string;
+    label: string;
+    amount: number;
+    currency: string;
+    status: string;
+    note?: string | null;
+  }[];
 }
 
 export function usePerformanceHomeData(userId: string | undefined, period = currentPeriodKey()): PerformanceHomeData {
@@ -63,6 +73,9 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
     payouts: [],
     planStack: [],
     planStackTotal: 0,
+    walletLabel: null,
+    walletExpiresLabel: null,
+    recentDiscounts: [],
   });
 
   useEffect(() => {
@@ -77,7 +90,7 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
         supabase
           .from("discount_wallets")
           .select(
-            "id, currency, assigned_target, potential_wallet, unlocked_amount, achievement_pct, budget_kind",
+            "id, name, currency, assigned_target, potential_wallet, unlocked_amount, achievement_pct, budget_kind, valid_to",
           )
           .eq("counselor_id", userId)
           .eq("period_key", period)
@@ -119,6 +132,8 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
 
       const walletRows = (w.data ?? []) as {
         id?: string;
+        name?: string | null;
+        valid_to?: string | null;
         currency?: string;
         assigned_target?: number;
         potential_wallet?: number;
@@ -205,6 +220,79 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
       }[]) ?? [];
       const planStackTotal = planStackRows.reduce((s, r) => s + Number(r.earned_amount ?? 0), 0);
 
+      let recentDiscounts: PerformanceHomeData["recentDiscounts"] = [];
+      let walletLabel: string | null = null;
+      let walletExpiresLabel: string | null = null;
+
+      if (walletRow?.id) {
+        walletLabel = walletRow.name?.trim() || "Month-to-month wallet";
+        if (walletRow.valid_to) {
+          walletExpiresLabel = new Date(walletRow.valid_to).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          });
+        }
+
+        const [allocRes, pendingRes] = await Promise.all([
+          supabase
+            .from("wallet_allocations")
+            .select("id, amount, currency, status, client_id, clients(full_name)")
+            .eq("wallet_id", walletRow.id)
+            .order("created_at", { ascending: false })
+            .limit(5),
+          supabase
+            // @ts-expect-error discount_approval_requests not in generated types yet (PH-R-016)
+            .from("discount_approval_requests")
+            .select("id, discount_amount, status, request_note, client_id, clients(full_name)")
+            .eq("counselor_id", userId)
+            .eq("period_key", period)
+            .eq("status", "pending")
+            .order("created_at", { ascending: false })
+            .limit(3),
+        ]);
+
+        const pendingRows = (pendingRes.data ?? []) as {
+          id: string;
+          discount_amount: number;
+          status: string;
+          request_note: string | null;
+          client_id: string | null;
+          clients: { full_name: string | null } | null;
+        }[];
+
+        for (const row of pendingRows) {
+          recentDiscounts.push({
+            id: `apr-${row.id}`,
+            label: row.clients?.full_name ?? "Pending approval",
+            amount: Number(row.discount_amount ?? 0),
+            currency: walletRow.currency ?? "INR",
+            status: "pending",
+            note: row.request_note,
+          });
+        }
+
+        const allocRows = (allocRes.data ?? []) as {
+          id: string;
+          amount: number;
+          currency: string;
+          status: string;
+          client_id: string | null;
+          clients: { full_name: string | null } | null;
+        }[];
+
+        for (const row of allocRows) {
+          recentDiscounts.push({
+            id: row.id,
+            label: row.clients?.full_name ?? "Client discount",
+            amount: Number(row.amount ?? 0),
+            currency: row.currency ?? walletRow.currency ?? "INR",
+            status: row.status,
+          });
+        }
+        recentDiscounts = recentDiscounts.slice(0, 5);
+      }
+
       if (cancelled) return;
 
       setState({
@@ -255,6 +343,9 @@ export function usePerformanceHomeData(userId: string | undefined, period = curr
           run_locked: Boolean(r.run_locked),
         })),
         planStackTotal,
+        walletLabel,
+        walletExpiresLabel,
+        recentDiscounts,
       });
     })();
 
