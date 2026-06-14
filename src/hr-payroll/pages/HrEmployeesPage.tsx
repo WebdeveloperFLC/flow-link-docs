@@ -163,6 +163,7 @@ export default function HrEmployeesPage() {
       </div>
       {edit && ref && (
         <EmployeeFormModal
+          key={edit === "new" ? "new" : edit.id}
           emp={edit === "new" ? null : edit}
           companies={ref.companies}
           branches={ref.branches}

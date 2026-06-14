@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useHrCrmStaff } from "../../hooks/useHrTeam";
 import { displayEmployeeName, formatMoney, initials, parseEmergencyContacts } from "../../lib/format";
 import { useSalaryRevisions } from "../../hooks/useSalaryRevisions";
 import type { EmployeeRow } from "../../lib/types";
@@ -9,9 +10,18 @@ type Tab = "profile" | "employment" | "salary" | "statutory" | "bank" | "documen
 export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClose: () => void }) {
   const [tab, setTab] = useState<Tab>("profile");
   const { data: revisions = [] } = useSalaryRevisions(emp.id);
+  const { data: crmStaff = [] } = useHrCrmStaff();
   const currency = emp.salary_currency ?? emp.companies?.currency ?? "INR";
   const money = (n: number) => formatMoney(n, currency);
   const contacts = parseEmergencyContacts(emp.emergency_contacts);
+  const linkedCrm = emp.staff_id ? crmStaff.find((s) => s.staff_id === emp.staff_id) : null;
+  const crmLoginLabel = linkedCrm
+    ? linkedCrm.email
+      ? `${linkedCrm.full_name} (${linkedCrm.email})`
+      : linkedCrm.full_name
+    : emp.staff_id
+      ? "Linked (CRM login)"
+      : "— not linked —";
 
   const Row = ({ k, v }: { k: string; v: string | null | undefined }) => (
     <div>
@@ -96,6 +106,7 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
               <Row k="Notice Period" v={emp.notice_period} />
               <Row k="Work Week (from shift)" v={emp.work_week} />
               <Row k="Status" v={emp.status} />
+              <Row k="CRM login (ESS)" v={crmLoginLabel} />
               <Row
                 k="Shift"
                 v={

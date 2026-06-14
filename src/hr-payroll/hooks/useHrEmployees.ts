@@ -20,6 +20,25 @@ export function useHrEmployees() {
   });
 }
 
+/** Fresh single-employee fetch (avoids stale list cache for staff_id / CRM link). */
+export function useHrEmployee(employeeId: string | undefined) {
+  return useQuery({
+    queryKey: ["hr-employee", HR_ORG_ID, employeeId],
+    enabled: !!employeeId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("employees" as never)
+        .select(
+          "*, companies(name, legal_name, currency), branches(name), shifts(name, login_time, logout_time, working_days_per_week)",
+        )
+        .eq("id", employeeId!)
+        .single();
+      if (error) throw error;
+      return data as EmployeeRow;
+    },
+  });
+}
+
 export function useHrReferenceData() {
   return useQuery({
     queryKey: ["hr-reference", HR_ORG_ID],
