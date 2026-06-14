@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "test:rules": "vitest run qa/rules",
     "test:regression": "vitest run qa/regression",
+    "test:hr-payroll": "node scripts/hr-payroll-ai-test.mjs",
     "test:e2e": "playwright test",
     "ship": "bash scripts/ship.sh"
   },
