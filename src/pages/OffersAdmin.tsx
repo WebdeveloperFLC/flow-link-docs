@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Plus, Trash2, Tag, Users, Pencil, Ticket, Copy, History, Loader2 } from "lucide-react";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
@@ -29,6 +29,20 @@ import {
   offerStatusLabel,
 } from "@/lib/offers/lifecycle";
 import type { Database } from "@/integrations/supabase/types";
+import { PerformanceExecutiveKpiStrip } from "@/components/performance/PerformanceExecutiveKpiStrip";
+import { PerformanceOfferLifecycleStrip } from "@/components/performance/PerformanceOfferLifecycleStrip";
+import { PerformanceOfferManagementTable } from "@/components/performance/PerformanceOfferManagementTable";
+import { PerformanceOfferConflictPanel } from "@/components/performance/PerformanceOfferConflictPanel";
+import {
+  PerformanceOfferProposalPanel,
+  type OfferProposalPreview,
+} from "@/components/performance/PerformanceOfferProposalPanel";
+import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
+import {
+  filterOffersByLifecycleStep,
+  lifecycleCounts,
+  type OfferLifecycleStep,
+} from "@/incentives/lib/offerManagementLogic";
 
 type OfferRow = Database["public"]["Tables"]["offers"]["Row"];
 type Offer = OfferRow;
@@ -84,31 +98,97 @@ export default function OffersAdmin() {
   );
 }
 
-export function OffersTab({ canEdit }: { canEdit: boolean }) {
+export function OffersTab({ canEdit, layout = "cards" }: { canEdit: boolean; layout?: "cards" | "cms" }) {
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [offersLoading, setOffersLoading] = useState(true);
   const [editing, setEditing] = useState<Offer | null>(null);
   const [open, setOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [lifecycleFilter, setLifecycleFilter] = useState<OfferLifecycleStep | "all">("all");
   const [historyOffer, setHistoryOffer] = useState<Offer | null>(null);
   const [historyRows, setHistoryRows] = useState<
     { from_status: string | null; to_status: string; note: string | null; created_at: string }[]
   >([]);
   const [statusBusyId, setStatusBusyId] = useState<string | null>(null);
+  const isCms = layout === "cms";
+  const { period: periodKey } = usePerformancePeriod();
+  const [dashboard, setDashboard] = useState<{
+    active_count: number;
+    pending_review: number;
+    draft_count: number;
+    expiring_within_14d: number;
+    redemptions_in_period: number;
+  } | null>(null);
+  const [dashboardBusy, setDashboardBusy] = useState(false);
+  const [proposalPreview, setProposalPreview] = useState<OfferProposalPreview[]>([]);
+  const [proposalsBusy, setProposalsBusy] = useState(false);
 
   const load = async () => {
+    setOffersLoading(true);
     const { data, error } = await supabase.from("offers").select("*").order("created_at", { ascending: false });
     if (error) {
       toast.error(formatSupabaseError(error, "Could not load offers"));
+      setOffersLoading(false);
       return;
     }
     setOffers((data ?? []) as Offer[]);
+    setOffersLoading(false);
   };
   useEffect(() => {
     load();
   }, []);
 
+  useEffect(() => {
+    if (!isCms) return;
+    let cancelled = false;
+    (async () => {
+      setDashboardBusy(true);
+      const { data } = await supabase.rpc("fn_offer_studio_dashboard", { _period_key: periodKey });
+      if (!cancelled) {
+        setDashboard(data as typeof dashboard);
+        setDashboardBusy(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isCms, periodKey]);
+
+  useEffect(() => {
+    if (!isCms) return;
+    let cancelled = false;
+    (async () => {
+      setProposalsBusy(true);
+      const { data } = await supabase
+        // @ts-expect-error promotion_requests not in generated types yet (PH-R-016)
+        .from("promotion_requests")
+        .select("id, title, status, requester:profiles!promotion_requests_requested_by_fkey(full_name)")
+        .in("status", ["pending", "submitted", "manager_review"])
+        .order("created_at", { ascending: false })
+        .limit(3);
+      if (cancelled) return;
+      setProposalPreview(
+        ((data ?? []) as { id: string; title: string; status: string; requester?: { full_name: string | null } | null }[]).map(
+          (r) => ({
+            id: r.id,
+            title: r.title,
+            requesterName: r.requester?.full_name ?? "Unknown",
+            statusLabel: r.status.replace(/_/g, " "),
+            statusClass: "bg-amber-100 text-amber-800",
+          }),
+        ),
+      );
+      setProposalsBusy(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isCms]);
+
   const filtered =
     statusFilter === "all" ? offers : offers.filter((o) => (o.status ?? "draft") === statusFilter);
+  const cmsFiltered = filterOffersByLifecycleStep(offers, lifecycleFilter);
+  const lifecycleBucketCounts = lifecycleCounts(offers);
 
   const remove = async (id: string) => {
     if (!canEdit || !confirm("Delete this offer?")) return;
@@ -170,6 +250,82 @@ export function OffersTab({ canEdit }: { canEdit: boolean }) {
 
   return (
     <div className="space-y-4">
+      {isCms ? (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm ph-muted">Full lifecycle — percentage, fixed, bundle, and seasonal promotions.</p>
+            {canEdit && (
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="outline">
+                  <Link to="/performance/offers/new">Create offer (wizard)</Link>
+                </Button>
+                <Button
+                  onClick={() => {
+                    setEditing(null);
+                    setOpen(true);
+                  }}
+                >
+                  <Plus className="size-4 mr-1" />
+                  Quick create
+                </Button>
+              </div>
+            )}
+          </div>
+          <PerformanceExecutiveKpiStrip
+            loading={dashboardBusy || offersLoading}
+            items={[
+              {
+                module: "offers",
+                label: "Live offers",
+                value: String(dashboard?.active_count ?? 0),
+                hint: `${dashboard?.pending_review ?? 0} pending review`,
+              },
+              {
+                module: "wallet",
+                label: "Expiring ≤14d",
+                value: String(dashboard?.expiring_within_14d ?? 0),
+                hint: `${dashboard?.draft_count ?? 0} drafts`,
+              },
+              {
+                module: "cash",
+                label: `Redemptions · ${periodKey}`,
+                value: String(dashboard?.redemptions_in_period ?? 0),
+                hint: "Period-scoped redemptions",
+              },
+              {
+                module: "offers",
+                label: "In library",
+                value: String(offers.length),
+                hint: "All lifecycle statuses",
+              },
+            ]}
+          />
+          <PerformanceOfferLifecycleStrip
+            active={lifecycleFilter}
+            counts={lifecycleBucketCounts}
+            onSelect={setLifecycleFilter}
+          />
+          <PerformanceOfferManagementTable
+            offers={cmsFiltered}
+            loading={offersLoading}
+            canEdit={canEdit}
+            statusBusyId={statusBusyId}
+            onEdit={(o) => {
+              setEditing(o);
+              setOpen(true);
+            }}
+            onClone={cloneOffer}
+            onRemove={remove}
+            onHistory={loadHistory}
+            onSetStatus={setStatus}
+          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <PerformanceOfferConflictPanel />
+            <PerformanceOfferProposalPanel items={proposalPreview} loading={proposalsBusy} />
+          </div>
+        </>
+      ) : (
+        <>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-44">
@@ -272,6 +428,8 @@ export function OffersTab({ canEdit }: { canEdit: boolean }) {
           </Card>
         ))}
       </div>
+        </>
+      )}
       <OfferDialog open={open} onOpenChange={setOpen} offer={editing} onSaved={load} canEdit={canEdit} />
       <Dialog open={!!historyOffer} onOpenChange={(v) => !v && setHistoryOffer(null)}>
         <DialogContent className="max-w-md">

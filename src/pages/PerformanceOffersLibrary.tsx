@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
+import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
 import { OffersStudioNav } from "@/components/offers/OffersStudioNav";
 import { OffersTab } from "@/pages/OffersAdmin";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,10 +18,15 @@ export default function PerformanceOffersLibrary() {
 
   return (
     <AppLayout>
-      <PerformanceHubHeader title="Offers library" subtitle="Lifecycle actions, funding badges, clone & status history" />
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-6 max-w-7xl mx-auto space-y-4">
+        <PerformanceHubHeader
+          title="Offer management"
+          subtitle="Lifecycle, conflict rules, and promotion workflow — wired to existing offers table"
+          showModuleLegend={false}
+        />
         <OffersStudioNav />
-        <OffersTab canEdit={canEditOffers} />
+        <PerformancePeriodBar compact showBranch={false} />
+        <OffersTab canEdit={canEditOffers} layout="cms" />
       </div>
     </AppLayout>
   );
