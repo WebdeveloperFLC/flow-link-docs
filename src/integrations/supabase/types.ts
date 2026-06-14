@@ -1227,6 +1227,95 @@ export type Database = {
           },
         ]
       }
+      accounting_payouts: {
+        Row: {
+          batch_id: string
+          bonus: number
+          branch_id: string | null
+          company_id: string | null
+          cycle_id: string
+          employee_code: string
+          employee_id: string
+          employee_name: string
+          esic_employee: number
+          generated_at: string
+          gross_earned: number
+          id: string
+          incentive: number
+          net_salary: number
+          org_id: string
+          pf_employee: number
+          status: string
+        }
+        Insert: {
+          batch_id?: string
+          bonus?: number
+          branch_id?: string | null
+          company_id?: string | null
+          cycle_id: string
+          employee_code: string
+          employee_id: string
+          employee_name: string
+          esic_employee?: number
+          generated_at?: string
+          gross_earned: number
+          id?: string
+          incentive?: number
+          net_salary: number
+          org_id: string
+          pf_employee?: number
+          status?: string
+        }
+        Update: {
+          batch_id?: string
+          bonus?: number
+          branch_id?: string | null
+          company_id?: string | null
+          cycle_id?: string
+          employee_code?: string
+          employee_id?: string
+          employee_name?: string
+          esic_employee?: number
+          generated_at?: string
+          gross_earned?: number
+          id?: string
+          incentive?: number
+          net_salary?: number
+          org_id?: string
+          pf_employee?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_payouts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_payouts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_payouts_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_payouts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_petty_cash: {
         Row: {
           amount: number
@@ -2071,6 +2160,45 @@ export type Database = {
         }
         Relationships: []
       }
+      approvals: {
+        Row: {
+          acted_at: string | null
+          approver_id: string | null
+          comment: string | null
+          created_at: string
+          decision: Database["public"]["Enums"]["request_status"]
+          entity_id: string
+          entity_type: string
+          id: string
+          org_id: string
+          stage: Database["public"]["Enums"]["approval_stage"]
+        }
+        Insert: {
+          acted_at?: string | null
+          approver_id?: string | null
+          comment?: string | null
+          created_at?: string
+          decision?: Database["public"]["Enums"]["request_status"]
+          entity_id: string
+          entity_type: string
+          id?: string
+          org_id: string
+          stage: Database["public"]["Enums"]["approval_stage"]
+        }
+        Update: {
+          acted_at?: string | null
+          approver_id?: string | null
+          comment?: string | null
+          created_at?: string
+          decision?: Database["public"]["Enums"]["request_status"]
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          org_id?: string
+          stage?: Database["public"]["Enums"]["approval_stage"]
+        }
+        Relationships: []
+      }
       approved_offer_types: {
         Row: {
           counselor_self_serve: boolean
@@ -2672,6 +2800,104 @@ export type Database = {
           },
         ]
       }
+      attendance: {
+        Row: {
+          break_end: string | null
+          break_min: number | null
+          break_start: string | null
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          employee_id: string
+          id: string
+          is_mispunch: boolean
+          note: string | null
+          org_id: string
+          source: string
+          status: Database["public"]["Enums"]["att_status"]
+          updated_at: string
+          work_date: string
+        }
+        Insert: {
+          break_end?: string | null
+          break_min?: number | null
+          break_start?: string | null
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          employee_id: string
+          id?: string
+          is_mispunch?: boolean
+          note?: string | null
+          org_id: string
+          source?: string
+          status?: Database["public"]["Enums"]["att_status"]
+          updated_at?: string
+          work_date: string
+        }
+        Update: {
+          break_end?: string | null
+          break_min?: number | null
+          break_start?: string | null
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          employee_id?: string
+          id?: string
+          is_mispunch?: boolean
+          note?: string | null
+          org_id?: string
+          source?: string
+          status?: Database["public"]["Enums"]["att_status"]
+          updated_at?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_label: string | null
+          created_at: string
+          id: string
+          new_value: string | null
+          org_id: string
+          prev_value: string | null
+          target: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_label?: string | null
+          created_at?: string
+          id?: string
+          new_value?: string | null
+          org_id: string
+          prev_value?: string | null
+          target?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_label?: string | null
+          created_at?: string
+          id?: string
+          new_value?: string | null
+          org_id?: string
+          prev_value?: string | null
+          target?: string | null
+        }
+        Relationships: []
+      }
       binders: {
         Row: {
           client_id: string
@@ -2753,6 +2979,82 @@ export type Database = {
           },
         ]
       }
+      branch_pool_allocations: {
+        Row: {
+          allocated_by: string | null
+          amount: number
+          counselor_id: string
+          counselor_wallet_id: string
+          created_at: string
+          id: string
+          pool_wallet_id: string
+          reason: string | null
+        }
+        Insert: {
+          allocated_by?: string | null
+          amount: number
+          counselor_id: string
+          counselor_wallet_id: string
+          created_at?: string
+          id?: string
+          pool_wallet_id: string
+          reason?: string | null
+        }
+        Update: {
+          allocated_by?: string | null
+          amount?: number
+          counselor_id?: string
+          counselor_wallet_id?: string
+          created_at?: string
+          id?: string
+          pool_wallet_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_pool_allocations_allocated_by_fkey"
+            columns: ["allocated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_pool_allocations_allocated_by_fkey"
+            columns: ["allocated_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "branch_pool_allocations_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_pool_allocations_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "branch_pool_allocations_counselor_wallet_id_fkey"
+            columns: ["counselor_wallet_id"]
+            isOneToOne: false
+            referencedRelation: "discount_wallets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_pool_allocations_pool_wallet_id_fkey"
+            columns: ["pool_wallet_id"]
+            isOneToOne: false
+            referencedRelation: "discount_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branches: {
         Row: {
           city: string | null
@@ -2763,6 +3065,7 @@ export type Database = {
           is_active: boolean | null
           is_virtual: boolean | null
           name: string
+          timezone: string
           updated_at: string | null
         }
         Insert: {
@@ -2774,6 +3077,7 @@ export type Database = {
           is_active?: boolean | null
           is_virtual?: boolean | null
           name: string
+          timezone?: string
           updated_at?: string | null
         }
         Update: {
@@ -2785,6 +3089,7 @@ export type Database = {
           is_active?: boolean | null
           is_virtual?: boolean | null
           name?: string
+          timezone?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -3750,6 +4055,73 @@ export type Database = {
             columns: ["queue_item_id"]
             isOneToOne: false
             referencedRelation: "call_queue_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_calendar: {
+        Row: {
+          campaign_type: string
+          created_at: string
+          created_by: string | null
+          end_date: string
+          id: string
+          linked_offer_id: string | null
+          name: string
+          notes: string | null
+          owner_name: string | null
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_type?: string
+          created_at?: string
+          created_by?: string | null
+          end_date: string
+          id?: string
+          linked_offer_id?: string | null
+          name: string
+          notes?: string | null
+          owner_name?: string | null
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_type?: string
+          created_at?: string
+          created_by?: string | null
+          end_date?: string
+          id?: string
+          linked_offer_id?: string | null
+          name?: string
+          notes?: string | null
+          owner_name?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_calendar_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_calendar_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "campaign_calendar_linked_offer_id_fkey"
+            columns: ["linked_offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
             referencedColumns: ["id"]
           },
         ]
@@ -6488,6 +6860,76 @@ export type Database = {
           },
         ]
       }
+      client_offer_suggestion_dismissals: {
+        Row: {
+          client_id: string
+          counselor_id: string
+          dismissed_at: string
+          expires_at: string | null
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          client_id: string
+          counselor_id: string
+          dismissed_at?: string
+          expires_at?: string | null
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          client_id?: string
+          counselor_id?: string
+          dismissed_at?: string
+          expires_at?: string | null
+          id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_offer_suggestion_dismissals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_offer_suggestion_dismissals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_offer_suggestion_dismissals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_offer_suggestion_dismissals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_offer_suggestion_dismissals_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_offer_suggestion_dismissals_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       client_offers: {
         Row: {
           attached_by: string | null
@@ -7099,10 +7541,14 @@ export type Database = {
           branch: string | null
           budget: number | null
           client_type: string | null
+          closing_at: string | null
+          closing_branch_id: string | null
+          closing_counselor_id: string | null
           coaching_services: string[]
           consent_form_date: string | null
           consent_form_submitted: boolean | null
           converted_at: string | null
+          converted_by: string | null
           counselor_notes: string | null
           counselor_notes_locked: boolean
           counselor_notes_locked_at: string | null
@@ -7130,6 +7576,7 @@ export type Database = {
           full_name: string
           gender: string | null
           id: string
+          incentive_attribution_locked: boolean
           institution_name: string | null
           institution_student_id: string | null
           intake: string | null
@@ -7202,10 +7649,14 @@ export type Database = {
           branch?: string | null
           budget?: number | null
           client_type?: string | null
+          closing_at?: string | null
+          closing_branch_id?: string | null
+          closing_counselor_id?: string | null
           coaching_services?: string[]
           consent_form_date?: string | null
           consent_form_submitted?: boolean | null
           converted_at?: string | null
+          converted_by?: string | null
           counselor_notes?: string | null
           counselor_notes_locked?: boolean
           counselor_notes_locked_at?: string | null
@@ -7233,6 +7684,7 @@ export type Database = {
           full_name: string
           gender?: string | null
           id?: string
+          incentive_attribution_locked?: boolean
           institution_name?: string | null
           institution_student_id?: string | null
           intake?: string | null
@@ -7305,10 +7757,14 @@ export type Database = {
           branch?: string | null
           budget?: number | null
           client_type?: string | null
+          closing_at?: string | null
+          closing_branch_id?: string | null
+          closing_counselor_id?: string | null
           coaching_services?: string[]
           consent_form_date?: string | null
           consent_form_submitted?: boolean | null
           converted_at?: string | null
+          converted_by?: string | null
           counselor_notes?: string | null
           counselor_notes_locked?: boolean
           counselor_notes_locked_at?: string | null
@@ -7336,6 +7792,7 @@ export type Database = {
           full_name?: string
           gender?: string | null
           id?: string
+          incentive_attribution_locked?: boolean
           institution_name?: string | null
           institution_student_id?: string | null
           intake?: string | null
@@ -7399,6 +7856,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "clients_converted_by_fkey"
+            columns: ["converted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_converted_by_fkey"
+            columns: ["converted_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "clients_current_stage_id_fkey"
             columns: ["current_stage_id"]
             isOneToOne: false
@@ -7445,6 +7916,68 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          org_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          org_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          org_id?: string
+        }
+        Relationships: []
+      }
+      compoff_requests: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          occasion: string | null
+          org_id: string
+          reason: string | null
+          status: Database["public"]["Enums"]["request_status"]
+          worked_date: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          occasion?: string | null
+          org_id: string
+          reason?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          worked_date: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          occasion?: string | null
+          org_id?: string
+          reason?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          worked_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compoff_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
@@ -7792,6 +8325,214 @@ export type Database = {
         }
         Relationships: []
       }
+      discount_approval_requests: {
+        Row: {
+          allocation_id: string | null
+          approval_level: string
+          below_floor: boolean
+          client_id: string | null
+          counselor_id: string
+          created_at: string
+          discount_amount: number
+          discount_percent: number | null
+          id: string
+          is_waiver: boolean
+          lead_id: string | null
+          net_after_discount: number | null
+          offer_id: string | null
+          period_key: string
+          reference_amount: number | null
+          request_note: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          wallet_debit: number
+          wallet_id: string | null
+        }
+        Insert: {
+          allocation_id?: string | null
+          approval_level: string
+          below_floor?: boolean
+          client_id?: string | null
+          counselor_id: string
+          created_at?: string
+          discount_amount: number
+          discount_percent?: number | null
+          id?: string
+          is_waiver?: boolean
+          lead_id?: string | null
+          net_after_discount?: number | null
+          offer_id?: string | null
+          period_key: string
+          reference_amount?: number | null
+          request_note?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          wallet_debit?: number
+          wallet_id?: string | null
+        }
+        Update: {
+          allocation_id?: string | null
+          approval_level?: string
+          below_floor?: boolean
+          client_id?: string | null
+          counselor_id?: string
+          created_at?: string
+          discount_amount?: number
+          discount_percent?: number | null
+          id?: string
+          is_waiver?: boolean
+          lead_id?: string | null
+          net_after_discount?: number | null
+          offer_id?: string | null
+          period_key?: string
+          reference_amount?: number | null
+          request_note?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          wallet_debit?: number
+          wallet_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_approval_requests_allocation_id_fkey"
+            columns: ["allocation_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_allocations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_approval_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_approval_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_approval_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_approval_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "discount_approval_requests_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_approval_requests_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "discount_approval_requests_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_approval_requests_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_approval_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_approval_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "discount_approval_requests_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "discount_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discount_margin_floor_policies: {
+        Row: {
+          block_counselor_waiver: boolean
+          id: string
+          is_active: boolean
+          min_net_pct: number
+          scope_key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          block_counselor_waiver?: boolean
+          id?: string
+          is_active?: boolean
+          min_net_pct?: number
+          scope_key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          block_counselor_waiver?: boolean
+          id?: string
+          is_active?: boolean
+          min_net_pct?: number
+          scope_key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_margin_floor_policies_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_margin_floor_policies_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       discount_wallets: {
         Row: {
           achieved_revenue: number
@@ -7806,9 +8547,10 @@ export type Database = {
           carry_to_period: string | null
           close_outcome: string | null
           closed_at: string | null
-          counselor_id: string
+          counselor_id: string | null
           created_at: string
           currency: string
+          forfeited_unlock_amount: number
           id: string
           max_amount_per_client: number | null
           max_percent_per_client: number
@@ -7840,9 +8582,10 @@ export type Database = {
           carry_to_period?: string | null
           close_outcome?: string | null
           closed_at?: string | null
-          counselor_id: string
+          counselor_id?: string | null
           created_at?: string
           currency?: string
+          forfeited_unlock_amount?: number
           id?: string
           max_amount_per_client?: number | null
           max_percent_per_client?: number
@@ -7874,9 +8617,10 @@ export type Database = {
           carry_to_period?: string | null
           close_outcome?: string | null
           closed_at?: string | null
-          counselor_id?: string
+          counselor_id?: string | null
           created_at?: string
           currency?: string
+          forfeited_unlock_amount?: number
           id?: string
           max_amount_per_client?: number | null
           max_percent_per_client?: number
@@ -8767,6 +9511,226 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          employee_id: string
+          file_name: string | null
+          id: string
+          mime: string | null
+          org_id: string
+          storage_path: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          doc_type: string
+          employee_id: string
+          file_name?: string | null
+          id?: string
+          mime?: string | null
+          org_id: string
+          storage_path?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          employee_id?: string
+          file_name?: string | null
+          id?: string
+          mime?: string | null
+          org_id?: string
+          storage_path?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          addr_current: string | null
+          addr_permanent: string | null
+          annual_entitlement: number | null
+          bank_account_number: string | null
+          bank_account_type: string
+          bank_branch: string | null
+          bank_holder_name: string | null
+          bank_ifsc: string | null
+          bank_name: string | null
+          bank_verified: boolean
+          basic: number
+          bonus: number
+          branch_id: string | null
+          company_id: string | null
+          conveyance: number
+          created_at: string
+          date_of_joining: string | null
+          department: string | null
+          designation: string | null
+          dob: string | null
+          email: string | null
+          emergency: string | null
+          emp_code: string
+          employment_type: Database["public"]["Enums"]["employment_type"]
+          esic_applicable: boolean
+          esic_number: string | null
+          full_name: string
+          gender: string | null
+          hra: number
+          id: string
+          incentive: number
+          mobile: string | null
+          monthly_gross: number
+          notice_period: string | null
+          org_id: string
+          pf_applicable: boolean
+          pf_number: string | null
+          photo_url: string | null
+          reporting_mgr_id: string | null
+          shift_id: string | null
+          special_allow: number
+          staff_id: string | null
+          status: Database["public"]["Enums"]["emp_status"]
+          uan: string | null
+          updated_at: string
+          work_week: Database["public"]["Enums"]["work_week"]
+        }
+        Insert: {
+          addr_current?: string | null
+          addr_permanent?: string | null
+          annual_entitlement?: number | null
+          bank_account_number?: string | null
+          bank_account_type?: string
+          bank_branch?: string | null
+          bank_holder_name?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
+          bank_verified?: boolean
+          basic?: number
+          bonus?: number
+          branch_id?: string | null
+          company_id?: string | null
+          conveyance?: number
+          created_at?: string
+          date_of_joining?: string | null
+          department?: string | null
+          designation?: string | null
+          dob?: string | null
+          email?: string | null
+          emergency?: string | null
+          emp_code: string
+          employment_type?: Database["public"]["Enums"]["employment_type"]
+          esic_applicable?: boolean
+          esic_number?: string | null
+          full_name: string
+          gender?: string | null
+          hra?: number
+          id?: string
+          incentive?: number
+          mobile?: string | null
+          monthly_gross?: number
+          notice_period?: string | null
+          org_id: string
+          pf_applicable?: boolean
+          pf_number?: string | null
+          photo_url?: string | null
+          reporting_mgr_id?: string | null
+          shift_id?: string | null
+          special_allow?: number
+          staff_id?: string | null
+          status?: Database["public"]["Enums"]["emp_status"]
+          uan?: string | null
+          updated_at?: string
+          work_week?: Database["public"]["Enums"]["work_week"]
+        }
+        Update: {
+          addr_current?: string | null
+          addr_permanent?: string | null
+          annual_entitlement?: number | null
+          bank_account_number?: string | null
+          bank_account_type?: string
+          bank_branch?: string | null
+          bank_holder_name?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
+          bank_verified?: boolean
+          basic?: number
+          bonus?: number
+          branch_id?: string | null
+          company_id?: string | null
+          conveyance?: number
+          created_at?: string
+          date_of_joining?: string | null
+          department?: string | null
+          designation?: string | null
+          dob?: string | null
+          email?: string | null
+          emergency?: string | null
+          emp_code?: string
+          employment_type?: Database["public"]["Enums"]["employment_type"]
+          esic_applicable?: boolean
+          esic_number?: string | null
+          full_name?: string
+          gender?: string | null
+          hra?: number
+          id?: string
+          incentive?: number
+          mobile?: string | null
+          monthly_gross?: number
+          notice_period?: string | null
+          org_id?: string
+          pf_applicable?: boolean
+          pf_number?: string | null
+          photo_url?: string | null
+          reporting_mgr_id?: string | null
+          shift_id?: string | null
+          special_allow?: number
+          staff_id?: string | null
+          status?: Database["public"]["Enums"]["emp_status"]
+          uan?: string | null
+          updated_at?: string
+          work_week?: Database["public"]["Enums"]["work_week"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_reporting_mgr_id_fkey"
+            columns: ["reporting_mgr_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       filled_forms: {
         Row: {
           client_id: string
@@ -9003,41 +9967,143 @@ export type Database = {
         }
         Relationships: []
       }
+      fx_rate_audit_log: {
+        Row: {
+          action: string
+          changed_at: string
+          changed_by: string | null
+          fx_rate_id: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+        }
+        Insert: {
+          action: string
+          changed_at?: string
+          changed_by?: string | null
+          fx_rate_id?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+        }
+        Update: {
+          action?: string
+          changed_at?: string
+          changed_by?: string | null
+          fx_rate_id?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fx_rate_audit_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fx_rate_audit_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fx_rate_audit_log_fx_rate_id_fkey"
+            columns: ["fx_rate_id"]
+            isOneToOne: false
+            referencedRelation: "fx_rates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fx_rates: {
         Row: {
+          base_rate_to_inr: number | null
+          buffer_fixed: number
+          buffer_pct: number
           created_at: string
           currency: string
           id: string
           notes: string | null
           period_key: string
+          rate_purpose: string
           rate_to_inr: number
           set_by: string | null
           source: string
           updated_at: string
         }
         Insert: {
+          base_rate_to_inr?: number | null
+          buffer_fixed?: number
+          buffer_pct?: number
           created_at?: string
           currency: string
           id?: string
           notes?: string | null
           period_key: string
+          rate_purpose?: string
           rate_to_inr: number
           set_by?: string | null
           source?: string
           updated_at?: string
         }
         Update: {
+          base_rate_to_inr?: number | null
+          buffer_fixed?: number
+          buffer_pct?: number
           created_at?: string
           currency?: string
           id?: string
           notes?: string | null
           period_key?: string
+          rate_purpose?: string
           rate_to_inr?: number
           set_by?: string | null
           source?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      holidays: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          holiday_date: string
+          id: string
+          name: string
+          org_id: string
+          type: Database["public"]["Enums"]["holiday_type"]
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          holiday_date: string
+          id?: string
+          name: string
+          org_id: string
+          type?: Database["public"]["Enums"]["holiday_type"]
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          holiday_date?: string
+          id?: string
+          name?: string
+          org_id?: string
+          type?: Database["public"]["Enums"]["holiday_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "holidays_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       incentive_adjustments: {
         Row: {
@@ -9086,6 +10152,315 @@ export type Database = {
           },
         ]
       }
+      incentive_attribution_splits: {
+        Row: {
+          client_id: string
+          counselor_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          notes: string | null
+          share_pct: number
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          counselor_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          share_pct: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          counselor_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          share_pct?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_attribution_splits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_attribution_splits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_attribution_splits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_attribution_splits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "incentive_attribution_splits_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_attribution_splits_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "incentive_attribution_splits_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_attribution_splits_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      incentive_branch_contests: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          metric: string
+          min_branch_total: number
+          name: string
+          period_key: string
+          pool_amount: number
+          prize_settlement: string
+          settlement_currency: string
+          split_mode: string
+          status: string
+          updated_at: string
+          winner_mode: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metric?: string
+          min_branch_total?: number
+          name: string
+          period_key: string
+          pool_amount?: number
+          prize_settlement?: string
+          settlement_currency?: string
+          split_mode?: string
+          status?: string
+          updated_at?: string
+          winner_mode?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metric?: string
+          min_branch_total?: number
+          name?: string
+          period_key?: string
+          pool_amount?: number
+          prize_settlement?: string
+          settlement_currency?: string
+          split_mode?: string
+          status?: string
+          updated_at?: string
+          winner_mode?: string
+        }
+        Relationships: []
+      }
+      incentive_campaigns: {
+        Row: {
+          bonus_type: string
+          bonus_value: number
+          country_code: string | null
+          created_at: string
+          id: string
+          institution_id: string | null
+          intake: string | null
+          is_active: boolean
+          name: string
+          period_end: string | null
+          period_key: string
+          period_start: string | null
+          pool_amount: number | null
+          scope_json: Json
+          scope_preset: string | null
+          settlement_currency: string
+          updated_at: string
+        }
+        Insert: {
+          bonus_type?: string
+          bonus_value?: number
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          institution_id?: string | null
+          intake?: string | null
+          is_active?: boolean
+          name: string
+          period_end?: string | null
+          period_key: string
+          period_start?: string | null
+          pool_amount?: number | null
+          scope_json?: Json
+          scope_preset?: string | null
+          settlement_currency?: string
+          updated_at?: string
+        }
+        Update: {
+          bonus_type?: string
+          bonus_value?: number
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          institution_id?: string | null
+          intake?: string | null
+          is_active?: boolean
+          name?: string
+          period_end?: string | null
+          period_key?: string
+          period_start?: string | null
+          pool_amount?: number | null
+          scope_json?: Json
+          scope_preset?: string | null
+          settlement_currency?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      incentive_contest_branches: {
+        Row: {
+          branch_id: string
+          contest_id: string
+        }
+        Insert: {
+          branch_id: string
+          contest_id: string
+        }
+        Update: {
+          branch_id?: string
+          contest_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_contest_branches_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_contest_branches_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_branch_contests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_counselor_plan_assignments: {
+        Row: {
+          assigned_by: string | null
+          assignment_role: string
+          counselor_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          period_key: string
+          plan_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          assignment_role?: string
+          counselor_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          period_key: string
+          plan_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string | null
+          assignment_role?: string
+          counselor_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          period_key?: string
+          plan_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_counselor_plan_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_counselor_plan_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "incentive_counselor_plan_assignments_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_counselor_plan_assignments_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "incentive_counselor_plan_assignments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incentive_line_items: {
         Row: {
           base_amount: number
@@ -9097,6 +10472,7 @@ export type Database = {
           fx_rate_used: number | null
           id: string
           note: string | null
+          rule_id: string | null
           run_id: string
           settlement_currency: string
           slab_id: string | null
@@ -9115,6 +10491,7 @@ export type Database = {
           fx_rate_used?: number | null
           id?: string
           note?: string | null
+          rule_id?: string | null
           run_id: string
           settlement_currency?: string
           slab_id?: string | null
@@ -9133,6 +10510,7 @@ export type Database = {
           fx_rate_used?: number | null
           id?: string
           note?: string | null
+          rule_id?: string | null
           run_id?: string
           settlement_currency?: string
           slab_id?: string | null
@@ -9171,6 +10549,13 @@ export type Database = {
             referencedColumns: ["client_id"]
           },
           {
+            foreignKeyName: "incentive_line_items_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_rules"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "incentive_line_items_run_id_fkey"
             columns: ["run_id"]
             isOneToOne: false
@@ -9198,6 +10583,9 @@ export type Database = {
           net_amount: number
           notes: string | null
           paid_at: string | null
+          payroll_batch_ref: string | null
+          payroll_sent_at: string | null
+          payroll_status: string
           run_id: string | null
           settlement_currency: string
           status: Database["public"]["Enums"]["payout_status"]
@@ -9216,6 +10604,9 @@ export type Database = {
           net_amount?: number
           notes?: string | null
           paid_at?: string | null
+          payroll_batch_ref?: string | null
+          payroll_sent_at?: string | null
+          payroll_status?: string
           run_id?: string | null
           settlement_currency?: string
           status?: Database["public"]["Enums"]["payout_status"]
@@ -9234,6 +10625,9 @@ export type Database = {
           net_amount?: number
           notes?: string | null
           paid_at?: string | null
+          payroll_batch_ref?: string | null
+          payroll_sent_at?: string | null
+          payroll_status?: string
           run_id?: string | null
           settlement_currency?: string
           status?: Database["public"]["Enums"]["payout_status"]
@@ -9251,6 +10645,50 @@ export type Database = {
           },
         ]
       }
+      incentive_plan_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          fx_snapshot: Json
+          id: string
+          plan_id: string
+          plan_snapshot: Json
+          slabs_snapshot: Json
+          targets_snapshot: Json
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          fx_snapshot?: Json
+          id?: string
+          plan_id: string
+          plan_snapshot?: Json
+          slabs_snapshot?: Json
+          targets_snapshot?: Json
+          version_number?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          fx_snapshot?: Json
+          id?: string
+          plan_id?: string
+          plan_snapshot?: Json
+          slabs_snapshot?: Json
+          targets_snapshot?: Json
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_plan_versions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incentive_plans: {
         Row: {
           active_from: string
@@ -9263,6 +10701,7 @@ export type Database = {
           is_active: boolean
           name: string
           period_type: Database["public"]["Enums"]["incentive_period_type"]
+          plan_stack_role: string
           revenue_basis: string
           role_key: string | null
           scope_type: string
@@ -9280,6 +10719,7 @@ export type Database = {
           is_active?: boolean
           name: string
           period_type?: Database["public"]["Enums"]["incentive_period_type"]
+          plan_stack_role?: string
           revenue_basis?: string
           role_key?: string | null
           scope_type?: string
@@ -9297,6 +10737,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           period_type?: Database["public"]["Enums"]["incentive_period_type"]
+          plan_stack_role?: string
           revenue_basis?: string
           role_key?: string | null
           scope_type?: string
@@ -9309,6 +10750,351 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_qualifying_events: {
+        Row: {
+          amount: number
+          branch_id: string | null
+          client_id: string | null
+          counselor_id: string
+          created_at: string
+          currency: string
+          dimensions: Json
+          event_date: string
+          event_type: string
+          id: string
+          period_key: string
+          run_id: string | null
+          source_id: string | null
+          source_table: string | null
+          source_type:
+            | Database["public"]["Enums"]["incentive_source_type"]
+            | null
+        }
+        Insert: {
+          amount?: number
+          branch_id?: string | null
+          client_id?: string | null
+          counselor_id: string
+          created_at?: string
+          currency?: string
+          dimensions?: Json
+          event_date: string
+          event_type: string
+          id?: string
+          period_key: string
+          run_id?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          source_type?:
+            | Database["public"]["Enums"]["incentive_source_type"]
+            | null
+        }
+        Update: {
+          amount?: number
+          branch_id?: string | null
+          client_id?: string | null
+          counselor_id?: string
+          created_at?: string
+          currency?: string
+          dimensions?: Json
+          event_date?: string
+          event_type?: string
+          id?: string
+          period_key?: string
+          run_id?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          source_type?:
+            | Database["public"]["Enums"]["incentive_source_type"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_qualifying_events_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_qualifying_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_qualifying_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_qualifying_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_qualifying_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "incentive_qualifying_events_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_rules: {
+        Row: {
+          cap_amount: number | null
+          created_at: string
+          id: string
+          is_active: boolean
+          metric: string
+          milestone: string | null
+          name: string
+          plan_id: string
+          rate_type: Database["public"]["Enums"]["incentive_rate_type"]
+          rate_value: number
+          scope_json: Json
+          scope_preset: string | null
+          settlement_currency: string | null
+          sort_order: number
+          source_type: Database["public"]["Enums"]["incentive_source_type"]
+          stacking_mode: string
+          updated_at: string
+        }
+        Insert: {
+          cap_amount?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metric?: string
+          milestone?: string | null
+          name: string
+          plan_id: string
+          rate_type?: Database["public"]["Enums"]["incentive_rate_type"]
+          rate_value?: number
+          scope_json?: Json
+          scope_preset?: string | null
+          settlement_currency?: string | null
+          sort_order?: number
+          source_type?: Database["public"]["Enums"]["incentive_source_type"]
+          stacking_mode?: string
+          updated_at?: string
+        }
+        Update: {
+          cap_amount?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metric?: string
+          milestone?: string | null
+          name?: string
+          plan_id?: string
+          rate_type?: Database["public"]["Enums"]["incentive_rate_type"]
+          rate_value?: number
+          scope_json?: Json
+          scope_preset?: string | null
+          settlement_currency?: string | null
+          sort_order?: number
+          source_type?: Database["public"]["Enums"]["incentive_source_type"]
+          stacking_mode?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_rules_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_run_admin_actions: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          performed_by: string
+          reason: string
+          run_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          performed_by: string
+          reason: string
+          run_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          performed_by?: string
+          reason?: string
+          run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_run_admin_actions_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_run_admin_actions_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "incentive_run_admin_actions_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_run_item_dispute_messages: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          dispute_id: string
+          id: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          dispute_id: string
+          id?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          dispute_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_run_item_dispute_messages_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_run_item_dispute_messages_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "incentive_run_item_dispute_messages_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_run_item_disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_run_item_disputes: {
+        Row: {
+          counselor_id: string
+          id: string
+          line_item_id: string
+          opened_at: string
+          resolved_at: string | null
+          resolved_by: string | null
+          run_id: string
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          counselor_id: string
+          id?: string
+          line_item_id: string
+          opened_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id: string
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          counselor_id?: string
+          id?: string
+          line_item_id?: string
+          opened_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id?: string
+          status?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_run_item_disputes_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_run_item_disputes_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "incentive_run_item_disputes_line_item_id_fkey"
+            columns: ["line_item_id"]
+            isOneToOne: true
+            referencedRelation: "incentive_line_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_run_item_disputes_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_run_item_disputes_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "incentive_run_item_disputes_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_runs"
             referencedColumns: ["id"]
           },
         ]
@@ -9327,6 +11113,7 @@ export type Database = {
           period_key: string
           period_type: Database["public"]["Enums"]["incentive_period_type"]
           plan_id: string | null
+          plan_version_id: string | null
           settlement_currency: string
           status: Database["public"]["Enums"]["incentive_run_status"]
           total_settlement: number
@@ -9345,6 +11132,7 @@ export type Database = {
           period_key: string
           period_type: Database["public"]["Enums"]["incentive_period_type"]
           plan_id?: string | null
+          plan_version_id?: string | null
           settlement_currency?: string
           status?: Database["public"]["Enums"]["incentive_run_status"]
           total_settlement?: number
@@ -9363,6 +11151,7 @@ export type Database = {
           period_key?: string
           period_type?: Database["public"]["Enums"]["incentive_period_type"]
           plan_id?: string | null
+          plan_version_id?: string | null
           settlement_currency?: string
           status?: Database["public"]["Enums"]["incentive_run_status"]
           total_settlement?: number
@@ -9379,6 +11168,77 @@ export type Database = {
           {
             foreignKeyName: "incentive_runs_plan_id_fkey"
             columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_runs_plan_version_id_fkey"
+            columns: ["plan_version_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_plan_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_scheme_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          plan_defaults: Json
+          rules: Json
+          slabs: Json
+          source_plan_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          plan_defaults?: Json
+          rules?: Json
+          slabs?: Json
+          source_plan_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          plan_defaults?: Json
+          rules?: Json
+          slabs?: Json
+          source_plan_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_scheme_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_scheme_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "incentive_scheme_templates_source_plan_id_fkey"
+            columns: ["source_plan_id"]
             isOneToOne: false
             referencedRelation: "incentive_plans"
             referencedColumns: ["id"]
@@ -9466,6 +11326,7 @@ export type Database = {
           plan_id: string
           rate_type: Database["public"]["Enums"]["incentive_rate_type"]
           rate_value: number
+          rule_id: string | null
           service_filter: string | null
           sort_order: number
           source_type: Database["public"]["Enums"]["incentive_source_type"]
@@ -9479,6 +11340,7 @@ export type Database = {
           plan_id: string
           rate_type: Database["public"]["Enums"]["incentive_rate_type"]
           rate_value?: number
+          rule_id?: string | null
           service_filter?: string | null
           sort_order?: number
           source_type: Database["public"]["Enums"]["incentive_source_type"]
@@ -9492,6 +11354,7 @@ export type Database = {
           plan_id?: string
           rate_type?: Database["public"]["Enums"]["incentive_rate_type"]
           rate_value?: number
+          rule_id?: string | null
           service_filter?: string | null
           sort_order?: number
           source_type?: Database["public"]["Enums"]["incentive_source_type"]
@@ -9502,6 +11365,13 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "incentive_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_slabs_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_rules"
             referencedColumns: ["id"]
           },
         ]
@@ -9640,6 +11510,53 @@ export type Database = {
           year?: number
         }
         Relationships: []
+      }
+      late_exemptions: {
+        Row: {
+          actual_in: string
+          created_at: string
+          delay_min: number
+          employee_id: string
+          id: string
+          late_date: string
+          official_in: string
+          org_id: string
+          reason: string | null
+          status: Database["public"]["Enums"]["request_status"]
+        }
+        Insert: {
+          actual_in: string
+          created_at?: string
+          delay_min: number
+          employee_id: string
+          id?: string
+          late_date: string
+          official_in: string
+          org_id: string
+          reason?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+        }
+        Update: {
+          actual_in?: string
+          created_at?: string
+          delay_min?: number
+          employee_id?: string
+          id?: string
+          late_date?: string
+          official_in?: string
+          org_id?: string
+          reason?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "late_exemptions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lead_handoffs: {
         Row: {
@@ -9924,6 +11841,116 @@ export type Database = {
         }
         Relationships: []
       }
+      leave_balances: {
+        Row: {
+          accrued: number
+          carried_in: number
+          employee_id: string
+          encashed: number
+          entitled: number
+          id: string
+          org_id: string
+          policy_year: number
+          taken: number
+          type: Database["public"]["Enums"]["leave_type"]
+        }
+        Insert: {
+          accrued?: number
+          carried_in?: number
+          employee_id: string
+          encashed?: number
+          entitled?: number
+          id?: string
+          org_id: string
+          policy_year: number
+          taken?: number
+          type: Database["public"]["Enums"]["leave_type"]
+        }
+        Update: {
+          accrued?: number
+          carried_in?: number
+          employee_id?: string
+          encashed?: number
+          entitled?: number
+          id?: string
+          org_id?: string
+          policy_year?: number
+          taken?: number
+          type?: Database["public"]["Enums"]["leave_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_balances_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_requests: {
+        Row: {
+          created_at: string
+          days: number
+          document_id: string | null
+          employee_id: string
+          from_date: string
+          has_document: boolean
+          id: string
+          is_sandwich: boolean
+          org_id: string
+          reason: string | null
+          status: Database["public"]["Enums"]["request_status"]
+          to_date: string
+          type: Database["public"]["Enums"]["leave_type"]
+        }
+        Insert: {
+          created_at?: string
+          days: number
+          document_id?: string | null
+          employee_id: string
+          from_date: string
+          has_document?: boolean
+          id?: string
+          is_sandwich?: boolean
+          org_id: string
+          reason?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          to_date: string
+          type: Database["public"]["Enums"]["leave_type"]
+        }
+        Update: {
+          created_at?: string
+          days?: number
+          document_id?: string | null
+          employee_id?: string
+          from_date?: string
+          has_document?: boolean
+          id?: string
+          is_sandwich?: boolean
+          org_id?: string
+          reason?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          to_date?: string
+          type?: Database["public"]["Enums"]["leave_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_requests_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "employee_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       letter_templates: {
         Row: {
           category: string | null
@@ -10033,6 +12060,47 @@ export type Database = {
           label?: string
         }
         Relationships: []
+      }
+      mispunch_requests: {
+        Row: {
+          created_at: string
+          employee_id: string
+          evidence: string | null
+          id: string
+          issue: string
+          org_id: string
+          punch_date: string
+          status: Database["public"]["Enums"]["request_status"]
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          evidence?: string | null
+          id?: string
+          issue: string
+          org_id: string
+          punch_date: string
+          status?: Database["public"]["Enums"]["request_status"]
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          evidence?: string | null
+          id?: string
+          issue?: string
+          org_id?: string
+          punch_date?: string
+          status?: Database["public"]["Enums"]["request_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mispunch_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       noc_category_mappings: {
         Row: {
@@ -10246,6 +12314,258 @@ export type Database = {
         }
         Relationships: []
       }
+      offer_ab_assignments: {
+        Row: {
+          assigned_at: string
+          client_id: string | null
+          counselor_id: string | null
+          experiment_id: string
+          id: string
+          lead_id: string | null
+          variant_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          client_id?: string | null
+          counselor_id?: string | null
+          experiment_id: string
+          id?: string
+          lead_id?: string | null
+          variant_id: string
+        }
+        Update: {
+          assigned_at?: string
+          client_id?: string | null
+          counselor_id?: string | null
+          experiment_id?: string
+          id?: string
+          lead_id?: string | null
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_ab_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ab_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ab_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ab_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "offer_ab_assignments_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ab_assignments_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "offer_ab_assignments_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "offer_ab_experiments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ab_assignments_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ab_assignments_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "offer_ab_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offer_ab_experiments: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          min_conversions: number
+          name: string
+          started_at: string | null
+          status: string
+          updated_at: string
+          winner_variant_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          min_conversions?: number
+          name: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          winner_variant_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          min_conversions?: number
+          name?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          winner_variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_ab_experiments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ab_experiments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "offer_ab_experiments_winner_fkey"
+            columns: ["winner_variant_id"]
+            isOneToOne: false
+            referencedRelation: "offer_ab_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offer_ab_variants: {
+        Row: {
+          created_at: string
+          experiment_id: string
+          id: string
+          label: string | null
+          offer_id: string
+          variant_code: string
+        }
+        Insert: {
+          created_at?: string
+          experiment_id: string
+          id?: string
+          label?: string | null
+          offer_id: string
+          variant_code: string
+        }
+        Update: {
+          created_at?: string
+          experiment_id?: string
+          id?: string
+          label?: string | null
+          offer_id?: string
+          variant_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_ab_variants_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "offer_ab_experiments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ab_variants_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offer_ai_generations: {
+        Row: {
+          brief: Json
+          created_at: string
+          created_by: string
+          id: string
+          model: string | null
+          offer_id: string | null
+          result: Json
+        }
+        Insert: {
+          brief?: Json
+          created_at?: string
+          created_by: string
+          id?: string
+          model?: string | null
+          offer_id?: string | null
+          result?: Json
+        }
+        Update: {
+          brief?: Json
+          created_at?: string
+          created_by?: string
+          id?: string
+          model?: string | null
+          offer_id?: string | null
+          result?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_ai_generations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_ai_generations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "offer_ai_generations_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offer_audience_targets: {
         Row: {
           client_id: string | null
@@ -10307,6 +12627,57 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "offers"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      offer_automation_journeys: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          template_key: string | null
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          template_key?: string | null
+          trigger_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          template_key?: string | null
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_automation_journeys_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_automation_journeys_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -10440,25 +12811,225 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          definition: string | null
           description: string | null
           id: string
+          is_active: boolean
           name: string
+          segment_filters: Json
+          updated_at: string
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          definition?: string | null
           description?: string | null
           id?: string
+          is_active?: boolean
           name: string
+          segment_filters?: Json
+          updated_at?: string
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          definition?: string | null
           description?: string | null
           id?: string
+          is_active?: boolean
           name?: string
+          segment_filters?: Json
+          updated_at?: string
         }
         Relationships: []
+      }
+      offer_journey_enrollments: {
+        Row: {
+          client_id: string | null
+          completed_at: string | null
+          counselor_id: string | null
+          created_at: string
+          current_step_index: number
+          enrolled_at: string
+          id: string
+          journey_id: string
+          lead_id: string | null
+          next_step_at: string | null
+          status: string
+        }
+        Insert: {
+          client_id?: string | null
+          completed_at?: string | null
+          counselor_id?: string | null
+          created_at?: string
+          current_step_index?: number
+          enrolled_at?: string
+          id?: string
+          journey_id: string
+          lead_id?: string | null
+          next_step_at?: string | null
+          status?: string
+        }
+        Update: {
+          client_id?: string | null
+          completed_at?: string | null
+          counselor_id?: string | null
+          created_at?: string
+          current_step_index?: number
+          enrolled_at?: string
+          id?: string
+          journey_id?: string
+          lead_id?: string | null
+          next_step_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_journey_enrollments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_journey_enrollments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_journey_enrollments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_journey_enrollments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "offer_journey_enrollments_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_journey_enrollments_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "offer_journey_enrollments_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "offer_automation_journeys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_journey_enrollments_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offer_journey_step_log: {
+        Row: {
+          action_type: string | null
+          channel: string | null
+          enrollment_id: string
+          executed_at: string
+          id: string
+          result: Json
+          step_id: string | null
+        }
+        Insert: {
+          action_type?: string | null
+          channel?: string | null
+          enrollment_id: string
+          executed_at?: string
+          id?: string
+          result?: Json
+          step_id?: string | null
+        }
+        Update: {
+          action_type?: string | null
+          channel?: string | null
+          enrollment_id?: string
+          executed_at?: string
+          id?: string
+          result?: Json
+          step_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_journey_step_log_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "offer_journey_enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_journey_step_log_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "offer_journey_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offer_journey_steps: {
+        Row: {
+          action_type: string
+          body_template: string | null
+          channel: string
+          created_at: string
+          day_offset: number
+          id: string
+          journey_id: string
+          sort_order: number
+          title: string | null
+        }
+        Insert: {
+          action_type?: string
+          body_template?: string | null
+          channel: string
+          created_at?: string
+          day_offset: number
+          id?: string
+          journey_id: string
+          sort_order?: number
+          title?: string | null
+        }
+        Update: {
+          action_type?: string
+          body_template?: string | null
+          channel?: string
+          created_at?: string
+          day_offset?: number
+          id?: string
+          journey_id?: string
+          sort_order?: number
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_journey_steps_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "offer_automation_journeys"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       offer_status_history: {
         Row: {
@@ -10639,6 +13210,7 @@ export type Database = {
           description: string | null
           discount_type: string
           discount_value: number
+          distribution_channels: string[]
           fl_contribution_pct: number | null
           funding_source: Database["public"]["Enums"]["offer_funding_source"]
           id: string
@@ -10674,6 +13246,7 @@ export type Database = {
           description?: string | null
           discount_type: string
           discount_value?: number
+          distribution_channels?: string[]
           fl_contribution_pct?: number | null
           funding_source?: Database["public"]["Enums"]["offer_funding_source"]
           id?: string
@@ -10709,6 +13282,7 @@ export type Database = {
           description?: string | null
           discount_type?: string
           discount_value?: number
+          distribution_channels?: string[]
           fl_contribution_pct?: number | null
           funding_source?: Database["public"]["Enums"]["offer_funding_source"]
           id?: string
@@ -10943,6 +13517,165 @@ export type Database = {
         }
         Relationships: []
       }
+      payroll_cycles: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          end_date: string
+          id: string
+          label: string
+          org_id: string
+          payroll_days: number
+          start_date: string
+          status: Database["public"]["Enums"]["payroll_status"]
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          end_date: string
+          id?: string
+          label: string
+          org_id: string
+          payroll_days: number
+          start_date: string
+          status?: Database["public"]["Enums"]["payroll_status"]
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          end_date?: string
+          id?: string
+          label?: string
+          org_id?: string
+          payroll_days?: number
+          start_date?: string
+          status?: Database["public"]["Enums"]["payroll_status"]
+        }
+        Relationships: []
+      }
+      payroll_lines: {
+        Row: {
+          basic: number
+          bonus: number
+          comp_off: number
+          created_at: string
+          cycle_id: string
+          daily_rate: number
+          employee_id: string
+          esic_employee: number
+          gross_earned: number
+          id: string
+          incentive: number
+          input_snapshot: Json | null
+          is_overridden: boolean
+          late_count: number
+          late_deduction: number
+          leaves_taken: number
+          mispunch_count: number
+          mispunch_deduction: number
+          monthly_gross: number
+          net_salary: number
+          org_id: string
+          ot_minutes: number
+          ot_pay: number
+          override_by: string | null
+          override_json: Json | null
+          paid_leaves: number
+          payable_days: number
+          payroll_days: number
+          pf_employee: number
+          sandwich_count: number
+          ul_count: number
+          unpaid_training: number
+        }
+        Insert: {
+          basic: number
+          bonus?: number
+          comp_off?: number
+          created_at?: string
+          cycle_id: string
+          daily_rate: number
+          employee_id: string
+          esic_employee?: number
+          gross_earned: number
+          id?: string
+          incentive?: number
+          input_snapshot?: Json | null
+          is_overridden?: boolean
+          late_count?: number
+          late_deduction?: number
+          leaves_taken?: number
+          mispunch_count?: number
+          mispunch_deduction?: number
+          monthly_gross: number
+          net_salary: number
+          org_id: string
+          ot_minutes?: number
+          ot_pay?: number
+          override_by?: string | null
+          override_json?: Json | null
+          paid_leaves?: number
+          payable_days: number
+          payroll_days: number
+          pf_employee?: number
+          sandwich_count?: number
+          ul_count?: number
+          unpaid_training?: number
+        }
+        Update: {
+          basic?: number
+          bonus?: number
+          comp_off?: number
+          created_at?: string
+          cycle_id?: string
+          daily_rate?: number
+          employee_id?: string
+          esic_employee?: number
+          gross_earned?: number
+          id?: string
+          incentive?: number
+          input_snapshot?: Json | null
+          is_overridden?: boolean
+          late_count?: number
+          late_deduction?: number
+          leaves_taken?: number
+          mispunch_count?: number
+          mispunch_deduction?: number
+          monthly_gross?: number
+          net_salary?: number
+          org_id?: string
+          ot_minutes?: number
+          ot_pay?: number
+          override_by?: string | null
+          override_json?: Json | null
+          paid_leaves?: number
+          payable_days?: number
+          payroll_days?: number
+          pf_employee?: number
+          sandwich_count?: number
+          ul_count?: number
+          unpaid_training?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_lines_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_lines_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       performance_score_weights: {
         Row: {
           default_satisfaction_score: number
@@ -11156,6 +13889,39 @@ export type Database = {
           },
         ]
       }
+      policies: {
+        Row: {
+          config: Json
+          created_at: string
+          created_by: string | null
+          domain: string
+          effective_from: string
+          id: string
+          org_id: string
+          version: number
+        }
+        Insert: {
+          config: Json
+          created_at?: string
+          created_by?: string | null
+          domain: string
+          effective_from: string
+          id?: string
+          org_id: string
+          version: number
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          domain?: string
+          effective_from?: string
+          id?: string
+          org_id?: string
+          version?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           branch_id: string | null
@@ -11216,6 +13982,109 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "departments"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      promotion_requests: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          description: string | null
+          funding_source: string
+          id: string
+          offer_category: string | null
+          proposed_discount_text: string | null
+          published_offer_id: string | null
+          requested_by: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sla_at: string
+          status: string
+          target_audience: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          description?: string | null
+          funding_source?: string
+          id?: string
+          offer_category?: string | null
+          proposed_discount_text?: string | null
+          published_offer_id?: string | null
+          requested_by: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sla_at?: string
+          status?: string
+          target_audience?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          description?: string | null
+          funding_source?: string
+          id?: string
+          offer_category?: string | null
+          proposed_discount_text?: string | null
+          published_offer_id?: string | null
+          requested_by?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sla_at?: string
+          status?: string
+          target_audience?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotion_requests_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotion_requests_published_offer_id_fkey"
+            columns: ["published_offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotion_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotion_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "promotion_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotion_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -11573,6 +14442,139 @@ export type Database = {
           sort_order?: number
         }
         Relationships: []
+      }
+      role_assignments: {
+        Row: {
+          id: string
+          org_id: string
+          role: Database["public"]["Enums"]["hr_role"]
+          scope_branch_id: string | null
+          staff_id: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          role: Database["public"]["Enums"]["hr_role"]
+          scope_branch_id?: string | null
+          staff_id: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          role?: Database["public"]["Enums"]["hr_role"]
+          scope_branch_id?: string | null
+          staff_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_assignments_scope_branch_id_fkey"
+            columns: ["scope_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      role_permissions: {
+        Row: {
+          can_apply: boolean
+          can_approve: boolean
+          can_configure: boolean
+          can_export: boolean
+          can_manage_emp: boolean
+          can_override: boolean
+          can_view: boolean
+          id: string
+          org_id: string
+          role: Database["public"]["Enums"]["hr_role"]
+          screens: Json
+        }
+        Insert: {
+          can_apply?: boolean
+          can_approve?: boolean
+          can_configure?: boolean
+          can_export?: boolean
+          can_manage_emp?: boolean
+          can_override?: boolean
+          can_view?: boolean
+          id?: string
+          org_id: string
+          role: Database["public"]["Enums"]["hr_role"]
+          screens?: Json
+        }
+        Update: {
+          can_apply?: boolean
+          can_approve?: boolean
+          can_configure?: boolean
+          can_export?: boolean
+          can_manage_emp?: boolean
+          can_override?: boolean
+          can_view?: boolean
+          id?: string
+          org_id?: string
+          role?: Database["public"]["Enums"]["hr_role"]
+          screens?: Json
+        }
+        Relationships: []
+      }
+      salary_slips: {
+        Row: {
+          cycle_id: string
+          employee_id: string
+          generated_at: string
+          id: string
+          org_id: string
+          payroll_line_id: string
+          storage_path: string | null
+        }
+        Insert: {
+          cycle_id: string
+          employee_id: string
+          generated_at?: string
+          id?: string
+          org_id: string
+          payroll_line_id: string
+          storage_path?: string | null
+        }
+        Update: {
+          cycle_id?: string
+          employee_id?: string
+          generated_at?: string
+          id?: string
+          org_id?: string
+          payroll_line_id?: string
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_slips_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salary_slips_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salary_slips_payroll_line_id_fkey"
+            columns: ["payroll_line_id"]
+            isOneToOne: true
+            referencedRelation: "payroll_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salary_slips_payroll_line_id_fkey"
+            columns: ["payroll_line_id"]
+            isOneToOne: true
+            referencedRelation: "v_payroll_preview"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_eligibility_questions: {
         Row: {
@@ -12442,6 +15444,51 @@ export type Database = {
         }
         Relationships: []
       }
+      shifts: {
+        Row: {
+          break_min: number
+          created_at: string
+          grace_min: number
+          half_day_after_min: number
+          id: string
+          login_time: string
+          logout_time: string
+          name: string
+          org_id: string
+          ot_eligible: boolean
+          type: Database["public"]["Enums"]["shift_type"]
+          work_hours: number
+        }
+        Insert: {
+          break_min?: number
+          created_at?: string
+          grace_min?: number
+          half_day_after_min?: number
+          id?: string
+          login_time: string
+          logout_time: string
+          name: string
+          org_id: string
+          ot_eligible?: boolean
+          type?: Database["public"]["Enums"]["shift_type"]
+          work_hours?: number
+        }
+        Update: {
+          break_min?: number
+          created_at?: string
+          grace_min?: number
+          half_day_after_min?: number
+          id?: string
+          login_time?: string
+          logout_time?: string
+          name?: string
+          org_id?: string
+          ot_eligible?: boolean
+          type?: Database["public"]["Enums"]["shift_type"]
+          work_hours?: number
+        }
+        Relationships: []
+      }
       smtp_settings: {
         Row: {
           created_at: string
@@ -12772,6 +15819,50 @@ export type Database = {
           webhook_secret?: string | null
         }
         Relationships: []
+      }
+      training_records: {
+        Row: {
+          created_at: string
+          duration: string | null
+          employee_id: string
+          id: string
+          org_id: string
+          start_date: string | null
+          status: Database["public"]["Enums"]["training_status"]
+          type: string
+          unpaid_days: number
+        }
+        Insert: {
+          created_at?: string
+          duration?: string | null
+          employee_id: string
+          id?: string
+          org_id: string
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["training_status"]
+          type: string
+          unpaid_days?: number
+        }
+        Update: {
+          created_at?: string
+          duration?: string | null
+          employee_id?: string
+          id?: string
+          org_id?: string
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["training_status"]
+          type?: string
+          unpaid_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       upi_aggregators: {
         Row: {
@@ -15867,6 +18958,94 @@ export type Database = {
           },
         ]
       }
+      wallet_exception_requests: {
+        Row: {
+          counselor_id: string
+          created_at: string
+          id: string
+          period_key: string
+          reason: string
+          requested_amount: number
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          topup_id: string | null
+          wallet_id: string
+        }
+        Insert: {
+          counselor_id: string
+          created_at?: string
+          id?: string
+          period_key: string
+          reason: string
+          requested_amount: number
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          topup_id?: string | null
+          wallet_id: string
+        }
+        Update: {
+          counselor_id?: string
+          created_at?: string
+          id?: string
+          period_key?: string
+          reason?: string
+          requested_amount?: number
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          topup_id?: string | null
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_exception_requests_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_exception_requests_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "wallet_exception_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_exception_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "wallet_exception_requests_topup_id_fkey"
+            columns: ["topup_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_topups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_exception_requests_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "discount_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_ledger: {
         Row: {
           amount: number
@@ -15963,28 +19142,40 @@ export type Database = {
           grace_days: number
           grace_unit: string
           id: number
+          no_full_burn_enabled: boolean
+          no_full_burn_week1_max_pct: number
           spend_order: Database["public"]["Enums"]["wallet_spend_order"]
           target_base_pct: number
           unlock_threshold_pct: number
+          unspent_unlock_close_policy: string
           updated_at: string
+          use_stepped_unlock_bands: boolean
         }
         Insert: {
           grace_days?: number
           grace_unit?: string
           id?: number
+          no_full_burn_enabled?: boolean
+          no_full_burn_week1_max_pct?: number
           spend_order?: Database["public"]["Enums"]["wallet_spend_order"]
           target_base_pct?: number
           unlock_threshold_pct?: number
+          unspent_unlock_close_policy?: string
           updated_at?: string
+          use_stepped_unlock_bands?: boolean
         }
         Update: {
           grace_days?: number
           grace_unit?: string
           id?: number
+          no_full_burn_enabled?: boolean
+          no_full_burn_week1_max_pct?: number
           spend_order?: Database["public"]["Enums"]["wallet_spend_order"]
           target_base_pct?: number
           unlock_threshold_pct?: number
+          unspent_unlock_close_policy?: string
           updated_at?: string
+          use_stepped_unlock_bands?: boolean
         }
         Relationships: []
       }
@@ -16094,6 +19285,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      wallet_unlock_bands: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          max_achievement_pct: number | null
+          min_achievement_pct: number
+          sort_order: number
+          unlock_pct_of_potential: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_achievement_pct?: number | null
+          min_achievement_pct?: number
+          sort_order?: number
+          unlock_pct_of_potential?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_achievement_pct?: number | null
+          min_achievement_pct?: number
+          sort_order?: number
+          unlock_pct_of_potential?: number
+        }
+        Relationships: []
       }
       whatsapp_business_lines: {
         Row: {
@@ -16734,6 +19955,65 @@ export type Database = {
           },
         ]
       }
+      v_payroll_preview: {
+        Row: {
+          basic: number | null
+          bonus: number | null
+          branch_name: string | null
+          comp_off: number | null
+          company_name: string | null
+          created_at: string | null
+          cycle_end: string | null
+          cycle_id: string | null
+          cycle_label: string | null
+          cycle_start: string | null
+          cycle_status: Database["public"]["Enums"]["payroll_status"] | null
+          daily_rate: number | null
+          department: string | null
+          designation: string | null
+          emp_code: string | null
+          employee_id: string | null
+          esic_employee: number | null
+          full_name: string | null
+          gross_earned: number | null
+          id: string | null
+          incentive: number | null
+          is_overridden: boolean | null
+          late_count: number | null
+          late_deduction: number | null
+          leaves_taken: number | null
+          mispunch_count: number | null
+          mispunch_deduction: number | null
+          monthly_gross: number | null
+          net_salary: number | null
+          org_id: string | null
+          ot_minutes: number | null
+          ot_pay: number | null
+          paid_leaves: number | null
+          payable_days: number | null
+          payroll_days: number | null
+          pf_employee: number | null
+          sandwich_count: number | null
+          ul_count: number | null
+          unpaid_training: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_lines_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_lines_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_visa_content_health: {
         Row: {
           cost_breakdown_sections: number | null
@@ -17087,10 +20367,14 @@ export type Database = {
           branch: string | null
           budget: number | null
           client_type: string | null
+          closing_at: string | null
+          closing_branch_id: string | null
+          closing_counselor_id: string | null
           coaching_services: string[]
           consent_form_date: string | null
           consent_form_submitted: boolean | null
           converted_at: string | null
+          converted_by: string | null
           counselor_notes: string | null
           counselor_notes_locked: boolean
           counselor_notes_locked_at: string | null
@@ -17118,6 +20402,7 @@ export type Database = {
           full_name: string
           gender: string | null
           id: string
+          incentive_attribution_locked: boolean
           institution_name: string | null
           institution_student_id: string | null
           intake: string | null
@@ -17240,6 +20525,11 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      current_employee_id: { Args: { p_org: string }; Returns: string }
+      current_hr_role: {
+        Args: { p_org: string }
+        Returns: Database["public"]["Enums"]["hr_role"]
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -17252,6 +20542,28 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      fn_accrue_leave_balances: {
+        Args: { p_org: string; p_year?: number }
+        Returns: number
+      }
+      fn_admin_unlock_incentive_run: {
+        Args: { _reason: string; _run_id: string }
+        Returns: Json
+      }
+      fn_admin_void_incentive_run: {
+        Args: { _reason: string; _run_id: string }
+        Returns: Json
+      }
+      fn_allocate_from_branch_pool: {
+        Args: {
+          _amount: number
+          _branch_id: string
+          _counselor_id: string
+          _period_key?: string
+          _reason?: string
+        }
+        Returns: Json
       }
       fn_apply_offer_discount:
         | {
@@ -17275,14 +20587,281 @@ export type Database = {
             }
             Returns: Json
           }
+      fn_apply_payroll_override: {
+        Args: { p_cycle: string; p_employee: string; p_override: Json }
+        Returns: {
+          basic: number
+          bonus: number
+          comp_off: number
+          created_at: string
+          cycle_id: string
+          daily_rate: number
+          employee_id: string
+          esic_employee: number
+          gross_earned: number
+          id: string
+          incentive: number
+          input_snapshot: Json | null
+          is_overridden: boolean
+          late_count: number
+          late_deduction: number
+          leaves_taken: number
+          mispunch_count: number
+          mispunch_deduction: number
+          monthly_gross: number
+          net_salary: number
+          org_id: string
+          ot_minutes: number
+          ot_pay: number
+          override_by: string | null
+          override_json: Json | null
+          paid_leaves: number
+          payable_days: number
+          payroll_days: number
+          pf_employee: number
+          sandwich_count: number
+          ul_count: number
+          unpaid_training: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payroll_lines"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_assert_not_director_read_only: { Args: never; Returns: undefined }
+      fn_assign_offer_ab_variant: {
+        Args: { _client_id?: string; _experiment_id: string; _lead_id?: string }
+        Returns: Json
+      }
+      fn_attendance_cycle_locked: {
+        Args: { p_org: string; p_work_date: string }
+        Returns: boolean
+      }
       fn_auto_fund_wallet: { Args: { _wallet_id: string }; Returns: Json }
       fn_auto_fund_wallets_for_period: {
         Args: { _period_key: string }
         Returns: Json
       }
+      fn_build_payroll_line: {
+        Args: { p_cycle: string; p_employee: string }
+        Returns: {
+          basic: number
+          bonus: number
+          comp_off: number
+          created_at: string
+          cycle_id: string
+          daily_rate: number
+          employee_id: string
+          esic_employee: number
+          gross_earned: number
+          id: string
+          incentive: number
+          input_snapshot: Json | null
+          is_overridden: boolean
+          late_count: number
+          late_deduction: number
+          leaves_taken: number
+          mispunch_count: number
+          mispunch_deduction: number
+          monthly_gross: number
+          net_salary: number
+          org_id: string
+          ot_minutes: number
+          ot_pay: number
+          override_by: string | null
+          override_json: Json | null
+          paid_leaves: number
+          payable_days: number
+          payroll_days: number
+          pf_employee: number
+          sandwich_count: number
+          ul_count: number
+          unpaid_training: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payroll_lines"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_calc_day_ot_minutes: {
+        Args: {
+          p_break_min: number
+          p_check_in: string
+          p_check_out: string
+          p_login: string
+          p_logout: string
+          p_ot_eligible: boolean
+          p_shift_break: number
+        }
+        Returns: number
+      }
+      fn_can_admin_incentive_runs: {
+        Args: { _user_id?: string }
+        Returns: boolean
+      }
+      fn_can_approve_stage: {
+        Args: {
+          p_employee_id: string
+          p_org: string
+          p_stage: Database["public"]["Enums"]["approval_stage"]
+        }
+        Returns: boolean
+      }
+      fn_can_manage_offers_studio: {
+        Args: { _user_id?: string }
+        Returns: boolean
+      }
+      fn_can_review_discount_level: {
+        Args: { _level: string }
+        Returns: boolean
+      }
+      fn_can_review_wallet_exception: {
+        Args: { _counselor_id: string; _reviewer_id: string }
+        Returns: boolean
+      }
+      fn_can_use_offer_ai_studio: {
+        Args: { _user_id?: string }
+        Returns: boolean
+      }
+      fn_classify_payment_service: {
+        Args: { _payment_id: string; _service_library_id: string }
+        Returns: Json
+      }
+      fn_clear_client_attribution_splits: {
+        Args: { _actor_id?: string; _client_id: string }
+        Returns: Json
+      }
+      fn_clear_payroll_override: {
+        Args: { p_cycle: string; p_employee: string }
+        Returns: {
+          basic: number
+          bonus: number
+          comp_off: number
+          created_at: string
+          cycle_id: string
+          daily_rate: number
+          employee_id: string
+          esic_employee: number
+          gross_earned: number
+          id: string
+          incentive: number
+          input_snapshot: Json | null
+          is_overridden: boolean
+          late_count: number
+          late_deduction: number
+          leaves_taken: number
+          mispunch_count: number
+          mispunch_deduction: number
+          monthly_gross: number
+          net_salary: number
+          org_id: string
+          ot_minutes: number
+          ot_pay: number
+          override_by: string | null
+          override_json: Json | null
+          paid_leaves: number
+          payable_days: number
+          payroll_days: number
+          pf_employee: number
+          sandwich_count: number
+          ul_count: number
+          unpaid_training: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payroll_lines"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_client_cross_sell_profile: {
+        Args: { _client_id: string }
+        Returns: Json
+      }
+      fn_client_offer_propensity: {
+        Args: { _client_id: string; _counselor_id?: string }
+        Returns: Json
+      }
       fn_clone_offer: { Args: { _offer_id: string }; Returns: string }
+      fn_clone_scheme_template_to_plan: {
+        Args: { _branch_id?: string; _plan_name: string; _template_id: string }
+        Returns: Json
+      }
       fn_close_due_wallets: { Args: never; Returns: number }
       fn_close_wallet: { Args: { _wallet_id: string }; Returns: string }
+      fn_compute_payroll:
+        | {
+            Args: {
+              p_basic: number
+              p_bonus?: number
+              p_compoff?: number
+              p_esic_applicable?: boolean
+              p_incentive?: number
+              p_late?: number
+              p_leaves?: number
+              p_mispunch?: number
+              p_monthly: number
+              p_paid_leaves?: number
+              p_payroll_days: number
+              p_pf_applicable?: boolean
+              p_sandwich?: number
+              p_ul?: number
+              p_unpaid_training?: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_basic: number
+              p_bonus?: number
+              p_compoff?: number
+              p_esic_applicable?: boolean
+              p_incentive?: number
+              p_late?: number
+              p_late_policy?: Json
+              p_leaves?: number
+              p_mispunch?: number
+              p_mispunch_policy?: Json
+              p_monthly: number
+              p_paid_leaves?: number
+              p_payroll_days: number
+              p_pf_applicable?: boolean
+              p_sandwich?: number
+              p_ul?: number
+              p_ul_mult?: number
+              p_unpaid_training?: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_basic: number
+              p_bonus?: number
+              p_compoff?: number
+              p_esic_applicable?: boolean
+              p_incentive?: number
+              p_late?: number
+              p_late_policy?: Json
+              p_leaves?: number
+              p_mispunch?: number
+              p_mispunch_policy?: Json
+              p_monthly: number
+              p_ot_minutes?: number
+              p_ot_policy?: Json
+              p_paid_leaves?: number
+              p_payroll_days: number
+              p_pf_applicable?: boolean
+              p_sandwich?: number
+              p_ul?: number
+              p_ul_mult?: number
+              p_unpaid_training?: number
+            }
+            Returns: Json
+          }
       fn_compute_performance_score: {
         Args: { _counselor_id: string; _period_key: string }
         Returns: {
@@ -17320,6 +20899,24 @@ export type Database = {
         Args: { _offer_category: string; _uid?: string }
         Returns: boolean
       }
+      fn_counselor_earning_snapshot: {
+        Args: { _counselor_id: string; _period_key: string }
+        Returns: Json
+      }
+      fn_counselor_offer_influence: {
+        Args: { _counselor_id?: string; _period_key: string }
+        Returns: Json
+      }
+      fn_counselor_offer_propensity_queue: {
+        Args: { _limit?: number }
+        Returns: {
+          client_id: string
+          full_name: string
+          lifecycle_stage: string
+          propensity_band: string
+          propensity_score: number
+        }[]
+      }
       fn_counselor_period_achievement: {
         Args: { _period_key: string }
         Returns: {
@@ -17329,6 +20926,24 @@ export type Database = {
           revenue_source: string
           target_value: number
         }[]
+      }
+      fn_counselor_plan_stack_summary: {
+        Args: { _counselor_id: string; _period_key: string }
+        Returns: {
+          assignment_role: string
+          earned_amount: number
+          plan_id: string
+          plan_name: string
+          plan_stack_role: string
+          run_id: string
+          run_locked: boolean
+          run_status: string
+          settlement_currency: string
+        }[]
+      }
+      fn_counselor_wallet_impact: {
+        Args: { _counselor_id?: string; _period_key: string }
+        Returns: Json
       }
       fn_counselor_wallets_for_period: {
         Args: { _client_id?: string; _lead_id?: string; _period_key?: string }
@@ -17345,9 +20960,10 @@ export type Database = {
           carry_to_period: string | null
           close_outcome: string | null
           closed_at: string | null
-          counselor_id: string
+          counselor_id: string | null
           created_at: string
           currency: string
+          forfeited_unlock_amount: number
           id: string
           max_amount_per_client: number | null
           max_percent_per_client: number
@@ -17373,9 +20989,188 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      fn_create_offer_ab_experiment: {
+        Args: {
+          _description?: string
+          _min_conversions?: number
+          _name: string
+          _offer_id_a: string
+          _offer_id_b: string
+        }
+        Returns: string
+      }
+      fn_create_offer_ab_experiment_multi: {
+        Args: {
+          _description?: string
+          _min_conversions?: number
+          _name: string
+          _variants: Json
+        }
+        Returns: string
+      }
+      fn_derive_status: {
+        Args: {
+          p_half_after: number
+          p_in: string
+          p_is_mispunch: boolean
+          p_login: string
+          p_out: string
+          p_status: Database["public"]["Enums"]["att_status"]
+        }
+        Returns: Json
+      }
+      fn_detect_sandwich_for_leave: {
+        Args: { p_request: string }
+        Returns: number
+      }
+      fn_discount_approval_level: {
+        Args: {
+          _amount: number
+          _below_floor?: boolean
+          _is_waiver?: boolean
+          _percent: number
+        }
+        Returns: string
+      }
+      fn_dismiss_client_offer_suggestion: {
+        Args: { _client_id: string; _days?: number; _reason?: string }
+        Returns: Json
+      }
+      fn_effective_fx_rate_to_inr:
+        | { Args: { _currency: string; _period_key?: string }; Returns: number }
+        | {
+            Args: { _currency: string; _period_key?: string; _purpose?: string }
+            Returns: number
+          }
+      fn_enroll_offer_journey: {
+        Args: { _client_id?: string; _journey_id: string; _lead_id?: string }
+        Returns: string
+      }
+      fn_ensure_my_employee_profile: {
+        Args: { p_org: string }
+        Returns: {
+          addr_current: string | null
+          addr_permanent: string | null
+          annual_entitlement: number | null
+          bank_account_number: string | null
+          bank_account_type: string
+          bank_branch: string | null
+          bank_holder_name: string | null
+          bank_ifsc: string | null
+          bank_name: string | null
+          bank_verified: boolean
+          basic: number
+          bonus: number
+          branch_id: string | null
+          company_id: string | null
+          conveyance: number
+          created_at: string
+          date_of_joining: string | null
+          department: string | null
+          designation: string | null
+          dob: string | null
+          email: string | null
+          emergency: string | null
+          emp_code: string
+          employment_type: Database["public"]["Enums"]["employment_type"]
+          esic_applicable: boolean
+          esic_number: string | null
+          full_name: string
+          gender: string | null
+          hra: number
+          id: string
+          incentive: number
+          mobile: string | null
+          monthly_gross: number
+          notice_period: string | null
+          org_id: string
+          pf_applicable: boolean
+          pf_number: string | null
+          photo_url: string | null
+          reporting_mgr_id: string | null
+          shift_id: string | null
+          special_allow: number
+          staff_id: string | null
+          status: Database["public"]["Enums"]["emp_status"]
+          uan: string | null
+          updated_at: string
+          work_week: Database["public"]["Enums"]["work_week"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "employees"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_evaluate_discount_margin: {
+        Args: {
+          _discount_amount: number
+          _discount_percent?: number
+          _master_key?: string
+          _offer_id?: string
+          _reference_amount: number
+        }
+        Returns: Json
+      }
+      fn_execute_journey_step: {
+        Args: { _enrollment_id: string; _step_id: string }
+        Returns: Json
+      }
+      fn_export_accounting_batch: { Args: { p_cycle: string }; Returns: string }
+      fn_export_payroll_register: {
+        Args: { p_branch?: string; p_cycle: string }
+        Returns: Json
+      }
+      fn_finalize_leave_on_approve: {
+        Args: { p_request: string }
+        Returns: {
+          created_at: string
+          days: number
+          document_id: string | null
+          employee_id: string
+          from_date: string
+          has_document: boolean
+          id: string
+          is_sandwich: boolean
+          org_id: string
+          reason: string | null
+          status: Database["public"]["Enums"]["request_status"]
+          to_date: string
+          type: Database["public"]["Enums"]["leave_type"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fn_fx_rate: {
         Args: { _ccy: string; _period_key: string }
         Returns: number
+      }
+      fn_get_discount_margin_floor_policy: {
+        Args: never
+        Returns: {
+          block_counselor_waiver: boolean
+          id: string
+          is_active: boolean
+          min_net_pct: number
+          scope_key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "discount_margin_floor_policies"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_get_or_create_branch_pool_wallet: {
+        Args: { _branch_id: string; _currency?: string; _period_key: string }
+        Returns: string
       }
       fn_get_or_create_wallet: {
         Args: {
@@ -17388,10 +21183,159 @@ export type Database = {
         }
         Returns: string
       }
+      fn_incentive_append_client_timeline: {
+        Args: {
+          _actor_id: string
+          _client_id: string
+          _metadata?: Json
+          _qe_event_type: string
+          _qe_id: string
+          _summary: string
+        }
+        Returns: undefined
+      }
+      fn_incentive_branch_contest_standings: {
+        Args: { _contest_id: string }
+        Returns: {
+          branch_id: string
+          branch_name: string
+          event_count: number
+          rank: number
+          total_amount: number
+        }[]
+      }
+      fn_incentive_counselor_revenue_breakdown: {
+        Args: { _counselor_id: string; _period_key: string }
+        Returns: Json
+      }
+      fn_incentive_dimension_leaderboard: {
+        Args: { _group_by?: string; _limit?: number; _period_key: string }
+        Returns: {
+          currency: string
+          event_count: number
+          group_key: string
+          group_label: string
+          rank: number
+          total_amount: number
+        }[]
+      }
+      fn_incentive_payout_export: {
+        Args: { _period_key?: string; _run_id?: string }
+        Returns: {
+          accounting_ap_bill_id: string
+          counselor_id: string
+          counselor_name: string
+          gross_amount: number
+          net_amount: number
+          paid_at: string
+          payout_id: string
+          payroll_batch_ref: string
+          payroll_status: string
+          period_key: string
+          run_id: string
+          settlement_currency: string
+          status: string
+          tds_amount: number
+        }[]
+      }
+      fn_incentive_resolve_client_attribution: {
+        Args: { _client_id: string }
+        Returns: {
+          branch_id: string
+          counselor_id: string
+          dimensions: Json
+        }[]
+      }
+      fn_incentive_timeline_summary: {
+        Args: {
+          _amount: number
+          _currency: string
+          _dims: Json
+          _qe_event_type: string
+        }
+        Returns: string
+      }
+      fn_init_entity_approvals: {
+        Args: {
+          p_employee_id: string
+          p_entity_id: string
+          p_entity_type: string
+          p_org: string
+        }
+        Returns: undefined
+      }
+      fn_is_director_only: { Args: { _user_id: string }; Returns: boolean }
+      fn_late_deduction:
+        | { Args: { p_late: number }; Returns: number }
+        | { Args: { p_late: number; p_policy?: Json }; Returns: number }
+      fn_leave_balance_remaining: {
+        Args: {
+          p_employee: string
+          p_type: Database["public"]["Enums"]["leave_type"]
+          p_year?: number
+        }
+        Returns: number
+      }
+      fn_list_discount_margin_floor_policies: {
+        Args: never
+        Returns: {
+          block_counselor_waiver: boolean
+          id: string
+          is_active: boolean
+          min_net_pct: number
+          scope_key: string
+          updated_at: string
+          updated_by: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "discount_margin_floor_policies"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      fn_list_run_disputes: { Args: { _run_id: string }; Returns: Json }
+      fn_lock_payroll_cycle: {
+        Args: { p_cycle: string }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          end_date: string
+          id: string
+          label: string
+          org_id: string
+          payroll_days: number
+          start_date: string
+          status: Database["public"]["Enums"]["payroll_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payroll_cycles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_mark_payouts_payroll_sent: {
+        Args: { _batch_ref?: string; _payout_ids: string[] }
+        Returns: Json
+      }
+      fn_mispunch_deduction:
+        | { Args: { p_mis: number }; Returns: number }
+        | { Args: { p_mis: number; p_policy?: Json }; Returns: number }
       fn_next_period_key: {
         Args: { _period_key: string; _valid_to: string }
         Returns: string
       }
+      fn_offer_ab_experiment_stats: {
+        Args: { _experiment_id: string }
+        Returns: Json
+      }
+      fn_offer_influence_breakdown: {
+        Args: { _date_from?: string; _date_to?: string }
+        Returns: Json
+      }
+      fn_offer_segments_summary: { Args: never; Returns: Json }
       fn_offer_set_status: {
         Args: {
           _note?: string
@@ -17411,6 +21355,7 @@ export type Database = {
           description: string | null
           discount_type: string
           discount_value: number
+          distribution_channels: string[]
           fl_contribution_pct: number | null
           funding_source: Database["public"]["Enums"]["offer_funding_source"]
           id: string
@@ -17440,9 +21385,28 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      fn_payment_is_verified: {
-        Args: { _payment_proof_status: string; _payment_status: string }
-        Returns: boolean
+      fn_offer_studio_dashboard: {
+        Args: { _period_key?: string }
+        Returns: Json
+      }
+      fn_open_run_item_dispute: {
+        Args: { _body: string; _line_item_id: string; _subject?: string }
+        Returns: string
+      }
+      fn_payment_is_verified:
+        | {
+            Args: { _payment_proof_status: string; _payment_status: string }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p: Database["public"]["Tables"]["client_invoice_payments"]["Row"]
+            }
+            Returns: boolean
+          }
+      fn_performance_hub_readiness_check: {
+        Args: { _period_key: string }
+        Returns: Json
       }
       fn_performance_leaderboard: {
         Args: { _limit?: number; _period_key: string }
@@ -17459,6 +21423,11 @@ export type Database = {
         Args: { _period_key: string }
         Returns: Json
       }
+      fn_period_command_center: {
+        Args: { _branch_name?: string; _period_key: string }
+        Returns: Json
+      }
+      fn_period_lock_readiness: { Args: { _period_key: string }; Returns: Json }
       fn_pick_discount_wallet: {
         Args: {
           _client_id?: string
@@ -17481,9 +21450,10 @@ export type Database = {
           carry_to_period: string | null
           close_outcome: string | null
           closed_at: string | null
-          counselor_id: string
+          counselor_id: string | null
           created_at: string
           currency: string
+          forfeited_unlock_amount: number
           id: string
           max_amount_per_client: number | null
           max_percent_per_client: number
@@ -17509,11 +21479,243 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_preview_next_period_wallets: {
+        Args: { _period_key: string }
+        Returns: Json
+      }
+      fn_process_approval_decision: {
+        Args: {
+          p_comment?: string
+          p_decision: Database["public"]["Enums"]["request_status"]
+          p_entity_id: string
+          p_entity_type: string
+        }
+        Returns: Json
+      }
+      fn_process_cross_sell_journey_enrollments: {
+        Args: { _limit?: number }
+        Returns: Json
+      }
+      fn_process_due_journey_steps: { Args: { _limit?: number }; Returns: Json }
+      fn_process_leave_decision: {
+        Args: {
+          p_decision: Database["public"]["Enums"]["request_status"]
+          p_request: string
+        }
+        Returns: {
+          created_at: string
+          days: number
+          document_id: string | null
+          employee_id: string
+          from_date: string
+          has_document: boolean
+          id: string
+          is_sandwich: boolean
+          org_id: string
+          reason: string | null
+          status: Database["public"]["Enums"]["request_status"]
+          to_date: string
+          type: Database["public"]["Enums"]["leave_type"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_promote_offer_ab_winner: {
+        Args: { _experiment_id: string }
+        Returns: Json
+      }
+      fn_publish_promotion_from_request: {
+        Args: { _request_id: string }
+        Returns: Json
+      }
+      fn_pull_incentives: { Args: { p_cycle: string }; Returns: number }
+      fn_rebind_ph_demo_wallets: { Args: never; Returns: undefined }
+      fn_record_punch: {
+        Args: { p_attendance: string; p_field: string; p_time?: string }
+        Returns: {
+          break_end: string | null
+          break_min: number | null
+          break_start: string | null
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          employee_id: string
+          id: string
+          is_mispunch: boolean
+          note: string | null
+          org_id: string
+          source: string
+          status: Database["public"]["Enums"]["att_status"]
+          updated_at: string
+          work_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fn_reinstate_wallet: {
         Args: { _to_period?: string; _wallet_id: string }
         Returns: string
       }
       fn_release_expired_reservations: { Args: never; Returns: number }
+      fn_remove_counselor_plan_assignment: {
+        Args: {
+          _actor_id?: string
+          _counselor_id: string
+          _period_key: string
+          _plan_id: string
+        }
+        Returns: Json
+      }
+      fn_reopen_payroll_cycle:
+        | {
+            Args: { p_cycle: string }
+            Returns: {
+              approved_at: string | null
+              approved_by: string | null
+              created_at: string
+              end_date: string
+              id: string
+              label: string
+              org_id: string
+              payroll_days: number
+              start_date: string
+              status: Database["public"]["Enums"]["payroll_status"]
+            }
+            SetofOptions: {
+              from: "*"
+              to: "payroll_cycles"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { p_cycle: string; p_reason?: string }
+            Returns: {
+              approved_at: string | null
+              approved_by: string | null
+              created_at: string
+              end_date: string
+              id: string
+              label: string
+              org_id: string
+              payroll_days: number
+              start_date: string
+              status: Database["public"]["Enums"]["payroll_status"]
+            }
+            SetofOptions: {
+              from: "*"
+              to: "payroll_cycles"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      fn_reply_run_item_dispute: {
+        Args: { _body: string; _dispute_id: string }
+        Returns: string
+      }
+      fn_reset_hr_role_permissions: { Args: { p_org: string }; Returns: number }
+      fn_resolve_client_incentive_attribution: {
+        Args: { _client_id: string }
+        Returns: {
+          counselor_id: string
+          share_pct: number
+          share_ratio: number
+        }[]
+      }
+      fn_resolve_discount_margin_floor: {
+        Args: { _master_key?: string }
+        Returns: {
+          block_counselor_waiver: boolean
+          id: string
+          is_active: boolean
+          min_net_pct: number
+          scope_key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "discount_margin_floor_policies"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_resolve_policy: {
+        Args: { p_as_of?: string; p_domain: string; p_org: string }
+        Returns: Json
+      }
+      fn_resolve_run_item_dispute: {
+        Args: { _dispute_id: string }
+        Returns: Json
+      }
+      fn_review_discount_request: {
+        Args: { _action: string; _note?: string; _request_id: string }
+        Returns: Json
+      }
+      fn_review_wallet_exception_request: {
+        Args: { _action: string; _note?: string; _request_id: string }
+        Returns: Json
+      }
+      fn_rollup_inputs: {
+        Args: { p_cycle: string; p_employee: string }
+        Returns: Json
+      }
+      fn_save_plan_as_scheme_template: {
+        Args: {
+          _description?: string
+          _plan_id: string
+          _template_name: string
+        }
+        Returns: string
+      }
+      fn_seed_performance_hub_demo: { Args: never; Returns: undefined }
+      fn_set_client_attribution_splits: {
+        Args: {
+          _actor_id?: string
+          _client_id: string
+          _counselor_ids: string[]
+          _notes?: string
+          _share_pcts: number[]
+        }
+        Returns: Json
+      }
+      fn_set_counselor_plan_assignment: {
+        Args: {
+          _actor_id?: string
+          _assignment_role?: string
+          _counselor_id: string
+          _notes?: string
+          _period_key: string
+          _plan_id: string
+        }
+        Returns: Json
+      }
+      fn_set_discount_margin_floor_policy: {
+        Args: { _block_counselor_waiver?: boolean; _min_net_pct: number }
+        Returns: {
+          block_counselor_waiver: boolean
+          id: string
+          is_active: boolean
+          min_net_pct: number
+          scope_key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "discount_margin_floor_policies"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fn_size_wallet: {
         Args: { _wallet_id: string }
         Returns: {
@@ -17529,9 +21731,10 @@ export type Database = {
           carry_to_period: string | null
           close_outcome: string | null
           closed_at: string | null
-          counselor_id: string
+          counselor_id: string | null
           created_at: string
           currency: string
+          forfeited_unlock_amount: number
           id: string
           max_amount_per_client: number | null
           max_percent_per_client: number
@@ -17561,9 +21764,116 @@ export type Database = {
         Args: { _period_key: string }
         Returns: number
       }
+      fn_snapshot_incentive_plan_version: {
+        Args: { _created_by?: string; _period_key: string; _plan_id: string }
+        Returns: string
+      }
+      fn_start_attendance_day:
+        | {
+            Args: { p_check_in?: string; p_employee: string }
+            Returns: {
+              break_end: string | null
+              break_min: number | null
+              break_start: string | null
+              check_in: string | null
+              check_out: string | null
+              created_at: string
+              employee_id: string
+              id: string
+              is_mispunch: boolean
+              note: string | null
+              org_id: string
+              source: string
+              status: Database["public"]["Enums"]["att_status"]
+              updated_at: string
+              work_date: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "attendance"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              p_check_in?: string
+              p_employee: string
+              p_work_date?: string
+            }
+            Returns: {
+              break_end: string | null
+              break_min: number | null
+              break_start: string | null
+              check_in: string | null
+              check_out: string | null
+              created_at: string
+              employee_id: string
+              id: string
+              is_mispunch: boolean
+              note: string | null
+              org_id: string
+              source: string
+              status: Database["public"]["Enums"]["att_status"]
+              updated_at: string
+              work_date: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "attendance"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      fn_start_offer_ab_experiment: {
+        Args: { _experiment_id: string }
+        Returns: Json
+      }
+      fn_submit_discount_request: {
+        Args: {
+          _amount?: number
+          _client_id?: string
+          _lead_id?: string
+          _master_key?: string
+          _note?: string
+          _offer_id?: string
+          _percent?: number
+          _reference_amount?: number
+          _wallet_id?: string
+        }
+        Returns: Json
+      }
+      fn_submit_wallet_exception_request: {
+        Args: {
+          _amount: number
+          _period_key?: string
+          _reason: string
+          _wallet_id?: string
+        }
+        Returns: Json
+      }
+      fn_suggest_incentive_targets: {
+        Args: {
+          _growth_pct?: number
+          _plan_id?: string
+          _source_period_key: string
+        }
+        Returns: {
+          counselor_id: string
+          event_count: number
+          full_name: string
+          prior_total: number
+          suggested_target: number
+          target_currency: string
+        }[]
+      }
       fn_suggest_meeting_slug: {
         Args: { _base: string; _user: string }
         Returns: string
+      }
+      fn_suggest_offer_for_client: {
+        Args: { _client_id: string }
+        Returns: Json
       }
       fn_suggest_profile_slug: { Args: { _base: string }; Returns: string }
       fn_sync_performance_scores_for_period: {
@@ -17585,9 +21895,10 @@ export type Database = {
           carry_to_period: string | null
           close_outcome: string | null
           closed_at: string | null
-          counselor_id: string
+          counselor_id: string | null
           created_at: string
           currency: string
+          forfeited_unlock_amount: number
           id: string
           max_amount_per_client: number | null
           max_percent_per_client: number
@@ -17613,6 +21924,50 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_telecaller_period_home: {
+        Args: { _period_key?: string; _user_id?: string }
+        Returns: Json
+      }
+      fn_unclassified_payment_count: {
+        Args: { _period_key: string }
+        Returns: number
+      }
+      fn_unclassified_payments_for_period: {
+        Args: { _period_key: string }
+        Returns: {
+          amount: number
+          client_id: string
+          client_name: string
+          counselor_id: string
+          counselor_name: string
+          currency: string
+          invoice_id: string
+          paid_at: string
+          payment_id: string
+        }[]
+      }
+      fn_upsert_discount_margin_floor_policy: {
+        Args: {
+          _block_counselor_waiver?: boolean
+          _min_net_pct: number
+          _scope_key: string
+        }
+        Returns: {
+          block_counselor_waiver: boolean
+          id: string
+          is_active: boolean
+          min_net_pct: number
+          scope_key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "discount_margin_floor_policies"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fn_user_manages_user: {
         Args: { _manager: string; _target: string }
         Returns: boolean
@@ -17626,6 +21981,11 @@ export type Database = {
         }
         Returns: number
       }
+      fn_wallet_exception_pending_count: {
+        Args: { _period_key?: string }
+        Returns: number
+      }
+      fn_wallet_impact_summary: { Args: { _period_key: string }; Returns: Json }
       fn_wallet_multiplier_for_achievement: {
         Args: { _achievement_pct: number }
         Returns: number
@@ -17641,6 +22001,15 @@ export type Database = {
           _wallet: Database["public"]["Tables"]["discount_wallets"]["Row"]
         }
         Returns: boolean
+      }
+      fn_wallet_spend_limits: { Args: { _wallet_id: string }; Returns: Json }
+      fn_wallet_unlock_from_bands: {
+        Args: { _achievement_pct: number; _potential: number }
+        Returns: number
+      }
+      fn_workflow_config: {
+        Args: { p_as_of?: string; p_org: string }
+        Returns: Json
       }
       generate_client_registration_number: { Args: never; Returns: string }
       generate_invoice_number: {
@@ -17665,6 +22034,7 @@ export type Database = {
         Args: { _roles: string[]; _uid: string }
         Returns: boolean
       }
+      has_perm: { Args: { p_org: string; p_perm: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -17709,6 +22079,7 @@ export type Database = {
         Args: { _metadata: Json }
         Returns: boolean
       }
+      is_hr: { Args: { p_org: string }; Returns: boolean }
       is_portal_user_for: {
         Args: { _cid: string; _uid: string }
         Returns: boolean
@@ -17771,6 +22142,10 @@ export type Database = {
         }
         Returns: string
       }
+      manages_employee: {
+        Args: { p_emp: string; p_org: string }
+        Returns: boolean
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -17810,6 +22185,7 @@ export type Database = {
           description: string | null
           discount_type: string
           discount_value: number
+          distribution_channels: string[]
           fl_contribution_pct: number | null
           funding_source: Database["public"]["Enums"]["offer_funding_source"]
           id: string
@@ -17945,6 +22321,8 @@ export type Database = {
         | "commission_admin"
         | "administrator"
         | "manager"
+        | "director"
+      approval_stage: "Manager" | "HR" | "Final"
       assessment_invite_status: "pending" | "registered" | "expired" | "revoked"
       assessment_lead_source:
         | "invite"
@@ -17957,6 +22335,15 @@ export type Database = {
         | "submitted"
         | "counselor_reviewed"
         | "archived"
+      att_status:
+        | "Present"
+        | "Half Day"
+        | "Absent"
+        | "Leave"
+        | "Sick Leave"
+        | "Holiday"
+        | "Week Off"
+        | "Unauthorized Leave"
       calendar_event_status:
         | "pending"
         | "scheduled"
@@ -18028,6 +22415,26 @@ export type Database = {
       dsh_source_type: "upload" | "link"
       dsh_status: "active" | "archived"
       dsh_upload_source: "upload" | "onedrive" | "google_drive" | "external_url"
+      emp_status:
+        | "On Probation"
+        | "Confirmed"
+        | "Resigned"
+        | "Terminated"
+        | "On Notice"
+      employment_type:
+        | "Full-Time"
+        | "Part-Time"
+        | "Intern"
+        | "Temporary"
+        | "Contract"
+      holiday_type: "National" | "Festival" | "Company" | "Optional"
+      hr_role:
+        | "Super Admin"
+        | "Admin"
+        | "HR Manager"
+        | "HR Executive"
+        | "Manager"
+        | "Employee"
       incentive_period_type: "monthly" | "quarterly" | "half_yearly" | "yearly"
       incentive_rate_type: "flat" | "per_unit" | "percent" | "slab"
       incentive_run_status:
@@ -18042,6 +22449,13 @@ export type Database = {
         | "ancillary"
         | "direct_visa_commission"
         | "b2b_admission_commission"
+      leave_type:
+        | "Annual Leave"
+        | "Sick Leave"
+        | "Casual Leave"
+        | "Comp-Off Leave"
+        | "Special Leave"
+        | "Unpaid Leave"
       offer_funding_source: "future_link" | "university" | "joint"
       offer_status:
         | "draft"
@@ -18053,12 +22467,15 @@ export type Database = {
         | "expired"
         | "archived"
       payout_status: "pending" | "approved" | "processed" | "paid" | "cancelled"
+      payroll_status: "Draft" | "Locked" | "Paid"
       person_role:
         | "applicant"
         | "co_applicant"
         | "dependant"
         | "sponsor"
         | "co_sponsor"
+      request_status: "Pending" | "Approved" | "Rejected" | "Cancelled"
+      shift_type: "Day" | "Night" | "Rotational" | "Custom"
       telephony_role:
         | "telecaller"
         | "counselor"
@@ -18066,10 +22483,16 @@ export type Database = {
         | "documentation"
         | "viewer"
         | "client"
+      training_status: "In Progress" | "Completed" | "Extended" | "Cancelled"
       wallet_alloc_status: "reserved" | "applied" | "reversed"
-      wallet_budget_kind: "month_to_month" | "festive" | "scoped"
+      wallet_budget_kind:
+        | "month_to_month"
+        | "festive"
+        | "scoped"
+        | "branch_pool"
       wallet_rollover_policy: "expire" | "partial" | "full"
       wallet_spend_order: "strategic_first" | "personal_first" | "parallel"
+      work_week: "6-Day" | "5-Day"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -18209,6 +22632,7 @@ export const Constants = {
         "manager",
         "director",
       ],
+      approval_stage: ["Manager", "HR", "Final"],
       assessment_invite_status: ["pending", "registered", "expired", "revoked"],
       assessment_lead_source: [
         "invite",
@@ -18222,6 +22646,16 @@ export const Constants = {
         "submitted",
         "counselor_reviewed",
         "archived",
+      ],
+      att_status: [
+        "Present",
+        "Half Day",
+        "Absent",
+        "Leave",
+        "Sick Leave",
+        "Holiday",
+        "Week Off",
+        "Unauthorized Leave",
       ],
       calendar_event_status: [
         "pending",
@@ -18301,6 +22735,29 @@ export const Constants = {
       dsh_source_type: ["upload", "link"],
       dsh_status: ["active", "archived"],
       dsh_upload_source: ["upload", "onedrive", "google_drive", "external_url"],
+      emp_status: [
+        "On Probation",
+        "Confirmed",
+        "Resigned",
+        "Terminated",
+        "On Notice",
+      ],
+      employment_type: [
+        "Full-Time",
+        "Part-Time",
+        "Intern",
+        "Temporary",
+        "Contract",
+      ],
+      holiday_type: ["National", "Festival", "Company", "Optional"],
+      hr_role: [
+        "Super Admin",
+        "Admin",
+        "HR Manager",
+        "HR Executive",
+        "Manager",
+        "Employee",
+      ],
       incentive_period_type: ["monthly", "quarterly", "half_yearly", "yearly"],
       incentive_rate_type: ["flat", "per_unit", "percent", "slab"],
       incentive_run_status: [
@@ -18317,6 +22774,14 @@ export const Constants = {
         "direct_visa_commission",
         "b2b_admission_commission",
       ],
+      leave_type: [
+        "Annual Leave",
+        "Sick Leave",
+        "Casual Leave",
+        "Comp-Off Leave",
+        "Special Leave",
+        "Unpaid Leave",
+      ],
       offer_funding_source: ["future_link", "university", "joint"],
       offer_status: [
         "draft",
@@ -18329,6 +22794,7 @@ export const Constants = {
         "archived",
       ],
       payout_status: ["pending", "approved", "processed", "paid", "cancelled"],
+      payroll_status: ["Draft", "Locked", "Paid"],
       person_role: [
         "applicant",
         "co_applicant",
@@ -18336,6 +22802,8 @@ export const Constants = {
         "sponsor",
         "co_sponsor",
       ],
+      request_status: ["Pending", "Approved", "Rejected", "Cancelled"],
+      shift_type: ["Day", "Night", "Rotational", "Custom"],
       telephony_role: [
         "telecaller",
         "counselor",
@@ -18344,10 +22812,17 @@ export const Constants = {
         "viewer",
         "client",
       ],
+      training_status: ["In Progress", "Completed", "Extended", "Cancelled"],
       wallet_alloc_status: ["reserved", "applied", "reversed"],
-      wallet_budget_kind: ["month_to_month", "festive", "scoped"],
+      wallet_budget_kind: [
+        "month_to_month",
+        "festive",
+        "scoped",
+        "branch_pool",
+      ],
       wallet_rollover_policy: ["expire", "partial", "full"],
       wallet_spend_order: ["strategic_first", "personal_first", "parallel"],
+      work_week: ["6-Day", "5-Day"],
     },
   },
 } as const
