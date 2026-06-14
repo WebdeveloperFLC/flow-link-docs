@@ -21,6 +21,8 @@ type Props = {
 };
 
 type FormState = {
+  first_name: string;
+  last_name: string;
   full_name: string;
   gender: string;
   dob: string;
@@ -47,10 +49,12 @@ type FormState = {
   incentive: number | "";
   bonus: number | "";
   pf_applicable: boolean;
+  has_pf_account: boolean;
   pf_number: string;
   uan: string;
   esic_applicable: boolean;
   esic_number: string;
+  pt_applicable: boolean;
   bank_holder_name: string;
   bank_name: string;
   bank_account_number: string;
@@ -62,7 +66,10 @@ type FormState = {
 };
 
 function fromEmployee(e: EmployeeRow): FormState {
+  const parts = e.full_name.trim().split(/\s+/);
   return {
+    first_name: e.first_name ?? parts[0] ?? "",
+    last_name: e.last_name ?? parts.slice(1).join(" ") ?? "",
     full_name: e.full_name,
     gender: e.gender ?? "Female",
     dob: e.dob ?? "",
@@ -89,10 +96,12 @@ function fromEmployee(e: EmployeeRow): FormState {
     incentive: e.incentive,
     bonus: e.bonus,
     pf_applicable: e.pf_applicable,
+    has_pf_account: e.has_pf_account ?? e.pf_applicable,
     pf_number: e.pf_number ?? "",
     uan: e.uan ?? "",
     esic_applicable: e.esic_applicable,
     esic_number: e.esic_number ?? "",
+    pt_applicable: e.pt_applicable ?? true,
     bank_holder_name: e.bank_holder_name ?? "",
     bank_name: e.bank_name ?? "",
     bank_account_number: e.bank_account_number ?? "",
@@ -105,6 +114,8 @@ function fromEmployee(e: EmployeeRow): FormState {
 }
 
 const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[]): FormState => ({
+  first_name: "",
+  last_name: "",
   full_name: "",
   gender: "Female",
   dob: "",
@@ -131,10 +142,12 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
   incentive: 0,
   bonus: 0,
   pf_applicable: true,
+  has_pf_account: true,
   pf_number: "",
   uan: "",
   esic_applicable: false,
   esic_number: "",
+  pt_applicable: true,
   bank_holder_name: "",
   bank_name: "",
   bank_account_number: "",
@@ -176,19 +189,23 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
 
   const save = async () => {
     const e: Record<string, string> = {};
-    if (!f.full_name.trim()) e.name = "Name required";
+    if (!f.first_name.trim()) e.name = "First name required";
+    if (!f.last_name.trim()) e.lastName = "Last name required";
     if (!f.designation.trim()) e.desig = "Designation required";
     if (!f.monthly_gross || Number(f.monthly_gross) <= 0) e.monthly = "Valid monthly salary required";
     setErr(e);
     if (Object.keys(e).length) {
-      setTab(e.name || e.desig ? "basic" : "salary");
+      setTab(e.name || e.lastName || e.desig ? "basic" : "salary");
       return;
     }
 
     setSaving(true);
+    const fullName = `${f.first_name.trim()} ${f.last_name.trim()}`.trim();
     const payload = {
       org_id: HR_ORG_ID,
-      full_name: f.full_name.trim(),
+      first_name: f.first_name.trim(),
+      last_name: f.last_name.trim(),
+      full_name: fullName,
       gender: f.gender,
       dob: f.dob || null,
       mobile: f.mobile || null,
@@ -213,11 +230,13 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
       special_allow: Number(f.special_allow) || 0,
       incentive: Number(f.incentive) || 0,
       bonus: Number(f.bonus) || 0,
-      pf_applicable: f.pf_applicable,
+      pf_applicable: f.has_pf_account ? f.pf_applicable : false,
+      has_pf_account: f.has_pf_account,
       pf_number: f.pf_number || null,
       uan: f.uan || null,
       esic_applicable: f.esic_applicable,
       esic_number: f.esic_number || null,
+      pt_applicable: f.pt_applicable,
       bank_holder_name: f.bank_holder_name || null,
       bank_name: f.bank_name || null,
       bank_account_number: f.bank_account_number || null,
@@ -247,7 +266,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
           .single();
         if (error) throw error;
         employeeId = (data as { id: string }).id;
-        fire(`Employee ${f.full_name} added`);
+        fire(`Employee ${fullName} added`);
       }
       if (photoFile && employeeId) {
         await uploadEmployeePhoto(employeeId, photoFile);
@@ -263,6 +282,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
   };
 
   const tabs: FormTab[] = ["basic", "employment", "shift", "salary", "statutory", "bank"];
+  const fullName = `${f.first_name} ${f.last_name}`.trim() || f.full_name;
   const grossComp =
     (Number(f.basic) || 0) +
     (Number(f.hra) || 0) +
@@ -298,7 +318,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
   );
 
   return (
-    <div className="modal-bg" onClick={onClose}>
+    <div className="modal-bg">
       <div className="modal wide" onClick={(e) => e.stopPropagation()}>
         <div className="modal-h">
           <h3>{emp ? "Edit Employee" : "Add Employee"}</h3>
@@ -328,12 +348,12 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                 {photoPreview ? (
                   <img
                     src={photoPreview}
-                    alt={f.full_name}
+                    alt={fullName}
                     className="avatar"
-                    style={{ width: 84, height: 84, objectFit: "cover", borderRadius: "50%" }}
+                    style={{ width: 84, height: 84, objectFit: "cover", borderRadius: 12 }}
                   />
                 ) : (
-                  <EmployeeAvatar name={f.full_name || "?"} photoUrl={emp?.photo_url} size={84} fontSize={24} />
+                  <EmployeeAvatar name={fullName || "?"} photoUrl={emp?.photo_url} size={84} fontSize={24} />
                 )}
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <label className="fld" style={{ marginBottom: 10 }}>
@@ -350,7 +370,8 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                     />
                   </label>
                   <div className="grid g2" style={{ gap: "0 16px" }}>
-                    {T("full_name", "Full Name")}
+                    {T("first_name", "First Name")}
+                    {T("last_name", "Last Name")}
                     {T("gender", "Gender", ["Female", "Male", "Other"])}
                   </div>
                 </div>
@@ -492,14 +513,24 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
           {tab === "statutory" && (
             <>
               <div className="sec-label">Provident Fund</div>
-              <label className="row-flex" style={{ fontSize: 13, marginBottom: 10 }}>
+              <label className="row-flex" style={{ fontSize: 13, marginBottom: 8 }}>
                 <input
                   type="checkbox"
-                  checked={f.pf_applicable}
-                  onChange={(e) => set("pf_applicable", e.target.checked)}
+                  checked={f.has_pf_account}
+                  onChange={(e) => set("has_pf_account", e.target.checked)}
                 />
-                PF Applicable (12% of basic, capped at ₹15,000 wage)
+                Employee has PF account
               </label>
+              {f.has_pf_account && (
+                <label className="row-flex" style={{ fontSize: 13, marginBottom: 10 }}>
+                  <input
+                    type="checkbox"
+                    checked={f.pf_applicable}
+                    onChange={(e) => set("pf_applicable", e.target.checked)}
+                  />
+                  PF Applicable (12% of basic, capped at ₹15,000 wage)
+                </label>
+              )}
               <div className="grid g2" style={{ gap: "0 16px" }}>
                 {T("pf_number", "PF Number")}
                 {T("uan", "UAN Number")}
@@ -511,9 +542,18 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                   checked={f.esic_applicable}
                   onChange={(e) => set("esic_applicable", e.target.checked)}
                 />
-                ESIC Applicable (0.75%, only if gross ≤ ₹21,000)
+                ESIC Applicable (0.75%, mandatory if monthly gross ≤ ₹21,000)
               </label>
               {T("esic_number", "ESIC Number")}
+              <div className="sec-label">Professional Tax</div>
+              <label className="row-flex" style={{ fontSize: 13 }}>
+                <input
+                  type="checkbox"
+                  checked={f.pt_applicable}
+                  onChange={(e) => set("pt_applicable", e.target.checked)}
+                />
+                PT Applicable (default ₹200 — configurable in Payroll Config)
+              </label>
             </>
           )}
           {tab === "bank" && (

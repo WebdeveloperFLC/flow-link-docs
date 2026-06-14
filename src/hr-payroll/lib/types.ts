@@ -85,10 +85,12 @@ export type EmployeeRow = {
   incentive: number;
   bonus: number;
   pf_applicable: boolean;
+  has_pf_account?: boolean;
   pf_number: string | null;
   uan: string | null;
   esic_applicable: boolean;
   esic_number: string | null;
+  pt_applicable?: boolean;
   bank_holder_name: string | null;
   bank_name: string | null;
   bank_account_number: string | null;
@@ -101,7 +103,7 @@ export type EmployeeRow = {
   shifts?: { name: string; login_time: string; logout_time: string } | null;
 };
 
-export type CompanyRow = { id: string; name: string };
+export type CompanyRow = { id: string; name: string; legal_name?: string | null; currency?: string };
 export type BranchRow = { id: string; name: string };
 export type ShiftRow = {
   id: string;
@@ -115,6 +117,7 @@ export type ShiftRow = {
   break_min?: number;
   half_day_after_min?: number;
   ot_eligible?: boolean;
+  working_days_per_week?: number;
 };
 
 export type AttendanceRow = {
