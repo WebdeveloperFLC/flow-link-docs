@@ -68,7 +68,8 @@ Your staging roster is confirmed (8 employees, FL-1042 linked, FL-CA01 present).
 | 3 | HR-UAT-SHELL-002 | HR Manager | All sidebar routes open |
 | 4 | HR-UAT-PAY-002 | HR Manager | Isha **29.5** days, **₹39,500** net |
 | 5 | HR-UAT-P2-003 | HR Manager | Process → Approve → Lock succeeds |
-| 6 | HR-UAT-P2-007 | HR Manager | FL-CA01 CPP/EI, net **~CA$4,157** |
+| 5b | — | SQL | Run [`HR_PAYROLL_SNAPSHOT_VERIFY.sql`](./HR_PAYROLL_SNAPSHOT_VERIFY.sql) after Process |
+| 6 | HR-UAT-P2C-002 | HR Manager | `processed` snapshots ≥5 rows |
 | 7 | HR-UAT-ATT-001 | `adminsupport2@…` | ESS punch as Isha on `/hr/me` |
 | 8 | HR-UAT-P2-001 | HR Manager | Profile fields save (middle name, etc.) |
 | 9 | HR-UAT-P2C-001 | Admin | `/hr/roles` → **Sync from CRM** |

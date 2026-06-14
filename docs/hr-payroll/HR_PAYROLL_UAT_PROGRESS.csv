@@ -1,5 +1,5 @@
 Test Case ID,Section,Summary,Tester,Date,Result,Notes,Screenshot File
-HR-UAT-SETUP-001,A,Demo data loaded,,,,
+HR-UAT-SETUP-001,A,Demo data loaded,,,Pass,SQL verify + roster confirmed (8 employees FL-CA01 present),
 HR-UAT-SHELL-001,A,HR module entry,,,,
 HR-UAT-SHELL-002,A,Navigation coverage,,,,
 HR-UAT-RBAC-001,B,Employee role screens,,,,
