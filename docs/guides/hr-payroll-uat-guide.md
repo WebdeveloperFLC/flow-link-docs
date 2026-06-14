@@ -21,7 +21,7 @@
 | File | Use |
 |------|-----|
 | **This guide** | `docs/guides/hr-payroll-uat-guide.md` — setup + workflow (in-app: **Guide → HR Payroll UAT**) |
-| Test case pack (50 cases) | `docs/hr-payroll/HR_PAYROLL_UAT.md` |
+| Test case pack (58 cases) | `docs/hr-payroll/HR_PAYROLL_UAT.md` |
 | Tester quick reference | `docs/hr-payroll/HR_PAYROLL_TESTER_QUICKSTART.md` |
 | Defect log | `docs/hr-payroll/HR_PAYROLL_DEFECT_TRACKER.csv` |
 | Sign-off form | `docs/hr-payroll/HR_PAYROLL_UAT_SIGNOFF.md` |
