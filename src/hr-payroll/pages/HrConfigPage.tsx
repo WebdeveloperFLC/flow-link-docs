@@ -7,10 +7,10 @@ import { HR_ORG_ID } from "../lib/constants";
 import { hrAudit, accrueLeaveBalances } from "../lib/hrApi";
 import type { PolicyRow } from "../lib/types";
 
-const TABS = ["Payroll Cycle", "Late Coming", "Mispunch", "Leave", "Sandwich & UL", "Overtime", "Workflow"] as const;
+const TABS = ["Payroll Cycle", "Late Coming", "Mispunch", "Leave", "Sandwich & UL", "Overtime", "Canada Deductions", "Workflow"] as const;
 type Tab = (typeof TABS)[number];
 
-const DOMAIN_MAP: Record<Exclude<Tab, "Payroll Cycle" | "Workflow" | "Overtime">, string> = {
+const DOMAIN_MAP: Record<Exclude<Tab, "Payroll Cycle" | "Workflow" | "Overtime" | "Canada Deductions">, string> = {
   "Late Coming": "late",
   Mispunch: "mispunch",
   Leave: "leave",
@@ -31,6 +31,7 @@ const DEFAULT_CONFIG: Record<string, Record<string, string>> = {
   sandwich_ul: { sandwich_mult: "1", sandwich_cap: "2/yr", ul_mult: "2", auto_resign: "3 consec. UL" },
   workflow: { enabled: "true", chain: "Manager,HR", skip_manager_when_no_mgr: "true" },
   overtime: { mode: "display", rate_multiplier: "1.5", hours_per_day: "8", min_ot_minutes: "30" },
+  canada_deductions: { cpp_rate: "0.0595", ei_rate: "0.0166", income_tax_flat: "0", other_deductions: "0" },
 };
 
 function Fld({
@@ -60,12 +61,15 @@ export default function HrConfigPage() {
   const [endDate, setEndDate] = useState(cycle?.end_date ?? "");
   const [policyDraft, setPolicyDraft] = useState<Record<string, string>>({});
 
-  const domain = tab !== "Payroll Cycle" && tab !== "Workflow" && tab !== "Overtime" ? DOMAIN_MAP[tab] : null;
+  const domain = tab !== "Payroll Cycle" && tab !== "Workflow" && tab !== "Overtime" && tab !== "Canada Deductions" ? DOMAIN_MAP[tab] : null;
   const workflowPolicy = useMemo(() => {
     return (policies as PolicyRow[]).find((p) => p.domain === "workflow");
   }, [policies]);
   const overtimePolicy = useMemo(() => {
     return (policies as PolicyRow[]).find((p) => p.domain === "overtime");
+  }, [policies]);
+  const canadaPolicy = useMemo(() => {
+    return (policies as PolicyRow[]).find((p) => p.domain === "canada_deductions");
   }, [policies]);
   const currentPolicy = useMemo(() => {
     if (!domain) return null;
@@ -203,6 +207,36 @@ export default function HrConfigPage() {
     await qc.invalidateQueries({ queryKey: ["hr-policies"] });
   };
 
+  const saveCanada = async () => {
+    if (!can("configure")) return;
+    const config = {
+      cpp_rate: Number(policyDraft.cpp_rate ?? canadaPolicy?.config?.cpp_rate ?? 0.0595),
+      ei_rate: Number(policyDraft.ei_rate ?? canadaPolicy?.config?.ei_rate ?? 0.0166),
+      income_tax_flat: Number(
+        policyDraft.income_tax_flat ?? canadaPolicy?.config?.income_tax_flat ?? 0,
+      ),
+      other_deductions: Number(
+        policyDraft.other_deductions ?? canadaPolicy?.config?.other_deductions ?? 0,
+      ),
+    };
+    const version = (canadaPolicy?.version ?? 0) + 1;
+    const { error } = await supabase.from("policies" as never).insert({
+      org_id: HR_ORG_ID,
+      domain: "canada_deductions",
+      effective_from: new Date().toISOString().slice(0, 10),
+      version,
+      config,
+    } as never);
+    if (error) {
+      fire(error.message);
+      return;
+    }
+    await hrAudit("Canada Policy Saved", "deductions", `v${canadaPolicy?.version ?? 0}`, `v${version}`);
+    fire("Canada deductions policy saved");
+    setPolicyDraft({});
+    await qc.invalidateQueries({ queryKey: ["hr-policies"] });
+  };
+
   return (
     <div className="grid" style={{ gap: 16 }}>
       <div className="pill-tab">
@@ -318,6 +352,49 @@ export default function HrConfigPage() {
                 onClick={() => void saveOvertime()}
               >
                 Save Overtime Policy
+              </button>
+            </div>
+          </>
+        ) : tab === "Canada Deductions" ? (
+          <>
+            <div className="muted" style={{ fontSize: 12, marginBottom: 12 }}>
+              Applies when employee <strong>payroll country = CA</strong>. Register columns map as CPP
+              (pf), EI (esic), Tax+Other (pt).
+            </div>
+            <div className="grid g2" style={{ gap: "0 24px" }}>
+              <Fld
+                label="CPP rate (employee)"
+                value={String(policyDraft.cpp_rate ?? canadaPolicy?.config?.cpp_rate ?? "0.0595")}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, cpp_rate: v }))}
+              />
+              <Fld
+                label="EI rate (employee)"
+                value={String(policyDraft.ei_rate ?? canadaPolicy?.config?.ei_rate ?? "0.0166")}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, ei_rate: v }))}
+              />
+              <Fld
+                label="Flat income tax rate (when TDS applicable)"
+                value={String(
+                  policyDraft.income_tax_flat ?? canadaPolicy?.config?.income_tax_flat ?? "0",
+                )}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, income_tax_flat: v }))}
+              />
+              <Fld
+                label="Other deductions (fixed per cycle)"
+                value={String(
+                  policyDraft.other_deductions ?? canadaPolicy?.config?.other_deductions ?? "0",
+                )}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, other_deductions: v }))}
+              />
+            </div>
+            <div className="row-flex" style={{ justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={!can("configure")}
+                onClick={() => void saveCanada()}
+              >
+                Save Canada Policy
               </button>
             </div>
           </>

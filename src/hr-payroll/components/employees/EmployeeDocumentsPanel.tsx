@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../../context/HrPayrollProvider";
 import { useHrDocuments } from "../../hooks/useHrRequests";
 import {
@@ -9,7 +10,8 @@ import {
   uploadHrDocument,
 } from "../../lib/hrStorage";
 import { hrAudit } from "../../lib/hrApi";
-import type { EmployeeRow } from "../../lib/types";
+import { StatusBadge } from "../ui/StatusBadge";
+import type { EmployeeDocumentRow, EmployeeRow } from "../../lib/types";
 
 export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
   const { can, fire } = useHrAccess();
@@ -61,6 +63,28 @@ export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
     }
   };
 
+  const verifyDoc = async (doc: EmployeeDocumentRow, status: "Verified" | "Rejected") => {
+    const remarks =
+      status === "Rejected"
+        ? window.prompt("Rejection remarks (optional)") ?? ""
+        : "";
+    const { error } = await supabase
+      .from("employee_documents" as never)
+      .update({
+        verification_status: status,
+        remarks: remarks || null,
+        verified_at: new Date().toISOString(),
+      } as never)
+      .eq("id", doc.id);
+    if (error) {
+      fire(error.message);
+      return;
+    }
+    await hrAudit(`Document ${status}`, `${emp.emp_code} · ${doc.doc_type}`);
+    fire(`Document ${status.toLowerCase()}`);
+    await qc.invalidateQueries({ queryKey: ["hr-documents", emp.id] });
+  };
+
   return (
     <div className="grid" style={{ gap: 14 }}>
       {canManage && (
@@ -100,6 +124,7 @@ export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
             <tr>
               <th>Type</th>
               <th>File</th>
+              <th>Verification</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -116,6 +141,14 @@ export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
                   )}
                 </td>
                 <td>
+                  <StatusBadge status={d.verification_status ?? "Uploaded"} />
+                  {d.remarks && (
+                    <div className="muted" style={{ fontSize: 10, marginTop: 2 }}>
+                      {d.remarks}
+                    </div>
+                  )}
+                </td>
+                <td>
                   <div className="row-flex">
                     <button
                       type="button"
@@ -124,6 +157,24 @@ export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
                     >
                       Open
                     </button>
+                    {canManage && (d.verification_status ?? "Uploaded") === "Uploaded" && (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-good"
+                          onClick={() => void verifyDoc(d, "Verified")}
+                        >
+                          Verify
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-bad"
+                          onClick={() => void verifyDoc(d, "Rejected")}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
                     {canManage && (
                       <button
                         type="button"

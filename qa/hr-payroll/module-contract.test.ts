@@ -17,6 +17,9 @@ const REQUIRED_MIGRATIONS = [
   "20260717120015_hr_payroll_punch_work_date.sql",
   "20260717120016_hr_payroll_ess_self_profile.sql",
   "20260717120017_hr_payroll_testing_changes.sql",
+  "20260717120018_hr_payroll_add_up_requirements.sql",
+  "20260717120019_hr_payroll_lifecycle_salary_revision.sql",
+  "20260717120020_hr_payroll_canada_engine.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -27,6 +30,9 @@ const REQUIRED_RPCS = [
   "fn_export_payroll_register",
   "fn_ensure_my_employee_profile",
   "fn_process_approval_decision",
+  "fn_process_payroll_cycle",
+  "fn_approve_payroll_cycle",
+  "fn_mark_payroll_paid",
 ];
 
 const REQUIRED_PAGES = [

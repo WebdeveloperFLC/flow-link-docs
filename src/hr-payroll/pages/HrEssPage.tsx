@@ -13,7 +13,8 @@ import { Stat } from "../components/ui/Stat";
 import { PunchStation } from "../components/attendance/PunchStation";
 import { EmployeeAvatar } from "../components/ui/EmployeeAvatar";
 import { formatWorkDate, todayIso } from "../lib/attendanceMetrics";
-import { inr } from "../lib/format";
+import { essAttendanceStatus } from "../lib/attendanceStatus";
+import { formatMoney } from "../lib/format";
 import { printSalarySlip } from "../lib/salarySlip";
 import { ensureMyEmployeeProfile } from "../lib/hrApi";
 import { HR_ORG_ID } from "../lib/constants";
@@ -40,6 +41,8 @@ export default function HrEssPage() {
 
   const today = todayIso();
   const todayRow = att.find((a) => a.work_date === today) ?? null;
+  const attStatus = essAttendanceStatus(todayRow);
+  const money = (n: number) => formatMoney(n, emp?.salary_currency ?? "INR");
 
   const setupMyProfile = async () => {
     setSetupBusy(true);
@@ -127,6 +130,19 @@ export default function HrEssPage() {
           <div className="row-flex" style={{ marginTop: 6 }}>
             <span className="tag">{emp.emp_code}</span>
             <span className="tag">{emp.employment_type}</span>
+            <span
+              className="tag"
+              style={{
+                color:
+                  attStatus.tone === "good"
+                    ? "var(--good)"
+                    : attStatus.tone === "warn"
+                      ? "var(--clay)"
+                      : "var(--mut)",
+              }}
+            >
+              {attStatus.label}
+            </span>
           </div>
         </div>
       </div>
@@ -145,10 +161,10 @@ export default function HrEssPage() {
       />
 
       <div className="grid g4">
-        <Stat lab="Earned Today" val={inr(r.daily_rate)} meta="daily rate" color="var(--moss)" />
+        <Stat lab="Earned Today" val={money(r.daily_rate)} meta="daily rate" color="var(--moss)" />
         <Stat
           lab="Net This Cycle"
-          val={inr(line?.net_salary ?? 0)}
+          val={money(line?.net_salary ?? 0)}
           meta={`${line?.payable_days ?? 0} payable days`}
           color="var(--gold)"
         />
@@ -193,17 +209,17 @@ export default function HrEssPage() {
           </div>
           {(
             [
-              ["Monthly Gross", inr(emp.monthly_gross)],
-              ["Basic", inr(emp.basic)],
-              ["HRA", inr(emp.hra)],
-              ["Daily Rate", inr(line?.daily_rate ?? 0)],
+              ["Monthly Gross", money(emp.monthly_gross)],
+              ["Basic", money(emp.basic)],
+              ["HRA", money(emp.hra)],
+              ["Daily Rate", money(line?.daily_rate ?? 0)],
               ["Payable Days", line?.payable_days ?? 0],
-              ["Earned Gross", inr(line?.gross_earned ?? 0)],
-              ["Incentive", inr(line?.incentive ?? 0)],
-              ["Bonus", inr(line?.bonus ?? 0)],
-              ["PF (−)", inr(line?.pf_employee ?? 0)],
-              ["ESIC (−)", inr(line?.esic_employee ?? 0)],
-              ["Net Payable", inr(line?.net_salary ?? 0)],
+              ["Earned Gross", money(line?.gross_earned ?? 0)],
+              ["Incentive", money(line?.incentive ?? 0)],
+              ["Bonus", money(line?.bonus ?? 0)],
+              ["PF (−)", money(line?.pf_employee ?? 0)],
+              ["ESIC (−)", money(line?.esic_employee ?? 0)],
+              ["Net Payable", money(line?.net_salary ?? 0)],
             ] as const
           ).map(([k, v], i, a) => (
             <div

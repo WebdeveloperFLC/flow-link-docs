@@ -49,6 +49,10 @@ export type EmployeeDocumentRow = {
   file_name: string | null;
   storage_path: string | null;
   mime: string | null;
+  verification_status?: string;
+  remarks?: string | null;
+  verified_by?: string | null;
+  verified_at?: string | null;
   created_at?: string;
 };
 
@@ -58,6 +62,9 @@ export type EmployeeRow = {
   staff_id: string | null;
   emp_code: string;
   full_name: string;
+  first_name?: string | null;
+  middle_name?: string | null;
+  last_name?: string | null;
   gender: string | null;
   dob: string | null;
   mobile: string | null;
@@ -65,6 +72,10 @@ export type EmployeeRow = {
   addr_current: string | null;
   addr_permanent: string | null;
   emergency: string | null;
+  emergency_contacts?: EmergencyContact[] | null;
+  marital_status?: string | null;
+  blood_group?: string | null;
+  nationality?: string | null;
   photo_url: string | null;
   designation: string | null;
   department: string | null;
@@ -74,9 +85,16 @@ export type EmployeeRow = {
   employment_type: string;
   date_of_joining: string | null;
   notice_period: string | null;
+  probation_start_date?: string | null;
+  probation_end_date?: string | null;
+  exit_date?: string | null;
+  exit_reason?: string | null;
+  rehire_eligible?: boolean | null;
   work_week: string;
   status: string;
   shift_id: string | null;
+  salary_currency?: string;
+  payroll_country?: string;
   monthly_gross: number;
   basic: number;
   hra: number;
@@ -86,11 +104,15 @@ export type EmployeeRow = {
   bonus: number;
   pf_applicable: boolean;
   has_pf_account?: boolean;
+  has_esic_account?: boolean;
   pf_number: string | null;
   uan: string | null;
   esic_applicable: boolean;
   esic_number: string | null;
   pt_applicable?: boolean;
+  tds_applicable?: boolean;
+  lwf_applicable?: boolean;
+  other_deductions?: number;
   bank_holder_name: string | null;
   bank_name: string | null;
   bank_account_number: string | null;
@@ -98,10 +120,14 @@ export type EmployeeRow = {
   bank_branch: string | null;
   bank_account_type: string | null;
   bank_verified: boolean;
-  companies?: { name: string } | null;
+  bank_verified_by?: string | null;
+  bank_verified_at?: string | null;
+  companies?: { name: string; legal_name?: string | null; currency?: string } | null;
   branches?: { name: string } | null;
-  shifts?: { name: string; login_time: string; logout_time: string } | null;
+  shifts?: { name: string; login_time: string; logout_time: string; working_days_per_week?: number } | null;
 };
+
+export type EmergencyContact = { name: string; phone: string; relation: string };
 
 export type CompanyRow = { id: string; name: string; legal_name?: string | null; currency?: string };
 export type BranchRow = { id: string; name: string };
@@ -143,6 +169,7 @@ export type HolidayRow = {
   name: string;
   type: string;
   branch_id: string | null;
+  applicable_tags?: string[] | null;
   branches?: { name: string } | null;
 };
 
@@ -157,6 +184,8 @@ export type LeaveRequestRow = {
   reason: string | null;
   has_document: boolean;
   status: string;
+  rejection_reason?: string | null;
+  cancelled_at?: string | null;
   employees?: { full_name: string; emp_code: string } | null;
 };
 
@@ -168,6 +197,11 @@ export type CompoffRequestRow = {
   occasion: string | null;
   reason: string | null;
   status: string;
+  duration_type?: string | null;
+  partial_start?: string | null;
+  partial_end?: string | null;
+  comp_off_leave_date?: string | null;
+  document_path?: string | null;
   employees?: { full_name: string } | null;
 };
 
@@ -234,6 +268,7 @@ export type PayrollLineRow = {
   bonus: number;
   pf_employee: number;
   esic_employee: number;
+  pt_employee?: number;
   net_salary: number;
   is_overridden: boolean;
   override_json: Record<string, unknown> | null;
@@ -322,4 +357,18 @@ export type PayrollCycleRow = {
   end_date: string;
   payroll_days: number;
   status: string;
+  processed_at?: string | null;
+  approved_at?: string | null;
+  paid_at?: string | null;
+};
+
+export type SalaryRevisionRow = {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  effective_date: string;
+  old_salary: number;
+  new_salary: number;
+  remarks: string | null;
+  created_at?: string;
 };

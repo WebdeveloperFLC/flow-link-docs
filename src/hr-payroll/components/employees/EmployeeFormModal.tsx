@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID, DEPARTMENTS, MANAGERS } from "../../lib/constants";
-import { fillSalaryComponents, inr } from "../../lib/format";
+import { fillSalaryComponents, formatMoney, parseEmergencyContacts, weeklyOffDays } from "../../lib/format";
 import { uploadEmployeePhoto } from "../../lib/hrStorage";
 import { EmployeeAvatar } from "../ui/EmployeeAvatar";
-import type { BranchRow, CompanyRow, EmployeeRow, ShiftRow } from "../../lib/types";
+import type { BranchRow, CompanyRow, EmergencyContact, EmployeeRow, ShiftRow } from "../../lib/types";
 import { fetchNextEmpCode } from "../../hooks/useHrEmployees";
 import { useHrCrmStaff } from "../../hooks/useHrTeam";
 import { useHrAccess } from "../../context/HrPayrollProvider";
@@ -22,6 +22,7 @@ type Props = {
 
 type FormState = {
   first_name: string;
+  middle_name: string;
   last_name: string;
   full_name: string;
   gender: string;
@@ -31,6 +32,10 @@ type FormState = {
   addr_current: string;
   addr_permanent: string;
   emergency: string;
+  emergency_contacts: EmergencyContact[];
+  marital_status: string;
+  blood_group: string;
+  nationality: string;
   designation: string;
   department: string;
   branch_id: string;
@@ -38,9 +43,12 @@ type FormState = {
   employment_type: string;
   date_of_joining: string;
   notice_period: string;
-  work_week: string;
+  probation_start_date: string;
+  probation_end_date: string;
   status: string;
   shift_id: string;
+  salary_currency: string;
+  payroll_country: string;
   monthly_gross: number | "";
   basic: number | "";
   hra: number | "";
@@ -50,11 +58,15 @@ type FormState = {
   bonus: number | "";
   pf_applicable: boolean;
   has_pf_account: boolean;
+  has_esic_account: boolean;
   pf_number: string;
   uan: string;
   esic_applicable: boolean;
   esic_number: string;
   pt_applicable: boolean;
+  tds_applicable: boolean;
+  lwf_applicable: boolean;
+  other_deductions: number | "";
   bank_holder_name: string;
   bank_name: string;
   bank_account_number: string;
@@ -65,10 +77,17 @@ type FormState = {
   staff_id: string;
 };
 
+function workWeekFromShift(shiftId: string, shifts: ShiftRow[]): "6-Day" | "5-Day" {
+  const s = shifts.find((x) => x.id === shiftId);
+  const days = s?.working_days_per_week ?? 6;
+  return days >= 6 ? "6-Day" : "5-Day";
+}
+
 function fromEmployee(e: EmployeeRow): FormState {
   const parts = e.full_name.trim().split(/\s+/);
   return {
     first_name: e.first_name ?? parts[0] ?? "",
+    middle_name: e.middle_name ?? "",
     last_name: e.last_name ?? parts.slice(1).join(" ") ?? "",
     full_name: e.full_name,
     gender: e.gender ?? "Female",
@@ -78,6 +97,10 @@ function fromEmployee(e: EmployeeRow): FormState {
     addr_current: e.addr_current ?? "",
     addr_permanent: e.addr_permanent ?? "",
     emergency: e.emergency ?? "",
+    emergency_contacts: parseEmergencyContacts(e.emergency_contacts),
+    marital_status: e.marital_status ?? "",
+    blood_group: e.blood_group ?? "",
+    nationality: e.nationality ?? "Indian",
     designation: e.designation ?? "",
     department: e.department ?? "Counselling",
     branch_id: e.branch_id ?? "",
@@ -85,9 +108,12 @@ function fromEmployee(e: EmployeeRow): FormState {
     employment_type: e.employment_type,
     date_of_joining: e.date_of_joining ?? "",
     notice_period: e.notice_period ?? "30 days",
-    work_week: e.work_week,
+    probation_start_date: e.probation_start_date ?? "",
+    probation_end_date: e.probation_end_date ?? "",
     status: e.status,
     shift_id: e.shift_id ?? "",
+    salary_currency: e.salary_currency ?? e.companies?.currency ?? "INR",
+    payroll_country: e.payroll_country ?? "IN",
     monthly_gross: e.monthly_gross,
     basic: e.basic,
     hra: e.hra,
@@ -97,11 +123,15 @@ function fromEmployee(e: EmployeeRow): FormState {
     bonus: e.bonus,
     pf_applicable: e.pf_applicable,
     has_pf_account: e.has_pf_account ?? e.pf_applicable,
+    has_esic_account: e.has_esic_account ?? e.esic_applicable,
     pf_number: e.pf_number ?? "",
     uan: e.uan ?? "",
     esic_applicable: e.esic_applicable,
     esic_number: e.esic_number ?? "",
     pt_applicable: e.pt_applicable ?? true,
+    tds_applicable: e.tds_applicable ?? false,
+    lwf_applicable: e.lwf_applicable ?? false,
+    other_deductions: e.other_deductions ?? 0,
     bank_holder_name: e.bank_holder_name ?? "",
     bank_name: e.bank_name ?? "",
     bank_account_number: e.bank_account_number ?? "",
@@ -115,6 +145,7 @@ function fromEmployee(e: EmployeeRow): FormState {
 
 const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[]): FormState => ({
   first_name: "",
+  middle_name: "",
   last_name: "",
   full_name: "",
   gender: "Female",
@@ -124,6 +155,10 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
   addr_current: "",
   addr_permanent: "",
   emergency: "",
+  emergency_contacts: parseEmergencyContacts(null),
+  marital_status: "",
+  blood_group: "",
+  nationality: "Indian",
   designation: "",
   department: "Counselling",
   branch_id: branches[0]?.id ?? "",
@@ -131,9 +166,12 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
   employment_type: "Full-Time",
   date_of_joining: "",
   notice_period: "30 days",
-  work_week: "6-Day",
+  probation_start_date: "",
+  probation_end_date: "",
   status: "On Probation",
   shift_id: shifts[0]?.id ?? "",
+  salary_currency: companies[0]?.currency ?? "INR",
+  payroll_country: "IN",
   monthly_gross: "",
   basic: "",
   hra: "",
@@ -143,11 +181,15 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
   bonus: 0,
   pf_applicable: true,
   has_pf_account: true,
+  has_esic_account: false,
   pf_number: "",
   uan: "",
   esic_applicable: false,
   esic_number: "",
   pt_applicable: true,
+  tds_applicable: false,
+  lwf_applicable: false,
+  other_deductions: 0,
   bank_holder_name: "",
   bank_name: "",
   bank_account_number: "",
@@ -200,10 +242,17 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
     }
 
     setSaving(true);
-    const fullName = `${f.first_name.trim()} ${f.last_name.trim()}`.trim();
+    const fullName = [f.first_name, f.middle_name, f.last_name]
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .join(" ");
+    const contacts = f.emergency_contacts
+      .map((c) => ({ name: c.name.trim(), phone: c.phone.trim(), relation: c.relation.trim() }))
+      .filter((c) => c.name || c.phone);
     const payload = {
       org_id: HR_ORG_ID,
       first_name: f.first_name.trim(),
+      middle_name: f.middle_name.trim() || null,
       last_name: f.last_name.trim(),
       full_name: fullName,
       gender: f.gender,
@@ -212,7 +261,11 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
       email: f.email || null,
       addr_current: f.addr_current || null,
       addr_permanent: f.addr_permanent || null,
-      emergency: f.emergency || null,
+      emergency: f.emergency || contacts[0]?.phone || null,
+      emergency_contacts: contacts,
+      marital_status: f.marital_status || null,
+      blood_group: f.blood_group || null,
+      nationality: f.nationality || null,
       designation: f.designation.trim(),
       department: f.department,
       branch_id: f.branch_id || null,
@@ -220,9 +273,13 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
       employment_type: f.employment_type,
       date_of_joining: f.date_of_joining || null,
       notice_period: f.notice_period,
-      work_week: f.work_week,
+      probation_start_date: f.probation_start_date || null,
+      probation_end_date: f.probation_end_date || null,
+      work_week: workWeekFromShift(f.shift_id, shifts),
       status: f.status,
       shift_id: f.shift_id || null,
+      salary_currency: f.salary_currency,
+      payroll_country: f.payroll_country,
       monthly_gross: Number(f.monthly_gross),
       basic: Number(f.basic) || 0,
       hra: Number(f.hra) || 0,
@@ -232,11 +289,15 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
       bonus: Number(f.bonus) || 0,
       pf_applicable: f.has_pf_account ? f.pf_applicable : false,
       has_pf_account: f.has_pf_account,
+      has_esic_account: f.has_esic_account,
       pf_number: f.pf_number || null,
       uan: f.uan || null,
-      esic_applicable: f.esic_applicable,
+      esic_applicable: f.has_esic_account ? f.esic_applicable : false,
       esic_number: f.esic_number || null,
       pt_applicable: f.pt_applicable,
+      tds_applicable: f.tds_applicable,
+      lwf_applicable: f.lwf_applicable,
+      other_deductions: Number(f.other_deductions) || 0,
       bank_holder_name: f.bank_holder_name || null,
       bank_name: f.bank_name || null,
       bank_account_number: f.bank_account_number || null,
@@ -282,7 +343,9 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
   };
 
   const tabs: FormTab[] = ["basic", "employment", "shift", "salary", "statutory", "bank"];
-  const fullName = `${f.first_name} ${f.last_name}`.trim() || f.full_name;
+  const fullName =
+    [f.first_name, f.middle_name, f.last_name].filter(Boolean).join(" ").trim() || f.full_name;
+  const selectedShift = shifts.find((s) => s.id === f.shift_id);
   const grossComp =
     (Number(f.basic) || 0) +
     (Number(f.hra) || 0) +
@@ -371,6 +434,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                   </label>
                   <div className="grid g2" style={{ gap: "0 16px" }}>
                     {T("first_name", "First Name")}
+                    {T("middle_name", "Middle Name")}
                     {T("last_name", "Last Name")}
                     {T("gender", "Gender", ["Female", "Male", "Other"])}
                   </div>
@@ -380,8 +444,51 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                 {T("dob", "Date of Birth", undefined, "date")}
                 {T("mobile", "Mobile Number")}
                 {T("email", "Email Address", undefined, "email")}
-                {T("emergency", "Emergency Contact")}
+                {T("marital_status", "Marital Status", ["", "Single", "Married", "Divorced", "Widowed"])}
+                {T("blood_group", "Blood Group", ["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])}
+                {T("nationality", "Nationality")}
               </div>
+              <div className="sec-label">Emergency contacts (up to 2)</div>
+              {f.emergency_contacts.map((c, i) => (
+                <div key={i} className="grid g3" style={{ gap: "0 12px", marginBottom: 8 }}>
+                  <label className="fld">
+                    <span className="l">Name {i + 1}</span>
+                    <input
+                      className="input"
+                      value={c.name}
+                      onChange={(e) => {
+                        const next = [...f.emergency_contacts];
+                        next[i] = { ...next[i], name: e.target.value };
+                        set("emergency_contacts", next);
+                      }}
+                    />
+                  </label>
+                  <label className="fld">
+                    <span className="l">Phone</span>
+                    <input
+                      className="input"
+                      value={c.phone}
+                      onChange={(e) => {
+                        const next = [...f.emergency_contacts];
+                        next[i] = { ...next[i], phone: e.target.value };
+                        set("emergency_contacts", next);
+                      }}
+                    />
+                  </label>
+                  <label className="fld">
+                    <span className="l">Relation</span>
+                    <input
+                      className="input"
+                      value={c.relation}
+                      onChange={(e) => {
+                        const next = [...f.emergency_contacts];
+                        next[i] = { ...next[i], relation: e.target.value };
+                        set("emergency_contacts", next);
+                      }}
+                    />
+                  </label>
+                </div>
+              ))}
               {T("addr_current", "Current Address")}
               {T("addr_permanent", "Permanent Address")}
             </>
@@ -409,15 +516,27 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                 <select
                   className="input"
                   value={f.company_id}
-                  onChange={(e) => set("company_id", e.target.value)}
+                  onChange={(e) => {
+                    const co = companies.find((c) => c.id === e.target.value);
+                    setF((prev) => ({
+                      ...prev,
+                      company_id: e.target.value,
+                      salary_currency: co?.currency ?? prev.salary_currency,
+                      payroll_country: co?.currency === "CAD" ? "CA" : "IN",
+                    }));
+                  }}
                 >
                   {companies.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name}
+                      {c.legal_name ? `${c.name} (${c.legal_name})` : c.name}
                     </option>
                   ))}
                 </select>
               </label>
+              <div className="grid g2" style={{ gap: "0 16px" }}>
+                {T("salary_currency", "Salary Currency", ["INR", "CAD"])}
+                {T("payroll_country", "Payroll Country", ["IN", "CA"])}
+              </div>
               {T("employment_type", "Employment Type", [
                 "Full-Time",
                 "Part-Time",
@@ -426,8 +545,9 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                 "Contract",
               ])}
               {T("date_of_joining", "Date of Joining", undefined, "date")}
+              {T("probation_start_date", "Probation Start", undefined, "date")}
+              {T("probation_end_date", "Probation End", undefined, "date")}
               {T("notice_period", "Notice Period", ["30 days", "60 days", "90 days", "15 days"])}
-              {T("work_week", "Work Week", ["6-Day", "5-Day"])}
               {T("status", "Status", ["On Probation", "Confirmed", "Resigned", "Terminated", "On Notice"])}
               <label className="fld">
                 <span className="l">CRM login (ESS self-access)</span>
@@ -464,12 +584,24 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                   ))}
                 </select>
               </label>
+              {selectedShift && (
+                <div className="fld">
+                  <span className="l">Working schedule (from shift)</span>
+                  <div className="tag" style={{ marginTop: 6 }}>
+                    {selectedShift.working_days_per_week ?? 6} working days / week ·{" "}
+                    {weeklyOffDays(selectedShift.working_days_per_week ?? 6)} weekly off · leave entitlement{" "}
+                    {workWeekFromShift(f.shift_id, shifts)}
+                  </div>
+                </div>
+              )}
             </div>
           )}
           {tab === "salary" && (
             <>
               <label className="fld">
-                <span className="l">Monthly Gross Salary (₹) — fills components</span>
+                <span className="l">
+                  Monthly Gross Salary ({f.salary_currency === "CAD" ? "CAD" : "₹"}) — fills components
+                </span>
                 <input
                   className={`input mono${err.monthly ? " err" : ""}`}
                   type="number"
@@ -503,10 +635,10 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                   marginTop: 4,
                 }}
               >
-                Components total: {inr(grossComp)}{" "}
+                Components total: {formatMoney(grossComp, f.salary_currency)}{" "}
                 {grossComp === Number(f.monthly_gross)
                   ? "✓ matches gross"
-                  : `(gross is ${inr(Number(f.monthly_gross) || 0)})`}
+                  : `(gross is ${formatMoney(Number(f.monthly_gross) || 0, f.salary_currency)})`}
               </div>
             </>
           )}
@@ -536,17 +668,27 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                 {T("uan", "UAN Number")}
               </div>
               <div className="sec-label">ESIC</div>
-              <label className="row-flex" style={{ fontSize: 13, marginBottom: 10 }}>
+              <label className="row-flex" style={{ fontSize: 13, marginBottom: 8 }}>
                 <input
                   type="checkbox"
-                  checked={f.esic_applicable}
-                  onChange={(e) => set("esic_applicable", e.target.checked)}
+                  checked={f.has_esic_account}
+                  onChange={(e) => set("has_esic_account", e.target.checked)}
                 />
-                ESIC Applicable (0.75%, mandatory if monthly gross ≤ ₹21,000)
+                Employee has ESIC account
               </label>
+              {f.has_esic_account && (
+                <label className="row-flex" style={{ fontSize: 13, marginBottom: 10 }}>
+                  <input
+                    type="checkbox"
+                    checked={f.esic_applicable}
+                    onChange={(e) => set("esic_applicable", e.target.checked)}
+                  />
+                  ESIC Applicable (0.75%, mandatory if monthly gross ≤ ₹21,000)
+                </label>
+              )}
               {T("esic_number", "ESIC Number")}
               <div className="sec-label">Professional Tax</div>
-              <label className="row-flex" style={{ fontSize: 13 }}>
+              <label className="row-flex" style={{ fontSize: 13, marginBottom: 8 }}>
                 <input
                   type="checkbox"
                   checked={f.pt_applicable}
@@ -554,6 +696,36 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                 />
                 PT Applicable (default ₹200 — configurable in Payroll Config)
               </label>
+              <div className="sec-label">Other deductions</div>
+              <div className="grid g2" style={{ gap: "0 16px" }}>
+                <label className="row-flex" style={{ fontSize: 13 }}>
+                  <input
+                    type="checkbox"
+                    checked={f.tds_applicable}
+                    onChange={(e) => set("tds_applicable", e.target.checked)}
+                  />
+                  TDS applicable
+                </label>
+                <label className="row-flex" style={{ fontSize: 13 }}>
+                  <input
+                    type="checkbox"
+                    checked={f.lwf_applicable}
+                    onChange={(e) => set("lwf_applicable", e.target.checked)}
+                  />
+                  LWF applicable
+                </label>
+                <label className="fld">
+                  <span className="l">Other deductions (₹/mo)</span>
+                  <input
+                    className="input mono"
+                    type="number"
+                    value={f.other_deductions}
+                    onChange={(e) =>
+                      set("other_deductions", e.target.value === "" ? "" : parseFloat(e.target.value))
+                    }
+                  />
+                </label>
+              </div>
             </>
           )}
           {tab === "bank" && (

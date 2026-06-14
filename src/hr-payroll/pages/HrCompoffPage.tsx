@@ -25,6 +25,10 @@ function CompoffModal({
     worked_date: "",
     occasion: "Worked on Weekly Off",
     reason: "",
+    duration_type: "Full Day",
+    partial_start: "",
+    partial_end: "",
+    comp_off_leave_date: "",
   });
   const [err, setErr] = useState<Record<string, string>>({});
 
@@ -39,6 +43,10 @@ function CompoffModal({
       worked_date: f.worked_date,
       occasion: f.occasion,
       reason: f.reason || null,
+      duration_type: f.duration_type,
+      partial_start: f.duration_type === "Partial" && f.partial_start ? f.partial_start : null,
+      partial_end: f.duration_type === "Partial" && f.partial_end ? f.partial_end : null,
+      comp_off_leave_date: f.comp_off_leave_date || null,
       status: "Pending",
     } as never);
     if (error) {
@@ -101,6 +109,49 @@ function CompoffModal({
             <option key={o}>{o}</option>
           ))}
         </select>
+      </label>
+      <label className="fld">
+        <span className="l">Duration</span>
+        <select
+          className="input"
+          value={f.duration_type}
+          onChange={(e) => setF({ ...f, duration_type: e.target.value })}
+        >
+          {["Full Day", "Half Day", "Partial"].map((o) => (
+            <option key={o}>{o}</option>
+          ))}
+        </select>
+      </label>
+      {f.duration_type === "Partial" && (
+        <div className="grid g2" style={{ gap: "0 14px" }}>
+          <label className="fld">
+            <span className="l">Partial from</span>
+            <input
+              className="input"
+              type="time"
+              value={f.partial_start}
+              onChange={(e) => setF({ ...f, partial_start: e.target.value })}
+            />
+          </label>
+          <label className="fld">
+            <span className="l">Partial to</span>
+            <input
+              className="input"
+              type="time"
+              value={f.partial_end}
+              onChange={(e) => setF({ ...f, partial_end: e.target.value })}
+            />
+          </label>
+        </div>
+      )}
+      <label className="fld">
+        <span className="l">Comp-off leave date (optional)</span>
+        <input
+          className="input"
+          type="date"
+          value={f.comp_off_leave_date}
+          onChange={(e) => setF({ ...f, comp_off_leave_date: e.target.value })}
+        />
       </label>
       <label className="fld">
         <span className="l">Remarks</span>
@@ -192,6 +243,7 @@ export default function HrCompoffPage() {
                 <th>Ref</th>
                 <th>Employee</th>
                 <th>Date Worked</th>
+                <th>Duration</th>
                 <th>Occasion</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -205,6 +257,14 @@ export default function HrCompoffPage() {
                   </td>
                   <td>{c.employees?.full_name}</td>
                   <td>{c.worked_date}</td>
+                  <td style={{ fontSize: 12 }}>
+                    {c.duration_type ?? "Full Day"}
+                    {c.duration_type === "Partial" && c.partial_start && c.partial_end && (
+                      <div className="muted mono" style={{ fontSize: 10 }}>
+                        {c.partial_start.slice(0, 5)}–{c.partial_end.slice(0, 5)}
+                      </div>
+                    )}
+                  </td>
                   <td style={{ fontSize: 12.5 }}>
                     {c.occasion}
                     <div className="muted" style={{ fontSize: 11 }}>
