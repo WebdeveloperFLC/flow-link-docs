@@ -1,16 +1,28 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Card } from "@/components/ui/card";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
+import { PerformanceExecutiveKpiStrip } from "@/components/performance/PerformanceExecutiveKpiStrip";
+import { PerformanceExecutiveBranchChart } from "@/components/performance/PerformanceExecutiveBranchChart";
+import { PerformanceExecutiveApprovalsPanel } from "@/components/performance/PerformanceExecutiveApprovalsPanel";
+import {
+  PerformanceBranchQuickActions,
+  PerformanceBranchTeamTable,
+} from "@/components/performance/PerformanceBranchTeamTable";
 import { usePerformanceTeamRows } from "@/hooks/usePerformanceTeamRows";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
+import { usePerformanceQueueCounts } from "@/hooks/usePerformanceQueueCounts";
+import { useExecutiveDashboardExtras } from "@/hooks/useExecutiveDashboardExtras";
 import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
+import {
+  counselorAttainmentRows,
+  teamAverageAchievement,
+  teamWalletUtilization,
+} from "@/incentives/lib/branchDashboardLogic";
+import { totalPendingApprovals } from "@/incentives/lib/executiveDashboardLogic";
 import { formatInr } from "@/lib/performanceHubTheme";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
-import { Users } from "lucide-react";
 
 export default function PerformanceTeam() {
   const { user, isAdmin, hasRole, loading: authLoading } = useAuth();
@@ -37,27 +49,27 @@ export default function PerformanceTeam() {
     isManager && !isAdmin ? branchId : null,
   );
 
+  const queues = usePerformanceQueueCounts(period);
+  const extras = useExecutiveDashboardExtras(period);
+
   const teamRevenue = rows.reduce((s, r) => s + r.netRevenue, 0);
   const teamCash = rows.reduce((s, r) => s + (r.cashLocked ?? r.cashProjected), 0);
-  const avgAch =
-    rows.filter((r) => r.targetPct != null).length > 0
-      ? Math.round(
-          rows.filter((r) => r.targetPct != null).reduce((s, r) => s + (r.targetPct ?? 0), 0) /
-            rows.filter((r) => r.targetPct != null).length,
-        )
-      : null;
+  const avgAch = teamAverageAchievement(rows);
+  const walletUtil = teamWalletUtilization(rows);
+  const pendingTotal = totalPendingApprovals(queues);
+  const counselorChartRows = useMemo(() => counselorAttainmentRows(rows), [rows]);
 
   if (authLoading) return null;
   if (!allowed) return <Navigate to="/performance" replace />;
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 max-w-6xl">
+      <div className="p-6 space-y-6 max-w-7xl">
         <PerformanceHubHeader
-          title="Team · branch"
+          title="Branch manager workspace"
           subtitle={
             effectiveBranch
-              ? `${effectiveBranch} · ${period} · ${rows.length} member(s)`
+              ? `${effectiveBranch} · ${period} · ${rows.length} counselor(s)`
               : `All branches · ${period}`
           }
           period={period}
@@ -66,77 +78,71 @@ export default function PerformanceTeam() {
 
         <PerformancePeriodBar compact />
 
-        <div className="flex flex-wrap gap-3 items-end">
-          {isAdmin && (
-            <Link to="/performance/executive" className="text-sm text-primary hover:underline ml-auto pb-2">
-              Executive dashboard →
-            </Link>
-          )}
+        {isAdmin && (
+          <Link
+            to="/performance/executive"
+            className="text-sm hover:underline"
+            style={{ color: "var(--blue)" }}
+          >
+            Executive dashboard →
+          </Link>
+        )}
+
+        <PerformanceExecutiveKpiStrip
+          loading={loading || queues.loading}
+          items={[
+            {
+              module: "cash",
+              label: "Team net revenue",
+              value: formatInr(teamRevenue),
+              hint: `${rows.length} team member(s)`,
+            },
+            {
+              module: "cash",
+              label: "Avg achievement",
+              value: avgAch != null ? `${avgAch}%` : "—",
+              hint: "Target attainment across team",
+            },
+            {
+              module: "wallet",
+              label: "Wallet utilization",
+              value: `${walletUtil}%`,
+              hint: "Team wallet spent vs capacity",
+            },
+            {
+              module: "offers",
+              label: "Pending approvals",
+              value: String(pendingTotal),
+              hint: "Discounts · wallet · promotions",
+            },
+          ]}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <PerformanceExecutiveBranchChart
+            rows={counselorChartRows}
+            loading={loading}
+            title="Counselor attainment"
+          />
+          <PerformanceBranchQuickActions />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="p-4 border-l-4 border-l-emerald-500">
-            <p className="text-xs uppercase text-muted-foreground">Team net revenue</p>
-            <p className="text-2xl font-semibold mt-1">{loading ? "…" : formatInr(teamRevenue)}</p>
-          </Card>
-          <Card className="p-4 border-l-4 border-l-amber-500">
-            <p className="text-xs uppercase text-muted-foreground">Avg achievement</p>
-            <p className="text-2xl font-semibold mt-1">{loading || avgAch == null ? "…" : `${avgAch}%`}</p>
-          </Card>
-          <Card className="p-4 border-l-4 border-l-emerald-500">
-            <p className="text-xs uppercase text-muted-foreground">Cash (team total)</p>
-            <p className="text-2xl font-semibold mt-1">{loading ? "…" : formatInr(teamCash)}</p>
-          </Card>
-        </div>
+        <PerformanceBranchTeamTable rows={rows} loading={loading} />
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Users className="size-5" /> Team members
-            </h2>
-            <Link to="/performance/admin/approvals" className="text-sm text-primary hover:underline">
-              Discount approvals queue
-            </Link>
+        <PerformanceExecutiveApprovalsPanel
+          items={extras.approvalPreview}
+          loading={extras.loading || queues.loading}
+          totalPending={pendingTotal}
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+          <div className="rounded-lg border ph-period-bar p-4">
+            <p className="text-xs ph-muted uppercase tracking-wide">Team cash total</p>
+            <p className="text-xl font-semibold tabular-nums ph-heading mt-1">
+              {loading ? "…" : formatInr(teamCash)}
+            </p>
           </div>
-          {loading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No team data for this branch and period.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-left text-muted-foreground border-b">
-                  <tr>
-                    <th className="py-2 pr-3">#</th>
-                    <th className="py-2 pr-3">Name</th>
-                    <th className="py-2 pr-3 text-right">Target %</th>
-                    <th className="py-2 pr-3 text-right">Net revenue</th>
-                    <th className="py-2 pr-3 text-right">Spendable</th>
-                    <th className="py-2 pr-3 text-right">Spent</th>
-                    <th className="py-2 pr-3 text-right">Cash</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((r, i) => (
-                    <tr key={r.counselorId} className="border-b last:border-0">
-                      <td className="py-2 pr-3">{i + 1}</td>
-                      <td className="py-2 pr-3 font-medium">{r.name}</td>
-                      <td className="py-2 pr-3 text-right">
-                        {r.targetPct != null ? `${Math.round(r.targetPct)}%` : "—"}
-                      </td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{formatInr(r.netRevenue)}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{formatInr(r.walletSpendable)}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{formatInr(r.walletSpent)}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">
-                        {formatInr(r.cashLocked ?? r.cashProjected)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Card>
+        </div>
       </div>
     </AppLayout>
   );
