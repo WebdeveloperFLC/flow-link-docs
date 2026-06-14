@@ -44,6 +44,9 @@ export default function PerformanceIncentivePlans() {
           <Link to="/incentives/admin" className="hover:underline" style={{ color: "var(--blue)" }}>
             Runs & lock →
           </Link>
+          <Link to="/performance/incentives/payouts" className="hover:underline" style={{ color: "var(--blue)" }}>
+            Ledger & payouts →
+          </Link>
           <Link to="/incentives/payouts" className="hover:underline" style={{ color: "var(--blue)" }}>
             Payout desk →
           </Link>

@@ -176,6 +176,7 @@ import PerformanceCombinations from "@/pages/PerformanceCombinations";
 import PerformanceProfitability from "@/pages/PerformanceProfitability";
 import PerformanceCrmIntegration from "@/pages/PerformanceCrmIntegration";
 import PerformanceIncentivePlans from "@/pages/PerformanceIncentivePlans";
+import PerformanceIncentiveLedger from "@/pages/PerformanceIncentiveLedger";
 import PerformanceTeam from "@/pages/PerformanceTeam";
 import PerformanceWalletPolicy from "@/pages/PerformanceWalletPolicy";
 import PerformanceWallets from "@/pages/PerformanceWallets";
@@ -629,6 +630,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceIncentivePlans />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/incentives/payouts"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceIncentiveLedger />
                       </ProtectedRoute>
                     }
                   />

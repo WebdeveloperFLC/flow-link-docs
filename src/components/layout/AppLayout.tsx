@@ -180,6 +180,7 @@ const performanceNav: NavItem[] = [
     roles: ["admin", "administrator", "viewer", "director", "manager"],
   },
   { to: "/performance/incentives/plans", icon: Layers, label: "Incentive plans", adminOnly: true },
+  { to: "/performance/incentives/payouts", icon: Banknote, label: "Ledger & payouts", adminOnly: true },
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
   {
     to: "/performance/admin/approvals",
