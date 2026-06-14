@@ -32,4 +32,4 @@ UI-only — **no SQL**.
 
 ---
 
-*Next: Phase 3 additive schema (combinations, eligibility, profitability) or remaining CMS screens (Comparison engine, Client commercials).*
+*Next: Phase 2L — Comparison engine UI (`04_Comparison_Engine.png`) or Phase 3 additive schema.*
