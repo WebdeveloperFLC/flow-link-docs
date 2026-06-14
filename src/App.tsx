@@ -184,6 +184,7 @@ import PerformancePromotionRequests from "@/pages/PerformancePromotionRequests";
 import PerformanceOffersStudio from "@/pages/PerformanceOffersStudio";
 import PerformanceOffersLibrary from "@/pages/PerformanceOffersLibrary";
 import PerformanceOffersCodes from "@/pages/PerformanceOffersCodes";
+import PerformanceOffersEligibility from "@/pages/PerformanceOffersEligibility";
 import PerformanceOfferWizard from "@/pages/PerformanceOfferWizard";
 import PerformanceOffersAnalytics from "@/pages/PerformanceOffersAnalytics";
 import PerformanceOfferAiStudio from "@/pages/PerformanceOfferAiStudio";
@@ -689,6 +690,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceOffersCodes />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/offers/eligibility"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceOffersEligibility />
                       </ProtectedRoute>
                     }
                   />
