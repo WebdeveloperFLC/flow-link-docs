@@ -20,7 +20,7 @@ function firstAllowedScreen(canSee: (s: HrScreenKey) => boolean): string | null 
   return null;
 }
 
-export function HrPayrollLayout() {
+function HrPayrollLayoutInner() {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -192,10 +192,15 @@ export function HrPayrollLayout() {
   );
 }
 
-export function HrPayrollShell() {
+/** Layout with provider — safe to use as the /hr route shell. */
+export function HrPayrollLayout() {
   return (
     <HrPayrollProvider>
-      <HrPayrollLayout />
+      <HrPayrollLayoutInner />
     </HrPayrollProvider>
   );
+}
+
+export function HrPayrollShell() {
+  return <HrPayrollLayout />;
 }
