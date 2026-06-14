@@ -148,6 +148,7 @@ const performanceNav: NavItem[] = [
     roles: ["manager", "admin", "administrator"],
   },
   { to: "/performance/executive", icon: BarChart2, label: "Executive dashboard", roles: ["admin", "administrator", "viewer", "director"] },
+  { to: "/performance/finance", icon: Banknote, label: "Finance dashboard", adminOnly: true },
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
   {
     to: "/performance/admin/approvals",

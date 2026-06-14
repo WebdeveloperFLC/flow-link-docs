@@ -82,6 +82,7 @@ const ADMIN_LINKS = [
   { to: "/performance/admin/approvals", label: "Discount approvals", icon: Gift },
   { to: "/performance/offers/requests", label: "Promotion requests", icon: Tag },
   { to: "/performance/executive", label: "Executive dashboard", icon: Calculator },
+  { to: "/performance/finance", label: "Finance dashboard", icon: Banknote },
   { to: "/performance/wallet/policy", label: "Wallet policy", icon: Gift },
   { to: "/performance/wallet/branch-pool", label: "Branch pool", icon: Gift },
   { to: "/incentives/admin", label: "Runs & preview", icon: Calculator },
