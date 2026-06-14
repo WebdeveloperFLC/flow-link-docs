@@ -152,8 +152,9 @@ const performanceNav: NavItem[] = [
     to: "/performance/admin/approvals",
     icon: ClipboardCheck,
     label: "Discount approvals",
-    roles: ["manager", "admin", "administrator"],
+    roles: ["manager", "admin", "administrator", "director"],
   },
+  { to: "/performance/wallet/policy", icon: Settings2, label: "Wallet policy", adminOnly: true },
   {
     to: "/performance/admin/unclassified",
     icon: ScanLine,

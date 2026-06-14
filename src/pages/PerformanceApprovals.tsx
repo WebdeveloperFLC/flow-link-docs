@@ -128,9 +128,9 @@ export default function PerformanceApprovals() {
   }
 
   useEffect(() => {
-    if (!canReview) return;
+    if (!canView) return;
     load();
-  }, [period, canReview]);
+  }, [period, canView]);
 
   useEffect(() => {
     if (!isAdmin) return;
