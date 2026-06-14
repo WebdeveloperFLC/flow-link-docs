@@ -7,7 +7,7 @@ import { useHrPayrollLines, rpcRollupInputs } from "../hooks/useHrPayroll";
 import { ModalShell } from "../components/ui/ModalShell";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { inr } from "../lib/format";
-import { rebuildPayrollLine, hrAudit, lockPayrollCycle, reopenPayrollCycle, fetchPayrollRegisterExport, processPayrollCycle, approvePayrollCycle, markPayrollPaid } from "../lib/hrApi";
+import { rebuildPayrollLine, hrAudit, lockPayrollCycle, reopenPayrollCycle, fetchPayrollRegisterExport, processPayrollCycle, approvePayrollCycle, markPayrollPaid, rebuildPayrollCycle } from "../lib/hrApi";
 import { printSalarySlip } from "../lib/salarySlip";
 import { downloadPayrollRegister, linesToRegisterRows, printRegisterPdf, printBatchSalarySlips } from "../lib/payrollExport";
 import type { PayrollLineRow } from "../lib/types";
@@ -199,6 +199,19 @@ export default function HrVerifyPage() {
     await qc.invalidateQueries({ queryKey: ["hr-payroll-preview"] });
   };
 
+  const rebuildRegister = async () => {
+    if (!effectiveCycleId || !cycle) return;
+    if (!confirm("Rebuild payroll lines for all active employees on this cycle?")) return;
+    try {
+      const count = await rebuildPayrollCycle(effectiveCycleId);
+      await hrAudit("Payroll Register Rebuilt", cycle.label, cycleStatus, cycleStatus);
+      fire(`Register rebuilt (${count} employees)`);
+      await refreshCycle();
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Rebuild failed — apply migration 19");
+    }
+  };
+
   const processCycle = async () => {
     if (!effectiveCycleId || !cycle) return;
     if (!confirm("Process payroll? Lines rebuild + processed snapshots (attendance, leave, policies) are captured.")) return;
@@ -358,6 +371,11 @@ export default function HrVerifyPage() {
                 ↓ All Slips PDF
               </button>
             </>
+          )}
+          {can("approve") && editable && (
+            <button type="button" className="btn btn-sm" onClick={() => void rebuildRegister()}>
+              Rebuild register
+            </button>
           )}
           {can("approve") && (
             <>

@@ -17,6 +17,14 @@ export async function hrAudit(
   } as never);
 }
 
+export async function rebuildPayrollCycle(cycleId: string) {
+  const { data, error } = await supabase.rpc("fn_rebuild_cycle_lines" as never, {
+    p_cycle: cycleId,
+  } as never);
+  if (error) throw error;
+  return data as number;
+}
+
 export async function rebuildPayrollLine(employeeId: string, cycleId: string) {
   const { error } = await supabase.rpc("fn_build_payroll_line" as never, {
     p_employee: employeeId,
