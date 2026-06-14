@@ -1,7 +1,5 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -13,41 +11,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   ALL_HR_SCREENS,
   HR_ORG_ID,
-  HR_PERM_LIST,
-  HR_ROLE_LIST,
   type HrPerm,
   type HrRole,
   type HrScreenKey,
 } from "../lib/constants";
 import type { HrPerms, HrRolePermissionRow, PayrollCycleRow } from "../lib/types";
 import { defaultPermsForRole, defaultScreensForRole } from "../lib/defaultAccess";
-import { resetHrRolePermissions } from "../lib/hrApi";
-
-type HrAccessContextValue = {
-  orgId: string;
-  role: HrRole;
-  assignedRole: HrRole | null;
-  setRole: (r: HrRole) => void;
-  perms: HrPerms;
-  actualPerms: HrPerms;
-  screens: Record<HrScreenKey, boolean>;
-  can: (p: HrPerm) => boolean;
-  actualCan: (p: HrPerm) => boolean;
-  canSee: (s: HrScreenKey) => boolean;
-  cycle: PayrollCycleRow | null;
-  pendingCounts: Record<string, number>;
-  toast: string | null;
-  fire: (msg: string) => void;
-  dbReady: boolean;
-  permissionsLoading: boolean;
-  permissions: HrRolePermissionRow[];
-  refreshPermissions: () => void;
-  updatePerm: (role: HrRole, perm: HrPerm, val: boolean) => Promise<void>;
-  updateScreen: (role: HrRole, screen: HrScreenKey, val: boolean) => Promise<void>;
-  resetAccess: () => Promise<void>;
-};
-
-const HrAccessContext = createContext<HrAccessContextValue | null>(null);
+import { HrAccessContext, type HrAccessContextValue } from "./HrAccessContext";
 
 function rowToPerms(row: HrRolePermissionRow | undefined): HrPerms {
   return {
@@ -182,7 +152,15 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
   const actualPerms = useMemo(
     () =>
       assignedRole == null
-        ? { view: false, apply: false, approve: false, override: false, export: false, configure: false, manageEmp: false }
+        ? {
+            view: false,
+            apply: false,
+            approve: false,
+            override: false,
+            export: false,
+            configure: false,
+            manageEmp: false,
+          }
         : useFallbackActual
           ? defaultPermsForRole(assignedRole)
           : rowToPerms(assignedRoleRow),
@@ -248,7 +226,10 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
 
   const resetAccess = useCallback(async () => {
     try {
-      await resetHrRolePermissions(HR_ORG_ID);
+      const { error } = await supabase.rpc("fn_reset_hr_role_permissions" as never, {
+        p_org: HR_ORG_ID,
+      } as never);
+      if (error) throw error;
       refreshPermissions();
       fire("Role matrix reset to defaults");
     } catch (e) {
@@ -283,10 +264,5 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
   return <HrAccessContext.Provider value={value}>{children}</HrAccessContext.Provider>;
 }
 
-export function useHrAccess() {
-  const ctx = useContext(HrAccessContext);
-  if (!ctx) throw new Error("useHrAccess must be used within HrPayrollProvider");
-  return ctx;
-}
-
-export { HR_ROLE_LIST };
+export { useHrAccess } from "./HrAccessContext";
+export { HR_ROLE_LIST } from "../lib/constants";

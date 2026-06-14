@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { HrPayrollShell } from "./components/HrPayrollLayout";
+import { HrPayrollLayout } from "./components/HrPayrollLayout";
+import { HrPayrollProvider } from "./context/HrPayrollProvider";
 import HrDashboardPage from "./pages/HrDashboardPage";
 import HrEssPage from "./pages/HrEssPage";
 import HrEmp360Page from "./pages/HrEmp360Page";
@@ -22,8 +23,9 @@ import HrImportPage from "./pages/HrImportPage";
 
 export default function HrPayrollRoutes() {
   return (
-    <Routes>
-      <Route element={<HrPayrollShell />}>
+    <HrPayrollProvider>
+      <Routes>
+        <Route element={<HrPayrollLayout />}>
         <Route index element={<HrDashboardPage />} />
         <Route path="me" element={<HrEssPage />} />
         <Route path="employee" element={<HrEmp360Redirect />} />
@@ -44,7 +46,8 @@ export default function HrPayrollRoutes() {
         <Route path="roles" element={<HrRolesPage />} />
         <Route path="audit" element={<HrAuditPage />} />
         <Route path="*" element={<Navigate to="/hr" replace />} />
-      </Route>
-    </Routes>
+        </Route>
+      </Routes>
+    </HrPayrollProvider>
   );
 }
