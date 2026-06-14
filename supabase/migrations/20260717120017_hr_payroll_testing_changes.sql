@@ -141,10 +141,10 @@ BEGIN
     ('2026-07-01', 'Canada Day', 'National', '["5-Day","Day","Full-Time"]'),
     ('2026-10-12', 'Thanksgiving', 'National', '["5-Day","Day","Full-Time"]'),
     ('2026-12-25', 'Christmas', 'National', '["5-Day","Day","Full-Time"]')
-  ) AS v(d, n, t, tags)
+  ) AS v(d date, n text, t text, tags text)
   WHERE NOT EXISTS (
     SELECT 1 FROM holidays h
-    WHERE h.org_id = v_org AND h.holiday_date = v.d::date AND h.name = v.n
+    WHERE h.org_id = v_org AND h.holiday_date = v.d AND h.name = v.n
   );
 END $$;
 
