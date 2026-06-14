@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID, DEPARTMENTS, MANAGERS } from "../../lib/constants";
 import { fillSalaryComponents, formatMoney, parseEmergencyContacts, weeklyOffDays } from "../../lib/format";
 import { uploadEmployeePhoto } from "../../lib/hrStorage";
 import { EmployeeAvatar } from "../ui/EmployeeAvatar";
-import type { BranchRow, CompanyRow, EmergencyContact, EmployeeRow, ShiftRow } from "../../lib/types";
-import { fetchNextEmpCode } from "../../hooks/useHrEmployees";
+import type { BranchRow, CompanyRow, EmergencyContact, EmployeeRow, ShiftRow, CrmStaffRow } from "../../lib/types";
+import { fetchNextEmpCode, useHrEmployee } from "../../hooks/useHrEmployees";
 import { useHrCrmStaff } from "../../hooks/useHrTeam";
 import { useHrAccess } from "../../context/HrPayrollProvider";
 
@@ -203,15 +203,56 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
 export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }: Props) {
   const { fire } = useHrAccess();
   const qc = useQueryClient();
-  const { data: crmStaff = [] } = useHrCrmStaff();
+  const { data: liveEmp } = useHrEmployee(emp?.id);
+  const sourceEmp = liveEmp ?? emp;
+  const { data: crmStaff = [], isError: crmStaffError } = useHrCrmStaff();
   const [tab, setTab] = useState<FormTab>("basic");
   const [f, setF] = useState<FormState>(
-    emp ? fromEmployee(emp) : blank(shifts, companies, branches),
+    sourceEmp ? fromEmployee(sourceEmp) : blank(shifts, companies, branches),
   );
   const [err, setErr] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (sourceEmp) setF(fromEmployee(sourceEmp));
+  }, [sourceEmp?.id, sourceEmp?.staff_id]);
+
+  const crmLinkOptions = useMemo(() => {
+    const available = crmStaff.filter((s) => !s.employee_id || s.employee_id === emp?.id);
+    if (!f.staff_id) return available;
+    const linked = crmStaff.find((s) => s.staff_id === f.staff_id);
+    if (linked && !available.some((s) => s.staff_id === linked.staff_id)) {
+      return [linked, ...available];
+    }
+    if (!linked) {
+      const fallback: CrmStaffRow = {
+        staff_id: f.staff_id,
+        email: null,
+        full_name: "Linked CRM login",
+        profile_status: "active",
+        crm_roles: [],
+        hr_role: null,
+        hr_assignment_id: null,
+        scope_branch_id: null,
+        profile_branch_id: null,
+        branch_name: null,
+        employee_id: emp?.id ?? null,
+        emp_code: emp?.emp_code ?? null,
+        employee_name: emp?.full_name ?? null,
+      };
+      return [fallback, ...available];
+    }
+    return available;
+  }, [crmStaff, emp?.id, emp?.emp_code, emp?.full_name, f.staff_id]);
+
+  const linkedCrmLabel = useMemo(() => {
+    if (!f.staff_id) return null;
+    const row = crmStaff.find((s) => s.staff_id === f.staff_id);
+    if (!row) return null;
+    return row.email ? `${row.full_name} (${row.email})` : row.full_name;
+  }, [crmStaff, f.staff_id]);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setF((prev) => ({ ...prev, [k]: v }));
@@ -334,6 +375,8 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
         fire("Photo uploaded");
       }
       await qc.invalidateQueries({ queryKey: ["hr-employees"] });
+      if (employeeId) await qc.invalidateQueries({ queryKey: ["hr-employee", HR_ORG_ID, employeeId] });
+      await qc.invalidateQueries({ queryKey: ["hr-crm-staff"] });
       onClose();
     } catch (ex) {
       fire(ex instanceof Error ? ex.message : "Save failed");
@@ -557,14 +600,27 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                   onChange={(e) => set("staff_id", e.target.value)}
                 >
                   <option value="">— not linked —</option>
-                  {crmStaff
-                    .filter((s) => !s.employee_id || s.employee_id === emp?.id)
-                    .map((s) => (
-                      <option key={s.staff_id} value={s.staff_id}>
-                        {s.full_name} {s.email ? `(${s.email})` : ""}
-                      </option>
-                    ))}
+                  {crmLinkOptions.map((s) => (
+                    <option key={s.staff_id} value={s.staff_id}>
+                      {s.full_name} {s.email ? `(${s.email})` : ""}
+                    </option>
+                  ))}
                 </select>
+                {f.staff_id && linkedCrmLabel && (
+                  <span className="tag" style={{ marginTop: 6, color: "var(--good)", fontSize: 11 }}>
+                    Linked: {linkedCrmLabel}
+                  </span>
+                )}
+                {f.staff_id && !linkedCrmLabel && (
+                  <span className="tag" style={{ marginTop: 6, fontSize: 11 }}>
+                    Linked in database — CRM staff list loading or restricted
+                  </span>
+                )}
+                {crmStaffError && (
+                  <span style={{ display: "block", marginTop: 6, fontSize: 11, color: "var(--rose)" }}>
+                    Could not load CRM users — link may still be saved in database
+                  </span>
+                )}
               </label>
             </div>
           )}
