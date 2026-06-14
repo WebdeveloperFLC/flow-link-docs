@@ -201,6 +201,7 @@ const performanceNav: NavItem[] = [
   { to: "/performance/incentives/plans", icon: Layers, label: "Incentive plans", adminOnly: true },
   { to: "/performance/incentives/payouts", icon: Banknote, label: "Ledger & payouts", adminOnly: true },
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
+  { to: "/performance/configuration", icon: SettingsIcon, label: "Configuration", adminOnly: true },
   {
     to: "/performance/roles",
     icon: UserCog,
