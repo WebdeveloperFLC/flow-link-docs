@@ -29,7 +29,6 @@ export function useCombinationEngineData() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // @ts-expect-error service_combinations added in Phase 3A migration
       const { data, error } = await supabase
         .from("service_combinations")
         .select(
@@ -67,7 +66,6 @@ export function useCombinationEngineData() {
 
       const resolved = await Promise.all(
         combos.map(async (c) => {
-          // @ts-expect-error fn_resolve_combination added in Phase 3A migration
           const { data: res } = await supabase.rpc("fn_resolve_combination", {
             _combination_id: c.id,
             _client_id: null,

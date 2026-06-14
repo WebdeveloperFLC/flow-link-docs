@@ -56,7 +56,6 @@ export default function PerformanceCombinations() {
     }
     setCreating(true);
     try {
-      // @ts-expect-error service_combinations added in Phase 3A migration
       const { error } = await supabase.from("service_combinations").insert({
         name: newName.trim(),
         combination_type: "logical",

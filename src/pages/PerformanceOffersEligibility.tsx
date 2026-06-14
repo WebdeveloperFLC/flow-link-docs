@@ -43,7 +43,6 @@ export default function PerformanceOffersEligibility() {
   const createRule = async () => {
     setSaving(true);
     try {
-      // @ts-expect-error offer_eligibility_rules added in Phase 3B migration
       const { error } = await supabase.from("offer_eligibility_rules").insert({
         offer_id: offerId || null,
         audience,

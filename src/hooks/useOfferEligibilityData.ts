@@ -5,7 +5,7 @@ import {
   offerConflictSummary,
   type OfferEligibilityRuleRow,
 } from "@/incentives/lib/offerEligibilityLogic";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database } from "@/integrations/supabase/databaseCmsPhase3";
 
 type OfferRow = Database["public"]["Tables"]["offers"]["Row"];
 
@@ -31,7 +31,6 @@ export function useOfferEligibilityData() {
     setLoading(true);
     try {
       const [rulesRes, offersRes] = await Promise.all([
-        // @ts-expect-error offer_eligibility_rules added in Phase 3B migration
         supabase
           .from("offer_eligibility_rules")
           .select(
