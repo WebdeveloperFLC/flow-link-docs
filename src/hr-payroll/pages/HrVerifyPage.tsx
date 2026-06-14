@@ -201,7 +201,7 @@ export default function HrVerifyPage() {
 
   const processCycle = async () => {
     if (!effectiveCycleId || !cycle) return;
-    if (!confirm("Process payroll? All lines will be rebuilt from attendance and approvals.")) return;
+    if (!confirm("Process payroll? Lines rebuild + processed snapshots (attendance, leave, policies) are captured.")) return;
     try {
       await processPayrollCycle(effectiveCycleId);
       await hrAudit("Payroll Processed", cycle.label, "Draft", "Processed");
@@ -330,9 +330,9 @@ export default function HrVerifyPage() {
             <StatusBadge status={cycleStatus} />
           )}
           {locked && (
-            <span className="tag" style={{ color: "var(--good)" }}>
-              snapshotted · attendance frozen
-            </span>
+              <span className="tag" style={{ color: "var(--good)" }}>
+                locked snapshots · attendance frozen
+              </span>
           )}
           {cycleStatus === "Paid" && cycle.paid_at && (
             <span className="tag">paid {cycle.paid_at.slice(0, 10)}</span>

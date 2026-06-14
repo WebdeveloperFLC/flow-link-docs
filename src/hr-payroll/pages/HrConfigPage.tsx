@@ -31,7 +31,13 @@ const DEFAULT_CONFIG: Record<string, Record<string, string>> = {
   sandwich_ul: { sandwich_mult: "1", sandwich_cap: "2/yr", ul_mult: "2", auto_resign: "3 consec. UL" },
   workflow: { enabled: "true", chain: "Manager,HR", skip_manager_when_no_mgr: "true" },
   overtime: { mode: "display", rate_multiplier: "1.5", hours_per_day: "8", min_ot_minutes: "30" },
-  canada_deductions: { cpp_rate: "0.0595", ei_rate: "0.0166", income_tax_flat: "0", other_deductions: "0" },
+  canada_deductions: {
+    cpp_rate: "0.0595",
+    ei_rate: "0.0166",
+    income_tax_mode: "flat",
+    income_tax_flat: "0",
+    other_deductions: "0",
+  },
 };
 
 function Fld({
@@ -209,9 +215,13 @@ export default function HrConfigPage() {
 
   const saveCanada = async () => {
     if (!can("configure")) return;
-    const config = {
+    const taxMode = String(
+      policyDraft.income_tax_mode ?? canadaPolicy?.config?.income_tax_mode ?? "flat",
+    );
+    const config: Record<string, unknown> = {
       cpp_rate: Number(policyDraft.cpp_rate ?? canadaPolicy?.config?.cpp_rate ?? 0.0595),
       ei_rate: Number(policyDraft.ei_rate ?? canadaPolicy?.config?.ei_rate ?? 0.0166),
+      income_tax_mode: taxMode,
       income_tax_flat: Number(
         policyDraft.income_tax_flat ?? canadaPolicy?.config?.income_tax_flat ?? 0,
       ),
@@ -219,6 +229,23 @@ export default function HrConfigPage() {
         policyDraft.other_deductions ?? canadaPolicy?.config?.other_deductions ?? 0,
       ),
     };
+    if (taxMode === "brackets") {
+      const raw =
+        policyDraft.income_tax_brackets ??
+        JSON.stringify(
+          canadaPolicy?.config?.income_tax_brackets ?? [
+            { up_to: "55867", rate: 0.15 },
+            { up_to: "111733", rate: 0.205 },
+            { up_to: "", rate: 0.26 },
+          ],
+        );
+      try {
+        config.income_tax_brackets = typeof raw === "string" ? JSON.parse(raw) : raw;
+      } catch {
+        fire("Invalid bracket JSON");
+        return;
+      }
+    }
     const version = (canadaPolicy?.version ?? 0) + 1;
     const { error } = await supabase.from("policies" as never).insert({
       org_id: HR_ORG_ID,
@@ -373,12 +400,42 @@ export default function HrConfigPage() {
                 onChange={(v) => setPolicyDraft((prev) => ({ ...prev, ei_rate: v }))}
               />
               <Fld
-                label="Flat income tax rate (when TDS applicable)"
+                label="Tax mode (flat | brackets)"
+                value={String(
+                  policyDraft.income_tax_mode ?? canadaPolicy?.config?.income_tax_mode ?? "flat",
+                )}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, income_tax_mode: v }))}
+              />
+              <Fld
+                label="Flat income tax rate (when mode=flat & TDS on)"
                 value={String(
                   policyDraft.income_tax_flat ?? canadaPolicy?.config?.income_tax_flat ?? "0",
                 )}
                 onChange={(v) => setPolicyDraft((prev) => ({ ...prev, income_tax_flat: v }))}
               />
+              <label className="fld" style={{ gridColumn: "1 / -1" }}>
+                <span className="l">Progressive brackets JSON (when mode=brackets)</span>
+                <textarea
+                  className="input"
+                  rows={4}
+                  style={{ fontFamily: "monospace", fontSize: 12 }}
+                  value={String(
+                    policyDraft.income_tax_brackets ??
+                      JSON.stringify(
+                        canadaPolicy?.config?.income_tax_brackets ?? [
+                          { up_to: "55867", rate: 0.15 },
+                          { up_to: "111733", rate: 0.205 },
+                          { up_to: "", rate: 0.26 },
+                        ],
+                        null,
+                        2,
+                      ),
+                  )}
+                  onChange={(e) =>
+                    setPolicyDraft((prev) => ({ ...prev, income_tax_brackets: e.target.value }))
+                  }
+                />
+              </label>
               <Fld
                 label="Other deductions (fixed per cycle)"
                 value={String(

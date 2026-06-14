@@ -17,6 +17,7 @@ import {
 } from "../lib/constants";
 import type { HrPerms, HrRolePermissionRow, PayrollCycleRow } from "../lib/types";
 import { defaultPermsForRole, defaultScreensForRole } from "../lib/defaultAccess";
+import { syncHrRoleFromCrm } from "../lib/hrApi";
 import { HrAccessContext, type HrAccessContextValue } from "./HrAccessContext";
 
 function rowToPerms(row: HrRolePermissionRow | undefined): HrPerms {
@@ -90,6 +91,13 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
     if (assignment?.role) setRole(assignment.role);
     else if (isAdmin) setRole("Admin");
   }, [assignment?.role, isAdmin]);
+
+  useEffect(() => {
+    if (!user?.id || !dbReady) return;
+    void syncHrRoleFromCrm(HR_ORG_ID, user.id).then(() => {
+      void qc.invalidateQueries({ queryKey: ["hr-role-assignment", user.id] });
+    });
+  }, [user?.id, dbReady, qc]);
 
   const { data: cycle = null } = useQuery({
     queryKey: ["hr-payroll-cycle", HR_ORG_ID],

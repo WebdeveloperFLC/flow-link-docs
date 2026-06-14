@@ -8,6 +8,7 @@ Run in Lovable SQL editor **after** `20260717120017_hr_payroll_testing_changes.s
 | 19 | `20260717120019_hr_payroll_lifecycle_salary_revision.sql` | `fn_process_payroll_cycle`, `fn_approve_payroll_cycle`, `fn_mark_payroll_paid`, salary revision trigger |
 | 20 | `20260717120020_hr_payroll_canada_engine.sql` | Canada CPP/EI in `fn_compute_payroll`, `payroll_line_snapshots`, FL-CA01 demo seed |
 | 21 | `20260717120021_hr_payroll_uat_isha_link.sql` | Link Isha FL-1042 to free CRM admin for ESS UAT (idempotent) |
+| 22 | `20260717120022_hr_payroll_phase2c_rbac_snapshots.sql` | CRM RBAC sync, Canada tax brackets, snapshot engine |
 
 ## Verify
 

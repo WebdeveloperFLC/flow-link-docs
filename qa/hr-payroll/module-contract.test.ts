@@ -21,6 +21,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120019_hr_payroll_lifecycle_salary_revision.sql",
   "20260717120020_hr_payroll_canada_engine.sql",
   "20260717120021_hr_payroll_uat_isha_link.sql",
+  "20260717120022_hr_payroll_phase2c_rbac_snapshots.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -34,6 +35,9 @@ const REQUIRED_RPCS = [
   "fn_process_payroll_cycle",
   "fn_approve_payroll_cycle",
   "fn_mark_payroll_paid",
+  "fn_sync_hr_role_from_crm",
+  "fn_sync_all_crm_hr_roles",
+  "fn_capture_payroll_snapshots",
 ];
 
 const REQUIRED_PAGES = [
