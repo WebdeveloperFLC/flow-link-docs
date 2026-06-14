@@ -11,15 +11,17 @@ interface BranchRow {
 export function PerformanceExecutiveBranchChart({
   rows,
   loading,
+  title = "Revenue vs target by branch",
 }: {
   rows: BranchRow[];
   loading?: boolean;
+  title?: string;
 }) {
   const maxRevenue = rows.reduce((m, r) => Math.max(m, r.revenue), 0);
 
   return (
     <Card className="p-5 ph-surface-card h-full">
-      <h2 className="text-lg font-semibold ph-heading mb-4">Revenue vs target by branch</h2>
+      <h2 className="text-lg font-semibold ph-heading mb-4">{title}</h2>
       {loading ? (
         <p className="text-sm ph-muted">Loading…</p>
       ) : rows.length === 0 ? (
