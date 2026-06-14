@@ -31,4 +31,4 @@ UI-only — **no SQL**.
 
 ---
 
-*Next: Phase 2I — Mobile dashboards (`28_Mobile_Dashboard.png`, `29_Mobile_Wallets.png`) or Offer codes UI (`08_Offer_Codes.png`).*
+*Next: Phase 2I — Mobile dashboards (`28_Mobile_Dashboard.png`, `29_Mobile_Wallets.png`).*

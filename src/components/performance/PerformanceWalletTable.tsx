@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { PerformanceWalletMobileList } from "@/components/performance/PerformanceWalletMobileList";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,7 +29,7 @@ function WalletTableBody({ rows, showCounselor }: { rows: WalletListRow[]; showC
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto hidden md:block">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-left ph-muted text-xs uppercase tracking-wide">
@@ -112,15 +113,19 @@ export function PerformanceWalletTable({ rows, loading, showCounselor }: Perform
         ) : (
           <>
             <TabsContent value="all" className="mt-0">
+              <PerformanceWalletMobileList rows={rows} showCounselor={showCounselor} />
               <WalletTableBody rows={rows} showCounselor={showCounselor} />
             </TabsContent>
             <TabsContent value="active" className="mt-0">
+              <PerformanceWalletMobileList rows={filterWalletRows(rows, "active")} showCounselor={showCounselor} />
               <WalletTableBody rows={filterWalletRows(rows, "active")} showCounselor={showCounselor} />
             </TabsContent>
             <TabsContent value="closed" className="mt-0">
+              <PerformanceWalletMobileList rows={filterWalletRows(rows, "closed")} showCounselor={showCounselor} />
               <WalletTableBody rows={filterWalletRows(rows, "closed")} showCounselor={showCounselor} />
             </TabsContent>
             <TabsContent value="scheduled" className="mt-0">
+              <PerformanceWalletMobileList rows={filterWalletRows(rows, "scheduled")} showCounselor={showCounselor} />
               <WalletTableBody rows={filterWalletRows(rows, "scheduled")} showCounselor={showCounselor} />
             </TabsContent>
           </>
