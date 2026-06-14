@@ -61,6 +61,7 @@ import {
   Trophy,
   FlaskConical,
   LayoutGrid,
+  Link2,
 } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -151,6 +152,12 @@ const performanceNav: NavItem[] = [
   { to: "/performance/finance", icon: Banknote, label: "Finance dashboard", adminOnly: true },
   { to: "/performance/analytics", icon: BarChart2, label: "Revenue analytics", roles: ["admin", "administrator", "viewer", "director", "manager"] },
   { to: "/performance/compare", icon: GitMerge, label: "Comparison", roles: ["admin", "administrator", "viewer", "director", "manager"] },
+  {
+    to: "/performance/client-commercials",
+    icon: Link2,
+    label: "Client commercials",
+    roles: ["admin", "administrator", "viewer", "director", "manager", "counselor"],
+  },
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
   {
     to: "/performance/admin/approvals",
