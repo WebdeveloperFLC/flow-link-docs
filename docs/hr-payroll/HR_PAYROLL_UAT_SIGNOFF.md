@@ -30,8 +30,8 @@ Complete after executing [`HR_PAYROLL_UAT.md`](./HR_PAYROLL_UAT.md). Setup per [
 
 ## 3. Test Cases Executed
 
-**Total defined:** 58  
-**Executed:** _____ / 58
+**Total defined:** 61  
+**Executed:** _____ / 61
 
 | Section | Cases | Pass | Fail | Blocked | N/R |
 |---------|------:|-----:|-----:|--------:|----:|
@@ -44,6 +44,7 @@ Complete after executing [`HR_PAYROLL_UAT.md`](./HR_PAYROLL_UAT.md). Setup per [
 | G Statutory | 4 | | | | |
 | H OT & polish | 7 | | | | |
 | I Phase 2 add-up | 8 | | | | |
+| J Phase 2C | 3 | | | | |
 
 **TV02 anchor (HR-UAT-PAY-002):** ☐ Pass ☐ Fail — Isha 29.5 days / ₹39,500
 
@@ -66,7 +67,7 @@ Complete after executing [`HR_PAYROLL_UAT.md`](./HR_PAYROLL_UAT.md). Setup per [
 
 | Option | Select |
 |--------|:------:|
-| ☐ **Ready for Production** | All 58 executed; TV02 pass; 0 Blocker/Critical open |
+| ☐ **Ready for Production** | All 61 executed; TV02 pass; 0 Blocker/Critical open |
 | ☐ **Ready for Limited Pilot** | Core HR flows pass; no Blocker open |
 | ☐ **Requires Fixes Before Release** | TV02 fail OR any Blocker OR migrations incomplete |
 
