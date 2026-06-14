@@ -220,6 +220,8 @@ export type PayrollLineRow = {
   ul_count: number;
   sandwich_count: number;
   unpaid_training: number;
+  ot_minutes: number;
+  ot_pay: number;
   late_deduction: number;
   mispunch_deduction: number;
   payable_days: number;

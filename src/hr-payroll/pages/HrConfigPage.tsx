@@ -7,10 +7,10 @@ import { HR_ORG_ID } from "../lib/constants";
 import { hrAudit, accrueLeaveBalances } from "../lib/hrApi";
 import type { PolicyRow } from "../lib/types";
 
-const TABS = ["Payroll Cycle", "Late Coming", "Mispunch", "Leave", "Sandwich & UL", "Workflow"] as const;
+const TABS = ["Payroll Cycle", "Late Coming", "Mispunch", "Leave", "Sandwich & UL", "Overtime", "Workflow"] as const;
 type Tab = (typeof TABS)[number];
 
-const DOMAIN_MAP: Record<Exclude<Tab, "Payroll Cycle" | "Workflow">, string> = {
+const DOMAIN_MAP: Record<Exclude<Tab, "Payroll Cycle" | "Workflow" | "Overtime">, string> = {
   "Late Coming": "late",
   Mispunch: "mispunch",
   Leave: "leave",
@@ -30,6 +30,7 @@ const DEFAULT_CONFIG: Record<string, Record<string, string>> = {
   },
   sandwich_ul: { sandwich_mult: "1", sandwich_cap: "2/yr", ul_mult: "2", auto_resign: "3 consec. UL" },
   workflow: { enabled: "true", chain: "Manager,HR", skip_manager_when_no_mgr: "true" },
+  overtime: { mode: "display", rate_multiplier: "1.5", hours_per_day: "8", min_ot_minutes: "30" },
 };
 
 function Fld({
@@ -59,9 +60,12 @@ export default function HrConfigPage() {
   const [endDate, setEndDate] = useState(cycle?.end_date ?? "");
   const [policyDraft, setPolicyDraft] = useState<Record<string, string>>({});
 
-  const domain = tab !== "Payroll Cycle" && tab !== "Workflow" ? DOMAIN_MAP[tab] : null;
+  const domain = tab !== "Payroll Cycle" && tab !== "Workflow" && tab !== "Overtime" ? DOMAIN_MAP[tab] : null;
   const workflowPolicy = useMemo(() => {
     return (policies as PolicyRow[]).find((p) => p.domain === "workflow");
+  }, [policies]);
+  const overtimePolicy = useMemo(() => {
+    return (policies as PolicyRow[]).find((p) => p.domain === "overtime");
   }, [policies]);
   const currentPolicy = useMemo(() => {
     if (!domain) return null;
@@ -167,6 +171,38 @@ export default function HrConfigPage() {
     await qc.invalidateQueries({ queryKey: ["hr-policies"] });
   };
 
+  const saveOvertime = async () => {
+    if (!can("configure")) return;
+    const config = {
+      mode: String(policyDraft.mode ?? overtimePolicy?.config?.mode ?? "display"),
+      rate_multiplier: Number(
+        policyDraft.rate_multiplier ?? overtimePolicy?.config?.rate_multiplier ?? 1.5,
+      ),
+      hours_per_day: Number(
+        policyDraft.hours_per_day ?? overtimePolicy?.config?.hours_per_day ?? 8,
+      ),
+      min_ot_minutes: Number(
+        policyDraft.min_ot_minutes ?? overtimePolicy?.config?.min_ot_minutes ?? 30,
+      ),
+    };
+    const version = (overtimePolicy?.version ?? 0) + 1;
+    const { error } = await supabase.from("policies" as never).insert({
+      org_id: HR_ORG_ID,
+      domain: "overtime",
+      effective_from: new Date().toISOString().slice(0, 10),
+      version,
+      config,
+    } as never);
+    if (error) {
+      fire(error.message);
+      return;
+    }
+    await hrAudit("OT Policy Saved", config.mode, `v${overtimePolicy?.version ?? 0}`, `v${version}`);
+    fire("Overtime policy saved");
+    setPolicyDraft({});
+    await qc.invalidateQueries({ queryKey: ["hr-policies"] });
+  };
+
   return (
     <div className="grid" style={{ gap: 16 }}>
       <div className="pill-tab">
@@ -231,6 +267,57 @@ export default function HrConfigPage() {
                 onClick={() => void saveCycle()}
               >
                 Save Cycle
+              </button>
+            </div>
+          </>
+        ) : tab === "Overtime" ? (
+          <>
+            <div className="muted" style={{ fontSize: 12, marginBottom: 12 }}>
+              <strong>display</strong> = OT minutes on register only (no pay). <strong>paid</strong> = adds OT
+              pay to net at hourly rate × multiplier.
+            </div>
+            <div className="grid g2" style={{ gap: "0 24px" }}>
+              <label className="fld">
+                <span className="l">Mode</span>
+                <select
+                  className="input"
+                  value={String(policyDraft.mode ?? overtimePolicy?.config?.mode ?? "display")}
+                  onChange={(e) => setPolicyDraft((prev) => ({ ...prev, mode: e.target.value }))}
+                >
+                  <option value="display">display (no pay)</option>
+                  <option value="paid">paid (add to net)</option>
+                </select>
+              </label>
+              <Fld
+                label="Rate multiplier"
+                value={String(
+                  policyDraft.rate_multiplier ?? overtimePolicy?.config?.rate_multiplier ?? "1.5",
+                )}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, rate_multiplier: v }))}
+              />
+              <Fld
+                label="Hours per day (hourly basis)"
+                value={String(
+                  policyDraft.hours_per_day ?? overtimePolicy?.config?.hours_per_day ?? "8",
+                )}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, hours_per_day: v }))}
+              />
+              <Fld
+                label="Minimum OT minutes to pay"
+                value={String(
+                  policyDraft.min_ot_minutes ?? overtimePolicy?.config?.min_ot_minutes ?? "30",
+                )}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, min_ot_minutes: v }))}
+              />
+            </div>
+            <div className="row-flex" style={{ justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={!can("configure")}
+                onClick={() => void saveOvertime()}
+              >
+                Save Overtime Policy
               </button>
             </div>
           </>

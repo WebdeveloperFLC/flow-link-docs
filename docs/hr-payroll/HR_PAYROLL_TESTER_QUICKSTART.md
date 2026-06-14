@@ -2,7 +2,7 @@
 
 **Audience:** Non-technical UAT testers  
 **Team setup & full workflow:** [`../guides/hr-payroll-uat-guide.md`](../guides/hr-payroll-uat-guide.md) — **Guide → HR Payroll UAT** (`/guides/hr-payroll-uat`)  
-**Full test pack:** [`HR_PAYROLL_UAT.md`](./HR_PAYROLL_UAT.md) (42 cases)  
+**Full test pack:** [`HR_PAYROLL_UAT.md`](./HR_PAYROLL_UAT.md) (50 cases)  
 **Sign-off form:** [`HR_PAYROLL_UAT_SIGNOFF.md`](./HR_PAYROLL_UAT_SIGNOFF.md)
 
 ---
@@ -14,7 +14,8 @@ HR Payroll is the **employee, attendance, leave, and payroll** module inside Flo
 - Maintain **employee master** data and bank details  
 - Track **attendance**, leave, comp-off, late, and mispunch  
 - Run **payroll verification** with Excel-parity maths (Postgres engine)  
-- Export salary registers and **salary slip PDFs**  
+- Export salary registers (CSV/Excel/**PDF**) and **batch salary slip PDFs**  
+- Lock payroll with **attendance freeze** and audited reopen  
 
 You test on **staging**, not production. Demo employees use codes **FL-1042** through **FL-1047**.
 
@@ -27,7 +28,7 @@ You test on **staging**, not production. Demo employees use codes **FL-1042** th
 | Step | Who | What you need |
 |------|-----|----------------|
 | 1 | Engineering | Staging URL + latest HR build published |
-| 2 | Engineering | SQL migrations 00–10 applied + demo seed loaded |
+| 2 | Engineering | SQL migrations **00–14** applied + demo seed loaded |
 | 3 | Admin | Your login has **HR Payroll** module access |
 | 4 | Admin | Your user has an **HR role** in `/hr/roles` → Team & CRM (or use View-as) |
 
@@ -94,7 +95,7 @@ Payroll cycle for all tests: **26 May – 25 Jun 2026**.
 
 ## 8. Sign-off
 
-When all 42 cases are done, UAT lead completes **HR_PAYROLL_UAT_SIGNOFF.md**.
+When all **50** cases are done, UAT lead completes **HR_PAYROLL_UAT_SIGNOFF.md**.
 
 ---
 

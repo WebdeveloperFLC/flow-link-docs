@@ -9,7 +9,7 @@ import { StatusBadge } from "../components/ui/StatusBadge";
 import { inr } from "../lib/format";
 import { rebuildPayrollLine, hrAudit, lockPayrollCycle, reopenPayrollCycle, fetchPayrollRegisterExport } from "../lib/hrApi";
 import { printSalarySlip } from "../lib/salarySlip";
-import { downloadPayrollRegister, linesToRegisterRows } from "../lib/payrollExport";
+import { downloadPayrollRegister, linesToRegisterRows, printRegisterPdf, printBatchSalarySlips } from "../lib/payrollExport";
 import type { PayrollLineRow } from "../lib/types";
 
 type OverrideFields = {
@@ -234,6 +234,28 @@ export default function HrVerifyPage() {
     );
   };
 
+  const exportPdf = async () => {
+    if (!effectiveCycleId || !cycle) return;
+    let rows;
+    try {
+      rows = await fetchPayrollRegisterExport(effectiveCycleId, branch);
+    } catch {
+      rows = linesToRegisterRows(filtered, cycle.label, cycle.status);
+    }
+    if (!rows.length) {
+      rows = linesToRegisterRows(filtered, cycle.label, cycle.status);
+    }
+    printRegisterPdf(rows, cycle.label, locked);
+  };
+
+  const exportBatchSlips = () => {
+    if (!cycle) return;
+    const items = filtered
+      .filter((r) => r.employees)
+      .map((r) => ({ emp: r.employees!, line: r }));
+    printBatchSalarySlips(items, cycle.label);
+  };
+
   if (!cycle) return <div className="empty">No payroll cycle loaded.</div>;
 
   return (
@@ -263,17 +285,26 @@ export default function HrVerifyPage() {
           )}
         </div>
         <div className="row-flex">
-          {can("export") &&
-            (["Excel", "CSV"] as const).map((f) => (
-              <button
-                key={f}
-                type="button"
-                className="btn btn-sm"
-                onClick={() => void exportRegister(f === "CSV" ? "CSV" : "Excel")}
-              >
-                ↓ {f}
+          {can("export") && (
+            <>
+              {(["Excel", "CSV"] as const).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  className="btn btn-sm"
+                  onClick={() => void exportRegister(f === "CSV" ? "CSV" : "Excel")}
+                >
+                  ↓ {f}
+                </button>
+              ))}
+              <button type="button" className="btn btn-sm" onClick={() => void exportPdf()}>
+                ↓ PDF Register
               </button>
-            ))}
+              <button type="button" className="btn btn-sm" onClick={exportBatchSlips}>
+                ↓ All Slips PDF
+              </button>
+            </>
+          )}
           {can("approve") &&
             (locked ? (
               <button type="button" className="btn btn-sm" onClick={() => setReopenOpen(true)}>

@@ -12,7 +12,7 @@
 
 ## Global preconditions
 
-- Migrations `20260717120000` through `20260717120010` applied; Lovable Publish complete.
+- Migrations `20260717120000` through `20260717120014` applied; Lovable Publish complete.
 - Demo seed (migrations 03 + 07) loaded.
 - HR module visible in sidebar (module permission or admin).
 - At least one user with **HR Manager** in `/hr/roles` → Team & CRM.
@@ -635,4 +635,96 @@
 
 ---
 
-*End of HR Payroll UAT pack — 42 cases.*
+## Section H — OT, lock polish & v1.1
+
+### HR-UAT-PAY-010 — PDF register export
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-PAY-010 |
+| **Preconditions** | Export permission; register loaded. |
+| **Steps** | 1. Click **↓ PDF Register** on Verify.<br>2. Print preview opens. |
+| **Expected Result** | All rows match on-screen register; Locked badge if cycle locked. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-PAY-011 — Batch salary slips PDF
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-PAY-011 |
+| **Preconditions** | Export permission. |
+| **Steps** | 1. Click **↓ All Slips PDF**.<br>2. Review print preview (one page per employee). |
+| **Expected Result** | Each slip net matches register line. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-PAY-012 — Reopen with audit reason
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-PAY-012 |
+| **Preconditions** | Cycle Locked; configure or approve role. |
+| **Steps** | 1. Click Reopen; enter reason.<br>2. Check `/hr/audit`. |
+| **Expected Result** | Cycle Draft; audit shows reason text. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-LOCK-001 — Attendance frozen when locked
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-LOCK-001 |
+| **Preconditions** | Cycle Locked. |
+| **Steps** | 1. ESS or Attendance: try punch/edit a date inside locked cycle. |
+| **Expected Result** | Error: attendance frozen for that date. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-OT-001 — OT minutes on attendance
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-OT-001 |
+| **Preconditions** | Employee with full in/out punches exceeding shift target. |
+| **Steps** | 1. Open `/hr/attendance` for employee.<br>2. Check OT column and summary stat. |
+| **Expected Result** | OT minutes shown (display metric). |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-OT-002 — OT display mode (TV02 unchanged)
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-OT-002 |
+| **Preconditions** | Config → Overtime mode = **display** (demo default). |
+| **Steps** | 1. Rebuild Isha line if Draft.<br>2. Confirm net **₹39,500**, payable **29.5**. |
+| **Expected Result** | OT minutes may show; **ot_pay = 0**; TV02 anchor unchanged. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-OT-003 — OT paid mode
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-OT-003 |
+| **Preconditions** | Config → Overtime mode = **paid**; employee with ≥30 OT minutes. |
+| **Steps** | 1. Save OT policy.<br>2. Rebuild payroll line.<br>3. Calculator with same OT minutes. |
+| **Expected Result** | `ot_pay` > 0; net increases; calculator matches RPC. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-WF-001 — Approval chain stages
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-WF-001 |
+| **Preconditions** | Pending leave with reporting manager. |
+| **Steps** | 1. View-as Manager → Approve leave.<br>2. View-as HR Manager → Approve.<br>3. Check stage badges. |
+| **Expected Result** | Manager ✓ then HR ✓; status Approved after final stage. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+---
+
+*End of HR Payroll UAT pack — 50 cases.*
