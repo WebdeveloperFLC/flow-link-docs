@@ -260,10 +260,10 @@ If any item fails, fix setup (Phases 1–3) before Phase 5.
 | B — RBAC & access | 7 | Roles, screens, RLS, configure lock |
 | C — Employee & CRM team | 5 | Master, import, link, components |
 | D — Attendance & punch | 8 | ESS punch, derive status, edit |
-| E — Workflows | 6 | Leave, comp-off, late, mispunch, training |
+| E — Workflows | 7 | Leave, comp-off, late, mispunch, training, approval chain |
 | F — Payroll & lock | 12 | Register, TV02, override, lock, export, PDF |
 | G — Statutory & engine | 4 | PF/ESIC, calculator parity |
-| H — OT, lock polish & v1.1 | 8 | OT policy, PDF batch, freeze, reopen audit |
+| H — OT, lock polish & v1.1 | 7 | OT policy, PDF batch, freeze, reopen audit |
 | I — Phase 2 add-up | 8 | Profile, lifecycle, Canada, doc verify, ESS status |
 | **Total** | **58** | |
 
