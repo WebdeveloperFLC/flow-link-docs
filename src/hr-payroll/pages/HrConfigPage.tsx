@@ -7,10 +7,10 @@ import { HR_ORG_ID } from "../lib/constants";
 import { hrAudit, accrueLeaveBalances } from "../lib/hrApi";
 import type { PolicyRow } from "../lib/types";
 
-const TABS = ["Payroll Cycle", "Late Coming", "Mispunch", "Leave", "Sandwich & UL"] as const;
+const TABS = ["Payroll Cycle", "Late Coming", "Mispunch", "Leave", "Sandwich & UL", "Workflow"] as const;
 type Tab = (typeof TABS)[number];
 
-const DOMAIN_MAP: Record<Exclude<Tab, "Payroll Cycle">, string> = {
+const DOMAIN_MAP: Record<Exclude<Tab, "Payroll Cycle" | "Workflow">, string> = {
   "Late Coming": "late",
   Mispunch: "mispunch",
   Leave: "leave",
@@ -29,6 +29,7 @@ const DEFAULT_CONFIG: Record<string, Record<string, string>> = {
     probation_leave: "None",
   },
   sandwich_ul: { sandwich_mult: "1", sandwich_cap: "2/yr", ul_mult: "2", auto_resign: "3 consec. UL" },
+  workflow: { enabled: "true", chain: "Manager,HR", skip_manager_when_no_mgr: "true" },
 };
 
 function Fld({
@@ -58,7 +59,10 @@ export default function HrConfigPage() {
   const [endDate, setEndDate] = useState(cycle?.end_date ?? "");
   const [policyDraft, setPolicyDraft] = useState<Record<string, string>>({});
 
-  const domain = tab !== "Payroll Cycle" ? DOMAIN_MAP[tab] : null;
+  const domain = tab !== "Payroll Cycle" && tab !== "Workflow" ? DOMAIN_MAP[tab] : null;
+  const workflowPolicy = useMemo(() => {
+    return (policies as PolicyRow[]).find((p) => p.domain === "workflow");
+  }, [policies]);
   const currentPolicy = useMemo(() => {
     if (!domain) return null;
     return (policies as PolicyRow[]).find((p) => p.domain === domain);
@@ -129,6 +133,40 @@ export default function HrConfigPage() {
     }
   };
 
+  const saveWorkflow = async () => {
+    if (!can("configure")) return;
+    const chainRaw = String(
+      policyDraft.chain ??
+        (Array.isArray(workflowPolicy?.config?.chain)
+          ? (workflowPolicy!.config.chain as string[]).join(",")
+          : "Manager,HR"),
+    );
+    const config = {
+      enabled: (policyDraft.enabled ?? workflowPolicy?.config?.enabled ?? "true") === "true",
+      chain: chainRaw.split(",").map((s) => s.trim()).filter(Boolean),
+      skip_manager_when_no_mgr:
+        (policyDraft.skip_manager_when_no_mgr ??
+          workflowPolicy?.config?.skip_manager_when_no_mgr ??
+          "true") === "true",
+    };
+    const version = (workflowPolicy?.version ?? 0) + 1;
+    const { error } = await supabase.from("policies" as never).insert({
+      org_id: HR_ORG_ID,
+      domain: "workflow",
+      effective_from: new Date().toISOString().slice(0, 10),
+      version,
+      config,
+    } as never);
+    if (error) {
+      fire(error.message);
+      return;
+    }
+    await hrAudit("Workflow Saved", "approval chain", `v${workflowPolicy?.version ?? 0}`, `v${version}`);
+    fire("Workflow policy saved");
+    setPolicyDraft({});
+    await qc.invalidateQueries({ queryKey: ["hr-policies"] });
+  };
+
   return (
     <div className="grid" style={{ gap: 16 }}>
       <div className="pill-tab">
@@ -193,6 +231,47 @@ export default function HrConfigPage() {
                 onClick={() => void saveCycle()}
               >
                 Save Cycle
+              </button>
+            </div>
+          </>
+        ) : tab === "Workflow" ? (
+          <>
+            <div className="grid g2" style={{ gap: "0 24px" }}>
+              <Fld
+                label="Chain enabled"
+                value={String(policyDraft.enabled ?? workflowPolicy?.config?.enabled ?? "true")}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, enabled: v }))}
+              />
+              <Fld
+                label="Approval chain (comma-separated)"
+                value={String(
+                  policyDraft.chain ??
+                    (Array.isArray(workflowPolicy?.config?.chain)
+                      ? (workflowPolicy!.config.chain as string[]).join(",")
+                      : "Manager,HR"),
+                )}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, chain: v }))}
+              />
+              <Fld
+                label="Skip manager when no reporting manager"
+                value={String(
+                  policyDraft.skip_manager_when_no_mgr ??
+                    workflowPolicy?.config?.skip_manager_when_no_mgr ??
+                    "true",
+                )}
+                onChange={(v) =>
+                  setPolicyDraft((prev) => ({ ...prev, skip_manager_when_no_mgr: v }))
+                }
+              />
+            </div>
+            <div className="row-flex" style={{ justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={!can("configure")}
+                onClick={() => void saveWorkflow()}
+              >
+                Save Workflow
               </button>
             </div>
           </>

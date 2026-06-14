@@ -1,29 +1,35 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
-import { useHrMispunchRequests } from "../hooks/useHrRequests";
+import { useHrMispunchRequests, useHrApprovals } from "../hooks/useHrRequests";
 import { StatusBadge } from "../components/ui/StatusBadge";
-import { hrAudit } from "../lib/hrApi";
+import { ApprovalTrail } from "../components/ui/ApprovalTrail";
+import { hrAudit, processApprovalDecision, rebuildPayrollLine } from "../lib/hrApi";
 import type { MispunchRequestRow } from "../lib/types";
 
 export default function HrMispunchPage() {
-  const { can, fire } = useHrAccess();
+  const { can, fire, cycle } = useHrAccess();
   const qc = useQueryClient();
   const { data: mispunch = [], isLoading } = useHrMispunchRequests();
+  const mispunchIds = mispunch.map((m) => m.id);
+  const { data: approvals = [] } = useHrApprovals("mispunch", mispunchIds);
 
   const setStatus = async (row: MispunchRequestRow, status: string) => {
-    const { error } = await supabase
-      .from("mispunch_requests" as never)
-      .update({ status } as never)
-      .eq("id", row.id);
-    if (error) {
-      fire(error.message);
-      return;
+    try {
+      const result = (await processApprovalDecision("mispunch", row.id, status)) as {
+        status?: string;
+      } | null;
+      if (result?.status === "Approved" && cycle?.id) {
+        await rebuildPayrollLine(row.employee_id, cycle.id);
+      }
+      await hrAudit(`Mispunch ${status}`, row.employees?.full_name ?? row.id, row.status, status);
+      fire(result?.status === "Pending" ? "Stage approved — awaiting next approver" : `Mispunch ${status.toLowerCase()}`);
+      await qc.invalidateQueries({ queryKey: ["hr-mispunch"] });
+      await qc.invalidateQueries({ queryKey: ["hr-pending-counts"] });
+      await qc.invalidateQueries({ queryKey: ["hr-approvals"] });
+      await qc.invalidateQueries({ queryKey: ["hr-payroll-lines"] });
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Update failed");
     }
-    await hrAudit(`Mispunch ${status}`, row.employees?.full_name ?? row.id, row.status, status);
-    fire(`Mispunch ${status.toLowerCase()}`);
-    await qc.invalidateQueries({ queryKey: ["hr-mispunch"] });
-    await qc.invalidateQueries({ queryKey: ["hr-pending-counts"] });
   };
 
   return (
@@ -69,6 +75,7 @@ export default function HrMispunchPage() {
                   </td>
                   <td>
                     <StatusBadge status={m.status} />
+                    <ApprovalTrail entityId={m.id} approvals={approvals} />
                   </td>
                   <td>
                     <div className="row-flex">

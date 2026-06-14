@@ -3,11 +3,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
-import { useHrLeaveRequests, useHrLeaveBalances } from "../hooks/useHrRequests";
+import { useHrLeaveRequests, useHrLeaveBalances, useHrApprovals } from "../hooks/useHrRequests";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { ModalShell } from "../components/ui/ModalShell";
 import { HR_ORG_ID } from "../lib/constants";
-import { hrAudit, processLeaveDecision, rebuildPayrollLine } from "../lib/hrApi";
+import { hrAudit, processApprovalDecision, rebuildPayrollLine } from "../lib/hrApi";
+import { ApprovalTrail } from "../components/ui/ApprovalTrail";
 import type { LeaveRequestRow } from "../lib/types";
 
 function LeaveModal({
@@ -171,19 +172,24 @@ export default function HrLeavePage() {
   const { can, fire, cycle } = useHrAccess();
   const qc = useQueryClient();
   const { data: leaves = [], isLoading } = useHrLeaveRequests();
+  const leaveIds = leaves.map((l) => l.id);
+  const { data: approvals = [] } = useHrApprovals("leave", leaveIds);
   const [open, setOpen] = useState(false);
 
   const setStatus = async (row: LeaveRequestRow, status: string) => {
     try {
-      await processLeaveDecision(row.id, status);
-      if (status === "Approved" && cycle?.id) {
+      const result = (await processApprovalDecision("leave", row.id, status)) as {
+        status?: string;
+      } | null;
+      if (result?.status === "Approved" && cycle?.id) {
         await rebuildPayrollLine(row.employee_id, cycle.id);
       }
       await hrAudit(`Leave ${status}`, row.employees?.full_name ?? row.id, row.status, status);
-      fire(`Leave ${status.toLowerCase()}`);
+      fire(result?.status === "Pending" ? "Stage approved — awaiting next approver" : `Leave ${status.toLowerCase()}`);
       await qc.invalidateQueries({ queryKey: ["hr-leaves"] });
       await qc.invalidateQueries({ queryKey: ["hr-leave-balances"] });
       await qc.invalidateQueries({ queryKey: ["hr-pending-counts"] });
+      await qc.invalidateQueries({ queryKey: ["hr-approvals"] });
       await qc.invalidateQueries({ queryKey: ["hr-payroll-lines"] });
     } catch (e) {
       fire(e instanceof Error ? e.message : "Update failed");
@@ -254,6 +260,7 @@ export default function HrLeavePage() {
                   <td>{l.has_document ? <span className="tag">📎</span> : <span className="muted">—</span>}</td>
                   <td>
                     <StatusBadge status={l.status} />
+                    <ApprovalTrail entityId={l.id} approvals={approvals} />
                   </td>
                   <td>
                     <div className="row-flex">

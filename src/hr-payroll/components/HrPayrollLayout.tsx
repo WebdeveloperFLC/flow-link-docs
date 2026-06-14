@@ -1,4 +1,4 @@
-import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
+import { Link, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import flcLogo from "@/assets/flc-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -23,6 +23,7 @@ function firstAllowedScreen(canSee: (s: HrScreenKey) => boolean): string | null 
 export function HrPayrollLayout() {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const {
     role,
     setRole,
@@ -71,13 +72,8 @@ export function HrPayrollLayout() {
       <div className="app">
         <aside className="sidebar">
           <div className="brand">
-            <div className="logo">
-              <img src={flcLogo} alt="Future Link Consultants" className="brand-logo" />
-              <div>
-                <h1>Future Link HRMS</h1>
-                <div className="sub">Payroll &amp; HR</div>
-              </div>
-            </div>
+            <img src={flcLogo} alt="Future Link Consultants" className="brand-logo-full" />
+            <div className="brand-module">HR Payroll</div>
           </div>
           <nav className="nav">
             {HR_NAV.map((g) => {
@@ -125,7 +121,7 @@ export function HrPayrollLayout() {
             )}
             <br />
             <Link to="/" className="tag" style={{ marginTop: 8, display: "inline-block" }}>
-              ← Back to CRM
+              ⊞ Main menu
             </Link>
             {!dbReady && (
               <>
@@ -137,9 +133,19 @@ export function HrPayrollLayout() {
         </aside>
         <main className="main">
           <header className="topbar">
-            <div>
-              <div className="crumb">Future Link Consultants</div>
-              <h2 className="serif">{title}</h2>
+            <div className="topbar-left">
+              <div className="topbar-nav">
+                <button type="button" className="topbar-nav-btn" onClick={() => navigate(-1)}>
+                  ← Back
+                </button>
+                <Link to="/" className="topbar-nav-btn">
+                  ⊞ Main menu
+                </Link>
+              </div>
+              <div>
+                <div className="crumb">Future Link Consultants</div>
+                <h2 className="serif">{title}</h2>
+              </div>
             </div>
             <div className="topbar-right">
               <div className="role-pill">

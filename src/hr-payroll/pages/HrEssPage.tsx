@@ -9,8 +9,9 @@ import { useAttendanceActions } from "../hooks/useAttendanceActions";
 import { EmployeeSeg } from "../components/ui/EmployeeSeg";
 import { Stat } from "../components/ui/Stat";
 import { PunchStation } from "../components/attendance/PunchStation";
+import { EmployeeAvatar } from "../components/ui/EmployeeAvatar";
 import { formatWorkDate, todayIso } from "../lib/attendanceMetrics";
-import { inr, initials } from "../lib/format";
+import { inr } from "../lib/format";
 import { printSalarySlip } from "../lib/salarySlip";
 
 export default function HrEssPage() {
@@ -58,9 +59,7 @@ export default function HrEssPage() {
       </div>
 
       <div className="card" style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-        <div className="avatar" style={{ width: 56, height: 56, fontSize: 19 }}>
-          {initials(emp.full_name)}
-        </div>
+        <EmployeeAvatar name={emp.full_name} photoUrl={emp.photo_url} size={56} fontSize={19} />
         <div style={{ flex: 1, minWidth: 200 }}>
           <div className="serif" style={{ fontSize: 21, fontWeight: 600 }}>
             {emp.full_name}

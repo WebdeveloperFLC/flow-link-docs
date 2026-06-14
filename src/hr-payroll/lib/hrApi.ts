@@ -56,3 +56,19 @@ export async function accrueLeaveBalances(orgId: string, year?: number) {
   if (error) throw error;
   return data as number;
 }
+
+export async function processApprovalDecision(
+  entityType: string,
+  entityId: string,
+  decision: string,
+  comment?: string,
+) {
+  const { data, error } = await supabase.rpc("fn_process_approval_decision" as never, {
+    p_entity_type: entityType,
+    p_entity_id: entityId,
+    p_decision: decision,
+    p_comment: comment ?? null,
+  } as never);
+  if (error) throw error;
+  return data;
+}

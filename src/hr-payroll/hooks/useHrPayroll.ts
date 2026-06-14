@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../lib/constants";
-import type { PayrollLineRow, PayrollCycleRow } from "../lib/types";
+import type { PayrollCycleRow, PayrollLineRow, PayrollPreviewRow } from "../lib/types";
 
 export function useHrPayrollLines(cycleId: string | undefined) {
   return useQuery({
@@ -32,6 +32,22 @@ export function useHrPayrollLine(employeeId: string | undefined, cycleId: string
         .maybeSingle();
       if (error) throw error;
       return data as PayrollLineRow | null;
+    },
+  });
+}
+
+export function useHrPayrollPreview(cycleId: string | undefined) {
+  return useQuery({
+    queryKey: ["hr-payroll-preview", HR_ORG_ID, cycleId],
+    enabled: !!cycleId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("v_payroll_preview" as never)
+        .select("*")
+        .eq("org_id", HR_ORG_ID)
+        .eq("cycle_id", cycleId!);
+      if (error) throw error;
+      return (data ?? []) as PayrollPreviewRow[];
     },
   });
 }
