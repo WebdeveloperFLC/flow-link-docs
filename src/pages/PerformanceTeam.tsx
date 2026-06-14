@@ -94,8 +94,8 @@ export default function PerformanceTeam() {
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <Users className="size-5" /> Team members
             </h2>
-            <Link to="/incentives/give-discount" className="text-sm text-primary hover:underline">
-              Approvals → Give discount queue (5C)
+            <Link to="/performance/admin/approvals" className="text-sm text-primary hover:underline">
+              Discount approvals queue
             </Link>
           </div>
           {loading ? (
