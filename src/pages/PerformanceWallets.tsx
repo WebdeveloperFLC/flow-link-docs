@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
@@ -11,9 +12,14 @@ import { PerformanceWalletTable } from "@/components/performance/PerformanceWall
 import { PerformanceWalletTypeBreakdown } from "@/components/performance/PerformanceWalletTypeBreakdown";
 import { usePerformanceWalletsList } from "@/hooks/usePerformanceWalletsList";
 import { PerformanceMobileQuickBar } from "@/components/performance/PerformanceMobileQuickBar";
+import {
+  PerformanceNewWalletDialog,
+  PerformanceWalletDetailDialog,
+} from "@/components/performance/PerformanceWalletDialogs";
+import type { WalletListRow } from "@/incentives/lib/walletListLogic";
 import { PERFORMANCE_MOBILE_DESKTOP_ONLY, PERFORMANCE_MOBILE_PAGE } from "@/lib/performanceMobileLayout";
 import { cn } from "@/lib/utils";
-import { ArrowRight, Settings2, Wallet } from "lucide-react";
+import { ArrowRight, Plus, Settings2, Wallet } from "lucide-react";
 
 export default function PerformanceWallets() {
   const { user, isAdmin, hasRole } = useAuth();
@@ -27,6 +33,14 @@ export default function PerformanceWallets() {
   });
 
   const sample = rows[0];
+  const [selectedWallet, setSelectedWallet] = useState<WalletListRow | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [newWalletOpen, setNewWalletOpen] = useState(false);
+
+  function openWalletDetail(row: WalletListRow) {
+    setSelectedWallet(row);
+    setDetailOpen(true);
+  }
 
   return (
     <AppLayout>
@@ -39,6 +53,14 @@ export default function PerformanceWallets() {
           primaryAction={{ label: "Give discount", to: "/performance/give-discount" }}
         />
 
+        {isAdmin && (
+          <div className="flex justify-end">
+            <Button size="sm" className="gap-1" onClick={() => setNewWalletOpen(true)}>
+              <Plus className="size-4" /> New wallet
+            </Button>
+          </div>
+        )}
+
         <PerformancePeriodBar compact className="md:hidden" />
         <PerformancePeriodBar className="hidden md:flex" />
 
@@ -50,7 +72,12 @@ export default function PerformanceWallets() {
           expiringSoon={summary.expiringSoon}
         />
 
-        <PerformanceWalletTable rows={rows} loading={loading} showCounselor={adminView} />
+        <PerformanceWalletTable
+          rows={rows}
+          loading={loading}
+          showCounselor={adminView}
+          onSelectWallet={openWalletDetail}
+        />
 
         <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-4", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
           <Card className="p-5 ph-surface-card">
@@ -114,6 +141,13 @@ export default function PerformanceWallets() {
         </div>
 
         <PerformanceMobileQuickBar />
+
+        <PerformanceWalletDetailDialog
+          row={selectedWallet}
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+        />
+        <PerformanceNewWalletDialog open={newWalletOpen} onOpenChange={setNewWalletOpen} />
       </div>
     </AppLayout>
   );

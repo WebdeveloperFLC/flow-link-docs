@@ -11,6 +11,7 @@ interface PerformanceWalletTableProps {
   rows: WalletListRow[];
   loading?: boolean;
   showCounselor?: boolean;
+  onSelectWallet?: (row: WalletListRow) => void;
 }
 
 function statusBadge(status: WalletListRow["status"]) {
@@ -23,7 +24,15 @@ function statusBadge(status: WalletListRow["status"]) {
   return <Badge className="ph-badge-cash border-0">Active</Badge>;
 }
 
-function WalletTableBody({ rows, showCounselor }: { rows: WalletListRow[]; showCounselor?: boolean }) {
+function WalletTableBody({
+  rows,
+  showCounselor,
+  onSelectWallet,
+}: {
+  rows: WalletListRow[];
+  showCounselor?: boolean;
+  onSelectWallet?: (row: WalletListRow) => void;
+}) {
   if (rows.length === 0) {
     return <p className="text-sm ph-muted py-8 text-center">No wallets in this view.</p>;
   }
@@ -78,13 +87,25 @@ function WalletTableBody({ rows, showCounselor }: { rows: WalletListRow[]; showC
               <td className="py-3 pr-3 text-xs">{row.expiryLabel ?? "—"}</td>
               <td className="py-3 pr-3">{statusBadge(row.status)}</td>
               <td className="py-3 pr-3 text-right">
-                <Link
-                  to={`/performance/give-discount?wallet=${row.id}`}
-                  className="text-xs font-medium hover:underline"
-                  style={{ color: "var(--blue)" }}
-                >
-                  Apply
-                </Link>
+                <div className="flex flex-col items-end gap-1">
+                  {onSelectWallet && (
+                    <button
+                      type="button"
+                      className="text-xs font-medium hover:underline"
+                      style={{ color: "var(--blue)" }}
+                      onClick={() => onSelectWallet(row)}
+                    >
+                      Detail
+                    </button>
+                  )}
+                  <Link
+                    to={`/performance/give-discount?wallet=${row.id}`}
+                    className="text-xs font-medium hover:underline"
+                    style={{ color: "var(--blue)" }}
+                  >
+                    Apply
+                  </Link>
+                </div>
               </td>
             </tr>
           ))}
@@ -94,7 +115,7 @@ function WalletTableBody({ rows, showCounselor }: { rows: WalletListRow[]; showC
   );
 }
 
-export function PerformanceWalletTable({ rows, loading, showCounselor }: PerformanceWalletTableProps) {
+export function PerformanceWalletTable({ rows, loading, showCounselor, onSelectWallet }: PerformanceWalletTableProps) {
   return (
     <Card className="p-5 ph-surface-card">
       <Tabs defaultValue="all">
@@ -113,20 +134,20 @@ export function PerformanceWalletTable({ rows, loading, showCounselor }: Perform
         ) : (
           <>
             <TabsContent value="all" className="mt-0">
-              <PerformanceWalletMobileList rows={rows} showCounselor={showCounselor} />
-              <WalletTableBody rows={rows} showCounselor={showCounselor} />
+              <PerformanceWalletMobileList rows={rows} showCounselor={showCounselor} onSelectWallet={onSelectWallet} />
+              <WalletTableBody rows={rows} showCounselor={showCounselor} onSelectWallet={onSelectWallet} />
             </TabsContent>
             <TabsContent value="active" className="mt-0">
-              <PerformanceWalletMobileList rows={filterWalletRows(rows, "active")} showCounselor={showCounselor} />
-              <WalletTableBody rows={filterWalletRows(rows, "active")} showCounselor={showCounselor} />
+              <PerformanceWalletMobileList rows={filterWalletRows(rows, "active")} showCounselor={showCounselor} onSelectWallet={onSelectWallet} />
+              <WalletTableBody rows={filterWalletRows(rows, "active")} showCounselor={showCounselor} onSelectWallet={onSelectWallet} />
             </TabsContent>
             <TabsContent value="closed" className="mt-0">
-              <PerformanceWalletMobileList rows={filterWalletRows(rows, "closed")} showCounselor={showCounselor} />
-              <WalletTableBody rows={filterWalletRows(rows, "closed")} showCounselor={showCounselor} />
+              <PerformanceWalletMobileList rows={filterWalletRows(rows, "closed")} showCounselor={showCounselor} onSelectWallet={onSelectWallet} />
+              <WalletTableBody rows={filterWalletRows(rows, "closed")} showCounselor={showCounselor} onSelectWallet={onSelectWallet} />
             </TabsContent>
             <TabsContent value="scheduled" className="mt-0">
-              <PerformanceWalletMobileList rows={filterWalletRows(rows, "scheduled")} showCounselor={showCounselor} />
-              <WalletTableBody rows={filterWalletRows(rows, "scheduled")} showCounselor={showCounselor} />
+              <PerformanceWalletMobileList rows={filterWalletRows(rows, "scheduled")} showCounselor={showCounselor} onSelectWallet={onSelectWallet} />
+              <WalletTableBody rows={filterWalletRows(rows, "scheduled")} showCounselor={showCounselor} onSelectWallet={onSelectWallet} />
             </TabsContent>
           </>
         )}

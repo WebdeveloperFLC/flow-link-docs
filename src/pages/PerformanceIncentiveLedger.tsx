@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
@@ -9,6 +10,7 @@ import { PerformanceExecutiveKpiStrip } from "@/components/performance/Performan
 import { PerformanceIncentiveLedgerTable } from "@/components/performance/PerformanceIncentiveLedgerTable";
 import { PerformanceIncentivePayoutConfigPanel } from "@/components/performance/PerformanceIncentivePayoutConfigPanel";
 import { PerformanceIncentiveLiabilityForecast } from "@/components/performance/PerformanceIncentiveLiabilityForecast";
+import { PerformanceRunPayoutDialog } from "@/components/performance/PerformanceRunPayoutDialog";
 import { useIncentiveLedgerCmsData } from "@/hooks/useIncentiveLedgerCmsData";
 import { formatInr } from "@/lib/performanceHubTheme";
 import { Banknote, Coins, Download } from "lucide-react";
@@ -17,6 +19,7 @@ export default function PerformanceIncentiveLedger() {
   const { isAdmin, loading: authLoading } = useAuth();
   const { period, branchId, branchLabel } = usePerformancePeriod();
   const { rows, kpis, forecast, payoutConfig, loading } = useIncentiveLedgerCmsData(period, branchId);
+  const [runPayoutOpen, setRunPayoutOpen] = useState(false);
 
   if (authLoading) return null;
   if (!isAdmin) return <Navigate to="/performance" replace />;
@@ -36,10 +39,8 @@ export default function PerformanceIncentiveLedger() {
                 <Download className="size-4" /> Export to payroll
               </Link>
             </Button>
-            <Button asChild size="sm" className="gap-1">
-              <Link to="/incentives/payouts">
-                <Coins className="size-4" /> Run payout cycle
-              </Link>
+            <Button size="sm" className="gap-1" onClick={() => setRunPayoutOpen(true)}>
+              <Coins className="size-4" /> Run payout cycle
             </Button>
           </div>
         </div>
@@ -111,6 +112,13 @@ export default function PerformanceIncentiveLedger() {
             </div>
           </div>
         </div>
+
+        <PerformanceRunPayoutDialog
+          open={runPayoutOpen}
+          onOpenChange={setRunPayoutOpen}
+          period={period}
+          config={payoutConfig}
+        />
       </div>
     </AppLayout>
   );
