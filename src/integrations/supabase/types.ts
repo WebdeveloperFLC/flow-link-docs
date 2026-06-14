@@ -10694,11 +10694,13 @@ export type Database = {
           active_from: string
           active_to: string | null
           branch_id: string | null
+          carry_below_threshold: boolean
           created_at: string
           created_by: string | null
           description: string | null
           id: string
           is_active: boolean
+          min_payout_threshold: number | null
           name: string
           period_type: Database["public"]["Enums"]["incentive_period_type"]
           plan_stack_role: string
@@ -10712,11 +10714,13 @@ export type Database = {
           active_from?: string
           active_to?: string | null
           branch_id?: string | null
+          carry_below_threshold?: boolean
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
           is_active?: boolean
+          min_payout_threshold?: number | null
           name: string
           period_type?: Database["public"]["Enums"]["incentive_period_type"]
           plan_stack_role?: string
@@ -10730,11 +10734,13 @@ export type Database = {
           active_from?: string
           active_to?: string | null
           branch_id?: string | null
+          carry_below_threshold?: boolean
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
           is_active?: boolean
+          min_payout_threshold?: number | null
           name?: string
           period_type?: Database["public"]["Enums"]["incentive_period_type"]
           plan_stack_role?: string

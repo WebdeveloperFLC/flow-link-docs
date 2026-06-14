@@ -12,7 +12,7 @@
 | Data | `incentive_line_items`, `incentive_payouts`, `incentive_adjustments`, `incentive_runs`, `incentive_plans` |
 | Operations link | Generate / export / approve remains at `/incentives/payouts` |
 
-**No migration.** §5.5 threshold columns (`min_payout_threshold`, `carry_below_threshold`) remain a follow-up.
+**No migration.** §5.5 threshold columns shipped in Phase 2P (`20260718120004`).
 
 ---
 

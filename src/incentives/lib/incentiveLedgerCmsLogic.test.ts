@@ -78,10 +78,11 @@ describe("incentiveLedgerCmsLogic", () => {
 
   it("summarizes payout cycle from active plans", () => {
     const cfg = buildPayoutCycleConfig([
-      { period_type: "monthly", is_active: true },
-      { period_type: "quarterly", is_active: true },
+      { name: "Counselor monthly", period_type: "monthly", is_active: true, min_payout_threshold: 50000, carry_below_threshold: true },
+      { name: "Quarterly bonus", period_type: "quarterly", is_active: true, min_payout_threshold: 100000, carry_below_threshold: true },
     ]);
     expect(cfg.periodTypes).toContain("Monthly");
-    expect(cfg.periodTypes).toContain("Quarterly");
+    expect(cfg.planThresholds).toHaveLength(2);
+    expect(cfg.minThreshold).toBeNull();
   });
 });

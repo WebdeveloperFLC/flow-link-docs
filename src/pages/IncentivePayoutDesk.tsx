@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Banknote, CheckCircle, Download } from "lucide-react";
 import { downloadCsv, payoutsToCsv } from "@/incentives/lib/incentiveFinanceExport";
+import { filterPayoutCandidates } from "@/incentives/lib/incentivePayoutThresholdLogic";
 
 interface PayoutRow {
   id: string;
@@ -66,11 +67,25 @@ export default function IncentivePayoutDesk() {
     try {
       const { data: run, error: runErr } = await supabase
         .from("incentive_runs")
-        .select("id, locked, settlement_currency, period_key")
+        .select("id, locked, settlement_currency, period_key, plan_id")
         .eq("id", runId.trim())
         .single();
       if (runErr || !run) throw new Error("Run not found");
       if (!run.locked) throw new Error("Lock the run before generating payouts");
+
+      let minThreshold: number | null = null;
+      let carryBelowThreshold = true;
+      if (run.plan_id) {
+        const { data: plan } = await supabase
+          .from("incentive_plans")
+          .select("min_payout_threshold, carry_below_threshold")
+          .eq("id", run.plan_id)
+          .maybeSingle();
+        if (plan) {
+          minThreshold = plan.min_payout_threshold != null ? Number(plan.min_payout_threshold) : null;
+          carryBelowThreshold = plan.carry_below_threshold !== false;
+        }
+      }
 
       const { data: items, error: liErr } = await supabase
         .from("incentive_line_items")
@@ -84,30 +99,41 @@ export default function IncentivePayoutDesk() {
       }
 
       const pct = Number(tdsPct) || 0;
-      const inserts = Object.entries(byCounselor)
+      const candidates = Object.entries(byCounselor)
         .filter(([, gross]) => gross > 0)
-        .map(([counselor_id, gross_amount]) => {
-          const tds = Math.round(gross_amount * (pct / 100) * 100) / 100;
-          return {
-            run_id: run.id,
-            counselor_id,
-            gross_amount,
-            tds_amount: tds,
-            tds_percent: pct,
-            net_amount: Math.round((gross_amount - tds) * 100) / 100,
-            settlement_currency: run.settlement_currency ?? "INR",
-            status: "pending" as const,
-          };
-        });
+        .map(([counselor_id, gross_amount]) => ({ counselor_id, gross_amount }));
+
+      const { eligible, skipped } = filterPayoutCandidates(candidates, minThreshold, carryBelowThreshold);
+
+      const inserts = eligible.map(({ counselor_id, gross_amount }) => {
+        const tds = Math.round(gross_amount * (pct / 100) * 100) / 100;
+        return {
+          run_id: run.id,
+          counselor_id,
+          gross_amount,
+          tds_amount: tds,
+          tds_percent: pct,
+          net_amount: Math.round((gross_amount - tds) * 100) / 100,
+          settlement_currency: run.settlement_currency ?? "INR",
+          status: "pending" as const,
+        };
+      });
 
       if (!inserts.length) {
-        toast({ title: "No earnings on this run" });
+        const msg =
+          skipped.length > 0
+            ? `${skipped.length} counselor(s) below payout threshold — balance carries forward`
+            : "No earnings on this run";
+        toast({ title: msg });
         return;
       }
 
       const { error } = await supabase.from("incentive_payouts").insert(inserts);
       if (error) throw error;
-      toast({ title: `Generated ${inserts.length} payout row(s)` });
+      toast({
+        title: `Generated ${inserts.length} payout row(s)`,
+        description: skipped.length ? `${skipped.length} below threshold (carried forward)` : undefined,
+      });
       await load();
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
