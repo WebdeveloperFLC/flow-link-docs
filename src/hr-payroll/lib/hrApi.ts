@@ -72,3 +72,46 @@ export async function processApprovalDecision(
   if (error) throw error;
   return data;
 }
+
+export async function lockPayrollCycle(cycleId: string) {
+  const { data, error } = await supabase.rpc("fn_lock_payroll_cycle" as never, {
+    p_cycle: cycleId,
+  } as never);
+  if (error) throw error;
+  return data;
+}
+
+export async function reopenPayrollCycle(cycleId: string, reason?: string) {
+  const { data, error } = await supabase.rpc("fn_reopen_payroll_cycle" as never, {
+    p_cycle: cycleId,
+    p_reason: reason ?? null,
+  } as never);
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchPayrollRegisterExport(cycleId: string, branch?: string) {
+  const { data, error } = await supabase.rpc("fn_export_payroll_register" as never, {
+    p_cycle: cycleId,
+    p_branch: branch && branch !== "All" ? branch : null,
+  } as never);
+  if (error) throw error;
+  return (data ?? []) as import("./payrollExport").PayrollRegisterRow[];
+}
+
+export async function recordPunch(attendanceId: string, field: string) {
+  const { data, error } = await supabase.rpc("fn_record_punch" as never, {
+    p_attendance: attendanceId,
+    p_field: field,
+  } as never);
+  if (error) throw error;
+  return data;
+}
+
+export async function startAttendanceDay(employeeId: string) {
+  const { data, error } = await supabase.rpc("fn_start_attendance_day" as never, {
+    p_employee: employeeId,
+  } as never);
+  if (error) throw error;
+  return data;
+}

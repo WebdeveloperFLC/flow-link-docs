@@ -19,6 +19,7 @@ export function printSalarySlip(
     ["Gross Earned", inr(line.gross_earned)],
     ["Incentive", inr(line.incentive)],
     ["Bonus", inr(line.bonus)],
+    ...(line.ot_pay && line.ot_pay > 0 ? [["OT Pay", inr(line.ot_pay)]] as const : []),
     ["PF (Employee)", inr(line.pf_employee)],
     ["ESIC (Employee)", inr(line.esic_employee)],
     ["Net Salary", inr(line.net_salary)],

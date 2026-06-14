@@ -1,7 +1,7 @@
 # HR Payroll — Full UAT & Testing Guide
 
 **Audience:** QA / UAT team, DevOps, UAT lead  
-**Purpose:** Single checklist to set up staging, run all **42** HR Payroll test cases, log defects, and sign off — so engineering can proceed to production hardening.
+**Purpose:** Single checklist to set up staging, run all **50** HR Payroll test cases, log defects, and sign off — so engineering can proceed to production hardening.
 
 | Field | Value |
 |-------|-------|
@@ -21,7 +21,7 @@
 | File | Use |
 |------|-----|
 | **This guide** | `docs/guides/hr-payroll-uat-guide.md` — setup + workflow (in-app: **Guide → HR Payroll UAT**) |
-| Test case pack (42 cases) | `docs/hr-payroll/HR_PAYROLL_UAT.md` |
+| Test case pack (50 cases) | `docs/hr-payroll/HR_PAYROLL_UAT.md` |
 | Tester quick reference | `docs/hr-payroll/HR_PAYROLL_TESTER_QUICKSTART.md` |
 | Defect log | `docs/hr-payroll/HR_PAYROLL_DEFECT_TRACKER.csv` |
 | Sign-off form | `docs/hr-payroll/HR_PAYROLL_UAT_SIGNOFF.md` |
@@ -70,6 +70,10 @@ Run in Supabase **SQL Editor** or Lovable **Database → Migrations**.
 | 8 | `20260717120008_hr_payroll_demo_rls_bootstrap.sql` | Demo org read bootstrap |
 | 9 | `20260717120009_hr_payroll_crm_team_integration.sql` | CRM Team & Roles RPCs |
 | 10 | `20260717120010_hr_payroll_storage.sql` | `hr-docs` bucket (document upload) |
+| 11 | `20260717120011_hr_payroll_leave_workflow.sql` | Leave balance, accrual, sandwich, RBAC reset |
+| 12 | `20260717120012_hr_payroll_policy_engine_approvals.sql` | Policy engine, approval chains, preview view |
+| 13 | `20260717120013_hr_payroll_lock_export_punch.sql` | Lock snapshot, export RPC, punch guards |
+| 14 | `20260717120014_hr_payroll_overtime_pay.sql` | OT roll-up + paid/display policy (v1.1) |
 
 **Verify migrations:**
 
@@ -80,7 +84,10 @@ WHERE schemaname = 'public'
 ORDER BY 1;
 
 SELECT proname FROM pg_proc
-WHERE proname IN ('fn_compute_payroll', 'fn_build_payroll_line', 'fn_list_crm_staff');
+WHERE proname IN (
+  'fn_compute_payroll', 'fn_build_payroll_line', 'fn_list_crm_staff',
+  'fn_process_approval_decision', 'fn_export_payroll_register', 'fn_record_punch'
+);
 
 SELECT id FROM storage.buckets WHERE id = 'hr-docs';
 ```
@@ -209,12 +216,16 @@ WHERE org_id = '00000000-0000-0000-0000-0000000000f1' AND status = 'Pending';
 | 6 | HR Manager | **`/hr/roles`** → Team & CRM — CRM staff list loads | ☐ |
 | 7 | HR Manager | **`/hr/me`** — ESS portal renders employee selector | ☐ |
 | 8 | HR Manager | **`/hr/calculator`** — live RPC returns net for sample inputs | ☐ |
+| 9 | HR Manager | Lock payroll → attendance edit blocked for cycle dates | ☐ |
+| 10 | HR Manager | Export **PDF Register** + **All Slips PDF** from Verify | ☐ |
+| 11 | HR Manager | Leave approve shows **Manager · HR** stage trail | ☐ |
+| 12 | HR Manager | Config → **Overtime** tab shows mode (display/paid) | ☐ |
 
 If any item fails, fix setup (Phases 1–3) before Phase 5.
 
 ---
 
-## Phase 5 — Execute UAT (42 test cases)
+## Phase 5 — Execute UAT (50 test cases)
 
 **Owner:** UAT testers  
 **Primary document:** `docs/hr-payroll/HR_PAYROLL_UAT.md`
@@ -236,9 +247,10 @@ If any item fails, fix setup (Phases 1–3) before Phase 5.
 | C — Employee & CRM team | 5 | Master, import, link, components |
 | D — Attendance & punch | 8 | ESS punch, derive status, edit |
 | E — Workflows | 6 | Leave, comp-off, late, mispunch, training |
-| F — Payroll & lock | 9 | Register, TV02, override, lock, export |
+| F — Payroll & lock | 12 | Register, TV02, override, lock, export, PDF |
 | G — Statutory & engine | 4 | PF/ESIC, calculator parity |
-| **Total** | **42** | |
+| H — OT, lock polish & v1.1 | 8 | OT policy, PDF batch, freeze, reopen audit |
+| **Total** | **50** | |
 
 ### 5.3 Suggested execution order
 
@@ -249,6 +261,7 @@ If any item fails, fix setup (Phases 1–3) before Phase 5.
 5. Section **E** — approval workflows
 6. Section **F** — payroll verification (includes **TV02**)
 7. Section **G** — statutory + engine
+8. Section **H** — OT policy, PDF exports, lock polish
 
 ### 5.4 Log defects
 
@@ -278,7 +291,7 @@ Re-run migrations **03** then **07** on staging (idempotent for enrich). Re-run 
 | Criterion | Done? |
 |-----------|-------|
 | Phases 1–4 documented on sign-off form | ☐ |
-| All **42** cases marked Pass, Fail, Blocked, or N/R | ☐ |
+| All **50** cases marked Pass, Fail, Blocked, or N/R | ☐ |
 | Every **Fail** has a defect tracker row | ☐ |
 | No open **Blocker** or **Critical** defects (or documented waiver) | ☐ |
 | **TV02 anchor** (Isha 29.5 / ₹39,500) verified Pass | ☐ |
@@ -306,15 +319,14 @@ Re-run migrations **03** then **07** on staging (idempotent for enrich). Re-run 
 
 ---
 
-## Appendix B — Known limitations (v1)
+## Appendix B — Known limitations (post v1.1)
 
 Log as Minor unless case explicitly requires the feature.
 
-- **Photo upload:** avatar uses initials until photo storage wired (documents bucket covers files).
 - **Employer PF/ESIC:** employee deductions only; employer ledger out of scope v1.
-- **Sandwich auto-calc:** manual flag on leave rows; full auto-detection is v1.1.
 - **Biometric import:** CSV/manual/biometric path via `/hr/import`; no live device feed in v1.
 - **Performance Hub incentives:** `fn_pull_incentives` requires `incentive_payouts` table; returns 0 if absent.
+- **OT comp-off-only mode:** v1.1 supports `display` and `paid`; comp-off credit for OT is future scope.
 
 ---
 
