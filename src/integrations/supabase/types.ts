@@ -7922,20 +7922,29 @@ export type Database = {
       }
       companies: {
         Row: {
+          country: string
           created_at: string
+          currency: string
           id: string
+          legal_name: string | null
           name: string
           org_id: string
         }
         Insert: {
+          country?: string
           created_at?: string
+          currency?: string
           id?: string
+          legal_name?: string | null
           name: string
           org_id: string
         }
         Update: {
+          country?: string
           created_at?: string
+          currency?: string
           id?: string
+          legal_name?: string | null
           name?: string
           org_id?: string
         }
@@ -9583,11 +9592,14 @@ export type Database = {
           employment_type: Database["public"]["Enums"]["employment_type"]
           esic_applicable: boolean
           esic_number: string | null
+          first_name: string | null
           full_name: string
           gender: string | null
+          has_pf_account: boolean
           hra: number
           id: string
           incentive: number
+          last_name: string | null
           mobile: string | null
           monthly_gross: number
           notice_period: string | null
@@ -9595,6 +9607,7 @@ export type Database = {
           pf_applicable: boolean
           pf_number: string | null
           photo_url: string | null
+          pt_applicable: boolean
           reporting_mgr_id: string | null
           shift_id: string | null
           special_allow: number
@@ -9631,11 +9644,14 @@ export type Database = {
           employment_type?: Database["public"]["Enums"]["employment_type"]
           esic_applicable?: boolean
           esic_number?: string | null
+          first_name?: string | null
           full_name: string
           gender?: string | null
+          has_pf_account?: boolean
           hra?: number
           id?: string
           incentive?: number
+          last_name?: string | null
           mobile?: string | null
           monthly_gross?: number
           notice_period?: string | null
@@ -9643,6 +9659,7 @@ export type Database = {
           pf_applicable?: boolean
           pf_number?: string | null
           photo_url?: string | null
+          pt_applicable?: boolean
           reporting_mgr_id?: string | null
           shift_id?: string | null
           special_allow?: number
@@ -9679,11 +9696,14 @@ export type Database = {
           employment_type?: Database["public"]["Enums"]["employment_type"]
           esic_applicable?: boolean
           esic_number?: string | null
+          first_name?: string | null
           full_name?: string
           gender?: string | null
+          has_pf_account?: boolean
           hra?: number
           id?: string
           incentive?: number
+          last_name?: string | null
           mobile?: string | null
           monthly_gross?: number
           notice_period?: string | null
@@ -9691,6 +9711,7 @@ export type Database = {
           pf_applicable?: boolean
           pf_number?: string | null
           photo_url?: string | null
+          pt_applicable?: boolean
           reporting_mgr_id?: string | null
           shift_id?: string | null
           special_allow?: number
@@ -10069,6 +10090,7 @@ export type Database = {
       }
       holidays: {
         Row: {
+          applicable_tags: Json
           branch_id: string | null
           created_at: string
           holiday_date: string
@@ -10078,6 +10100,7 @@ export type Database = {
           type: Database["public"]["Enums"]["holiday_type"]
         }
         Insert: {
+          applicable_tags?: Json
           branch_id?: string | null
           created_at?: string
           holiday_date: string
@@ -10087,6 +10110,7 @@ export type Database = {
           type?: Database["public"]["Enums"]["holiday_type"]
         }
         Update: {
+          applicable_tags?: Json
           branch_id?: string | null
           created_at?: string
           holiday_date?: string
@@ -13593,6 +13617,7 @@ export type Database = {
           payable_days: number
           payroll_days: number
           pf_employee: number
+          pt_employee: number
           sandwich_count: number
           ul_count: number
           unpaid_training: number
@@ -13627,6 +13652,7 @@ export type Database = {
           payable_days: number
           payroll_days: number
           pf_employee?: number
+          pt_employee?: number
           sandwich_count?: number
           ul_count?: number
           unpaid_training?: number
@@ -13661,6 +13687,7 @@ export type Database = {
           payable_days?: number
           payroll_days?: number
           pf_employee?: number
+          pt_employee?: number
           sandwich_count?: number
           ul_count?: number
           unpaid_training?: number
@@ -15464,6 +15491,7 @@ export type Database = {
           ot_eligible: boolean
           type: Database["public"]["Enums"]["shift_type"]
           work_hours: number
+          working_days_per_week: number
         }
         Insert: {
           break_min?: number
@@ -15478,6 +15506,7 @@ export type Database = {
           ot_eligible?: boolean
           type?: Database["public"]["Enums"]["shift_type"]
           work_hours?: number
+          working_days_per_week?: number
         }
         Update: {
           break_min?: number
@@ -15492,6 +15521,7 @@ export type Database = {
           ot_eligible?: boolean
           type?: Database["public"]["Enums"]["shift_type"]
           work_hours?: number
+          working_days_per_week?: number
         }
         Relationships: []
       }
@@ -20625,6 +20655,7 @@ export type Database = {
           payable_days: number
           payroll_days: number
           pf_employee: number
+          pt_employee: number
           sandwich_count: number
           ul_count: number
           unpaid_training: number
@@ -20682,6 +20713,7 @@ export type Database = {
           payable_days: number
           payroll_days: number
           pf_employee: number
+          pt_employee: number
           sandwich_count: number
           ul_count: number
           unpaid_training: number
@@ -20705,6 +20737,7 @@ export type Database = {
         }
         Returns: number
       }
+      fn_calendar_days_in_month: { Args: { p_date?: string }; Returns: number }
       fn_can_admin_incentive_runs: {
         Args: { _user_id?: string }
         Returns: boolean
@@ -20773,6 +20806,7 @@ export type Database = {
           payable_days: number
           payroll_days: number
           pf_employee: number
+          pt_employee: number
           sandwich_count: number
           ul_count: number
           unpaid_training: number
@@ -20861,6 +20895,31 @@ export type Database = {
               p_paid_leaves?: number
               p_payroll_days: number
               p_pf_applicable?: boolean
+              p_sandwich?: number
+              p_ul?: number
+              p_ul_mult?: number
+              p_unpaid_training?: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_basic: number
+              p_bonus?: number
+              p_compoff?: number
+              p_esic_applicable?: boolean
+              p_incentive?: number
+              p_late?: number
+              p_late_policy?: Json
+              p_leaves?: number
+              p_mispunch?: number
+              p_mispunch_policy?: Json
+              p_monthly: number
+              p_paid_leaves?: number
+              p_payroll_days: number
+              p_pf_applicable?: boolean
+              p_pt_amount?: number
+              p_pt_applicable?: boolean
               p_sandwich?: number
               p_ul?: number
               p_ul_mult?: number
@@ -21081,11 +21140,14 @@ export type Database = {
           employment_type: Database["public"]["Enums"]["employment_type"]
           esic_applicable: boolean
           esic_number: string | null
+          first_name: string | null
           full_name: string
           gender: string | null
+          has_pf_account: boolean
           hra: number
           id: string
           incentive: number
+          last_name: string | null
           mobile: string | null
           monthly_gross: number
           notice_period: string | null
@@ -21093,6 +21155,7 @@ export type Database = {
           pf_applicable: boolean
           pf_number: string | null
           photo_url: string | null
+          pt_applicable: boolean
           reporting_mgr_id: string | null
           shift_id: string | null
           special_allow: number
