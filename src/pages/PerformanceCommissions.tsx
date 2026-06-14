@@ -10,7 +10,7 @@ import { PerformanceCommissionLedgerTable } from "@/components/performance/Perfo
 import { useCommissionTrackingCmsData } from "@/hooks/useCommissionTrackingCmsData";
 import { formatCommissionLakh } from "@/incentives/lib/commissionTrackingCmsLogic";
 import { formatInr } from "@/lib/performanceHubTheme";
-import { Download, Percent } from "lucide-react";
+import { Download, Receipt } from "lucide-react";
 
 export default function PerformanceCommissions() {
   const { isAdmin, hasRole, loading: authLoading } = useAuth();
@@ -84,7 +84,7 @@ export default function PerformanceCommissions() {
         <PerformanceCommissionLedgerTable rows={rows} loading={loading} />
 
         <div className="rounded-lg border ph-surface-card p-4 flex gap-3 text-sm">
-          <Percent className="size-5 shrink-0 mt-0.5" style={{ color: "var(--blue)" }} />
+          <Receipt className="size-5 shrink-0 mt-0.5" style={{ color: "var(--blue)" }} />
           <div>
             <div className="font-semibold ph-heading">Institution commission module</div>
             <div className="ph-muted text-xs mt-1">

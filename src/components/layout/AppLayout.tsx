@@ -65,7 +65,6 @@ import {
   Combine,
   Coins,
   Plug,
-  Percent,
 } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -176,7 +175,7 @@ const performanceNav: NavItem[] = [
   },
   {
     to: "/performance/commissions",
-    icon: Percent,
+    icon: Receipt,
     label: "Commissions",
     roles: ["admin", "administrator", "viewer", "director", "manager"],
   },
