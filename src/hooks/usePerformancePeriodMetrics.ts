@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { currentPeriodKey } from "@/lib/performanceHubTheme";
+import { isPersonalWalletBudgetKind } from "@/incentives/lib/walletKpiFilter";
 
 export interface PerformancePeriodMetrics {
   loading: boolean;
@@ -88,9 +89,7 @@ export function usePerformancePeriodMetrics(
         potential_wallet?: number;
         budget_kind?: string;
       }[]).filter(
-        (w) =>
-          inSet(w.counselor_id, counselorFilter) &&
-          (w.budget_kind === "month_to_month" || w.budget_kind === "personal"),
+        (w) => inSet(w.counselor_id, counselorFilter) && isPersonalWalletBudgetKind(w.budget_kind),
       );
 
       const walletUnlocked = wallets.reduce((s, w) => s + Number(w.unlocked_amount ?? 0), 0);

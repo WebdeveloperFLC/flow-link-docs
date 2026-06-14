@@ -707,7 +707,7 @@ export function DashboardV2() {
                         value={moduleData.revenue.activeOffers}
                         icon={Sparkles}
                         tone="ai"
-                        to="/offers-admin"
+                        to="/performance/offers/library"
                       />
                     </div>
                   )}

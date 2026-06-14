@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:rules": "vitest run qa/rules",
+    "test:regression": "vitest run qa/regression",
     "test:e2e": "playwright test",
     "ship": "bash scripts/ship.sh"
   },

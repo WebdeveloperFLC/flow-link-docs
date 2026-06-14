@@ -81,5 +81,6 @@ export function performanceHubTokenVar(key: PerformanceHubTokenKey): string {
 }
 
 export function isPerformanceHubPath(pathname: string): boolean {
-  return pathname === "/performance" || pathname.startsWith("/performance/");
+  if (pathname === "/performance" || pathname.startsWith("/performance/")) return true;
+  return pathname === "/incentives" || pathname.startsWith("/incentives/");
 }
