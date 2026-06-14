@@ -14,9 +14,11 @@ function statusBadge(status: WalletListRow["status"]) {
 export function PerformanceWalletMobileList({
   rows,
   showCounselor,
+  onSelectWallet,
 }: {
   rows: WalletListRow[];
   showCounselor?: boolean;
+  onSelectWallet?: (row: WalletListRow) => void;
 }) {
   if (rows.length === 0) {
     return <p className="text-sm ph-muted py-6 text-center">No wallets in this view.</p>;
@@ -52,13 +54,25 @@ export function PerformanceWalletMobileList({
             </div>
             <div className="mt-3 flex items-center justify-between text-xs">
               <span className="ph-muted">{row.expiryLabel ?? "No expiry"}</span>
-              <Link
-                to={`/performance/give-discount?wallet=${row.id}`}
-                className="font-medium hover:underline"
-                style={{ color: "var(--blue)" }}
-              >
-                Apply →
-              </Link>
+              <div className="flex items-center gap-3">
+                {onSelectWallet && (
+                  <button
+                    type="button"
+                    className="font-medium hover:underline"
+                    style={{ color: "var(--blue)" }}
+                    onClick={() => onSelectWallet(row)}
+                  >
+                    Detail
+                  </button>
+                )}
+                <Link
+                  to={`/performance/give-discount?wallet=${row.id}`}
+                  className="font-medium hover:underline"
+                  style={{ color: "var(--blue)" }}
+                >
+                  Apply →
+                </Link>
+              </div>
             </div>
           </Card>
         </li>

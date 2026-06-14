@@ -12,6 +12,7 @@ import { PerformanceOfferCodesTable } from "@/components/performance/Performance
 import { PerformanceOfferCodeConstraintsPanel } from "@/components/performance/PerformanceOfferCodeConstraintsPanel";
 import { PerformanceOfferCodeRedemptionPanel } from "@/components/performance/PerformanceOfferCodeRedemptionPanel";
 import { PerformanceOfferCodesGeneratePanel } from "@/components/performance/PerformanceOfferCodesGeneratePanel";
+import { PerformanceNewOfferCodeDialog } from "@/components/performance/PerformanceNewOfferCodeDialog";
 import {
   buildOfferCodeRows,
   filterOfferCodeRows,
@@ -53,6 +54,7 @@ export default function PerformanceOffersCodes() {
   const [selectedOfferId, setSelectedOfferId] = useState("");
   const [selectedCounselorId, setSelectedCounselorId] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [codeDialogOpen, setCodeDialogOpen] = useState(false);
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -163,12 +165,18 @@ export default function PerformanceOffersCodes() {
 
         <div className="flex flex-wrap items-center justify-end gap-2">
           {canEditOffers && (
-            <Button asChild>
-              <Link to="/performance/offers/library">
+            <>
+              <Button variant="outline" onClick={() => setCodeDialogOpen(true)}>
                 <Plus className="size-4 mr-1" />
-                Edit offer promo codes
-              </Link>
-            </Button>
+                New code
+              </Button>
+              <Button asChild>
+                <Link to="/performance/offers/library">
+                  <Plus className="size-4 mr-1" />
+                  Edit offer promo codes
+                </Link>
+              </Button>
+            </>
           )}
         </div>
 
@@ -216,6 +224,19 @@ export default function PerformanceOffersCodes() {
           <PerformanceOfferCodeConstraintsPanel />
           <PerformanceOfferCodeRedemptionPanel rows={allRows} loading={busy} />
         </div>
+
+        <PerformanceNewOfferCodeDialog
+          open={codeDialogOpen}
+          onOpenChange={setCodeDialogOpen}
+          offers={offers.map((o) => ({ id: o.id, title: o.title, promo_code: o.promo_code }))}
+          counselors={counselors}
+          selectedOfferId={selectedOfferId}
+          selectedCounselorId={selectedCounselorId}
+          generating={generating}
+          onOfferChange={setSelectedOfferId}
+          onCounselorChange={setSelectedCounselorId}
+          onGenerate={generate}
+        />
       </div>
     </AppLayout>
   );
