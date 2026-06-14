@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees, useHrReferenceData } from "../hooks/useHrEmployees";
-import { inr, initials } from "../lib/format";
+import { formatMoney, employeeCurrency, initials } from "../lib/format";
 import type { EmployeeRow } from "../lib/types";
 import { EmployeeFormModal } from "../components/employees/EmployeeFormModal";
 import { EmployeeDetailModal } from "../components/employees/EmployeeDetailModal";
@@ -119,7 +119,7 @@ export default function HrEmployeesPage() {
                   <td>{e.designation}</td>
                   <td>{e.branches?.name}</td>
                   <td style={{ fontSize: 12 }}>{e.employment_type}</td>
-                  <td className="mono">{inr(e.monthly_gross)}</td>
+                  <td className="mono">{formatMoney(e.monthly_gross, employeeCurrency(e))}</td>
                   <td>
                     {e.bank_account_number ? (
                       e.bank_verified ? (
