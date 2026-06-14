@@ -819,4 +819,41 @@
 
 ---
 
-*End of HR Payroll UAT pack — 58 cases (50 v1 + 8 Phase 2).*
+## Section J — Phase 2C (migration 22)
+
+### HR-UAT-P2C-001 — CRM role sync
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-P2C-001 |
+| **Preconditions** | Migration 22 applied; View-as **Admin** on `/hr/roles`. |
+| **Steps** | 1. Open **Team & CRM** tab.<br>2. Click **Sync from CRM**.<br>3. Confirm toast shows staff count.<br>4. SQL: `SELECT count(*) FROM hr_crm_role_map WHERE org_id = '00000000-0000-0000-0000-0000000000f1';` → ≥8 rows. |
+| **Expected Result** | Sync succeeds; CRM app roles mapped to HR roles without error. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-P2C-002 — Process snapshot captured
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-P2C-002 |
+| **Preconditions** | Cycle **Draft**; P2-003 not yet run on this cycle (or reopen first). |
+| **Steps** | 1. `/hr/payroll` → **1. Process**.<br>2. SQL: `SELECT snapshot_stage, count(*) FROM payroll_cycle_snapshots pcs JOIN payroll_line_snapshots pls ON pls.cycle_id = pcs.cycle_id WHERE pcs.snapshot_stage = 'processed' GROUP BY 1;` |
+| **Expected Result** | `payroll_cycle_snapshots` row with stage **processed**; line snapshots ≥5 employees; policies_json non-empty. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-P2C-003 — Canada bracket tax config
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-P2C-003 |
+| **Preconditions** | View-as HR Manager with Configure; migration 22 applied. |
+| **Steps** | 1. `/hr/config` → **Canada Deductions**.<br>2. Set tax mode **brackets**; save default bracket JSON.<br>3. Enable TDS on FL-CA01; rebuild payroll line.<br>4. Confirm tax column > 0 when brackets mode active. |
+| **Expected Result** | Bracket policy saves; Canada employee tax uses progressive calc when TDS on. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+---
+
+*End of HR Payroll UAT pack — 61 cases (50 v1 + 8 Phase 2 + 3 Phase 2C).*

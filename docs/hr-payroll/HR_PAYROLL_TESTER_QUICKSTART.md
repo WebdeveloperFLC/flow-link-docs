@@ -2,7 +2,7 @@
 
 **Audience:** Non-technical UAT testers  
 **Team setup & full workflow:** [`../guides/hr-payroll-uat-guide.md`](../guides/hr-payroll-uat-guide.md) — **Guide → HR Payroll UAT** (`/guides/hr-payroll-uat`)  
-**Full test pack:** [`HR_PAYROLL_UAT.md`](./HR_PAYROLL_UAT.md) (58 cases — Sections A–I)  
+**Full test pack:** [`HR_PAYROLL_UAT.md`](./HR_PAYROLL_UAT.md) (61 cases — Sections A–J)  
 **Sign-off form:** [`HR_PAYROLL_UAT_SIGNOFF.md`](./HR_PAYROLL_UAT_SIGNOFF.md)
 
 ---
@@ -96,7 +96,7 @@ Payroll cycle for all tests: **26 May – 25 Jun 2026**.
 
 ## 8. Sign-off
 
-When all **58** cases are done (including **Section I — Phase 2**), UAT lead completes **HR_PAYROLL_UAT_SIGNOFF.md**.
+When all **61** cases are done (including **Sections I–J**), UAT lead completes **HR_PAYROLL_UAT_SIGNOFF.md**.
 
 **Phase 2 priority cases:** HR-UAT-P2-003 (Process → Approve → Lock), HR-UAT-P2-007 (Canada FL-CA01), HR-UAT-P2-001 (profile fields).
 

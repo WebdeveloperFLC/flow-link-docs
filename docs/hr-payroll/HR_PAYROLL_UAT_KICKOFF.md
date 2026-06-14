@@ -37,11 +37,12 @@
 
 ---
 
-## Execution order (58 cases)
+## Execution order (61 cases)
 
 1. **HR-UAT-SETUP-001** → **HR-UAT-SHELL-001/002**
 2. Sections **A–H** (v1 pack)
 3. **Section I** — Phase 2 (P2-001 … P2-008)
+4. **Section J** — Phase 2C (P2C-001 … P2C-003) — after migration 22
 4. Sign-off: [`HR_PAYROLL_UAT_SIGNOFF.md`](./HR_PAYROLL_UAT_SIGNOFF.md)
 5. Defects: [`HR_PAYROLL_DEFECT_TRACKER.csv`](./HR_PAYROLL_DEFECT_TRACKER.csv)
 6. Progress: [`HR_PAYROLL_UAT_PROGRESS.csv`](./HR_PAYROLL_UAT_PROGRESS.csv) — mark Pass/Fail per case
@@ -70,6 +71,8 @@ Your staging roster is confirmed (8 employees, FL-1042 linked, FL-CA01 present).
 | 6 | HR-UAT-P2-007 | HR Manager | FL-CA01 CPP/EI, net **~CA$4,157** |
 | 7 | HR-UAT-ATT-001 | `adminsupport2@…` | ESS punch as Isha on `/hr/me` |
 | 8 | HR-UAT-P2-001 | HR Manager | Profile fields save (middle name, etc.) |
+| 9 | HR-UAT-P2C-001 | Admin | `/hr/roles` → **Sync from CRM** |
+| 10 | HR-UAT-P2C-002 | HR Manager | After Process → SQL `processed` snapshots exist |
 
 Mark each row in [`HR_PAYROLL_UAT_PROGRESS.csv`](./HR_PAYROLL_UAT_PROGRESS.csv).  
 If **#4** or **#6** fail, stop and send screenshot — do not continue payroll cases until TV02/Canada anchors pass.
