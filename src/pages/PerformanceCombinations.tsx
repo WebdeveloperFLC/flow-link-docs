@@ -108,7 +108,7 @@ export default function PerformanceCombinations() {
           <Link to="/performance/client-commercials" className="hover:underline" style={{ color: "var(--blue)" }}>
             Client commercials →
           </Link>
-          <Link to="/incentives/plans" className="hover:underline" style={{ color: "var(--blue)" }}>
+          <Link to="/performance/incentives/plans" className="hover:underline" style={{ color: "var(--blue)" }}>
             Incentive plans →
           </Link>
         </div>
