@@ -20,6 +20,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120018_hr_payroll_add_up_requirements.sql",
   "20260717120019_hr_payroll_lifecycle_salary_revision.sql",
   "20260717120020_hr_payroll_canada_engine.sql",
+  "20260717120021_hr_payroll_uat_isha_link.sql",
 ];
 
 const REQUIRED_RPCS = [
