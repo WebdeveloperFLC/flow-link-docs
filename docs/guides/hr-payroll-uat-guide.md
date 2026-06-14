@@ -40,7 +40,7 @@
 
 | Role | Responsibility |
 |------|----------------|
-| **DevOps / Engineering** | Apply migrations 00–21, publish Lovable build, run demo seed SQL, smoke checklist |
+| **DevOps / Engineering** | Apply migrations 00–22, publish Lovable build, run demo seed SQL, smoke checklist |
 | **Admin (existing staff)** | CRM roles via `/users`; HR module roles via `/hr/roles` → **Team & CRM** |
 | **UAT testers** | Execute `HR_PAYROLL_UAT.md` cases, screenshots, pass/fail |
 | **UAT lead** | Maintain defect tracker, triage severity, complete sign-off form |
@@ -84,6 +84,7 @@ Run in Supabase **SQL Editor** or Lovable **Database → Migrations**.
 | 19 | `20260717120019_hr_payroll_lifecycle_salary_revision.sql` | Process / Approve / Lock / Paid + salary revision history |
 | 20 | `20260717120020_hr_payroll_canada_engine.sql` | Canada CPP/EI engine + `payroll_line_snapshots` on lock |
 | 21 | `20260717120021_hr_payroll_uat_isha_link.sql` | Link Isha FL-1042 to free CRM admin (ESS UAT bootstrap) |
+| 22 | `20260717120022_hr_payroll_phase2c_rbac_snapshots.sql` | CRM RBAC sync, Canada brackets, process/lock snapshots |
 
 **Verify migrations:**
 
