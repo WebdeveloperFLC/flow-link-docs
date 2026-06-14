@@ -12,7 +12,7 @@
 
 ## Global preconditions
 
-- Migrations `20260717120000` through `20260717120014` applied; Lovable Publish complete.
+- Migrations `20260717120000` through `20260717120020` applied; Lovable Publish complete.
 - Demo seed (migrations 03 + 07) loaded.
 - HR module visible in sidebar (module permission or admin).
 - At least one user with **HR Manager** in `/hr/roles` → Team & CRM.
@@ -727,4 +727,96 @@
 
 ---
 
-*End of HR Payroll UAT pack — 50 cases.*
+## Section I — Phase 2 add-up (migrations 18–20)
+
+### HR-UAT-P2-001 — Employee profile fields
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-P2-001 |
+| **Preconditions** | View-as HR Manager; migration 18 applied. |
+| **Steps** | 1. `/hr/employees` → Edit any employee.<br>2. Set middle name, marital status, 2 emergency contacts, CAD currency if Canada branch.<br>3. Save and reopen detail modal. |
+| **Expected Result** | All fields persist; full name includes middle name; company shows legal name when set. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-P2-002 — Shift working days 1–7
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-P2-002 |
+| **Preconditions** | View-as HR Manager. |
+| **Steps** | 1. `/hr/shifts` → Edit Day Shift.<br>2. Set **Working Days / Week** to 5.<br>3. Assign employee to that shift; check employee shift tab. |
+| **Expected Result** | Shift card shows 5 days / 2 weekly off; employee form shows leave entitlement derived from shift (5-Day). |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-P2-003 — Payroll lifecycle Process → Approve → Lock
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-P2-003 |
+| **Preconditions** | Cycle status **Draft**; View-as HR Manager on `/hr/payroll`. |
+| **Steps** | 1. Click **1. Process** → status **Processed**.<br>2. Click **2. Approve** → status **Approved**.<br>3. Click **3. Lock** → status **Locked**; sidebar shows Locked. |
+| **Expected Result** | Each step succeeds; overrides disabled when locked; attendance frozen for cycle dates. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-P2-004 — Mark paid + reopen
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-P2-004 |
+| **Preconditions** | Cycle **Locked** from P2-003. |
+| **Steps** | 1. Click **Mark paid** → status **Paid**.<br>2. Reopen cycle with reason (if exposed) or SQL reopen RPC.<br>3. Confirm status returns **Draft**. |
+| **Expected Result** | Paid timestamp set; reopen restores Draft and allows edits. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-P2-005 — Leave rejection reason
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-P2-005 |
+| **Preconditions** | Pending leave request exists. |
+| **Steps** | 1. `/hr/leave` → Reject with reason "Insufficient balance".<br>2. View row as employee (View-as). |
+| **Expected Result** | Status Rejected; rejection reason visible on row. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-P2-006 — Document verification
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-P2-006 |
+| **Preconditions** | Employee with uploaded document. |
+| **Steps** | 1. Employee detail → Documents tab.<br>2. Click **Verify** on a document.<br>3. Upload second doc → **Reject** with remarks. |
+| **Expected Result** | Status badges Verified / Rejected; remarks shown. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-P2-007 — Canada payroll (FL-CA01)
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-P2-007 |
+| **Preconditions** | Employee **FL-CA01** exists (migration 20 seed); cycle Draft. |
+| **Steps** | 1. Filter register by **Canada** branch.<br>2. Rebuild line; confirm columns **CPP / EI / Tax+**.<br>3. Net ≈ gross − CPP − EI (CA$4,500 → ~CA$4,157 at default rates). |
+| **Expected Result** | Canada mapping correct; no PF/ESIC/PT for INR rules on CA employee. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+### HR-UAT-P2-008 — ESS attendance status
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-P2-008 |
+| **Preconditions** | ESS user linked to employee; shift assigned. |
+| **Steps** | 1. `/hr/ess` before punch → **Not checked in**.<br>2. Check in → **Available**.<br>3. Start break → **On break**.<br>4. Check out → **Checked out**. |
+| **Expected Result** | Status badge updates on each punch state. |
+| **Screenshot Required** | Yes |
+| **Pass / Fail** | ☐ Pass ☐ Fail |
+
+---
+
+*End of HR Payroll UAT pack — 58 cases (50 v1 + 8 Phase 2).*
