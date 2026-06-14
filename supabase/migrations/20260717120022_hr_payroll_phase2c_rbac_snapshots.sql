@@ -153,6 +153,21 @@ CREATE TABLE IF NOT EXISTS payroll_cycle_snapshots (
 
 CREATE INDEX IF NOT EXISTS idx_payroll_cycle_snapshots_cycle ON payroll_cycle_snapshots (cycle_id);
 
+-- Bootstrap line snapshots if migration 20 was skipped or failed mid-run
+CREATE TABLE IF NOT EXISTS payroll_line_snapshots (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id          uuid NOT NULL,
+  cycle_id        uuid NOT NULL REFERENCES payroll_cycles(id) ON DELETE CASCADE,
+  employee_id     uuid NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+  line_json       jsonb NOT NULL DEFAULT '{}'::jsonb,
+  input_snapshot  jsonb,
+  locked_at       timestamptz NOT NULL DEFAULT now(),
+  snapshot_stage  text NOT NULL DEFAULT 'locked',
+  detail_json     jsonb
+);
+
+CREATE INDEX IF NOT EXISTS idx_payroll_snapshots_cycle ON payroll_line_snapshots (cycle_id);
+
 ALTER TABLE payroll_line_snapshots
   ADD COLUMN IF NOT EXISTS snapshot_stage text NOT NULL DEFAULT 'locked';
 
@@ -505,6 +520,7 @@ WHERE org_id = '00000000-0000-0000-0000-0000000000f1'::uuid
 
 GRANT SELECT ON hr_crm_role_map TO authenticated;
 GRANT SELECT ON payroll_cycle_snapshots TO authenticated;
+GRANT SELECT ON payroll_line_snapshots TO authenticated;
 
 DO $$
 DECLARE r record;
