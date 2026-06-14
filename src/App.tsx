@@ -191,6 +191,7 @@ import PerformanceAuditTrail from "@/pages/PerformanceAuditTrail";
 import PerformanceReportBuilder from "@/pages/PerformanceReportBuilder";
 import PerformanceRolesPermissions from "@/pages/PerformanceRolesPermissions";
 import PerformanceConfiguration from "@/pages/PerformanceConfiguration";
+import PerformanceArchitecture from "@/pages/PerformanceArchitecture";
 import PerformancePromotionRequests from "@/pages/PerformancePromotionRequests";
 import PerformanceOffersStudio from "@/pages/PerformanceOffersStudio";
 import PerformanceOffersLibrary from "@/pages/PerformanceOffersLibrary";
@@ -581,6 +582,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceFinance />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/architecture"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceArchitecture />
                       </ProtectedRoute>
                     }
                   />
