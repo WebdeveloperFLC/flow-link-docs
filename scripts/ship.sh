@@ -195,6 +195,26 @@ else
   git add "${FILES[@]}"
 fi
 
+# Gate: catch missing imports / ReferenceError in Performance Hub before push
+if [[ "${SHIP_SKIP_TESTS:-0}" != "1" ]]; then
+  RUN_PH020=0
+  if [[ "$ADD_ALL" == "1" ]]; then
+    RUN_PH020=1
+  else
+    for f in "${FILES[@]}"; do
+      if [[ "$f" == src/components/performance/* || "$f" == src/pages/Performance* ]]; then
+        RUN_PH020=1
+        break
+      fi
+    done
+  fi
+  if [[ "$RUN_PH020" == "1" ]]; then
+    echo "→ Running PH-R-020 performance hub import smoke test…"
+    npm run test:regression -- qa/regression/PH-R-020-performance-hub-imports.test.ts
+    echo "✓ PH-R-020 passed."
+  fi
+fi
+
 COMMITTED=0
 if git diff --cached --quiet; then
   echo "✓ Nothing new to commit (these files are already on GitHub)."
