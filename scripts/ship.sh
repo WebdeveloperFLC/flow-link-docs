@@ -97,6 +97,44 @@ Performance Hub migrations (Lovable Publish — approve ALL that still show as p
 EOF
 }
 
+print_cms_migration_checklist() {
+  cat <<'EOF'
+
+CMS additive migrations (Lovable Publish — approve ALL that still show as pending):
+  [ ] 20260718120004_incentive_cms_phase2p_payout_threshold.sql  — plan min_payout_threshold + carry
+  [ ] 20260718120000_incentive_cms_phase3a_combination_engine.sql  — service_combinations + resolve RPC
+  [ ] 20260718120001_incentive_cms_phase3b_offer_eligibility.sql  — offer_eligibility_rules
+  [ ] 20260718120002_incentive_cms_phase3c_commercial_profitability.sql  — fn_commercial_profitability
+  [ ] 20260718120003_incentive_cms_phase3d_autoapply_policy.sql  — commercial_autoapply_policy
+
+EOF
+}
+
+print_hr_payroll_migration_checklist() {
+  cat <<'EOF'
+
+HR Payroll migrations (Lovable Publish — approve ALL in order if pending):
+  [ ] 20260717120000_hr_payroll_schema.sql
+  [ ] 20260717120001_hr_payroll_rls.sql
+  [ ] 20260717120002_hr_payroll_functions.sql
+  [ ] 20260717120003_hr_payroll_seed_demo.sql
+  [ ] 20260717120005_hr_payroll_workflows.sql
+  [ ] 20260717120006_hr_payroll_integrations.sql
+  [ ] 20260717120007_hr_payroll_full_demo_seed.sql
+  [ ] 20260717120008_hr_payroll_demo_rls_bootstrap.sql
+  [ ] 20260717120009_hr_payroll_crm_team_integration.sql
+  [ ] 20260717120010_hr_payroll_storage.sql
+  [ ] 20260717120011_hr_payroll_leave_workflow.sql
+  [ ] 20260717120012_hr_payroll_policy_engine_approvals.sql
+  [ ] 20260717120013_hr_payroll_lock_export_punch.sql
+  [ ] 20260717120014_hr_payroll_overtime_pay.sql
+  [ ] 20260717120015_hr_payroll_punch_work_date.sql
+  [ ] 20260717120016_hr_payroll_ess_self_profile.sql
+  [ ] 20260717120017_hr_payroll_testing_changes.sql  — OT+PT merge, holidays, PT columns
+
+EOF
+}
+
 print_sql_reminder() {
   echo ""
   echo "┌──────────────────────────────────────────────────────────────────┐"
@@ -105,10 +143,14 @@ print_sql_reminder() {
   echo "│  (Supabase admin is in Lovable — no SQL editor, no CLI token.)  │"
   echo "└──────────────────────────────────────────────────────────────────┘"
   print_performance_migration_checklist
+  print_cms_migration_checklist
+  print_hr_payroll_migration_checklist
+  echo "Full ordered list: docs/LOVABLE_PUBLISH_CHECKLIST.md"
+  echo ""
   echo "YOUR ACTION after ship:"
   echo "  Step 1 — Lovable → Sync from GitHub"
   echo "  Step 2 — Lovable → Publish → approve every pending migration above (not just this ship's file)"
-  echo "  Step 3 — Refresh app; batch UAT when module is review-ready (through Phase 5M)"
+  echo "  Step 3 — Refresh app; batch UAT: INCENTIVE_CMS_BATCH_UAT.md + HR_PAYROLL_UAT.md"
   echo ""
 }
 

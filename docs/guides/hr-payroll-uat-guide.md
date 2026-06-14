@@ -37,7 +37,7 @@
 
 | Role | Responsibility |
 |------|----------------|
-| **DevOps / Engineering** | Apply migrations 00–09, publish Lovable build, run demo seed SQL, smoke checklist |
+| **DevOps / Engineering** | Apply migrations 00–17, publish Lovable build, run demo seed SQL, smoke checklist |
 | **Admin (existing staff)** | CRM roles via `/users`; HR module roles via `/hr/roles` → **Team & CRM** |
 | **UAT testers** | Execute `HR_PAYROLL_UAT.md` cases, screenshots, pass/fail |
 | **UAT lead** | Maintain defect tracker, triage severity, complete sign-off form |
