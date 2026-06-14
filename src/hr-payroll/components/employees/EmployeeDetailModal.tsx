@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useHrCrmStaff } from "../../hooks/useHrTeam";
+import { useHrCrmStaff, useCrmProfile } from "../../hooks/useHrTeam";
 import { displayEmployeeName, formatMoney, initials, parseEmergencyContacts } from "../../lib/format";
 import { useSalaryRevisions } from "../../hooks/useSalaryRevisions";
 import type { EmployeeRow } from "../../lib/types";
@@ -11,6 +11,7 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
   const [tab, setTab] = useState<Tab>("profile");
   const { data: revisions = [] } = useSalaryRevisions(emp.id);
   const { data: crmStaff = [] } = useHrCrmStaff();
+  const { data: linkedProfile } = useCrmProfile(emp.staff_id);
   const currency = emp.salary_currency ?? emp.companies?.currency ?? "INR";
   const money = (n: number) => formatMoney(n, currency);
   const contacts = parseEmergencyContacts(emp.emergency_contacts);
@@ -19,9 +20,13 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
     ? linkedCrm.email
       ? `${linkedCrm.full_name} (${linkedCrm.email})`
       : linkedCrm.full_name
-    : emp.staff_id
-      ? "Linked (CRM login)"
-      : "— not linked —";
+    : linkedProfile
+      ? linkedProfile.email
+        ? `${linkedProfile.full_name} (${linkedProfile.email})`
+        : linkedProfile.full_name
+      : emp.staff_id
+        ? "Linked (CRM login)"
+        : "— not linked —";
 
   const Row = ({ k, v }: { k: string; v: string | null | undefined }) => (
     <div>

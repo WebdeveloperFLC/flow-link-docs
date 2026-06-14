@@ -18,6 +18,22 @@ export function useHrCrmStaff() {
   });
 }
 
+export function useCrmProfile(staffId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["hr-crm-profile", staffId],
+    enabled: !!staffId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("fn_get_crm_profile" as never, {
+        p_staff_id: staffId,
+      } as never);
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      return row as { staff_id: string; email: string | null; full_name: string } | null;
+    },
+    retry: false,
+  });
+}
+
 export function useHrTeamActions() {
   const qc = useQueryClient();
 
