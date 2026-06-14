@@ -11,7 +11,7 @@ Complete after executing [`HR_PAYROLL_UAT.md`](./HR_PAYROLL_UAT.md). Setup per [
 | **Environment** | ☐ Staging ☐ Lovable preview ☐ Other: _______________ |
 | **Base URL** | |
 | **Supabase project** | |
-| **Migrations through** | `20260717120021` ☐ Yes ☐ No |
+| **Migrations through** | `20260717120022` ☐ Yes ☐ No |
 | **Demo seed loaded** | ☐ Yes ☐ No |
 | **Demo org** | `00000000-0000-0000-0000-0000000000f1` |
 | **Payroll cycle tested** | 26 May – 25 Jun 2026 |

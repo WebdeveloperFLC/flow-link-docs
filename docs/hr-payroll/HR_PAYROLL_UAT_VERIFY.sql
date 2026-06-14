@@ -97,7 +97,37 @@ SELECT 'canada_net' AS check_name,
 FROM v_payroll_preview
 WHERE emp_code = 'FL-CA01';
 
--- 8) Isha ESS link (migration 07 — may need HR_PAYROLL_UAT_FIX_ISHA_LINK.sql on staging)
+-- 9) Phase 2C tables & RPCs (migration 22)
+SELECT 'phase2c_schema' AS check_name,
+       string_agg(tablename, ', ' ORDER BY tablename) AS actual,
+       'hr_crm_role_map, payroll_cycle_snapshots, payroll_line_snapshots' AS expected,
+       CASE
+         WHEN count(*) = 3 THEN 'PASS'
+         ELSE 'FAIL'
+       END AS status
+FROM pg_tables
+WHERE schemaname = 'public'
+  AND tablename IN ('hr_crm_role_map', 'payroll_cycle_snapshots', 'payroll_line_snapshots');
+
+SELECT 'phase2c_rpcs' AS check_name,
+       string_agg(proname, ', ' ORDER BY proname) AS actual,
+       'fn_canada_income_tax, fn_capture_payroll_snapshots, fn_sync_hr_role_from_crm' AS expected,
+       CASE
+         WHEN count(*) FILTER (WHERE proname = 'fn_sync_hr_role_from_crm') = 1
+          AND count(*) FILTER (WHERE proname = 'fn_canada_income_tax') = 1
+          AND count(*) FILTER (WHERE proname = 'fn_capture_payroll_snapshots') = 1
+         THEN 'PASS'
+         ELSE 'FAIL'
+       END AS status
+FROM pg_proc
+WHERE proname IN (
+  'fn_sync_hr_role_from_crm',
+  'fn_sync_all_crm_hr_roles',
+  'fn_canada_income_tax',
+  'fn_capture_payroll_snapshots'
+);
+
+-- 10) Isha ESS link (migration 21 — may need HR_PAYROLL_UAT_FIX_ISHA_LINK.sql on staging)
 SELECT 'isha_ess_link' AS check_name,
        CASE WHEN staff_id IS NOT NULL THEN 'FL-1042 linked' ELSE 'FL-1042 not linked' END AS actual,
        'FL-1042 linked' AS expected,
@@ -106,7 +136,7 @@ FROM employees
 WHERE org_id = '00000000-0000-0000-0000-0000000000f1'
   AND emp_code = 'FL-1042';
 
--- 9) Employee roster
+-- 11) Employee roster
 SELECT emp_code, full_name, salary_currency, payroll_country, staff_id IS NOT NULL AS crm_linked
 FROM employees
 WHERE org_id = '00000000-0000-0000-0000-0000000000f1'
