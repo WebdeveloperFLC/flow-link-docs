@@ -4,6 +4,15 @@ export function inr(n: number | null | undefined): string {
   return formatMoney(n, "INR");
 }
 
+export function employeeCurrency(e?: {
+  salary_currency?: string | null;
+  payroll_country?: string | null;
+  companies?: { currency?: string | null } | null;
+} | null): string {
+  if (!e) return "INR";
+  return e.salary_currency ?? e.companies?.currency ?? (e.payroll_country === "CA" ? "CAD" : "INR");
+}
+
 export function formatMoney(n: number | null | undefined, currency = "INR"): string {
   const v = Math.round(n ?? 0);
   if (currency === "CAD") {

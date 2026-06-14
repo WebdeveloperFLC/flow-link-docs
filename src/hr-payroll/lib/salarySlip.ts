@@ -1,5 +1,5 @@
 import type { EmployeeRow, PayrollLineRow, PayrollCycleRow } from "../lib/types";
-import { inr } from "./format";
+import { employeeCurrency, formatMoney } from "./format";
 
 export function printSalarySlip(
   emp: EmployeeRow,
@@ -8,6 +8,9 @@ export function printSalarySlip(
 ) {
   const w = window.open("", "_blank");
   if (!w) return;
+  const currency = employeeCurrency(emp);
+  const isCanada = currency === "CAD" || emp.payroll_country === "CA";
+  const money = (n: number) => formatMoney(n, currency);
   const rows = [
     ["Employee", `${emp.full_name} (${emp.emp_code})`],
     ["Department", emp.department ?? "—"],
@@ -15,14 +18,14 @@ export function printSalarySlip(
     ["Cycle", cycle.label],
     ["Payroll Days", String(line.payroll_days)],
     ["Payable Days", String(line.payable_days)],
-    ["Daily Rate", inr(line.daily_rate)],
-    ["Gross Earned", inr(line.gross_earned)],
-    ["Incentive", inr(line.incentive)],
-    ["Bonus", inr(line.bonus)],
-    ...(line.ot_pay && line.ot_pay > 0 ? [["OT Pay", inr(line.ot_pay)]] as const : []),
-    ["PF (Employee)", inr(line.pf_employee)],
-    ["ESIC (Employee)", inr(line.esic_employee)],
-    ["Net Salary", inr(line.net_salary)],
+    ["Daily Rate", money(line.daily_rate)],
+    ["Gross Earned", money(line.gross_earned)],
+    ["Incentive", money(line.incentive)],
+    ["Bonus", money(line.bonus)],
+    ...(line.ot_pay && line.ot_pay > 0 ? [["OT Pay", money(line.ot_pay)]] as const : []),
+    [isCanada ? "CPP (Employee)" : "PF (Employee)", money(line.pf_employee)],
+    [isCanada ? "EI (Employee)" : "ESIC (Employee)", money(line.esic_employee)],
+    ["Net Salary", money(line.net_salary)],
   ];
   w.document.write(`
     <!DOCTYPE html><html><head><title>Salary Slip — ${emp.full_name}</title>

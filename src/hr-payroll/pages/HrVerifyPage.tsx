@@ -6,7 +6,7 @@ import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrPayrollLines, rpcRollupInputs } from "../hooks/useHrPayroll";
 import { ModalShell } from "../components/ui/ModalShell";
 import { StatusBadge } from "../components/ui/StatusBadge";
-import { inr } from "../lib/format";
+import { inr, formatMoney, employeeCurrency } from "../lib/format";
 import { rebuildPayrollLine, hrAudit, lockPayrollCycle, reopenPayrollCycle, fetchPayrollRegisterExport, processPayrollCycle, approvePayrollCycle, markPayrollPaid, rebuildPayrollCycle } from "../lib/hrApi";
 import { printSalarySlip } from "../lib/salarySlip";
 import { downloadPayrollRegister, linesToRegisterRows, printRegisterPdf, printBatchSalarySlips } from "../lib/payrollExport";
@@ -181,8 +181,18 @@ export default function HrVerifyPage() {
     [lines, branch],
   );
 
-  const totG = filtered.reduce((s, r) => s + r.gross_earned, 0);
-  const totN = filtered.reduce((s, r) => s + r.net_salary, 0);
+  const currencyTotals = useMemo(() => {
+    const acc: Record<string, { gross: number; net: number }> = {};
+    for (const r of filtered) {
+      const cur = employeeCurrency(r.employees);
+      if (!acc[cur]) acc[cur] = { gross: 0, net: 0 };
+      acc[cur].gross += r.gross_earned;
+      acc[cur].net += r.net_salary;
+    }
+    return Object.entries(acc);
+  }, [filtered]);
+  const rowMoney = (r: PayrollLineRow, n: number | null | undefined) =>
+    formatMoney(n, employeeCurrency(r.employees));
   const hasCanada = filtered.some(
     (l) => l.employees?.payroll_country === "CA" || l.employees?.salary_currency === "CAD",
   );
@@ -493,21 +503,21 @@ export default function HrVerifyPage() {
                     {r.payable_days}
                   </td>
                   <td className="mono" style={{ fontSize: 11 }}>
-                    {inr(r.daily_rate)}
+                    {rowMoney(r, r.daily_rate)}
                   </td>
-                  <td className="mono">{inr(r.gross_earned)}</td>
-                  <td className="mono">{inr(r.incentive)}</td>
-                  <td className="mono">{inr(r.bonus)}</td>
+                  <td className="mono">{rowMoney(r, r.gross_earned)}</td>
+                  <td className="mono">{rowMoney(r, r.incentive)}</td>
+                  <td className="mono">{rowMoney(r, r.bonus)}</td>
                   <td className="mono" style={{ color: "var(--rose)" }}>
-                    {inr(r.pf_employee)}
-                  </td>
-                  <td className="mono" style={{ color: "var(--rose)" }}>
-                    {inr(r.esic_employee)}
+                    {rowMoney(r, r.pf_employee)}
                   </td>
                   <td className="mono" style={{ color: "var(--rose)" }}>
-                    {inr(r.pt_employee ?? 0)}
+                    {rowMoney(r, r.esic_employee)}
                   </td>
-                  <td className="mono strong">{inr(r.net_salary)}</td>
+                  <td className="mono" style={{ color: "var(--rose)" }}>
+                    {rowMoney(r, r.pt_employee ?? 0)}
+                  </td>
+                  <td className="mono strong">{rowMoney(r, r.net_salary)}</td>
                   <td>
                     <div className="row-flex">
                       {can("export") && r.employees && cycle && (
@@ -541,17 +551,19 @@ export default function HrVerifyPage() {
               ))}
             </tbody>
             <tfoot>
-              <tr style={{ borderTop: "2px solid var(--line)" }}>
-                <td className="strong" colSpan={15} style={{ textAlign: "right" }}>
-                  Totals
-                </td>
-                <td className="mono strong">{inr(totG)}</td>
-                <td colSpan={5} />
-                <td className="mono strong" style={{ color: "var(--moss)" }}>
-                  {inr(totN)}
-                </td>
-                <td />
-              </tr>
+              {currencyTotals.map(([cur, t]) => (
+                <tr key={cur} style={{ borderTop: "2px solid var(--line)" }}>
+                  <td className="strong" colSpan={15} style={{ textAlign: "right" }}>
+                    Totals ({cur})
+                  </td>
+                  <td className="mono strong">{formatMoney(t.gross, cur)}</td>
+                  <td colSpan={5} />
+                  <td className="mono strong" style={{ color: "var(--moss)" }}>
+                    {formatMoney(t.net, cur)}
+                  </td>
+                  <td />
+                </tr>
+              ))}
             </tfoot>
           </table>
         )}
