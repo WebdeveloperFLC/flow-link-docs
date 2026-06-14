@@ -62,6 +62,7 @@ import {
   FlaskConical,
   LayoutGrid,
   Link2,
+  Combine,
 } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -157,6 +158,12 @@ const performanceNav: NavItem[] = [
     icon: Link2,
     label: "Client commercials",
     roles: ["admin", "administrator", "viewer", "director", "manager", "counselor"],
+  },
+  {
+    to: "/performance/combinations",
+    icon: Combine,
+    label: "Combination engine",
+    roles: ["admin", "administrator", "viewer", "director", "manager"],
   },
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
   {

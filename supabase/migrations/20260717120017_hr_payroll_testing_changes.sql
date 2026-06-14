@@ -121,7 +121,7 @@ DO $$
 DECLARE v_org uuid := '00000000-0000-0000-0000-0000000000f1';
 BEGIN
   INSERT INTO holidays (org_id, holiday_date, name, type, applicable_tags)
-  SELECT v_org, d, n, t::holiday_type, tags::jsonb
+  SELECT v_org, d::date, n, t::holiday_type, tags::jsonb
   FROM (VALUES
     ('2026-01-14', 'Uttarayan', 'Festival', '["6-Day","Day","Full-Time"]'),
     ('2026-01-26', 'Republic Day', 'National', '["6-Day","Day","Full-Time"]'),
@@ -144,7 +144,7 @@ BEGIN
   ) AS v(d, n, t, tags)
   WHERE NOT EXISTS (
     SELECT 1 FROM holidays h
-    WHERE h.org_id = v_org AND h.holiday_date = v.d::date AND h.name = v.n
+    WHERE h.org_id = v_org AND h.holiday_date = d::date AND h.name = n
   );
 END $$;
 
