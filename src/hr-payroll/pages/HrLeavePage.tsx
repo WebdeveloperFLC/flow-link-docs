@@ -3,11 +3,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
-import { useHrLeaveRequests } from "../hooks/useHrRequests";
+import { useHrLeaveRequests, useHrLeaveBalances } from "../hooks/useHrRequests";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { ModalShell } from "../components/ui/ModalShell";
 import { HR_ORG_ID } from "../lib/constants";
-import { hrAudit } from "../lib/hrApi";
+import { hrAudit, processLeaveDecision, rebuildPayrollLine } from "../lib/hrApi";
 import type { LeaveRequestRow } from "../lib/types";
 
 function LeaveModal({
@@ -27,6 +27,7 @@ function LeaveModal({
     reason: "",
     has_document: false,
   });
+  const { data: balances = [] } = useHrLeaveBalances(f.employee_id || undefined);
   const [err, setErr] = useState<Record<string, string>>({});
 
   const save = async () => {
@@ -86,6 +87,20 @@ function LeaveModal({
           ))}
         </select>
       </label>
+      {balances.length > 0 && (
+        <div className="card" style={{ padding: 12, marginBottom: 12, background: "var(--paper)" }}>
+          <div style={{ fontSize: 11, color: "var(--mut)", fontWeight: 600, marginBottom: 6 }}>
+            Leave balance (remaining)
+          </div>
+          <div className="row-flex">
+            {balances.map((b) => (
+              <span key={b.id} className="tag">
+                {b.type}: {(b.accrued - b.taken).toFixed(1)} / {b.entitled}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
       <label className="fld">
         <span className="l">Leave Type</span>
         <select className="input" value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })}>
@@ -153,24 +168,26 @@ function LeaveModal({
 }
 
 export default function HrLeavePage() {
-  const { can, fire } = useHrAccess();
+  const { can, fire, cycle } = useHrAccess();
   const qc = useQueryClient();
   const { data: leaves = [], isLoading } = useHrLeaveRequests();
   const [open, setOpen] = useState(false);
 
   const setStatus = async (row: LeaveRequestRow, status: string) => {
-    const { error } = await supabase
-      .from("leave_requests" as never)
-      .update({ status } as never)
-      .eq("id", row.id);
-    if (error) {
-      fire(error.message);
-      return;
+    try {
+      await processLeaveDecision(row.id, status);
+      if (status === "Approved" && cycle?.id) {
+        await rebuildPayrollLine(row.employee_id, cycle.id);
+      }
+      await hrAudit(`Leave ${status}`, row.employees?.full_name ?? row.id, row.status, status);
+      fire(`Leave ${status.toLowerCase()}`);
+      await qc.invalidateQueries({ queryKey: ["hr-leaves"] });
+      await qc.invalidateQueries({ queryKey: ["hr-leave-balances"] });
+      await qc.invalidateQueries({ queryKey: ["hr-pending-counts"] });
+      await qc.invalidateQueries({ queryKey: ["hr-payroll-lines"] });
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Update failed");
     }
-    await hrAudit(`Leave ${status}`, row.employees?.full_name ?? row.id, row.status, status);
-    fire(`Leave ${status.toLowerCase()}`);
-    await qc.invalidateQueries({ queryKey: ["hr-leaves"] });
-    await qc.invalidateQueries({ queryKey: ["hr-pending-counts"] });
   };
 
   const remove = async (row: LeaveRequestRow) => {

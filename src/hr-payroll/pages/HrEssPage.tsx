@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
 import { useHrPayrollLine } from "../hooks/useHrPayroll";
-import { useHrDocuments } from "../hooks/useHrRequests";
+import { useHrDocuments, useHrLeaveBalances } from "../hooks/useHrRequests";
 import { useHrShifts } from "../hooks/useHrShifts";
 import { useHrAttendance } from "../hooks/useHrAttendance";
 import { useAttendanceActions } from "../hooks/useAttendanceActions";
@@ -28,6 +28,7 @@ export default function HrEssPage() {
   const { data: att = [] } = useHrAttendance(emp?.id, cycle?.start_date, cycle?.end_date);
   const { data: line } = useHrPayrollLine(emp?.id, cycle?.id);
   const { data: docs = [] } = useHrDocuments(emp?.id);
+  const { data: leaveBalances = [] } = useHrLeaveBalances(emp?.id);
   const actions = useAttendanceActions(cycle?.id, fire);
 
   const today = todayIso();
@@ -105,6 +106,22 @@ export default function HrEssPage() {
         />
         <Stat lab="Comp-Off" val={line?.comp_off ?? 0} meta="approved" color="var(--sky)" />
       </div>
+
+      {leaveBalances.length > 0 && (
+        <div className="card">
+          <div className="card-h">
+            <h3>Leave balance</h3>
+            <span className="tag">remaining / entitled</span>
+          </div>
+          <div className="row-flex">
+            {leaveBalances.map((b) => (
+              <span key={b.id} className="tag">
+                {b.type}: {(b.accrued - b.taken).toFixed(1)} / {b.entitled}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid g2">
         <div className="card">

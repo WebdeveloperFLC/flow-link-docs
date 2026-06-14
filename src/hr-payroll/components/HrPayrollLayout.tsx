@@ -1,4 +1,5 @@
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
+import flcLogo from "@/assets/flc-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   HR_PERM_LIST,
@@ -71,10 +72,10 @@ export function HrPayrollLayout() {
         <aside className="sidebar">
           <div className="brand">
             <div className="logo">
-              <div className="mark">FL</div>
+              <img src={flcLogo} alt="Future Link Consultants" className="brand-logo" />
               <div>
                 <h1>Future Link HRMS</h1>
-                <div className="sub">Full Prototype</div>
+                <div className="sub">Payroll &amp; HR</div>
               </div>
             </div>
           </div>
