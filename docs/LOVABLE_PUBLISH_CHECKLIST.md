@@ -39,7 +39,7 @@ Deploy detail: `INCENTIVE_CMS_PHASE2P_DEPLOY.md` … `PHASE3D_DEPLOY.md`.
 
 ---
 
-## HR Payroll (00–21)
+## HR Payroll (00–22)
 
 | Order | Migration | Purpose |
 |------:|-----------|---------|
@@ -64,6 +64,7 @@ Deploy detail: `INCENTIVE_CMS_PHASE2P_DEPLOY.md` … `PHASE3D_DEPLOY.md`.
 | 19 | `20260717120019_hr_payroll_lifecycle_salary_revision.sql` | Process→Approve→Lock→Paid RPCs |
 | 20 | `20260717120020_hr_payroll_canada_engine.sql` | Canada CPP/EI + lock snapshots |
 | 21 | `20260717120021_hr_payroll_uat_isha_link.sql` | Link FL-1042 to free CRM admin (ESS UAT) |
+| 22 | `20260717120022_hr_payroll_phase2c_rbac_snapshots.sql` | CRM RBAC bridge, Canada brackets, process/lock snapshots |
 
 Setup: [`guides/hr-payroll-uat-guide.md`](./guides/hr-payroll-uat-guide.md)  
 **HR sign-off:** [`hr-payroll/HR_PAYROLL_UAT.md`](./hr-payroll/HR_PAYROLL_UAT.md) (Sections A–I)

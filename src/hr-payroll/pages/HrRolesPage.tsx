@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ALL_HR_SCREENS,
   HR_PERM_LIST,
@@ -9,6 +10,8 @@ import {
 } from "../lib/constants";
 import { HR_ROLE_LIST, useHrAccess } from "../context/HrPayrollProvider";
 import type { HrRolePermissionRow } from "../lib/types";
+import { HR_ORG_ID } from "../lib/constants";
+import { syncAllCrmHrRoles } from "../lib/hrApi";
 import { HrTeamPanel } from "../components/team/HrTeamPanel";
 
 export default function HrRolesPage() {
@@ -19,9 +22,25 @@ export default function HrRolesPage() {
     updatePerm,
     updateScreen,
     resetAccess,
+    fire,
   } = useHrAccess();
+  const qc = useQueryClient();
   const [tab, setTab] = useState<"perms" | "screens" | "team">("team");
+  const [syncBusy, setSyncBusy] = useState(false);
   const editable = can("configure");
+
+  const syncFromCrm = async () => {
+    setSyncBusy(true);
+    try {
+      const n = await syncAllCrmHrRoles(HR_ORG_ID);
+      await qc.invalidateQueries({ queryKey: ["hr-role-assignment"] });
+      fire(`Synced HR roles from CRM (${n} staff)`);
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "CRM sync failed — apply migration 22");
+    } finally {
+      setSyncBusy(false);
+    }
+  };
 
   const permKey = (p: HrPerm): keyof HrRolePermissionRow => {
     if (p === "manageEmp") return "can_manage_emp";
@@ -72,6 +91,23 @@ export default function HrRolesPage() {
         }}
       >
         <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>
+          <strong>CRM is the primary role source</strong> per product spec — map CRM app roles to HR
+          roles via migration 22, then use <strong>Sync from CRM</strong>. The matrix below controls
+          payroll-specific permissions. Manage CRM module access at <code>/users</code>.
+        </div>
+        {editable && (
+          <div className="row-flex" style={{ marginTop: 12, gap: 8 }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={syncBusy}
+              onClick={() => void syncFromCrm()}
+            >
+              {syncBusy ? "Syncing…" : "Sync from CRM"}
+            </button>
+          </div>
+        )}
+        <div style={{ fontSize: 13, color: "var(--ink-soft)", marginTop: 12 }}>
           This matrix is <strong>live</strong>. Toggle a dot and the change applies instantly — switch
           the role selector (top-right) to feel it. You are <strong>{role}</strong>.{" "}
           {editable

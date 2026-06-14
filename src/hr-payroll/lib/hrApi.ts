@@ -73,6 +73,23 @@ export async function processApprovalDecision(
   return data;
 }
 
+export async function syncHrRoleFromCrm(orgId: string, staffId: string) {
+  const { data, error } = await supabase.rpc("fn_sync_hr_role_from_crm" as never, {
+    p_org: orgId,
+    p_staff_id: staffId,
+  } as never);
+  if (error) throw error;
+  return data as string | null;
+}
+
+export async function syncAllCrmHrRoles(orgId: string) {
+  const { data, error } = await supabase.rpc("fn_sync_all_crm_hr_roles" as never, {
+    p_org: orgId,
+  } as never);
+  if (error) throw error;
+  return data as number;
+}
+
 export async function lockPayrollCycle(cycleId: string) {
   const { data, error } = await supabase.rpc("fn_lock_payroll_cycle" as never, {
     p_cycle: cycleId,

@@ -27,6 +27,8 @@ export type PayrollEngineInput = {
   cppRate?: number;
   eiRate?: number;
   incomeTaxFlat?: number;
+  incomeTaxMode?: "flat" | "brackets";
+  incomeTaxBrackets?: { upTo: number | null; rate: number }[];
   otherDeductions?: number;
   tdsApplicable?: boolean;
 };
@@ -67,6 +69,35 @@ export function calendarDaysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
 }
 
+export function canadaIncomeTax(
+  gross: number,
+  tdsApplicable: boolean,
+  mode: "flat" | "brackets" = "flat",
+  flatRate = 0,
+  brackets: { upTo: number | null; rate: number }[] = [],
+): number {
+  if (!tdsApplicable) return 0;
+  if (mode !== "brackets" || brackets.length === 0) {
+    return Math.round(gross * flatRate);
+  }
+  let remaining = gross * 12;
+  let tax = 0;
+  let prev = 0;
+  for (const b of brackets) {
+    const rate = b.rate;
+    if (b.upTo == null) {
+      tax += remaining * rate;
+      break;
+    }
+    const slice = Math.max(Math.min(remaining, b.upTo - prev), 0);
+    tax += slice * rate;
+    remaining -= slice;
+    prev = b.upTo;
+    if (remaining <= 0) break;
+  }
+  return Math.round(tax / 12);
+}
+
 export function computePayroll(input: PayrollEngineInput): PayrollEngineResult {
   const k = lateDeductionDays(input.late ?? 0);
   const n = mispunchDeductionDays(input.mispunch ?? 0, input.freeMispunch ?? 2);
@@ -96,10 +127,16 @@ export function computePayroll(input: PayrollEngineInput): PayrollEngineResult {
   if (isCanada) {
     const cppRate = input.cppRate ?? 0.0595;
     const eiRate = input.eiRate ?? 0.0166;
-    const taxRate = input.tdsApplicable ? (input.incomeTaxFlat ?? 0) : 0;
     pfEmployee = Math.round(gross * cppRate);
     esicEmployee = Math.round(gross * eiRate);
-    ptEmployee = Math.round(gross * taxRate) + (input.otherDeductions ?? 0);
+    ptEmployee =
+      canadaIncomeTax(
+        gross,
+        !!input.tdsApplicable,
+        input.incomeTaxMode ?? "flat",
+        input.incomeTaxFlat ?? 0,
+        input.incomeTaxBrackets ?? [],
+      ) + (input.otherDeductions ?? 0);
   } else {
     const pfWage = Math.min(basic, 15000);
     pfEmployee = input.pfApplicable !== false ? Math.round(pfWage * 0.12) : 0;
@@ -168,6 +205,23 @@ export const PAYROLL_TEST_VECTORS: PayrollTestVector[] = [
   { id: "TV30", input: { payrollDays: 30, monthly: 50000, basic: 25000, leaves: 3, paidLeaves: 2, late: 13, mispunch: 6, ul: 1, sandwich: 2, compoff: 1, unpaidTraining: 2, incentive: 4500 }, expected: { payableDays: 20, grossEarned: 33333, netSalary: 36033 } },
   { id: "TV31", input: { payrollDays: 30, monthly: 4500, basic: 2250, payrollCountry: "CA" }, expected: { payableDays: 30, grossEarned: 4500, pfEmployee: 268, esicEmployee: 75, ptEmployee: 0, netSalary: 4157 } },
   { id: "TV32", input: { payrollDays: 30, monthly: 4500, basic: 2250, payrollCountry: "CA", mispunch: 3 }, expected: { payableDays: 29.5, grossEarned: 4425, pfEmployee: 263, esicEmployee: 73, netSalary: 4089 } },
+  {
+    id: "TV33",
+    input: {
+      payrollDays: 30,
+      monthly: 6000,
+      basic: 3000,
+      payrollCountry: "CA",
+      tdsApplicable: true,
+      incomeTaxMode: "brackets",
+      incomeTaxBrackets: [
+        { upTo: 55867, rate: 0.15 },
+        { upTo: 111733, rate: 0.205 },
+        { upTo: null, rate: 0.26 },
+      ],
+    },
+    expected: { grossEarned: 6000, pfEmployee: 357, esicEmployee: 100, ptEmployee: 974, netSalary: 4569 },
+  },
 ];
 
 export function runVectorSuite(vectors = PAYROLL_TEST_VECTORS) {

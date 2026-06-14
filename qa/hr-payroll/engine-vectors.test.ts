@@ -9,7 +9,7 @@ import {
 } from "@/hr-payroll/lib/payrollEngineLogic";
 
 describe("HR Payroll engine — golden vectors", () => {
-  it("passes full TV01–TV32 suite", () => {
+  it("passes full TV01–TV33 suite", () => {
     const { failures, passed, total } = runVectorSuite();
     if (failures.length) {
       console.error("Vector failures:", failures);
