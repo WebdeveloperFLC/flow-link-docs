@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { forecastMonthEnd } from "@/incentives/lib/incentiveEngineLogic";
+import { isPersonalWalletBudgetKind } from "@/incentives/lib/walletKpiFilter";
 import { currentPeriodKey } from "@/lib/performanceHubTheme";
 
 export interface TeamPerformanceRow {
@@ -96,7 +97,7 @@ export function usePerformanceTeamRows(
         unlocked_amount?: number;
         budget_kind?: string;
       }[]) {
-        if (w.budget_kind !== "month_to_month" && w.budget_kind !== "personal") continue;
+        if (!isPersonalWalletBudgetKind(w.budget_kind)) continue;
         walletsByCounselor.set(w.counselor_id, {
           id: w.id,
           unlocked: Number(w.unlocked_amount ?? 0),

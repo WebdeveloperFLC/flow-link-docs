@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHea
 import { PerformanceKpiGrid, PerformanceMoneyRail } from "@/components/performance/PerformanceMoneyRail";
 import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { usePerformancePeriodMetrics } from "@/hooks/usePerformancePeriodMetrics";
 import { usePerformanceQueueCounts } from "@/hooks/usePerformanceQueueCounts";
 import { usePerformanceLockReadiness } from "@/hooks/usePerformanceLockReadiness";
@@ -97,6 +98,7 @@ const ADMIN_LINKS = [
 ] as const;
 
 export default function PerformanceCommandCenter() {
+  const { isAdmin, loading: authLoading } = useAuth();
   const { period, branchLabel } = usePerformancePeriod();
   const metrics = usePerformancePeriodMetrics(period, branchLabel);
   const queues = usePerformanceQueueCounts(period);
@@ -136,6 +138,9 @@ export default function PerformanceCommandCenter() {
     },
     { step: 4, label: "Generate payouts & export", to: "/incentives/payouts", icon: Banknote, blocked: !metrics.runLocked },
   ] as const;
+
+  if (authLoading) return null;
+  if (!isAdmin) return <Navigate to="/performance" replace />;
 
   return (
     <AppLayout>

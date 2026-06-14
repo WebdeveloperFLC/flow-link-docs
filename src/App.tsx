@@ -768,11 +768,7 @@ const App = () => (
                   />
                   <Route
                     path="/incentives/give-discount"
-                    element={
-                      <ProtectedRoute>
-                        <GiveDiscount />
-                      </ProtectedRoute>
-                    }
+                    element={<Navigate to="/performance/give-discount" replace />}
                   />
                   <Route
                     path="/incentives/wallet-topups"
