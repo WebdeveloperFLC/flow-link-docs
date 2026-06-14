@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import type { CrmEntityCard } from "@/incentives/lib/autoApplyPolicyLogic";
-import { Users, Building2, BookOpen, Globe, GraduationCap, MapPin, Layers } from "lucide-react";
+import { BookOpen, Building2, Globe, GraduationCap, Layers, MapPin, Users } from "lucide-react";
 
 const ICONS: Record<string, typeof Users> = {
   clients: Users,
