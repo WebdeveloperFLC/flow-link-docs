@@ -714,11 +714,11 @@
 | **Screenshot Required** | Yes |
 | **Pass / Fail** | ☐ Pass ☐ Fail |
 
-### HR-UAT-WF-001 — Approval chain stages
+### HR-UAT-WF-007 — Approval chain stages
 
 | Field | Value |
 |-------|-------|
-| **Test Case ID** | HR-UAT-WF-001 |
+| **Test Case ID** | HR-UAT-WF-007 |
 | **Preconditions** | Pending leave with reporting manager. |
 | **Steps** | 1. View-as Manager → Approve leave.<br>2. View-as HR Manager → Approve.<br>3. Check stage badges. |
 | **Expected Result** | Manager ✓ then HR ✓; status Approved after final stage. |

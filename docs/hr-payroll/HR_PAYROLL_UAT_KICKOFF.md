@@ -44,6 +44,7 @@
 3. **Section I** — Phase 2 (P2-001 … P2-008)
 4. Sign-off: [`HR_PAYROLL_UAT_SIGNOFF.md`](./HR_PAYROLL_UAT_SIGNOFF.md)
 5. Defects: [`HR_PAYROLL_DEFECT_TRACKER.csv`](./HR_PAYROLL_DEFECT_TRACKER.csv)
+6. Progress: [`HR_PAYROLL_UAT_PROGRESS.csv`](./HR_PAYROLL_UAT_PROGRESS.csv) — mark Pass/Fail per case
 
 **Full steps:** [`../guides/hr-payroll-uat-guide.md`](../guides/hr-payroll-uat-guide.md)
 

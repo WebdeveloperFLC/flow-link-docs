@@ -25,6 +25,7 @@
 | **UAT kickoff** | `docs/hr-payroll/HR_PAYROLL_UAT_KICKOFF.md` |
 | Tester quick reference | `docs/hr-payroll/HR_PAYROLL_TESTER_QUICKSTART.md` |
 | Defect log | `docs/hr-payroll/HR_PAYROLL_DEFECT_TRACKER.csv` |
+| **Progress tracker** | `docs/hr-payroll/HR_PAYROLL_UAT_PROGRESS.csv` |
 | **SQL verify script** | `docs/hr-payroll/HR_PAYROLL_UAT_VERIFY.sql` — run before Phase 5 |
 | Sign-off form | `docs/hr-payroll/HR_PAYROLL_UAT_SIGNOFF.md` |
 | Prototype reference | `docs/guides/hrms-full-prototype.html` |
