@@ -187,6 +187,7 @@ import PerformanceHowItWorks from "@/pages/PerformanceHowItWorks";
 import PerformanceUnclassifiedPayments from "@/pages/PerformanceUnclassifiedPayments";
 import PerformanceApprovals from "@/pages/PerformanceApprovals";
 import PerformanceApprovalsCms from "@/pages/PerformanceApprovalsCms";
+import PerformanceAuditTrail from "@/pages/PerformanceAuditTrail";
 import PerformancePromotionRequests from "@/pages/PerformancePromotionRequests";
 import PerformanceOffersStudio from "@/pages/PerformanceOffersStudio";
 import PerformanceOffersLibrary from "@/pages/PerformanceOffersLibrary";
@@ -713,6 +714,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceUnclassifiedPayments />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/audit-trail"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceAuditTrail />
                       </ProtectedRoute>
                     }
                   />
