@@ -179,6 +179,7 @@ const performanceNav: NavItem[] = [
     label: "CRM integration",
     roles: ["admin", "administrator", "viewer", "director", "manager"],
   },
+  { to: "/performance/incentives/plans", icon: Layers, label: "Incentive plans", adminOnly: true },
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
   {
     to: "/performance/admin/approvals",
