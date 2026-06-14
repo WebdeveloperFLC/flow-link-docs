@@ -186,6 +186,7 @@ import PerformanceBranchPool from "@/pages/PerformanceBranchPool";
 import PerformanceHowItWorks from "@/pages/PerformanceHowItWorks";
 import PerformanceUnclassifiedPayments from "@/pages/PerformanceUnclassifiedPayments";
 import PerformanceApprovals from "@/pages/PerformanceApprovals";
+import PerformanceApprovalsCms from "@/pages/PerformanceApprovalsCms";
 import PerformancePromotionRequests from "@/pages/PerformancePromotionRequests";
 import PerformanceOffersStudio from "@/pages/PerformanceOffersStudio";
 import PerformanceOffersLibrary from "@/pages/PerformanceOffersLibrary";
@@ -712,6 +713,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceUnclassifiedPayments />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/approvals"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceApprovalsCms />
                       </ProtectedRoute>
                     }
                   />

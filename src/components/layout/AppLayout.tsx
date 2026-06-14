@@ -195,9 +195,9 @@ const performanceNav: NavItem[] = [
   { to: "/performance/incentives/payouts", icon: Banknote, label: "Ledger & payouts", adminOnly: true },
   { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
   {
-    to: "/performance/admin/approvals",
+    to: "/performance/approvals",
     icon: ClipboardCheck,
-    label: "Discount approvals",
+    label: "Approvals",
     roles: ["manager", "admin", "administrator", "director"],
   },
   { to: "/performance/wallet/policy", icon: Settings2, label: "Wallet policy", adminOnly: true },
