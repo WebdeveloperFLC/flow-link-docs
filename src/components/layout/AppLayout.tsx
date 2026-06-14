@@ -180,6 +180,12 @@ const performanceNav: NavItem[] = [
     roles: ["admin", "administrator", "viewer", "director", "manager"],
   },
   {
+    to: "/performance/multi-currency",
+    icon: DollarSign,
+    label: "Multi-currency",
+    roles: ["admin", "administrator", "viewer", "director", "manager"],
+  },
+  {
     to: "/performance/crm-integration",
     icon: Plug,
     label: "CRM integration",

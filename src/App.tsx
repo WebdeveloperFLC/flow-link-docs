@@ -178,6 +178,7 @@ import PerformanceCrmIntegration from "@/pages/PerformanceCrmIntegration";
 import PerformanceIncentivePlans from "@/pages/PerformanceIncentivePlans";
 import PerformanceIncentiveLedger from "@/pages/PerformanceIncentiveLedger";
 import PerformanceCommissions from "@/pages/PerformanceCommissions";
+import PerformanceMultiCurrency from "@/pages/PerformanceMultiCurrency";
 import PerformanceTeam from "@/pages/PerformanceTeam";
 import PerformanceWalletPolicy from "@/pages/PerformanceWalletPolicy";
 import PerformanceWallets from "@/pages/PerformanceWallets";
@@ -647,6 +648,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <PerformanceCommissions />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/performance/multi-currency"
+                    element={
+                      <ProtectedRoute>
+                        <PerformanceMultiCurrency />
                       </ProtectedRoute>
                     }
                   />
