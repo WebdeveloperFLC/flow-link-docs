@@ -277,6 +277,8 @@ DECLARE
   v_co uuid;
   v_br uuid;
   v_shift uuid;
+  v_emp uuid;
+  v_cycle uuid;
 BEGIN
   SELECT id INTO v_co FROM companies WHERE org_id = v_org AND currency = 'CAD' LIMIT 1;
   IF v_co IS NULL THEN
@@ -312,5 +314,13 @@ BEGIN
       4500, 2250, 900, 0, 1350,
       false, false, false, false
     );
+  END IF;
+
+  -- Build payroll line on latest demo cycle (FL-CA01 added after initial seed)
+  SELECT id INTO v_emp FROM employees WHERE org_id = v_org AND emp_code = 'FL-CA01';
+  SELECT id INTO v_cycle FROM payroll_cycles WHERE org_id = v_org ORDER BY start_date DESC LIMIT 1;
+  IF v_emp IS NOT NULL AND v_cycle IS NOT NULL
+     AND (SELECT status FROM payroll_cycles WHERE id = v_cycle) IN ('Draft', 'Processed', 'Approved') THEN
+    PERFORM fn_build_payroll_line(v_emp, v_cycle);
   END IF;
 END $$;
