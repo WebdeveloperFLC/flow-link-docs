@@ -77,7 +77,7 @@ export function AttendanceView({ mode }: AttendanceViewProps) {
     cycle?.start_date,
     cycle?.end_date,
   );
-  const actions = useAttendanceActions(cycle?.id, fire);
+  const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, fire);
 
   const today = todayIso();
   const todayRow = att.find((a) => a.work_date === today) ?? null;

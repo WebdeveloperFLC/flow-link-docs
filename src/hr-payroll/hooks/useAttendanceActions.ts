@@ -3,12 +3,43 @@ import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../lib/constants";
 import { hrAudit, rebuildPayrollLine, recordPunch, startAttendanceDay } from "../lib/hrApi";
 import { nowHhmm, todayIso } from "../lib/attendanceMetrics";
+import type { AttendanceRow } from "../lib/types";
 
-export function useAttendanceActions(cycleId: string | undefined, fire: (msg: string) => void) {
+function mergeAttendanceCache(
+  qc: ReturnType<typeof useQueryClient>,
+  employeeId: string,
+  cycleStart: string | undefined,
+  cycleEnd: string | undefined,
+  row: AttendanceRow,
+) {
+  const key = ["hr-attendance", HR_ORG_ID, employeeId, cycleStart, cycleEnd] as const;
+  qc.setQueryData<AttendanceRow[]>(key, (prev = []) => {
+    const idx = prev.findIndex((a) => a.work_date === row.work_date);
+    if (idx >= 0) {
+      const next = [...prev];
+      next[idx] = { ...prev[idx], ...row };
+      return next;
+    }
+    if (cycleStart && row.work_date < cycleStart) return prev;
+    if (cycleEnd && row.work_date > cycleEnd) return prev;
+    return [...prev, row].sort((a, b) => a.work_date.localeCompare(b.work_date));
+  });
+}
+
+export function useAttendanceActions(
+  cycleId: string | undefined,
+  cycleStart: string | undefined,
+  cycleEnd: string | undefined,
+  fire: (msg: string) => void,
+) {
   const qc = useQueryClient();
 
-  const invalidate = async (employeeId: string) => {
+  const invalidate = async (employeeId: string, row?: AttendanceRow) => {
+    if (row) {
+      mergeAttendanceCache(qc, employeeId, cycleStart, cycleEnd, row);
+    }
     await qc.invalidateQueries({ queryKey: ["hr-attendance"] });
+    await qc.refetchQueries({ queryKey: ["hr-attendance", HR_ORG_ID, employeeId] });
     await qc.invalidateQueries({ queryKey: ["hr-payroll-lines"] });
     if (cycleId) {
       try {
@@ -40,15 +71,16 @@ export function useAttendanceActions(cycleId: string | undefined, fire: (msg: st
 
   const startAndCheckIn = async (employeeId: string, empName: string) => {
     const work_date = todayIso();
+    let row: AttendanceRow;
     try {
-      await startAttendanceDay(employeeId);
+      row = await startAttendanceDay(employeeId, work_date);
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Check-in failed — apply migration 13");
+      fire(e instanceof Error ? e.message : "Check-in failed — apply migration 15");
       return;
     }
     await hrAudit("Check In", `${empName} · ${work_date}`, "—", nowHhmm());
     fire("Checked in");
-    await invalidate(employeeId);
+    await invalidate(employeeId, row);
   };
 
   const punch = async (
@@ -57,15 +89,16 @@ export function useAttendanceActions(cycleId: string | undefined, fire: (msg: st
     empName: string,
     workDate: string,
   ) => {
+    let updated: AttendanceRow;
     try {
-      await recordPunch(row.id, field);
+      updated = (await recordPunch(row.id, field)) as AttendanceRow;
     } catch (e) {
       fire(e instanceof Error ? e.message : "Punch failed — apply migration 13");
       return;
     }
     await hrAudit("Punch", `${empName} · ${workDate}`, field, nowHhmm());
     fire(`${field.replace("_", " ")} recorded`);
-    await invalidate(row.employee_id);
+    await invalidate(row.employee_id, updated);
   };
 
   const updateField = async (
