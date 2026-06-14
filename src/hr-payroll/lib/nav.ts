@@ -49,7 +49,7 @@ export const HR_NAV: NavGroup[] = [
     grp: "Configuration",
     items: [
       { k: "config", ic: "⚙", t: "Payroll & Policy" },
-      { k: "roles", ic: "⊕", t: "Roles & Access" },
+      { k: "roles", ic: "⊕", t: "Team & Roles" },
       { k: "audit", ic: "≡", t: "Audit Logs" },
     ],
   },

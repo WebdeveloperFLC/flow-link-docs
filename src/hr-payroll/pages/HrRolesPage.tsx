@@ -9,6 +9,7 @@ import {
 } from "../lib/constants";
 import { HR_ROLE_LIST, useHrAccess } from "../context/HrPayrollProvider";
 import type { HrRolePermissionRow } from "../lib/types";
+import { HrTeamPanel } from "../components/team/HrTeamPanel";
 
 export default function HrRolesPage() {
   const {
@@ -19,7 +20,7 @@ export default function HrRolesPage() {
     updateScreen,
     resetAccess,
   } = useHrAccess();
-  const [tab, setTab] = useState<"perms" | "screens">("perms");
+  const [tab, setTab] = useState<"perms" | "screens" | "team">("team");
   const editable = can("configure");
 
   const permKey = (p: HrPerm): keyof HrRolePermissionRow => {
@@ -79,6 +80,9 @@ export default function HrRolesPage() {
         </div>
       </div>
       <div className="pill-tab">
+        <button type="button" className={tab === "team" ? "on" : ""} onClick={() => setTab("team")}>
+          Team &amp; CRM
+        </button>
         <button type="button" className={tab === "perms" ? "on" : ""} onClick={() => setTab("perms")}>
           Action Permissions
         </button>
@@ -86,7 +90,9 @@ export default function HrRolesPage() {
           Screen Access
         </button>
       </div>
-      {tab === "perms" ? (
+      {tab === "team" ? (
+        <HrTeamPanel />
+      ) : tab === "perms" ? (
         <div className="card" style={{ padding: 0, overflow: "auto" }}>
           <table style={{ minWidth: 720 }}>
             <thead>
@@ -179,11 +185,13 @@ export default function HrRolesPage() {
       )}
       <div className="row-flex" style={{ justifyContent: "space-between" }}>
         <span className="muted" style={{ fontSize: 12 }}>
-          {tab === "perms"
-            ? "Permissions gate action buttons across every screen."
-            : "Screen access controls which menu items each role can open."}
+          {tab === "team"
+            ? "Assign HR module roles to CRM logins and import/link employee records."
+            : tab === "perms"
+              ? "Permissions gate action buttons across every screen."
+              : "Screen access controls which menu items each role can open."}
         </span>
-        {editable && (
+        {editable && tab !== "team" && (
           <button type="button" className="btn" onClick={() => void resetAccess()}>
             ↺ Reset to defaults
           </button>

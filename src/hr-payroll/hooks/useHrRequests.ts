@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../lib/constants";
 import type {
   CompoffRequestRow,
+  EmployeeDocumentRow,
   LateExemptionRow,
   LeaveBalanceRow,
   LeaveRequestRow,
@@ -142,7 +143,7 @@ export function useHrDocuments(employeeId?: string) {
         .select("*")
         .eq("employee_id", employeeId!);
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as EmployeeDocumentRow[];
     },
   });
 }
