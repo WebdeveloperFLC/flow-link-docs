@@ -18,6 +18,12 @@ import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformanceHomeData } from "@/hooks/usePerformanceHomeData";
 import { formatInr } from "@/lib/performanceHubTheme";
 import { noTargetAchievementDetail } from "@/lib/performanceNoTargetCopy";
+import { PerformanceMobileQuickBar } from "@/components/performance/PerformanceMobileQuickBar";
+import {
+  PERFORMANCE_MOBILE_DESKTOP_ONLY,
+  PERFORMANCE_MOBILE_PAGE,
+} from "@/lib/performanceMobileLayout";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Trophy, TrendingUp, Wallet, Megaphone } from "lucide-react";
 
@@ -170,7 +176,7 @@ export default function PerformanceHome() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 max-w-6xl">
+      <div className={PERFORMANCE_MOBILE_PAGE} data-testid="performance-mobile-shell">
         <PerformanceHubHeader
           title="My commercial performance"
           subtitle={`Revenue, wallet and incentives — ${data.period}`}
@@ -180,7 +186,8 @@ export default function PerformanceHome() {
           primaryAction={{ label: "Give discount", to: "/performance/give-discount" }}
         />
 
-        <PerformancePeriodBar />
+        <PerformancePeriodBar compact className="md:hidden" />
+        <PerformancePeriodBar className="hidden md:flex" />
 
         <PerformanceHomeKpiStrip
           loading={data.loading}
@@ -222,7 +229,7 @@ export default function PerformanceHome() {
         </div>
 
         {offerInfluence && (
-          <Card className="p-5 border-l-4 border-l-emerald-500">
+          <Card className={cn("p-5 border-l-4 border-l-emerald-500", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
             <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
               <Megaphone className="size-5 text-emerald-600" />
               Your offer influence (O10) · {period}
@@ -256,7 +263,7 @@ export default function PerformanceHome() {
         )}
 
         {walletImpact && (walletImpact.wallet_impact_revenue > 0 || walletImpact.wallet_used > 0) && (
-          <Card className="p-4 border-l-4 border-l-violet-500 bg-violet-500/5">
+          <Card className={cn("p-4 border-l-4 border-l-violet-500 bg-violet-500/5", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
             <p className="text-sm">
               <span className="font-medium">Wallet impact revenue (WIR)</span> —{" "}
               {formatInr(walletImpact.wallet_impact_revenue)} influenced via wallet discounts ·{" "}
@@ -276,7 +283,7 @@ export default function PerformanceHome() {
         )}
 
         {hotClients.length > 0 && (
-          <Card className="p-5 border-l-4 border-l-red-500">
+          <Card className={cn("p-5 border-l-4 border-l-red-500", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
             <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
               <TrendingUp className="size-5 text-red-600" />
               Hot clients for offers (I5)
@@ -302,7 +309,7 @@ export default function PerformanceHome() {
         )}
 
         {data.planStack.length > 0 && data.planStack.length > 4 && (
-          <Card className="p-5 ph-surface-card">
+          <Card className={cn("p-5 ph-surface-card", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
             <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
               <Trophy className="size-5 text-primary" />
               Stacked plans (I7)
@@ -330,7 +337,7 @@ export default function PerformanceHome() {
         )}
 
         {data.walletDiscountTotal > 0 && (
-          <Card className="p-4 border-l-4 border-l-violet-500 bg-violet-500/5">
+          <Card className={cn("p-4 border-l-4 border-l-violet-500 bg-violet-500/5", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
             <p className="text-sm">
               <span className="font-medium">Discounts reduced your incentive base</span> by{" "}
               {formatInr(data.walletDiscountTotal, data.wallet?.currency ?? "INR")} this period (wallet allocations
@@ -340,7 +347,7 @@ export default function PerformanceHome() {
         )}
 
         {data.wallet && (
-          <Card className="p-4 border-l-4 border-l-amber-500 bg-amber-500/5">
+          <Card className={cn("p-4 border-l-4 border-l-amber-500 bg-amber-500/5", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
             <div className="flex items-center gap-2 mb-3">
               <Wallet className="size-4 text-amber-600" />
               <h2 className="font-semibold text-sm">Request wallet exception</h2>
@@ -375,7 +382,7 @@ export default function PerformanceHome() {
         )}
 
         {data.breakdown && (
-          <Card className="p-5">
+          <Card className={cn("p-5", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <TrendingUp className="size-5 text-emerald-600" />
               Revenue mix · qualifying events
@@ -398,7 +405,7 @@ export default function PerformanceHome() {
           </Card>
         )}
 
-        <Card className="p-5">
+        <Card className={cn("p-5", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Trophy className="size-5 text-amber-500" />
             Leaderboard · revenue · {data.period}
@@ -427,7 +434,7 @@ export default function PerformanceHome() {
         </Card>
 
         {data.payouts.length > 0 && (
-          <Card className="p-5">
+          <Card className={cn("p-5", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
             <h2 className="text-lg font-semibold mb-3">Recent payouts</h2>
             <ul className="text-sm space-y-2">
               {data.payouts.map((p, i) => (
@@ -440,7 +447,7 @@ export default function PerformanceHome() {
           </Card>
         )}
 
-        <div className="flex flex-wrap gap-2">
+        <div className={cn("flex flex-wrap gap-2", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
           <Button variant="outline" asChild>
             <Link to="/guides/incentives-module">Incentives guide</Link>
           </Button>
@@ -448,6 +455,8 @@ export default function PerformanceHome() {
             <Link to="/guides/offers-wallet-staff">Offers &amp; wallet guide</Link>
           </Button>
         </div>
+
+        <PerformanceMobileQuickBar />
       </div>
     </AppLayout>
   );

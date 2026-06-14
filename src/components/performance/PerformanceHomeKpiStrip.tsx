@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Card } from "@/components/ui/card";
 import { PERFORMANCE_MODULE, type PerformanceModule } from "@/lib/performanceHubTheme";
+import { PERFORMANCE_MOBILE_KPI_GRID } from "@/lib/performanceMobileLayout";
 import { cn } from "@/lib/utils";
 
 interface KpiItem {
@@ -18,7 +19,7 @@ interface PerformanceHomeKpiStripProps {
 
 export function PerformanceHomeKpiStrip({ items, loading }: PerformanceHomeKpiStripProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className={PERFORMANCE_MOBILE_KPI_GRID}>
       {items.map((item) => {
         const m = PERFORMANCE_MODULE[item.module];
         return (

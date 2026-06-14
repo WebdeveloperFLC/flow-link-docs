@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { formatInr } from "@/lib/performanceHubTheme";
+import { PERFORMANCE_MOBILE_KPI_GRID } from "@/lib/performanceMobileLayout";
 
 interface PerformanceWalletSummaryStripProps {
   loading?: boolean;
@@ -24,7 +25,7 @@ export function PerformanceWalletSummaryStrip({
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className={PERFORMANCE_MOBILE_KPI_GRID}>
       {items.map((item) => (
         <Card key={item.label} className="p-4 ph-surface-card border-l-4 ph-module-wallet">
           <p className="text-xs font-semibold uppercase tracking-wide ph-muted">{item.label}</p>

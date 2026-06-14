@@ -10,6 +10,9 @@ import { PerformanceWalletSummaryStrip } from "@/components/performance/Performa
 import { PerformanceWalletTable } from "@/components/performance/PerformanceWalletTable";
 import { PerformanceWalletTypeBreakdown } from "@/components/performance/PerformanceWalletTypeBreakdown";
 import { usePerformanceWalletsList } from "@/hooks/usePerformanceWalletsList";
+import { PerformanceMobileQuickBar } from "@/components/performance/PerformanceMobileQuickBar";
+import { PERFORMANCE_MOBILE_DESKTOP_ONLY, PERFORMANCE_MOBILE_PAGE } from "@/lib/performanceMobileLayout";
+import { cn } from "@/lib/utils";
 import { ArrowRight, Settings2, Wallet } from "lucide-react";
 
 export default function PerformanceWallets() {
@@ -27,7 +30,7 @@ export default function PerformanceWallets() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 max-w-7xl">
+      <div className={PERFORMANCE_MOBILE_PAGE} data-testid="performance-mobile-shell">
         <PerformanceHubHeader
           title="Discount wallet management"
           subtitle={`Utilization, scope and lifecycle · ${period}`}
@@ -36,7 +39,8 @@ export default function PerformanceWallets() {
           primaryAction={{ label: "Give discount", to: "/performance/give-discount" }}
         />
 
-        <PerformancePeriodBar />
+        <PerformancePeriodBar compact className="md:hidden" />
+        <PerformancePeriodBar className="hidden md:flex" />
 
         <PerformanceWalletSummaryStrip
           loading={loading}
@@ -48,7 +52,7 @@ export default function PerformanceWallets() {
 
         <PerformanceWalletTable rows={rows} loading={loading} showCounselor={adminView} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-4", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
           <Card className="p-5 ph-surface-card">
             <h2 className="text-lg font-semibold ph-heading mb-3 flex items-center gap-2">
               <Wallet className="size-5" style={{ color: "var(--wallet)" }} />
@@ -98,7 +102,7 @@ export default function PerformanceWallets() {
           <PerformanceWalletTypeBreakdown slices={typeBreakdown} loading={loading} />
         </div>
 
-        <div className="flex justify-end">
+        <div className={cn("flex justify-end", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
           <Link
             to="/performance"
             className="inline-flex items-center gap-1 text-sm font-medium hover:underline"
@@ -108,6 +112,8 @@ export default function PerformanceWallets() {
             <ArrowRight className="size-4" />
           </Link>
         </div>
+
+        <PerformanceMobileQuickBar />
       </div>
     </AppLayout>
   );
