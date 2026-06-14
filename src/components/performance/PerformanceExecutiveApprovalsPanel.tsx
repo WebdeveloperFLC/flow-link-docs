@@ -46,7 +46,7 @@ export function PerformanceExecutiveApprovalsPanel({
         </ul>
       )}
       <Link
-        to="/performance/admin/approvals"
+        to="/performance/approvals"
         className="text-sm font-medium mt-4 inline-block hover:underline"
         style={{ color: "var(--blue)" }}
       >

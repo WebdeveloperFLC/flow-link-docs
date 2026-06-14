@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,47 +14,8 @@ import { PerformanceApprovalQueueTable } from "@/components/performance/Performa
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { useToast } from "@/hooks/use-toast";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
-import {
-  approvalStageCounts,
-  buildApprovalQueue,
-  filterApprovalQueue,
-  type ApprovalStage,
-  type UnifiedApprovalItem,
-} from "@/incentives/lib/approvalQueueLogic";
+import { useApprovalQueueData } from "@/hooks/useApprovalQueueData";
 import { CheckCircle2, RefreshCw } from "lucide-react";
-
-interface ApprovalRow {
-  id: string;
-  period_key: string;
-  counselor_id: string;
-  client_id: string | null;
-  lead_id: string | null;
-  discount_amount: number;
-  discount_percent: number | null;
-  wallet_debit: number;
-  approval_level: string;
-  status: string;
-  request_note: string | null;
-  reference_amount: number | null;
-  net_after_discount: number | null;
-  below_floor: boolean;
-  is_waiver: boolean;
-  created_at: string;
-  counselor?: { full_name: string | null } | null;
-  client?: { full_name: string | null } | null;
-  offer?: { title: string | null } | null;
-}
-
-interface WalletExceptionRow {
-  id: string;
-  period_key: string;
-  counselor_id: string;
-  requested_amount: number;
-  reason: string;
-  status: string;
-  created_at: string;
-  counselor?: { full_name: string | null } | null;
-}
 
 export default function PerformanceApprovals() {
   const { hasRole, loading: authLoading, isAdmin } = useAuth();
@@ -65,12 +26,6 @@ export default function PerformanceApprovals() {
   const readOnly = isDirectorOnly;
   const canReview = hasRole(["admin", "administrator"]) || hasRole("manager");
   const canView = canReview || isDirectorOnly;
-  const [rows, setRows] = useState<ApprovalRow[]>([]);
-  const [walletRows, setWalletRows] = useState<WalletExceptionRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [notes, setNotes] = useState<Record<string, string>>({});
-  const [stageFilter, setStageFilter] = useState<ApprovalStage | "all">("all");
   const [floorPct, setFloorPct] = useState("80");
   const [floorSaving, setFloorSaving] = useState(false);
   const [floorPolicies, setFloorPolicies] = useState<
@@ -78,63 +33,20 @@ export default function PerformanceApprovals() {
   >([]);
   const [serviceEdits, setServiceEdits] = useState<Record<string, string>>({});
 
-  async function load() {
-    setLoading(true);
-    const [disc, wallet] = await Promise.all([
-      supabase
-        // @ts-expect-error discount_approval_requests not in generated types yet (PH-R-016)
-        .from("discount_approval_requests")
-        .select(
-          `
-        id, period_key, counselor_id, client_id, lead_id,
-        discount_amount, discount_percent, wallet_debit, approval_level,
-        status, request_note, reference_amount, net_after_discount, below_floor, is_waiver,
-        created_at,
-        counselor:profiles!discount_approval_requests_counselor_id_fkey(full_name),
-        client:clients(full_name),
-        offer:offers(title)
-      `,
-        )
-        .eq("status", "pending")
-        .eq("period_key", period)
-        .order("created_at", { ascending: true }),
-      supabase
-        // @ts-expect-error wallet_exception_requests not in generated types yet (PH-R-016)
-        .from("wallet_exception_requests")
-        .select(
-          `
-          id, period_key, counselor_id, requested_amount, reason, status, created_at,
-          counselor:profiles!wallet_exception_requests_counselor_id_fkey(full_name)
-        `,
-        )
-        .eq("status", "pending")
-        .eq("period_key", period)
-        .order("created_at", { ascending: true }),
-    ]);
-
-    if (disc.error) {
-      toast({
-        title: "Could not load approvals",
-        description: formatSupabaseError(disc.error, "Load failed"),
-        variant: "destructive",
-      });
-      setRows([]);
-    } else {
-      setRows((disc.data ?? []) as ApprovalRow[]);
-    }
-
-    if (wallet.error) {
-      setWalletRows([]);
-    } else {
-      setWalletRows((wallet.data ?? []) as WalletExceptionRow[]);
-    }
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    if (!canView) return;
-    load();
-  }, [period, canView]);
+  const {
+    loading,
+    busyId,
+    notes,
+    setNotes,
+    stageFilter,
+    setStageFilter,
+    queue,
+    stages,
+    filteredQueue,
+    load,
+    handleApprove,
+    handleDecline,
+  } = useApprovalQueueData(period, canView);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -150,16 +62,6 @@ export default function PerformanceApprovals() {
       setServiceEdits(edits);
     });
   }, [isAdmin]);
-
-  const queue = useMemo(
-    () => buildApprovalQueue(rows, walletRows),
-    [rows, walletRows],
-  );
-  const stages = useMemo(() => approvalStageCounts(queue), [queue]);
-  const filteredQueue = useMemo(
-    () => filterApprovalQueue(queue, stageFilter),
-    [queue, stageFilter],
-  );
 
   async function saveFloorPolicy() {
     const pct = Number(floorPct);
@@ -212,68 +114,6 @@ export default function PerformanceApprovals() {
     }
   }
 
-  async function reviewDiscount(id: string, action: "approve" | "decline") {
-    setBusyId(id);
-    try {
-      const { data, error } = await supabase.rpc("fn_review_discount_request", {
-        _request_id: id,
-        _action: action,
-        _note: notes[id]?.trim() || null,
-      });
-      if (error) throw error;
-      const result = data as { ok?: boolean; reason?: string };
-      if (!result?.ok) {
-        throw new Error(typeof result.reason === "string" ? result.reason : "Review failed");
-      }
-      toast({
-        title: action === "approve" ? "Discount approved & applied" : "Request declined",
-      });
-      await load();
-    } catch (e: unknown) {
-      toast({
-        title: "Action failed",
-        description: formatSupabaseError(e, "Could not update request"),
-        variant: "destructive",
-      });
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function reviewWallet(id: string, action: "approve" | "decline") {
-    setBusyId(id);
-    try {
-      const { error } = await supabase.rpc("fn_review_wallet_exception_request", {
-        _request_id: id,
-        _action: action,
-        _note: notes[id]?.trim() || null,
-      });
-      if (error) throw error;
-      toast({
-        title: action === "approve" ? "Wallet exception approved" : "Request declined",
-      });
-      await load();
-    } catch (e: unknown) {
-      toast({
-        title: "Action failed",
-        description: formatSupabaseError(e, "Could not update request"),
-        variant: "destructive",
-      });
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  function handleApprove(item: UnifiedApprovalItem) {
-    if (item.kind === "wallet_exception") reviewWallet(item.id, "approve");
-    else reviewDiscount(item.id, "approve");
-  }
-
-  function handleDecline(item: UnifiedApprovalItem) {
-    if (item.kind === "wallet_exception") reviewWallet(item.id, "decline");
-    else reviewDiscount(item.id, "decline");
-  }
-
   if (authLoading) return null;
   if (!canView) return <Navigate to="/performance" replace />;
 
@@ -300,8 +140,8 @@ export default function PerformanceApprovals() {
           <Button variant="outline" size="sm" className="gap-2" onClick={load} disabled={loading}>
             <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
-          <Link to="/performance/admin" className="text-sm hover:underline ml-auto" style={{ color: "var(--blue)" }}>
-            ← Command center
+          <Link to="/performance/approvals" className="text-sm hover:underline ml-auto" style={{ color: "var(--blue)" }}>
+            ← Approvals CMS
           </Link>
         </div>
 
@@ -347,7 +187,7 @@ export default function PerformanceApprovals() {
         </Card>
 
         {isAdmin && (
-          <Card className="p-4 ph-surface-card space-y-3 border-dashed">
+          <Card id="floor-policy" className="p-4 ph-surface-card space-y-3 border-dashed">
             <h2 className="font-semibold text-sm ph-heading">Margin floor policy (O16 / O16b)</h2>
             <div className="flex flex-wrap items-end gap-3">
               <div>
