@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PerformanceLegacyDeskNav } from "@/components/performance/PerformanceLegacyDeskNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -126,6 +127,7 @@ export default function IncentiveRunDetail() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
+        <PerformanceLegacyDeskNav workspace="incentives-payouts" />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <FileText className="size-6 text-primary" />

@@ -1,14 +1,28 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  canShowViewAsSwitcher,
+  effectiveRolesForView,
+  isSuperRoleViewer,
+  readPreviewCatalog,
+  readViewAsRole,
+  viewAsOptionsForUser,
+  writePreviewCatalog,
+  writeViewAsRole,
+} from "@/lib/roleViewAs";
+import type { AppRole } from "@/lib/appRoles";
 
-export type AppRole = "admin" | "administrator" | "counselor" | "documentation" | "viewer" | "director" | "telecaller" | "client" | "commission_admin" | "manager";
+export type { AppRole } from "@/lib/appRoles";
 
 interface AuthCtx {
   user: User | null;
   session: Session | null;
+  /** Effective roles for navigation and UI gates (respects View-as preview) */
   roles: AppRole[];
+  /** Roles assigned in the database */
+  actualRoles: AppRole[];
   loading: boolean;
   signOut: () => Promise<void>;
   hasRole: (r: AppRole | AppRole[]) => boolean;
@@ -21,30 +35,92 @@ interface AuthCtx {
   isCommissionAdmin: boolean;
   isAccountingAdmin: boolean;
   isAccountingMember: boolean;
+  /** View-as preview (HR Payroll pattern) */
+  viewAsRole: AppRole | null;
+  setViewAsRole: (role: AppRole | null) => void;
+  isViewAsActive: boolean;
+  canUseViewAs: boolean;
+  isSuperRoleViewer: boolean;
+  viewAsOptions: AppRole[];
+  previewRoleCatalog: AppRole[];
+  setPreviewRoleCatalog: (roles: AppRole[]) => void;
 }
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
 
+function roleIncludesAdmin(roles: AppRole[]): boolean {
+  return roles.includes("admin") || roles.includes("administrator");
+}
+
+function buildHasRole(roles: AppRole[]) {
+  return (r: AppRole | AppRole[]) => {
+    const arr = Array.isArray(r) ? r : [r];
+    return arr.some(
+      (x) =>
+        roles.includes(x) ||
+        (x === "admin" && roles.includes("administrator")) ||
+        (x === "administrator" && roles.includes("admin")),
+    );
+  };
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [roles, setRoles] = useState<AppRole[]>([]);
+  const [actualRoles, setActualRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAccountingMember, setIsAccountingMember] = useState(false);
   const [isAccountingAdmin, setIsAccountingAdmin] = useState(false);
+  const [viewAsRole, setViewAsRoleState] = useState<AppRole | null>(null);
+  const [previewRoleCatalog, setPreviewRoleCatalogState] = useState<AppRole[]>([]);
 
   const loadRoles = async (uid: string) => {
     const [{ data: roleRows }, { data: acctRows }] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", uid),
       supabase.from("accounting_users" as any).select("id,status,role").eq("auth_user_id", uid).eq("status", "ACTIVE").limit(1),
     ]);
-    setRoles((roleRows ?? []).map((r: any) => r.role as AppRole));
+    setActualRoles((roleRows ?? []).map((r: any) => r.role as AppRole));
     const acctRow: any = acctRows?.[0];
-    setIsAccountingMember(!!acctRow);
-    setIsAccountingAdmin(
-      !!acctRow && (acctRow.role === "SUPER_ADMIN" || acctRow.role === "FINANCE_ADMIN"),
-    );
+    const acctMember = !!acctRow;
+    const acctAdmin = !!acctRow && (acctRow.role === "SUPER_ADMIN" || acctRow.role === "FINANCE_ADMIN");
+    setIsAccountingMember(acctMember);
+    setIsAccountingAdmin(acctAdmin);
+
+    const loadedRoles = (roleRows ?? []).map((r: any) => r.role as AppRole);
+    const catalog = readPreviewCatalog(uid);
+    setPreviewRoleCatalogState(catalog);
+
+    const storedViewAs = readViewAsRole(uid);
+    const superViewer = isSuperRoleViewer(loadedRoles, acctAdmin);
+    if (
+      storedViewAs &&
+      (superViewer || loadedRoles.includes(storedViewAs))
+    ) {
+      setViewAsRoleState(storedViewAs);
+    } else {
+      setViewAsRoleState(null);
+      writeViewAsRole(uid, null);
+    }
   };
+
+  const setViewAsRole = useCallback(
+    (role: AppRole | null) => {
+      setViewAsRoleState(role);
+      if (user?.id) writeViewAsRole(user.id, role);
+    },
+    [user?.id],
+  );
+
+  const setPreviewRoleCatalog = useCallback(
+    (roles: AppRole[]) => {
+      setPreviewRoleCatalogState(roles);
+      if (user?.id) writePreviewCatalog(user.id, roles);
+      if (viewAsRole && !roles.includes(viewAsRole)) {
+        setViewAsRole(null);
+      }
+    },
+    [user?.id, viewAsRole, setViewAsRole],
+  );
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
@@ -53,12 +129,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (s?.user) {
         setTimeout(() => loadRoles(s.user.id), 0);
       } else {
-        setRoles([]);
+        setActualRoles([]);
         setIsAccountingMember(false);
         setIsAccountingAdmin(false);
-        // Auto-recover from silent refresh-token failures: if we lose the
-        // session while the user is on a protected page, push them to /auth
-        // so they can sign back in instead of hitting a cryptic RLS error.
+        setViewAsRoleState(null);
+        setPreviewRoleCatalogState([]);
         if (event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
           try {
             const path = window.location.pathname + window.location.search;
@@ -86,36 +161,69 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  const hasRole = (r: AppRole | AppRole[]) => {
-    const arr = Array.isArray(r) ? r : [r];
-    return arr.some((x) => roles.includes(x) || (x === "admin" && roles.includes("administrator")) || (x === "administrator" && roles.includes("admin")));
-  };
+  const isSuperViewer = isSuperRoleViewer(actualRoles, isAccountingAdmin);
+  const roles = useMemo(
+    () => effectiveRolesForView(actualRoles, viewAsRole),
+    [actualRoles, viewAsRole],
+  );
+  const viewAsOptions = useMemo(
+    () => viewAsOptionsForUser(actualRoles, isSuperViewer, previewRoleCatalog),
+    [actualRoles, isSuperViewer, previewRoleCatalog],
+  );
+  const canUseViewAs = canShowViewAsSwitcher(actualRoles, isSuperViewer);
+  const isViewAsActive = viewAsRole != null;
+
+  const hasRole = buildHasRole(roles);
+
+  const effectiveIsAccountingAdmin = isViewAsActive
+    ? roleIncludesAdmin(roles)
+    : isAccountingAdmin;
+  const effectiveIsAccountingMember = isViewAsActive
+    ? roleIncludesAdmin(roles) || roles.includes("commission_admin")
+    : isAccountingMember;
 
   const value: AuthCtx = {
     user,
     session,
     roles,
+    actualRoles,
     loading,
-    signOut: async () => { await supabase.auth.signOut(); },
+    signOut: async () => {
+      await supabase.auth.signOut();
+    },
     hasRole,
-    isAdmin: roles.includes("admin") || roles.includes("administrator"),
-    // Per-document delete (trash icon) visibility. Mirrors Admin's existing
-    // delete flow but also exposes it to Edit-tier roles: Counselor and
-    // Documentation. Section management (rename/delete section, permanent
-    // delete from trash) intentionally remains Admin-only via isAdmin.
+    isAdmin: roleIncludesAdmin(roles),
     canDeleteDocs: hasRole(["admin", "administrator", "counselor", "documentation"]),
-    isClient: roles.includes("client") && !roles.some((r) => ["admin","administrator","counselor","documentation","telecaller","viewer","director","commission_admin","manager"].includes(r)),
+    isClient:
+      roles.includes("client") &&
+      !roles.some((r) =>
+        [
+          "admin",
+          "administrator",
+          "counselor",
+          "documentation",
+          "telecaller",
+          "viewer",
+          "director",
+          "commission_admin",
+          "manager",
+        ].includes(r),
+      ),
     canEdit: hasRole(["admin", "administrator", "counselor", "documentation", "telecaller", "commission_admin", "manager"]),
     canUpload: hasRole(["admin", "administrator", "counselor", "documentation", "telecaller", "commission_admin", "manager"]),
     canCreateClient: !!user,
-    // Mirrors DB is_commission_admin(): commission_admin role OR an
-    // accounting admin (SUPER_ADMIN / FINANCE_ADMIN). Plain ACCOUNTANT/
-    // AUDITOR/VIEWER accounting users are intentionally excluded — RLS
-    // would deny them anyway. Bootstrap mode (no accounting admins yet)
-    // is not mirrored client-side; first admin must self-grant.
-    isCommissionAdmin: roles.includes("commission_admin") || roles.includes("manager") || isAccountingAdmin,
-    isAccountingAdmin,
-    isAccountingMember,
+    isCommissionAdmin:
+      roles.includes("commission_admin") || roles.includes("manager") || effectiveIsAccountingAdmin,
+    isAccountingAdmin: effectiveIsAccountingAdmin,
+    isAccountingMember: effectiveIsAccountingMember,
+    viewAsRole,
+    setViewAsRole,
+    isViewAsActive,
+    canUseViewAs,
+    isSuperRoleViewer: isSuperViewer,
+    viewAsOptions,
+    previewRoleCatalog,
+    setPreviewRoleCatalog,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
@@ -124,11 +232,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const c = useContext(Ctx);
   if (!c) {
-    // Fallback during HMR or before provider mounts — avoid hard crash.
     return {
       user: null,
       session: null,
       roles: [],
+      actualRoles: [],
       loading: true,
       signOut: async () => {},
       hasRole: () => false,
@@ -141,6 +249,14 @@ export const useAuth = () => {
       isCommissionAdmin: false,
       isAccountingAdmin: false,
       isAccountingMember: false,
+      viewAsRole: null,
+      setViewAsRole: () => {},
+      isViewAsActive: false,
+      canUseViewAs: false,
+      isSuperRoleViewer: false,
+      viewAsOptions: [],
+      previewRoleCatalog: [],
+      setPreviewRoleCatalog: () => {},
     } as AuthCtx;
   }
   return c;
