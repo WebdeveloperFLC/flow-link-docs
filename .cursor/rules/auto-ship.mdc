@@ -1,51 +1,66 @@
 ---
-description: Ship every implementation to GitHub main immediately — no PRs, then Lovable Sync+Publish
+description: After any fix (especially UI), ship to GitHub and tell user Lovable Sync → Publish steps
 alwaysApply: true
 ---
 
-# Ship to GitHub main (mandatory)
+# Ship to GitHub + Lovable (mandatory)
 
-**Owner workflow:** Cursor ships code → GitHub `main` → user runs Lovable Sync → Publish.  
-**No pull requests** unless the user explicitly asks for review first.
+**This repo overrides generic “don’t commit unless asked.”** Shipping is part of “done.”
 
-## After every implementation (feature, fix, refactor)
+**Owner workflow:** Cursor ships → GitHub `main` → **Lovable → Sync from GitHub → Publish → hard refresh**
+
+No pull requests unless the user explicitly asks for review first.
+
+## After every implementation (UI fix, feature, refactor, docs+code)
 
 1. **Ensure you are on `main`** (`git checkout main && git pull origin main` if needed).
-2. **Run `npm run ship`** with a clear commit message and the changed file paths:
+2. **Run `npm run ship`** with a clear message and changed file paths:
    ```bash
-   npm run ship -- "feat(crm): short description" -- src/path/to/file.tsx docs/…
+   npm run ship -- "fix(course-finder): remove horizontal scroll" -- src/pages/CourseFinder.tsx
    ```
 3. **If ship is unavailable**, commit and push yourself — never leave work local-only:
    ```bash
    git add <files> && git commit -m "…" && git push origin main
    ```
-4. **Verify push succeeded** before telling the user anything about deploy:
+4. **Verify push succeeded** before saying anything is deployed:
    ```bash
    git fetch origin && git rev-parse HEAD origin/main   # must match
    git log origin/main -1 --oneline
    ```
-5. **Only skip shipping** when:
-   - User explicitly says do not ship/commit/push, or
-   - There are zero code changes, or
-   - Pre-commit tests fail — fix first, then ship without re-asking.
+
+## UI fixes — never stop at “fixed locally”
+
+After UI/page/component changes (`src/pages/**`, `src/components/**`, CSS/theme):
+
+- **Always** run `npm run ship` in the same turn.
+- **Always** include Lovable steps in your closing message (see below).
+- Do **not** ask “want me to ship?” or “say the word to push.”
+
+## Only skip shipping when
+
+- User explicitly says do not ship / commit / push, or
+- There are zero code changes, or
+- Pre-commit tests fail — fix first, then ship without re-asking.
 
 ## Never do this
 
-- Finish work and say “sync to Lovable” while files are still uncommitted or unpushed.
-- Ask the user to create, review, or merge a PR for routine CRM/UI work.
-- Ask “should I ship?” or “want me to push?” — shipping is automatic.
+- Finish work while files are still uncommitted or unpushed.
+- Tell the user to sync Lovable when GitHub has no new commit.
+- Ask whether to push for routine CRM/UI work.
 - Imply code is live when it is only on the local machine.
 
 ## Closing message (required after every ship)
 
-Always end implementation turns with:
-
 ```
 ✓ On GitHub main: <commit hash> — <one-line summary>
-YOUR ACTION: Lovable → Sync from GitHub → Publish → hard refresh (Cmd+Shift+R)
+
+YOUR ACTION:
+1. Lovable → Sync from GitHub
+2. Lovable → Publish (approve pending migrations if any)
+3. Hard refresh (Cmd+Shift+R)
 ```
 
-If migrations or edge functions changed, add: approve pending items in Lovable Publish (see `docs/LOVABLE_PUBLISH_CHECKLIST.md`).
+If migrations or edge functions changed, add: see `docs/LOVABLE_PUBLISH_CHECKLIST.md`.
 
 ## PRs
 
