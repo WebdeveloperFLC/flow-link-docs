@@ -56,6 +56,7 @@ After UI/page/component changes (`src/pages/**`, `src/components/**`, CSS/theme)
 - Finish work while files are still uncommitted or unpushed.
 - Tell the user to sync Lovable when GitHub has no new commit.
 - Ask whether to push for routine CRM/UI work.
+- **Ask for approval before commit/push** — owner has pre-authorized auto-ship; run `npm run ship` (or commit+push) without prompting.
 - Imply code is live when it is only on the local machine.
 
 ## Closing message (required after every ship)
