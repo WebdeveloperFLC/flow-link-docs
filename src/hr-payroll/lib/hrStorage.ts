@@ -64,6 +64,18 @@ export async function getHrDocumentSignedUrl(storagePath: string, expiresSec = 3
   return data.signedUrl;
 }
 
+export async function downloadHrDocument(storagePath: string, fileName: string): Promise<void> {
+  const url = await getHrDocumentSignedUrl(storagePath);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName || "document";
+  a.rel = "noopener noreferrer";
+  a.target = "_blank";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
 export async function deleteHrDocument(docId: string, storagePath: string | null): Promise<void> {
   const { error } = await supabase.from("employee_documents" as never).delete().eq("id", docId);
   if (error) throw error;

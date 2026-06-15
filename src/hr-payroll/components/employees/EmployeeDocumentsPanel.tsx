@@ -7,6 +7,7 @@ import { useHrDocuments } from "../../hooks/useHrRequests";
 import { useHrDocumentTypeLabels } from "../../hooks/useHrDocumentTypes";
 import {
   deleteHrDocument,
+  downloadHrDocument,
   getHrDocumentSignedUrl,
   uploadHrDocument,
 } from "../../lib/hrStorage";
@@ -14,7 +15,13 @@ import { hrAudit } from "../../lib/hrApi";
 import { StatusBadge } from "../ui/StatusBadge";
 import type { EmployeeDocumentRow, EmployeeRow } from "../../lib/types";
 
-export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
+export function EmployeeDocumentsPanel({
+  emp,
+  essOnly = false,
+}: {
+  emp: EmployeeRow;
+  essOnly?: boolean;
+}) {
   const { can, fire } = useHrAccess();
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -30,7 +37,7 @@ export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
     }
   }, [docTypeLabels, docType]);
 
-  const canManage = can("manageEmp");
+  const canManage = can("manageEmp") && !essOnly;
 
   const onUpload = async (file: File | undefined) => {
     if (!file || !canManage) return;
@@ -50,7 +57,7 @@ export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
 
   const openDoc = async (storagePath: string | null | undefined, fileName: string) => {
     if (!storagePath) {
-      fire("Metadata only — re-upload file to open");
+      fire(essOnly ? "File not available yet — ask HR to re-upload" : "Metadata only — re-upload file to open");
       return;
     }
     try {
@@ -58,6 +65,18 @@ export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (e) {
       fire(e instanceof Error ? e.message : "Could not open file");
+    }
+  };
+
+  const saveDoc = async (storagePath: string | null | undefined, fileName: string) => {
+    if (!storagePath) {
+      fire(essOnly ? "File not available yet — ask HR to re-upload" : "Metadata only — re-upload file to download");
+      return;
+    }
+    try {
+      await downloadHrDocument(storagePath, fileName || "document");
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Could not download file");
     }
   };
 
@@ -132,6 +151,56 @@ export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
           <div className="ico">📄</div>
           No documents on file.
         </div>
+      ) : essOnly ? (
+        <div className="grid" style={{ gap: 8 }}>
+          {docs.map((d) => (
+            <div
+              key={d.id}
+              className="row-flex"
+              style={{
+                justifyContent: "space-between",
+                padding: "10px 12px",
+                background: "var(--paper)",
+                borderRadius: 10,
+                gap: 10,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 13.5 }}>{d.doc_type}</div>
+                <div className="mono muted" style={{ fontSize: 11, marginTop: 2 }}>
+                  {d.file_name ?? "—"}
+                  {!d.storage_path && (
+                    <span className="tag" style={{ marginLeft: 6 }}>
+                      awaiting file
+                    </span>
+                  )}
+                </div>
+                <div style={{ marginTop: 4 }}>
+                  <StatusBadge status={d.verification_status ?? "Uploaded"} />
+                </div>
+              </div>
+              <div className="row-flex" style={{ gap: 6 }}>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  disabled={!d.storage_path}
+                  onClick={() => void openDoc(d.storage_path, d.file_name ?? d.doc_type)}
+                >
+                  View
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  disabled={!d.storage_path}
+                  onClick={() => void saveDoc(d.storage_path, d.file_name ?? d.doc_type)}
+                >
+                  Download
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <table>
           <thead>
@@ -170,6 +239,14 @@ export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
                       onClick={() => void openDoc(d.storage_path, d.file_name ?? d.doc_type)}
                     >
                       Open
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      disabled={!d.storage_path}
+                      onClick={() => void saveDoc(d.storage_path, d.file_name ?? d.doc_type)}
+                    >
+                      Download
                     </button>
                     {canManage && (d.verification_status ?? "Uploaded") === "Uploaded" && (
                       <>

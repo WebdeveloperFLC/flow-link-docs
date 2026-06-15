@@ -31,6 +31,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120029_hr_payroll_document_master_rbac.sql",
   "20260717120030_hr_payroll_punch_24h_window.sql",
   "20260717120031_hr_payroll_shift_salary_offshift_split.sql",
+  "20260717120032_hr_payroll_ess_document_storage_access.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -160,5 +161,18 @@ describe("HR Payroll module contract", () => {
     const ess = readFileSync(join(ROOT, "src/hr-payroll/pages/HrEssPage.tsx"), "utf8");
     expect(ess).toContain("staff_id");
     expect(ess).not.toContain("EmployeeSeg");
+    expect(ess).toContain("EmployeeDocumentsPanel");
+    expect(ess).toContain("essOnly");
+  });
+
+  it("ESS documents panel supports view and download", () => {
+    const panel = readFileSync(
+      join(ROOT, "src/hr-payroll/components/employees/EmployeeDocumentsPanel.tsx"),
+      "utf8",
+    );
+    expect(panel).toContain("essOnly");
+    expect(panel).toContain("View");
+    expect(panel).toContain("Download");
+    expect(panel).toContain("getHrDocumentSignedUrl");
   });
 });

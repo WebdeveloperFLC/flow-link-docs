@@ -5,7 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
 import { useHrPayrollLine } from "../hooks/useHrPayroll";
-import { useHrDocuments, useHrLeaveBalances } from "../hooks/useHrRequests";
+import { EmployeeDocumentsPanel } from "../components/employees/EmployeeDocumentsPanel";
+import { useHrLeaveBalances } from "../hooks/useHrRequests";
 import { useHrShifts } from "../hooks/useHrShifts";
 import { useHrAttendance } from "../hooks/useHrAttendance";
 import { useAttendanceActions } from "../hooks/useAttendanceActions";
@@ -35,7 +36,6 @@ export default function HrEssPage() {
 
   const { data: att = [] } = useHrAttendance(emp?.id, cycle?.start_date, cycle?.end_date);
   const { data: line } = useHrPayrollLine(emp?.id, cycle?.id);
-  const { data: docs = [] } = useHrDocuments(emp?.id);
   const { data: leaveBalances = [] } = useHrLeaveBalances(emp?.id);
   const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, fire);
 
@@ -267,20 +267,7 @@ export default function HrEssPage() {
               </div>
             ))}
           </div>
-          {docs.length === 0 ? (
-            <div className="empty" style={{ padding: 16 }}>
-              No documents.
-            </div>
-          ) : (
-            <div className="grid" style={{ gap: 7 }}>
-              {docs.map((d: { id: string; doc_type: string; mime: string | null }) => (
-                <div className="doc-chip" key={d.id}>
-                  <span className="ext">{d.mime?.includes("pdf") ? "PDF" : "DOC"}</span>
-                  <span style={{ flex: 1 }}>{d.doc_type}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          <EmployeeDocumentsPanel emp={emp} essOnly />
         </div>
       </div>
     </div>
