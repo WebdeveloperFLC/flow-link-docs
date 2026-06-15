@@ -26,9 +26,11 @@ interface Props {
   primaryClientId: string | null;
   primaryLeadId: string | null;
   onChange?: (members: FamilyMember[]) => void;
+  /** When true, omit outer Card wrapper (for tabbed registration UI). */
+  embedded?: boolean;
 }
 
-export const FamilyMembersSection = ({ primaryClientId, primaryLeadId, onChange }: Props) => {
+export const FamilyMembersSection = ({ primaryClientId, primaryLeadId, onChange, embedded }: Props) => {
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [visaCatalogue, setVisaCatalogue] = useState<ServiceCatalogueItem[]>([]);
 
@@ -104,10 +106,13 @@ export const FamilyMembersSection = ({ primaryClientId, primaryLeadId, onChange 
     patch(m.id, { visa_services: next });
   };
 
+  const Wrapper = embedded ? "div" : Card;
+  const wrapperClass = embedded ? "space-y-4" : "p-4 sm:p-6 space-y-4";
+
   return (
-    <Card className="p-4 sm:p-6 space-y-4">
+    <Wrapper className={wrapperClass}>
       <div>
-        <h3 className="font-semibold">Family Members</h3>
+        {!embedded && <h3 className="font-semibold">Family Members</h3>}
         <p className="text-xs text-muted-foreground">
           Add spouse or dependents if applying together or planning to follow.
         </p>
@@ -240,7 +245,7 @@ export const FamilyMembersSection = ({ primaryClientId, primaryLeadId, onChange 
           </Card>
         ))}
       </div>
-    </Card>
+    </Wrapper>
   );
 };
 
