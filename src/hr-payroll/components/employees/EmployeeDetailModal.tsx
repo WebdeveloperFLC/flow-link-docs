@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useHrEmployees } from "../../hooks/useHrEmployees";
 import { useHrCrmStaff, useCrmProfile } from "../../hooks/useHrTeam";
 import { displayEmployeeName, formatMoney, initials, parseEmergencyContacts } from "../../lib/format";
 import { useSalaryRevisions } from "../../hooks/useSalaryRevisions";
@@ -9,12 +10,16 @@ type Tab = "profile" | "employment" | "salary" | "statutory" | "bank" | "documen
 
 export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClose: () => void }) {
   const [tab, setTab] = useState<Tab>("profile");
+  const { data: employees = [] } = useHrEmployees();
   const { data: revisions = [] } = useSalaryRevisions(emp.id);
   const { data: crmStaff = [] } = useHrCrmStaff();
   const { data: linkedProfile } = useCrmProfile(emp.staff_id);
   const currency = emp.salary_currency ?? emp.companies?.currency ?? "INR";
   const money = (n: number) => formatMoney(n, currency);
   const contacts = parseEmergencyContacts(emp.emergency_contacts);
+  const reportingManager = emp.reporting_mgr_id
+    ? employees.find((e) => e.id === emp.reporting_mgr_id)
+    : null;
   const linkedCrm = emp.staff_id ? crmStaff.find((s) => s.staff_id === emp.staff_id) : null;
   const crmLoginLabel = linkedCrm
     ? linkedCrm.email
@@ -96,6 +101,14 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
               <Row k="Designation" v={emp.designation} />
               <Row k="Department" v={emp.department} />
               <Row k="Branch" v={emp.branches?.name ?? null} />
+              <Row
+                k="Reporting Manager"
+                v={
+                  reportingManager
+                    ? `${reportingManager.full_name} (${reportingManager.emp_code})`
+                    : null
+                }
+              />
               <Row
                 k="Payroll Company"
                 v={

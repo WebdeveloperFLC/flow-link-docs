@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { HR_ORG_ID, DEPARTMENTS, MANAGERS } from "../../lib/constants";
+import { HR_ORG_ID, DEPARTMENTS } from "../../lib/constants";
 import { fillSalaryComponents, formatMoney, parseEmergencyContacts, weeklyOffDays } from "../../lib/format";
 import { uploadEmployeePhoto } from "../../lib/hrStorage";
 import { EmployeeAvatar } from "../ui/EmployeeAvatar";
 import type { BranchRow, CompanyRow, EmergencyContact, EmployeeRow, ShiftRow, CrmStaffRow } from "../../lib/types";
-import { fetchNextEmpCode, useHrEmployee } from "../../hooks/useHrEmployees";
+import { fetchNextEmpCode, useHrEmployee, useHrEmployees } from "../../hooks/useHrEmployees";
 import { useHrCrmStaff, useCrmProfile } from "../../hooks/useHrTeam";
 import { useHrPolicies } from "../../hooks/useHrRequests";
 import { useHrAccess } from "../../context/HrPayrollProvider";
@@ -41,6 +41,7 @@ type FormState = {
   designation: string;
   department: string;
   branch_id: string;
+  reporting_mgr_id: string;
   company_id: string;
   employment_type: string;
   date_of_joining: string;
@@ -107,6 +108,7 @@ function fromEmployee(e: EmployeeRow): FormState {
     designation: e.designation ?? "",
     department: e.department ?? "Counselling",
     branch_id: e.branch_id ?? "",
+    reporting_mgr_id: e.reporting_mgr_id ?? "",
     company_id: e.company_id ?? "",
     employment_type: e.employment_type,
     date_of_joining: e.date_of_joining ?? "",
@@ -166,6 +168,7 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
   designation: "",
   department: "Counselling",
   branch_id: branches[0]?.id ?? "",
+  reporting_mgr_id: "",
   company_id: companies[0]?.id ?? "",
   employment_type: "Full-Time",
   date_of_joining: "",
@@ -207,6 +210,7 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
 export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }: Props) {
   const { fire } = useHrAccess();
   const qc = useQueryClient();
+  const { data: employees = [] } = useHrEmployees();
   const { data: liveEmp } = useHrEmployee(emp?.id);
   const sourceEmp = liveEmp ?? emp;
   const { data: crmStaff = [], isError: crmStaffError } = useHrCrmStaff();
@@ -268,6 +272,11 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
     }
     return available;
   }, [crmStaff, emp?.id, emp?.emp_code, emp?.full_name, f.staff_id, linkedProfile?.email, linkedProfile?.full_name]);
+
+  const managerOptions = useMemo(
+    () => employees.filter((e) => e.id !== emp?.id),
+    [employees, emp?.id],
+  );
 
   const linkedCrmLabel = useMemo(() => {
     if (!f.staff_id) return null;
@@ -336,6 +345,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
       designation: f.designation.trim(),
       department: f.department,
       branch_id: f.branch_id || null,
+      reporting_mgr_id: f.reporting_mgr_id || null,
       company_id: f.company_id || null,
       employment_type: f.employment_type,
       date_of_joining: f.date_of_joining || null,
@@ -594,6 +604,21 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                   {branches.map((b) => (
                     <option key={b.id} value={b.id}>
                       {b.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="fld">
+                <span className="l">Reporting Manager</span>
+                <select
+                  className="input"
+                  value={f.reporting_mgr_id}
+                  onChange={(e) => set("reporting_mgr_id", e.target.value)}
+                >
+                  <option value="">— none —</option>
+                  {managerOptions.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.full_name} ({m.emp_code})
                     </option>
                   ))}
                 </select>
