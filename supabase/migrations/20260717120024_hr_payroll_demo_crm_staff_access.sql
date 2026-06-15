@@ -122,3 +122,5 @@ $$;
 
 GRANT EXECUTE ON FUNCTION fn_hr_can_access_crm(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION fn_get_crm_profile(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION fn_list_crm_staff(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION fn_link_employee_staff(uuid, uuid) TO authenticated;

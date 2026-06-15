@@ -85,6 +85,8 @@ If anything is confusing → **stop** and message your lead. Do not guess.
 
 **Fail if:** Different numbers or employee missing.
 
+**If net shows ₹39,300 (not ₹39,500):** tell your lead — ₹200 Professional Tax was on by mistake. Lead runs `HR_PAYROLL_FIX_ISHA_TV02.sql` once; then re-check.
+
 ---
 
 ## Check 7 — Canada employee payroll (MOST IMPORTANT)

@@ -97,12 +97,33 @@ export function HrTeamPanel() {
   };
 
   if (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    const needsGrant = /permission denied|42501/i.test(msg);
+    const needsMigration = /does not exist|42883/i.test(msg);
     return (
       <div className="card" style={{ background: "#fff7ed", borderColor: "#fed7aa" }}>
-        <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>
-          Team list unavailable — apply migration{" "}
-          <span className="mono">20260717120009_hr_payroll_crm_team_integration.sql</span>
-          {error instanceof Error ? `: ${error.message}` : ""}
+        <div style={{ fontSize: 13, color: "var(--ink-soft)", lineHeight: 1.55 }}>
+          <strong>Team list unavailable.</strong>
+          {needsGrant && (
+            <>
+              {" "}
+              Run SQL fix:{" "}
+              <span className="mono">docs/hr-payroll/HR_PAYROLL_FIX_TEAM_CRM_GRANTS.sql</span> or migration{" "}
+              <span className="mono">20260717120025</span>.
+            </>
+          )}
+          {needsMigration && (
+            <>
+              {" "}
+              Apply migrations{" "}
+              <span className="mono">20260717120009</span> and{" "}
+              <span className="mono">20260717120024</span>.
+            </>
+          )}
+          {!needsGrant && !needsMigration && (
+            <> Check migrations 09 / 24 / 25 or ask your lead.</>
+          )}
+          <div style={{ marginTop: 8, fontSize: 12, color: "var(--mut)" }}>{msg}</div>
         </div>
       </div>
     );
