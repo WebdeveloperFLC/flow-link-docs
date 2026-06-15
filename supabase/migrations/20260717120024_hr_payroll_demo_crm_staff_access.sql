@@ -58,7 +58,8 @@ BEGIN
   LEFT JOIN role_assignments ra ON ra.staff_id = p.id AND ra.org_id = p_org
   LEFT JOIN employees e ON e.staff_id = p.id AND e.org_id = p_org
   LEFT JOIN branches b ON b.id = p.branch_id
-  WHERE COALESCE(p.deleted_at, p.status) IS DISTINCT FROM 'deleted'
+  WHERE p.deleted_at IS NULL
+    AND COALESCE(p.status, 'active') IS DISTINCT FROM 'deleted'
     AND (
       NOT EXISTS (SELECT 1 FROM user_roles ur0 WHERE ur0.user_id = p.id)
       OR EXISTS (

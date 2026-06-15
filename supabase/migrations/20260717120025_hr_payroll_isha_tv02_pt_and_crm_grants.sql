@@ -21,10 +21,18 @@ BEGIN
   WHERE org_id = '00000000-0000-0000-0000-0000000000f1'
   ORDER BY start_date DESC LIMIT 1;
 
-  IF v_emp IS NOT NULL AND v_cycle IS NOT NULL
-     AND v_status IN ('Draft', 'Processed', 'Approved', 'Locked', 'Paid') THEN
-    PERFORM fn_build_payroll_line(v_emp, v_cycle);
-    RAISE NOTICE 'Rebuilt FL-1042 payroll line — expect net 39500';
+  IF v_emp IS NOT NULL AND v_cycle IS NOT NULL THEN
+    IF v_status IN ('Draft', 'Processed', 'Approved') THEN
+      PERFORM fn_build_payroll_line(v_emp, v_cycle);
+      RAISE NOTICE 'Rebuilt FL-1042 payroll line — expect net 39500';
+    ELSE
+      UPDATE payroll_lines
+      SET pt_employee = 0,
+          net_salary = net_salary + COALESCE(pt_employee, 0),
+          updated_at = now()
+      WHERE employee_id = v_emp AND cycle_id = v_cycle;
+      RAISE NOTICE 'Patched FL-1042 line on % cycle', v_status;
+    END IF;
   END IF;
 END $$;
 
