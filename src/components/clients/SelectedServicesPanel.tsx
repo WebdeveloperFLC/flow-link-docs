@@ -9,7 +9,6 @@ import { removeStoredServiceCode } from "@/lib/service-library/serviceSelectionM
 const GROUPS: { key: keyof ServiceSelection; label: string }[] = [
   { key: "visa_services", label: "Visa & Immigration" },
   { key: "coaching_services", label: "Coaching" },
-  { key: "admission_services", label: "Admission" },
   { key: "allied_services", label: "Allied" },
   { key: "travel_services", label: "Travel" },
 ];

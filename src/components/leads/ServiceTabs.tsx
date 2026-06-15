@@ -51,13 +51,6 @@ const TABS: Tab[] = [
     grouped: "visa_services",
   },
   {
-    key: "admission_services",
-    label: "Admissions",
-    masterKeys: ["admission_services"],
-    selectionKey: "admission_services",
-    grouped: "admission_services",
-  },
-  {
     key: "allied_travel",
     label: "Allied & Travel",
     masterKeys: ["allied_services", "travel_financial"],

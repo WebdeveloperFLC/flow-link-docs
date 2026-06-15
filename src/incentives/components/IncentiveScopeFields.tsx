@@ -46,7 +46,6 @@ const SERVICE_TABS: {
 }[] = [
   { key: "coaching", label: "Coaching", masterKeys: ["coaching_services"], grouped: "coaching_services" },
   { key: "visa", label: "Visa & Immigration", masterKeys: ["visa_immigration"], grouped: "visa_services" },
-  { key: "admission", label: "Admissions", masterKeys: ["admission_services"], grouped: "admission_services" },
   { key: "allied", label: "Allied & Travel", masterKeys: ["allied_services", "travel_financial"], grouped: "allied_travel" },
 ];
 
