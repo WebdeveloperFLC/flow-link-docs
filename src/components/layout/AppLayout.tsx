@@ -247,12 +247,14 @@ const calendarNav: NavItem[] = [
 ];
 
 export const AppLayout = ({ children }: { children: ReactNode }) => {
-  const { user, roles, signOut, isAdmin, hasRole, isCommissionAdmin, viewAsRole } = useAuth();
+  const { user, roles, signOut, isAdmin, hasRole, isCommissionAdmin, viewAsRole, isPlatformOwner } = useAuth();
   const navigate = useNavigate();
   const primaryRole = roles[0] ?? "viewer";
   const roleBadgeLabel = viewAsRole
     ? `Preview · ${viewAsRoleLabel(viewAsRole)}`
-    : ROLE_LABELS[primaryRole] ?? primaryRole;
+    : isPlatformOwner
+      ? "Owner"
+      : ROLE_LABELS[primaryRole] ?? primaryRole;
   const { hasAccess: hasAccountingAccess, loading: accountingAccessLoading } = useAccountingAccess();
   const { can: canAcct, isAdmin: isAcctAdmin } = useCan();
   const { canView: canViewInstitutions } = useModulePermission("institutions");

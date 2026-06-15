@@ -3,11 +3,14 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  canPreviewAllRoles,
   canShowViewAsSwitcher,
+  canUseFullPreviewCatalog,
   effectiveRolesForView,
+  isPlatformOwner,
+  isViewAsRoleAllowed,
   readPreviewCatalog,
   readViewAsRole,
+  roleIncludesAdmin,
   viewAsOptionsForUser,
   writePreviewCatalog,
   writeViewAsRole,
@@ -40,8 +43,12 @@ interface AuthCtx {
   setViewAsRole: (role: AppRole | null) => void;
   isViewAsActive: boolean;
   canUseViewAs: boolean;
+  /** Company owner — full View-as catalog (overrides team Administrator) */
+  isPlatformOwner: boolean;
+  canUseFullPreviewCatalog: boolean;
+  /** @deprecated use canUseFullPreviewCatalog */
   canPreviewAllRoles: boolean;
-  /** @deprecated use canPreviewAllRoles */
+  /** @deprecated use canUseFullPreviewCatalog */
   isSuperRoleViewer: boolean;
   viewAsOptions: AppRole[];
   previewRoleCatalog: AppRole[];
@@ -49,10 +56,6 @@ interface AuthCtx {
 }
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
-
-function roleIncludesAdmin(roles: AppRole[]): boolean {
-  return roles.includes("admin") || roles.includes("administrator");
-}
 
 function buildHasRole(roles: AppRole[]) {
   return (r: AppRole | AppRole[]) => {
@@ -73,6 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAccountingMember, setIsAccountingMember] = useState(false);
   const [isAccountingAdmin, setIsAccountingAdmin] = useState(false);
+  const [accountingRole, setAccountingRole] = useState<string | null>(null);
   const [viewAsRole, setViewAsRoleState] = useState<AppRole | null>(null);
   const [previewRoleCatalog, setPreviewRoleCatalogState] = useState<AppRole[]>([]);
 
@@ -87,17 +91,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const acctAdmin = !!acctRow && (acctRow.role === "SUPER_ADMIN" || acctRow.role === "FINANCE_ADMIN");
     setIsAccountingMember(acctMember);
     setIsAccountingAdmin(acctAdmin);
+    setAccountingRole(acctRow?.role ?? null);
 
     const loadedRoles = (roleRows ?? []).map((r: any) => r.role as AppRole);
     const catalog = readPreviewCatalog(uid);
     setPreviewRoleCatalogState(catalog);
 
     const storedViewAs = readViewAsRole(uid);
-    const canPreviewAll = canPreviewAllRoles(loadedRoles, acctAdmin);
-    if (
-      storedViewAs &&
-      (canPreviewAll || loadedRoles.includes(storedViewAs))
-    ) {
+    const fullCatalog = canUseFullPreviewCatalog(loadedRoles, acctRow?.role ?? null);
+    if (storedViewAs && isViewAsRoleAllowed(storedViewAs, loadedRoles, fullCatalog)) {
       setViewAsRoleState(storedViewAs);
     } else {
       setViewAsRoleState(null);
@@ -134,6 +136,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setActualRoles([]);
         setIsAccountingMember(false);
         setIsAccountingAdmin(false);
+        setAccountingRole(null);
         setViewAsRoleState(null);
         setPreviewRoleCatalogState([]);
         if (event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
@@ -163,16 +166,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  const canPreviewAll = canPreviewAllRoles(actualRoles, isAccountingAdmin);
+  const isOwner = isPlatformOwner(actualRoles, accountingRole);
+  const useFullCatalog = canUseFullPreviewCatalog(actualRoles, accountingRole);
   const roles = useMemo(
     () => effectiveRolesForView(actualRoles, viewAsRole),
     [actualRoles, viewAsRole],
   );
   const viewAsOptions = useMemo(
-    () => viewAsOptionsForUser(actualRoles, canPreviewAll, previewRoleCatalog),
-    [actualRoles, canPreviewAll, previewRoleCatalog],
+    () => viewAsOptionsForUser(actualRoles, useFullCatalog, previewRoleCatalog),
+    [actualRoles, useFullCatalog, previewRoleCatalog],
   );
-  const canUseViewAs = canShowViewAsSwitcher(actualRoles, canPreviewAll);
+  const canUseViewAs = canShowViewAsSwitcher(actualRoles, useFullCatalog);
   const isViewAsActive = viewAsRole != null;
 
   const hasRole = buildHasRole(roles);
@@ -222,8 +226,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setViewAsRole,
     isViewAsActive,
     canUseViewAs,
-    canPreviewAllRoles: canPreviewAll,
-    isSuperRoleViewer: canPreviewAll,
+    isPlatformOwner: isOwner,
+    canUseFullPreviewCatalog: useFullCatalog,
+    canPreviewAllRoles: useFullCatalog,
+    isSuperRoleViewer: useFullCatalog,
     viewAsOptions,
     previewRoleCatalog,
     setPreviewRoleCatalog,
@@ -256,6 +262,8 @@ export const useAuth = () => {
       setViewAsRole: () => {},
       isViewAsActive: false,
       canUseViewAs: false,
+      isPlatformOwner: false,
+      canUseFullPreviewCatalog: false,
       canPreviewAllRoles: false,
       isSuperRoleViewer: false,
       viewAsOptions: [],

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Eye, Settings2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { AppRole } from "@/lib/appRoles";
-import { PREVIEWABLE_APP_ROLES, viewAsRoleLabel } from "@/lib/roleViewAs";
+import { PREVIEWABLE_APP_ROLES, viewAsFullAccessLabel, viewAsRoleLabel } from "@/lib/roleViewAs";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -34,7 +34,8 @@ export function RoleViewSwitcher() {
     canUseViewAs,
     viewAsRole,
     setViewAsRole,
-    isSuperRoleViewer,
+    isPlatformOwner,
+    canUseFullPreviewCatalog,
     previewRoleCatalog,
     setPreviewRoleCatalog,
     viewAsOptions,
@@ -46,12 +47,9 @@ export function RoleViewSwitcher() {
   const selectValue = viewAsRole ?? "__all__";
 
   const currentLabel = useMemo(() => {
-    if (!viewAsRole) {
-      if (actualRoles.length === 1) return viewAsRoleLabel(actualRoles[0]);
-      return "All my roles";
-    }
+    if (!viewAsRole) return viewAsFullAccessLabel(isPlatformOwner, actualRoles);
     return viewAsRoleLabel(viewAsRole);
-  }, [viewAsRole, actualRoles]);
+  }, [viewAsRole, actualRoles, isPlatformOwner]);
 
   if (loading || !canUseViewAs) return null;
 
@@ -80,7 +78,7 @@ export function RoleViewSwitcher() {
           <SelectValue>{currentLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent align="end">
-          <SelectItem value="__all__">All my roles</SelectItem>
+          <SelectItem value="__all__">{viewAsFullAccessLabel(isPlatformOwner, actualRoles)}</SelectItem>
           {viewAsOptions.map((r) => (
             <SelectItem key={r} value={r}>
               {viewAsRoleLabel(r)}
@@ -89,7 +87,7 @@ export function RoleViewSwitcher() {
         </SelectContent>
       </Select>
 
-      {isSuperRoleViewer && (
+      {canUseFullPreviewCatalog && (
         <Popover open={catalogOpen} onOpenChange={setCatalogOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -180,7 +178,7 @@ export function RoleViewBanner() {
 
 /** Mobile-friendly dropdown variant (optional export for narrow screens) */
 export function RoleViewSwitcherMobile() {
-  const { loading, canUseViewAs, viewAsRole, setViewAsRole, viewAsOptions, actualRoles } = useAuth();
+  const { loading, canUseViewAs, viewAsRole, setViewAsRole, viewAsOptions, actualRoles, isPlatformOwner } = useAuth();
 
   if (loading || !canUseViewAs) return null;
 
@@ -189,13 +187,15 @@ export function RoleViewSwitcherMobile() {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="sm:hidden h-8 gap-1.5 text-xs">
           <Eye className="size-3.5" />
-          {viewAsRole ? viewAsRoleLabel(viewAsRole) : "All roles"}
+          {viewAsRole ? viewAsRoleLabel(viewAsRole) : viewAsFullAccessLabel(isPlatformOwner, actualRoles)}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>View as</DropdownMenuLabel>
-        {actualRoles.length > 1 && (
-          <DropdownMenuItem onClick={() => setViewAsRole(null)}>All my roles</DropdownMenuItem>
+        {(actualRoles.length > 1 || isPlatformOwner) && (
+          <DropdownMenuItem onClick={() => setViewAsRole(null)}>
+            {viewAsFullAccessLabel(isPlatformOwner, actualRoles)}
+          </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
         {viewAsOptions.map((r) => (

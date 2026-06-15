@@ -1,6 +1,9 @@
 import type { AppRole } from "@/lib/appRoles";
 
-/** Roles an Administrator can preview in the View-as switcher (matches Team & roles) */
+/**
+ * Team-assignable roles in View-as (matches Admin → Team & roles).
+ * `admin` = Administrator — for team members who manage the system, NOT the company owner.
+ */
 export const PREVIEWABLE_APP_ROLES: AppRole[] = [
   "admin",
   "director",
@@ -27,6 +30,13 @@ export function viewAsRoleLabel(role: AppRole): string {
   return role;
 }
 
+/** Label when not previewing a single role */
+export function viewAsFullAccessLabel(isPlatformOwner: boolean, actualRoles: AppRole[]): string {
+  if (isPlatformOwner) return "Owner (full access)";
+  if (actualRoles.length === 1) return viewAsRoleLabel(actualRoles[0]);
+  return "All my roles";
+}
+
 /** @deprecated use viewAsRoleLabel */
 export const VIEW_AS_ROLE_LABELS: Record<AppRole, string> = {
   admin: viewAsRoleLabel("admin"),
@@ -43,6 +53,9 @@ export const VIEW_AS_ROLE_LABELS: Record<AppRole, string> = {
 
 const SESSION_KEY = "flc-view-as-role";
 const CATALOG_KEY = "flc-view-as-catalog";
+
+/** Minimum assigned roles (including admin) to treat CRM account as owner vs single-role team admin */
+const OWNER_MULTI_ROLE_THRESHOLD = 3;
 
 export function viewAsSessionKey(userId: string): string {
   return `${SESSION_KEY}:${userId}`;
@@ -94,20 +107,40 @@ export function writePreviewCatalog(userId: string, roles: AppRole[]): void {
   }
 }
 
-/** Administrator (or accounting owner) can preview any role in the catalog */
-export function canPreviewAllRoles(
-  actualRoles: AppRole[],
-  isAccountingOwner: boolean,
-): boolean {
-  return (
-    isAccountingOwner ||
-    actualRoles.includes("admin") ||
-    actualRoles.includes("administrator")
-  );
+export function roleIncludesAdmin(roles: AppRole[]): boolean {
+  return roles.includes("admin") || roles.includes("administrator");
 }
 
-/** @deprecated use canPreviewAllRoles */
-export const isSuperRoleViewer = canPreviewAllRoles;
+/**
+ * Company owner — full View-as catalog and "Owner (full access)" default.
+ * Team Administrator (`admin` role alone) is NOT the owner.
+ */
+export function isPlatformOwner(
+  actualRoles: AppRole[],
+  accountingRole: string | null | undefined,
+): boolean {
+  if (accountingRole === "SUPER_ADMIN") return true;
+  return roleIncludesAdmin(actualRoles) && actualRoles.length >= OWNER_MULTI_ROLE_THRESHOLD;
+}
+
+/** Owner can preview any role; team admin only switches among roles assigned to them */
+export function canUseFullPreviewCatalog(
+  actualRoles: AppRole[],
+  accountingRole: string | null | undefined,
+): boolean {
+  return isPlatformOwner(actualRoles, accountingRole);
+}
+
+/** @deprecated use canUseFullPreviewCatalog */
+export function canPreviewAllRoles(
+  actualRoles: AppRole[],
+  accountingRole: string | null | undefined,
+): boolean {
+  return canUseFullPreviewCatalog(actualRoles, accountingRole);
+}
+
+/** @deprecated use canUseFullPreviewCatalog */
+export const isSuperRoleViewer = canUseFullPreviewCatalog;
 
 export function effectiveRolesForView(
   actualRoles: AppRole[],
@@ -119,10 +152,10 @@ export function effectiveRolesForView(
 
 export function viewAsOptionsForUser(
   actualRoles: AppRole[],
-  canPreviewAll: boolean,
+  useFullCatalog: boolean,
   previewCatalog: AppRole[],
 ): AppRole[] {
-  if (canPreviewAll) {
+  if (useFullCatalog) {
     const catalog = previewCatalog.length > 0 ? previewCatalog : PREVIEWABLE_APP_ROLES;
     return [...new Set(catalog.map((r) => (r === "administrator" ? "admin" : r)))];
   }
@@ -132,12 +165,21 @@ export function viewAsOptionsForUser(
 
 export function canShowViewAsSwitcher(
   actualRoles: AppRole[],
-  canPreviewAll: boolean,
+  useFullCatalog: boolean,
 ): boolean {
-  if (canPreviewAll) return true;
+  if (useFullCatalog) return true;
   return actualRoles.length > 1;
 }
 
-export function roleIncludesAdmin(roles: AppRole[]): boolean {
-  return roles.includes("admin") || roles.includes("administrator");
+export function isViewAsRoleAllowed(
+  role: AppRole,
+  actualRoles: AppRole[],
+  useFullCatalog: boolean,
+): boolean {
+  if (!role) return true;
+  const normalized = role === "administrator" ? "admin" : role;
+  if (useFullCatalog) {
+    return PREVIEWABLE_APP_ROLES.includes(normalized);
+  }
+  return actualRoles.some((r) => (r === "administrator" ? "admin" : r) === normalized);
 }
