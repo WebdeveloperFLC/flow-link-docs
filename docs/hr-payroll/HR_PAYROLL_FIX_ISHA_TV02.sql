@@ -35,8 +35,7 @@ BEGIN
     -- Paid / Locked: patch line in place (add back PT deducted)
     UPDATE payroll_lines
     SET pt_employee = 0,
-        net_salary = net_salary + COALESCE(pt_employee, 0),
-        updated_at = now()
+        net_salary = net_salary + COALESCE(pt_employee, 0)
     WHERE employee_id = v_emp AND cycle_id = v_cycle;
     RAISE NOTICE 'Patched line on % cycle (status=%)', v_cycle, v_status;
   END IF;

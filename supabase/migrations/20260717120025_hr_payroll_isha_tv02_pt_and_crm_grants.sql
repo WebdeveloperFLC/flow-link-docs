@@ -28,8 +28,7 @@ BEGIN
     ELSE
       UPDATE payroll_lines
       SET pt_employee = 0,
-          net_salary = net_salary + COALESCE(pt_employee, 0),
-          updated_at = now()
+          net_salary = net_salary + COALESCE(pt_employee, 0)
       WHERE employee_id = v_emp AND cycle_id = v_cycle;
       RAISE NOTICE 'Patched FL-1042 line on % cycle', v_status;
     END IF;
