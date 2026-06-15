@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Eye, Link2, Copy, Check, Loader2, Send, Archive, FileDown, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
+import { copyTextToClipboard, parseSupabaseFunctionError } from "@/lib/supabaseFunctions";
 
 interface VisaForm {
   id: string;
@@ -35,6 +36,8 @@ const randomToken = () => {
   return btoa(String.fromCharCode(...arr)).replace(/[+/=]/g, "").slice(0, 32);
 };
 
+const LINK_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
 export const ClientFormsCard = ({
   clientId, country, category, canEdit,
 }: { clientId: string; country: string; category: string; canEdit: boolean }) => {
@@ -50,11 +53,23 @@ export const ClientFormsCard = ({
   const [clientInfo, setClientInfo] = useState<ClientLite | null>(null);
   const [firmInfo, setFirmInfo] = useState<FirmLite | null>(null);
 
+  const countryLabel = (country ?? "").trim();
+  const categoryLabel = (category ?? "").trim();
+  const filtersReady = Boolean(countryLabel && categoryLabel);
+
   const load = useCallback(async () => {
     setLoading(true);
+    if (!filtersReady) {
+      setForms([]);
+      setSchemas([]);
+      setInstances([]);
+      setLoading(false);
+      return;
+    }
+
     const [{ data: f }, { data: i }, { data: t }, { data: c }, { data: fp }] = await Promise.all([
       supabase.from("visa_forms").select("*")
-        .eq("country", country).eq("category", category).eq("is_archived", false)
+        .eq("country", countryLabel).eq("category", categoryLabel).eq("is_archived", false)
         .order("name"),
       supabase.from("questionnaire_instances").select("id, form_id, schema_id, status, share_token, submitted_at")
         .eq("client_id", clientId),
@@ -67,7 +82,8 @@ export const ClientFormsCard = ({
     if (formIds.length > 0) {
       const { data } = await supabase.from("questionnaire_schemas")
         .select("id, form_id, version, is_active, is_draft")
-        .in("form_id", formIds);
+        .in("form_id", formIds)
+        .eq("is_draft", false);
       s = (data ?? []) as SchemaRow[];
     }
     setForms((f ?? []) as VisaForm[]);
@@ -77,20 +93,66 @@ export const ClientFormsCard = ({
     setClientInfo((c ?? null) as ClientLite | null);
     setFirmInfo((fp ?? null) as FirmLite | null);
     setLoading(false);
-  }, [clientId, country, category]);
+  }, [clientId, countryLabel, categoryLabel, filtersReady]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
   const schemaForForm = (formId: string): SchemaRow | undefined => {
     const candidates = schemas.filter((s) => s.form_id === formId);
-    // Prefer active, else highest version
     return candidates.sort((a, b) => Number(b.is_active) - Number(a.is_active) || b.version - a.version)[0];
   };
 
   const instanceForForm = (formId: string): InstanceRow | undefined =>
     instances.find((x) => x.form_id === formId);
 
+  /** Create or refresh questionnaire instance + share URL. */
+  const ensureQuestionnaireLink = async (form: VisaForm): Promise<{ url: string; inst: InstanceRow }> => {
+    const schema = schemaForForm(form.id);
+    if (!schema) {
+      throw new Error("Questionnaire not generated yet. Open Forms Library and run AI extraction on this form.");
+    }
+
+    let inst = instanceForForm(form.id);
+    const token = randomToken();
+    const expires_at = new Date(Date.now() + LINK_TTL_MS).toISOString();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (inst?.share_token) {
+      const url = `${window.location.origin}/questionnaire/${inst.share_token}`;
+      return { url, inst };
+    }
+
+    if (inst) {
+      const { error } = await supabase.from("questionnaire_instances")
+        .update({ share_token: token, expires_at, schema_id: schema.id })
+        .eq("id", inst.id);
+      if (error) throw error;
+      inst = { ...inst, share_token: token, schema_id: schema.id };
+    } else {
+      const { data, error } = await supabase.from("questionnaire_instances").insert({
+        client_id: clientId,
+        schema_id: schema.id,
+        form_id: form.id,
+        share_token: token,
+        expires_at,
+        status: "draft",
+        answers: {},
+        created_by: user?.id ?? null,
+      }).select("id, form_id, schema_id, status, share_token, submitted_at").single();
+      if (error) throw error;
+      inst = data as InstanceRow;
+      await logActivity("questionnaire.link_created", "client", clientId, { form_id: form.id });
+    }
+
+    const url = `${window.location.origin}/questionnaire/${inst.share_token}`;
+    return { url, inst };
+  };
+
   const onView = async (form: VisaForm) => {
+    if (!form.file_path?.trim()) {
+      toast.error("Form PDF path is missing");
+      return;
+    }
     try {
       const { data, error } = await supabase.storage.from("visa-forms").createSignedUrl(form.file_path, 600);
       if (error || !data?.signedUrl) throw error ?? new Error("Could not open form");
@@ -103,45 +165,20 @@ export const ClientFormsCard = ({
   const onCreateOrCopyLink = async (form: VisaForm) => {
     setBusyId(form.id);
     try {
-      const schema = schemaForForm(form.id);
-      if (!schema) {
-        toast.error("Questionnaire not generated yet for this form. Open Forms Library and run AI extraction.");
+      const { url, inst } = await ensureQuestionnaireLink(form);
+      const copied = await copyTextToClipboard(url);
+      if (!copied) {
+        toast.error("Could not copy link — copy manually from the browser address bar after opening.");
+        window.open(url, "_blank", "noopener");
         return;
       }
-      let inst = instanceForForm(form.id);
-      if (!inst || !inst.share_token) {
-        const token = randomToken();
-        const { data: { user } } = await supabase.auth.getUser();
-        const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-        if (inst) {
-          const { error } = await supabase.from("questionnaire_instances")
-            .update({ share_token: token, expires_at }).eq("id", inst.id);
-          if (error) throw error;
-        } else {
-          const { data, error } = await supabase.from("questionnaire_instances").insert({
-            client_id: clientId,
-            schema_id: schema.id,
-            form_id: form.id,
-            share_token: token,
-            expires_at,
-            status: "draft",
-            answers: {},
-            created_by: user?.id ?? null,
-          }).select("id, form_id, schema_id, status, share_token, submitted_at").single();
-          if (error) throw error;
-          inst = data as InstanceRow;
-        }
-        await logActivity("questionnaire.link_created", "client", clientId, { form_id: form.id });
-        await load();
-      }
-      const token = (inst?.share_token) ?? (await supabase.from("questionnaire_instances")
-        .select("share_token").eq("client_id", clientId).eq("form_id", form.id).maybeSingle()).data?.share_token;
-      if (!token) throw new Error("Token not available");
-      const url = `${window.location.origin}/questionnaire/${token}`;
-      await navigator.clipboard.writeText(url);
+      setInstances((prev) => {
+        const rest = prev.filter((x) => x.form_id !== form.id);
+        return [...rest, inst];
+      });
       setCopiedId(form.id);
       setTimeout(() => setCopiedId(null), 2000);
-      toast.success("Questionnaire link copied to clipboard");
+      toast.success("Questionnaire link copied");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to create link");
     } finally {
@@ -153,41 +190,14 @@ export const ClientFormsCard = ({
     raw.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? "");
 
   const onSendViaEmail = async (form: VisaForm) => {
-    if (!clientInfo?.email) {
+    if (!clientInfo?.email?.trim()) {
       toast.error("Add an email address to this client first.");
       return;
     }
     setEmailBusyId(form.id);
     try {
-      const schema = schemaForForm(form.id);
-      if (!schema) throw new Error("Questionnaire not generated yet for this form.");
-      let inst = instanceForForm(form.id);
-      if (!inst || !inst.share_token) {
-        const token = randomToken();
-        const { data: { user } } = await supabase.auth.getUser();
-        const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-        if (inst) {
-          await supabase.from("questionnaire_instances")
-            .update({ share_token: token, expires_at }).eq("id", inst.id);
-          inst = { ...inst, share_token: token };
-        } else {
-          const { data, error } = await supabase.from("questionnaire_instances").insert({
-            client_id: clientId,
-            schema_id: schema.id,
-            form_id: form.id,
-            share_token: token,
-            expires_at,
-            status: "draft",
-            answers: {},
-            created_by: user?.id ?? null,
-          }).select("id, form_id, schema_id, status, share_token, submitted_at").single();
-          if (error) throw error;
-          inst = data as InstanceRow;
-        }
-      }
-      const url = `${window.location.origin}/questionnaire/${inst!.share_token}`;
+      const { url } = await ensureQuestionnaireLink(form);
 
-      // Pick template: form-specific → default → built-in fallback
       const tpl =
         emailTpls.find((t) => t.id === form.email_template_id) ??
         emailTpls.find((t) => t.is_default) ??
@@ -207,7 +217,6 @@ export const ClientFormsCard = ({
         ? renderTemplate(tpl.body_html, vars)
         : `<p>Hi ${vars.client_name},</p><p>Please complete your questionnaire for <b>${vars.form_name}</b>:</p><p><a href="${url}">${url}</a></p><p>Thanks,<br/>${vars.firm_name}</p>`;
 
-      // Strip simple HTML for the mailto body (most clients open as plain text)
       const bodyText = bodyHtml
         .replace(/<br\s*\/?>/gi, "\n")
         .replace(/<\/(p|div|h\d)>/gi, "\n\n")
@@ -226,7 +235,6 @@ export const ClientFormsCard = ({
         template_id: tpl?.id ?? null,
         recipient: clientInfo.email,
       });
-      await load();
       toast.success("Email draft opened in your mail client");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to draft email");
@@ -237,27 +245,18 @@ export const ClientFormsCard = ({
 
   const onGenerateFilled = async (form: VisaForm) => {
     const inst = instanceForForm(form.id);
-    if (!inst) { toast.error("No questionnaire instance for this form yet"); return; }
+    if (!inst) {
+      toast.error("Share the questionnaire link first so a draft instance exists.");
+      return;
+    }
     setFillBusyId(form.id);
     try {
       const { data, error } = await supabase.functions.invoke("fill-form", {
         body: { instance_id: inst.id },
       });
-      // FunctionsHttpError exposes the JSON body via .context.json() — surface
-      // the backend's specific message instead of the generic "non-2xx" toast.
-      if (error) {
-        let detail = error.message;
-        try {
-          // deno-lint-ignore no-explicit-any
-          const ctx: any = (error as any).context;
-          if (ctx) {
-            const body = typeof ctx.json === "function" ? await ctx.json() : null;
-            if (body?.error) detail = body.error;
-          }
-        } catch { /* ignore */ }
-        throw new Error(detail);
-      }
-      if (data?.error) throw new Error(data.error);
+      if (error) throw new Error(await parseSupabaseFunctionError(error));
+      if (data?.error) throw new Error(String(data.error));
+
       if (data?.mode === "internal") {
         const reasonMap: Record<string, string> = {
           xfa_not_writable: "official PDF is dynamic XFA",
@@ -273,15 +272,19 @@ export const ClientFormsCard = ({
           (data?.filled?.acroform?.length ?? 0) + (data?.filled?.xfa?.length ?? 0);
         const skipped = data?.skipped_sample?.length ?? 0;
         toast.success(
-          `Filled PDF generated · ${filledCount} field${filledCount === 1 ? "" : "s"} written` +
+          `Filled PDF · ${filledCount} field${filledCount === 1 ? "" : "s"}` +
           (skipped ? ` · ${skipped} skipped` : ""),
         );
       }
-      // Open the filled PDF.
+
       if (data?.file_path) {
-        const { data: signed } = await supabase.storage
+        const { data: signed, error: signErr } = await supabase.storage
           .from("client-documents").createSignedUrl(data.file_path, 600);
-        if (signed?.signedUrl) window.open(signed.signedUrl, "_blank", "noopener");
+        if (signErr || !signed?.signedUrl) {
+          toast.message("PDF saved but preview link failed — check Documents tab.");
+        } else {
+          window.open(signed.signedUrl, "_blank", "noopener");
+        }
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to generate filled PDF");
@@ -292,33 +295,39 @@ export const ClientFormsCard = ({
 
   return (
     <Card className="overflow-hidden shadow-elev-sm">
-      <div className="px-6 py-4 border-b">
-        <div className="font-semibold flex items-center gap-2">
+      <div className="px-4 sm:px-5 py-3 border-b">
+        <div className="font-semibold text-sm flex items-center gap-2">
           <FileText className="size-4 text-primary" /> Visa forms & questionnaires
         </div>
-        <div className="text-xs text-muted-foreground">
-          {country} · {category} · {forms.length} form{forms.length === 1 ? "" : "s"} available
+        <div className="text-[11px] text-muted-foreground mt-0.5">
+          {filtersReady
+            ? `${countryLabel} · ${categoryLabel} · ${forms.length} form${forms.length === 1 ? "" : "s"}`
+            : "Set destination country and service type on this client to load forms"}
         </div>
       </div>
       <div className="divide-y">
         {loading ? (
-          <div className="px-6 py-8 text-center text-sm text-muted-foreground">
+          <div className="px-4 py-6 text-center text-xs text-muted-foreground">
             <Loader2 className="size-4 animate-spin inline mr-2" />Loading forms…
           </div>
+        ) : !filtersReady ? (
+          <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+            Assign a service with a destination country, or set country + application type on the client.
+          </div>
         ) : forms.length === 0 ? (
-          <div className="px-6 py-8 text-center text-sm text-muted-foreground">
-            No forms uploaded for <b>{country} · {category}</b> yet. Add them in the Forms Library.
+          <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+            No forms for <b>{countryLabel} · {categoryLabel}</b>. Add them in Forms Library.
           </div>
         ) : forms.map((form) => {
           const schema = schemaForForm(form.id);
           const inst = instanceForForm(form.id);
           const submitted = inst?.status === "submitted";
           return (
-            <div key={form.id} className="px-6 py-3.5 flex items-center gap-3">
+            <div key={form.id} className="px-4 sm:px-5 py-2.5 flex items-center gap-2 flex-wrap">
               <FileText className="size-4 text-primary shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate flex items-center gap-2">
-                  {form.name}
+              <div className="flex-1 min-w-[160px]">
+                <div className="text-sm font-medium truncate flex items-center gap-1.5 flex-wrap">
+                  <span className="truncate">{form.name}</span>
                   {form.code && <span className="text-[10px] font-mono text-muted-foreground">{form.code}</span>}
                   <span className="text-[10px] text-muted-foreground">v{form.version}</span>
                   {!form.is_active && (
@@ -327,64 +336,68 @@ export const ClientFormsCard = ({
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  {schema ? (submitted ? "Questionnaire submitted by client" : inst ? "Questionnaire link active" : "Questionnaire ready · click link to share") : "Questionnaire not generated"}
+                <div className="text-[11px] text-muted-foreground">
+                  {!schema
+                    ? "Questionnaire not generated — run AI extraction in Forms Library"
+                    : submitted
+                      ? "Questionnaire submitted by client"
+                      : inst?.share_token
+                        ? "Link active · share or fill PDF"
+                        : "Ready · get link to share"}
                 </div>
               </div>
-              <Button size="icon" variant="ghost" className="size-7" title="Open form PDF" onClick={() => onView(form)}>
-                <Eye className="size-3.5" />
-              </Button>
-              {canEdit && inst && (
-                <Button size="sm" variant="outline" className="h-7"
-                  onClick={() => onGenerateFilled(form)}
-                  disabled={fillBusyId === form.id}
-                  title="Auto-fill the original PDF using the client's answers">
-                  {fillBusyId === form.id
-                    ? <Loader2 className="size-3.5 mr-1 animate-spin" />
-                    : <FileDown className="size-3.5 mr-1" />}
-                  Filled PDF
+              <div className="flex items-center gap-1 shrink-0 flex-wrap">
+                <Button size="icon" variant="ghost" className="size-7" title="Open blank form PDF" onClick={() => onView(form)}>
+                  <Eye className="size-3.5" />
                 </Button>
-              )}
-              {canEdit && (
-                <Button size="sm" variant="outline" className="h-7"
-                  onClick={() => onCreateOrCopyLink(form)}
-                  disabled={busyId === form.id || !schema}
-                  title={schema ? "Create / copy share link for client" : "Generate the questionnaire from Forms Library first"}>
-                  {busyId === form.id ? (
-                    <Loader2 className="size-3.5 mr-1 animate-spin" />
-                  ) : copiedId === form.id ? (
-                    <Check className="size-3.5 mr-1 text-success" />
-                  ) : inst?.share_token ? (
-                    <Copy className="size-3.5 mr-1" />
-                  ) : (
-                    <Link2 className="size-3.5 mr-1" />
-                  )}
-                  {copiedId === form.id ? "Copied" : inst?.share_token ? "Copy link" : "Get link"}
-                </Button>
-              )}
-              {canEdit && (
-                <Button size="sm" variant="outline" className="h-7"
-                  onClick={() => onSendViaEmail(form)}
-                  disabled={emailBusyId === form.id || !schema || !clientInfo?.email}
-                  title={
-                    !schema ? "Generate the questionnaire first"
-                    : !clientInfo?.email ? "This client has no email address on file"
-                    : "Open an email draft with the questionnaire link using the configured template"
-                  }>
-                  {emailBusyId === form.id
-                    ? <Loader2 className="size-3.5 mr-1 animate-spin" />
-                    : <Mail className="size-3.5 mr-1" />}
-                  Send via email
-                </Button>
-              )}
+                {canEdit && inst && (
+                  <Button size="sm" variant="outline" className="h-7 text-xs"
+                    onClick={() => onGenerateFilled(form)}
+                    disabled={fillBusyId === form.id}
+                    title="Auto-fill PDF from questionnaire answers">
+                    {fillBusyId === form.id ? <Loader2 className="size-3 mr-1 animate-spin" /> : <FileDown className="size-3 mr-1" />}
+                    Filled PDF
+                  </Button>
+                )}
+                {canEdit && (
+                  <Button size="sm" variant="outline" className="h-7 text-xs"
+                    onClick={() => onCreateOrCopyLink(form)}
+                    disabled={busyId === form.id || !schema}
+                    title={schema ? "Create / copy client questionnaire link" : "Generate questionnaire in Forms Library first"}>
+                    {busyId === form.id ? (
+                      <Loader2 className="size-3 mr-1 animate-spin" />
+                    ) : copiedId === form.id ? (
+                      <Check className="size-3 mr-1 text-success" />
+                    ) : inst?.share_token ? (
+                      <Copy className="size-3 mr-1" />
+                    ) : (
+                      <Link2 className="size-3 mr-1" />
+                    )}
+                    {copiedId === form.id ? "Copied" : inst?.share_token ? "Copy link" : "Get link"}
+                  </Button>
+                )}
+                {canEdit && (
+                  <Button size="sm" variant="outline" className="h-7 text-xs"
+                    onClick={() => onSendViaEmail(form)}
+                    disabled={emailBusyId === form.id || !schema || !clientInfo?.email}
+                    title={
+                      !schema ? "Generate questionnaire first"
+                      : !clientInfo?.email ? "Client has no email"
+                      : "Open mail client with questionnaire link"
+                    }>
+                    {emailBusyId === form.id ? <Loader2 className="size-3 mr-1 animate-spin" /> : <Mail className="size-3 mr-1" />}
+                    Email
+                  </Button>
+                )}
+              </div>
             </div>
           );
         })}
       </div>
-      {forms.length > 0 && (
-        <div className="px-6 py-3 border-t bg-muted/30 text-xs text-muted-foreground flex items-center gap-2">
-          <Send className="size-3" />
-          Share the link with the applicant — they fill the form online and answers feed all attached visa forms automatically.
+      {forms.length > 0 && filtersReady && (
+        <div className="px-4 py-2 border-t bg-muted/30 text-[11px] text-muted-foreground flex items-center gap-2">
+          <Send className="size-3 shrink-0" />
+          Client completes the online questionnaire · answers auto-fill attached visa forms.
         </div>
       )}
     </Card>
