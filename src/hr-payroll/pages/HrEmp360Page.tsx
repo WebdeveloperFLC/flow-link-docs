@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
+import { splitShiftHours } from "../lib/shiftHours";
 import { useHrPayrollLine } from "../hooks/useHrPayroll";
 import { useHrAttendance } from "../hooks/useHrAttendance";
 import { useHrShifts } from "../hooks/useHrShifts";
@@ -68,6 +69,12 @@ function rollupAtt(att: AttendanceRow[], shift: ShiftRow) {
   let leaves = 0;
   let wOff = 0;
   let otMin = 0;
+  let offShiftMin = 0;
+  const sw = {
+    login: shift.login_time.slice(0, 5),
+    logout: shift.logout_time.slice(0, 5),
+    breakDur: shift.break_min ?? 45,
+  };
   for (const a of att) {
     if (a.status === "Week Off" || a.status === "Holiday") {
       wOff++;
@@ -79,17 +86,19 @@ function rollupAtt(att: AttendanceRow[], shift: ShiftRow) {
     }
     if (a.status === "Half Day") working += 0.5;
     else if (a.status === "Present") working++;
-    if (a.check_in && a.check_out && shift) {
-      const ci = a.check_in.slice(0, 5);
-      const co = a.check_out.slice(0, 5);
-      const [ih, im] = ci.split(":").map(Number);
-      const [oh, om] = co.split(":").map(Number);
-      const net = oh * 60 + om - (ih * 60 + im) - (a.break_min ?? shift.break_min ?? 0);
-      const target = (shift.work_hours ?? 9) * 60;
-      if (net > target) otMin += net - target;
+    if (a.check_in && a.check_out) {
+      const split = splitShiftHours(a.check_in, a.check_out, a.break_min, sw);
+      otMin += split.otMin;
+      offShiftMin += split.offShiftMin;
     }
   }
-  return { working: Math.round(working * 10) / 10, leaves, wOff, otMin };
+  return {
+    working: Math.round(working * 10) / 10,
+    leaves,
+    wOff,
+    otMin,
+    offShiftMin,
+  };
 }
 
 export default function HrEmp360Page() {
@@ -190,7 +199,8 @@ export default function HrEmp360Page() {
             ["Working", ru?.working ?? "—"],
             ["Leaves", ru?.leaves ?? 0],
             ["Week Offs", ru?.wOff ?? "—"],
-            ["OT", ru ? fmtDur(ru.otMin) : "—"],
+            ["Shift OT", ru ? fmtDur(ru.otMin) : "—"],
+            ["Off-shift", ru ? fmtDur(ru.offShiftMin) : "—"],
           ]}
         />
         <SumCard

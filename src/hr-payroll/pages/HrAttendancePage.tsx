@@ -34,6 +34,7 @@ function rollupStats(att: AttendanceRow[], shift: ShiftRow) {
   let working = 0;
   let breakMin = 0;
   let otMin = 0;
+  let offShiftMin = 0;
   for (const a of att) {
     const m = dayMetrics(a, sm);
     if (a.status === "Week Off" || a.status === "Holiday") continue;
@@ -48,6 +49,7 @@ function rollupStats(att: AttendanceRow[], shift: ShiftRow) {
     if (a.is_mispunch) mispunch++;
     breakMin += m.breakMin;
     otMin += m.otMin;
+    offShiftMin += m.offShiftMin;
   }
   return {
     lateCount,
@@ -56,6 +58,7 @@ function rollupStats(att: AttendanceRow[], shift: ShiftRow) {
     working: Math.round(working * 10) / 10,
     breakMin,
     otMin,
+    offShiftMin,
   };
 }
 
@@ -121,11 +124,11 @@ export function AttendanceView({ mode }: AttendanceViewProps) {
 
       {ru && (
         <div className="grid g6">
-          <Stat lab="Working" val={ru.working} meta="present days" color="var(--moss)" />
-          <Stat lab="Late (>grace)" val={ru.lateCount} meta="feeds slab" color="var(--clay)" />
+          <Stat lab="Working" val={ru.working} meta="present days (shift rules)" color="var(--moss)" />
+          <Stat lab="Late (>grace)" val={ru.lateCount} meta="within shift only" color="var(--clay)" />
           <Stat lab="Mispunch" val={ru.mispunch} meta="raw count" color="var(--rose)" />
-          <Stat lab="Break total" val={fmtDur(ru.breakMin)} meta="this cycle" color="var(--sky)" />
-          <Stat lab="Overtime" val={fmtDur(ru.otMin)} meta="beyond target" color="var(--gold)" />
+          <Stat lab="Shift OT" val={fmtDur(ru.otMin)} meta="salary OT (post-logout)" color="var(--gold)" />
+          <Stat lab="Off-shift hrs" val={fmtDur(ru.offShiftMin)} meta="performance only" color="var(--sky)" />
           <Stat lab="Payable" val={payableDisplay} meta="after rules" color="var(--moss-deep)" />
         </div>
       )}
@@ -154,6 +157,8 @@ export function AttendanceView({ mode }: AttendanceViewProps) {
               <th>Break Out</th>
               <th>Break</th>
               <th>Net Hrs</th>
+              <th>Shift</th>
+              <th>Off-shift</th>
               <th>Late</th>
               <th>OT</th>
               <th>Mispunch</th>
@@ -224,6 +229,12 @@ export function AttendanceView({ mode }: AttendanceViewProps) {
                   </td>
                   <td className="mono" style={{ fontSize: 11.5 }}>
                     {fmtDur(m.net)}
+                  </td>
+                  <td className="mono" style={{ fontSize: 11.5 }}>
+                    {m.shiftWorkMin ? fmtDur(m.shiftWorkMin) : "—"}
+                  </td>
+                  <td className="mono" style={{ fontSize: 11.5, color: m.offShiftMin ? "var(--sky)" : "inherit" }}>
+                    {m.offShiftMin ? fmtDur(m.offShiftMin) : "—"}
                   </td>
                   <td
                     style={{

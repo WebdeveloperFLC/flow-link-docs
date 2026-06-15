@@ -18,6 +18,8 @@ describe("HR attendance metrics", () => {
     );
     expect(m.lateMin).toBe(0);
     expect(m.lateBeyondGrace).toBe(false);
+    expect(m.offShiftMin).toBeGreaterThan(0);
+    expect(m.otMin).toBe(0);
   });
 
   it("formats duration", () => {

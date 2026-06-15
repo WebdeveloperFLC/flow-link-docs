@@ -167,6 +167,8 @@ export type AttendanceRow = {
   break_start: string | null;
   break_end: string | null;
   break_min: number | null;
+  shift_work_min?: number;
+  off_shift_min?: number;
   status: string;
   is_mispunch: boolean;
   source: string;
@@ -270,6 +272,7 @@ export type PayrollLineRow = {
   unpaid_training: number;
   ot_minutes: number;
   ot_pay: number;
+  off_shift_minutes?: number;
   late_deduction: number;
   mispunch_deduction: number;
   payable_days: number;

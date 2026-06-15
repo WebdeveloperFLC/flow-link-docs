@@ -1,5 +1,7 @@
 /** Display-only attendance metrics (not payroll maths). */
 
+import { splitShiftHours } from "./shiftHours";
+
 export function toMin(t: string | null | undefined): number | null {
   if (!t) return null;
   const parts = t.slice(0, 5).split(":").map(Number);
@@ -43,8 +45,13 @@ export function dayMetrics(
   const net = gross != null ? gross - breakMin : null;
   const login = toMin(shift.login) ?? 600;
   const logout = toMin(shift.logout) ?? 1140;
+  const split = splitShiftHours(a.check_in, a.check_out, breakMin, {
+    login: shift.login,
+    logout: shift.logout,
+    breakDur: shift.breakDur || 0,
+  });
   const target = logout - login - (shift.breakDur || 0);
-  const otMin = net != null && net > target ? net - target : 0;
+  const otMin = split.otMin;
   const grace = shift.grace || 5;
   const lateMin =
     ci != null && ci >= login && ci <= logout ? Math.max(0, ci - login - grace) : 0;
@@ -53,7 +60,9 @@ export function dayMetrics(
     breakMin,
     otMin,
     lateMin,
-    lateBeyondGrace: lateMin > (shift.grace || 5),
+    lateBeyondGrace: lateMin > 0,
+    shiftWorkMin: split.shiftWorkMin,
+    offShiftMin: split.offShiftMin,
   };
 }
 

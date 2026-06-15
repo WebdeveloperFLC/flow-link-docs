@@ -30,6 +30,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120028_hr_payroll_document_types_master.sql",
   "20260717120029_hr_payroll_document_master_rbac.sql",
   "20260717120030_hr_payroll_punch_24h_window.sql",
+  "20260717120031_hr_payroll_shift_salary_offshift_split.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -141,6 +142,18 @@ describe("HR Payroll module contract", () => {
     expect(m30).not.toContain("Check-in too early");
     expect(m30).not.toContain("Check-out too late");
     expect(m30).toContain("p_logout");
+  });
+
+  it("migration 31 splits shift salary hours vs off-shift performance", () => {
+    const m31 = readFileSync(
+      join(MIGRATIONS, "20260717120031_hr_payroll_shift_salary_offshift_split.sql"),
+      "utf8",
+    );
+    expect(m31).toContain("fn_calc_shift_hour_split");
+    expect(m31).toContain("off_shift_min");
+    expect(m31).toContain("off_shift_minutes");
+    expect(m31).toContain("ot_minutes");
+    expect(m31).toContain("performance-only");
   });
 
   it("ESS uses linked staff_id not employee picker", () => {

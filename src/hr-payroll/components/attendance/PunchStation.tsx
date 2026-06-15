@@ -158,7 +158,9 @@ export function PunchStation({
             {todayRow.is_mispunch ? " · mispunch" : ""}
           </div>
           <div className="mono" style={{ fontSize: 12, opacity: 0.85 }}>
-            Net {fmtDur(m?.net ?? null)} · {m?.lateMin ? `late ${m.lateMin}m` : "on time"}
+            Net {fmtDur(m?.net ?? null)} · shift {fmtDur(m?.shiftWorkMin ?? null)}
+            {m?.offShiftMin ? ` · off-shift ${fmtDur(m.offShiftMin)}` : ""}
+            {m?.lateMin ? ` · late ${m.lateMin}m` : " · on time"}
           </div>
         </div>
       </div>
