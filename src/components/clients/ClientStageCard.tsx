@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { subStatusesForStageKey } from "@/lib/stageSubStatuses";
 import { ClientRefusalWorkflowDialog } from "@/components/clients/ClientRefusalWorkflowDialog";
-import { AddTaskDialog } from "@/components/clients/AddTaskDialog";
+import { pipelineStepDisplay } from "@/lib/pipelineStageDisplay";
 
 interface Pipeline { id: string; name: string; country: string; service_category: string; }
 interface Stage {
@@ -113,6 +113,16 @@ export function ClientStageCard({
   }, [current, stages]);
 
   const subStatusOptions = useMemo(() => subStatusesForStageKey(currentStageKey), [currentStageKey]);
+
+  const currentIdx = useMemo(
+    () => stages.findIndex((s) => s.id === current?.current_stage_id),
+    [stages, current?.current_stage_id],
+  );
+  const { step: stepNumber, total: stepTotal } = pipelineStepDisplay(
+    currentIdx,
+    stages.length,
+    current?.total_stages,
+  );
 
   const onAssignPipeline = async (pipelineId: string) => {
     setBusy(true);
@@ -250,7 +260,7 @@ export function ClientStageCard({
               <Workflow className="size-4 text-muted-foreground shrink-0" />
               <span className="truncate">{pipelineTitle}</span>
               <span className="text-xs font-normal text-muted-foreground shrink-0">
-                · stage {current.stage_order ?? "?"} of {current.total_stages ?? stages.length} · {current.progress_percent ?? 0}%
+                · stage {stepNumber ?? "?"} of {stepTotal} · {current.progress_percent ?? 0}%
               </span>
             </div>
             {pipelineSubtitle && (

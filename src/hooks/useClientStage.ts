@@ -106,12 +106,17 @@ export function useClientStage(
   const displayLabel = (stage: PipelineStage) =>
     stage.client_label?.trim() || stage.label;
 
+  const stepNumber = currentIdx >= 0 ? currentIdx + 1 : null;
+  const stepTotal = stages.length > 0 ? stages.length : (current?.total_stages ?? 0);
+
   return {
     current,
     stages,
     busy,
     canUpload,
     currentIdx,
+    stepNumber,
+    stepTotal,
     canAdvance,
     load,
     onChangeStage,

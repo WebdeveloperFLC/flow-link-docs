@@ -18,6 +18,8 @@ export function ClientStageStepper({ clientId, refreshKey = 0, activeServiceLabe
     busy,
     canUpload,
     currentIdx,
+    stepNumber,
+    stepTotal,
     onChangeStage,
     displayLabel,
     hasPipeline,
@@ -47,7 +49,7 @@ export function ClientStageStepper({ clientId, refreshKey = 0, activeServiceLabe
         <div className="text-xs font-medium text-muted-foreground truncate">
           {pipelineTitle}
           <span className="ml-2 text-foreground/80">
-            · {current?.stage_order ?? currentIdx + 1} / {current?.total_stages ?? stages.length}
+            · {stepNumber ?? "?"} / {stepTotal}
           </span>
         </div>
         {canUpload && stages.length > 0 && (
