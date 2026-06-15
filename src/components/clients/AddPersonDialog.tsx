@@ -99,7 +99,7 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded, roster 
     <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); onOpenChange(o); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add person to this case</DialogTitle>
+          <DialogTitle>Add family member</DialogTitle>
           <DialogDescription>
             {hasApplicant
               ? "Add a co-applicant or dependant. Documents can be assigned per person."
@@ -173,7 +173,7 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded, roster 
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={onSave} disabled={saving}>{saving ? "Saving…" : "Add person"}</Button>
+          <Button onClick={onSave} disabled={saving}>{saving ? "Saving…" : "Add family"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -59,10 +59,10 @@ export const CasePeopleCard = ({ clientId, canEdit, isAdmin, onChange, refreshKe
         <div className="flex items-center gap-2">
           <Users className="size-4 text-primary" />
           <div>
-            <div className="font-semibold">People on this case</div>
+            <div className="font-semibold">Family on this case</div>
             <div className="text-xs text-muted-foreground">
-              {loading ? "Loading…" : `${roster.length} ${roster.length === 1 ? "person" : "people"}`}
-              {isMulti && " · documents will be confirmed per person on upload"}
+              {loading ? "Loading…" : `${roster.length} ${roster.length === 1 ? "member" : "members"}`}
+              {isMulti && " · documents are assigned per person on upload"}
             </div>
           </div>
         </div>
@@ -72,7 +72,7 @@ export const CasePeopleCard = ({ clientId, canEdit, isAdmin, onChange, refreshKe
             variant={!hasApplicant && !loading ? "default" : "outline"}
             onClick={() => setAddOpen(true)}
           >
-            <Plus className="size-3.5 mr-1" /> Add person
+            <Plus className="size-3.5 mr-1" /> Add family
           </Button>
         )}
       </div>
@@ -118,7 +118,9 @@ export const CasePeopleCard = ({ clientId, canEdit, isAdmin, onChange, refreshKe
           </div>
         ))}
         {!loading && roster.length === 0 && (
-          <div className="px-6 py-6 text-sm text-muted-foreground text-center">No people on this case yet.</div>
+          <div className="px-6 py-6 text-sm text-muted-foreground text-center">
+            No family members on this case yet — use Add family to add a co-applicant or dependant.
+          </div>
         )}
       </div>
       <AddPersonDialog open={addOpen} onOpenChange={setAddOpen} clientId={clientId} onAdded={load} roster={roster} />

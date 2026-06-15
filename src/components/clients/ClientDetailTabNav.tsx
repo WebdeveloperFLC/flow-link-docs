@@ -10,6 +10,7 @@ import {
   GitBranch,
   GraduationCap,
   ListTodo,
+  UsersRound,
 } from "lucide-react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ export const CLIENT_DETAIL_TABS = [
   { id: "programs", label: "Programs", icon: GraduationCap },
   { id: "documents", label: "Documents", icon: FolderOpen },
   { id: "forms", label: "Forms & Letters", icon: FileText },
+  { id: "family", label: "Family", icon: UsersRound },
   { id: "commercial", label: "Payments", icon: Receipt },
   { id: "communications", label: "Comms", icon: MessageSquare },
   { id: "tasks", label: "Tasks", icon: ListTodo },

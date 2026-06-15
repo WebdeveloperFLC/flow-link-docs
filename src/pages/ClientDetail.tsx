@@ -1146,6 +1146,9 @@ const ClientDetail = () => {
               category={serviceCtx.formsCategory ?? client.application_type}
               canEdit={canUpload}
             />
+          </TabsContent>
+
+          <TabsContent value="family" className="mt-0 space-y-6">
             <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
           </TabsContent>
 
