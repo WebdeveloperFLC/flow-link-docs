@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Eye, Settings2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { AppRole } from "@/lib/appRoles";
-import { PREVIEWABLE_APP_ROLES, VIEW_AS_ROLE_LABELS } from "@/lib/roleViewAs";
+import { PREVIEWABLE_APP_ROLES, viewAsRoleLabel } from "@/lib/roleViewAs";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -47,10 +47,10 @@ export function RoleViewSwitcher() {
 
   const currentLabel = useMemo(() => {
     if (!viewAsRole) {
-      if (actualRoles.length === 1) return VIEW_AS_ROLE_LABELS[actualRoles[0]];
+      if (actualRoles.length === 1) return viewAsRoleLabel(actualRoles[0]);
       return "All my roles";
     }
-    return VIEW_AS_ROLE_LABELS[viewAsRole];
+    return viewAsRoleLabel(viewAsRole);
   }, [viewAsRole, actualRoles]);
 
   if (loading || !canUseViewAs) return null;
@@ -80,17 +80,10 @@ export function RoleViewSwitcher() {
           <SelectValue>{currentLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent align="end">
-          {!isSuperRoleViewer && actualRoles.length > 1 && (
-            <SelectItem value="__all__">All my roles</SelectItem>
-          )}
-          {isSuperRoleViewer && (
-            <SelectItem value="__all__">
-              {roleIncludesAdmin(actualRoles) ? "Super admin (full access)" : "All my roles"}
-            </SelectItem>
-          )}
+          <SelectItem value="__all__">All my roles</SelectItem>
           {viewAsOptions.map((r) => (
             <SelectItem key={r} value={r}>
-              {VIEW_AS_ROLE_LABELS[r]}
+              {viewAsRoleLabel(r)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -131,7 +124,7 @@ export function RoleViewSwitcher() {
                       }}
                     />
                     <Label htmlFor={`preview-role-${r}`} className="text-sm font-normal cursor-pointer">
-                      {VIEW_AS_ROLE_LABELS[r]}
+                      {viewAsRoleLabel(r)}
                     </Label>
                   </div>
                 );
@@ -153,10 +146,6 @@ export function RoleViewSwitcher() {
   );
 }
 
-function roleIncludesAdmin(roles: AppRole[]): boolean {
-  return roles.includes("admin") || roles.includes("administrator");
-}
-
 /** Compact banner when viewing as a different role */
 export function RoleViewBanner() {
   const { viewAsRole, setViewAsRole, actualRoles, canUseViewAs } = useAuth();
@@ -165,8 +154,8 @@ export function RoleViewBanner() {
 
   const actualLabel =
     actualRoles.length === 1
-      ? VIEW_AS_ROLE_LABELS[actualRoles[0]]
-      : actualRoles.map((r) => VIEW_AS_ROLE_LABELS[r]).join(", ");
+      ? viewAsRoleLabel(actualRoles[0])
+      : actualRoles.map((r) => viewAsRoleLabel(r)).join(", ");
 
   return (
     <div
@@ -174,7 +163,7 @@ export function RoleViewBanner() {
       data-testid="role-view-banner"
     >
       <span className="font-medium text-amber-900 dark:text-amber-100">
-        Previewing as {VIEW_AS_ROLE_LABELS[viewAsRole]}
+        Previewing as {viewAsRoleLabel(viewAsRole)}
       </span>
       <span className="text-amber-800/80 dark:text-amber-200/80 mx-1.5">·</span>
       <span className="text-muted-foreground">Signed in as {actualLabel}</span>
@@ -200,7 +189,7 @@ export function RoleViewSwitcherMobile() {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="sm:hidden h-8 gap-1.5 text-xs">
           <Eye className="size-3.5" />
-          {viewAsRole ? VIEW_AS_ROLE_LABELS[viewAsRole] : "All roles"}
+          {viewAsRole ? viewAsRoleLabel(viewAsRole) : "All roles"}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -211,7 +200,7 @@ export function RoleViewSwitcherMobile() {
         <DropdownMenuSeparator />
         {viewAsOptions.map((r) => (
           <DropdownMenuItem key={r} onClick={() => setViewAsRole(r)}>
-            {VIEW_AS_ROLE_LABELS[r]}
+            {viewAsRoleLabel(r)}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

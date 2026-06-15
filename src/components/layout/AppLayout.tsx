@@ -57,7 +57,7 @@ import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
-import { VIEW_AS_ROLE_LABELS } from "@/lib/roleViewAs";
+import { viewAsRoleLabel } from "@/lib/roleViewAs";
 import { cn } from "@/lib/utils";
 import flcLogo from "@/assets/flc-logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
@@ -251,7 +251,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const primaryRole = roles[0] ?? "viewer";
   const roleBadgeLabel = viewAsRole
-    ? `Preview · ${VIEW_AS_ROLE_LABELS[viewAsRole]}`
+    ? `Preview · ${viewAsRoleLabel(viewAsRole)}`
     : ROLE_LABELS[primaryRole] ?? primaryRole;
   const { hasAccess: hasAccountingAccess, loading: accountingAccessLoading } = useAccountingAccess();
   const { can: canAcct, isAdmin: isAcctAdmin } = useCan();
