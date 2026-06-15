@@ -1,4 +1,4 @@
-import { ExternalLink, Info, Briefcase, Globe2 } from "lucide-react";
+import { ExternalLink, Info, Briefcase, Globe2, Wallet } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { CountryInsightsView, WorkingRightsBlock } from "@/lib/service-library/countryInsights/types";
