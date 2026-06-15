@@ -1,12 +1,23 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
 import { useHrLeaveRequests, useHrLeaveBalances, useHrApprovals } from "../hooks/useHrRequests";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { ModalShell } from "../components/ui/ModalShell";
 import { HR_ORG_ID } from "../lib/constants";
+import {
+  displayLeaveBalances,
+  leaveBalanceRemaining,
+  MONTHLY_PAID_LEAVE_CAP,
+  monthlyPaidLeaveRemaining,
+  monthlyPaidLeaveUsed,
+  PAID_APPLY_LEAVE_TYPES,
+  resolveLeaveApplication,
+  UNPAID_LEAVE_TYPE,
+} from "../lib/leavePolicy";
 import { hrAudit, processApprovalDecision, rebuildPayrollLine } from "../lib/hrApi";
 import { ApprovalTrail } from "../components/ui/ApprovalTrail";
 import type { LeaveRequestRow } from "../lib/types";
@@ -14,14 +25,24 @@ import type { LeaveRequestRow } from "../lib/types";
 function LeaveModal({
   onClose,
   onSaved,
+  allLeaves,
 }: {
   onClose: () => void;
   onSaved: (msg: string) => void;
+  allLeaves: LeaveRequestRow[];
 }) {
+  const { user } = useAuth();
+  const { actualCan } = useHrAccess();
   const { data: employees = [] } = useHrEmployees();
+  const selfEmp = useMemo(
+    () => employees.find((e) => e.staff_id === user?.id),
+    [employees, user?.id],
+  );
+  const selfOnly = !actualCan("manageEmp");
+
   const [f, setF] = useState({
-    employee_id: employees[0]?.id ?? "",
-    type: "Annual Leave",
+    employee_id: selfEmp?.id ?? employees[0]?.id ?? "",
+    type: PAID_APPLY_LEAVE_TYPES[0],
     from_date: "",
     to_date: "",
     days: 1,
@@ -31,6 +52,41 @@ function LeaveModal({
   const { data: balances = [] } = useHrLeaveBalances(f.employee_id || undefined);
   const [err, setErr] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    if (selfOnly && selfEmp?.id) {
+      setF((prev) => ({ ...prev, employee_id: selfEmp.id }));
+    }
+  }, [selfOnly, selfEmp?.id]);
+
+  const employeeLeaves = useMemo(
+    () => allLeaves.filter((l) => l.employee_id === f.employee_id),
+    [allLeaves, f.employee_id],
+  );
+
+  const shownBalances = useMemo(() => displayLeaveBalances(balances), [balances]);
+
+  const resolution = useMemo(
+    () =>
+      resolveLeaveApplication({
+        preferredType: f.type,
+        days: f.days,
+        employeeId: f.employee_id,
+        fromDate: f.from_date,
+        balances,
+        requests: employeeLeaves,
+      }),
+    [f.type, f.days, f.employee_id, f.from_date, balances, employeeLeaves],
+  );
+
+  useEffect(() => {
+    if (resolution.forcedUnpaid && f.type !== UNPAID_LEAVE_TYPE) {
+      setF((prev) => ({ ...prev, type: UNPAID_LEAVE_TYPE }));
+    }
+  }, [resolution.forcedUnpaid, resolution.effectiveType, f.type]);
+
+  const monthUsed = monthlyPaidLeaveUsed(employeeLeaves, f.employee_id, f.from_date);
+  const monthLeft = monthlyPaidLeaveRemaining(employeeLeaves, f.employee_id, f.from_date);
+
   const save = async () => {
     const e: Record<string, string> = {};
     if (!f.from_date) e.from_date = "Required";
@@ -39,10 +95,12 @@ function LeaveModal({
     setErr(e);
     if (Object.keys(e).length) return;
 
+    const finalType = resolution.forcedUnpaid ? UNPAID_LEAVE_TYPE : f.type;
+
     const { error } = await supabase.from("leave_requests" as never).insert({
       org_id: HR_ORG_ID,
       employee_id: f.employee_id,
-      type: f.type,
+      type: finalType,
       from_date: f.from_date,
       to_date: f.to_date || f.from_date,
       days: f.days,
@@ -54,8 +112,12 @@ function LeaveModal({
       onSaved(error.message);
       return;
     }
-    await hrAudit("Leave Applied", f.type, "—", f.from_date);
-    onSaved("Leave submitted");
+    const note =
+      finalType === UNPAID_LEAVE_TYPE && resolution.forcedUnpaid
+        ? "Leave submitted as Unpaid (balance or monthly cap)"
+        : "Leave submitted";
+    await hrAudit("Leave Applied", finalType, "—", f.from_date);
+    onSaved(note);
     onClose();
   };
 
@@ -74,47 +136,82 @@ function LeaveModal({
         </>
       }
     >
-      <label className="fld">
-        <span className="l">Employee</span>
-        <select
-          className="input"
-          value={f.employee_id}
-          onChange={(e) => setF({ ...f, employee_id: e.target.value })}
-        >
-          {employees.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.full_name}
-            </option>
-          ))}
-        </select>
-      </label>
-      {balances.length > 0 && (
-        <div className="card" style={{ padding: 12, marginBottom: 12, background: "var(--paper)" }}>
-          <div style={{ fontSize: 11, color: "var(--mut)", fontWeight: 600, marginBottom: 6 }}>
-            Leave balance (remaining)
-          </div>
-          <div className="row-flex">
-            {balances.map((b) => (
-              <span key={b.id} className="tag">
-                {b.type}: {(b.accrued - b.taken).toFixed(1)} / {b.entitled}
-              </span>
+      {!selfOnly ? (
+        <label className="fld">
+          <span className="l">Employee</span>
+          <select
+            className="input"
+            value={f.employee_id}
+            onChange={(e) => setF({ ...f, employee_id: e.target.value })}
+          >
+            {employees.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.full_name}
+              </option>
             ))}
+          </select>
+        </label>
+      ) : (
+        <div className="fld">
+          <span className="l">Employee</span>
+          <div className="input" style={{ background: "var(--paper)" }}>
+            {selfEmp?.full_name ?? "—"}
           </div>
         </div>
       )}
+
+      <div className="card" style={{ padding: 12, marginBottom: 12, background: "var(--paper)" }}>
+        <div style={{ fontSize: 11, color: "var(--mut)", fontWeight: 600, marginBottom: 6 }}>
+          Leave balance (remaining / entitled)
+        </div>
+        <div className="row-flex">
+          {shownBalances.map((b) => (
+            <span key={b.type} className="tag">
+              {b.type}: {leaveBalanceRemaining(b).toFixed(1)} / {b.entitled}
+            </span>
+          ))}
+        </div>
+        {f.from_date && (
+          <div style={{ fontSize: 11.5, color: "var(--mut)", marginTop: 8 }}>
+            This month: {monthUsed.toFixed(1)} / {MONTHLY_PAID_LEAVE_CAP} paid days used
+            {monthLeft > 0 ? ` · ${monthLeft.toFixed(1)} left` : " · cap reached"}
+          </div>
+        )}
+      </div>
+
+      {resolution.forcedUnpaid && resolution.unpaidReason && (
+        <div
+          className="card"
+          style={{
+            padding: 10,
+            marginBottom: 12,
+            background: "#fff8ed",
+            border: "1px solid #f0d9a8",
+            fontSize: 12.5,
+          }}
+        >
+          <strong>Unpaid leave auto-selected.</strong> {resolution.unpaidReason}
+        </div>
+      )}
+
       <label className="fld">
         <span className="l">Leave Type</span>
-        <select className="input" value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })}>
-          {[
-            "Annual Leave",
-            "Sick Leave",
-            "Casual Leave",
-            "Comp-Off Leave",
-            "Special Leave",
-            "Unpaid Leave",
-          ].map((o) => (
-            <option key={o}>{o}</option>
-          ))}
+        <select
+          className="input"
+          value={resolution.forcedUnpaid ? UNPAID_LEAVE_TYPE : f.type}
+          onChange={(e) => setF({ ...f, type: e.target.value })}
+          disabled={resolution.forcedUnpaid}
+        >
+          {PAID_APPLY_LEAVE_TYPES.map((o) => {
+            const allowed = resolution.selectablePaidTypes.includes(o);
+            return (
+              <option key={o} value={o} disabled={!allowed && !resolution.forcedUnpaid}>
+                {o}
+                {!allowed && f.from_date ? " (not available)" : ""}
+              </option>
+            );
+          })}
+          <option value={UNPAID_LEAVE_TYPE}>{UNPAID_LEAVE_TYPE}</option>
         </select>
       </label>
       <div className="grid g3" style={{ gap: "0 14px" }}>
@@ -245,7 +342,9 @@ export default function HrLeavePage() {
   return (
     <div className="grid" style={{ gap: 16 }}>
       <div className="card-h">
-        <span className="tag">6-Day: 18/yr (1.5/mo) · 5-Day: 10/yr · Sick cap 8 · final approval: HR</span>
+        <span className="tag">
+          Casual &amp; Sick only · {MONTHLY_PAID_LEAVE_CAP} paid days/month · Unpaid when exhausted
+        </span>
         <div className="row-flex">
           <input
             className="input"
@@ -415,10 +514,12 @@ export default function HrLeavePage() {
       )}
       {open && (
         <LeaveModal
+          allLeaves={leaves}
           onClose={() => setOpen(false)}
           onSaved={(m) => {
             fire(m);
             void qc.invalidateQueries({ queryKey: ["hr-leaves"] });
+            void qc.invalidateQueries({ queryKey: ["hr-leave-balances"] });
             void qc.invalidateQueries({ queryKey: ["hr-pending-counts"] });
           }}
         />

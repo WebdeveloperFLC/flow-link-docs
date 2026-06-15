@@ -33,6 +33,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120031_hr_payroll_shift_salary_offshift_split.sql",
   "20260717120032_hr_payroll_ess_document_storage_access.sql",
   "20260717120033_hr_payroll_employment_types_companies.sql",
+  "20260717120034_hr_payroll_leave_casual_sick_policy.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -156,6 +157,22 @@ describe("HR Payroll module contract", () => {
     expect(m31).toContain("off_shift_minutes");
     expect(m31).toContain("ot_minutes");
     expect(m31).toContain("performance-only");
+  });
+
+  it("leave apply policy: casual/sick only with monthly cap", () => {
+    const leavePage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrLeavePage.tsx"), "utf8");
+    const policy = readFileSync(join(ROOT, "src/hr-payroll/lib/leavePolicy.ts"), "utf8");
+    expect(policy).toContain("PAID_APPLY_LEAVE_TYPES");
+    expect(policy).toContain("MONTHLY_PAID_LEAVE_CAP = 1.5");
+    expect(leavePage).toContain("leavePolicy");
+    expect(leavePage).not.toContain('"Annual Leave"');
+    const m34 = readFileSync(
+      join(MIGRATIONS, "20260717120034_hr_payroll_leave_casual_sick_policy.sql"),
+      "utf8",
+    );
+    expect(m34).toContain("fn_leave_monthly_paid_used");
+    expect(m34).toContain("fn_apply_leave_type_policy");
+    expect(m34).toContain("Casual Leave");
   });
 
   it("employment types and payroll company labels", () => {
