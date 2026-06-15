@@ -32,6 +32,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120030_hr_payroll_punch_24h_window.sql",
   "20260717120031_hr_payroll_shift_salary_offshift_split.sql",
   "20260717120032_hr_payroll_ess_document_storage_access.sql",
+  "20260717120033_hr_payroll_employment_types_companies.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -155,6 +156,25 @@ describe("HR Payroll module contract", () => {
     expect(m31).toContain("off_shift_minutes");
     expect(m31).toContain("ot_minutes");
     expect(m31).toContain("performance-only");
+  });
+
+  it("employment types and payroll company labels", () => {
+    const form = readFileSync(
+      join(ROOT, "src/hr-payroll/components/employees/EmployeeFormModal.tsx"),
+      "utf8",
+    );
+    const constants = readFileSync(join(ROOT, "src/hr-payroll/lib/constants.ts"), "utf8");
+    expect(constants).toContain("Full time - Permanent");
+    expect(constants).toContain("Part time - Temporary");
+    expect(constants).toContain("Interns");
+    expect(form).toContain("EMPLOYMENT_TYPES");
+    expect(form).toContain("payrollCompanyLabel");
+    const m33 = readFileSync(
+      join(MIGRATIONS, "20260717120033_hr_payroll_employment_types_companies.sql"),
+      "utf8",
+    );
+    expect(m33).toContain("Future Link Consultants Private Limited");
+    expect(m33).toContain("Full time - Permanent");
   });
 
   it("ESS uses linked staff_id not employee picker", () => {

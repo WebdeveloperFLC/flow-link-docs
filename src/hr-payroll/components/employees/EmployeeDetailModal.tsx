@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useHrEmployees } from "../../hooks/useHrEmployees";
 import { useHrCrmStaff, useCrmProfile } from "../../hooks/useHrTeam";
-import { displayEmployeeName, formatMoney, initials, parseEmergencyContacts } from "../../lib/format";
+import { displayEmployeeName, formatMoney, initials, parseEmergencyContacts, payrollCompanyLabel } from "../../lib/format";
 import { useSalaryRevisions } from "../../hooks/useSalaryRevisions";
 import type { EmployeeRow } from "../../lib/types";
 import { EmployeeDocumentsPanel } from "./EmployeeDocumentsPanel";
@@ -112,9 +112,9 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
               <Row
                 k="Payroll Company"
                 v={
-                  emp.companies?.legal_name
-                    ? `${emp.companies.name} (${emp.companies.legal_name})`
-                    : emp.companies?.name ?? null
+                  emp.companies
+                    ? payrollCompanyLabel(emp.companies)
+                    : null
                 }
               />
               <Row k="Currency / Country" v={`${currency} · ${emp.payroll_country ?? "IN"}`} />

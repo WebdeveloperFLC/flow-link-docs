@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { HR_ORG_ID, DEPARTMENTS } from "../../lib/constants";
-import { fillSalaryComponents, formatMoney, parseEmergencyContacts, weeklyOffDays } from "../../lib/format";
+import { HR_ORG_ID, DEPARTMENTS, EMPLOYMENT_TYPES } from "../../lib/constants";
+import { fillSalaryComponents, formatMoney, normalizeEmploymentType, parseEmergencyContacts, payrollCompanyLabel, weeklyOffDays } from "../../lib/format";
 import { uploadEmployeePhoto } from "../../lib/hrStorage";
 import { EmployeeAvatar } from "../ui/EmployeeAvatar";
 import type { BranchRow, CompanyRow, EmergencyContact, EmployeeRow, ShiftRow, CrmStaffRow } from "../../lib/types";
@@ -110,7 +110,7 @@ function fromEmployee(e: EmployeeRow): FormState {
     branch_id: e.branch_id ?? "",
     reporting_mgr_id: e.reporting_mgr_id ?? "",
     company_id: e.company_id ?? "",
-    employment_type: e.employment_type,
+    employment_type: normalizeEmploymentType(e.employment_type),
     date_of_joining: e.date_of_joining ?? "",
     notice_period: e.notice_period ?? "30 days",
     probation_start_date: e.probation_start_date ?? "",
@@ -170,7 +170,7 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
   branch_id: branches[0]?.id ?? "",
   reporting_mgr_id: "",
   company_id: companies[0]?.id ?? "",
-  employment_type: "Full-Time",
+  employment_type: "Full time - Permanent",
   date_of_joining: "",
   notice_period: "30 days",
   probation_start_date: "",
@@ -640,7 +640,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                 >
                   {companies.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.legal_name ? `${c.name} (${c.legal_name})` : c.name}
+                      {payrollCompanyLabel(c)}
                     </option>
                   ))}
                 </select>
@@ -649,13 +649,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                 {T("salary_currency", "Salary Currency", ["INR", "CAD"])}
                 {T("payroll_country", "Payroll Country", ["IN", "CA"])}
               </div>
-              {T("employment_type", "Employment Type", [
-                "Full-Time",
-                "Part-Time",
-                "Intern",
-                "Temporary",
-                "Contract",
-              ])}
+              {T("employment_type", "Employment Type", [...EMPLOYMENT_TYPES])}
               {T("date_of_joining", "Date of Joining", undefined, "date")}
               {T("probation_start_date", "Probation Start", undefined, "date")}
               {T("probation_end_date", "Probation End", undefined, "date")}

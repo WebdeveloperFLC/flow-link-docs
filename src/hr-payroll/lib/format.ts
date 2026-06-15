@@ -31,6 +31,25 @@ export function displayEmployeeName(e: {
   return fn || e.full_name;
 }
 
+export function payrollCompanyLabel(c: { name: string; legal_name?: string | null }): string {
+  const legal = c.legal_name?.trim();
+  if (legal) return legal;
+  return c.name;
+}
+
+const LEGACY_EMPLOYMENT_TYPE: Record<string, string> = {
+  "Full-Time": "Full time - Permanent",
+  "Part-Time": "Part time - Permanent",
+  Temporary: "Part time - Temporary",
+  Intern: "Interns",
+  Contract: "Contract",
+};
+
+export function normalizeEmploymentType(value: string | null | undefined): string {
+  if (!value) return "Full time - Permanent";
+  return LEGACY_EMPLOYMENT_TYPE[value] ?? value;
+}
+
 export function parseEmergencyContacts(raw: unknown): EmergencyContact[] {
   if (!Array.isArray(raw)) return [{ name: "", phone: "", relation: "" }, { name: "", phone: "", relation: "" }];
   const rows = raw
