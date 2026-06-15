@@ -111,11 +111,11 @@ export function ClientIdentityHeader({
 
   return (
     <>
-      <div className="border-b bg-gradient-to-r from-primary/5 via-card to-card">
+      <div className="border-b bg-card shadow-elev-sm">
         <div className="px-4 sm:px-8 py-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-3 min-w-0">
-            <Avatar className="size-12 shrink-0 border-2 border-primary/20 shadow-sm">
-              <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm">
+            <Avatar className="size-12 shrink-0 border border-primary/20 shadow-sm">
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
                 {initials(client.full_name)}
               </AvatarFallback>
             </Avatar>
@@ -205,7 +205,7 @@ export function ClientIdentityHeader({
             {canUpload && (
               <Button
                 size="sm"
-                className="gradient-accent text-white shadow-sm"
+                variant="cta"
                 disabled={!canAdvance || advancing}
                 onClick={() => void onAdvanceStage()}
               >

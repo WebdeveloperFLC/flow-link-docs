@@ -27,7 +27,7 @@ const LeadsList = () => {
         title="Current Leads"
         description="Warm and hot leads in the active pipeline"
         actions={
-          <Button onClick={() => nav("/leads/new")}>
+          <Button onClick={() => nav("/leads/new")} variant="cta">
             <Plus className="h-4 w-4 mr-1" /> New Lead
           </Button>
         }

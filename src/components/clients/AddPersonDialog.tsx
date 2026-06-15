@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -97,84 +97,95 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded, roster 
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); onOpenChange(o); }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add family member</DialogTitle>
-          <DialogDescription>
-            {hasApplicant
-              ? "Add a co-applicant or dependant. Documents can be assigned per person."
-              : "This case has no applicant yet. Add the principal applicant first to enable document uploads."}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-3">
+      <DialogContent className="sm:max-w-lg flc-dialog-premium">
+        <div className="flc-dialog-head">
+          <DialogHeader className="space-y-1.5">
+            <DialogTitle className="text-xl">Add family member</DialogTitle>
+            <DialogDescription className="text-sm">
+              {hasApplicant
+                ? "Add a co-applicant or dependant. Documents can be assigned per person."
+                : "This case has no applicant yet. Add the principal applicant first to enable document uploads."}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+        <div className="flc-dialog-body">
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label>First name *</Label>
+              <Label className="flc-form-label">First name *</Label>
               <Input autoFocus value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Anjali" />
             </div>
             <div className="space-y-1.5">
-              <Label>Middle name</Label>
+              <Label className="flc-form-label">Middle name</Label>
               <Input value={middleName} onChange={(e) => setMiddleName(e.target.value)} placeholder="optional" />
             </div>
             <div className="space-y-1.5">
-              <Label>Last name *</Label>
+              <Label className="flc-form-label">Last name *</Label>
               <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Sharma" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Role</Label>
-              <Select value={role} onValueChange={(v) => onRoleChange(v as PersonRole)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {!hasApplicant && <SelectItem value="applicant">Applicant (principal)</SelectItem>}
-                  <SelectItem value="co_applicant">Co-applicant</SelectItem>
-                  <SelectItem value="dependant">Dependant</SelectItem>
-                  <SelectItem value="sponsor">Sponsor</SelectItem>
-                  <SelectItem value="co_sponsor">Co-sponsor</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {role !== "applicant" && (
+          <div className="flc-nested-panel space-y-3">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Relationship</Label>
-                <Select value={relationshipPreset} onValueChange={setRelationshipPreset}>
+                <Label className="flc-form-label">Role</Label>
+                <Select value={role} onValueChange={(v) => onRoleChange(v as PersonRole)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {RELATIONSHIP_PRESETS.map((r) => (
-                      <SelectItem key={r} value={r}>{r}</SelectItem>
-                    ))}
-                    <SelectItem value={OTHER}>Other…</SelectItem>
+                    {!hasApplicant && <SelectItem value="applicant">Applicant (principal)</SelectItem>}
+                    <SelectItem value="co_applicant">Co-applicant</SelectItem>
+                    <SelectItem value="dependant">Dependant</SelectItem>
+                    <SelectItem value="sponsor">Sponsor</SelectItem>
+                    <SelectItem value="co_sponsor">Co-sponsor</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              {role !== "applicant" && (
+                <div className="space-y-1.5">
+                  <Label className="flc-form-label">Relationship</Label>
+                  <Select value={relationshipPreset} onValueChange={setRelationshipPreset}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {RELATIONSHIP_PRESETS.map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                      <SelectItem value={OTHER}>Other…</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+            {role !== "applicant" && relationshipPreset === OTHER && (
+              <div className="space-y-1.5">
+                <Label className="flc-form-label">Specify relationship *</Label>
+                <Input
+                  value={relationshipOther}
+                  onChange={(e) => setRelationshipOther(e.target.value)}
+                  placeholder="e.g. Father-in-law"
+                />
+              </div>
             )}
-          </div>
-          {role !== "applicant" && relationshipPreset === OTHER && (
-            <div className="space-y-1.5">
-              <Label>Specify relationship *</Label>
-              <Input
-                value={relationshipOther}
-                onChange={(e) => setRelationshipOther(e.target.value)}
-                placeholder="e.g. Father-in-law"
-              />
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Date of birth</Label>
-              <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Passport #</Label>
-              <Input value={passport} onChange={(e) => setPassport(e.target.value)} placeholder="optional" />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="flc-form-label">Date of birth</Label>
+                <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="flc-form-label">Passport #</Label>
+                <Input value={passport} onChange={(e) => setPassport(e.target.value)} placeholder="optional" />
+              </div>
             </div>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={onSave} disabled={saving}>{saving ? "Saving…" : "Add family"}</Button>
-        </DialogFooter>
+        <div className="flc-dialog-foot">
+          <p className="text-xs text-muted-foreground hidden sm:block">
+            Co-applicants and dependants can have documents assigned per person.
+          </p>
+          <div className="flex gap-2 sm:ml-auto">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button variant="cta" onClick={onSave} disabled={saving}>
+              {saving ? "Saving…" : "Add family"}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

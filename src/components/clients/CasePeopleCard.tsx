@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Plus, Trash2, UserCircle2, AlertTriangle } from "lucide-react";
 import { fetchCasePeople, sortRoster, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
@@ -54,13 +53,13 @@ export const CasePeopleCard = ({ clientId, canEdit, isAdmin, onChange, refreshKe
   const hasApplicant = roster.some((p) => p.role === "applicant");
 
   return (
-    <Card className="overflow-hidden shadow-elev-sm">
-      <div className="px-6 py-4 border-b flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="flc-premium-card">
+      <div className="flc-section-head">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           <Users className="size-4 text-primary" />
           <div>
-            <div className="font-semibold">Family on this case</div>
-            <div className="text-xs text-muted-foreground">
+            <div className="flc-section-head-title">Family on this case</div>
+            <div className="text-xs text-muted-foreground mt-0.5">
               {loading ? "Loading…" : `${roster.length} ${roster.length === 1 ? "member" : "members"}`}
               {isMulti && " · documents are assigned per person on upload"}
             </div>
@@ -69,7 +68,7 @@ export const CasePeopleCard = ({ clientId, canEdit, isAdmin, onChange, refreshKe
         {canEdit && (
           <Button
             size="sm"
-            variant={!hasApplicant && !loading ? "default" : "outline"}
+            variant="cta"
             onClick={() => setAddOpen(true)}
           >
             <Plus className="size-3.5 mr-1" /> Add family
@@ -124,7 +123,7 @@ export const CasePeopleCard = ({ clientId, canEdit, isAdmin, onChange, refreshKe
         )}
       </div>
       <AddPersonDialog open={addOpen} onOpenChange={setAddOpen} clientId={clientId} onAdded={load} roster={roster} />
-    </Card>
+    </div>
   );
 };
 

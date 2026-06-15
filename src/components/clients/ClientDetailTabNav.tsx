@@ -53,9 +53,9 @@ export function ClientDetailTabNav({ badges }: Props) {
               key={tab.id}
               value={tab.id}
               className={cn(
-                "shrink-0 gap-1.5 rounded-lg px-3 py-2 text-sm font-medium",
-                "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm",
-                "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-muted/60",
+                "shrink-0 gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium border border-transparent",
+                "data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary/30 data-[state=active]:shadow-none",
+                "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-muted/60 data-[state=inactive]:border-border/60",
               )}
             >
               <Icon className="size-3.5 shrink-0" />

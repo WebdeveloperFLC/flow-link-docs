@@ -32,9 +32,9 @@ type Props = {
 };
 
 const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div className="space-y-0.5">
-    <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
-    <div className="text-sm font-semibold text-foreground">{value ?? <span className="text-muted-foreground font-normal">—</span>}</div>
+  <div className="space-y-1">
+    <div className="flc-field-label">{label}</div>
+    <div className="flc-field-value">{value ?? <span className="text-muted-foreground font-normal">—</span>}</div>
   </div>
 );
 
@@ -141,18 +141,18 @@ export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props
 
   if (loading) {
     return (
-      <Card className="p-8 flex items-center justify-center gap-2 text-sm text-muted-foreground shadow-elev-sm">
+      <div className="flc-premium-card p-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
         <Loader2 className="size-4 animate-spin" /> Loading overview…
-      </Card>
+      </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <Card className="overflow-hidden shadow-elev-sm border-primary/10">
-        <div className="px-5 py-3.5 border-b bg-primary/5 flex items-center gap-2">
+      <div className="flc-premium-card">
+        <div className="flc-section-head">
           <UserCircle className="size-4 text-primary" />
-          <span className="font-semibold text-sm">Applicant profile</span>
+          <span className="flc-section-head-title">Applicant profile</span>
           {onOpenTab && (
             <Button variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={() => onOpenTab("profile")}>
               Edit profile <ExternalLink className="size-3 ml-1" />
@@ -180,13 +180,13 @@ export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props
           <Field label="Intended intake" value={client.intake} />
           <Field label="Budget" value={client.budget != null ? fmtMoney(client.budget, currency) : null} />
         </div>
-      </Card>
+      </div>
 
       <div className="grid md:grid-cols-2 gap-4">
-        <Card className="overflow-hidden shadow-elev-sm">
-          <div className="px-5 py-3.5 border-b flex items-center gap-2">
+        <div className="flc-premium-card">
+          <div className="flc-section-head">
             <GraduationCap className="size-4 text-primary" />
-            <span className="font-semibold text-sm">Service & programme</span>
+            <span className="flc-section-head-title">Service & programme</span>
           </div>
           <div className="p-5 space-y-4">
             <Field label="Service" value={serviceLabel} />
@@ -203,12 +203,12 @@ export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props
               </div>
             )}
           </div>
-        </Card>
+        </div>
 
-        <Card className="overflow-hidden shadow-elev-sm">
-          <div className="px-5 py-3.5 border-b flex items-center gap-2">
+        <div className="flc-premium-card">
+          <div className="flc-section-head">
             <Receipt className="size-4 text-primary" />
-            <span className="font-semibold text-sm">Financial</span>
+            <span className="flc-section-head-title">Financial</span>
           </div>
           <div className="p-5 space-y-4">
             <Field label="Total fee" value={totalFee != null ? fmtMoney(totalFee, currency) : null} />
@@ -231,7 +231,7 @@ export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props
               </Button>
             )}
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );

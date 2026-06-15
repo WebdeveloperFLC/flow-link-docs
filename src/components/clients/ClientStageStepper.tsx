@@ -42,7 +42,7 @@ export function ClientStageStepper({ clientId, refreshKey = 0, activeServiceLabe
   const pipelineTitle = activeServiceLabel?.trim() || current?.pipeline_name || "Application pipeline";
 
   return (
-    <div className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 shadow-elev-sm">
+    <div className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90">
       <div className="px-4 sm:px-8 pt-3 pb-1 flex flex-wrap items-center justify-between gap-2">
         <div className="text-xs font-medium text-muted-foreground truncate">
           {pipelineTitle}

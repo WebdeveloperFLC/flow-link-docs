@@ -1028,6 +1028,7 @@ const ClientDetail = () => {
 
   return (
     <AppLayout>
+      <div className="flc-workspace page-transition">
       <ContextBackBar
         libraryId={slLibraryId ?? serviceCtx.libraryId}
         country={slCountry ?? serviceCtx.destinationCountry}
@@ -1532,6 +1533,7 @@ const ClientDetail = () => {
           </TabsContent>
         </div>
       </Tabs>
+      </div>
       <ShareLinkDialog open={!!shareTarget} onOpenChange={(o) => !o && setShareTarget(null)} target={shareTarget} />
       <AddSectionDialog open={addSectionOpen} onOpenChange={setAddSectionOpen} onCreated={load} />
       <AddDocTypeDialog
