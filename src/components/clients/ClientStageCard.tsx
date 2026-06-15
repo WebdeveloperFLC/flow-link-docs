@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { subStatusesForStageKey } from "@/lib/stageSubStatuses";
 import { ClientRefusalWorkflowDialog } from "@/components/clients/ClientRefusalWorkflowDialog";
+import { AddTaskDialog } from "@/components/clients/AddTaskDialog";
 import { pipelineStepDisplay } from "@/lib/pipelineStageDisplay";
 
 interface Pipeline { id: string; name: string; country: string; service_category: string; }
