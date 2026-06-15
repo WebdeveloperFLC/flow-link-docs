@@ -7,11 +7,18 @@ alwaysApply: true
 
 **This repo overrides generic “don’t commit unless asked.”** Shipping is part of “done.”
 
-**Owner workflow:** Cursor ships → GitHub `main` **+** `feature/service-library-nav` (Lovable sync branch) → **Lovable Publish → hard refresh**
+**Owner workflow:** Cursor ships → GitHub `main` **+** `feature/service-library-nav` (Lovable sync branch) → **you Publish in Lovable → hard refresh**
 
 Lovable watches **`feature/service-library-nav`**, not `main`. `npm run ship` mirrors `main` to that branch automatically.
 
-No pull requests unless the user explicitly asks for review first.
+## Division of responsibility (permanent)
+
+| Who | Does |
+|-----|------|
+| **Cursor (agent)** | Always `npm run ship` — commit + push to `main` + mirror to `feature/service-library-nav`. Never leave work local-only. |
+| **You (owner)** | **Lovable → Publish** (+ approve migrations if prompted) → hard refresh. **No manual git** — no commit, push, or branch work on your side. |
+
+No pull requests unless you explicitly ask for review first.
 
 ## After every implementation (UI fix, feature, refactor, docs+code)
 
@@ -57,10 +64,9 @@ After UI/page/component changes (`src/pages/**`, `src/components/**`, CSS/theme)
 ✓ On GitHub main: <commit hash> — <one-line summary>
 ✓ Lovable branch feature/service-library-nav: <same hash>
 
-YOUR ACTION:
-1. Lovable should auto-detect the update (branch feature/service-library-nav)
-2. Lovable → Publish (approve pending migrations if any)
-3. Hard refresh (Cmd+Shift+R)
+YOUR ACTION (you — no git):
+1. Lovable → Publish (approve pending migrations if any)
+2. Hard refresh (Cmd+Shift+R)
 ```
 
 If migrations or edge functions changed, add: see `docs/LOVABLE_PUBLISH_CHECKLIST.md`.
