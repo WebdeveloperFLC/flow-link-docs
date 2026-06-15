@@ -1,5 +1,6 @@
 # HR Payroll — UAT for testers (1 page)
 
+**UAT status:** ✅ **OPEN** — see `HR_PAYROLL_UAT_READY.md`  
 **Environment:** Staging only (not production)  
 **Your lead will give you:** staging website URL + login  
 **Full test list:** `docs/hr-payroll/HR_PAYROLL_UAT.md` (61 cases)  

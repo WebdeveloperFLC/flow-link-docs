@@ -1,7 +1,8 @@
 # HR Payroll — UAT kickoff (staging ready)
 
+**Status:** ✅ **UAT OPEN** — see [`HR_PAYROLL_UAT_READY.md`](./HR_PAYROLL_UAT_READY.md)  
 **Branch:** `feature/service-library-nav`  
-**When:** After migrations **00–22** applied + Lovable Publish
+**When:** Migrations **00–24** applied + Lovable Publish
 
 ---
 

@@ -22,6 +22,8 @@ const REQUIRED_MIGRATIONS = [
   "20260717120020_hr_payroll_canada_engine.sql",
   "20260717120021_hr_payroll_uat_isha_link.sql",
   "20260717120022_hr_payroll_phase2c_rbac_snapshots.sql",
+  "20260717120023_hr_payroll_fl_ca01_payroll_line.sql",
+  "20260717120024_hr_payroll_demo_crm_staff_access.sql",
 ];
 
 const REQUIRED_RPCS = [
