@@ -242,10 +242,10 @@ const CourseFinder = () => {
   const comparing = compare.map((id) => enriched.find((e) => e.id === id)).filter(Boolean) as Enriched[];
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted/30 overflow-x-hidden">
       {/* Header */}
       <header className="bg-background border-b sticky top-0 z-30">
-        <div className="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between gap-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 grid place-items-center text-primary-foreground">
               <GraduationCap className="size-5" />
@@ -269,7 +269,7 @@ const CourseFinder = () => {
           </div>
         </div>
         {clientContext && (
-          <div className="max-w-[1400px] mx-auto px-6 pb-2">
+          <div className="w-full px-4 sm:px-6 lg:px-8 pb-2">
             <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 text-sm">
               Shortlisting courses for{" "}
               <Link to={`/clients/${clientContext.id}`} className="font-semibold text-primary hover:underline">
@@ -280,9 +280,9 @@ const CourseFinder = () => {
           </div>
         )}
         {/* Search bar */}
-        <div className="max-w-[1400px] mx-auto px-6 pb-4">
-          <Card className="p-4 grid grid-cols-1 md:grid-cols-[1fr_220px_180px_auto] gap-3 items-end">
-            <div>
+        <div className="w-full px-4 sm:px-6 lg:px-8 pb-4">
+          <Card className="p-4 flex flex-col xl:flex-row xl:flex-wrap gap-3 xl:items-end min-w-0">
+            <div className="min-w-0 flex-1 xl:min-w-[240px]">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Search course or keyword</label>
               <div className="relative">
                 <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -294,7 +294,7 @@ const CourseFinder = () => {
                 />
               </div>
             </div>
-            <div>
+            <div className="min-w-0 w-full sm:w-auto sm:min-w-[200px] xl:w-[220px]">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Study destination</label>
               <Select
                 value={filters.countries[0] ?? "all"}
@@ -311,7 +311,7 @@ const CourseFinder = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div>
+            <div className="min-w-0 w-full sm:w-auto sm:min-w-[160px] xl:w-[180px]">
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Study level</label>
               <Select
                 value={filters.levels[0] ?? "all"}
@@ -326,14 +326,14 @@ const CourseFinder = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Button size="lg" className="gap-2"><Search className="size-4" /> Search</Button>
+            <Button size="lg" className="gap-2 w-full sm:w-auto shrink-0"><Search className="size-4" /> Search</Button>
           </Card>
         </div>
       </header>
 
-      <div className="max-w-[1400px] mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)] gap-6">
         {/* Filters sidebar */}
-        <aside className="lg:sticky lg:top-[180px] lg:self-start">
+        <aside className="min-w-0 lg:sticky lg:top-[180px] lg:self-start">
           <Card className="p-4 space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-sm">Refine your search</h2>
@@ -470,16 +470,16 @@ const CourseFinder = () => {
         </aside>
 
         {/* Results */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
+        <section className="min-w-0">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
               <p className="text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground">{results.length}</span> courses found
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Select value={filters.sort} onValueChange={(v) => setFilters((f) => ({ ...f, sort: v }))}>
-                <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {SORTS.map((s) => <SelectItem key={s.v} value={s.v}>{s.l}</SelectItem>)}
                 </SelectContent>
@@ -604,8 +604,8 @@ const ResultCard = ({
   onView: () => void;
   onAttachClient?: () => void;
 }) => (
-  <Card className="p-4 hover:shadow-md transition-shadow">
-    <div className="flex gap-4">
+  <Card className="p-4 hover:shadow-md transition-shadow min-w-0 overflow-hidden">
+    <div className="flex flex-col sm:flex-row gap-4 min-w-0">
       {/* Logo */}
       <div className="shrink-0 size-16 rounded-lg border bg-background grid place-items-center overflow-hidden">
         {c.university.logo_url ? (
@@ -615,7 +615,7 @@ const ResultCard = ({
         )}
       </div>
       {/* Center */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 order-2 sm:order-none">
         <div className="flex items-start gap-2 flex-wrap">
           <span className="text-lg leading-none" title={c.country.name}>{c.country.flag_emoji}</span>
           <span className="text-xs text-muted-foreground">{c.country.name} · {c.university.city}</span>
@@ -644,17 +644,17 @@ const ResultCard = ({
         </div>
       </div>
       {/* Right */}
-      <div className="shrink-0 w-52 flex flex-col items-end justify-between">
-        <div className="text-right">
+      <div className="shrink-0 w-full sm:w-auto sm:min-w-[11rem] lg:min-w-[12rem] flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-between gap-3 order-3 sm:order-none border-t sm:border-t-0 pt-3 sm:pt-0">
+        <div className="text-left sm:text-right shrink-0">
           <p className="text-lg font-bold">{fmtMoney(c.tuition_fee, c.currency)}</p>
           <p className="text-xs text-muted-foreground">per year</p>
         </div>
-        <div className="flex flex-col gap-1.5 w-full">
-          <Button size="sm" onClick={onView}>View details</Button>
+        <div className="flex flex-col gap-1.5 min-w-0 flex-1 sm:flex-none sm:w-full max-w-[14rem] sm:max-w-none">
+          <Button size="sm" onClick={onView} className="w-full">View details</Button>
           {onAttachClient && clientProgramStatus !== "final" && (
             <Button size="sm" variant="secondary" className="w-full gap-1" onClick={onAttachClient}>
-              <UserPlus className="size-3.5" />
-              {clientProgramStatus === "shortlisted" ? "On shortlist" : "Shortlist for client"}
+              <UserPlus className="size-3.5 shrink-0" />
+              <span className="truncate">{clientProgramStatus === "shortlisted" ? "On shortlist" : "Shortlist for client"}</span>
             </Button>
           )}
           <div className="flex gap-1.5">
@@ -816,9 +816,11 @@ const CompareTable = ({ items, onRemove }: { items: Enriched[]; onRemove: (id: s
     { label: "Visa success", render: (c) => c.visa_success_indicator ?? "—" },
   ];
   return (
-    <ScrollArea className="max-h-[70vh]">
-      <div className={cn("grid gap-3", `grid-cols-${items.length + 1}`)}
-        style={{ gridTemplateColumns: `120px repeat(${items.length}, minmax(0,1fr))` }}>
+    <ScrollArea className="max-h-[70vh] w-full">
+      <div
+        className="grid gap-3 min-w-0 w-full"
+        style={{ gridTemplateColumns: `minmax(5rem, 7.5rem) repeat(${items.length}, minmax(0, 1fr))` }}
+      >
         <div />
         {items.map((c) => (
           <div key={c.id} className="border rounded-lg p-3 relative">
