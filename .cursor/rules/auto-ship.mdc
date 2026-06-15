@@ -7,7 +7,9 @@ alwaysApply: true
 
 **This repo overrides generic “don’t commit unless asked.”** Shipping is part of “done.”
 
-**Owner workflow:** Cursor ships → GitHub `main` → **Lovable → Sync from GitHub → Publish → hard refresh**
+**Owner workflow:** Cursor ships → GitHub `main` **+** `feature/service-library-nav` (Lovable sync branch) → **Lovable Publish → hard refresh**
+
+Lovable watches **`feature/service-library-nav`**, not `main`. `npm run ship` mirrors `main` to that branch automatically.
 
 No pull requests unless the user explicitly asks for review first.
 
@@ -24,8 +26,8 @@ No pull requests unless the user explicitly asks for review first.
    ```
 4. **Verify push succeeded** before saying anything is deployed:
    ```bash
-   git fetch origin && git rev-parse HEAD origin/main   # must match
-   git log origin/main -1 --oneline
+   git fetch origin && git rev-parse HEAD origin/main origin/feature/service-library-nav
+   git log origin/feature/service-library-nav -1 --oneline
    ```
 
 ## UI fixes — never stop at “fixed locally”
@@ -53,9 +55,10 @@ After UI/page/component changes (`src/pages/**`, `src/components/**`, CSS/theme)
 
 ```
 ✓ On GitHub main: <commit hash> — <one-line summary>
+✓ Lovable branch feature/service-library-nav: <same hash>
 
 YOUR ACTION:
-1. Lovable → Sync from GitHub
+1. Lovable should auto-detect the update (branch feature/service-library-nav)
 2. Lovable → Publish (approve pending migrations if any)
 3. Hard refresh (Cmd+Shift+R)
 ```

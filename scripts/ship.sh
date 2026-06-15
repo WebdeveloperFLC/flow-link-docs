@@ -270,6 +270,14 @@ fi
 git push -u "$REMOTE" HEAD
 echo "✓ Pushed to $REMOTE/$BRANCH"
 
+# Lovable syncs feature/service-library-nav (not main). Mirror main → Lovable branch after every ship.
+LOVABLE_BRANCH="${SHIP_LOVABLE_BRANCH:-feature/service-library-nav}"
+if [[ "$BRANCH" == "main" && "$LOVABLE_BRANCH" != "main" ]]; then
+  echo "→ Mirroring main to Lovable branch $LOVABLE_BRANCH…"
+  git push "$REMOTE" "main:$LOVABLE_BRANCH"
+  echo "✓ Pushed to $REMOTE/$LOVABLE_BRANCH (Lovable sync branch)"
+fi
+
 if [[ "$EDGE_TOUCHED" == "1" && "$DEPLOY_EDGE" == "1" ]]; then
   tok="${SUPABASE_ACCESS_TOKEN:-}"
   if [[ "$tok" == sbp_* ]]; then

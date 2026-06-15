@@ -2,7 +2,9 @@
 # (.ship.local is gitignored via *.local)
 
 # ── FLC deploy path (standard) ───────────────────────────────────────────────
-# GitHub  →  npm run ship  →  Lovable Sync  →  Lovable Publish
+# GitHub  →  npm run ship  →  Lovable Publish
+# Lovable sync branch: feature/service-library-nav (ship mirrors main → this branch)
+# Optional override: SHIP_LOVABLE_BRANCH=feature/service-library-nav
 #
 # Supabase (migrations, edge functions, DB) is managed in Lovable — not via
 # Supabase dashboard or CLI. Do NOT set SUPABASE_ACCESS_TOKEN unless you have
