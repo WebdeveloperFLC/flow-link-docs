@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../lib/constants";
-import { hrAudit, rebuildPayrollLine, recordPunch, setEssUnavailable, startAttendanceDay } from "../lib/hrApi";
+import { hrAudit, rebuildPayrollLine, recordPunch, rpcErrorMessage, setEssUnavailable, startAttendanceDay } from "../lib/hrApi";
 import { nowHhmm, todayIso } from "../lib/attendanceMetrics";
 import type { AttendanceRow } from "../lib/types";
 
@@ -93,7 +93,7 @@ export function useAttendanceActions(
     try {
       updated = (await recordPunch(row.id, field)) as AttendanceRow;
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Punch failed — apply migrations 38 and 40 on Supabase");
+      fire(rpcErrorMessage(e, "Punch failed"));
       return;
     }
     await hrAudit("Punch", `${empName} · ${workDate}`, field, nowHhmm());

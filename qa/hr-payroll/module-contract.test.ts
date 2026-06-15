@@ -40,6 +40,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120038_hr_payroll_punch_anytime_overnight.sql",
   "20260717120039_hr_payroll_companies_accounting_sync.sql",
   "20260717120040_hr_payroll_punch_24h_all_shifts.sql",
+  "20260717120041_hr_payroll_punch_close_locked_open.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -190,6 +191,15 @@ describe("HR Payroll module contract", () => {
     expect(m40).toContain("fn_is_late_check_in");
     const session = readFileSync(join(ROOT, "src/hr-payroll/lib/punchSession.ts"), "utf8");
     expect(session).toContain("resolvePunchSession");
+  });
+
+  it("migration 41 allows checkout on open session in locked cycle", () => {
+    const m41 = readFileSync(
+      join(MIGRATIONS, "20260717120041_hr_payroll_punch_close_locked_open.sql"),
+      "utf8",
+    );
+    expect(m41).toContain("fn_attendance_close_only_update");
+    expect(m41).toContain("check_out IS NULL");
   });
 
   it("migration 36 sandwich half-day exception and 5-day night EST", () => {

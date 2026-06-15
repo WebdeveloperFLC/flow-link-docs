@@ -167,12 +167,20 @@ export async function fetchPayrollRegisterExport(cycleId: string, branch?: strin
   return (data ?? []) as import("./payrollExport").PayrollRegisterRow[];
 }
 
+export function rpcErrorMessage(e: unknown, fallback: string): string {
+  if (e && typeof e === "object" && "message" in e) {
+    const msg = (e as { message: unknown }).message;
+    if (typeof msg === "string" && msg.trim()) return msg;
+  }
+  return fallback;
+}
+
 export async function recordPunch(attendanceId: string, field: string) {
   const { data, error } = await supabase.rpc("fn_record_punch" as never, {
     p_attendance: attendanceId,
     p_field: field,
   } as never);
-  if (error) throw error;
+  if (error) throw new Error(error.message || "Punch failed");
   return data as import("./types").AttendanceRow;
 }
 
