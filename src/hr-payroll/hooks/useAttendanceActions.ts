@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../lib/constants";
-import { hrAudit, rebuildPayrollLine, recordPunch, startAttendanceDay } from "../lib/hrApi";
+import { hrAudit, rebuildPayrollLine, recordPunch, setEssUnavailable, startAttendanceDay } from "../lib/hrApi";
 import { nowHhmm, todayIso } from "../lib/attendanceMetrics";
 import type { AttendanceRow } from "../lib/types";
 
@@ -118,5 +118,22 @@ export function useAttendanceActions(
     await invalidate(row.employee_id);
   };
 
-  return { addToday, startAndCheckIn, punch, updateField };
+  const toggleUnavailable = async (
+    row: { id: string; employee_id: string },
+    unavailable: boolean,
+    empName: string,
+  ) => {
+    let updated: AttendanceRow;
+    try {
+      updated = await setEssUnavailable(row.id, unavailable);
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Status update failed — apply migration 35");
+      return;
+    }
+    await hrAudit("ESS Status", empName, unavailable ? "Available" : "Unavailable", unavailable ? "Unavailable" : "Available");
+    fire(unavailable ? "Marked unavailable" : "Marked available");
+    await invalidate(row.employee_id, updated);
+  };
+
+  return { addToday, startAndCheckIn, punch, updateField, toggleUnavailable };
 }

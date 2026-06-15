@@ -4,13 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
+import { useHrShifts } from "../hooks/useHrShifts";
 import { useHrLeaveRequests, useHrLeaveBalances, useHrApprovals } from "../hooks/useHrRequests";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { ModalShell } from "../components/ui/ModalShell";
 import { HR_ORG_ID } from "../lib/constants";
 import {
   displayLeaveBalances,
+  isLegacyLeaveType,
   leaveBalanceRemaining,
+  leaveDurationLabel,
+  LEAVE_ENTITLED,
   MONTHLY_PAID_LEAVE_CAP,
   monthlyPaidLeaveRemaining,
   monthlyPaidLeaveUsed,
@@ -34,6 +38,7 @@ function LeaveModal({
   const { user } = useAuth();
   const { actualCan } = useHrAccess();
   const { data: employees = [] } = useHrEmployees();
+  const { data: shifts = [] } = useHrShifts();
   const selfEmp = useMemo(
     () => employees.find((e) => e.staff_id === user?.id),
     [employees, user?.id],
@@ -58,12 +63,21 @@ function LeaveModal({
     }
   }, [selfOnly, selfEmp?.id]);
 
+  const selectedEmp = useMemo(
+    () => employees.find((e) => e.id === f.employee_id),
+    [employees, f.employee_id],
+  );
+  const shiftLogin = shifts.find((s) => s.id === selectedEmp?.shift_id)?.login_time ?? null;
+
   const employeeLeaves = useMemo(
     () => allLeaves.filter((l) => l.employee_id === f.employee_id),
     [allLeaves, f.employee_id],
   );
 
-  const shownBalances = useMemo(() => displayLeaveBalances(balances), [balances]);
+  const shownBalances = useMemo(
+    () => displayLeaveBalances(balances, selectedEmp?.work_week),
+    [balances, selectedEmp?.work_week],
+  );
 
   const resolution = useMemo(
     () =>
@@ -74,8 +88,21 @@ function LeaveModal({
         fromDate: f.from_date,
         balances,
         requests: employeeLeaves,
+        employee: selectedEmp,
+        hasDocument: f.has_document,
+        shiftLoginTime: shiftLogin,
       }),
-    [f.type, f.days, f.employee_id, f.from_date, balances, employeeLeaves],
+    [
+      f.type,
+      f.days,
+      f.employee_id,
+      f.from_date,
+      f.has_document,
+      balances,
+      employeeLeaves,
+      selectedEmp,
+      shiftLogin,
+    ],
   );
 
   useEffect(() => {
@@ -175,11 +202,29 @@ function LeaveModal({
           <div style={{ fontSize: 11.5, color: "var(--mut)", marginTop: 8 }}>
             This month: {monthUsed.toFixed(1)} / {MONTHLY_PAID_LEAVE_CAP} paid days used
             {monthLeft > 0 ? ` · ${monthLeft.toFixed(1)} left` : " · cap reached"}
+            {" · "}
+            Annual: {LEAVE_ENTITLED.casual}+{LEAVE_ENTITLED.sick} (6-day) — no carry-forward
           </div>
         )}
       </div>
 
-      {resolution.forcedUnpaid && resolution.unpaidReason && (
+      {resolution.ruleViolation && (
+        <div
+          className="card"
+          style={{
+            padding: 10,
+            marginBottom: 12,
+            background: "#fff0f0",
+            border: "1px solid #f0c0c0",
+            fontSize: 12.5,
+            color: "var(--rose)",
+          }}
+        >
+          <strong>Warning:</strong> {resolution.ruleViolation}
+        </div>
+      )}
+
+      {resolution.forcedUnpaid && resolution.unpaidReason && !resolution.ruleViolation && (
         <div
           className="card"
           style={{
@@ -277,9 +322,12 @@ export default function HrLeavePage() {
   const [rejectRow, setRejectRow] = useState<LeaveRequestRow | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
+  const [showLegacy, setShowLegacy] = useState(false);
+
   const filteredLeaves = leaves.filter((l) => {
     if (filterFrom && l.from_date < filterFrom) return false;
     if (filterTo && l.from_date > filterTo) return false;
+    if (!showLegacy && isLegacyLeaveType(l.type)) return false;
     return true;
   });
 
@@ -343,9 +391,13 @@ export default function HrLeavePage() {
     <div className="grid" style={{ gap: 16 }}>
       <div className="card-h">
         <span className="tag">
-          Casual &amp; Sick only · {MONTHLY_PAID_LEAVE_CAP} paid days/month · Unpaid when exhausted
+          12 Casual + 6 Sick/yr · {MONTHLY_PAID_LEAVE_CAP}/mo cap · 7d / 1mo notice
         </span>
         <div className="row-flex">
+          <label className="row-flex" style={{ fontSize: 12, cursor: "pointer" }}>
+            <input type="checkbox" checked={showLegacy} onChange={(e) => setShowLegacy(e.target.checked)} />
+            Show legacy
+          </label>
           <input
             className="input"
             type="date"
@@ -407,7 +459,13 @@ export default function HrLeavePage() {
                       )}
                     </div>
                   </td>
-                  <td>{l.type}</td>
+                  <td>
+                    <div>{l.type}</div>
+                    <div className="muted" style={{ fontSize: 11 }}>
+                      {leaveDurationLabel(l.days)}
+                      {isLegacyLeaveType(l.type) && " · Legacy"}
+                    </div>
+                  </td>
                   <td>
                     {l.from_date}
                     {l.from_date !== l.to_date ? ` – ${l.to_date}` : ""}

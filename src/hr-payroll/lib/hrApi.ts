@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "./constants";
+import type { AttendanceRow } from "./types";
 
 export async function hrAudit(
   action: string,
@@ -60,6 +61,24 @@ export async function accrueLeaveBalances(orgId: string, year?: number) {
   const { data, error } = await supabase.rpc("fn_accrue_leave_balances" as never, {
     p_org: orgId,
     p_year: year ?? new Date().getFullYear(),
+  } as never);
+  if (error) throw error;
+  return data as number;
+}
+
+export async function setEssUnavailable(attendanceId: string, unavailable: boolean) {
+  const { data, error } = await supabase.rpc("fn_set_ess_unavailable" as never, {
+    p_attendance: attendanceId,
+    p_unavailable: unavailable,
+  } as never);
+  if (error) throw error;
+  return data as AttendanceRow;
+}
+
+export async function applyHolidaysForDate(orgId: string, date: string) {
+  const { data, error } = await supabase.rpc("fn_apply_holidays_for_date" as never, {
+    p_org: orgId,
+    p_date: date,
   } as never);
   if (error) throw error;
   return data as number;

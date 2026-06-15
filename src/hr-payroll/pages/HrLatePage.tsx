@@ -37,8 +37,9 @@ export default function HrLatePage() {
     <div className="grid" style={{ gap: 16 }}>
       <div className="card" style={{ background: "#fff7ed", borderColor: "#fed7aa" }}>
         <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>
-          <strong>Rule:</strong> report 10:00, grace to 10:05, &gt;1hr = Half Day. Approving an
-          exemption removes one late, shifting the slab & recalculating salary. Watch Verification.
+          <strong>Rule:</strong> report 10:00, grace to 10:05, &gt;1hr = Half Day, &gt;3hr = Absent.
+          Monthly slab: 1–3 late = 1 day deduction (editable in Config). Approving an exemption
+          removes one late count and recalculates salary.
         </div>
       </div>
       <div className="card" style={{ padding: 0, overflow: "auto" }}>

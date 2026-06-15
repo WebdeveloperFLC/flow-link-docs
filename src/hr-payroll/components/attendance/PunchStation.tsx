@@ -10,6 +10,7 @@ type Props = {
   canPunch: boolean;
   onPunch: (field: "check_in" | "check_out" | "break_start" | "break_end") => void;
   onStartDay: () => void;
+  onToggleUnavailable?: (unavailable: boolean) => void;
 };
 
 export function PunchStation({
@@ -20,6 +21,7 @@ export function PunchStation({
   canPunch,
   onPunch,
   onStartDay,
+  onToggleUnavailable,
 }: Props) {
   const [clock, setClock] = useState(new Date());
   useEffect(() => {
@@ -122,9 +124,12 @@ export function PunchStation({
     );
   }
 
+  const maxBreak = shift.max_break_min ?? shift.break_min ?? 45;
+  const breakExceeded = m?.breakMin != null && m.breakMin > maxBreak + 1;
   const checkedIn = !!todayRow.check_in;
   const checkedOut = !!todayRow.check_out;
   const onBreak = !!todayRow.break_start && !todayRow.break_end;
+  const unavailable = !!todayRow.ess_unavailable;
 
   return (
     <div
@@ -150,11 +155,17 @@ export function PunchStation({
             {clock.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })} · Shift{" "}
             {shiftMetrics.login}–{shiftMetrics.logout} · punch anytime 24h
           </div>
+          <div style={{ fontSize: 12, opacity: 0.8 }}>
+            Max break {maxBreak}m
+            {shift.break_window_start && shift.break_window_end
+              ? ` · window ${shift.break_window_start.slice(0, 5)}–${shift.break_window_end.slice(0, 5)}`
+              : ""}
+          </div>
         </div>
         <div style={{ textAlign: "right" }}>
           <div style={{ fontSize: 11, opacity: 0.7, textTransform: "uppercase" }}>Today</div>
           <div style={{ fontSize: 15, fontWeight: 600, marginTop: 2 }}>
-            {todayRow.status}
+            {unavailable ? "Unavailable" : todayRow.status}
             {todayRow.is_mispunch ? " · mispunch" : ""}
           </div>
           <div className="mono" style={{ fontSize: 12, opacity: 0.85 }}>
@@ -164,7 +175,12 @@ export function PunchStation({
           </div>
         </div>
       </div>
-      <div className="row-flex" style={{ gap: 10 }}>
+      {breakExceeded && (
+        <div style={{ fontSize: 12, background: "#fff3cd", color: "#856404", padding: 8, borderRadius: 8, marginBottom: 10 }}>
+          Break exceeded {maxBreak}m — may affect salary per policy.
+        </div>
+      )}
+      <div className="row-flex" style={{ gap: 10, flexWrap: "wrap" }}>
         <Btn
           field="check_in"
           label="Check In"
@@ -197,6 +213,31 @@ export function PunchStation({
           done={!!checkedOut}
           doneVal={todayRow.check_out}
         />
+        {onToggleUnavailable && checkedIn && !checkedOut && (
+          <button
+            type="button"
+            onClick={() => onToggleUnavailable(!unavailable)}
+            disabled={!canPunch || onBreak}
+            style={{
+              flex: 1,
+              minWidth: 120,
+              border: "none",
+              borderRadius: 12,
+              padding: "14px 12px",
+              cursor: !canPunch || onBreak ? "not-allowed" : "pointer",
+              background: unavailable ? "#eef5ff" : "#4a5568",
+              color: unavailable ? "var(--ink-soft)" : "#fff",
+              fontFamily: "inherit",
+              fontWeight: 600,
+              fontSize: 14,
+            }}
+          >
+            <div style={{ fontSize: 18, marginBottom: 3 }}>{unavailable ? "✓" : ""} Unavailable</div>
+            <div style={{ fontSize: 12, fontWeight: 500, opacity: 0.85 }}>
+              {unavailable ? "tap to mark available" : "away from desk"}
+            </div>
+          </button>
+        )}
       </div>
     </div>
   );

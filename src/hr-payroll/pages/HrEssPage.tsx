@@ -6,8 +6,14 @@ import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
 import { useHrPayrollLine } from "../hooks/useHrPayroll";
 import { EmployeeDocumentsPanel } from "../components/employees/EmployeeDocumentsPanel";
-import { useHrLeaveBalances } from "../hooks/useHrRequests";
-import { displayLeaveBalances, leaveBalanceRemaining, MONTHLY_PAID_LEAVE_CAP } from "../lib/leavePolicy";
+import { useHrLeaveBalances, useHrLeaveRequests } from "../hooks/useHrRequests";
+import {
+  displayLeaveBalances,
+  leaveBalanceRemaining,
+  LEAVE_ENTITLED,
+  MONTHLY_PAID_LEAVE_CAP,
+  monthlyPaidLeaveUsed,
+} from "../lib/leavePolicy";
 import { useHrShifts } from "../hooks/useHrShifts";
 import { useHrAttendance } from "../hooks/useHrAttendance";
 import { useAttendanceActions } from "../hooks/useAttendanceActions";
@@ -38,10 +44,18 @@ export default function HrEssPage() {
   const { data: att = [] } = useHrAttendance(emp?.id, cycle?.start_date, cycle?.end_date);
   const { data: line } = useHrPayrollLine(emp?.id, cycle?.id);
   const { data: leaveBalances = [] } = useHrLeaveBalances(emp?.id);
-  const shownLeaveBalances = useMemo(() => displayLeaveBalances(leaveBalances), [leaveBalances]);
+  const { data: allLeaves = [] } = useHrLeaveRequests();
+  const today = todayIso();
+  const shownLeaveBalances = useMemo(
+    () => displayLeaveBalances(leaveBalances, emp?.work_week),
+    [leaveBalances, emp?.work_week],
+  );
+  const monthLeaveUsed = useMemo(
+    () => (emp ? monthlyPaidLeaveUsed(allLeaves, emp.id, today) : 0),
+    [allLeaves, emp, today],
+  );
   const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, fire);
 
-  const today = todayIso();
   const todayRow = att.find((a) => a.work_date === today) ?? null;
   const attStatus = essAttendanceStatus(todayRow);
   const money = (n: number) => formatMoney(n, emp?.salary_currency ?? "INR");
@@ -160,6 +174,10 @@ export default function HrEssPage() {
           void actions.punch(todayRow, field, emp.full_name, todayRow.work_date);
         }}
         onStartDay={() => void actions.startAndCheckIn(emp.id, emp.full_name)}
+        onToggleUnavailable={(unavailable) => {
+          if (!todayRow) return;
+          void actions.toggleUnavailable(todayRow, unavailable, emp.full_name);
+        }}
       />
 
       <div className="grid g4">
@@ -182,7 +200,7 @@ export default function HrEssPage() {
       <div className="card">
         <div className="card-h">
           <h3>Leave balance</h3>
-          <span className="tag">Casual &amp; Sick · {MONTHLY_PAID_LEAVE_CAP}/mo cap</span>
+          <span className="tag">12+6/yr · {MONTHLY_PAID_LEAVE_CAP}/mo cap</span>
         </div>
         <div className="row-flex">
           {shownLeaveBalances.map((b) => (
@@ -190,6 +208,10 @@ export default function HrEssPage() {
               {b.type}: {leaveBalanceRemaining(b).toFixed(1)} / {b.entitled}
             </span>
           ))}
+        </div>
+        <div style={{ fontSize: 11.5, color: "var(--mut)", marginTop: 8 }}>
+          This month: {monthLeaveUsed.toFixed(1)} / {MONTHLY_PAID_LEAVE_CAP} paid days used · annual{" "}
+          {LEAVE_ENTITLED.casual}+{LEAVE_ENTITLED.sick} (no carry-forward)
         </div>
       </div>
 

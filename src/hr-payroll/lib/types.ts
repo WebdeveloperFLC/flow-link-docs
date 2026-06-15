@@ -153,6 +153,10 @@ export type ShiftRow = {
   grace_min?: number;
   break_min?: number;
   half_day_after_min?: number;
+  full_day_after_min?: number;
+  break_window_start?: string | null;
+  break_window_end?: string | null;
+  max_break_min?: number;
   ot_eligible?: boolean;
   working_days_per_week?: number;
 };
@@ -167,6 +171,7 @@ export type AttendanceRow = {
   break_start: string | null;
   break_end: string | null;
   break_min: number | null;
+  ess_unavailable?: boolean;
   shift_work_min?: number;
   off_shift_min?: number;
   status: string;

@@ -9,7 +9,15 @@ import { ModalShell } from "../components/ui/ModalShell";
 import { HR_ORG_ID } from "../lib/constants";
 import { hrAudit } from "../lib/hrApi";
 
-const HOLIDAY_TAGS = ["6-Day", "5-Day", "Day", "Full-Time", "Part-Time"] as const;
+const HOLIDAY_TAGS = [
+  "6-Day",
+  "5-Day",
+  "Day",
+  "Full time - Permanent",
+  "Full-Time",
+  "Part time - Permanent",
+  "Part-Time",
+] as const;
 
 function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: string) => void }) {
   const { data: ref } = useHrReferenceData();
@@ -18,7 +26,7 @@ function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: 
     holiday_date: "",
     type: "Festival",
     branch_id: "",
-    applicable_tags: ["6-Day", "Day", "Full-Time"] as string[],
+    applicable_tags: ["6-Day", "Day", "Full time - Permanent"] as string[],
   });
   const [err, setErr] = useState<Record<string, string>>({});
 

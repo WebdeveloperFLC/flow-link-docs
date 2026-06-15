@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrPolicies } from "../hooks/useHrRequests";
 import { HR_ORG_ID } from "../lib/constants";
+import { DEFAULT_LATE_SLAB_TABLE } from "../lib/leavePolicy";
 import { hrAudit, accrueLeaveBalances } from "../lib/hrApi";
 import type { PolicyRow } from "../lib/types";
 
@@ -28,14 +29,25 @@ const DOMAIN_MAP: Partial<Record<Tab, string>> = {
 };
 
 const DEFAULT_CONFIG: Record<string, Record<string, string>> = {
-  late: { report_time: "10:00", grace_until: "10:05", half_day_after: "60 min", slab_base: "1–3 = 0 day" },
+  late: {
+    report_time: "10:00",
+    grace_until: "10:05",
+    half_day_after_min: "60",
+    full_day_after_min: "180",
+    slab_table_json: JSON.stringify(DEFAULT_LATE_SLAB_TABLE),
+  },
   mispunch: { free_per_month: "2", beyond: "(n−2)×0.5", report_window: "Same day", approval: "Mgr → HR" },
   leave: {
-    six_day_annual: "18 (1.5/mo)",
-    five_day_annual: "10",
-    sick_cap: "8/yr",
-    carry_forward: "Mgmt approval",
-    encashment: "Eligible after confirm",
+    six_day_casual: "12",
+    six_day_sick: "6",
+    five_day_casual: "7",
+    five_day_sick: "3",
+    monthly_paid_cap: "1.5",
+    notice_days_short: "7",
+    notice_days_long: "30",
+    notice_threshold_days: "3",
+    sick_notice_hours: "2",
+    carry_forward: "None",
     probation_leave: "None",
   },
   sandwich_ul: { sandwich_mult: "1", sandwich_cap: "2/yr", ul_mult: "2", auto_resign: "3 consec. UL" },
@@ -90,6 +102,9 @@ export default function HrConfigPage() {
   }, [policies]);
   const ptPolicy = useMemo(() => {
     return (policies as PolicyRow[]).find((p) => p.domain === "professional_tax");
+  }, [policies]);
+  const latePolicy = useMemo(() => {
+    return (policies as PolicyRow[]).find((p) => p.domain === "late");
   }, [policies]);
   const currentPolicy = useMemo(() => {
     if (!domain) return null;
@@ -308,6 +323,82 @@ export default function HrConfigPage() {
     }
     await hrAudit("Canada Policy Saved", "deductions", `v${canadaPolicy?.version ?? 0}`, `v${version}`);
     fire("Canada deductions policy saved");
+    setPolicyDraft({});
+    await qc.invalidateQueries({ queryKey: ["hr-policies"] });
+  };
+
+  const saveLatePolicy = async () => {
+    if (!can("configure")) return;
+    const rawSlab =
+      policyDraft.slab_table_json ??
+      JSON.stringify(latePolicy?.config?.slab_table ?? DEFAULT_LATE_SLAB_TABLE);
+    let slab_table: { max: number; deduction: number }[];
+    try {
+      slab_table = JSON.parse(String(rawSlab));
+    } catch {
+      fire("Invalid slab table JSON");
+      return;
+    }
+    const config: Record<string, unknown> = {
+      report_time: String(policyDraft.report_time ?? latePolicy?.config?.report_time ?? "10:00"),
+      grace_until: String(policyDraft.grace_until ?? latePolicy?.config?.grace_until ?? "10:05"),
+      half_day_after_min: Number(
+        policyDraft.half_day_after_min ?? latePolicy?.config?.half_day_after_min ?? 60,
+      ),
+      full_day_after_min: Number(
+        policyDraft.full_day_after_min ?? latePolicy?.config?.full_day_after_min ?? 180,
+      ),
+      slab_table,
+    };
+    const version = (latePolicy?.version ?? 0) + 1;
+    const { error } = await supabase.from("policies" as never).insert({
+      org_id: HR_ORG_ID,
+      domain: "late",
+      effective_from: new Date().toISOString().slice(0, 10),
+      version,
+      config,
+    } as never);
+    if (error) {
+      fire(error.message);
+      return;
+    }
+    await hrAudit("Late Policy Saved", "slab_table", `v${latePolicy?.version ?? 0}`, `v${version}`);
+    fire("Late coming policy saved");
+    setPolicyDraft({});
+    await qc.invalidateQueries({ queryKey: ["hr-policies"] });
+  };
+
+  const saveLeavePolicyConfig = async () => {
+    if (!can("configure") || !domain) return;
+    const config: Record<string, unknown> = {};
+    for (const f of configFields) {
+      const numKeys = [
+        "six_day_casual",
+        "six_day_sick",
+        "five_day_casual",
+        "five_day_sick",
+        "monthly_paid_cap",
+        "notice_days_short",
+        "notice_days_long",
+        "notice_threshold_days",
+        "sick_notice_hours",
+      ];
+      config[f.key] = numKeys.includes(f.key) ? Number(f.value) : f.value;
+    }
+    const version = (currentPolicy?.version ?? 0) + 1;
+    const { error } = await supabase.from("policies" as never).insert({
+      org_id: HR_ORG_ID,
+      domain,
+      effective_from: new Date().toISOString().slice(0, 10),
+      version,
+      config,
+    } as never);
+    if (error) {
+      fire(error.message);
+      return;
+    }
+    await hrAudit("Policy Saved", tab, `v${currentPolicy?.version ?? 0}`, `v${version}`);
+    fire("Policy saved as new version");
     setPolicyDraft({});
     await qc.invalidateQueries({ queryKey: ["hr-policies"] });
   };
@@ -541,6 +632,66 @@ export default function HrConfigPage() {
               </button>
             </div>
           </>
+        ) : tab === "Late Coming" ? (
+          <>
+            <div className="muted" style={{ fontSize: 12, marginBottom: 12 }}>
+              Per-day: &gt;1hr late = Half Day, &gt;3hr = Absent. Monthly slab deducts payable days in payroll cycle.
+            </div>
+            <div className="grid g2" style={{ gap: "0 24px" }}>
+              <Fld
+                label="Report time"
+                value={String(policyDraft.report_time ?? latePolicy?.config?.report_time ?? "10:00")}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, report_time: v }))}
+              />
+              <Fld
+                label="Grace until"
+                value={String(policyDraft.grace_until ?? latePolicy?.config?.grace_until ?? "10:05")}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, grace_until: v }))}
+              />
+              <Fld
+                label="Half day after (minutes)"
+                value={String(
+                  policyDraft.half_day_after_min ?? latePolicy?.config?.half_day_after_min ?? "60",
+                )}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, half_day_after_min: v }))}
+              />
+              <Fld
+                label="Full day after (minutes)"
+                value={String(
+                  policyDraft.full_day_after_min ?? latePolicy?.config?.full_day_after_min ?? "180",
+                )}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, full_day_after_min: v }))}
+              />
+            </div>
+            <label className="fld" style={{ marginTop: 12 }}>
+              <span className="l">Late deduction slab (JSON: max late count → deduction days)</span>
+              <textarea
+                className="input mono"
+                rows={8}
+                value={String(
+                  policyDraft.slab_table_json ??
+                    JSON.stringify(
+                      latePolicy?.config?.slab_table ?? DEFAULT_LATE_SLAB_TABLE,
+                      null,
+                      2,
+                    ),
+                )}
+                onChange={(e) =>
+                  setPolicyDraft((prev) => ({ ...prev, slab_table_json: e.target.value }))
+                }
+              />
+            </label>
+            <div className="row-flex" style={{ justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={!can("configure")}
+                onClick={() => void saveLatePolicy()}
+              >
+                Save Late Policy
+              </button>
+            </div>
+          </>
         ) : tab === "Workflow" ? (
           <>
             <div className="grid g2" style={{ gap: "0 24px" }}>
@@ -609,7 +760,7 @@ export default function HrConfigPage() {
                 type="button"
                 className="btn btn-primary"
                 disabled={!can("configure")}
-                onClick={() => void savePolicy()}
+                onClick={() => void (tab === "Leave" ? saveLeavePolicyConfig() : savePolicy())}
               >
                 Save Changes
               </button>

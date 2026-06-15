@@ -443,6 +443,36 @@
 | **Bug Severity** | |
 | **Reproducible** | ☐ Yes ☐ No |
 
+### HR-UAT-WF-008 — Leave notice rule (7 days)
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-WF-008 |
+| **Preconditions** | Full time Permanent employee after probation. |
+| **Steps** | 1. Apply 2-day leave starting in 3 days.<br>2. Observe warning banner. |
+| **Expected Result** | Warning: *Leave request will be rejected as leave rules not followed*; submits as Unpaid or blocked on approve. |
+| **Screenshot Required** | Yes |
+
+### HR-UAT-WF-009 — Monthly 1.5 paid cap
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-WF-009 |
+| **Preconditions** | Employee already used 1.5 paid days this month. |
+| **Steps** | 1. Apply another Casual/Sick day same month. |
+| **Expected Result** | Auto-selects Unpaid Leave; monthly counter shows cap reached. |
+| **Screenshot Required** | Yes |
+
+### HR-UAT-WF-010 — Leave balance 12 Casual + 6 Sick
+
+| Field | Value |
+|-------|-------|
+| **Test Case ID** | HR-UAT-WF-010 |
+| **Preconditions** | Migration 35 applied; ESS or Apply Leave modal. |
+| **Steps** | 1. Open My Portal or Apply Leave.<br>2. Check balance tags. |
+| **Expected Result** | Casual 12 / Sick 6 entitled (6-day week); monthly 1.5 cap shown. |
+| **Screenshot Required** | Yes |
+
 ---
 
 ## Section F — Payroll verification & lock

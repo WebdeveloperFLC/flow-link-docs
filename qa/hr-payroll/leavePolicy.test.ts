@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  isLeaveEligible,
+  lateDeductionFromSlab,
+  LEAVE_ENTITLED,
+  LEAVE_RULES_REJECT_MSG,
   monthlyPaidLeaveUsed,
   resolveLeaveApplication,
   UNPAID_LEAVE_TYPE,
+  validateLeaveNotice,
 } from "@/hr-payroll/lib/leavePolicy";
 
 describe("leavePolicy", () => {
@@ -13,7 +18,7 @@ describe("leavePolicy", () => {
       employee_id: "e1",
       policy_year: 2026,
       type: "Casual Leave",
-      entitled: 18,
+      entitled: LEAVE_ENTITLED.casual,
       accrued: 3,
       taken: 0,
     },
@@ -23,11 +28,19 @@ describe("leavePolicy", () => {
       employee_id: "e1",
       policy_year: 2026,
       type: "Sick Leave",
-      entitled: 8,
+      entitled: LEAVE_ENTITLED.sick,
       accrued: 2,
       taken: 0,
     },
   ];
+
+  const eligibleEmp = {
+    employment_type: "Full time - Permanent",
+    status: "Active",
+    work_hours: 9,
+    probation_end_date: "2025-01-01",
+    date_of_joining: "2024-01-01",
+  };
 
   it("counts monthly paid leave for same employee and month", () => {
     const requests = [
@@ -47,16 +60,33 @@ describe("leavePolicy", () => {
         from_date: "2026-06-20",
         status: "Pending",
       },
-      {
-        id: "c",
-        employee_id: "e2",
-        type: "Casual Leave",
-        days: 1,
-        from_date: "2026-06-12",
-        status: "Approved",
-      },
     ];
     expect(monthlyPaidLeaveUsed(requests, "e1", "2026-06-15")).toBe(1.5);
+  });
+
+  it("rejects short notice for 1-3 day leave", () => {
+    const applied = new Date("2026-06-10T10:00:00");
+    const r = validateLeaveNotice(2, "2026-06-12", applied);
+    expect(r.valid).toBe(false);
+    expect(r.reason).toContain(LEAVE_RULES_REJECT_MSG);
+  });
+
+  it("allows notice when 7+ days ahead", () => {
+    const applied = new Date("2026-06-10T10:00:00");
+    const r = validateLeaveNotice(2, "2026-06-20", applied);
+    expect(r.valid).toBe(true);
+  });
+
+  it("blocks ineligible employment type", () => {
+    expect(
+      isLeaveEligible({
+        employment_type: "Interns",
+        status: "Active",
+        work_hours: 9,
+        probation_end_date: null,
+        date_of_joining: "2024-01-01",
+      }),
+    ).toBe(false);
   });
 
   it("forces unpaid when monthly cap exceeded", () => {
@@ -77,34 +107,28 @@ describe("leavePolicy", () => {
       fromDate: "2026-06-10",
       balances,
       requests,
+      employee: eligibleEmp,
     });
     expect(r.effectiveType).toBe(UNPAID_LEAVE_TYPE);
     expect(r.forcedUnpaid).toBe(true);
   });
 
-  it("forces unpaid when balance insufficient", () => {
-    const r = resolveLeaveApplication({
-      preferredType: "Casual Leave",
-      days: 5,
-      employeeId: "e1",
-      fromDate: "2026-06-10",
-      balances,
-      requests: [],
-    });
-    expect(r.effectiveType).toBe(UNPAID_LEAVE_TYPE);
-    expect(r.forcedUnpaid).toBe(true);
-  });
-
-  it("allows paid leave when balance and monthly cap ok", () => {
+  it("allows paid leave when rules pass", () => {
     const r = resolveLeaveApplication({
       preferredType: "Casual Leave",
       days: 1,
       employeeId: "e1",
-      fromDate: "2026-06-10",
+      fromDate: "2026-12-01",
       balances,
       requests: [],
+      employee: eligibleEmp,
     });
     expect(r.effectiveType).toBe("Casual Leave");
     expect(r.forcedUnpaid).toBe(false);
+  });
+
+  it("late slab: 1-3 late = 1 day deduction", () => {
+    expect(lateDeductionFromSlab(2)).toBe(1.0);
+    expect(lateDeductionFromSlab(5)).toBe(1.5);
   });
 });

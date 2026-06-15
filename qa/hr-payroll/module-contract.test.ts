@@ -34,6 +34,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120032_hr_payroll_ess_document_storage_access.sql",
   "20260717120033_hr_payroll_employment_types_companies.sql",
   "20260717120034_hr_payroll_leave_casual_sick_policy.sql",
+  "20260717120035_hr_payroll_policy_rules_engine.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -157,6 +158,23 @@ describe("HR Payroll module contract", () => {
     expect(m31).toContain("off_shift_minutes");
     expect(m31).toContain("ot_minutes");
     expect(m31).toContain("performance-only");
+  });
+
+  it("migration 35 policy rules engine", () => {
+    const m35 = readFileSync(
+      join(MIGRATIONS, "20260717120035_hr_payroll_policy_rules_engine.sql"),
+      "utf8",
+    );
+    expect(m35).toContain("fn_validate_leave_rules");
+    expect(m35).toContain("fn_finalize_leave_on_approve");
+    expect(m35).toContain("six_day_casual");
+    expect(m35).toContain("full_day_after_min");
+    expect(m35).toContain("fn_apply_holidays_for_date");
+    expect(m35).toContain("training_unpaid_cap");
+    const policy = readFileSync(join(ROOT, "src/hr-payroll/lib/leavePolicy.ts"), "utf8");
+    expect(policy).toContain("LEAVE_ENTITLED");
+    expect(policy).toContain("validateLeaveNotice");
+    expect(policy).toContain("lateDeductionFromSlab");
   });
 
   it("leave apply policy: casual/sick only with monthly cap", () => {
