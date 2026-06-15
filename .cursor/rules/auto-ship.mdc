@@ -1,0 +1,53 @@
+---
+description: Ship every implementation to GitHub main immediately — no PRs, then Lovable Sync+Publish
+alwaysApply: true
+---
+
+# Ship to GitHub main (mandatory)
+
+**Owner workflow:** Cursor ships code → GitHub `main` → user runs Lovable Sync → Publish.  
+**No pull requests** unless the user explicitly asks for review first.
+
+## After every implementation (feature, fix, refactor)
+
+1. **Ensure you are on `main`** (`git checkout main && git pull origin main` if needed).
+2. **Run `npm run ship`** with a clear commit message and the changed file paths:
+   ```bash
+   npm run ship -- "feat(crm): short description" -- src/path/to/file.tsx docs/…
+   ```
+3. **If ship is unavailable**, commit and push yourself — never leave work local-only:
+   ```bash
+   git add <files> && git commit -m "…" && git push origin main
+   ```
+4. **Verify push succeeded** before telling the user anything about deploy:
+   ```bash
+   git fetch origin && git rev-parse HEAD origin/main   # must match
+   git log origin/main -1 --oneline
+   ```
+5. **Only skip shipping** when:
+   - User explicitly says do not ship/commit/push, or
+   - There are zero code changes, or
+   - Pre-commit tests fail — fix first, then ship without re-asking.
+
+## Never do this
+
+- Finish work and say “sync to Lovable” while files are still uncommitted or unpushed.
+- Ask the user to create, review, or merge a PR for routine CRM/UI work.
+- Ask “should I ship?” or “want me to push?” — shipping is automatic.
+- Imply code is live when it is only on the local machine.
+
+## Closing message (required after every ship)
+
+Always end implementation turns with:
+
+```
+✓ On GitHub main: <commit hash> — <one-line summary>
+YOUR ACTION: Lovable → Sync from GitHub → Publish → hard refresh (Cmd+Shift+R)
+```
+
+If migrations or edge functions changed, add: approve pending items in Lovable Publish (see `docs/LOVABLE_PUBLISH_CHECKLIST.md`).
+
+## PRs
+
+- **Default:** push direct to `main` (no PR).
+- **Exception:** user says “open a PR” or “don’t push to main yet”.
