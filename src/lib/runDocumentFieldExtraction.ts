@@ -3,8 +3,22 @@ import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegData
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { enqueueExtraction } from "@/lib/extractionQueue";
 import { filterExtractedForSection } from "@/lib/sections";
+import { AUTO_EXTRACT_MAX_PAGES, autoExtractSkipReason, shouldAutoExtractProfileFields } from "@/lib/extractionConfig";
+import { getPdfPageCount, isPdfFile } from "@/lib/binderSplit";
 
-/** OCR + AI field extraction after upload. Best-effort — never throws. */
+async function resolvePageCount(file: File): Promise<number> {
+  if (file.type.startsWith("image/")) return 1;
+  if (isPdfFile(file)) {
+    try {
+      return await getPdfPageCount(file);
+    } catch {
+      return AUTO_EXTRACT_MAX_PAGES + 1;
+    }
+  }
+  return 1;
+}
+
+/** OCR + AI field extraction after upload. Best-effort — never throws. Skips multi-page and non-whitelist types. */
 export async function runDocumentFieldExtraction(opts: {
   clientId: string;
   documentId: string;
@@ -17,7 +31,7 @@ export async function runDocumentFieldExtraction(opts: {
   classifySource?: string | null;
   sectionKey?: string | null;
   onFieldsWritten?: () => void;
-}): Promise<{ written: number }> {
+}): Promise<{ written: number; skipped?: boolean; skipReason?: string }> {
   const {
     clientId,
     documentId,
@@ -32,6 +46,13 @@ export async function runDocumentFieldExtraction(opts: {
     onFieldsWritten,
   } = opts;
 
+  const pageCount = await resolvePageCount(file);
+  if (!shouldAutoExtractProfileFields(documentType, customType, pageCount)) {
+    const skipReason = autoExtractSkipReason(documentType, customType, pageCount) ?? "not eligible";
+    console.debug("[extraction] skipped", { fileName, documentType, pageCount, skipReason });
+    return { written: 0, skipped: true, skipReason };
+  }
+
   void enqueueExtraction({
     documentId,
     clientId,
@@ -41,13 +62,13 @@ export async function runDocumentFieldExtraction(opts: {
     source: classifySource,
   });
 
-  const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+  const isPdf = isPdfFile(file);
   const isImage = file.type.startsWith("image/");
 
   try {
-    const snippet = isPdf ? await extractFirstPageText(file, 28000, 8) : "";
+    const snippet = isPdf ? await extractFirstPageText(file, 12000, AUTO_EXTRACT_MAX_PAGES) : "";
     const imageDataUrls: string[] = isPdf
-      ? await renderPdfPagesToJpegDataUrls(file, 6)
+      ? await renderPdfPagesToJpegDataUrls(file, AUTO_EXTRACT_MAX_PAGES)
       : isImage
         ? [await imageFileToJpegDataUrl(file)].filter(Boolean)
         : [];
@@ -64,19 +85,10 @@ export async function runDocumentFieldExtraction(opts: {
     });
 
     const rawFields = (data?.fields ?? {}) as Record<string, string | number | null>;
-    const fields = sectionKey
-      ? filterExtractedForSection(sectionKey, rawFields)
-      : rawFields;
+    const fields = sectionKey ? filterExtractedForSection(sectionKey, rawFields) : rawFields;
 
     if (Object.keys(fields).length > 0) {
-      const { written } = await mergeExtractedFields(
-        clientId,
-        documentId,
-        fileName,
-        fields,
-        documentType,
-        customType,
-      );
+      const { written } = await mergeExtractedFields(clientId, documentId, fileName, fields, documentType, customType);
       if (written.length > 0) {
         onFieldsWritten?.();
       }
@@ -88,11 +100,11 @@ export async function runDocumentFieldExtraction(opts: {
 
   try {
     const pageImages: string[] = isPdf
-      ? await renderPdfPagesToJpegDataUrls(file, 4)
+      ? await renderPdfPagesToJpegDataUrls(file, AUTO_EXTRACT_MAX_PAGES)
       : isImage
         ? [await imageFileToJpegDataUrl(file)].filter(Boolean)
         : [];
-    const embeddedText = isPdf ? await extractFirstPageText(file, 12000, 4) : "";
+    const embeddedText = isPdf ? await extractFirstPageText(file, 8000, AUTO_EXTRACT_MAX_PAGES) : "";
     if (pageImages.length > 0 || embeddedText) {
       await supabase.functions.invoke("verify-document", {
         body: {

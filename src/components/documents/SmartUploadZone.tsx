@@ -10,10 +10,9 @@ import { processToPdf } from "@/lib/processFile";
 import { classifyDocument, displayTitleFor } from "@/lib/classifyDocument";
 import { markChecklistItemReady } from "@/lib/checklist";
 import { matchPersonRoster } from "@/lib/matchPersonRoster";
-import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegDataUrl } from "@/lib/extractFirstPageText";
-import { mergeExtractedFields } from "@/lib/extractedFields";
+import { renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
 import { logActivity } from "@/lib/activity";
-import { enqueueExtraction } from "@/lib/extractionQueue";
+import { runDocumentFieldExtraction } from "@/lib/runDocumentFieldExtraction";
 import { ROLE_SHORT, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { inferSectionId } from "@/lib/sections";
 import {
@@ -384,83 +383,22 @@ export const SmartUploadZone = ({
       } catch { /* best effort */ }
       patch(idx, { status: "done" });
 
-      // Phase 2: register for background OCR + extraction (fire-and-forget).
-      void enqueueExtraction({
-        documentId: ins.id,
+      // Fire-and-forget: only short (≤2 page) passport / IELTS / transcript-type docs.
+      void runDocumentFieldExtraction({
         clientId: targetClient.id,
+        documentId: ins.id,
+        file: processed,
+        documentType: effectiveType,
+        customType: type === "Other" ? customType?.trim() || null : null,
+        fileName: processed.name,
         personId: ownerPerson?.id ?? null,
-        docTypeDetected: effectiveType,
         classifyConfidence: typeof item.confidence === "number" ? item.confidence : 0,
-        source: item.source ?? null,
+        classifySource: item.source ?? null,
+      }).then(({ written }) => {
+        if (written > 0) {
+          toast.success(`Extracted ${written} field${written === 1 ? "" : "s"} from ${processed.name}`);
+        }
       });
-
-      // Background field extraction (per-person where possible)
-      try {
-        const isPdf = item.file.type === "application/pdf" || item.file.name.toLowerCase().endsWith(".pdf");
-        const isImage = item.file.type.startsWith("image/");
-        // Scan up to 8 pages and ~28k chars so multi-page resumes / transcripts /
-        // bank statements get fully read instead of just the first page.
-        const snippet = isPdf ? await extractFirstPageText(item.file, 28000, 8) : "";
-        const imageDataUrls: string[] = isPdf
-          ? await renderPdfPagesToJpegDataUrls(item.file, 6)
-          : isImage
-            ? [await imageFileToJpegDataUrl(item.file)].filter(Boolean)
-            : [];
-        {
-          const { data } = await supabase.functions.invoke("extract-document-data", {
-            body: {
-              document_id: ins.id,
-              document_type: effectiveType,
-              custom_type: type === "Other" ? customType?.trim() || null : null,
-              file_name: processed.name,
-              snippet,
-              image_data_urls: imageDataUrls,
-            },
-          });
-          const fields = (data?.fields ?? {}) as Record<string, string | number | null>;
-          if (fields && Object.keys(fields).length > 0) {
-            const { written, conflicts } = await mergeExtractedFields(
-              targetClient.id, ins.id, processed.name, fields, effectiveType,
-              type === "Other" ? (customType ?? null) : null,
-            );
-            if (written.length > 0) {
-              toast.success(`Extracted ${written.length} field${written.length === 1 ? "" : "s"} from ${processed.name}`);
-            }
-            if (conflicts.length > 0) {
-              toast.message(`${conflicts.length} field conflict${conflicts.length === 1 ? "" : "s"} flagged on profile`);
-            }
-          }
-        }
-      } catch (e) {
-        console.warn("extract-document-data failed:", e);
-      }
-
-      // Background authenticity check ("synergy gate"): produce a verification
-      // record so reviewers can see fraud signals on the document. Best-effort
-      // — never block the upload UX.
-      try {
-        const isPdf = item.file.type === "application/pdf" || item.file.name.toLowerCase().endsWith(".pdf");
-        const isImage = item.file.type.startsWith("image/");
-        const pageImages: string[] = isPdf
-          ? await renderPdfPagesToJpegDataUrls(item.file, 4)
-          : isImage
-            ? [await imageFileToJpegDataUrl(item.file)].filter(Boolean)
-            : [];
-        const embeddedText = isPdf ? await extractFirstPageText(item.file, 12000, 4) : "";
-        if (pageImages.length > 0 || embeddedText) {
-          await supabase.functions.invoke("verify-document", {
-            body: {
-              document_id: ins.id,
-              doc_type: effectiveType,
-              page_image_data_urls: pageImages,
-              embedded_text: embeddedText,
-              ocr_text: "",
-            },
-          });
-        }
-      } catch (e) {
-        console.warn("verify-document failed:", e);
-      }
     } catch (e) {
       patch(idx, { status: "error", error: e instanceof Error ? e.message : "Upload failed" });
     }
