@@ -121,7 +121,7 @@ export const FinalBinderPanel = ({ clientId, clientName, sections, docsBySection
           })}
         </div>
         <div className="flex flex-col gap-2 pt-2">
-          <Button size="sm" onClick={onCombineSelected} disabled={!canGenerate || busy !== null || selected.size === 0} className="gradient-accent text-white">
+          <Button size="sm" onClick={onCombineSelected} disabled={!canGenerate || busy !== null || selected.size === 0} className="gradient-brand text-white">
             {busy === "single" ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <FileCheck2 className="size-3.5 mr-1.5" />}
             Combine into ONE final binder
           </Button>

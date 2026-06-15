@@ -581,7 +581,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
                 {uploading ? <Loader2 className="size-3 mr-1 animate-spin" /> : <Upload className="size-3 mr-1" />}
                 Upload
               </Button>
-              <Button size="sm" className="h-7 text-xs gradient-accent text-white" onClick={onCombine} disabled={combining || items.length === 0}>
+              <Button size="sm" className="h-7 text-xs gradient-brand text-white" onClick={onCombine} disabled={combining || items.length === 0}>
                 {combining ? <Loader2 className="size-3 mr-1 animate-spin" /> : <Layers className="size-3 mr-1" />}
                 {items.length === 0 ? "Combine" : items.length === 1 ? (binder ? "Rebuild" : "Binder") : binder ? `Rebuild (${items.length})` : `Combine (${items.length})`}
               </Button>

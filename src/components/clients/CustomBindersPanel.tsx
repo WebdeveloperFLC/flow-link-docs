@@ -145,7 +145,7 @@ export const CustomBindersPanel = ({
               setEditing(null);
               setOpen(true);
             }}
-            className="gradient-accent text-white"
+            className="gradient-brand text-white"
           >
             <Plus className="size-3.5 mr-1.5" /> New binder
           </Button>
@@ -594,7 +594,7 @@ const BinderEditor = ({
           <Button
             onClick={save}
             disabled={busy || !name.trim() || orderedIds.length === 0}
-            className="gradient-accent text-white"
+            className="gradient-brand text-white"
           >
             {busy ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <FileCheck2 className="size-3.5 mr-1.5" />}
             {editing ? "Save changes" : "Create binder"}
