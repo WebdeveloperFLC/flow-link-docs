@@ -11,6 +11,7 @@ import {
   GraduationCap,
   ListTodo,
   UsersRound,
+  Briefcase,
 } from "lucide-react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -18,12 +19,13 @@ import { cn } from "@/lib/utils";
 export const CLIENT_DETAIL_TABS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "qualification", label: "Qualification", icon: ClipboardCheck },
-  { id: "profile", label: "Profile & Family", icon: UserCircle },
+  { id: "profile", label: "Profile", icon: UserCircle },
+  { id: "family", label: "Family", icon: UsersRound },
+  { id: "services", label: "Client service", icon: Briefcase },
   { id: "setup", label: "Stage & Setup", icon: GitBranch },
   { id: "programs", label: "Programs", icon: GraduationCap },
   { id: "documents", label: "Documents", icon: FolderOpen },
   { id: "forms", label: "Forms & Letters", icon: FileText },
-  { id: "family", label: "Family", icon: UsersRound },
   { id: "commercial", label: "Payments", icon: Receipt },
   { id: "communications", label: "Comms", icon: MessageSquare },
   { id: "tasks", label: "Tasks", icon: ListTodo },

@@ -1096,6 +1096,13 @@ const ClientDetail = () => {
               syncingOdoo={syncingOdoo}
               refreshKey={profileRefreshKey}
             />
+          </TabsContent>
+
+          <TabsContent value="family" className="mt-0 space-y-6">
+            <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
+          </TabsContent>
+
+          <TabsContent value="services" className="mt-0 space-y-6">
             <ClientServicesCard clientId={client.id} canEdit={canUpload} />
           </TabsContent>
 
@@ -1147,10 +1154,6 @@ const ClientDetail = () => {
               category={serviceCtx.formsCategory ?? client.application_type}
               canEdit={canUpload}
             />
-          </TabsContent>
-
-          <TabsContent value="family" className="mt-0 space-y-6">
-            <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
           </TabsContent>
 
           <TabsContent value="communications" className="mt-0 space-y-6">
