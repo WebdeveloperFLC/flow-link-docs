@@ -99,9 +99,9 @@ const SHOW_SETTLE_ABROAD_NAV = false;
 const dashboardItem: NavItem = { to: "/", icon: LayoutDashboard, label: "Dashboard", end: true };
 
 const crmNav: NavItem[] = [
-  { to: "/leads", icon: Flame, label: "Leads" },
+  { to: "/leads", icon: Flame, label: "Current Leads" },
   { to: "/leads/cold", icon: Snowflake, label: "Cold Pool" },
-  { to: "/leads/new", icon: UserPlus, label: "+ New Lead" },
+  { to: "/leads/new", icon: UserPlus, label: "New Lead" },
   { to: "/clients", icon: Users, label: "Clients" },
   { to: "/messages", icon: MessageSquare, label: "Messages" },
   {

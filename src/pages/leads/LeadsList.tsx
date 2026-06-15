@@ -24,7 +24,7 @@ const LeadsList = () => {
   return (
     <AppLayout>
       <PageHeader
-        title="Leads"
+        title="Current Leads"
         description="Warm and hot leads in the active pipeline"
         actions={
           <Button onClick={() => nav("/leads/new")}>

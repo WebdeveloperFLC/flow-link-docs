@@ -60,6 +60,12 @@ import { isChecklistAlias } from "@/lib/checklist";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import {
+  ClientDetailTabNav,
+  isClientDetailTabId,
+  type ClientDetailTabId,
+} from "@/components/clients/ClientDetailTabNav";
 import { openClientDocument } from "@/lib/documentPreview";
 import { ClientAccessDialog } from "@/components/clients/ClientAccessDialog";
 import { ClientAccessCard } from "@/components/clients/ClientAccessCard";
@@ -131,8 +137,20 @@ interface BinderRow {
 const ClientDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const fromServiceLibrary = searchParams.get("from") === "service-library";
+  const tabParam = searchParams.get("tab");
+  const activeTab: ClientDetailTabId = isClientDetailTabId(tabParam) ? tabParam : "overview";
+  const setActiveTab = (tab: ClientDetailTabId) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("tab", tab);
+        return next;
+      },
+      { replace: true },
+    );
+  };
   const slLibraryId =
     searchParams.get("library_id") ?? parseLibraryIdFromServiceCode(searchParams.get("service"));
   const slCountry = searchParams.get("sl_country") ?? searchParams.get("country");
@@ -1060,67 +1078,138 @@ const ClientDetail = () => {
         }
       />
 
-      <div className="p-8 grid lg:grid-cols-3 gap-6">
-        {/* Left: unified case documents (sections + checklist + uploads) */}
-        <div className="lg:col-span-2 space-y-6">
-          <ClientSetupPanel
-            clientId={client.id}
-            libraryId={serviceCtx.libraryId ?? slLibraryId}
-            destinationCountry={serviceCtx.destinationCountry}
-            onRefresh={load}
-          />
-          <ClientServiceSwitcher
-            clientId={client.id}
-            clientCountry={client.country}
-            onSwitched={onServiceSwitched}
-          />
-          <ClientStageCard
-            key={stageRefreshKey}
-            clientId={client.id}
-            clientCountry={client.country}
-            destinationCountry={serviceCtx.destinationCountry}
-            activeServiceLabel={serviceCtx.serviceLabel}
-          />
-          <ClientProfileCard
-            clientId={client.id}
-            canEdit={canUpload}
-            onReExtract={onReExtract}
-            reExtracting={reExtracting}
-            onSyncOdoo={onSyncOdoo}
-            syncingOdoo={syncingOdoo}
-            refreshKey={profileRefreshKey}
-          />
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ClientDetailTabId)}>
+        <ClientDetailTabNav badges={{ documents: requiredMissing.length }} />
 
-          <ClientServicesCard clientId={client.id} canEdit={canUpload} />
+        <div className="p-6 sm:p-8 max-w-7xl mx-auto">
+          <TabsContent value="overview" className="mt-0 space-y-6">
+            <ClientSetupPanel
+              clientId={client.id}
+              libraryId={serviceCtx.libraryId ?? slLibraryId}
+              destinationCountry={serviceCtx.destinationCountry}
+              onRefresh={load}
+            />
+            <ClientServiceSwitcher
+              clientId={client.id}
+              clientCountry={client.country}
+              onSwitched={onServiceSwitched}
+            />
+            <ClientStageCard
+              key={stageRefreshKey}
+              clientId={client.id}
+              clientCountry={client.country}
+              destinationCountry={serviceCtx.destinationCountry}
+              activeServiceLabel={serviceCtx.serviceLabel}
+            />
+            <QuickActionsBar
+              clientId={client.id}
+              clientName={client.full_name}
+              phone={(client as Client & { phone?: string | null }).phone ?? null}
+              email={(client as Client & { email?: string | null }).email ?? null}
+            />
+            <AiSummaryPanel clientId={client.id} />
+            <div className="grid lg:grid-cols-2 gap-6">
+              <ClientTasksCard clientId={client.id} />
+              <HandoffHistoryCard clientId={client.id} />
+            </div>
+          </TabsContent>
 
-          <ClientProgramsCard clientId={client.id} canEdit={canUpload} />
+          <TabsContent value="profile" className="mt-0 space-y-6">
+            <ClientProfileCard
+              clientId={client.id}
+              canEdit={canUpload}
+              onReExtract={onReExtract}
+              reExtracting={reExtracting}
+              onSyncOdoo={onSyncOdoo}
+              syncingOdoo={syncingOdoo}
+              refreshKey={profileRefreshKey}
+            />
+            <ClientServicesCard clientId={client.id} canEdit={canUpload} />
+            <ClientProgramsCard clientId={client.id} canEdit={canUpload} />
+            <ClientAssessmentsCard clientId={client.id} />
+          </TabsContent>
 
-          <ClientPromotionsStrip
-            clientId={client.id}
-            clientName={client.full_name ?? undefined}
-            clientPhone={(client as Client & { phone?: string | null }).phone ?? null}
-          />
+          <TabsContent value="commercial" className="mt-0 space-y-6">
+            <ClientPromotionsStrip
+              clientId={client.id}
+              clientName={client.full_name ?? undefined}
+              clientPhone={(client as Client & { phone?: string | null }).phone ?? null}
+            />
+            <ClientPaymentsCard clientId={client.id} activeServiceCode={serviceCtx.activeServiceCode} />
+          </TabsContent>
 
-          <ClientPaymentsCard clientId={client.id} activeServiceCode={serviceCtx.activeServiceCode} />
+          <TabsContent value="forms" className="mt-0 space-y-6">
+            <LetterCard
+              clientId={client.id}
+              canGenerate={canUpload}
+              onGenerated={load}
+              destinationCountry={serviceCtx.destinationCountry}
+            />
+            <ClientFormsCard
+              clientId={client.id}
+              country={serviceCtx.destinationCountry ?? client.country}
+              category={serviceCtx.formsCategory ?? client.application_type}
+              canEdit={canUpload}
+            />
+          </TabsContent>
 
-          <ClientAssessmentsCard clientId={client.id} />
+          <TabsContent value="communications" className="mt-0 space-y-6">
+            <div className="grid lg:grid-cols-2 gap-6">
+              <ClientEmailCard
+                clientId={client.id}
+                defaultTo={(client as Client & { email?: string | null }).email ?? null}
+              />
+              <ClientVoiceNotesCard clientId={client.id} />
+            </div>
+            <ClientChatWorkspace clientId={client.id} />
+            <ClientTimelineCard clientId={client.id} />
+          </TabsContent>
 
-          <LetterCard
-            clientId={client.id}
-            canGenerate={canUpload}
-            onGenerated={load}
-            destinationCountry={serviceCtx.destinationCountry}
-          />
+          <TabsContent value="team" className="mt-0 space-y-6">
+            <div className="grid lg:grid-cols-2 gap-6">
+              <ClientAccessCard
+                clientId={client.id}
+                ownerId={client.owner_id ?? null}
+                createdBy={client.created_by ?? null}
+                onOwnerChanged={load}
+                onManageClick={() => setAccessOpen(true)}
+              />
+              <InviteClientCard clientId={client.id} defaultEmail={(client as any).email ?? null} />
+            </div>
+            <CustomBindersPanel
+              clientId={client.id}
+              clientName={client.full_name}
+              sections={sections}
+              docsBySection={sections.reduce(
+                (acc, s) => {
+                  acc[s.id] = docs
+                    .filter((d) => d.section_id === s.id)
+                    .map((d) => ({
+                      id: d.id,
+                      document_type: d.document_type,
+                      custom_type: d.custom_type,
+                      file_name: d.file_name,
+                      storage_path: d.storage_path,
+                      mime_type: d.mime_type,
+                      size_bytes: d.size_bytes,
+                      section_id: d.section_id ?? null,
+                      section_order: d.section_order ?? 0,
+                      uploaded_at: d.uploaded_at,
+                      version: d.version,
+                    }));
+                  return acc;
+                },
+                {} as Record<string, SectionDoc[]>,
+              )}
+              requiredItems={checklistItems.map((it) => ({ id: it.id, name: it.name, mandatory: !!it.mandatory }))}
+              canGenerate={canUpload}
+              isAdmin={isAdmin}
+              onGenerated={load}
+            />
+            <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
+          </TabsContent>
 
-          <ClientFormsCard
-            clientId={client.id}
-            country={serviceCtx.destinationCountry ?? client.country}
-            category={serviceCtx.formsCategory ?? client.application_type}
-            canEdit={canUpload}
-          />
-
-          {/* Unified case documents: every section in one place — checklist + uploaded files + per-section combine. */}
-          {sections.length > 0 && (
+          <TabsContent value="documents" className="mt-0 space-y-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
@@ -1237,8 +1326,12 @@ const ClientDetail = () => {
                   />
                 );
               })}
+              {sections.length === 0 && (
+                <Card className="p-6 text-center text-sm text-muted-foreground">
+                  No document sections yet. Assign a pipeline or checklist template from the Overview tab.
+                </Card>
+              )}
             </div>
-          )}
 
           {/* Mirrored workspaces for non-applicant people on the case */}
           {people.filter((p) => p.role !== "applicant").length > 0 && (
@@ -1384,125 +1477,60 @@ const ClientDetail = () => {
               </div>
             </Card>
           )}
-        </div>
 
-        {/* Right: upload */}
-        <div className="space-y-4">
-          <ClientAccessCard
-            clientId={client.id}
-            ownerId={client.owner_id ?? null}
-            createdBy={client.created_by ?? null}
-            onOwnerChanged={load}
-            onManageClick={() => setAccessOpen(true)}
-          />
-          <InviteClientCard clientId={client.id} defaultEmail={(client as any).email ?? null} />
-          <CustomBindersPanel
-            clientId={client.id}
-            clientName={client.full_name}
-            sections={sections}
-            docsBySection={sections.reduce(
-              (acc, s) => {
-                acc[s.id] = docs
-                  .filter((d) => d.section_id === s.id)
-                  .map((d) => ({
-                    id: d.id,
-                    document_type: d.document_type,
-                    custom_type: d.custom_type,
-                    file_name: d.file_name,
-                    storage_path: d.storage_path,
-                    mime_type: d.mime_type,
-                    size_bytes: d.size_bytes,
-                    section_id: d.section_id ?? null,
-                    section_order: d.section_order ?? 0,
-                    uploaded_at: d.uploaded_at,
-                    version: d.version,
-                  }));
-                return acc;
-              },
-              {} as Record<string, SectionDoc[]>,
-            )}
-            requiredItems={checklistItems.map((it) => ({ id: it.id, name: it.name, mandatory: !!it.mandatory }))}
-            canGenerate={canUpload}
-            isAdmin={isAdmin}
-            onGenerated={load}
-          />
-          <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
-          {canUpload ? (
-            <Card className="overflow-hidden shadow-elev-sm">
-              <Accordion type="single" collapsible>
-                <AccordionItem value="advanced" className="border-0">
-                  <AccordionTrigger className="px-5 py-3 hover:no-underline">
-                    <div className="text-left">
-                      <div className="text-sm font-semibold">Advanced: split a multi-doc PDF</div>
-                      <div className="text-[11px] text-muted-foreground">
-                        Only for binders that contain several documents in one PDF. Default uploads belong inside a
-                        section.
+            {canUpload ? (
+              <Card className="overflow-hidden shadow-elev-sm">
+                <Accordion type="single" collapsible>
+                  <AccordionItem value="advanced" className="border-0">
+                    <AccordionTrigger className="px-5 py-3 hover:no-underline">
+                      <div className="text-left">
+                        <div className="text-sm font-semibold">Advanced: split a multi-doc PDF</div>
+                        <div className="text-[11px] text-muted-foreground">
+                          Only for binders that contain several documents in one PDF. Default uploads belong inside a
+                          section.
+                        </div>
                       </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="px-3 pb-3">
-                      <SmartUploadZone
-                        client={client}
-                        templateTypes={checklistItems.map((it) => it.name)}
-                        people={people}
-                        uploadLimitLabel={uploadLimitLabel}
-                        onUploaded={() => {
-                          load();
-                          try {
-                            const userIds = resolveCounselorNotificationUserIds(
-                              { assigned_counselor_id: null, owner_id: client?.owner_id ?? null },
-                              { context: "document_uploaded" },
-                            );
-                            if (userIds.length) {
-                              notifyUsers({
-                                userIds,
-                                category: "document_uploaded",
-                                title: `Document uploaded${client?.full_name ? ` for ${client.full_name}` : ""}`,
-                                link: `/clients/${client?.id}`,
-                                dedupeKey: `doc:upload:${client?.id}:${Date.now()}`,
-                              });
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="px-3 pb-3">
+                        <SmartUploadZone
+                          client={client}
+                          templateTypes={checklistItems.map((it) => it.name)}
+                          people={people}
+                          uploadLimitLabel={uploadLimitLabel}
+                          onUploaded={() => {
+                            load();
+                            try {
+                              const userIds = resolveCounselorNotificationUserIds(
+                                { assigned_counselor_id: null, owner_id: client?.owner_id ?? null },
+                                { context: "document_uploaded" },
+                              );
+                              if (userIds.length) {
+                                notifyUsers({
+                                  userIds,
+                                  category: "document_uploaded",
+                                  title: `Document uploaded${client?.full_name ? ` for ${client.full_name}` : ""}`,
+                                  link: `/clients/${client?.id}`,
+                                  dedupeKey: `doc:upload:${client?.id}:${Date.now()}`,
+                                });
+                              }
+                            } catch {
+                              /* best-effort */
                             }
-                          } catch {
-                            /* best-effort */
-                          }
-                        }}
-                      />
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </Card>
-          ) : (
-            <Card className="p-6 text-center text-sm text-muted-foreground">Read-only access.</Card>
-          )}
+                          }}
+                        />
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </Card>
+            ) : (
+              <Card className="p-6 text-center text-sm text-muted-foreground">Read-only document access.</Card>
+            )}
+          </TabsContent>
         </div>
-      </div>
+      </Tabs>
       <ShareLinkDialog open={!!shareTarget} onOpenChange={(o) => !o && setShareTarget(null)} target={shareTarget} />
-      {client && (
-        <div className="px-8 pb-8 space-y-6">
-          <QuickActionsBar
-            clientId={client.id}
-            clientName={client.full_name}
-            phone={(client as Client & { phone?: string | null }).phone ?? null}
-            email={(client as Client & { email?: string | null }).email ?? null}
-          />
-          <AiSummaryPanel clientId={client.id} />
-          <div className="grid lg:grid-cols-2 gap-6">
-            <ClientTasksCard clientId={client.id} />
-            <HandoffHistoryCard clientId={client.id} />
-          </div>
-          <div className="grid lg:grid-cols-2 gap-6">
-            <ClientEmailCard
-              clientId={client.id}
-              defaultTo={(client as Client & { email?: string | null }).email ?? null}
-            />
-            <ClientVoiceNotesCard clientId={client.id} />
-          </div>
-          <ClientChatWorkspace clientId={client.id} />
-          <ClientTimelineCard clientId={client.id} />
-        </div>
-      )}
       <AddSectionDialog open={addSectionOpen} onOpenChange={setAddSectionOpen} onCreated={load} />
       <AddDocTypeDialog
         open={addDocOpen}
