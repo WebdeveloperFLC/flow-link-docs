@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  computeInclusiveLeaveDays,
+  isFiveDayNightEst,
   isLeaveEligible,
   lateDeductionFromSlab,
+  LEAVE_DURATION_HALF,
   LEAVE_ENTITLED,
+  LEAVE_ENTITLED_5DAY_NIGHT,
+  leaveDaysForDuration,
+  leaveDurationLabel,
+  leaveEntitlementsForEmployee,
   LEAVE_RULES_REJECT_MSG,
   monthlyPaidLeaveUsed,
   resolveLeaveApplication,
@@ -130,5 +137,18 @@ describe("leavePolicy", () => {
   it("late slab: 1-3 late = 1 day deduction", () => {
     expect(lateDeductionFromSlab(2)).toBe(1.0);
     expect(lateDeductionFromSlab(5)).toBe(1.5);
+  });
+
+  it("5-day night EST gets 7+3 = 10 annual entitlement", () => {
+    expect(isFiveDayNightEst("5-Day", "Night")).toBe(true);
+    expect(isFiveDayNightEst("5-Day", "Day")).toBe(false);
+    expect(leaveEntitlementsForEmployee("5-Day", "Night")).toEqual(LEAVE_ENTITLED_5DAY_NIGHT);
+    expect(LEAVE_ENTITLED_5DAY_NIGHT.casual + LEAVE_ENTITLED_5DAY_NIGHT.sick).toBe(10);
+  });
+
+  it("computes leave days from duration and date range", () => {
+    expect(computeInclusiveLeaveDays("2026-06-10", "2026-06-12")).toBe(3);
+    expect(leaveDaysForDuration(LEAVE_DURATION_HALF, "2026-06-10", "2026-06-10")).toBe(0.5);
+    expect(leaveDurationLabel(0.5, LEAVE_DURATION_HALF, "First Half")).toBe("Half Day · First Half");
   });
 });

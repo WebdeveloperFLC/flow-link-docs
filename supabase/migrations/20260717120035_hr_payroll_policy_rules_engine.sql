@@ -189,19 +189,17 @@ CREATE OR REPLACE FUNCTION fn_validate_sick_leave_rules(
 ) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   e employees;
-  sh record;
+  v_login time;
   v_shift_start timestamptz;
   v_notice_hours int := 2;
   v_monthly_sick numeric;
   v_cert_after numeric := 1;
 BEGIN
-  SELECT e.*, s.login_time INTO e, sh.login_time
-  FROM employees e
-  LEFT JOIN shifts s ON s.id = e.shift_id
-  WHERE e.id = p_employee;
+  SELECT * INTO e FROM employees WHERE id = p_employee;
+  SELECT s.login_time INTO v_login FROM shifts s WHERE s.id = e.shift_id;
 
-  IF sh.login_time IS NOT NULL THEN
-    v_shift_start := (p_from_date + sh.login_time) - (v_notice_hours || ' hours')::interval;
+  IF v_login IS NOT NULL THEN
+    v_shift_start := (p_from_date + v_login) - (v_notice_hours || ' hours')::interval;
     IF p_applied_at > v_shift_start AND p_from_date <= p_applied_at::date + 1 THEN
       RETURN jsonb_build_object(
         'valid', false,

@@ -47,8 +47,8 @@ export default function HrEssPage() {
   const { data: allLeaves = [] } = useHrLeaveRequests();
   const today = todayIso();
   const shownLeaveBalances = useMemo(
-    () => displayLeaveBalances(leaveBalances, emp?.work_week),
-    [leaveBalances, emp?.work_week],
+    () => displayLeaveBalances(leaveBalances, emp?.work_week, shift?.type),
+    [leaveBalances, emp?.work_week, shift?.type],
   );
   const monthLeaveUsed = useMemo(
     () => (emp ? monthlyPaidLeaveUsed(allLeaves, emp.id, today) : 0),

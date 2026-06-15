@@ -159,6 +159,7 @@ export type ShiftRow = {
   max_break_min?: number;
   ot_eligible?: boolean;
   working_days_per_week?: number;
+  timezone?: string;
 };
 
 export type AttendanceRow = {
@@ -199,12 +200,16 @@ export type LeaveRequestRow = {
   from_date: string;
   to_date: string;
   days: number;
+  duration_type?: string | null;
+  half_day_part?: string | null;
   reason: string | null;
   has_document: boolean;
+  document_id?: string | null;
   status: string;
   rejection_reason?: string | null;
   cancelled_at?: string | null;
   employees?: { full_name: string; emp_code: string } | null;
+  employee_documents?: { file_name: string; storage_path: string } | null;
 };
 
 export type CompoffRequestRow = {

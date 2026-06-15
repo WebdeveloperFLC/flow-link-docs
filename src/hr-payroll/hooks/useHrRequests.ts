@@ -18,7 +18,7 @@ export function useHrLeaveRequests() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("leave_requests" as never)
-        .select("*, employees(full_name, emp_code)")
+        .select("*, employees(full_name, emp_code), employee_documents(file_name, storage_path)")
         .eq("org_id", HR_ORG_ID)
         .order("created_at", { ascending: false });
       if (error) throw error;

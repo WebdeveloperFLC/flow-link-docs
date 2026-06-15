@@ -35,6 +35,8 @@ const REQUIRED_MIGRATIONS = [
   "20260717120033_hr_payroll_employment_types_companies.sql",
   "20260717120034_hr_payroll_leave_casual_sick_policy.sql",
   "20260717120035_hr_payroll_policy_rules_engine.sql",
+  "20260717120036_hr_payroll_sandwich_night_est.sql",
+  "20260717120037_hr_payroll_leave_duration_document.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -160,6 +162,21 @@ describe("HR Payroll module contract", () => {
     expect(m31).toContain("performance-only");
   });
 
+  it("migration 36 sandwich half-day exception and 5-day night EST", () => {
+    const m36 = readFileSync(
+      join(MIGRATIONS, "20260717120036_hr_payroll_sandwich_night_est.sql"),
+      "utf8",
+    );
+    expect(m36).toContain("fn_sandwich_half_day_exception");
+    expect(m36).toContain("half_day_exception");
+    expect(m36).toContain("fn_leave_entitlement_for_employee");
+    expect(m36).toContain("five_day_night_timezone");
+    expect(m36).toContain("America/Toronto");
+    const policy = readFileSync(join(ROOT, "src/hr-payroll/lib/leavePolicy.ts"), "utf8");
+    expect(policy).toContain("LEAVE_ENTITLED_5DAY_NIGHT");
+    expect(policy).toContain("isFiveDayNightEst");
+  });
+
   it("migration 35 policy rules engine", () => {
     const m35 = readFileSync(
       join(MIGRATIONS, "20260717120035_hr_payroll_policy_rules_engine.sql"),
@@ -175,6 +192,22 @@ describe("HR Payroll module contract", () => {
     expect(policy).toContain("LEAVE_ENTITLED");
     expect(policy).toContain("validateLeaveNotice");
     expect(policy).toContain("lateDeductionFromSlab");
+  });
+
+  it("leave apply form supports duration and document upload", () => {
+    const leavePage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrLeavePage.tsx"), "utf8");
+    const policy = readFileSync(join(ROOT, "src/hr-payroll/lib/leavePolicy.ts"), "utf8");
+    const m37 = readFileSync(
+      join(MIGRATIONS, "20260717120037_hr_payroll_leave_duration_document.sql"),
+      "utf8",
+    );
+    expect(m37).toContain("duration_type");
+    expect(m37).toContain("half_day_part");
+    expect(policy).toContain("LEAVE_DURATION_HALF");
+    expect(policy).toContain("HALF_DAY_PARTS");
+    expect(leavePage).toContain("Leave Duration");
+    expect(leavePage).toContain("uploadHrDocument");
+    expect(leavePage).toContain("half_day_part");
   });
 
   it("leave apply policy: casual/sick only with monthly cap", () => {

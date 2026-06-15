@@ -8,6 +8,12 @@ export const MONTHLY_PAID_LEAVE_CAP = 1.5;
 export const LEAVE_ENTITLED = { casual: 12, sick: 6 } as const;
 export const LEAVE_ACCRUAL = { casual: 1.0, sick: 0.5 } as const;
 export const LEAVE_ENTITLED_5DAY = { casual: 7, sick: 3 } as const;
+/** 5-day night shift (EST): 10 paid leaves/year = 7 Casual + 3 Sick */
+export const LEAVE_ENTITLED_5DAY_NIGHT = { casual: 7, sick: 3, annual: 10 } as const;
+export const FIVE_DAY_NIGHT_TIMEZONE = "America/Toronto";
+
+export const SANDWICH_CAP_PER_YEAR = 2;
+export const SANDWICH_HALF_DAY_EXCEPTION = true;
 
 export const ELIGIBLE_EMPLOYMENT_TYPES = ["Full time - Permanent"] as const;
 export const NOTICE_DAYS_SHORT = 7;
@@ -21,8 +27,37 @@ export const LEAVE_RULES_REJECT_MSG =
 
 export type PaidApplyLeaveType = (typeof PAID_APPLY_LEAVE_TYPES)[number];
 
-export function leaveDurationLabel(days: number): string {
-  if (days <= 0.5) return "Half Day";
+export const LEAVE_DURATION_FULL = "Full Day" as const;
+export const LEAVE_DURATION_HALF = "Half Day" as const;
+export const HALF_DAY_PARTS = ["First Half", "Second Half"] as const;
+export type HalfDayPart = (typeof HALF_DAY_PARTS)[number];
+
+export function computeInclusiveLeaveDays(fromDate: string, toDate: string): number {
+  if (!fromDate || !toDate) return 0;
+  const from = new Date(fromDate + "T00:00:00");
+  const to = new Date(toDate + "T00:00:00");
+  if (to < from) return 0;
+  return Math.round((to.getTime() - from.getTime()) / 86400000) + 1;
+}
+
+export function leaveDaysForDuration(
+  durationType: string,
+  fromDate: string,
+  toDate: string,
+): number {
+  if (durationType === LEAVE_DURATION_HALF) return 0.5;
+  if (fromDate && toDate) return computeInclusiveLeaveDays(fromDate, toDate);
+  return 1;
+}
+
+export function leaveDurationLabel(
+  days: number,
+  durationType?: string | null,
+  halfDayPart?: string | null,
+): string {
+  if (durationType === LEAVE_DURATION_HALF || days <= 0.5) {
+    return halfDayPart ? `Half Day · ${halfDayPart}` : "Half Day";
+  }
   if (days === 1) return "Full Day";
   return `${days} days`;
 }
@@ -86,6 +121,19 @@ export function validateLeaveNotice(
   return { valid: true, reason: null };
 }
 
+export function isSickCertificateRequired(
+  requests: Pick<LeaveRequestRow, "type" | "days" | "from_date" | "status" | "employee_id" | "id">[],
+  employeeId: string,
+  fromDate: string,
+  days: number,
+  excludeRequestId?: string,
+): boolean {
+  return (
+    monthlySickDaysUsed(requests, employeeId, fromDate, excludeRequestId) + days >
+    SICK_CERT_AFTER_DAYS_PER_MONTH
+  );
+}
+
 export function monthlySickDaysUsed(
   requests: Pick<LeaveRequestRow, "type" | "days" | "from_date" | "status" | "employee_id">[],
   employeeId: string,
@@ -106,6 +154,25 @@ export function monthlySickDaysUsed(
     .reduce((sum, r) => sum + Number(r.days), 0);
 }
 
+export function isFiveDayNightEst(workWeek?: string, shiftType?: string | null): boolean {
+  return workWeek === "5-Day" && shiftType === "Night";
+}
+
+export function leaveEntitlementsForEmployee(workWeek?: string, shiftType?: string | null) {
+  if (isFiveDayNightEst(workWeek, shiftType)) return LEAVE_ENTITLED_5DAY_NIGHT;
+  if (workWeek === "5-Day") return LEAVE_ENTITLED_5DAY;
+  return LEAVE_ENTITLED;
+}
+
+function zonedShiftStartMs(fromDate: string, loginTime: string, tz: string): number {
+  const localIso = `${fromDate}T${loginTime.slice(0, 5)}:00`;
+  const asUtc = new Date(localIso + "Z");
+  const utcMs = asUtc.getTime();
+  const inTz = new Date(asUtc.toLocaleString("en-US", { timeZone: tz }));
+  const inUtc = new Date(asUtc.toLocaleString("en-US", { timeZone: "UTC" }));
+  return utcMs + (inUtc.getTime() - inTz.getTime());
+}
+
 export function validateSickLeaveRules(input: {
   employeeId: string;
   fromDate: string;
@@ -113,16 +180,24 @@ export function validateSickLeaveRules(input: {
   hasDocument: boolean;
   requests: Pick<LeaveRequestRow, "type" | "days" | "from_date" | "status" | "employee_id" | "id">[];
   shiftLoginTime?: string | null;
+  shiftTimezone?: string | null;
   appliedAt?: Date;
 }): { valid: boolean; reason: string | null } {
-  const { employeeId, fromDate, days, hasDocument, requests, shiftLoginTime, appliedAt = new Date() } = input;
+  const {
+    employeeId,
+    fromDate,
+    days,
+    hasDocument,
+    requests,
+    shiftLoginTime,
+    shiftTimezone = "Asia/Kolkata",
+    appliedAt = new Date(),
+  } = input;
 
   if (shiftLoginTime && fromDate) {
-    const [h, m] = shiftLoginTime.slice(0, 5).split(":").map(Number);
-    const shiftStart = new Date(fromDate + "T00:00:00");
-    shiftStart.setHours(h, m, 0, 0);
-    const noticeDeadline = new Date(shiftStart.getTime() - SICK_NOTICE_HOURS * 3600000);
-    if (appliedAt > noticeDeadline) {
+    const shiftStartMs = zonedShiftStartMs(fromDate, shiftLoginTime, shiftTimezone);
+    const noticeDeadline = shiftStartMs - SICK_NOTICE_HOURS * 3600000;
+    if (appliedAt.getTime() > noticeDeadline) {
       return {
         valid: false,
         reason: `Sick Leave must be informed at least ${SICK_NOTICE_HOURS} hours before shift start`,
@@ -193,6 +268,7 @@ export function resolveLeaveApplication(input: {
   employee?: Pick<EmployeeRow, "employment_type" | "status" | "work_hours" | "probation_end_date" | "date_of_joining"> | null;
   hasDocument?: boolean;
   shiftLoginTime?: string | null;
+  shiftTimezone?: string | null;
   excludeRequestId?: string;
 }): LeaveApplyResolution {
   const {
@@ -205,6 +281,7 @@ export function resolveLeaveApplication(input: {
     employee,
     hasDocument = false,
     shiftLoginTime,
+    shiftTimezone,
     excludeRequestId,
   } = input;
 
@@ -226,6 +303,7 @@ export function resolveLeaveApplication(input: {
         hasDocument,
         requests,
         shiftLoginTime,
+        shiftTimezone,
       });
       if (!sick.valid) return false;
     }
@@ -282,6 +360,7 @@ export function resolveLeaveApplication(input: {
       hasDocument,
       requests,
       shiftLoginTime,
+      shiftTimezone,
     });
     if (!sick.valid) {
       return {
@@ -330,9 +409,9 @@ export function resolveLeaveApplication(input: {
 export function displayLeaveBalances(
   balances: LeaveBalanceRow[],
   workWeek?: string,
+  shiftType?: string | null,
 ): LeaveBalanceRow[] {
-  const is5Day = workWeek === "5-Day";
-  const entitled = is5Day ? LEAVE_ENTITLED_5DAY : LEAVE_ENTITLED;
+  const entitled = leaveEntitlementsForEmployee(workWeek, shiftType);
   return PAID_APPLY_LEAVE_TYPES.map((type) => {
     const row = balanceForType(balances, type);
     const ent = type === "Sick Leave" ? entitled.sick : entitled.casual;

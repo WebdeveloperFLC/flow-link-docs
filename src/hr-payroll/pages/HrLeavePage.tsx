@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,9 +11,14 @@ import { ModalShell } from "../components/ui/ModalShell";
 import { HR_ORG_ID } from "../lib/constants";
 import {
   displayLeaveBalances,
+  HALF_DAY_PARTS,
   isLegacyLeaveType,
+  isSickCertificateRequired,
   leaveBalanceRemaining,
+  leaveDaysForDuration,
   leaveDurationLabel,
+  LEAVE_DURATION_FULL,
+  LEAVE_DURATION_HALF,
   LEAVE_ENTITLED,
   MONTHLY_PAID_LEAVE_CAP,
   monthlyPaidLeaveRemaining,
@@ -23,8 +28,12 @@ import {
   UNPAID_LEAVE_TYPE,
 } from "../lib/leavePolicy";
 import { hrAudit, processApprovalDecision, rebuildPayrollLine } from "../lib/hrApi";
+import { uploadHrDocument, getHrDocumentSignedUrl } from "../lib/hrStorage";
 import { ApprovalTrail } from "../components/ui/ApprovalTrail";
 import type { LeaveRequestRow } from "../lib/types";
+
+const LEAVE_DOC_TYPE = "Leave Supporting Document";
+const ACCEPTED_LEAVE_DOCS = ".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx";
 
 function LeaveModal({
   onClose,
@@ -48,12 +57,16 @@ function LeaveModal({
   const [f, setF] = useState({
     employee_id: selfEmp?.id ?? employees[0]?.id ?? "",
     type: PAID_APPLY_LEAVE_TYPES[0],
+    duration_type: LEAVE_DURATION_FULL,
+    half_day_part: "",
     from_date: "",
     to_date: "",
     days: 1,
     reason: "",
-    has_document: false,
   });
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [submitting, setSubmitting] = useState(false);
   const { data: balances = [] } = useHrLeaveBalances(f.employee_id || undefined);
   const [err, setErr] = useState<Record<string, string>>({});
 
@@ -67,41 +80,74 @@ function LeaveModal({
     () => employees.find((e) => e.id === f.employee_id),
     [employees, f.employee_id],
   );
-  const shiftLogin = shifts.find((s) => s.id === selectedEmp?.shift_id)?.login_time ?? null;
+  const selectedShift = shifts.find((s) => s.id === selectedEmp?.shift_id);
+  const shiftLogin = selectedShift?.login_time ?? null;
+  const shiftTimezone = selectedShift?.timezone ?? "Asia/Kolkata";
 
   const employeeLeaves = useMemo(
     () => allLeaves.filter((l) => l.employee_id === f.employee_id),
     [allLeaves, f.employee_id],
   );
 
+  const effectiveDays = useMemo(
+    () => leaveDaysForDuration(f.duration_type, f.from_date, f.to_date || f.from_date),
+    [f.duration_type, f.from_date, f.to_date],
+  );
+
+  useEffect(() => {
+    if (f.duration_type === LEAVE_DURATION_HALF) {
+      setF((prev) => {
+        if (prev.days === 0.5 && prev.to_date === prev.from_date) return prev;
+        return { ...prev, days: 0.5, to_date: prev.from_date };
+      });
+      return;
+    }
+    if (f.from_date && f.to_date) {
+      const computed = leaveDaysForDuration(LEAVE_DURATION_FULL, f.from_date, f.to_date);
+      setF((prev) => (prev.days === computed ? prev : { ...prev, days: computed }));
+    }
+  }, [f.duration_type, f.from_date, f.to_date]);
+
+  const certRequired = useMemo(
+    () =>
+      f.type === "Sick Leave" &&
+      f.from_date &&
+      isSickCertificateRequired(employeeLeaves, f.employee_id, f.from_date, effectiveDays),
+    [f.type, f.from_date, f.employee_id, effectiveDays, employeeLeaves],
+  );
+
+  const hasDocument = !!documentFile;
+
   const shownBalances = useMemo(
-    () => displayLeaveBalances(balances, selectedEmp?.work_week),
-    [balances, selectedEmp?.work_week],
+    () => displayLeaveBalances(balances, selectedEmp?.work_week, selectedShift?.type),
+    [balances, selectedEmp?.work_week, selectedShift?.type],
   );
 
   const resolution = useMemo(
     () =>
       resolveLeaveApplication({
         preferredType: f.type,
-        days: f.days,
+        days: effectiveDays,
         employeeId: f.employee_id,
         fromDate: f.from_date,
         balances,
         requests: employeeLeaves,
         employee: selectedEmp,
-        hasDocument: f.has_document,
+        hasDocument,
         shiftLoginTime: shiftLogin,
+        shiftTimezone,
       }),
     [
       f.type,
-      f.days,
+      effectiveDays,
       f.employee_id,
       f.from_date,
-      f.has_document,
+      hasDocument,
       balances,
       employeeLeaves,
       selectedEmp,
       shiftLogin,
+      shiftTimezone,
     ],
   );
 
@@ -118,34 +164,60 @@ function LeaveModal({
     const e: Record<string, string> = {};
     if (!f.from_date) e.from_date = "Required";
     if (!f.reason.trim()) e.reason = "Reason required";
-    if (!f.days || f.days <= 0) e.days = "> 0";
+    if (f.duration_type === LEAVE_DURATION_HALF) {
+      if (!f.half_day_part) e.half_day_part = "Select First or Second Half";
+    } else {
+      if (!f.to_date) e.to_date = "Required";
+      if (!effectiveDays || effectiveDays <= 0) e.days = "> 0";
+    }
+    if (certRequired && !documentFile) {
+      e.document = "Medical certificate required when Sick Leave exceeds 1 day in a month";
+    }
     setErr(e);
     if (Object.keys(e).length) return;
 
-    const finalType = resolution.forcedUnpaid ? UNPAID_LEAVE_TYPE : f.type;
+    setSubmitting(true);
+    try {
+      const finalType = resolution.forcedUnpaid ? UNPAID_LEAVE_TYPE : f.type;
+      const toDate =
+        f.duration_type === LEAVE_DURATION_HALF ? f.from_date : f.to_date || f.from_date;
 
-    const { error } = await supabase.from("leave_requests" as never).insert({
-      org_id: HR_ORG_ID,
-      employee_id: f.employee_id,
-      type: finalType,
-      from_date: f.from_date,
-      to_date: f.to_date || f.from_date,
-      days: f.days,
-      reason: f.reason.trim(),
-      has_document: f.has_document,
-      status: "Pending",
-    } as never);
-    if (error) {
-      onSaved(error.message);
-      return;
+      let documentId: string | null = null;
+      if (documentFile) {
+        const uploaded = await uploadHrDocument(f.employee_id, documentFile, LEAVE_DOC_TYPE);
+        documentId = uploaded.id;
+      }
+
+      const { error } = await supabase.from("leave_requests" as never).insert({
+        org_id: HR_ORG_ID,
+        employee_id: f.employee_id,
+        type: finalType,
+        duration_type: f.duration_type,
+        half_day_part: f.duration_type === LEAVE_DURATION_HALF ? f.half_day_part : null,
+        from_date: f.from_date,
+        to_date: toDate,
+        days: effectiveDays,
+        reason: f.reason.trim(),
+        has_document: !!documentFile,
+        document_id: documentId,
+        status: "Pending",
+      } as never);
+      if (error) {
+        onSaved(error.message);
+        return;
+      }
+      const note =
+        finalType === UNPAID_LEAVE_TYPE && resolution.forcedUnpaid
+          ? "Leave submitted as Unpaid (balance or monthly cap)"
+          : "Leave submitted";
+      await hrAudit("Leave Applied", finalType, "—", f.from_date);
+      onSaved(note);
+      onClose();
+    } catch (uploadErr) {
+      onSaved(uploadErr instanceof Error ? uploadErr.message : "Document upload failed");
+    } finally {
+      setSubmitting(false);
     }
-    const note =
-      finalType === UNPAID_LEAVE_TYPE && resolution.forcedUnpaid
-        ? "Leave submitted as Unpaid (balance or monthly cap)"
-        : "Leave submitted";
-    await hrAudit("Leave Applied", finalType, "—", f.from_date);
-    onSaved(note);
-    onClose();
   };
 
   return (
@@ -157,8 +229,8 @@ function LeaveModal({
           <button type="button" className="btn" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" className="btn btn-primary" onClick={() => void save()}>
-            Submit
+          <button type="button" className="btn btn-primary" disabled={submitting} onClick={() => void save()}>
+            {submitting ? "Submitting…" : "Submit"}
           </button>
         </>
       }
@@ -259,6 +331,52 @@ function LeaveModal({
           <option value={UNPAID_LEAVE_TYPE}>{UNPAID_LEAVE_TYPE}</option>
         </select>
       </label>
+
+      <div className="fld">
+        <span className="l">Leave Duration</span>
+        <div className="row-flex" style={{ gap: 20, marginTop: 4 }}>
+          {[LEAVE_DURATION_FULL, LEAVE_DURATION_HALF].map((opt) => (
+            <label key={opt} className="row-flex" style={{ fontSize: 13, cursor: "pointer" }}>
+              <input
+                type="radio"
+                name="leave_duration"
+                checked={f.duration_type === opt}
+                onChange={() =>
+                  setF({
+                    ...f,
+                    duration_type: opt,
+                    half_day_part: opt === LEAVE_DURATION_HALF ? f.half_day_part : "",
+                  })
+                }
+              />
+              {opt}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {f.duration_type === LEAVE_DURATION_HALF && (
+        <div className="fld">
+          <span className="l">Half Day Session</span>
+          <div className="row-flex" style={{ gap: 20, marginTop: 4 }}>
+            {HALF_DAY_PARTS.map((part) => (
+              <label key={part} className="row-flex" style={{ fontSize: 13, cursor: "pointer" }}>
+                <input
+                  type="radio"
+                  name="half_day_part"
+                  checked={f.half_day_part === part}
+                  onChange={() => setF({ ...f, half_day_part: part })}
+                />
+                {part}
+              </label>
+            ))}
+          </div>
+          {err.half_day_part && (
+            <span style={{ fontSize: 11.5, color: "var(--rose)", marginTop: 4 }}>{err.half_day_part}</span>
+          )}
+        </div>
+      )}
+
       <div className="grid g3" style={{ gap: "0 14px" }}>
         <label className="fld">
           <span className="l">From</span>
@@ -266,28 +384,50 @@ function LeaveModal({
             className={`input${err.from_date ? " err" : ""}`}
             type="date"
             value={f.from_date}
-            onChange={(e) => setF({ ...f, from_date: e.target.value })}
+            onChange={(e) => {
+              const from_date = e.target.value;
+              setF((prev) => ({
+                ...prev,
+                from_date,
+                to_date:
+                  prev.duration_type === LEAVE_DURATION_HALF
+                    ? from_date
+                    : prev.to_date && prev.to_date < from_date
+                      ? from_date
+                      : prev.to_date,
+              }));
+            }}
           />
         </label>
-        <label className="fld">
-          <span className="l">To</span>
-          <input
-            className="input"
-            type="date"
-            value={f.to_date}
-            onChange={(e) => setF({ ...f, to_date: e.target.value })}
-          />
-        </label>
-        <label className="fld">
-          <span className="l">Days</span>
-          <input
-            className={`input mono${err.days ? " err" : ""}`}
-            type="number"
-            step="0.5"
-            value={f.days}
-            onChange={(e) => setF({ ...f, days: parseFloat(e.target.value) || 0 })}
-          />
-        </label>
+        {f.duration_type === LEAVE_DURATION_FULL ? (
+          <>
+            <label className="fld">
+              <span className="l">To</span>
+              <input
+                className={`input${err.to_date ? " err" : ""}`}
+                type="date"
+                min={f.from_date || undefined}
+                value={f.to_date}
+                onChange={(e) => setF({ ...f, to_date: e.target.value })}
+              />
+            </label>
+            <label className="fld">
+              <span className="l">Days</span>
+              <input
+                className={`input mono${err.days ? " err" : ""}`}
+                type="number"
+                readOnly
+                value={effectiveDays}
+                title="Calculated from date range"
+              />
+            </label>
+          </>
+        ) : (
+          <label className="fld">
+            <span className="l">Days</span>
+            <input className="input mono" type="text" readOnly value="0.5" />
+          </label>
+        )}
       </div>
       <label className="fld">
         <span className="l">Reason</span>
@@ -298,13 +438,31 @@ function LeaveModal({
           onChange={(e) => setF({ ...f, reason: e.target.value })}
         />
       </label>
-      <label className="row-flex" style={{ fontSize: 13, cursor: "pointer" }}>
+      <label className="fld">
+        <span className="l">
+          Supporting document
+          {certRequired ? " (required for this sick leave)" : " (optional)"}
+        </span>
         <input
-          type="checkbox"
-          checked={f.has_document}
-          onChange={(e) => setF({ ...f, has_document: e.target.checked })}
+          ref={fileRef}
+          className={`input${err.document ? " err" : ""}`}
+          type="file"
+          accept={ACCEPTED_LEAVE_DOCS}
+          onChange={(e) => setDocumentFile(e.target.files?.[0] ?? null)}
         />
-        Document attached (medical/proof)
+        {documentFile && (
+          <span className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>
+            Selected: {documentFile.name}
+          </span>
+        )}
+        {err.document && (
+          <span style={{ fontSize: 11.5, color: "var(--rose)", marginTop: 4 }}>{err.document}</span>
+        )}
+        {!certRequired && (
+          <span className="muted" style={{ fontSize: 11.5, marginTop: 4 }}>
+            Upload medical certificate or proof when applicable (PDF, image, or Word).
+          </span>
+        )}
       </label>
     </ModalShell>
   );
@@ -387,6 +545,20 @@ export default function HrLeavePage() {
     await qc.invalidateQueries({ queryKey: ["hr-leaves"] });
   };
 
+  const openLeaveDoc = async (row: LeaveRequestRow) => {
+    const path = row.employee_documents?.storage_path;
+    if (!path) {
+      fire(row.has_document ? "Document file not linked — re-upload if needed" : "No document attached");
+      return;
+    }
+    try {
+      const url = await getHrDocumentSignedUrl(path);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Could not open document");
+    }
+  };
+
   return (
     <div className="grid" style={{ gap: 16 }}>
       <div className="card-h">
@@ -462,7 +634,7 @@ export default function HrLeavePage() {
                   <td>
                     <div>{l.type}</div>
                     <div className="muted" style={{ fontSize: 11 }}>
-                      {leaveDurationLabel(l.days)}
+                      {leaveDurationLabel(l.days, l.duration_type, l.half_day_part)}
                       {isLegacyLeaveType(l.type) && " · Legacy"}
                     </div>
                   </td>
@@ -471,7 +643,20 @@ export default function HrLeavePage() {
                     {l.from_date !== l.to_date ? ` – ${l.to_date}` : ""}
                   </td>
                   <td style={{ textAlign: "center" }}>{l.days}</td>
-                  <td>{l.has_document ? <span className="tag">📎</span> : <span className="muted">—</span>}</td>
+                  <td>
+                    {l.has_document ? (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-ghost"
+                        title={l.employee_documents?.file_name ?? "View document"}
+                        onClick={() => void openLeaveDoc(l)}
+                      >
+                        📎
+                      </button>
+                    ) : (
+                      <span className="muted">—</span>
+                    )}
+                  </td>
                   <td>
                     <StatusBadge status={l.status} />
                     <ApprovalTrail entityId={l.id} approvals={approvals} />
