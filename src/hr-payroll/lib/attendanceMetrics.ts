@@ -45,7 +45,9 @@ export function dayMetrics(
   const logout = toMin(shift.logout) ?? 1140;
   const target = logout - login - (shift.breakDur || 0);
   const otMin = net != null && net > target ? net - target : 0;
-  const lateMin = ci != null ? Math.max(0, ci - login) : 0;
+  const grace = shift.grace || 5;
+  const lateMin =
+    ci != null && ci >= login && ci <= logout ? Math.max(0, ci - login - grace) : 0;
   return {
     net,
     breakMin,

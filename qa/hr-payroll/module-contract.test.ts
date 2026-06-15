@@ -29,6 +29,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120027_hr_payroll_professional_tax_all_india.sql",
   "20260717120028_hr_payroll_document_types_master.sql",
   "20260717120029_hr_payroll_document_master_rbac.sql",
+  "20260717120030_hr_payroll_punch_24h_window.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -129,6 +130,17 @@ describe("HR Payroll module contract", () => {
     expect(m27).toContain("professional_tax");
     expect(m27).toContain("pt_applicable = true");
     expect(m27).toContain("default_amount");
+  });
+
+  it("migration 30 allows 24h punch without shift-window block", () => {
+    const m30 = readFileSync(
+      join(MIGRATIONS, "20260717120030_hr_payroll_punch_24h_window.sql"),
+      "utf8",
+    );
+    expect(m30).toContain("fn_record_punch");
+    expect(m30).not.toContain("Check-in too early");
+    expect(m30).not.toContain("Check-out too late");
+    expect(m30).toContain("p_logout");
   });
 
   it("ESS uses linked staff_id not employee picker", () => {

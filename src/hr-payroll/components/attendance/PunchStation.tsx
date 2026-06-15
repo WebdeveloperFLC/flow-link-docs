@@ -148,7 +148,7 @@ export function PunchStation({
           </div>
           <div style={{ fontSize: 12, opacity: 0.8 }}>
             {clock.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })} · Shift{" "}
-            {shiftMetrics.login}–{shiftMetrics.logout}
+            {shiftMetrics.login}–{shiftMetrics.logout} · punch anytime 24h
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
