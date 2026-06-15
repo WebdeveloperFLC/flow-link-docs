@@ -19,14 +19,12 @@ import {
   GraduationCap,
   Briefcase,
   Phone,
-  ChevronsDownUp,
   Maximize2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PROFILE_FIELDS } from "@/lib/extractedFields";
 import { dialCodeFor, COUNTRY_OPTIONS } from "@/lib/countryCodes";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
@@ -45,14 +43,18 @@ type FieldDef = { key: typeof PROFILE_FIELDS[number]; label: string; type?: "dat
 type GroupDef = {
   id: string;
   title: string;
+  shortLabel: string;
   icon: typeof User;
   fields: FieldDef[];
 };
+
+type SectionId = GroupDef["id"] | "education-history";
 
 const GROUPS: GroupDef[] = [
   {
     id: "identity",
     title: "Identity",
+    shortLabel: "Identity",
     icon: User,
     fields: [
       { key: "date_of_birth", label: "Date of birth", type: "date" },
@@ -66,6 +68,7 @@ const GROUPS: GroupDef[] = [
   {
     id: "passport",
     title: "Passport",
+    shortLabel: "Passport",
     icon: CreditCard,
     fields: [
       { key: "passport_number", label: "Passport number" },
@@ -77,6 +80,7 @@ const GROUPS: GroupDef[] = [
   {
     id: "contact",
     title: "Contact & address",
+    shortLabel: "Contact",
     icon: MapPin,
     fields: [
       { key: "phone_alt", label: "Alt phone" },
@@ -91,6 +95,7 @@ const GROUPS: GroupDef[] = [
   {
     id: "education",
     title: "Education & language",
+    shortLabel: "Education",
     icon: GraduationCap,
     fields: [
       { key: "highest_qualification", label: "Highest qualification" },
@@ -108,6 +113,7 @@ const GROUPS: GroupDef[] = [
   {
     id: "employment",
     title: "Employment & finance",
+    shortLabel: "Employment",
     icon: Briefcase,
     fields: [
       { key: "employer_name", label: "Employer" },
@@ -123,6 +129,7 @@ const GROUPS: GroupDef[] = [
   {
     id: "emergency",
     title: "Emergency",
+    shortLabel: "Emergency",
     icon: Phone,
     fields: [
       { key: "emergency_contact_name", label: "Contact name" },
@@ -131,7 +138,12 @@ const GROUPS: GroupDef[] = [
   },
 ];
 
-const ALL_SECTION_IDS = [...GROUPS.map((g) => g.id), "education-history"];
+const EDUCATION_HISTORY_SECTION = {
+  id: "education-history" as const,
+  title: "Education history",
+  shortLabel: "History",
+  icon: GraduationCap,
+};
 
 function countFilled(fields: FieldDef[], valFor: (k: string) => string): { filled: number; total: number } {
   const total = fields.length;
@@ -147,7 +159,21 @@ function sectionSummary(fields: FieldDef[], valFor: (k: string) => string, max =
     })
     .filter(Boolean)
     .slice(0, max);
-  return parts.length > 0 ? parts.join(" · ") : "No details yet — expand to add";
+  return parts.length > 0 ? parts.join(" · ") : "No details captured yet";
+}
+
+function sectionProgress(
+  g: GroupDef,
+  valFor: (k: string) => string,
+  primaryPhone: string,
+  primaryPhoneEdit: string | null,
+): { filled: number; total: number; complete: boolean } {
+  const { filled, total } = countFilled(g.fields, valFor);
+  const contactExtra = g.id === "contact" && (primaryPhoneEdit ?? primaryPhone).trim() ? 1 : 0;
+  const contactTotal = g.id === "contact" ? 1 : 0;
+  const filledCount = filled + contactExtra;
+  const totalCount = total + contactTotal;
+  return { filled: filledCount, total: totalCount, complete: filledCount >= totalCount && totalCount > 0 };
 }
 
 export const ClientProfileCard = ({
@@ -168,7 +194,7 @@ export const ClientProfileCard = ({
   const [countryCode, setCountryCode] = useState<string>("");
   const [countryCodeEdit, setCountryCodeEdit] = useState<string | null>(null);
   const [education, setEducation] = useState<Array<Record<string, unknown>>>([]);
-  const [openSections, setOpenSections] = useState<string[]>(["identity"]);
+  const [activeSection, setActiveSection] = useState<SectionId>("identity");
   const [fullViewOpen, setFullViewOpen] = useState(false);
 
   const load = async () => {
@@ -488,35 +514,114 @@ export const ClientProfileCard = ({
     </div>
   );
 
-  const renderSectionHeader = (g: GroupDef) => {
-    const Icon = g.icon;
-    const { filled, total } = countFilled(g.fields, valFor);
-    const contactExtra = g.id === "contact" && (primaryPhoneEdit ?? primaryPhone).trim() ? 1 : 0;
-    const contactTotal = g.id === "contact" ? 1 : 0;
-    const filledCount = filled + contactExtra;
-    const totalCount = total + contactTotal;
-    const complete = filledCount >= totalCount && totalCount > 0;
+  const activeGroup = GROUPS.find((g) => g.id === activeSection);
 
-    return (
-      <div className="flex flex-1 items-center gap-3 min-w-0 text-left">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Icon className="size-4" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-sm">{g.title}</span>
-            <Badge
-              variant="outline"
+  const renderSectionNav = () => (
+    <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
+      {GROUPS.map((g) => {
+        const Icon = g.icon;
+        const active = activeSection === g.id;
+        const { filled, total, complete } = sectionProgress(g, valFor, primaryPhone, primaryPhoneEdit);
+        return (
+          <button
+            key={g.id}
+            type="button"
+            onClick={() => setActiveSection(g.id)}
+            className={cn(
+              "shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all border",
+              active
+                ? "bg-white text-primary border-white shadow-sm"
+                : "bg-white/10 text-primary-foreground border-white/20 hover:bg-white/20",
+            )}
+          >
+            <Icon className="size-3.5 shrink-0" />
+            <span>{g.shortLabel}</span>
+            <span
               className={cn(
-                "text-[10px] px-1.5 py-0 h-5",
-                complete ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700" : "text-muted-foreground",
+                "rounded-full px-1.5 py-0 text-[10px] font-semibold tabular-nums",
+                active
+                  ? complete
+                    ? "bg-emerald-500/15 text-emerald-700"
+                    : "bg-primary/10 text-primary"
+                  : complete
+                    ? "bg-emerald-400/25 text-white"
+                    : "bg-white/15",
               )}
             >
-              {filledCount}/{totalCount}
-            </Badge>
+              {filled}/{total}
+            </span>
+          </button>
+        );
+      })}
+      <button
+        type="button"
+        onClick={() => setActiveSection("education-history")}
+        className={cn(
+          "shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all border",
+          activeSection === "education-history"
+            ? "bg-white text-primary border-white shadow-sm"
+            : "bg-white/10 text-primary-foreground border-white/20 hover:bg-white/20",
+        )}
+      >
+        <GraduationCap className="size-3.5 shrink-0" />
+        <span>{EDUCATION_HISTORY_SECTION.shortLabel}</span>
+        <span
+          className={cn(
+            "rounded-full px-1.5 py-0 text-[10px] font-semibold tabular-nums",
+            activeSection === "education-history" ? "bg-primary/10 text-primary" : "bg-white/15",
+          )}
+        >
+          {education.length}
+        </span>
+      </button>
+    </div>
+  );
+
+  const renderActivePanel = () => {
+    if (activeSection === "education-history") {
+      return (
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm font-semibold">{EDUCATION_HISTORY_SECTION.title}</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {education.length > 0
+                ? education
+                    .slice(0, 3)
+                    .map((e) => String(e.degree || e.institution || "Entry"))
+                    .join(" · ")
+                : "No qualifications captured yet"}
+            </p>
           </div>
-          <p className="text-[11px] text-muted-foreground truncate mt-0.5">{sectionSummary(g.fields, valFor)}</p>
+          {renderEducationHistory()}
         </div>
+      );
+    }
+    if (!activeGroup) return null;
+    const { filled, total, complete } = sectionProgress(activeGroup, valFor, primaryPhone, primaryPhoneEdit);
+    const Icon = activeGroup.icon;
+    return (
+      <div className="space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Icon className="size-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm font-semibold">{activeGroup.title}</h3>
+              <Badge
+                variant="outline"
+                className={cn(
+                  "text-[10px] px-1.5 py-0 h-5",
+                  complete ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700" : "text-muted-foreground",
+                )}
+              >
+                {filled}/{total} fields
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">{sectionSummary(activeGroup.fields, valFor, 4)}</p>
+          </div>
+        </div>
+        {renderFieldsGrid(activeGroup)}
       </div>
     );
   };
@@ -559,89 +664,58 @@ export const ClientProfileCard = ({
                 className="h-8 text-xs bg-white/15 text-primary-foreground border-0 hover:bg-white/25"
                 onClick={() => setFullViewOpen(true)}
               >
-                <Maximize2 className="size-3.5 mr-1" /> View full
+                <Maximize2 className="size-3.5 mr-1" /> View full profile
               </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="h-8 text-xs bg-white/15 text-primary-foreground border-0 hover:bg-white/25"
-                onClick={() =>
-                  setOpenSections(openSections.length === ALL_SECTION_IDS.length ? ["identity"] : [...ALL_SECTION_IDS])
-                }
-              >
-                <ChevronsDownUp className="size-3.5 mr-1" />
-                {openSections.length === ALL_SECTION_IDS.length ? "Collapse" : "Expand all"}
-              </Button>
+              {canEdit && (
+                <>
+                  {onReExtract && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="h-8 text-xs bg-white/15 text-primary-foreground border-0 hover:bg-white/25"
+                      onClick={onReExtract}
+                      disabled={reExtracting}
+                    >
+                      {reExtracting ? <Loader2 className="size-3 animate-spin mr-1" /> : <RefreshCw className="size-3 mr-1" />}
+                      Re-extract
+                    </Button>
+                  )}
+                  {onSyncOdoo && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="h-8 text-xs bg-white/15 text-primary-foreground border-0 hover:bg-white/25"
+                      onClick={onSyncOdoo}
+                      disabled={syncingOdoo}
+                    >
+                      {syncingOdoo ? <Loader2 className="size-3 animate-spin mr-1" /> : <Upload className="size-3 mr-1" />}
+                      Odoo
+                    </Button>
+                  )}
+                  {dirty && (
+                    <Button
+                      size="sm"
+                      className="h-8 text-xs bg-white text-primary hover:bg-white/90"
+                      onClick={save}
+                      disabled={saving}
+                    >
+                      {saving ? <Loader2 className="size-3 animate-spin mr-1" /> : <Save className="size-3 mr-1" />}
+                      Save
+                    </Button>
+                  )}
+                </>
+              )}
             </div>
           </div>
+
+          {!loading && renderSectionNav()}
         </div>
 
-        <div className="px-4 sm:px-6 py-2 border-b flex flex-wrap items-center justify-between gap-2 bg-muted/30">
-          <div className="text-xs text-muted-foreground">Click a section to expand · only edit what you need</div>
-          {canEdit && (
-            <div className="flex gap-1.5">
-              {onReExtract && (
-                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={onReExtract} disabled={reExtracting}>
-                  {reExtracting ? <Loader2 className="size-3 animate-spin mr-1" /> : <RefreshCw className="size-3 mr-1" />}
-                  Re-extract
-                </Button>
-              )}
-              {onSyncOdoo && (
-                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={onSyncOdoo} disabled={syncingOdoo}>
-                  {syncingOdoo ? <Loader2 className="size-3 animate-spin mr-1" /> : <Upload className="size-3 mr-1" />}
-                  Odoo
-                </Button>
-              )}
-              {dirty && (
-                <Button size="sm" className="h-7 text-xs gradient-brand text-primary-foreground" onClick={save} disabled={saving}>
-                  {saving ? <Loader2 className="size-3 animate-spin mr-1" /> : <Save className="size-3 mr-1" />}
-                  Save
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="px-2 sm:px-4 pb-2">
+        <div className="px-4 sm:px-6 py-4 min-h-[280px]">
           {loading ? (
             <div className="py-8 text-center text-sm text-muted-foreground">Loading profile…</div>
           ) : (
-            <Accordion type="multiple" value={openSections} onValueChange={setOpenSections} className="w-full">
-              {GROUPS.map((g) => (
-                <AccordionItem key={g.id} value={g.id} className="border-b last:border-0 px-2">
-                  <AccordionTrigger className="py-3 hover:no-underline [&>svg]:text-primary">
-                    {renderSectionHeader(g)}
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-4 pt-1">{renderFieldsGrid(g)}</AccordionContent>
-                </AccordionItem>
-              ))}
-              <AccordionItem value="education-history" className="border-b-0 px-2">
-                <AccordionTrigger className="py-3 hover:no-underline [&>svg]:text-primary">
-                  <div className="flex flex-1 items-center gap-3 min-w-0 text-left">
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <GraduationCap className="size-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">Education history</span>
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">
-                          {education.length} record{education.length === 1 ? "" : "s"}
-                        </Badge>
-                      </div>
-                      <p className="text-[11px] text-muted-foreground truncate mt-0.5">
-                        {education.length > 0
-                          ? education
-                              .slice(0, 2)
-                              .map((e) => String(e.degree || e.institution || "Entry"))
-                              .join(" · ")
-                          : "No qualifications captured"}
-                      </p>
-                    </div>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pb-4 pt-1">{renderEducationHistory()}</AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            renderActivePanel()
           )}
         </div>
       </Card>
