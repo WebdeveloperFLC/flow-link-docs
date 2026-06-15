@@ -1,6 +1,7 @@
 # HR Payroll — UAT for testers (1 page)
 
 **UAT status:** ✅ **OPEN** — see `HR_PAYROLL_UAT_READY.md`  
+**Non-technical team?** Use **`HR_PAYROLL_UAT_NON_TECH_WALKTHROUGH.md`** (12 checks, ~1 hour) — **not** the full 61 cases.  
 **Environment:** Staging only (not production)  
 **Your lead will give you:** staging website URL + login  
 **Full test list:** `docs/hr-payroll/HR_PAYROLL_UAT.md` (61 cases)  

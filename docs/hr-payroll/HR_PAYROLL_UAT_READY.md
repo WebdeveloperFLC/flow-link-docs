@@ -32,10 +32,13 @@
 
 ## UAT team — start here
 
-1. Read **`HR_PAYROLL_UAT_TEAM_ONE_PAGER.md`** (1 page)
-2. Full cases: **`HR_PAYROLL_UAT.md`** (61 tests, sections A–J)
-3. Log results: **`HR_PAYROLL_UAT_PROGRESS.csv`**
-4. Log bugs: **`HR_PAYROLL_DEFECT_TRACKER.csv`**
+**Non-technical team (recommended):** **`HR_PAYROLL_UAT_NON_TECH_WALKTHROUGH.md`** — 12 plain-English checks, ~1 hour, 2–3 people.
+
+**Full QA / technical lead:** `HR_PAYROLL_UAT.md` (61 tests) + progress CSV.
+
+1. Walkthrough or full guide (above)
+2. Log results: **`HR_PAYROLL_UAT_PROGRESS.csv`** (other rows → **N/A** for non-tech walkthrough)
+3. Log bugs: **`HR_PAYROLL_DEFECT_TRACKER.csv`** (only if lead asks)
 
 **View-as:** HR Manager for most tests  
 **ESS punch:** log in as `adminsupport2@futurelinkconsultants.co.in` (Isha FL-1042)
