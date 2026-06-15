@@ -92,6 +92,14 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        flc: {
+          blue: "hsl(var(--flc-blue))",
+          "blue-light": "hsl(var(--flc-blue-light))",
+          "blue-pastel": "hsl(var(--flc-blue-pastel))",
+          red: "hsl(var(--flc-red))",
+          "red-pastel": "hsl(var(--flc-red-pastel))",
+          ink: "hsl(var(--flc-ink))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

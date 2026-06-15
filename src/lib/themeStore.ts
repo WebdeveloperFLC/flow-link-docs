@@ -72,20 +72,37 @@ export interface ThemeConfig {
   navActiveStyle: 'pill' | 'border-left' | 'glow' | 'underline';
 }
 
+/** Future Link Consultants logo palette (#005DAA · #E31E24) */
+export const FLC_BRAND = {
+  blue: '205 100% 33%',
+  blueHover: '205 100% 28%',
+  blueGlow: '205 85% 52%',
+  bluePastel: '205 70% 94%',
+  red: '358 82% 50%',
+  redHover: '358 82% 42%',
+  redPastel: '358 88% 96%',
+  navy: '205 70% 16%',
+  ink: '205 35% 12%',
+  bg: '205 40% 98%',
+  muted: '205 35% 96%',
+  border: '205 25% 91%',
+  sidebarGradient: 'linear-gradient(180deg, #005DAA 0%, #003d73 52%, #001f3d 100%)',
+} as const;
+
 export const DEFAULT_NAV_SECTION_COLORS: Record<NavSectionKey, string> = {
-  crm: '220 85% 50%',
-  calendar: '262 78% 58%',
-  performance: '173 58% 42%',
-  incentives: '38 92% 50%',
-  wallet: '158 64% 40%',
-  offers: '346 77% 49%',
-  digital: '280 78% 56%',
-  institution: '24 95% 53%',
-  commissions: '199 89% 48%',
-  hr_payroll: '210 70% 45%',
-  guide: '170 70% 42%',
-  accounts: '215 25% 55%',
-  admin: '221 83% 53%',
+  crm: '205 85% 45%',
+  calendar: '205 70% 48%',
+  performance: '205 55% 42%',
+  incentives: '358 75% 52%',
+  wallet: '205 60% 40%',
+  offers: '358 70% 48%',
+  digital: '205 75% 46%',
+  institution: '205 50% 38%',
+  commissions: '205 65% 44%',
+  hr_payroll: '205 80% 42%',
+  guide: '205 45% 40%',
+  accounts: '205 30% 48%',
+  admin: '205 100% 38%',
 };
 
 export const DEFAULT_THEME: ThemeConfig = {
@@ -93,47 +110,47 @@ export const DEFAULT_THEME: ThemeConfig = {
   sidebarCollapsed: false,
   sidebarWidth: 'normal',
   sidebarMode: 'full',
-  sidebarStyle: 'solid',
-  sidebarGradient: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)',
+  sidebarStyle: 'gradient',
+  sidebarGradient: FLC_BRAND.sidebarGradient,
   contentDensity: 'comfortable',
-  primaryColor: '220 85% 32%',
+  primaryColor: FLC_BRAND.blue,
   primaryForeground: '0 0% 100%',
-  primaryHover: '220 85% 26%',
-  primaryGlow: '218 92% 56%',
-  accentColor: '218 95% 96%',
-  accentForeground: '220 85% 32%',
-  secondaryColor: '354 78% 48%',
+  primaryHover: FLC_BRAND.blueHover,
+  primaryGlow: FLC_BRAND.blueGlow,
+  accentColor: FLC_BRAND.bluePastel,
+  accentForeground: FLC_BRAND.blueHover,
+  secondaryColor: FLC_BRAND.red,
   secondaryForeground: '0 0% 100%',
-  secondaryHover: '354 78% 40%',
-  successColor: '142 71% 36%',
+  secondaryHover: FLC_BRAND.redHover,
+  successColor: '152 55% 38%',
   successForeground: '0 0% 100%',
   warningColor: '38 92% 50%',
   warningForeground: '0 0% 100%',
-  destructiveColor: '354 78% 48%',
+  destructiveColor: FLC_BRAND.red,
   destructiveForeground: '0 0% 100%',
-  mutedColor: '215 25% 96%',
-  mutedForeground: '215 16% 45%',
-  foregroundColor: '222 47% 8%',
-  borderColor: '215 25% 90%',
-  backgroundColor: '210 40% 99%',
+  mutedColor: FLC_BRAND.muted,
+  mutedForeground: '205 18% 42%',
+  foregroundColor: FLC_BRAND.ink,
+  borderColor: FLC_BRAND.border,
+  backgroundColor: FLC_BRAND.bg,
   cardColor: '0 0% 100%',
-  sidebarColor: '222 47% 11%',
+  sidebarColor: FLC_BRAND.navy,
   sidebarTextColor: '0 0% 100%',
-  toneClients: '220 85% 50%',
-  toneClientsSoft: '220 90% 96%',
-  toneDocuments: '262 78% 58%',
-  toneDocumentsSoft: '262 90% 96%',
-  toneBinders: '158 64% 40%',
-  toneBindersSoft: '158 70% 95%',
-  toneReview: '350 84% 56%',
-  toneReviewSoft: '350 90% 96%',
-  toneInstitutions: '38 92% 50%',
-  toneInstitutionsSoft: '42 95% 94%',
-  toneAi: '280 78% 56%',
-  toneAiSoft: '280 90% 96%',
-  gradientBrand: 'linear-gradient(135deg, hsl(220 85% 32%), hsl(218 92% 56%))',
-  gradientAccent: 'linear-gradient(135deg, hsl(220 85% 32%) 0%, hsl(354 78% 48%) 100%)',
-  gradientSubtle: 'linear-gradient(180deg, hsl(210 40% 99%), hsl(215 25% 96%))',
+  toneClients: '205 85% 45%',
+  toneClientsSoft: '205 80% 96%',
+  toneDocuments: '205 65% 48%',
+  toneDocumentsSoft: '205 60% 96%',
+  toneBinders: '205 50% 40%',
+  toneBindersSoft: '205 45% 95%',
+  toneReview: '358 75% 52%',
+  toneReviewSoft: '358 88% 96%',
+  toneInstitutions: '205 55% 38%',
+  toneInstitutionsSoft: '205 50% 94%',
+  toneAi: '205 70% 46%',
+  toneAiSoft: '205 65% 96%',
+  gradientBrand: 'linear-gradient(135deg, hsl(205 100% 33%), hsl(205 85% 52%))',
+  gradientAccent: 'linear-gradient(135deg, hsl(205 100% 33%) 0%, hsl(358 82% 50%) 100%)',
+  gradientSubtle: 'linear-gradient(180deg, hsl(0 0% 100%), hsl(205 40% 97%))',
   navSectionColors: { ...DEFAULT_NAV_SECTION_COLORS },
   colorfulMode: false,
   fontFamily: 'inter',
@@ -142,20 +159,15 @@ export const DEFAULT_THEME: ThemeConfig = {
   borderRadius: 'medium',
   buttonStyle: 'filled',
   buttonRadius: 'medium',
-  mode: 'system',
+  mode: 'light',
   cardStyle: 'solid',
   navActiveStyle: 'pill',
 };
 
 const VIBRANT_FL: ThemeConfig = {
   ...DEFAULT_THEME,
-  primaryColor: '220 85% 32%',
-  secondaryColor: '354 78% 48%',
-  accentColor: '218 95% 96%',
-  sidebarStyle: 'gradient',
-  sidebarGradient: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)',
   colorfulMode: true,
-  gradientAccent: 'linear-gradient(135deg, hsl(220 85% 32%) 0%, hsl(354 78% 48%) 100%)',
+  navActiveStyle: 'glow',
 };
 
 const RAINBOW_CRM: ThemeConfig = {
@@ -213,8 +225,8 @@ const NEON_DARK: ThemeConfig = {
 };
 
 export const THEME_PRESETS: { name: string; preview: string; config: ThemeConfig }[] = [
-  { name: 'Future Link (Default)', preview: '220 85% 32%', config: DEFAULT_THEME },
-  { name: 'Future Link Vibrant', preview: '354 78% 48%', config: VIBRANT_FL },
+  { name: 'Future Link Premium', preview: '205 100% 33%', config: DEFAULT_THEME },
+  { name: 'Future Link Vibrant', preview: '358 82% 50%', config: VIBRANT_FL },
   { name: 'Rainbow CRM', preview: '262 83% 58%', config: RAINBOW_CRM },
   { name: 'Sunset Professional', preview: '24 95% 53%', config: SUNSET_PRO },
   { name: 'Neon Dark', preview: '218 92% 56%', config: NEON_DARK },
@@ -228,6 +240,8 @@ export const THEME_PRESETS: { name: string; preview: string; config: ThemeConfig
 ];
 
 export const SIDEBAR_GRADIENTS: { name: string; value: string }[] = [
+  { name: 'FLC Blue → Navy', value: FLC_BRAND.sidebarGradient },
+  { name: 'FLC Blue → Red accent', value: 'linear-gradient(180deg, #005DAA 0%, #003d73 70%, #5c1018 100%)' },
   { name: 'Navy → Black', value: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)' },
   { name: 'Purple → Navy', value: 'linear-gradient(180deg, #2d1b69 0%, #0f172a 100%)' },
   { name: 'Forest', value: 'linear-gradient(180deg, #1a4731 0%, #0f1f16 100%)' },
@@ -452,12 +466,13 @@ export function applyTheme(config: ThemeConfig): void {
   root.style.setProperty('--fl-sidebar-bg', config.sidebarColor);
   root.style.setProperty('--fl-sidebar-text', config.sidebarTextColor);
   root.style.setProperty('--sidebar-background', config.sidebarColor);
-  root.style.setProperty('--sidebar-foreground', '215 20% 80%');
+  const primaryHue = parseFloat(config.primaryColor.split(/\s+/)[0]) || 205;
+  root.style.setProperty('--sidebar-foreground', `${primaryHue} 25% 88%`);
   root.style.setProperty('--sidebar-primary', config.primaryGlow);
   root.style.setProperty('--sidebar-primary-foreground', config.primaryForeground);
-  root.style.setProperty('--sidebar-accent', '222 35% 14%');
+  root.style.setProperty('--sidebar-accent', `${primaryHue} 45% 22%`);
   root.style.setProperty('--sidebar-accent-foreground', config.sidebarTextColor);
-  root.style.setProperty('--sidebar-border', '222 35% 16%');
+  root.style.setProperty('--sidebar-border', `${primaryHue} 40% 24%`);
   root.style.setProperty('--sidebar-ring', config.primaryGlow);
 
   for (const [key, color] of Object.entries(config.navSectionColors)) {
