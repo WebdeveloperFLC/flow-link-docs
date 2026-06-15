@@ -209,6 +209,13 @@ describe("HR Payroll module contract", () => {
     expect(policy).toContain("lateDeductionFromSlab");
   });
 
+  it("leave list opens detail modal on row click", () => {
+    const leavePage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrLeavePage.tsx"), "utf8");
+    expect(leavePage).toContain("LeaveDetailModal");
+    expect(leavePage).toContain("setDetailRow(l)");
+    expect(leavePage).toContain("Leave request details");
+  });
+
   it("allows leave type selection before dates are filled", () => {
     const leavePage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrLeavePage.tsx"), "utf8");
     expect(leavePage).not.toContain("disabled={resolution.forcedUnpaid}");

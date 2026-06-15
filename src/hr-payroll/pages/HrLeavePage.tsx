@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,6 +35,131 @@ import type { LeaveRequestRow } from "../lib/types";
 
 const LEAVE_DOC_TYPE = "Leave Supporting Document";
 const ACCEPTED_LEAVE_DOCS = ".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx";
+
+function DetailRow({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: 8, fontSize: 13.5, marginBottom: 10 }}>
+      <span className="muted">{label}</span>
+      <span>{value}</span>
+    </div>
+  );
+}
+
+function LeaveDetailModal({
+  row,
+  approvals,
+  canApprove,
+  onClose,
+  onOpenDoc,
+  onApprove,
+  onReject,
+  onReopen,
+  onDelete,
+}: {
+  row: LeaveRequestRow;
+  approvals: Parameters<typeof ApprovalTrail>[0]["approvals"];
+  canApprove: boolean;
+  onClose: () => void;
+  onOpenDoc: (row: LeaveRequestRow) => void;
+  onApprove: () => void;
+  onReject: () => void;
+  onReopen: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <ModalShell
+      title="Leave request details"
+      onClose={onClose}
+      footer={
+        <>
+          <button type="button" className="btn" onClick={onClose}>
+            Close
+          </button>
+          {canApprove && row.status === "Pending" && (
+            <>
+              <button type="button" className="btn btn-good" onClick={onApprove}>
+                Approve
+              </button>
+              <button type="button" className="btn btn-bad" onClick={onReject}>
+                Reject
+              </button>
+            </>
+          )}
+          {canApprove && row.status !== "Pending" && (
+            <button type="button" className="btn" onClick={onReopen}>
+              Reopen
+            </button>
+          )}
+          {canApprove && (
+            <button type="button" className="btn btn-ghost btn-bad" onClick={onDelete}>
+              Delete
+            </button>
+          )}
+        </>
+      }
+    >
+      <DetailRow label="Reference" value={<span className="mono">{row.id.slice(0, 8)}</span>} />
+      <DetailRow
+        label="Employee"
+        value={
+          <>
+            {row.employees?.full_name ?? "—"}
+            {row.employees?.emp_code && (
+              <span className="muted" style={{ marginLeft: 8 }}>
+                {row.employees.emp_code}
+              </span>
+            )}
+          </>
+        }
+      />
+      <DetailRow label="Leave type" value={row.type} />
+      <DetailRow
+        label="Duration"
+        value={leaveDurationLabel(row.days, row.duration_type, row.half_day_part)}
+      />
+      <DetailRow
+        label="Dates"
+        value={
+          row.from_date === row.to_date
+            ? row.from_date
+            : `${row.from_date} – ${row.to_date}`
+        }
+      />
+      <DetailRow label="Days" value={row.days} />
+      <DetailRow label="Reason" value={row.reason?.trim() || "—"} />
+      <DetailRow
+        label="Document"
+        value={
+          row.has_document ? (
+            <button type="button" className="btn btn-sm" onClick={() => onOpenDoc(row)}>
+              📎 {row.employee_documents?.file_name ?? "View attachment"}
+            </button>
+          ) : (
+            "—"
+          )
+        }
+      />
+      <DetailRow
+        label="Status"
+        value={
+          <div className="row-flex" style={{ gap: 8, flexWrap: "wrap" }}>
+            <StatusBadge status={row.status} />
+            <ApprovalTrail entityId={row.id} approvals={approvals} />
+          </div>
+        }
+      />
+      {row.rejection_reason && (
+        <DetailRow
+          label="Rejection reason"
+          value={<span style={{ color: "var(--rose)" }}>{row.rejection_reason}</span>}
+        />
+      )}
+      {row.cancelled_at && (
+        <DetailRow label="Cancelled" value={new Date(row.cancelled_at).toLocaleString("en-IN")} />
+      )}
+    </ModalShell>
+  );
+}
 
 function LeaveModal({
   onClose,
@@ -496,6 +621,7 @@ export default function HrLeavePage() {
   const [filterTo, setFilterTo] = useState("");
   const [rejectRow, setRejectRow] = useState<LeaveRequestRow | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [detailRow, setDetailRow] = useState<LeaveRequestRow | null>(null);
 
   const [showLegacy, setShowLegacy] = useState(false);
 
@@ -632,8 +758,13 @@ export default function HrLeavePage() {
             </thead>
             <tbody>
               {filteredLeaves.map((l) => (
-                <tr key={l.id}>
-                  <td className="mono strong" style={{ fontSize: 12 }}>
+                <tr
+                  key={l.id}
+                  onClick={() => setDetailRow(l)}
+                  style={{ cursor: "pointer" }}
+                  title="Click to view details"
+                >
+                  <td className="mono strong" style={{ fontSize: 12, color: "var(--sky)" }}>
                     {l.id.slice(0, 8)}
                   </td>
                   <td>
@@ -660,7 +791,7 @@ export default function HrLeavePage() {
                     {l.from_date !== l.to_date ? ` – ${l.to_date}` : ""}
                   </td>
                   <td style={{ textAlign: "center" }}>{l.days}</td>
-                  <td>
+                  <td onClick={(e) => e.stopPropagation()}>
                     {l.has_document ? (
                       <button
                         type="button"
@@ -678,7 +809,7 @@ export default function HrLeavePage() {
                     <StatusBadge status={l.status} />
                     <ApprovalTrail entityId={l.id} approvals={approvals} />
                   </td>
-                  <td>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <div className="row-flex">
                       {can("approve") ? (
                         l.status === "Pending" ? (
@@ -736,6 +867,29 @@ export default function HrLeavePage() {
           </table>
         )}
       </div>
+      {detailRow && (
+        <LeaveDetailModal
+          row={detailRow}
+          approvals={approvals}
+          canApprove={can("approve")}
+          onClose={() => setDetailRow(null)}
+          onOpenDoc={(row) => void openLeaveDoc(row)}
+          onApprove={() => {
+            void setStatus(detailRow, "Approved").then(() => setDetailRow(null));
+          }}
+          onReject={() => {
+            setRejectRow(detailRow);
+            setRejectReason("");
+            setDetailRow(null);
+          }}
+          onReopen={() => {
+            void setStatus(detailRow, "Pending").then(() => setDetailRow(null));
+          }}
+          onDelete={() => {
+            void remove(detailRow).then(() => setDetailRow(null));
+          }}
+        />
+      )}
       {rejectRow && (
         <ModalShell
           title="Reject leave request"
