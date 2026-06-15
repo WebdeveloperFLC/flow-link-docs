@@ -4,10 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Lock, Copy } from "lucide-react";
+import {
+  Lock,
+  Copy,
+  UserCircle,
+  GraduationCap,
+  Users,
+  Briefcase,
+  Building2,
+  StickyNote,
+  Globe,
+  Receipt,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { CountrySelect } from "@/components/leads/CountrySelect";
@@ -16,6 +26,7 @@ import { ServiceTabs, type ServiceSelection } from "@/components/leads/ServiceTa
 import { FamilyMembersSection } from "@/components/clients/registration/FamilyMembersSection";
 import { InvoicePreviewSection } from "@/components/clients/registration/InvoicePreviewSection";
 import { EducationExperienceFields } from "@/components/clients/registration/EducationExperienceFields";
+import { RegistrationWorkspace, type RegistrationSection } from "@/components/crm/RegistrationWorkspace";
 
 import {
   upsertClientRegistration,
@@ -65,6 +76,17 @@ const CLIENT_TYPES = ["Student", "Corporate", "Partner", "Referral", "B2B"];
 const PORTAL_ACCESS_LEVELS = [
   { value: "standard", label: "Standard — profile, docs, payments, messages" },
   { value: "limited", label: "Limited — payments & messages only" },
+];
+
+const CLIENT_SECTIONS: RegistrationSection[] = [
+  { id: "profile", label: "Profile & IDs", shortLabel: "Profile", icon: UserCircle, hint: "DOB, passport, PAN" },
+  { id: "education", label: "Education & Tests", shortLabel: "Education", icon: GraduationCap, hint: "Scores & experience" },
+  { id: "family", label: "Family Members", shortLabel: "Family", icon: Users, hint: "Spouse, dependents" },
+  { id: "services", label: "Services", shortLabel: "Services", icon: Briefcase, hint: "Confirm & fees" },
+  { id: "intake", label: "Intake & Branch", shortLabel: "Intake", icon: Building2, hint: "Branch, countries" },
+  { id: "notes", label: "Counselor Notes", shortLabel: "Notes", icon: StickyNote, hint: "Internal notes" },
+  { id: "portal", label: "Client Portal", shortLabel: "Portal", icon: Globe, hint: "Login access" },
+  { id: "billing", label: "Accounting", shortLabel: "Billing", icon: Receipt, hint: "Tax ID, client type" },
 ];
 
 export type LeadFieldSnapshot = {
@@ -154,6 +176,7 @@ export function ClientRegistrationPanel({
   const [branches, setBranches] = useState<Branch[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
+  const [activeSection, setActiveSection] = useState(CLIENT_SECTIONS[0].id);
 
   useEffect(() => {
     fetchBranches().then(setBranches);
@@ -476,132 +499,141 @@ export function ClientRegistrationPanel({
     />
   );
 
-  return (
-    <div className="col-span-full grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
-      <div className="space-y-6">
-        <Card className="p-3 bg-primary/5 border-primary/20 text-sm">
-          Registering lead <span className="font-mono font-semibold">{leadNumber}</span> as client
-          {regNumber && (
-            <span>
-              {" "}
-              — Client # <span className="font-mono font-semibold">{regNumber}</span>
-            </span>
-          )}
-        </Card>
+  const saveFooter = (
+    <div className="space-y-2">
+      {saving && <p className="text-xs text-muted-foreground">Saving…</p>}
+      <Button
+        className="w-full"
+        onClick={autosave}
+        disabled={
+          saving || !(getLeadFields().first_name ?? "").trim() || !(getLeadFields().last_name ?? "").trim()
+        }
+      >
+        {saving ? "Saving…" : clientId ? "Save Client" : "Register Client"}
+      </Button>
+    </div>
+  );
 
-        <Card className="p-4 sm:p-6 space-y-4">
-          <h3 className="font-semibold">Additional Registration Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <Label>Date of Birth *</Label>
-              <Input
-                type="date"
-                value={f.date_of_birth ?? ""}
-                onChange={(e) => setField("date_of_birth", e.target.value || null)}
-                onBlur={autosave}
-              />
-            </div>
-            {isColdLead && (
-              <>
-                <div className="space-y-1.5">
-                  <Label>Gender *</Label>
-                  <Select
-                    value={f.gender ?? getLeadFields().gender ?? ""}
-                    onValueChange={(v) => {
-                      setField("gender", v);
-                      setTimeout(autosave, 0);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {GENDERS.map((g) => (
-                        <SelectItem key={g} value={g} className="capitalize">
-                          {g.replace(/_/g, " ")}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Country of Citizenship *</Label>
-                  <CountrySelect
-                    value={f.country_of_citizenship ?? getLeadFields().country_of_citizenship ?? ""}
-                    onChange={(v) => {
-                      setField("country_of_citizenship", v);
-                      setTimeout(autosave, 0);
-                    }}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Country of Residence *</Label>
-                  <CountrySelect
-                    value={f.country_of_residence ?? getLeadFields().country_of_residence ?? ""}
-                    onChange={(v) => {
-                      setField("country_of_residence", v);
-                      setTimeout(autosave, 0);
-                    }}
-                  />
-                </div>
-              </>
-            )}
-            <div className="space-y-1.5">
-              <Label>Phone (alternate)</Label>
-              <Input
-                value={f.phone_alternate ?? ""}
-                onChange={(e) => setField("phone_alternate", e.target.value)}
-                onBlur={autosave}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Email (alternate)</Label>
-              <Input
-                type="email"
-                value={f.email_alternate ?? ""}
-                onChange={(e) => setField("email_alternate", e.target.value)}
-                onBlur={autosave}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Passport Number</Label>
-              <Input
-                value={f.passport_number ?? ""}
-                onChange={(e) => setField("passport_number", e.target.value)}
-                onBlur={autosave}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Passport Expiry</Label>
-              <Input
-                type="date"
-                value={f.passport_expiry ?? ""}
-                onChange={(e) => setField("passport_expiry", e.target.value || null)}
-                onBlur={autosave}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>National ID / Aadhar (last 4)</Label>
-              <Input
-                maxLength={4}
-                value={f.national_id_last4 ?? ""}
-                onChange={(e) => setField("national_id_last4", e.target.value.replace(/\D/g, "").slice(0, 4))}
-                onBlur={autosave}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>PAN</Label>
-              <Input
-                value={f.pan_number ?? ""}
-                onChange={(e) => setField("pan_number", e.target.value.toUpperCase())}
-                onBlur={autosave}
-              />
+  const sectionContent = (() => {
+    switch (activeSection) {
+      case "profile":
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Identity documents and contact details for the client file. Lead name and primary contact come from the
+              lead record above.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <Label>Date of Birth *</Label>
+                <Input
+                  type="date"
+                  value={f.date_of_birth ?? ""}
+                  onChange={(e) => setField("date_of_birth", e.target.value || null)}
+                  onBlur={autosave}
+                />
+              </div>
+              {isColdLead && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label>Gender *</Label>
+                    <Select
+                      value={f.gender ?? getLeadFields().gender ?? ""}
+                      onValueChange={(v) => {
+                        setField("gender", v);
+                        setTimeout(autosave, 0);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GENDERS.map((g) => (
+                          <SelectItem key={g} value={g} className="capitalize">
+                            {g.replace(/_/g, " ")}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Country of Citizenship *</Label>
+                    <CountrySelect
+                      value={f.country_of_citizenship ?? getLeadFields().country_of_citizenship ?? ""}
+                      onChange={(v) => {
+                        setField("country_of_citizenship", v);
+                        setTimeout(autosave, 0);
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Country of Residence *</Label>
+                    <CountrySelect
+                      value={f.country_of_residence ?? getLeadFields().country_of_residence ?? ""}
+                      onChange={(v) => {
+                        setField("country_of_residence", v);
+                        setTimeout(autosave, 0);
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+              <div className="space-y-1.5">
+                <Label>Phone (alternate)</Label>
+                <Input
+                  value={f.phone_alternate ?? ""}
+                  onChange={(e) => setField("phone_alternate", e.target.value)}
+                  onBlur={autosave}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Email (alternate)</Label>
+                <Input
+                  type="email"
+                  value={f.email_alternate ?? ""}
+                  onChange={(e) => setField("email_alternate", e.target.value)}
+                  onBlur={autosave}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Passport Number</Label>
+                <Input
+                  value={f.passport_number ?? ""}
+                  onChange={(e) => setField("passport_number", e.target.value)}
+                  onBlur={autosave}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Passport Expiry</Label>
+                <Input
+                  type="date"
+                  value={f.passport_expiry ?? ""}
+                  onChange={(e) => setField("passport_expiry", e.target.value || null)}
+                  onBlur={autosave}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>National ID / Aadhar (last 4)</Label>
+                <Input
+                  maxLength={4}
+                  value={f.national_id_last4 ?? ""}
+                  onChange={(e) => setField("national_id_last4", e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  onBlur={autosave}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>PAN</Label>
+                <Input
+                  value={f.pan_number ?? ""}
+                  onChange={(e) => setField("pan_number", e.target.value.toUpperCase())}
+                  onBlur={autosave}
+                />
+              </div>
             </div>
           </div>
-        </Card>
-
-        <Card className="p-4 sm:p-6 space-y-4">
-          <h3 className="font-semibold">Education, Tests &amp; Experience</h3>
+        );
+      case "education":
+        return (
           <EducationExperienceFields
             value={{
               education_history: (f.education_history ?? []) as never,
@@ -629,205 +661,215 @@ export function ClientRegistrationPanel({
             }}
             onCommit={autosave}
           />
-        </Card>
-
-        <FamilyMembersSection primaryClientId={clientId} primaryLeadId={leadId} onChange={setFamilyMembers} />
-
-        <Card className="p-4 sm:p-6 space-y-4">
-          <h3 className="font-semibold">Services Confirmed</h3>
-          <ServiceTabs
-            value={services}
-            onChange={(v) => {
-              setServices(v);
-              setTimeout(autosave, 0);
-            }}
-            visaLocked={false}
-          />
-          {(services.allied_services.length > 0 || services.travel_services.length > 0) && (
-            <div className="border-t pt-3 space-y-2">
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">Allied / Travel fees</div>
-              {[...services.allied_services, ...services.travel_services].map((code) => {
-                const s = catalogue.find((c) => c.service_code === code);
-                const fee = serviceFees[code];
-                return (
-                  <div key={code} className="grid grid-cols-1 sm:grid-cols-[1fr_120px_auto] gap-3 items-center">
-                    <div className="text-sm truncate">{s?.service_name ?? code}</div>
-                    <Input
-                      type="number"
-                      placeholder="Amount ₹"
-                      disabled={fee?.complimentary}
-                      value={fee?.amount ?? ""}
-                      onChange={(e) => updateServiceFee(code, { amount: Number(e.target.value || 0) })}
-                      onBlur={autosave}
-                    />
-                    <label className="text-xs flex items-center gap-1.5">
-                      <Checkbox
-                        checked={!!fee?.complimentary}
-                        onCheckedChange={(c) => {
-                          updateServiceFee(code, { complimentary: !!c });
-                          setTimeout(autosave, 0);
-                        }}
-                      />
-                      Complimentary
-                    </label>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
-
-        <Card className="p-4 sm:p-6 space-y-4">
-          <h3 className="font-semibold">Intake &amp; Assignment</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <Label>Branch *</Label>
-              <Select
-                value={f.branch ?? getLeadFields().branch ?? ""}
-                onValueChange={(v) => {
-                  setField("branch", v);
-                  setTimeout(autosave, 0);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  {branches.map((b) => (
-                    <SelectItem key={b.id} value={b.name}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Department</Label>
-              <Select
-                value={f.department ?? getLeadFields().department ?? ""}
-                onValueChange={(v) => {
-                  setField("department", v);
-                  setTimeout(autosave, 0);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  {departments.map((d) => (
-                    <SelectItem key={d.id} value={d.name}>
-                      {d.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Intake / Session</Label>
-              <Input
-                placeholder="e.g. Sep 2026"
-                value={f.intake ?? ""}
-                onChange={(e) => setField("intake", e.target.value)}
-                onBlur={autosave}
-              />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Interested Countries</Label>
-            <InterestedCountriesPicker
-              value={interestedCountries}
+        );
+      case "family":
+        return (
+          <FamilyMembersSection primaryClientId={clientId} primaryLeadId={leadId} onChange={setFamilyMembers} embedded />
+        );
+      case "services":
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">Confirm services from the lead and set allied/travel fees.</p>
+            <ServiceTabs
+              value={services}
               onChange={(v) => {
-                setInterestedCountries(v);
+                setServices(v);
                 setTimeout(autosave, 0);
               }}
+              visaLocked={false}
             />
-          </div>
-        </Card>
-
-        <Card className="p-4 sm:p-6 space-y-4">
-          <h3 className="font-semibold">Counselor Notes</h3>
-          {leadNotes && (
-            <div>
-              <Label className="text-xs uppercase">Lead notes (read-only)</Label>
-              <div className="text-sm whitespace-pre-wrap rounded-md border bg-muted/30 p-3 mt-1">{leadNotes}</div>
-            </div>
-          )}
-          <div className="space-y-1.5">
-            <Label className="flex items-center gap-2">
-              Counselor notes
-              {f.counselor_notes_locked && <Lock className="h-3.5 w-3.5 text-muted-foreground" />}
-            </Label>
-            <Textarea
-              rows={4}
-              disabled={!!f.counselor_notes_locked}
-              value={f.counselor_notes ?? ""}
-              onChange={(e) => setField("counselor_notes", e.target.value)}
-              onBlur={autosave}
-            />
-            {f.counselor_notes_locked && (
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Reason to unlock…"
-                  value={notesUnlockReason}
-                  onChange={(e) => setNotesUnlockReason(e.target.value)}
-                />
-                <Button type="button" size="sm" variant="outline" onClick={unlockNotes}>
-                  Unlock
-                </Button>
+            {(services.allied_services.length > 0 || services.travel_services.length > 0) && (
+              <div className="border-t pt-3 space-y-2">
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">Allied / Travel fees</div>
+                {[...services.allied_services, ...services.travel_services].map((code) => {
+                  const s = catalogue.find((c) => c.service_code === code);
+                  const fee = serviceFees[code];
+                  return (
+                    <div key={code} className="grid grid-cols-1 sm:grid-cols-[1fr_120px_auto] gap-3 items-center">
+                      <div className="text-sm truncate">{s?.service_name ?? code}</div>
+                      <Input
+                        type="number"
+                        placeholder="Amount ₹"
+                        disabled={fee?.complimentary}
+                        value={fee?.amount ?? ""}
+                        onChange={(e) => updateServiceFee(code, { amount: Number(e.target.value || 0) })}
+                        onBlur={autosave}
+                      />
+                      <label className="text-xs flex items-center gap-1.5">
+                        <Checkbox
+                          checked={!!fee?.complimentary}
+                          onCheckedChange={(c) => {
+                            updateServiceFee(code, { complimentary: !!c });
+                            setTimeout(autosave, 0);
+                          }}
+                        />
+                        Complimentary
+                      </label>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
-        </Card>
-
-        <Card className="p-4 sm:p-6 space-y-4">
-          <h3 className="font-semibold">Client Portal Access</h3>
-          <label className="flex items-center gap-2">
-            <Checkbox checked={portalEnabled} onCheckedChange={(c) => setPortalEnabled(!!c)} />
-            <span className="text-sm">Create client login</span>
-          </label>
-          {portalEnabled && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        );
+      case "intake":
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               <div className="space-y-1.5">
-                <Label>Client email</Label>
-                <div className="flex items-center gap-1">
-                  <Input value={getLeadFields().email ?? f.email ?? ""} readOnly />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      const email = getLeadFields().email ?? f.email;
-                      if (email) {
-                        navigator.clipboard.writeText(email);
-                        toast.success("Copied");
-                      }
-                    }}
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Access level</Label>
-                <Select value={portalAccessLevel} onValueChange={setPortalAccessLevel}>
+                <Label>Branch *</Label>
+                <Select
+                  value={f.branch ?? getLeadFields().branch ?? ""}
+                  onValueChange={(v) => {
+                    setField("branch", v);
+                    setTimeout(autosave, 0);
+                  }}
+                >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PORTAL_ACCESS_LEVELS.map((p) => (
-                      <SelectItem key={p.value} value={p.value}>
-                        {p.label}
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.name}>
+                        {b.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-1.5">
+                <Label>Department</Label>
+                <Select
+                  value={f.department ?? getLeadFields().department ?? ""}
+                  onValueChange={(v) => {
+                    setField("department", v);
+                    setTimeout(autosave, 0);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments.map((d) => (
+                      <SelectItem key={d.id} value={d.name}>
+                        {d.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Intake / Session</Label>
+                <Input
+                  placeholder="e.g. Sep 2026"
+                  value={f.intake ?? ""}
+                  onChange={(e) => setField("intake", e.target.value)}
+                  onBlur={autosave}
+                />
+              </div>
             </div>
-          )}
-        </Card>
-
-        <Card className="p-4 sm:p-6 space-y-4">
-          <h3 className="font-semibold">Accounting Details</h3>
+            <div className="space-y-1.5">
+              <Label>Interested Countries</Label>
+              <InterestedCountriesPicker
+                value={interestedCountries}
+                onChange={(v) => {
+                  setInterestedCountries(v);
+                  setTimeout(autosave, 0);
+                }}
+              />
+            </div>
+          </div>
+        );
+      case "notes":
+        return (
+          <div className="space-y-4">
+            {leadNotes && (
+              <div>
+                <Label className="text-xs uppercase text-muted-foreground">Lead notes (read-only)</Label>
+                <div className="text-sm whitespace-pre-wrap rounded-md border bg-muted/30 p-3 mt-1">{leadNotes}</div>
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-2">
+                Counselor notes
+                {f.counselor_notes_locked && <Lock className="h-3.5 w-3.5 text-muted-foreground" />}
+              </Label>
+              <Textarea
+                rows={6}
+                disabled={!!f.counselor_notes_locked}
+                value={f.counselor_notes ?? ""}
+                onChange={(e) => setField("counselor_notes", e.target.value)}
+                onBlur={autosave}
+                placeholder="Internal notes for counselors — not visible to client"
+              />
+              {f.counselor_notes_locked && (
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Reason to unlock…"
+                    value={notesUnlockReason}
+                    onChange={(e) => setNotesUnlockReason(e.target.value)}
+                  />
+                  <Button type="button" size="sm" variant="outline" onClick={unlockNotes}>
+                    Unlock
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      case "portal":
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Optionally create a client portal login so they can upload documents and view payments.
+            </p>
+            <label className="flex items-center gap-2 rounded-lg border p-3 cursor-pointer hover:bg-muted/30">
+              <Checkbox checked={portalEnabled} onCheckedChange={(c) => setPortalEnabled(!!c)} />
+              <span className="text-sm font-medium">Create client login on registration</span>
+            </label>
+            {portalEnabled && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Client email</Label>
+                  <div className="flex items-center gap-1">
+                    <Input value={getLeadFields().email ?? f.email ?? ""} readOnly />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        const email = getLeadFields().email ?? f.email;
+                        if (email) {
+                          navigator.clipboard.writeText(email);
+                          toast.success("Copied");
+                        }
+                      }}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Access level</Label>
+                  <Select value={portalAccessLevel} onValueChange={setPortalAccessLevel}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PORTAL_ACCESS_LEVELS.map((p) => (
+                        <SelectItem key={p.value} value={p.value}>
+                          {p.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      case "billing":
+        return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Tax ID / PAN</Label>
@@ -855,25 +897,34 @@ export function ClientRegistrationPanel({
               </Select>
             </div>
           </div>
-        </Card>
+        );
+      default:
+        return null;
+    }
+  })();
 
-        <div className="flex items-center justify-end gap-2 pb-2">
-          {saving && <span className="text-xs text-muted-foreground mr-auto">Saving client…</span>}
-          <Button
-            onClick={autosave}
-            disabled={
-              saving || !(getLeadFields().first_name ?? "").trim() || !(getLeadFields().last_name ?? "").trim()
-            }
-          >
-            {saving ? "Saving…" : clientId ? "Save Client" : "Register Client"}
-          </Button>
+  return (
+    <div className="col-span-full grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-6">
+      <RegistrationWorkspace
+        sections={CLIENT_SECTIONS}
+        activeId={activeSection}
+        onSectionChange={setActiveSection}
+        title="Client Registration"
+        subtitle={
+          regNumber
+            ? `Lead ${leadNumber} → Client ${regNumber}`
+            : `Complete each section to register lead ${leadNumber}`
+        }
+        footer={saveFooter}
+      >
+        {sectionContent}
+      </RegistrationWorkspace>
+
+      <div className="xl:sticky xl:top-4 xl:self-start space-y-3">
+        <div className="rounded-lg border bg-card p-3 shadow-elev-sm">
+          <div className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">Invoice preview</div>
+          {invoiceSection}
         </div>
-
-        <div className="lg:hidden">{invoiceSection}</div>
-      </div>
-
-      <div className="hidden lg:block">
-        <div className="sticky top-4">{invoiceSection}</div>
       </div>
     </div>
   );
