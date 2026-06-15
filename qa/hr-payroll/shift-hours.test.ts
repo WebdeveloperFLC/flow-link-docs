@@ -23,4 +23,11 @@ describe("shift hour split", () => {
     expect(s.offShiftMin).toBe(60);
     expect(s.otMin).toBe(30);
   });
+
+  it("handles overnight session (check-out after midnight)", () => {
+    const s = splitShiftHours("19:48", "02:40", 0, shift);
+    expect(s.shiftWorkMin).toBe(0);
+    expect(s.offShiftMin).toBe(412);
+    expect(s.otMin).toBe(0);
+  });
 });

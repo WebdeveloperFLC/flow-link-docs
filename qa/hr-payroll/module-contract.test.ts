@@ -37,6 +37,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120035_hr_payroll_policy_rules_engine.sql",
   "20260717120036_hr_payroll_sandwich_night_est.sql",
   "20260717120037_hr_payroll_leave_duration_document.sql",
+  "20260717120038_hr_payroll_punch_anytime_overnight.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -160,6 +161,20 @@ describe("HR Payroll module contract", () => {
     expect(m31).toContain("off_shift_minutes");
     expect(m31).toContain("ot_minutes");
     expect(m31).toContain("performance-only");
+  });
+
+  it("migration 38 punch anytime and overnight off-shift", () => {
+    const m38 = readFileSync(
+      join(MIGRATIONS, "20260717120038_hr_payroll_punch_anytime_overnight.sql"),
+      "utf8",
+    );
+    expect(m38).toContain("fn_record_punch");
+    expect(m38).toContain("fn_time_minutes_span");
+    expect(m38).not.toContain("Check-in too early");
+    expect(m38).toContain("in_shift");
+    const punch = readFileSync(join(ROOT, "src/hr-payroll/components/attendance/PunchStation.tsx"), "utf8");
+    expect(punch).toContain("punch anytime");
+    expect(punch).toContain("off-shift");
   });
 
   it("migration 36 sandwich half-day exception and 5-day night EST", () => {

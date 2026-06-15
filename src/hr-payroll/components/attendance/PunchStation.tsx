@@ -130,6 +130,8 @@ export function PunchStation({
   const checkedOut = !!todayRow.check_out;
   const onBreak = !!todayRow.break_start && !todayRow.break_end;
   const unavailable = !!todayRow.ess_unavailable;
+  const openSession = checkedIn && !checkedOut;
+  const showMispunch = todayRow.is_mispunch && !openSession;
 
   return (
     <div
@@ -153,7 +155,7 @@ export function PunchStation({
           </div>
           <div style={{ fontSize: 12, opacity: 0.8 }}>
             {clock.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })} · Shift{" "}
-            {shiftMetrics.login}–{shiftMetrics.logout} · punch anytime 24h
+            {shiftMetrics.login}–{shiftMetrics.logout} (salary reference) · punch anytime
           </div>
           <div style={{ fontSize: 12, opacity: 0.8 }}>
             Max break {maxBreak}m
@@ -166,12 +168,13 @@ export function PunchStation({
           <div style={{ fontSize: 11, opacity: 0.7, textTransform: "uppercase" }}>Today</div>
           <div style={{ fontSize: 15, fontWeight: 600, marginTop: 2 }}>
             {unavailable ? "Unavailable" : todayRow.status}
-            {todayRow.is_mispunch ? " · mispunch" : ""}
+            {showMispunch ? " · mispunch" : ""}
+            {m?.offShiftCheckIn && openSession ? " · off-shift" : ""}
           </div>
           <div className="mono" style={{ fontSize: 12, opacity: 0.85 }}>
             Net {fmtDur(m?.net ?? null)} · shift {fmtDur(m?.shiftWorkMin ?? null)}
-            {m?.offShiftMin ? ` · off-shift ${fmtDur(m.offShiftMin)}` : ""}
-            {m?.lateMin ? ` · late ${m.lateMin}m` : " · on time"}
+            {m?.offShiftMin ? ` · extra ${fmtDur(m.offShiftMin)}` : ""}
+            {m?.lateMin ? ` · late ${m.lateMin}m` : m?.offShiftCheckIn ? " · extra hours (no salary impact)" : " · on time"}
           </div>
         </div>
       </div>

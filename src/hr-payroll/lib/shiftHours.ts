@@ -12,6 +12,20 @@ function toMin(t: string | null | undefined): number | null {
   return parts[0] * 60 + parts[1];
 }
 
+/** Extend check-out past midnight when it is earlier on the clock than check-in. */
+function spanMinutes(ci: number, co: number): { ci: number; co: number; gross: number } {
+  const end = co <= ci ? co + 24 * 60 : co;
+  return { ci, co: end, gross: end - ci };
+}
+
+export function isCheckInOffShift(checkIn: string | null | undefined, login: string, logout: string): boolean {
+  const ci = toMin(checkIn);
+  const lg = toMin(login) ?? 600;
+  const lo = toMin(logout) ?? 1140;
+  if (ci == null) return false;
+  return ci < lg || ci > lo;
+}
+
 export type ShiftHourSplit = {
   grossMin: number;
   shiftWorkMin: number;
@@ -32,27 +46,30 @@ export function splitShiftHours(
   const lo = toMin(shift.logout) ?? 1140;
   const brk = Math.max(0, breakMin ?? 0);
 
-  if (ci == null || co == null || co <= ci) {
+  if (ci == null || co == null) {
     return { grossMin: 0, shiftWorkMin: 0, offShiftMin: 0, otMin: 0 };
   }
 
-  const gross = co - ci;
-  const offBefore = Math.max(0, lg - ci);
+  const { ci: ciAdj, co: coAdj, gross } = spanMinutes(ci, co);
+  if (gross <= 0) {
+    return { grossMin: 0, shiftWorkMin: 0, offShiftMin: 0, otMin: 0 };
+  }
+
+  const offBefore = Math.max(0, lg - ciAdj);
 
   let otMin = 0;
   let offShift = 0;
-  if (ci >= lo) {
-    // Entirely outside office hours (e.g. evening-only session) — performance tracking only.
+  if (ciAdj >= lo) {
     offShift = gross;
-  } else if (co > lo) {
+  } else if (coAdj > lo) {
     offShift = offBefore;
-    otMin = Math.max(0, Math.round(co - lo));
+    otMin = Math.max(0, Math.round(coAdj - lo));
   } else {
     offShift = offBefore;
   }
 
-  const shiftStart = Math.max(ci, lg);
-  const shiftEnd = Math.min(co, lo);
+  const shiftStart = Math.max(ciAdj, lg);
+  const shiftEnd = Math.min(coAdj, lo);
   const shiftGross = Math.max(0, shiftEnd - shiftStart);
   const shiftBreak =
     gross > 0 && shiftGross > 0 ? Math.round(brk * (shiftGross / gross)) : 0;

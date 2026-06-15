@@ -1,6 +1,6 @@
 /** Display-only attendance metrics (not payroll maths). */
 
-import { splitShiftHours } from "./shiftHours";
+import { isCheckInOffShift, splitShiftHours } from "./shiftHours";
 
 export function toMin(t: string | null | undefined): number | null {
   if (!t) return null;
@@ -41,8 +41,6 @@ export function dayMetrics(
   let breakMin =
     a.break_min != null ? a.break_min : bs != null && be != null ? be - bs : 0;
   breakMin = Math.max(0, breakMin);
-  const gross = ci != null && co != null ? co - ci : null;
-  const net = gross != null ? gross - breakMin : null;
   const login = toMin(shift.login) ?? 600;
   const logout = toMin(shift.logout) ?? 1140;
   const split = splitShiftHours(a.check_in, a.check_out, breakMin, {
@@ -50,11 +48,20 @@ export function dayMetrics(
     logout: shift.logout,
     breakDur: shift.breakDur || 0,
   });
-  const target = logout - login - (shift.breakDur || 0);
+  const gross =
+    ci != null && co != null
+      ? co <= ci
+        ? co + 24 * 60 - ci
+        : co - ci
+      : null;
+  const net = gross != null ? gross - breakMin : null;
   const otMin = split.otMin;
   const grace = shift.grace || 5;
+  const offShiftCheckIn = isCheckInOffShift(a.check_in, shift.login, shift.logout);
   const lateMin =
-    ci != null && ci >= login && ci <= logout ? Math.max(0, ci - login - grace) : 0;
+    ci != null && !offShiftCheckIn && ci >= login && ci <= logout
+      ? Math.max(0, ci - login - grace)
+      : 0;
   return {
     net,
     breakMin,
@@ -63,6 +70,8 @@ export function dayMetrics(
     lateBeyondGrace: lateMin > 0,
     shiftWorkMin: split.shiftWorkMin,
     offShiftMin: split.offShiftMin,
+    offShiftCheckIn,
+    sessionOpen: ci != null && co == null,
   };
 }
 
