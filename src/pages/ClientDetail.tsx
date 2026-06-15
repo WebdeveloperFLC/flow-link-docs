@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  ChevronLeft,
   Download,
   FileText,
   FileCheck2,
@@ -17,14 +15,11 @@ import {
   Link2,
   Sparkles,
   FolderArchive,
-  ShieldCheck,
   Plus,
   X,
   FileSearch,
   Unlink,
-  ArrowRightLeft,
 } from "lucide-react";
-import { CallClientButton } from "@/components/clients/CallClientButton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SmartUploadZone } from "@/components/documents/SmartUploadZone";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
@@ -85,13 +80,16 @@ import { ClientStageCard } from "@/components/clients/ClientStageCard";
 import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitcher";
 import { ClientSetupPanel } from "@/components/clients/ClientSetupPanel";
 import { ClientAssessmentsCard } from "@/components/clients/ClientAssessmentsCard";
-import { ServiceLibraryContextActions } from "@/components/service-library/ServiceLibraryContextActions";
 import { ContextBackBar } from "@/components/navigation/ContextBackBar";
 import {
   parseLibraryIdFromServiceCode,
 } from "@/lib/service-library/serviceCodes";
 import { fetchWorkflowTemplatesForService } from "@/lib/service-library/matchWorkflowTemplate";
 import { useActiveServiceContext } from "@/lib/clientActiveServiceContext";
+import { ClientIdentityHeader } from "@/components/clients/ClientIdentityHeader";
+import { ClientStageStepper } from "@/components/clients/ClientStageStepper";
+import { ClientOverviewDashboard } from "@/components/clients/ClientOverviewDashboard";
+import { useClientStage } from "@/hooks/useClientStage";
 
 interface Client {
   id: string;
@@ -106,6 +104,19 @@ interface Client {
   suppressed_template_items?: string[] | null;
   owner_id?: string | null;
   created_by?: string | null;
+  branch?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  lead_temperature?: string | null;
+  lead_score?: number | null;
+  date_of_birth?: string | null;
+  passport_number?: string | null;
+  budget?: number | null;
+  intake?: string | null;
+  english_overall?: string | null;
+  english_test?: string | null;
+  assigned_counselor_id?: string | null;
+  current_stage_id?: string | null;
 }
 
 interface Doc {
@@ -285,6 +296,19 @@ const ClientDetail = () => {
 
   const serviceCtx = useActiveServiceContext(client, searchParams);
   const uploadLimitLabel = serviceCtx.isCanadaDestination ? "IRCC ≤ 4 MB" : "≤ 4 MB";
+  const {
+    advance: advanceStage,
+    canAdvance,
+    busy: stageAdvancing,
+  } = useClientStage(client?.id ?? "", stageRefreshKey, {
+    clientCountry: client?.country,
+    destinationCountry: serviceCtx.destinationCountry,
+  });
+
+  const onAdvanceStage = useCallback(async () => {
+    await advanceStage();
+    setStageRefreshKey((k) => k + 1);
+  }, [advanceStage]);
 
   // Critical paint first — secondary kicks off right after to avoid serial waterfall.
   useEffect(() => {
@@ -1010,81 +1034,71 @@ const ClientDetail = () => {
         fallbackLabel="All clients"
         fallbackHref="/clients"
       />
-      <PageHeader
-        title={client.full_name}
-        description={
-          serviceCtx.serviceLabel
-            ? `${client.application_id} · ${serviceCtx.destinationCountry ?? client.country} · ${serviceCtx.serviceLabel}`
-            : `${client.application_id} · ${client.country} · ${client.application_type}`
-        }
-        actions={
-          <div className="flex gap-2 flex-wrap">
-            {(fromServiceLibrary || slLibraryId || serviceCtx.libraryId) && (slLibraryId ?? serviceCtx.libraryId) && (
-              <ServiceLibraryContextActions
-                libraryId={(slLibraryId ?? serviceCtx.libraryId)!}
-                country={slCountry ?? serviceCtx.destinationCountry}
-                clientId={client.id}
-                showServiceLibraryBack={false}
-              />
-            )}
-            {!(slLibraryId ?? serviceCtx.libraryId) && (
-              <Button asChild variant="outline" size="sm">
-                <Link to="/clients">
-                  <ChevronLeft className="size-4" />
-                  All clients
-                </Link>
-              </Button>
-            )}
-            <CallClientButton clientId={client.id} />
-            <Button onClick={() => setHandoffOpen(true)} variant="outline" size="sm">
-              <ArrowRightLeft className="size-4 mr-1.5" /> Hand off
-            </Button>
-            <Button onClick={() => setRemarkOpen(true)} variant="outline" size="sm">
-              <FileText className="size-4 mr-1.5" /> Add remark
-            </Button>
-            {(isAdmin || (!!user && (client.owner_id === user.id || client.created_by === user.id))) && (
-              <Button onClick={() => setAccessOpen(true)} variant="outline" size="sm">
-                <ShieldCheck className="size-4 mr-1.5" /> Manage access
-              </Button>
-            )}
-            {canUpload && (
-              <>
-                <Button
-                  onClick={onGenerateGroupedBinders}
-                  disabled={generatingGroups || !template}
-                  variant="outline"
-                  size="sm"
-                >
-                  {generatingGroups ? (
-                    <Loader2 className="size-4 mr-1.5 animate-spin" />
-                  ) : (
-                    <FolderArchive className="size-4 mr-1.5" />
-                  )}
-                  Grouped binders
-                </Button>
-                <Button
-                  onClick={onGenerateBinder}
-                  disabled={generating || !template}
-                  className="gradient-accent text-white"
-                >
-                  {generating ? (
-                    <Loader2 className="size-4 mr-1.5 animate-spin" />
-                  ) : (
-                    <FileCheck2 className="size-4 mr-1.5" />
-                  )}
-                  Full binder
-                </Button>
-              </>
-            )}
-          </div>
-        }
+      <ClientIdentityHeader
+        client={client}
+        serviceCtx={serviceCtx}
+        slLibraryId={slLibraryId}
+        slCountry={slCountry}
+        fromServiceLibrary={fromServiceLibrary}
+        canUpload={canUpload}
+        isAdmin={isAdmin}
+        userId={user?.id}
+        canAdvance={canAdvance}
+        advancing={stageAdvancing}
+        onAdvanceStage={onAdvanceStage}
+        onHandoff={() => setHandoffOpen(true)}
+        onRemark={() => setRemarkOpen(true)}
+        onManageAccess={() => setAccessOpen(true)}
+        onGenerateBinder={onGenerateBinder}
+        onGenerateGroupedBinders={onGenerateGroupedBinders}
+        generating={generating}
+        generatingGroups={generatingGroups}
+        hasTemplate={!!template}
       />
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ClientDetailTabId)}>
+        <ClientStageStepper
+          clientId={client.id}
+          refreshKey={stageRefreshKey}
+          activeServiceLabel={serviceCtx.serviceLabel}
+          onStageChanged={() => setStageRefreshKey((k) => k + 1)}
+        />
         <ClientDetailTabNav badges={{ documents: requiredMissing.length }} />
 
         <div className="p-6 sm:p-8 max-w-7xl mx-auto">
           <TabsContent value="overview" className="mt-0 space-y-6">
+            <ClientOverviewDashboard
+              client={client}
+              serviceCtx={serviceCtx}
+              onOpenTab={(tab) => setActiveTab(tab as ClientDetailTabId)}
+            />
+            <QuickActionsBar
+              clientId={client.id}
+              clientName={client.full_name}
+              phone={client.phone ?? null}
+              email={client.email ?? null}
+            />
+            <AiSummaryPanel clientId={client.id} />
+          </TabsContent>
+
+          <TabsContent value="qualification" className="mt-0 space-y-6">
+            <ClientAssessmentsCard clientId={client.id} />
+          </TabsContent>
+
+          <TabsContent value="profile" className="mt-0 space-y-6">
+            <ClientProfileCard
+              clientId={client.id}
+              canEdit={canUpload}
+              onReExtract={onReExtract}
+              reExtracting={reExtracting}
+              onSyncOdoo={onSyncOdoo}
+              syncingOdoo={syncingOdoo}
+              refreshKey={profileRefreshKey}
+            />
+            <ClientServicesCard clientId={client.id} canEdit={canUpload} />
+          </TabsContent>
+
+          <TabsContent value="setup" className="mt-0 space-y-6">
             <ClientSetupPanel
               clientId={client.id}
               libraryId={serviceCtx.libraryId ?? slLibraryId}
@@ -1103,32 +1117,11 @@ const ClientDetail = () => {
               destinationCountry={serviceCtx.destinationCountry}
               activeServiceLabel={serviceCtx.serviceLabel}
             />
-            <QuickActionsBar
-              clientId={client.id}
-              clientName={client.full_name}
-              phone={(client as Client & { phone?: string | null }).phone ?? null}
-              email={(client as Client & { email?: string | null }).email ?? null}
-            />
-            <AiSummaryPanel clientId={client.id} />
-            <div className="grid lg:grid-cols-2 gap-6">
-              <ClientTasksCard clientId={client.id} />
-              <HandoffHistoryCard clientId={client.id} />
-            </div>
+            <HandoffHistoryCard clientId={client.id} />
           </TabsContent>
 
-          <TabsContent value="profile" className="mt-0 space-y-6">
-            <ClientProfileCard
-              clientId={client.id}
-              canEdit={canUpload}
-              onReExtract={onReExtract}
-              reExtracting={reExtracting}
-              onSyncOdoo={onSyncOdoo}
-              syncingOdoo={syncingOdoo}
-              refreshKey={profileRefreshKey}
-            />
-            <ClientServicesCard clientId={client.id} canEdit={canUpload} />
+          <TabsContent value="programs" className="mt-0 space-y-6">
             <ClientProgramsCard clientId={client.id} canEdit={canUpload} />
-            <ClientAssessmentsCard clientId={client.id} />
           </TabsContent>
 
           <TabsContent value="commercial" className="mt-0 space-y-6">
@@ -1166,6 +1159,10 @@ const ClientDetail = () => {
             </div>
             <ClientChatWorkspace clientId={client.id} />
             <ClientTimelineCard clientId={client.id} />
+          </TabsContent>
+
+          <TabsContent value="tasks" className="mt-0 space-y-6">
+            <ClientTasksCard clientId={client.id} />
           </TabsContent>
 
           <TabsContent value="team" className="mt-0 space-y-6">

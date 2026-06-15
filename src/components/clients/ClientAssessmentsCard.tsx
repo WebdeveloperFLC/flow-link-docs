@@ -48,7 +48,22 @@ export function ClientAssessmentsCard({ clientId }: { clientId: string }) {
     );
   }
 
-  if (!rows.length) return null;
+  if (!rows.length) {
+    return (
+      <Card className="overflow-hidden shadow-elev-sm p-8 text-center space-y-3">
+        <ClipboardCheck className="size-8 mx-auto text-muted-foreground/50" />
+        <div>
+          <div className="font-semibold">No qualification assessments yet</div>
+          <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
+            Run an eligibility or Settle Abroad assessment to capture qualification notes for this client.
+          </p>
+        </div>
+        <Button asChild variant="outline" size="sm">
+          <Link to="/assessment">Start assessment</Link>
+        </Button>
+      </Card>
+    );
+  }
 
   const runHref = (row: SessionRow) => {
     if (row.assessment_kind === "settle_abroad" && row.library_id) {

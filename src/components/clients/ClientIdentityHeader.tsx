@@ -1,0 +1,265 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  ArrowRight,
+  ChevronLeft,
+  FileCheck2,
+  FileText,
+  FolderArchive,
+  Loader2,
+  Mail,
+  MessageCircle,
+  MoreHorizontal,
+  ShieldCheck,
+  Star,
+  ArrowRightLeft,
+  ListTodo,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { CallClientButton } from "@/components/clients/CallClientButton";
+import { LeadTemperatureBadge } from "@/components/leads/LeadBadges";
+import { AddTaskDialog } from "@/components/clients/AddTaskDialog";
+import { ServiceLibraryContextActions } from "@/components/service-library/ServiceLibraryContextActions";
+import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
+import type { ActiveServiceContext } from "@/lib/clientActiveServiceContext";
+
+export type ClientHeaderClient = {
+  id: string;
+  full_name: string;
+  application_id: string;
+  country: string;
+  application_type: string;
+  branch?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  lead_temperature?: string | null;
+  lead_score?: number | null;
+  owner_id?: string | null;
+  created_by?: string | null;
+  current_stage_id?: string | null;
+};
+
+type Props = {
+  client: ClientHeaderClient;
+  serviceCtx: ActiveServiceContext;
+  slLibraryId?: string | null;
+  slCountry?: string | null;
+  fromServiceLibrary?: boolean;
+  canUpload: boolean;
+  isAdmin: boolean;
+  userId?: string | null;
+  canAdvance: boolean;
+  advancing: boolean;
+  onAdvanceStage: () => void | Promise<void>;
+  onHandoff: () => void;
+  onRemark: () => void;
+  onManageAccess: () => void;
+  onGenerateBinder?: () => void;
+  onGenerateGroupedBinders?: () => void;
+  generating?: boolean;
+  generatingGroups?: boolean;
+  hasTemplate?: boolean;
+};
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+export function ClientIdentityHeader({
+  client,
+  serviceCtx,
+  slLibraryId,
+  slCountry,
+  fromServiceLibrary,
+  canUpload,
+  isAdmin,
+  userId,
+  canAdvance,
+  advancing,
+  onAdvanceStage,
+  onHandoff,
+  onRemark,
+  onManageAccess,
+  onGenerateBinder,
+  onGenerateGroupedBinders,
+  generating,
+  generatingGroups,
+  hasTemplate,
+}: Props) {
+  const [taskOpen, setTaskOpen] = useState(false);
+  const destination = serviceCtx.destinationCountry ?? client.country;
+  const flag = destination ? countryFlagEmoji(destination) : "";
+  const serviceLabel = serviceCtx.serviceLabel ?? client.application_type;
+  const cleanPhone = (client.phone ?? "").replace(/\D/g, "");
+  const canManageAccess =
+    isAdmin || (!!userId && (client.owner_id === userId || client.created_by === userId));
+  const score = client.lead_score ?? 0;
+  const showScore = score > 0;
+
+  return (
+    <>
+      <div className="border-b bg-gradient-to-r from-primary/5 via-card to-card">
+        <div className="px-4 sm:px-8 py-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-3 min-w-0">
+            <Avatar className="size-12 shrink-0 border-2 border-primary/20 shadow-sm">
+              <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm">
+                {initials(client.full_name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">{client.full_name}</h1>
+                {client.lead_temperature && (
+                  <LeadTemperatureBadge value={client.lead_temperature} />
+                )}
+                {showScore && (
+                  <span className="inline-flex items-center gap-0.5 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+                    <Star className="size-3 fill-amber-500 text-amber-500" />
+                    {score}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                <span className="font-mono text-primary/90">{client.application_id}</span>
+                {destination && (
+                  <>
+                    <span>·</span>
+                    <span className="inline-flex items-center gap-1">
+                      {flag && <span aria-hidden>{flag}</span>}
+                      {destination}
+                    </span>
+                  </>
+                )}
+                {serviceLabel && (
+                  <>
+                    <span>·</span>
+                    <span>{serviceLabel}</span>
+                  </>
+                )}
+                {client.branch && (
+                  <>
+                    <span>·</span>
+                    <span>{client.branch}</span>
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {(fromServiceLibrary || slLibraryId || serviceCtx.libraryId) && (slLibraryId ?? serviceCtx.libraryId) && (
+              <ServiceLibraryContextActions
+                libraryId={(slLibraryId ?? serviceCtx.libraryId)!}
+                country={slCountry ?? serviceCtx.destinationCountry}
+                clientId={client.id}
+                showServiceLibraryBack={false}
+              />
+            )}
+            {!(slLibraryId ?? serviceCtx.libraryId) && (
+              <Button asChild variant="outline" size="icon" className="size-9">
+                <Link to="/clients" title="All clients">
+                  <ChevronLeft className="size-4" />
+                </Link>
+              </Button>
+            )}
+            <CallClientButton clientId={client.id} />
+            {client.phone && cleanPhone && (
+              <Button
+                size="icon"
+                variant="outline"
+                className="size-9 shrink-0"
+                title="WhatsApp"
+                onClick={() => import("@/lib/whatsappShare").then((m) => m.openWhatsApp(cleanPhone, ""))}
+              >
+                <MessageCircle className="size-4" />
+              </Button>
+            )}
+            {client.email && (
+              <Button
+                size="icon"
+                variant="outline"
+                className="size-9"
+                title="Email"
+                onClick={() => window.open(`mailto:${client.email}`)}
+              >
+                <Mail className="size-4" />
+              </Button>
+            )}
+            <Button size="sm" variant="outline" onClick={() => setTaskOpen(true)}>
+              <ListTodo className="size-3.5 mr-1.5" />
+              Task
+            </Button>
+            {canUpload && (
+              <Button
+                size="sm"
+                className="gradient-accent text-white shadow-sm"
+                disabled={!canAdvance || advancing}
+                onClick={() => void onAdvanceStage()}
+              >
+                {advancing ? (
+                  <Loader2 className="size-4 mr-1.5 animate-spin" />
+                ) : (
+                  <ArrowRight className="size-4 mr-1.5" />
+                )}
+                Advance stage
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="outline" className="size-9">
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem onClick={onHandoff}>
+                  <ArrowRightLeft className="size-4 mr-2" /> Hand off
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onRemark}>
+                  <FileText className="size-4 mr-2" /> Add remark
+                </DropdownMenuItem>
+                {canManageAccess && (
+                  <DropdownMenuItem onClick={onManageAccess}>
+                    <ShieldCheck className="size-4 mr-2" /> Manage access
+                  </DropdownMenuItem>
+                )}
+                {canUpload && hasTemplate && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={onGenerateGroupedBinders} disabled={generatingGroups}>
+                      <FolderArchive className="size-4 mr-2" />
+                      Grouped binders
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={onGenerateBinder} disabled={generating}>
+                      <FileCheck2 className="size-4 mr-2" />
+                      Full binder
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </div>
+      <AddTaskDialog
+        open={taskOpen}
+        onOpenChange={setTaskOpen}
+        clientId={client.id}
+        applicationMode
+        pipelineStageId={client.current_stage_id ?? undefined}
+      />
+    </>
+  );
+}
