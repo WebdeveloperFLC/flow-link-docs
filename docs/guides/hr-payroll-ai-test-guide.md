@@ -22,7 +22,9 @@ npm run test:hr-payroll
 | **Module contract** | `qa/hr-payroll/module-contract.test.ts` | Migrations 00–17, required RPCs, routes, pages, ESS `staff_id` link |
 | **RBAC matrix** | `qa/hr-payroll/access-rbac.test.ts` | Employee vs Admin vs Manager default permissions |
 | **Attendance** | `qa/hr-payroll/attendance-metrics.test.ts` | Late minutes, duration formatting |
-| **Live DB** (optional) | `qa/hr-payroll/integration-smoke.test.ts` | Staging Supabase TV02 + employee count |
+| **Live DB** (optional) | `qa/hr-payroll/integration-smoke.test.ts` | Staging: TV02, FL-CA01, Isha CRM link, payroll line |
+
+Full handoff: `docs/hr-payroll/HR_PAYROLL_UAT_READY.md`
 
 ---
 
@@ -78,9 +80,12 @@ Implemented in migration **17** + UI:
 
 ## When human UAT is allowed
 
+See **`docs/hr-payroll/HR_PAYROLL_UAT_READY.md`**.
+
 1. `npm run test:hr-payroll` → **PASS**
 2. `npm run build` → **PASS**
-3. Migrations **00–17** applied on staging
-4. Optional: `HR_INTEGRATION_TEST=1` smoke on staging
+3. Migrations **00–24** applied on staging
+4. Lovable Publish synced
+5. Optional: `HR_INTEGRATION_TEST=1` + service role smoke on staging
 
-Then run the 50-case pack in `docs/hr-payroll/HR_PAYROLL_UAT.md`.
+Then UAT team runs the 61-case pack in `docs/hr-payroll/HR_PAYROLL_UAT.md`.

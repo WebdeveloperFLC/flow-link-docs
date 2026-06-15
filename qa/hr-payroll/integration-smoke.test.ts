@@ -63,4 +63,58 @@ describe.skipIf(!enabled)("HR Payroll live DB smoke (HR_INTEGRATION_TEST=1)", ()
     expect(Number(data!.payable_days)).toBe(29.5);
     expect(Number(data!.net_salary)).toBe(39500);
   }, 15000);
+
+  it.skipIf(!hasServiceRole)("FL-CA01 Canada anchor via v_payroll_preview (service role)", async () => {
+    const { data, error } = await sb
+      .from("v_payroll_preview")
+      .select("emp_code, payable_days, net_salary, salary_currency")
+      .eq("emp_code", "FL-CA01")
+      .maybeSingle();
+    expect(error).toBeNull();
+    expect(data).toBeTruthy();
+    expect(Number(data!.payable_days)).toBe(30);
+    const net = Number(data!.net_salary);
+    expect(net).toBeGreaterThanOrEqual(4100);
+    expect(net).toBeLessThanOrEqual(4200);
+  }, 15000);
+
+  it.skipIf(!hasServiceRole)("Isha FL-1042 CRM link for ESS (service role)", async () => {
+    const { data, error } = await sb
+      .from("employees")
+      .select("emp_code, staff_id")
+      .eq("org_id", DEMO_ORG)
+      .eq("emp_code", "FL-1042")
+      .maybeSingle();
+    expect(error).toBeNull();
+    expect(data?.staff_id).toBeTruthy();
+  }, 15000);
+
+  it.skipIf(!hasServiceRole)("FL-CA01 has payroll line on latest cycle (service role)", async () => {
+    const { data: cycle, error: cycleErr } = await sb
+      .from("payroll_cycles")
+      .select("id")
+      .eq("org_id", DEMO_ORG)
+      .order("start_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    expect(cycleErr).toBeNull();
+    expect(cycle?.id).toBeTruthy();
+
+    const { data: emp, error: empErr } = await sb
+      .from("employees")
+      .select("id")
+      .eq("org_id", DEMO_ORG)
+      .eq("emp_code", "FL-CA01")
+      .maybeSingle();
+    expect(empErr).toBeNull();
+    expect(emp?.id).toBeTruthy();
+
+    const { count, error: lineErr } = await sb
+      .from("payroll_lines")
+      .select("*", { count: "exact", head: true })
+      .eq("cycle_id", cycle!.id)
+      .eq("employee_id", emp!.id);
+    expect(lineErr).toBeNull();
+    expect((count ?? 0) >= 1).toBe(true);
+  }, 15000);
 });
