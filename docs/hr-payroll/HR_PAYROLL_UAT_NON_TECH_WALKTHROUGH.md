@@ -81,11 +81,12 @@ If anything is confusing → **stop** and message your lead. Do not guess.
 | Field | Must show |
 |-------|-----------|
 | Payable days | **29.5** |
-| Net salary | **₹39,500** (rupees) |
+| PT column | **₹200** |
+| Net salary | **₹39,300** (after ₹200 PT) |
 
 **Fail if:** Different numbers or employee missing.
 
-**If net shows ₹39,300 (not ₹39,500):** tell your lead — ₹200 Professional Tax was on by mistake. Lead runs `HR_PAYROLL_FIX_ISHA_TV02.sql` once; then re-check.
+**Note:** Excel TV02 used ₹39,500 without PT. Live payroll deducts ₹200 PT for all India staff (amount changeable in **Config → Professional Tax**).
 
 ---
 
@@ -173,7 +174,7 @@ Copy this table into email/Sheet or update `HR_PAYROLL_UAT_PROGRESS.csv` for the
 | 3 | HR-UAT-EMP-001 | | Use for employee list |
 | 4 | HR-UAT-EMP-003 | | Isha record |
 | 5 | HR-UAT-EMP-003 | | CRM link |
-| 6 | HR-UAT-PAY-002 | | Isha 29.5 / ₹39,500 |
+| 6 | HR-UAT-PAY-002 | | Isha 29.5 / PT ₹200 / net ₹39,300 |
 | 7 | HR-UAT-P2-007 | | FL-CA01 CA$4,157 |
 | 8 | HR-UAT-EMP-001 | | Currency column |
 | 9 | HR-UAT-ATT-001 | | ESS check-in |

@@ -23,6 +23,7 @@ export const HR_NAV: NavGroup[] = [
     grp: "People",
     items: [
       { k: "employees", ic: "⊞", t: "Employee Master" },
+      { k: "docTypes", ic: "📄", t: "Document Master" },
       { k: "shifts", ic: "◐", t: "Shift Management" },
       { k: "training", ic: "◵", t: "Training" },
     ],
@@ -62,6 +63,7 @@ export function screenKeyFromPath(pathname: string): HrScreenKey {
   if (pathname === "/hr" || pathname === "/hr/") return "dashboard";
   if (pathname.startsWith("/hr/me")) return "ess";
   if (pathname.startsWith("/hr/employees")) return "employees";
+  if (pathname.startsWith("/hr/document-types")) return "docTypes";
   if (pathname.startsWith("/hr/employee")) return "emp360";
   if (pathname.startsWith("/hr/shifts")) return "shifts";
   if (pathname.startsWith("/hr/training")) return "training";

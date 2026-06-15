@@ -28,7 +28,7 @@
 | **Test Case ID** | HR-UAT-SETUP-001 |
 | **Preconditions** | Global preconditions met. |
 | **Steps** | 1. Run `docs/hr-payroll/HR_PAYROLL_UAT_VERIFY.sql` in SQL Editor (all **PASS**).<br>2. Confirm employee count ≥5 (6 with FL-CA01 after migration 20).<br>3. Confirm Isha anchor from verify script or UAT guide Phase 3.2. |
-| **Expected Result** | Verify script PASS. ≥5 employees. Isha: payable **29.5**, net **39500**. |
+| **Expected Result** | Verify script PASS. ≥5 employees. Isha: payable **29.5**, PT **₹200**, net **39300**. |
 | **Screenshot Required** | Yes |
 | **Pass / Fail** | ☐ Pass ☐ Fail |
 | **Notes** | |
@@ -468,7 +468,7 @@
 | **Test Case ID** | HR-UAT-PAY-002 |
 | **Preconditions** | Fresh seed; cycle Draft. |
 | **Steps** | 1. Locate Isha (FL-1042) in register. |
-| **Expected Result** | Payable **29.5** days; Net **₹39,500** (Excel TV02 parity). |
+| **Expected Result** | Payable **29.5** days; PT **₹200**; Net **₹39,300** (Excel TV02 ₹39,500 + ₹200 PT). |
 | **Screenshot Required** | Yes |
 | **Pass / Fail** | ☐ Pass ☐ Fail |
 | **Notes** | |

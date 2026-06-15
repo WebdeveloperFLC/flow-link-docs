@@ -327,10 +327,10 @@ export function ServiceLibraryTabs({
               <thead>
                 <tr className="bg-muted/40 border-b">
                   <th className="text-left p-3 font-medium">
-                    {view.compare.columns[0] ?? "Pathway"}
+                    {(view.compare.columns ?? [])[0] ?? "Pathway"}
                   </th>
-                  {(view.compare.columns.length > 1
-                    ? view.compare.columns.slice(1)
+                  {((view.compare.columns ?? []).length > 1
+                    ? (view.compare.columns ?? []).slice(1)
                     : ["Module", "Minimum", "Notes"]
                   ).map((col) => (
                     <th key={col} className="text-left p-3 font-medium">
@@ -343,7 +343,7 @@ export function ServiceLibraryTabs({
                 {view.compare.rows.map((row) => (
                   <tr key={row.label} className="border-b last:border-0">
                     <td className="p-3 font-medium align-top">{row.label}</td>
-                    {row.values.map((v, i) => (
+                    {(row.values ?? []).map((v, i) => (
                       <td key={i} className="p-3 text-muted-foreground align-top">
                         {v}
                       </td>

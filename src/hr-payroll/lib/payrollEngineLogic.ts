@@ -175,6 +175,7 @@ export type PayrollTestVector = {
 export const PAYROLL_TEST_VECTORS: PayrollTestVector[] = [
   { id: "TV01", input: { payrollDays: 30, monthly: 42000, basic: 21000 }, expected: { payableDays: 30, dailyRate: 1400, grossEarned: 42000, pfEmployee: 1800, netSalary: 40200 } },
   { id: "TV02", input: { payrollDays: 30, monthly: 42000, basic: 21000, mispunch: 3 }, expected: { payableDays: 29.5, mispunchDeduction: 0.5, grossEarned: 41300, netSalary: 39500 } },
+  { id: "TV02A", input: { payrollDays: 30, monthly: 42000, basic: 21000, mispunch: 3, ptApplicable: true, professionalTax: 200 }, expected: { payableDays: 29.5, ptEmployee: 200, netSalary: 39300 } },
   { id: "TV03", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 3 }, expected: { payableDays: 30, netSalary: 28200 } },
   { id: "TV04", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 4 }, expected: { payableDays: 29.5, lateDeduction: 0.5, netSalary: 27700 } },
   { id: "TV05", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 6 }, expected: { payableDays: 29.5, netSalary: 27700 } },

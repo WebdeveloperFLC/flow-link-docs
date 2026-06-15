@@ -16,6 +16,7 @@ import HrCompoffPage from "./pages/HrCompoffPage";
 import HrLatePage from "./pages/HrLatePage";
 import HrMispunchPage from "./pages/HrMispunchPage";
 import HrHolidaysPage from "./pages/HrHolidaysPage";
+import HrDocumentTypesPage from "./pages/HrDocumentTypesPage";
 import HrConfigPage from "./pages/HrConfigPage";
 import HrRolesPage from "./pages/HrRolesPage";
 import HrAuditPage from "./pages/HrAuditPage";
@@ -31,6 +32,7 @@ export default function HrPayrollRoutes() {
         <Route path="employee" element={<HrEmp360Redirect />} />
         <Route path="employee/:id" element={<HrEmp360Page />} />
         <Route path="employees" element={<HrEmployeesPage />} />
+        <Route path="document-types" element={<HrDocumentTypesPage />} />
         <Route path="shifts" element={<HrShiftsPage />} />
         <Route path="training" element={<HrTrainingPage />} />
         <Route path="calculator" element={<HrCalculatorPage />} />

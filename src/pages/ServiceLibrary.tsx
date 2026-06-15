@@ -124,6 +124,20 @@ export default function ServiceLibrary() {
     [masters.data, categoryFilter, countryFilter, coachingFamily, coachingVariant, treeSearch, statusFilter],
   );
 
+  /** Nav without sidebar search/status — used only to validate selectedId (search must not close detail). */
+  const selectionGroup = useMemo(
+    () =>
+      buildAcademyNav(masters.data ?? [], {
+        categoryFilter,
+        countryFilter: categoryFilter === "visa" ? countryFilter : "ALL",
+        coachingFamily,
+        coachingVariant,
+        search: "",
+        statusFilter: "all",
+      }).group,
+    [masters.data, categoryFilter, countryFilter, coachingFamily, coachingVariant],
+  );
+
   const navReadyForSelection = group?.step === "services";
 
   useEffect(() => {
@@ -164,12 +178,12 @@ export default function ServiceLibrary() {
   ]);
 
   useEffect(() => {
-    if (!navReadyForSelection || !group?.items) return;
-    const ids = flattenNavItemIds(group);
+    if (selectionGroup?.step !== "services" || !selectionGroup.items) return;
+    const ids = flattenNavItemIds(selectionGroup);
     if (selectedId && !ids.includes(selectedId)) {
       setSelectedId(null);
     }
-  }, [selectedId, group, navReadyForSelection]);
+  }, [selectedId, selectionGroup]);
 
   const handleCategoryChange = (cat: AcademyCategoryFilter) => {
     setCategoryFilter(cat);

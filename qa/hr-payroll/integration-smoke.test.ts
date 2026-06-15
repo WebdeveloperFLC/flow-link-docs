@@ -52,16 +52,17 @@ describe.skipIf(!enabled)("HR Payroll live DB smoke (HR_INTEGRATION_TEST=1)", ()
     expect((count ?? 0) >= 5).toBe(true);
   }, 15000);
 
-  it.skipIf(!hasServiceRole)("TV02 anchor via v_payroll_preview (service role)", async () => {
+  it.skipIf(!hasServiceRole)("TV02A anchor via v_payroll_preview — Isha with ₹200 PT (service role)", async () => {
     const { data, error } = await sb
       .from("v_payroll_preview")
-      .select("emp_code, payable_days, net_salary")
+      .select("emp_code, payable_days, net_salary, pt_employee")
       .eq("emp_code", "FL-1042")
       .maybeSingle();
     expect(error).toBeNull();
     expect(data).toBeTruthy();
     expect(Number(data!.payable_days)).toBe(29.5);
-    expect(Number(data!.net_salary)).toBe(39500);
+    expect(Number(data!.pt_employee)).toBe(200);
+    expect(Number(data!.net_salary)).toBe(39300);
   }, 15000);
 
   it.skipIf(!hasServiceRole)("FL-CA01 Canada anchor via v_payroll_preview (service role)", async () => {

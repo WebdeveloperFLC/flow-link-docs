@@ -27,7 +27,7 @@ describe("HR Payroll engine — golden vectors", () => {
 });
 
 describe("HR Payroll engine — slab boundaries", () => {
-  it("TV02 Isha anchor: 29.5 payable, ₹39,500 net", () => {
+  it("TV02 Isha anchor: 29.5 payable, ₹39,500 net (Excel baseline, PT off)", () => {
     const r = computePayroll({
       payrollDays: 30,
       monthly: 42000,
@@ -37,6 +37,20 @@ describe("HR Payroll engine — slab boundaries", () => {
     });
     expect(r.payableDays).toBe(29.5);
     expect(r.netSalary).toBe(39500);
+  });
+
+  it("TV02A India default: ₹200 PT → ₹39,300 net", () => {
+    const r = computePayroll({
+      payrollDays: 30,
+      monthly: 42000,
+      basic: 21000,
+      mispunch: 3,
+      ptApplicable: true,
+      professionalTax: 200,
+    });
+    expect(r.payableDays).toBe(29.5);
+    expect(r.ptEmployee).toBe(200);
+    expect(r.netSalary).toBe(39300);
   });
 
   it("late slab caps at 5 days for 28+", () => {

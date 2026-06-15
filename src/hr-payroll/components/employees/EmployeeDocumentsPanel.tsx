@@ -1,12 +1,13 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../../context/HrPayrollProvider";
 import { useHrDocuments } from "../../hooks/useHrRequests";
+import { useHrDocumentTypeLabels } from "../../hooks/useHrDocumentTypes";
 import {
   deleteHrDocument,
   getHrDocumentSignedUrl,
-  HR_DOC_TYPES,
   uploadHrDocument,
 } from "../../lib/hrStorage";
 import { hrAudit } from "../../lib/hrApi";
@@ -17,9 +18,17 @@ export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
   const { can, fire } = useHrAccess();
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [docType, setDocType] = useState<string>(HR_DOC_TYPES[0]);
+  const docTypeLabels = useHrDocumentTypeLabels();
+  const [docType, setDocType] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const { data: docs = [], isLoading } = useHrDocuments(emp.id);
+
+  useEffect(() => {
+    if (!docType && docTypeLabels.length) setDocType(docTypeLabels[0]);
+    if (docType && docTypeLabels.length && !docTypeLabels.includes(docType)) {
+      setDocType(docTypeLabels[0]);
+    }
+  }, [docTypeLabels, docType]);
 
   const canManage = can("manageEmp");
 
@@ -90,10 +99,10 @@ export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
       {canManage && (
         <div
           className="card"
-          style={{ background: "var(--paper)", padding: 14, display: "flex", gap: 10, flexWrap: "wrap" }}
+          style={{ background: "var(--paper)", padding: 14, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}
         >
           <select className="input" value={docType} onChange={(e) => setDocType(e.target.value)} style={{ maxWidth: 200 }}>
-            {HR_DOC_TYPES.map((t) => (
+            {docTypeLabels.map((t) => (
               <option key={t} value={t}>
                 {t}
               </option>
@@ -104,10 +113,15 @@ export function EmployeeDocumentsPanel({ emp }: { emp: EmployeeRow }) {
             type="file"
             accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
             style={{ maxWidth: 260 }}
-            disabled={uploading}
+            disabled={uploading || !docType}
             onChange={(e) => void onUpload(e.target.files?.[0])}
           />
           {uploading && <span className="muted" style={{ fontSize: 12 }}>Uploading…</span>}
+          {(can("configure") || can("manageEmp")) && (
+            <Link to="/hr/document-types" className="muted" style={{ fontSize: 12 }}>
+              Manage document types →
+            </Link>
+          )}
         </div>
       )}
 

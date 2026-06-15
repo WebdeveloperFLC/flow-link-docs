@@ -26,6 +26,8 @@ const REQUIRED_MIGRATIONS = [
   "20260717120024_hr_payroll_demo_crm_staff_access.sql",
   "20260717120025_hr_payroll_isha_tv02_pt_and_crm_grants.sql",
   "20260717120026_hr_payroll_crm_list_fix_reopen_paid.sql",
+  "20260717120027_hr_payroll_professional_tax_all_india.sql",
+  "20260717120028_hr_payroll_document_types_master.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -48,6 +50,7 @@ const REQUIRED_PAGES = [
   "HrDashboardPage.tsx",
   "HrEssPage.tsx",
   "HrEmployeesPage.tsx",
+  "HrDocumentTypesPage.tsx",
   "HrVerifyPage.tsx",
   "HrAttendancePage.tsx",
   "HrLeavePage.tsx",
@@ -108,6 +111,23 @@ describe("HR Payroll module contract", () => {
     const routes = readFileSync(join(ROOT, "src/hr-payroll/HrPayrollRoutes.tsx"), "utf8");
     expect(routes).toContain("HrPayrollProvider");
     expect(routes).toContain("HrPayrollLayout");
+  });
+
+  it("HrConfigPage exposes Professional Tax policy tab", () => {
+    const config = readFileSync(join(ROOT, "src/hr-payroll/pages/HrConfigPage.tsx"), "utf8");
+    expect(config).toContain("Professional Tax");
+    expect(config).toContain("saveProfessionalTax");
+    expect(config).toContain("default_amount");
+  });
+
+  it("migration 27 enables PT for India employees", () => {
+    const m27 = readFileSync(
+      join(MIGRATIONS, "20260717120027_hr_payroll_professional_tax_all_india.sql"),
+      "utf8",
+    );
+    expect(m27).toContain("professional_tax");
+    expect(m27).toContain("pt_applicable = true");
+    expect(m27).toContain("default_amount");
   });
 
   it("ESS uses linked staff_id not employee picker", () => {

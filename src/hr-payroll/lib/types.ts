@@ -56,6 +56,17 @@ export type EmployeeDocumentRow = {
   created_at?: string;
 };
 
+export type HrDocumentTypeRow = {
+  id: string;
+  org_id: string;
+  label: string;
+  code: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type EmployeeRow = {
   id: string;
   org_id: string;

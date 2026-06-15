@@ -24,11 +24,14 @@ WHERE org_id = '00000000-0000-0000-0000-0000000000f1'
 ORDER BY start_date DESC
 LIMIT 1;
 
--- 3) TV02 golden anchor — Isha FL-1042
-SELECT 'TV02_isha' AS check_name,
-       concat('payable=', payable_days, ' net=', net_salary) AS actual,
-       'payable=29.5 net=39500' AS expected,
-       CASE WHEN payable_days = 29.5 AND net_salary = 39500 THEN 'PASS' ELSE 'FAIL' END AS status
+-- 3) TV02A golden anchor — Isha FL-1042 (India PT on)
+SELECT 'TV02A_isha' AS check_name,
+       concat('payable=', payable_days, ' pt=', pt_employee, ' net=', net_salary) AS actual,
+       'payable=29.5 pt=200 net=39300' AS expected,
+       CASE
+         WHEN payable_days = 29.5 AND pt_employee = 200 AND net_salary = 39300 THEN 'PASS'
+         ELSE 'FAIL'
+       END AS status
 FROM v_payroll_preview
 WHERE emp_code = 'FL-1042';
 

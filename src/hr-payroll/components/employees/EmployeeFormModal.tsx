@@ -8,6 +8,7 @@ import { EmployeeAvatar } from "../ui/EmployeeAvatar";
 import type { BranchRow, CompanyRow, EmergencyContact, EmployeeRow, ShiftRow, CrmStaffRow } from "../../lib/types";
 import { fetchNextEmpCode, useHrEmployee } from "../../hooks/useHrEmployees";
 import { useHrCrmStaff, useCrmProfile } from "../../hooks/useHrTeam";
+import { useHrPolicies } from "../../hooks/useHrRequests";
 import { useHrAccess } from "../../context/HrPayrollProvider";
 
 type FormTab = "basic" | "employment" | "shift" | "salary" | "statutory" | "bank";
@@ -211,6 +212,11 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
     sourceEmp ? fromEmployee(sourceEmp) : blank(shifts, companies, branches),
   );
   const { data: linkedProfile } = useCrmProfile(f.staff_id || sourceEmp?.staff_id || undefined);
+  const { data: policies = [] } = useHrPolicies();
+  const ptDefaultAmount = useMemo(() => {
+    const pt = policies.find((p) => p.domain === "professional_tax");
+    return Number(pt?.config?.default_amount ?? 200);
+  }, [policies]);
   const [err, setErr] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -753,7 +759,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                   checked={f.pt_applicable}
                   onChange={(e) => set("pt_applicable", e.target.checked)}
                 />
-                PT Applicable (default ₹200 — configurable in Payroll Config)
+                PT Applicable (default ₹{ptDefaultAmount.toLocaleString("en-IN")} — change in Payroll Config)
               </label>
               <div className="sec-label">Other deductions</div>
               <div className="grid g2" style={{ gap: "0 16px" }}>

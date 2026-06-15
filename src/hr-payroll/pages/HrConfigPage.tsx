@@ -7,10 +7,20 @@ import { HR_ORG_ID } from "../lib/constants";
 import { hrAudit, accrueLeaveBalances } from "../lib/hrApi";
 import type { PolicyRow } from "../lib/types";
 
-const TABS = ["Payroll Cycle", "Late Coming", "Mispunch", "Leave", "Sandwich & UL", "Overtime", "Canada Deductions", "Workflow"] as const;
+const TABS = [
+  "Payroll Cycle",
+  "Late Coming",
+  "Mispunch",
+  "Leave",
+  "Sandwich & UL",
+  "Professional Tax",
+  "Overtime",
+  "Canada Deductions",
+  "Workflow",
+] as const;
 type Tab = (typeof TABS)[number];
 
-const DOMAIN_MAP: Record<Exclude<Tab, "Payroll Cycle" | "Workflow" | "Overtime" | "Canada Deductions">, string> = {
+const DOMAIN_MAP: Partial<Record<Tab, string>> = {
   "Late Coming": "late",
   Mispunch: "mispunch",
   Leave: "leave",
@@ -29,6 +39,7 @@ const DEFAULT_CONFIG: Record<string, Record<string, string>> = {
     probation_leave: "None",
   },
   sandwich_ul: { sandwich_mult: "1", sandwich_cap: "2/yr", ul_mult: "2", auto_resign: "3 consec. UL" },
+  professional_tax: { default_amount: "200", mandatory_below_gross: "" },
   workflow: { enabled: "true", chain: "Manager,HR", skip_manager_when_no_mgr: "true" },
   overtime: { mode: "display", rate_multiplier: "1.5", hours_per_day: "8", min_ot_minutes: "30" },
   canada_deductions: {
@@ -67,7 +78,7 @@ export default function HrConfigPage() {
   const [endDate, setEndDate] = useState(cycle?.end_date ?? "");
   const [policyDraft, setPolicyDraft] = useState<Record<string, string>>({});
 
-  const domain = tab !== "Payroll Cycle" && tab !== "Workflow" && tab !== "Overtime" && tab !== "Canada Deductions" ? DOMAIN_MAP[tab] : null;
+  const domain = DOMAIN_MAP[tab] ?? null;
   const workflowPolicy = useMemo(() => {
     return (policies as PolicyRow[]).find((p) => p.domain === "workflow");
   }, [policies]);
@@ -76,6 +87,9 @@ export default function HrConfigPage() {
   }, [policies]);
   const canadaPolicy = useMemo(() => {
     return (policies as PolicyRow[]).find((p) => p.domain === "canada_deductions");
+  }, [policies]);
+  const ptPolicy = useMemo(() => {
+    return (policies as PolicyRow[]).find((p) => p.domain === "professional_tax");
   }, [policies]);
   const currentPolicy = useMemo(() => {
     if (!domain) return null;
@@ -209,6 +223,40 @@ export default function HrConfigPage() {
     }
     await hrAudit("OT Policy Saved", config.mode, `v${overtimePolicy?.version ?? 0}`, `v${version}`);
     fire("Overtime policy saved");
+    setPolicyDraft({});
+    await qc.invalidateQueries({ queryKey: ["hr-policies"] });
+  };
+
+  const saveProfessionalTax = async () => {
+    if (!can("configure")) return;
+    const rawMandatory =
+      policyDraft.mandatory_below_gross ?? ptPolicy?.config?.mandatory_below_gross ?? "";
+    const config: Record<string, unknown> = {
+      default_amount: Number(
+        policyDraft.default_amount ?? ptPolicy?.config?.default_amount ?? 200,
+      ),
+      mandatory_below_gross:
+        rawMandatory === "" || rawMandatory == null ? null : Number(rawMandatory),
+    };
+    const version = (ptPolicy?.version ?? 0) + 1;
+    const { error } = await supabase.from("policies" as never).insert({
+      org_id: HR_ORG_ID,
+      domain: "professional_tax",
+      effective_from: new Date().toISOString().slice(0, 10),
+      version,
+      config,
+    } as never);
+    if (error) {
+      fire(error.message);
+      return;
+    }
+    await hrAudit(
+      "PT Policy Saved",
+      `₹${config.default_amount}`,
+      `v${ptPolicy?.version ?? 0}`,
+      `v${version}`,
+    );
+    fire("Professional Tax policy saved — rebuild register to apply on locked cycles");
     setPolicyDraft({});
     await qc.invalidateQueries({ queryKey: ["hr-policies"] });
   };
@@ -379,6 +427,44 @@ export default function HrConfigPage() {
                 onClick={() => void saveOvertime()}
               >
                 Save Overtime Policy
+              </button>
+            </div>
+          </>
+        ) : tab === "Professional Tax" ? (
+          <>
+            <div className="muted" style={{ fontSize: 12, marginBottom: 12 }}>
+              Applies to <strong>India payroll</strong> employees with <strong>PT Applicable</strong> on
+              their profile. Change the amount here anytime — new payroll runs use the latest policy
+              version.
+            </div>
+            <div className="grid g2" style={{ gap: "0 24px" }}>
+              <Fld
+                label="Default PT amount (₹ per month)"
+                value={String(
+                  policyDraft.default_amount ?? ptPolicy?.config?.default_amount ?? "200",
+                )}
+                onChange={(v) => setPolicyDraft((prev) => ({ ...prev, default_amount: v }))}
+              />
+              <Fld
+                label="Mandatory below gross (₹) — leave blank if optional"
+                value={String(
+                  policyDraft.mandatory_below_gross ??
+                    ptPolicy?.config?.mandatory_below_gross ??
+                    "",
+                )}
+                onChange={(v) =>
+                  setPolicyDraft((prev) => ({ ...prev, mandatory_below_gross: v }))
+                }
+              />
+            </div>
+            <div className="row-flex" style={{ justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={!can("configure")}
+                onClick={() => void saveProfessionalTax()}
+              >
+                Save Professional Tax Policy
               </button>
             </div>
           </>
