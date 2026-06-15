@@ -57,7 +57,7 @@ import {
   type CaseSection,
 } from "@/lib/sections";
 import { isChecklistAlias } from "@/lib/checklist";
-import type { CasePerson } from "@/lib/casePeople";
+import { fetchCasePeople, sortRoster, type CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -239,7 +239,7 @@ const ClientDetail = () => {
   const loadSecondary = useCallback(async () => {
     if (!id) return;
     setSecondaryLoading(true);
-    const [{ data: trashed }, { data: b }] = await Promise.all([
+    const [{ data: trashed }, { data: b }, casePeople] = await Promise.all([
       supabase
         .from("client_documents")
         .select("*")
@@ -251,10 +251,12 @@ const ClientDetail = () => {
         .select("id,file_name,storage_path,generated_at,group_label")
         .eq("client_id", id)
         .order("generated_at", { ascending: false }),
+      fetchCasePeople(id),
     ]);
     const trashedRows = (trashed ?? []) as Doc[];
     setTrashedDocs(trashedRows);
     setBinders((b ?? []) as BinderRow[]);
+    setPeople(sortRoster(casePeople));
     const uids = Array.from(new Set(trashedRows.map((x) => x.deleted_by).filter(Boolean) as string[]));
     if (uids.length) {
       const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", uids);
@@ -1151,6 +1153,7 @@ const ClientDetail = () => {
               category={serviceCtx.formsCategory ?? client.application_type}
               canEdit={canUpload}
             />
+            <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
           </TabsContent>
 
           <TabsContent value="communications" className="mt-0 space-y-6">
@@ -1206,7 +1209,6 @@ const ClientDetail = () => {
               isAdmin={isAdmin}
               onGenerated={load}
             />
-            <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
           </TabsContent>
 
           <TabsContent value="documents" className="mt-0 space-y-6">
