@@ -32,9 +32,15 @@ function rowToPerms(row: HrRolePermissionRow | undefined): HrPerms {
   };
 }
 
-function rowToScreens(row: HrRolePermissionRow | undefined): Record<HrScreenKey, boolean> {
-  const s = row?.screens ?? {};
-  return Object.fromEntries(ALL_HR_SCREENS.map((k) => [k, !!s[k]])) as Record<HrScreenKey, boolean>;
+function rowToScreens(
+  row: HrRolePermissionRow | undefined,
+  role: HrRole,
+): Record<HrScreenKey, boolean> {
+  const stored = row?.screens ?? {};
+  const defaults = defaultScreensForRole(role);
+  return Object.fromEntries(
+    ALL_HR_SCREENS.map((k) => [k, k in stored ? !!stored[k] : !!defaults[k]]),
+  ) as Record<HrScreenKey, boolean>;
 }
 
 export function HrPayrollProvider({ children }: { children: ReactNode }) {
@@ -183,7 +189,7 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
   const screens = useMemo(() => {
     const resolved = useFallbackAccess
       ? defaultScreensForRole(role)
-      : rowToScreens(roleRow);
+      : rowToScreens(roleRow, role);
     const anyVisible = ALL_HR_SCREENS.some((k) => resolved[k]);
     return anyVisible ? resolved : defaultScreensForRole(role);
   }, [useFallbackAccess, role, roleRow]);

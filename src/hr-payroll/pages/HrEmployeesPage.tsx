@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
@@ -62,6 +63,9 @@ export default function HrEmployeesPage() {
         />
         {can("manageEmp") && (
           <div className="row-flex">
+            <Link to="/hr/document-types" className="btn">
+              Document Master
+            </Link>
             <button type="button" className="btn" onClick={() => setCrmImport(true)}>
               Import from CRM
             </button>

@@ -23,7 +23,6 @@ export const HR_NAV: NavGroup[] = [
     grp: "People",
     items: [
       { k: "employees", ic: "⊞", t: "Employee Master" },
-      { k: "docTypes", ic: "📄", t: "Document Master" },
       { k: "shifts", ic: "◐", t: "Shift Management" },
       { k: "training", ic: "◵", t: "Training" },
     ],
@@ -50,6 +49,7 @@ export const HR_NAV: NavGroup[] = [
     grp: "Configuration",
     items: [
       { k: "config", ic: "⚙", t: "Payroll & Policy" },
+      { k: "docTypes", ic: "📄", t: "Document Master" },
       { k: "roles", ic: "⊕", t: "Team & Roles" },
       { k: "audit", ic: "≡", t: "Audit Logs" },
     ],

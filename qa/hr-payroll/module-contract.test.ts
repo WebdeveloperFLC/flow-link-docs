@@ -28,6 +28,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120026_hr_payroll_crm_list_fix_reopen_paid.sql",
   "20260717120027_hr_payroll_professional_tax_all_india.sql",
   "20260717120028_hr_payroll_document_types_master.sql",
+  "20260717120029_hr_payroll_document_master_rbac.sql",
 ];
 
 const REQUIRED_RPCS = [
