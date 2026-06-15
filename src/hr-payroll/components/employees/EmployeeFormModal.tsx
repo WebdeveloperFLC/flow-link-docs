@@ -3,6 +3,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID, DEPARTMENTS, EMPLOYMENT_TYPES } from "../../lib/constants";
 import { fillSalaryComponents, formatMoney, normalizeEmploymentType, parseEmergencyContacts, payrollCompanyLabel, weeklyOffDays } from "../../lib/format";
+import {
+  companiesForPayrollRegion,
+  defaultPayrollEntityRegion,
+  PAYROLL_ENTITY_REGIONS,
+  type PayrollEntityRegion,
+} from "../../lib/payrollCompanies";
 import { uploadEmployeePhoto } from "../../lib/hrStorage";
 import { EmployeeAvatar } from "../ui/EmployeeAvatar";
 import type { BranchRow, CompanyRow, EmergencyContact, EmployeeRow, ShiftRow, CrmStaffRow } from "../../lib/types";
@@ -148,7 +154,10 @@ function fromEmployee(e: EmployeeRow): FormState {
   };
 }
 
-const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[]): FormState => ({
+const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[]): FormState => {
+  const indian = companiesForPayrollRegion(companies, "IN");
+  const firstCo = indian[0] ?? companies[0];
+  return {
   emp_code: "",
   first_name: "",
   middle_name: "",
@@ -169,7 +178,7 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
   department: "Counselling",
   branch_id: branches[0]?.id ?? "",
   reporting_mgr_id: "",
-  company_id: companies[0]?.id ?? "",
+  company_id: firstCo?.id ?? "",
   employment_type: "Full time - Permanent",
   date_of_joining: "",
   notice_period: "30 days",
@@ -177,7 +186,7 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
   probation_end_date: "",
   status: "On Probation",
   shift_id: shifts[0]?.id ?? "",
-  salary_currency: companies[0]?.currency ?? "INR",
+  salary_currency: firstCo?.currency ?? "INR",
   payroll_country: "IN",
   monthly_gross: "",
   basic: "",
@@ -205,7 +214,8 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
   bank_account_type: "Savings",
   bank_verified: false,
   staff_id: "",
-});
+};
+};
 
 export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }: Props) {
   const { fire } = useHrAccess();
@@ -217,6 +227,14 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
   const [tab, setTab] = useState<FormTab>("basic");
   const [f, setF] = useState<FormState>(
     sourceEmp ? fromEmployee(sourceEmp) : blank(shifts, companies, branches),
+  );
+  const [entityRegion, setEntityRegion] = useState<PayrollEntityRegion>(() => {
+    const co = companies.find((c) => c.id === sourceEmp?.company_id);
+    return defaultPayrollEntityRegion(sourceEmp?.payroll_country, co);
+  });
+  const payrollCompanies = useMemo(
+    () => companiesForPayrollRegion(companies, entityRegion),
+    [companies, entityRegion],
   );
   const { data: linkedProfile } = useCrmProfile(f.staff_id || sourceEmp?.staff_id || undefined);
   const { data: policies = [] } = useHrPolicies();
@@ -230,8 +248,23 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
-    if (sourceEmp) setF(fromEmployee(sourceEmp));
-  }, [sourceEmp?.id, sourceEmp?.staff_id]);
+    if (sourceEmp) {
+      setF(fromEmployee(sourceEmp));
+      const co = companies.find((c) => c.id === sourceEmp.company_id);
+      setEntityRegion(defaultPayrollEntityRegion(sourceEmp.payroll_country, co));
+    }
+  }, [sourceEmp?.id, sourceEmp?.staff_id, sourceEmp?.company_id, sourceEmp?.payroll_country, companies]);
+
+  useEffect(() => {
+    if (payrollCompanies.some((c) => c.id === f.company_id)) return;
+    const first = payrollCompanies[0];
+    setF((prev) => ({
+      ...prev,
+      company_id: first?.id ?? "",
+      salary_currency: first?.currency ?? (entityRegion === "CA" ? "CAD" : "INR"),
+      payroll_country: entityRegion,
+    }));
+  }, [entityRegion, payrollCompanies, f.company_id]);
 
   useEffect(() => {
     if (emp) return;
@@ -624,25 +657,54 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                 </select>
               </label>
               <label className="fld">
+                <span className="l">Payroll entity type</span>
+                <select
+                  className="input"
+                  value={entityRegion}
+                  onChange={(e) => {
+                    const region = e.target.value as PayrollEntityRegion;
+                    setEntityRegion(region);
+                    const list = companiesForPayrollRegion(companies, region);
+                    const first = list[0];
+                    setF((prev) => ({
+                      ...prev,
+                      company_id: first?.id ?? "",
+                      salary_currency: first?.currency ?? (region === "CA" ? "CAD" : "INR"),
+                      payroll_country: region,
+                    }));
+                  }}
+                >
+                  {PAYROLL_ENTITY_REGIONS.map((r) => (
+                    <option key={r.code} value={r.code}>
+                      {r.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="fld">
                 <span className="l">Payroll Company</span>
                 <select
                   className="input"
                   value={f.company_id}
                   onChange={(e) => {
-                    const co = companies.find((c) => c.id === e.target.value);
+                    const co = payrollCompanies.find((c) => c.id === e.target.value);
                     setF((prev) => ({
                       ...prev,
                       company_id: e.target.value,
                       salary_currency: co?.currency ?? prev.salary_currency,
-                      payroll_country: co?.currency === "CAD" ? "CA" : "IN",
+                      payroll_country: entityRegion,
                     }));
                   }}
                 >
-                  {companies.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {payrollCompanyLabel(c)}
-                    </option>
-                  ))}
+                  {payrollCompanies.length === 0 ? (
+                    <option value="">— no companies for this region —</option>
+                  ) : (
+                    payrollCompanies.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {payrollCompanyLabel(c)}
+                      </option>
+                    ))
+                  )}
                 </select>
               </label>
               <div className="grid g2" style={{ gap: "0 16px" }}>

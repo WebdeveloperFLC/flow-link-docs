@@ -101,7 +101,16 @@ export const HR_SCREEN_TITLES: Record<HrScreenKey, string> = {
 
 export const DEPARTMENTS = ["Counselling", "IELTS Training", "Documentation", "Operations"] as const;
 export const BRANCHES = ["Vadodara", "Ahmedabad", "Surat"] as const;
-export const COMPANIES = ["FL Pvt. Ltd.", "FL Academic"] as const;
+export const COMPANIES = [
+  "Future Link Consultants Pvt Ltd",
+  "Future Link Visa Consultants Pvt Ltd",
+  "Future Link Academic Excellence Pvt Ltd",
+  "Future Link System Inc",
+  "Future Way Abroad",
+  "Futureway Consultants Inc",
+  "Ontario Inc 2709223",
+  "Future Link Consultants Inc",
+] as const;
 
 /** Employee form employment type options (stored as text on employees.employment_type). */
 export const EMPLOYMENT_TYPES = [

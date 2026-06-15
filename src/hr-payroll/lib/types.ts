@@ -140,7 +140,14 @@ export type EmployeeRow = {
 
 export type EmergencyContact = { name: string; phone: string; relation: string };
 
-export type CompanyRow = { id: string; name: string; legal_name?: string | null; currency?: string };
+export type CompanyRow = {
+  id: string;
+  name: string;
+  legal_name?: string | null;
+  currency?: string;
+  country?: string;
+  is_active?: boolean;
+};
 export type BranchRow = { id: string; name: string };
 export type ShiftRow = {
   id: string;

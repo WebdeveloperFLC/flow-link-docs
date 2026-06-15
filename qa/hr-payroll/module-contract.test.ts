@@ -38,6 +38,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120036_hr_payroll_sandwich_night_est.sql",
   "20260717120037_hr_payroll_leave_duration_document.sql",
   "20260717120038_hr_payroll_punch_anytime_overnight.sql",
+  "20260717120039_hr_payroll_companies_accounting_sync.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -259,18 +260,22 @@ describe("HR Payroll module contract", () => {
       join(ROOT, "src/hr-payroll/components/employees/EmployeeFormModal.tsx"),
       "utf8",
     );
+    const catalog = readFileSync(join(ROOT, "src/hr-payroll/lib/payrollCompanies.ts"), "utf8");
     const constants = readFileSync(join(ROOT, "src/hr-payroll/lib/constants.ts"), "utf8");
     expect(constants).toContain("Full time - Permanent");
-    expect(constants).toContain("Part time - Temporary");
-    expect(constants).toContain("Interns");
-    expect(form).toContain("EMPLOYMENT_TYPES");
+    expect(constants).toContain("Future Link Academic Excellence Pvt Ltd");
+    expect(catalog).not.toContain("Academic Services");
+    expect(catalog).toContain("Future Link Consultants Pvt Ltd");
+    expect(catalog).toContain("Futureway Consultants Inc");
+    expect(form).toContain("Payroll entity type");
+    expect(form).toContain("PAYROLL_ENTITY_REGIONS");
     expect(form).toContain("payrollCompanyLabel");
-    const m33 = readFileSync(
-      join(MIGRATIONS, "20260717120033_hr_payroll_employment_types_companies.sql"),
+    const m39 = readFileSync(
+      join(MIGRATIONS, "20260717120039_hr_payroll_companies_accounting_sync.sql"),
       "utf8",
     );
-    expect(m33).toContain("Future Link Consultants Private Limited");
-    expect(m33).toContain("Full time - Permanent");
+    expect(m39).toContain("Future Link Academic Excellence Pvt Ltd");
+    expect(m39).toContain("DELETE FROM companies");
   });
 
   it("ESS uses linked staff_id not employee picker", () => {
