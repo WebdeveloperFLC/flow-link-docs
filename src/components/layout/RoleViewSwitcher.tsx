@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Eye, Settings2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { AppRole } from "@/lib/appRoles";
-import { PREVIEWABLE_APP_ROLES, viewAsFullAccessLabel, viewAsRoleLabel } from "@/lib/roleViewAs";
+import { PREVIEWABLE_APP_ROLES, viewAsFullAccessLabel, viewAsFullAccessShortLabel, viewAsRoleLabel } from "@/lib/roleViewAs";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -28,7 +28,12 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-export function RoleViewSwitcher() {
+type RoleViewSwitcherProps = {
+  /** Dark Performance Hub context bar styling */
+  variant?: "default" | "hub";
+};
+
+export function RoleViewSwitcher({ variant = "default" }: RoleViewSwitcherProps) {
   const {
     loading,
     canUseViewAs,
@@ -47,24 +52,42 @@ export function RoleViewSwitcher() {
   const selectValue = viewAsRole ?? "__all__";
 
   const currentLabel = useMemo(() => {
-    if (!viewAsRole) return viewAsFullAccessLabel(isPlatformOwner, actualRoles);
+    if (!viewAsRole) {
+      return variant === "hub"
+        ? viewAsFullAccessShortLabel(isPlatformOwner)
+        : viewAsFullAccessLabel(isPlatformOwner, actualRoles);
+    }
     return viewAsRoleLabel(viewAsRole);
-  }, [viewAsRole, actualRoles, isPlatformOwner]);
+  }, [viewAsRole, actualRoles, isPlatformOwner, variant]);
+
+  const isHub = variant === "hub";
 
   if (loading || !canUseViewAs) return null;
 
   return (
     <div
       className={cn(
-        "hidden sm:flex items-center gap-1 rounded-full border px-2 py-0.5",
-        viewAsRole
-          ? "border-amber-400/60 bg-amber-50/90 dark:bg-amber-950/40"
-          : "border-border/60 bg-muted/40",
+        "hidden sm:flex items-center gap-1 rounded-full border px-2 py-0.5 shrink-0 max-w-full",
+        isHub
+          ? viewAsRole
+            ? "border-amber-400/50 bg-amber-950/40"
+            : "border-white/20 bg-white/10"
+          : viewAsRole
+            ? "border-amber-400/60 bg-amber-50/90 dark:bg-amber-950/40"
+            : "border-border/60 bg-muted/40",
       )}
       data-testid="role-view-switcher"
     >
-      <Eye className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+      <Eye
+        className={cn("size-3.5 shrink-0", isHub ? "text-[#8FA0C2]" : "text-muted-foreground")}
+        aria-hidden
+      />
+      <span
+        className={cn(
+          "text-[10px] font-medium uppercase tracking-wide whitespace-nowrap",
+          isHub ? "text-[#8FA0C2]" : "text-muted-foreground",
+        )}
+      >
         View as
       </span>
       <Select
@@ -72,8 +95,12 @@ export function RoleViewSwitcher() {
         onValueChange={(v) => setViewAsRole(v === "__all__" ? null : (v as AppRole))}
       >
         <SelectTrigger
-          className="h-7 w-[9.5rem] border-0 bg-transparent px-1 text-xs font-semibold shadow-none focus:ring-0"
+          className={cn(
+            "h-7 border-0 bg-transparent px-1 text-xs font-semibold shadow-none focus:ring-0",
+            isHub ? "w-[5.5rem] text-white [&>span]:truncate" : "w-[8rem] [&>span]:truncate",
+          )}
           aria-label="View as role"
+          title={viewAsRole ? viewAsRoleLabel(viewAsRole) : viewAsFullAccessLabel(isPlatformOwner, actualRoles)}
         >
           <SelectValue>{currentLabel}</SelectValue>
         </SelectTrigger>
@@ -176,18 +203,27 @@ export function RoleViewBanner() {
   );
 }
 
-/** Mobile-friendly dropdown variant (optional export for narrow screens) */
-export function RoleViewSwitcherMobile() {
+/** Mobile-friendly dropdown variant */
+export function RoleViewSwitcherMobile({ variant = "default" }: RoleViewSwitcherProps) {
   const { loading, canUseViewAs, viewAsRole, setViewAsRole, viewAsOptions, actualRoles, isPlatformOwner } = useAuth();
 
   if (loading || !canUseViewAs) return null;
 
+  const shortDefault = viewAsFullAccessShortLabel(isPlatformOwner);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="sm:hidden h-8 gap-1.5 text-xs">
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn(
+            "sm:hidden h-8 gap-1.5 text-xs shrink-0",
+            variant === "hub" && "border-white/20 bg-white/10 text-white hover:bg-white/15 hover:text-white",
+          )}
+        >
           <Eye className="size-3.5" />
-          {viewAsRole ? viewAsRoleLabel(viewAsRole) : viewAsFullAccessLabel(isPlatformOwner, actualRoles)}
+          {viewAsRole ? viewAsRoleLabel(viewAsRole) : shortDefault}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

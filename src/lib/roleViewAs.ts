@@ -37,6 +37,11 @@ export function viewAsFullAccessLabel(isPlatformOwner: boolean, actualRoles: App
   return "All my roles";
 }
 
+/** Compact trigger label for top bars (avoids overlapping period / notifications) */
+export function viewAsFullAccessShortLabel(isPlatformOwner: boolean): string {
+  return isPlatformOwner ? "Owner" : "All roles";
+}
+
 /** @deprecated use viewAsRoleLabel */
 export const VIEW_AS_ROLE_LABELS: Record<AppRole, string> = {
   admin: viewAsRoleLabel("admin"),
