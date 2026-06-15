@@ -1,5 +1,6 @@
 /** Display-only attendance metrics (not payroll maths). */
 
+import { isCheckInDuringShift } from "./shiftWindow";
 import { isCheckInOffShift, splitShiftHours } from "./shiftHours";
 
 export function toMin(t: string | null | undefined): number | null {
@@ -59,7 +60,7 @@ export function dayMetrics(
   const grace = shift.grace || 5;
   const offShiftCheckIn = isCheckInOffShift(a.check_in, shift.login, shift.logout);
   const lateMin =
-    ci != null && !offShiftCheckIn && ci >= login && ci <= logout
+    ci != null && isCheckInDuringShift(a.check_in, shift.login, shift.logout)
       ? Math.max(0, ci - login - grace)
       : 0;
   return {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { splitShiftHours } from "@/hr-payroll/lib/shiftHours";
+import { isCheckInOffShift, splitShiftHours } from "@/hr-payroll/lib/shiftHours";
 
 const shift = { login: "10:00", logout: "19:00", breakDur: 45 };
 
@@ -29,5 +29,17 @@ describe("shift hour split", () => {
     expect(s.shiftWorkMin).toBe(0);
     expect(s.offShiftMin).toBe(412);
     expect(s.otMin).toBe(0);
+  });
+
+  it("counts night shift work inside 19:00–04:00 window", () => {
+    const night = { login: "19:00", logout: "04:00", breakDur: 30 };
+    const s = splitShiftHours("19:30", "04:00", 30, night);
+    expect(s.shiftWorkMin).toBeGreaterThan(400);
+    expect(s.offShiftMin).toBe(0);
+  });
+
+  it("does not mark 20:00 night check-in as off-shift", () => {
+    expect(isCheckInOffShift("20:00", "19:00", "04:00")).toBe(false);
+    expect(isCheckInOffShift("15:00", "19:00", "04:00")).toBe(true);
   });
 });

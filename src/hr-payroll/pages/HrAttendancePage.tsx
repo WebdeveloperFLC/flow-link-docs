@@ -17,6 +17,7 @@ import {
   fmtDur,
   todayIso,
 } from "../lib/attendanceMetrics";
+import { resolvePunchSession } from "../lib/punchSession";
 import type { AttendanceRow, ShiftRow } from "../lib/types";
 
 function rollupStats(att: AttendanceRow[], shift: ShiftRow) {
@@ -83,7 +84,8 @@ export function AttendanceView({ mode }: AttendanceViewProps) {
   const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, fire);
 
   const today = todayIso();
-  const todayRow = att.find((a) => a.work_date === today) ?? null;
+  const punchSession = resolvePunchSession(att, today);
+  const todayRow = punchSession.punchRow;
   const ru = shift && att.length ? rollupStats(att, shift) : null;
   const mng = mode === "admin" && (can("manageEmp") || can("approve"));
   const canPunch = mode === "ess" ? can("apply") : mng;
@@ -113,7 +115,8 @@ export function AttendanceView({ mode }: AttendanceViewProps) {
         employee={emp}
         shift={shift}
         todayRow={todayRow}
-        todayDate={formatWorkDate(today)}
+        todayDate={formatWorkDate(punchSession.displayDate)}
+        carryOverFrom={punchSession.carryOverFrom ? formatWorkDate(punchSession.carryOverFrom) : null}
         canPunch={!!canPunch}
         onPunch={(field) => {
           if (!todayRow) return;

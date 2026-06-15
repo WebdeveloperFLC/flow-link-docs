@@ -1,16 +1,17 @@
 /** Shift-window vs off-shift hour split — salary uses shift timing only. */
 
+import {
+  isCheckInDuringShift,
+  punchOnTimeline,
+  shiftLogoutEffective,
+  toMinutes,
+} from "./shiftWindow";
+
 export type ShiftWindow = {
   login: string;
   logout: string;
   breakDur: number;
 };
-
-function toMin(t: string | null | undefined): number | null {
-  if (!t) return null;
-  const parts = t.slice(0, 5).split(":").map(Number);
-  return parts[0] * 60 + parts[1];
-}
 
 /** Extend check-out past midnight when it is earlier on the clock than check-in. */
 function spanMinutes(ci: number, co: number): { ci: number; co: number; gross: number } {
@@ -18,12 +19,14 @@ function spanMinutes(ci: number, co: number): { ci: number; co: number; gross: n
   return { ci, co: end, gross: end - ci };
 }
 
-export function isCheckInOffShift(checkIn: string | null | undefined, login: string, logout: string): boolean {
-  const ci = toMin(checkIn);
-  const lg = toMin(login) ?? 600;
-  const lo = toMin(logout) ?? 1140;
+export function isCheckInOffShift(
+  checkIn: string | null | undefined,
+  login: string,
+  logout: string,
+): boolean {
+  const ci = toMinutes(checkIn);
   if (ci == null) return false;
-  return ci < lg || ci > lo;
+  return !isCheckInDuringShift(checkIn, login, logout);
 }
 
 export type ShiftHourSplit = {
@@ -40,42 +43,36 @@ export function splitShiftHours(
   breakMin: number | null | undefined,
   shift: ShiftWindow,
 ): ShiftHourSplit {
-  const ci = toMin(checkIn);
-  const co = toMin(checkOut);
-  const lg = toMin(shift.login) ?? 600;
-  const lo = toMin(shift.logout) ?? 1140;
+  const ci = toMinutes(checkIn);
+  const co = toMinutes(checkOut);
+  const lg = toMinutes(shift.login) ?? 600;
+  const lo = toMinutes(shift.logout) ?? 1140;
+  const loEff = shiftLogoutEffective(lg, lo);
   const brk = Math.max(0, breakMin ?? 0);
 
   if (ci == null || co == null) {
     return { grossMin: 0, shiftWorkMin: 0, offShiftMin: 0, otMin: 0 };
   }
 
-  const { ci: ciAdj, co: coAdj, gross } = spanMinutes(ci, co);
+  const { ci: ciAdj, co: coAdj, gross } = spanMinutes(punchOnTimeline(ci, lg, lo), co);
   if (gross <= 0) {
     return { grossMin: 0, shiftWorkMin: 0, offShiftMin: 0, otMin: 0 };
   }
 
-  const offBefore = Math.max(0, lg - ciAdj);
+  const shiftStart = Math.max(ciAdj, lg);
+  const shiftEnd = Math.min(coAdj, loEff);
+  const shiftGross = Math.max(0, shiftEnd - shiftStart);
 
-  let otMin = 0;
-  let offShift = 0;
-  if (ciAdj >= lo) {
-    offShift = gross;
-  } else if (coAdj > lo) {
-    offShift = offBefore;
-    otMin = Math.max(0, Math.round(coAdj - lo));
-  } else {
-    offShift = offBefore;
+  if (shiftGross <= 0) {
+    return { grossMin: gross, shiftWorkMin: 0, offShiftMin: gross, otMin: 0 };
   }
 
-  const shiftStart = Math.max(ciAdj, lg);
-  const shiftEnd = Math.min(coAdj, lo);
-  const shiftGross = Math.max(0, shiftEnd - shiftStart);
-  const shiftBreak =
-    gross > 0 && shiftGross > 0 ? Math.round(brk * (shiftGross / gross)) : 0;
+  const offBefore = Math.max(0, lg - ciAdj);
+  const otMin = coAdj > loEff ? Math.max(0, Math.round(coAdj - loEff)) : 0;
+  const shiftBreak = gross > 0 ? Math.round(brk * (shiftGross / gross)) : 0;
   const shiftWorkMin = Math.max(0, shiftGross - shiftBreak);
 
-  return { grossMin: gross, shiftWorkMin, offShiftMin: offShift, otMin };
+  return { grossMin: gross, shiftWorkMin, offShiftMin: offBefore, otMin };
 }
 
 export function sumOffShiftMinutes(

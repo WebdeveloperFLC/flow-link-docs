@@ -7,6 +7,7 @@ type Props = {
   shift: ShiftRow;
   todayRow: AttendanceRow | null;
   todayDate: string;
+  carryOverFrom?: string | null;
   canPunch: boolean;
   onPunch: (field: "check_in" | "check_out" | "break_start" | "break_end") => void;
   onStartDay: () => void;
@@ -18,6 +19,7 @@ export function PunchStation({
   shift,
   todayRow,
   todayDate,
+  carryOverFrom,
   canPunch,
   onPunch,
   onStartDay,
@@ -107,7 +109,7 @@ export function PunchStation({
             {hhmmss}
           </div>
           <div style={{ fontSize: 12, opacity: 0.85 }}>
-            No row for {todayDate} yet — start your day to begin punching.
+            No row for {todayDate} yet — start your day to check in (any time, 24h).
           </div>
         </div>
         {canPunch && (
@@ -178,6 +180,19 @@ export function PunchStation({
           </div>
         </div>
       </div>
+      {carryOverFrom && (
+        <div
+          style={{
+            fontSize: 12,
+            background: "rgba(255,255,255,0.12)",
+            padding: "8px 10px",
+            borderRadius: 8,
+            marginBottom: 10,
+          }}
+        >
+          Open session from {carryOverFrom} — check out here to close (works past midnight).
+        </div>
+      )}
       {breakExceeded && (
         <div style={{ fontSize: 12, background: "#fff3cd", color: "#856404", padding: 8, borderRadius: 8, marginBottom: 10 }}>
           Break exceeded {maxBreak}m — may affect salary per policy.

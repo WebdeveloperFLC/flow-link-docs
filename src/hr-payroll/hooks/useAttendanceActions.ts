@@ -93,7 +93,7 @@ export function useAttendanceActions(
     try {
       updated = (await recordPunch(row.id, field)) as AttendanceRow;
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Punch failed — apply migration 13");
+      fire(e instanceof Error ? e.message : "Punch failed — apply migrations 38 and 40 on Supabase");
       return;
     }
     await hrAudit("Punch", `${empName} · ${workDate}`, field, nowHhmm());

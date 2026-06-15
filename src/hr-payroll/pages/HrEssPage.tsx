@@ -21,6 +21,7 @@ import { Stat } from "../components/ui/Stat";
 import { PunchStation } from "../components/attendance/PunchStation";
 import { EmployeeAvatar } from "../components/ui/EmployeeAvatar";
 import { formatWorkDate, todayIso } from "../lib/attendanceMetrics";
+import { resolvePunchSession } from "../lib/punchSession";
 import { essAttendanceStatus } from "../lib/attendanceStatus";
 import { formatMoney } from "../lib/format";
 import { printSalarySlip } from "../lib/salarySlip";
@@ -46,6 +47,8 @@ export default function HrEssPage() {
   const { data: leaveBalances = [] } = useHrLeaveBalances(emp?.id);
   const { data: allLeaves = [] } = useHrLeaveRequests();
   const today = todayIso();
+  const punchSession = useMemo(() => resolvePunchSession(att, today), [att, today]);
+  const todayRow = punchSession.punchRow;
   const shownLeaveBalances = useMemo(
     () => displayLeaveBalances(leaveBalances, emp?.work_week, shift?.type),
     [leaveBalances, emp?.work_week, shift?.type],
@@ -56,7 +59,6 @@ export default function HrEssPage() {
   );
   const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, fire);
 
-  const todayRow = att.find((a) => a.work_date === today) ?? null;
   const attStatus = essAttendanceStatus(todayRow);
   const money = (n: number) => formatMoney(n, emp?.salary_currency ?? "INR");
 
@@ -167,7 +169,8 @@ export default function HrEssPage() {
         employee={emp}
         shift={shift}
         todayRow={todayRow}
-        todayDate={formatWorkDate(today)}
+        todayDate={formatWorkDate(punchSession.displayDate)}
+        carryOverFrom={punchSession.carryOverFrom ? formatWorkDate(punchSession.carryOverFrom) : null}
         canPunch
         onPunch={(field) => {
           if (!todayRow) return;
