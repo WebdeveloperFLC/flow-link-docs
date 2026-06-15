@@ -22,6 +22,7 @@ type Props = {
 };
 
 type FormState = {
+  emp_code: string;
   first_name: string;
   middle_name: string;
   last_name: string;
@@ -87,6 +88,7 @@ function workWeekFromShift(shiftId: string, shifts: ShiftRow[]): "6-Day" | "5-Da
 function fromEmployee(e: EmployeeRow): FormState {
   const parts = e.full_name.trim().split(/\s+/);
   return {
+    emp_code: e.emp_code ?? "",
     first_name: e.first_name ?? parts[0] ?? "",
     middle_name: e.middle_name ?? "",
     last_name: e.last_name ?? parts.slice(1).join(" ") ?? "",
@@ -145,6 +147,7 @@ function fromEmployee(e: EmployeeRow): FormState {
 }
 
 const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[]): FormState => ({
+  emp_code: "",
   first_name: "",
   middle_name: "",
   last_name: "",
@@ -226,6 +229,18 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
     if (sourceEmp) setF(fromEmployee(sourceEmp));
   }, [sourceEmp?.id, sourceEmp?.staff_id]);
 
+  useEffect(() => {
+    if (emp) return;
+    let cancelled = false;
+    void fetchNextEmpCode().then((code) => {
+      if (cancelled) return;
+      setF((prev) => (prev.emp_code ? prev : { ...prev, emp_code: code }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [emp]);
+
   const crmLinkOptions = useMemo(() => {
     const available = crmStaff.filter((s) => !s.employee_id || s.employee_id === emp?.id);
     if (!f.staff_id) return available;
@@ -281,13 +296,14 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
 
   const save = async () => {
     const e: Record<string, string> = {};
+    if (!f.emp_code.trim()) e.emp_code = "Employee ID required";
     if (!f.first_name.trim()) e.name = "First name required";
     if (!f.last_name.trim()) e.lastName = "Last name required";
     if (!f.designation.trim()) e.desig = "Designation required";
     if (!f.monthly_gross || Number(f.monthly_gross) <= 0) e.monthly = "Valid monthly salary required";
     setErr(e);
     if (Object.keys(e).length) {
-      setTab(e.name || e.lastName || e.desig ? "basic" : "salary");
+      setTab(e.emp_code || e.name || e.lastName || e.desig ? "basic" : "salary");
       return;
     }
 
@@ -301,6 +317,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
       .filter((c) => c.name || c.phone);
     const payload = {
       org_id: HR_ORG_ID,
+      emp_code: f.emp_code.trim(),
       first_name: f.first_name.trim(),
       middle_name: f.middle_name.trim() || null,
       last_name: f.last_name.trim(),
@@ -369,10 +386,9 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
         employeeId = emp.id;
         fire("Employee updated");
       } else {
-        const emp_code = await fetchNextEmpCode();
         const { data, error } = await supabase
           .from("employees" as never)
-          .insert({ ...payload, emp_code } as never)
+          .insert(payload as never)
           .select("id")
           .single();
         if (error) throw error;
@@ -459,6 +475,25 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
         <div className="modal-b" style={{ paddingTop: 4 }}>
           {tab === "basic" && (
             <>
+              <label className="fld" style={{ marginBottom: 14 }}>
+                <span className="l">Employee ID</span>
+                <input
+                  className={`input mono${err.emp_code ? " err" : ""}`}
+                  type="text"
+                  placeholder="e.g. FL-1050"
+                  value={f.emp_code}
+                  onChange={(e) => set("emp_code", e.target.value)}
+                />
+                {err.emp_code ? (
+                  <div className="errmsg">{err.emp_code}</div>
+                ) : (
+                  <div style={{ fontSize: 11, color: "var(--mut)", marginTop: 4 }}>
+                    {emp
+                      ? "Used in payroll, attendance import, and employee search."
+                      : "Auto-suggested from the next available ID — edit if needed before saving."}
+                  </div>
+                )}
+              </label>
               <div className="row-flex" style={{ gap: 16, marginBottom: 14, alignItems: "flex-start" }}>
                 {photoPreview ? (
                   <img
