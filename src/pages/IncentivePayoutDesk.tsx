@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PerformanceLegacyDeskNav } from "@/components/performance/PerformanceLegacyDeskNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -264,6 +265,7 @@ export default function IncentivePayoutDesk() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
+        <PerformanceLegacyDeskNav workspace="incentives-payouts" />
         <div className="flex items-center gap-3">
           <Banknote className="size-6 text-primary" />
           <h1 className="text-2xl font-semibold">Payout Desk</h1>

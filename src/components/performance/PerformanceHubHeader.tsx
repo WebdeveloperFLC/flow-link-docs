@@ -1,8 +1,10 @@
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { PERFORMANCE_MODULE, currentPeriodKey, type PerformanceModule } from "@/lib/performanceHubTheme";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { PERFORMANCE_MODULE, currentPeriodKey, type PerformanceModule } from "@/lib/performanceHubTheme";
 import { BookOpen, Gift } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PerformanceWorkspaceNav } from "@/components/performance/PerformanceWorkspaceNav";
+import { pathnameToWorkspace, usesOffersStudioNav, type PerformanceWorkspaceId } from "@/incentives/lib/performanceWorkspaceNav";
 
 interface PerformanceHubHeaderProps {
   title: string;
@@ -12,6 +14,8 @@ interface PerformanceHubHeaderProps {
   period?: string;
   showModuleLegend?: boolean;
   primaryAction?: { label: string; to: string };
+  /** Override auto-detected workspace sub-nav; set false to hide */
+  workspace?: PerformanceWorkspaceId | false;
 }
 
 export function PerformanceHubHeader({
@@ -22,7 +26,12 @@ export function PerformanceHubHeader({
   period = currentPeriodKey(),
   showModuleLegend = true,
   primaryAction,
+  workspace,
 }: PerformanceHubHeaderProps) {
+  const { pathname } = useLocation();
+  const resolvedWorkspace =
+    workspace === false ? null : (workspace ?? pathnameToWorkspace(pathname));
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
@@ -55,6 +64,10 @@ export function PerformanceHubHeader({
         </div>
       </div>
 
+      {resolvedWorkspace && !usesOffersStudioNav(pathname) && (
+        <PerformanceWorkspaceNav workspace={resolvedWorkspace} />
+      )}
+
       {showModuleLegend && (
         <div className="flex flex-wrap items-center gap-2 text-xs">
           {(Object.keys(PERFORMANCE_MODULE) as PerformanceModule[]).map((key) => {
@@ -66,7 +79,7 @@ export function PerformanceHubHeader({
             );
           })}
           <span className="text-muted-foreground ml-1 hidden sm:inline">
-            One hub replaces Incentives · Wallet · Offers menus
+            Workspaces group related tools — use tabs below to move within an area
           </span>
           <Link
             to="/guides/incentives-module"

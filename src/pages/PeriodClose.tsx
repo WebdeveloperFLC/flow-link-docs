@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PerformanceLegacyDeskNav } from "@/components/performance/PerformanceLegacyDeskNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -248,6 +249,7 @@ export default function PeriodClose() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
+        <PerformanceLegacyDeskNav workspace="discounts-wallets" />
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <CalendarClock className="size-6 text-primary" />

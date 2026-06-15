@@ -11,7 +11,6 @@ import {
   Mail,
   Database,
   FileStack,
-  FileText,
   Share2,
   GraduationCap,
   Phone,
@@ -19,7 +18,6 @@ import {
   MessageSquare,
   MessageCircle,
   Headphones,
-  Tag,
   ClipboardCheck,
   BookOpen,
   Library,
@@ -53,24 +51,13 @@ import {
   Snowflake,
   Flame,
   Megaphone,
-  Calculator,
-  Settings2,
-  Gift,
   CalendarClock,
-  DollarSign,
-  Banknote,
-  Trophy,
-  FlaskConical,
-  LayoutGrid,
-  Link2,
-  Combine,
-  Coins,
-  Plug,
 } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
+import { viewAsRoleLabel } from "@/lib/roleViewAs";
 import { cn } from "@/lib/utils";
 import flcLogo from "@/assets/flc-logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
@@ -83,6 +70,12 @@ import { useTheme } from "@/components/theme/ThemeProvider";
 import { resolveThemeModeDark } from "@/lib/themeStore";
 import { isPerformanceHubPath } from "@/lib/performanceHubTokens";
 import { PerformanceHubContextBar } from "@/components/performance/PerformanceHubContextBar";
+import {
+  isPathInWorkspace,
+  offersWorkspaceDefaultRoute,
+  visiblePerformanceWorkspaceSidebar,
+  type WorkspaceSidebarItem,
+} from "@/incentives/lib/performanceWorkspaceNav";
 import type { NavSectionKey } from "@/lib/themeStore";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AiHelpDrawer } from "@/ai-help/components/AiHelpDrawer";
@@ -137,111 +130,34 @@ const crmNav: NavItem[] = [
   },
 ];
 
-/** Unified Performance Hub — replaces separate Incentives / Wallet / Offers groups (Phase 5A+) */
-const performanceNav: NavItem[] = [
-  { to: "/performance", icon: LayoutGrid, label: "My performance", end: true },
-  { to: "/performance/how-it-works", icon: BookOpen, label: "How it works" },
-  { to: "/performance/give-discount", icon: Gift, label: "Give discount" },
-  { to: "/performance/wallets", icon: Wallet, label: "Discount wallets" },
-  { to: "/performance/offers", icon: Tag, label: "Offers studio", roles: ["manager", "admin", "administrator"] },
-  { to: "/performance/offers/requests", icon: Megaphone, label: "Promotion requests" },
-  { to: "/performance/team", icon: Users, label: "Team · branch", roles: ["manager", "admin", "administrator"] },
-  {
-    to: "/performance/wallet/branch-pool",
-    icon: Gift,
-    label: "Branch pool",
-    roles: ["manager", "admin", "administrator"],
-  },
-  { to: "/performance/executive", icon: BarChart2, label: "Executive dashboard", roles: ["admin", "administrator", "viewer", "director"] },
-  { to: "/performance/finance", icon: Banknote, label: "Finance dashboard", adminOnly: true },
-  { to: "/performance/analytics", icon: BarChart2, label: "Revenue analytics", roles: ["admin", "administrator", "viewer", "director", "manager"] },
-  {
-    to: "/performance/reports",
-    icon: FileText,
-    label: "Report builder",
-    roles: ["admin", "administrator", "viewer", "director", "manager"],
-  },
-  { to: "/performance/compare", icon: GitMerge, label: "Comparison", roles: ["admin", "administrator", "viewer", "director", "manager"] },
-  {
-    to: "/performance/client-commercials",
-    icon: Link2,
-    label: "Client commercials",
-    roles: ["admin", "administrator", "viewer", "director", "manager", "counselor"],
-  },
-  {
-    to: "/performance/combinations",
-    icon: Combine,
-    label: "Combination engine",
-    roles: ["admin", "administrator", "viewer", "director", "manager"],
-  },
-  {
-    to: "/performance/profitability",
-    icon: Coins,
-    label: "Profitability",
-    roles: ["admin", "administrator", "viewer", "director", "manager"],
-  },
-  {
-    to: "/performance/commissions",
-    icon: Receipt,
-    label: "Commissions",
-    roles: ["admin", "administrator", "viewer", "director", "manager"],
-  },
-  {
-    to: "/performance/multi-currency",
-    icon: DollarSign,
-    label: "Multi-currency",
-    roles: ["admin", "administrator", "viewer", "director", "manager"],
-  },
-  {
-    to: "/performance/crm-integration",
-    icon: Plug,
-    label: "CRM integration",
-    roles: ["admin", "administrator", "viewer", "director", "manager"],
-  },
-  { to: "/performance/incentives/plans", icon: Layers, label: "Incentive plans", adminOnly: true },
-  { to: "/performance/incentives/payouts", icon: Banknote, label: "Ledger & payouts", adminOnly: true },
-  { to: "/performance/admin", icon: Calculator, label: "Command center", adminOnly: true },
-  { to: "/performance/configuration", icon: SettingsIcon, label: "Configuration", adminOnly: true },
-  {
-    to: "/performance/architecture",
-    icon: Database,
-    label: "Architecture",
-    roles: ["admin", "administrator", "viewer", "director", "manager"],
-  },
-  {
-    to: "/performance/roles",
-    icon: UserCog,
-    label: "Roles & permissions",
-    roles: ["admin", "administrator", "viewer", "director", "manager"],
-  },
-  {
-    to: "/performance/audit-trail",
-    icon: Shield,
-    label: "Audit trail",
-    roles: ["admin", "administrator", "viewer", "director", "manager"],
-  },
-  {
-    to: "/performance/approvals",
-    icon: ClipboardCheck,
-    label: "Approvals",
-    roles: ["manager", "admin", "administrator", "director"],
-  },
-  { to: "/performance/wallet/policy", icon: Settings2, label: "Wallet policy", adminOnly: true },
-  {
-    to: "/performance/admin/unclassified",
-    icon: ScanLine,
-    label: "Unclassified payments",
-    roles: ["manager", "admin", "administrator"],
-  },
-  { to: "/incentives/plans", icon: Settings2, label: "Plans & rules", adminOnly: true },
-  { to: "/incentives/admin", icon: Calculator, label: "Runs (preview / lock)", adminOnly: true },
-  { to: "/incentives/fx-rates", icon: DollarSign, label: "FX rates", adminOnly: true },
-  { to: "/incentives/competitions", icon: Trophy, label: "Competitions", adminOnly: true },
-  { to: "/incentives/simulator", icon: FlaskConical, label: "Simulator", adminOnly: true },
-  { to: "/incentives/payouts", icon: Banknote, label: "Payout desk", adminOnly: true },
-  { to: "/incentives/wallet-topups", icon: Wallet, label: "Wallet top-ups", adminOnly: true },
-  { to: "/incentives/period-close", icon: CalendarClock, label: "Period close", adminOnly: true },
-];
+/** Phase 4A — business workspaces (sub-pages live inside each area) */
+const renderPerformanceWorkspaceLinks = (
+  items: WorkspaceSidebarItem[],
+  locationPath: string,
+  navItemClass: (isActive: boolean) => string,
+  iconsOnly: boolean,
+  ctx: { isAdmin: boolean; hasRole: (roles: readonly string[]) => boolean },
+) => {
+  const renderLink = (item: WorkspaceSidebarItem) => {
+    const to =
+      item.id === "offers-promotions" ? offersWorkspaceDefaultRoute(ctx) : item.to;
+    const isActive = isPathInWorkspace(locationPath, item.id);
+    const link = (
+      <NavLink key={item.id} to={to} end={item.end} className={() => navItemClass(isActive)}>
+        <item.icon className="size-4 shrink-0" />
+        {!iconsOnly && <span className="truncate">{item.label}</span>}
+      </NavLink>
+    );
+    if (!iconsOnly) return link;
+    return (
+      <Tooltip key={item.id} delayDuration={100}>
+        <TooltipTrigger asChild>{link}</TooltipTrigger>
+        <TooltipContent side="right">{item.label}</TooltipContent>
+      </Tooltip>
+    );
+  };
+  return items.map(renderLink);
+};
 
 const hrPayrollNav: NavItem[] = [
   { to: "/hr", icon: Briefcase, label: "HR Payroll", end: true },
@@ -331,9 +247,14 @@ const calendarNav: NavItem[] = [
 ];
 
 export const AppLayout = ({ children }: { children: ReactNode }) => {
-  const { user, roles, signOut, isAdmin, hasRole, isCommissionAdmin } = useAuth();
+  const { user, roles, signOut, isAdmin, hasRole, isCommissionAdmin, viewAsRole, isPlatformOwner } = useAuth();
   const navigate = useNavigate();
   const primaryRole = roles[0] ?? "viewer";
+  const roleBadgeLabel = viewAsRole
+    ? `Preview · ${viewAsRoleLabel(viewAsRole)}`
+    : isPlatformOwner
+      ? "Owner"
+      : ROLE_LABELS[primaryRole] ?? primaryRole;
   const { hasAccess: hasAccountingAccess, loading: accountingAccessLoading } = useAccountingAccess();
   const { can: canAcct, isAdmin: isAcctAdmin } = useCan();
   const { canView: canViewInstitutions } = useModulePermission("institutions");
@@ -366,6 +287,11 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const toggleSection = (key: string) => setOpenSections((s) => ({ ...s, [key]: !s[key] }));
 
+  const performanceWorkspaceItems = visiblePerformanceWorkspaceSidebar({
+    isAdmin,
+    hasRole: (roles) => hasRole(roles as never),
+  });
+
   const navItemClass = (isActive: boolean) =>
     cn(
       "flex items-center rounded-lg text-sm font-medium transition-all",
@@ -392,15 +318,32 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   };
 
   // A collapsible section: header toggles open/close; auto-opens if it holds the active route.
-  const renderSection = (key: NavSectionKey, title: string, items: NavItem[]) => {
-    if (items.length === 0) return null;
-    const hasActive = items.some(
-      (i) => location.pathname === i.to || (!i.end && location.pathname.startsWith(i.to + "/")),
-    );
+  const renderSection = (
+    key: NavSectionKey,
+    title: string,
+    items: NavItem[],
+    customLinks?: ReactNode,
+  ) => {
+    if (items.length === 0 && !customLinks) return null;
+    const hasActive =
+      items.some(
+        (i) => location.pathname === i.to || (!i.end && location.pathname.startsWith(i.to + "/")),
+      ) ||
+      Boolean(
+        customLinks &&
+          performanceWorkspaceItems.some((item) => isPathInWorkspace(location.pathname, item.id)),
+      );
     const isOpen = openSections[key] ?? hasActive;
     const sectionColor = theme.navSectionColors[key];
 
-    if (iconsOnly) return <>{items.map(renderNavLink)}</>;
+    if (iconsOnly) {
+      return (
+        <>
+          {items.map(renderNavLink)}
+          {customLinks}
+        </>
+      );
+    }
 
     return (
       <div>
@@ -421,7 +364,12 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
           <span>{title}</span>
           <ChevronDown className={cn("size-3.5 transition-transform", isOpen ? "" : "-rotate-90")} />
         </button>
-        {isOpen && <div className="space-y-1">{items.map(renderNavLink)}</div>}
+        {isOpen && (
+          <div className="space-y-1">
+            {items.map(renderNavLink)}
+            {customLinks}
+          </div>
+        )}
       </div>
     );
   };
@@ -494,8 +442,13 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
             {renderSection(
               "performance",
               "Performance Hub",
-              performanceNav.filter(
-                (i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never)),
+              [],
+              renderPerformanceWorkspaceLinks(
+                performanceWorkspaceItems,
+                location.pathname,
+                navItemClass,
+                iconsOnly,
+                { isAdmin, hasRole: (roles) => hasRole(roles as never) },
               ),
             )}
 
@@ -544,11 +497,13 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
                   <div
                     className={cn(
                       "inline-block mt-1.5 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider",
-                      ROLE_COLORS[primaryRole],
+                      viewAsRole
+                        ? "bg-amber-500/20 text-amber-100 border border-amber-400/40"
+                        : ROLE_COLORS[primaryRole],
                     )}
                   >
                     <Shield className="size-2.5 inline mr-1" />
-                    {ROLE_LABELS[primaryRole]}
+                    {roleBadgeLabel}
                   </div>
                 </div>
                 {/* Handoff notifications now delivered via app_notifications → NotificationCenter in Topbar */}

@@ -5,6 +5,7 @@
 import { ReactNode } from "react";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { ThemeModeToggle } from "@/components/theme/ThemeModeToggle";
+import { RoleViewBanner, RoleViewSwitcher, RoleViewSwitcherMobile } from "@/components/layout/RoleViewSwitcher";
 import { cn } from "@/lib/utils";
 
 export interface TopbarProps {
@@ -17,19 +18,24 @@ export interface TopbarProps {
 
 export function Topbar({ searchSlot, quickActionsSlot, className }: TopbarProps) {
   return (
-    <div
+    <>
+      <RoleViewBanner />
+      <div
         className={cn(
-        "fixed top-3 right-3 z-50 flex items-center gap-2",
-        "rounded-full border border-border/60 bg-card/85 backdrop-blur shadow-sm",
-        "px-2 py-1",
-        className,
-      )}
-      data-topbar="enterprise"
-    >
-      {searchSlot ? <div className="hidden md:block">{searchSlot}</div> : null}
-      {quickActionsSlot ? <div className="hidden sm:block">{quickActionsSlot}</div> : null}
-      <ThemeModeToggle />
-      <NotificationCenter />
-    </div>
+          "fixed top-3 right-3 z-50 flex items-center gap-2",
+          "rounded-full border border-border/60 bg-card/85 backdrop-blur shadow-sm",
+          "px-2 py-1",
+          className,
+        )}
+        data-topbar="enterprise"
+      >
+        {searchSlot ? <div className="hidden md:block">{searchSlot}</div> : null}
+        {quickActionsSlot ? <div className="hidden sm:block">{quickActionsSlot}</div> : null}
+        <RoleViewSwitcher />
+        <RoleViewSwitcherMobile />
+        <ThemeModeToggle />
+        <NotificationCenter />
+      </div>
+    </>
   );
 }

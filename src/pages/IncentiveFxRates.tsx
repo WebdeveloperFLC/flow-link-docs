@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PerformanceLegacyDeskNav } from "@/components/performance/PerformanceLegacyDeskNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -125,6 +126,7 @@ export default function IncentiveFxRates() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
+        <PerformanceLegacyDeskNav workspace="finance-profitability" />
         <div className="flex items-center gap-3">
           <DollarSign className="size-6 text-primary" />
           <div>
