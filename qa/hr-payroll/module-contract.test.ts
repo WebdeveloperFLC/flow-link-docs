@@ -209,6 +209,12 @@ describe("HR Payroll module contract", () => {
     expect(policy).toContain("lateDeductionFromSlab");
   });
 
+  it("allows leave type selection before dates are filled", () => {
+    const leavePage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrLeavePage.tsx"), "utf8");
+    expect(leavePage).not.toContain("disabled={resolution.forcedUnpaid}");
+    expect(leavePage).toContain("leaveTypeOptionHint");
+  });
+
   it("leave apply form supports duration and document upload", () => {
     const leavePage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrLeavePage.tsx"), "utf8");
     const policy = readFileSync(join(ROOT, "src/hr-payroll/lib/leavePolicy.ts"), "utf8");

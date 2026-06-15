@@ -17,6 +17,7 @@ import {
   leaveBalanceRemaining,
   leaveDaysForDuration,
   leaveDurationLabel,
+  leaveTypeOptionHint,
   LEAVE_DURATION_FULL,
   LEAVE_DURATION_HALF,
   LEAVE_ENTITLED,
@@ -151,11 +152,9 @@ function LeaveModal({
     ],
   );
 
-  useEffect(() => {
-    if (resolution.forcedUnpaid && f.type !== UNPAID_LEAVE_TYPE) {
-      setF((prev) => ({ ...prev, type: UNPAID_LEAVE_TYPE }));
-    }
-  }, [resolution.forcedUnpaid, resolution.effectiveType, f.type]);
+  const paidTypeSelected = PAID_APPLY_LEAVE_TYPES.includes(f.type as (typeof PAID_APPLY_LEAVE_TYPES)[number]);
+  const showUnpaidWarning =
+    paidTypeSelected && resolution.forcedUnpaid && f.from_date && resolution.unpaidReason;
 
   const monthUsed = monthlyPaidLeaveUsed(employeeLeaves, f.employee_id, f.from_date);
   const monthLeft = monthlyPaidLeaveRemaining(employeeLeaves, f.employee_id, f.from_date);
@@ -178,7 +177,22 @@ function LeaveModal({
 
     setSubmitting(true);
     try {
-      const finalType = resolution.forcedUnpaid ? UNPAID_LEAVE_TYPE : f.type;
+      const submitResolution = resolveLeaveApplication({
+        preferredType: f.type,
+        days: effectiveDays,
+        employeeId: f.employee_id,
+        fromDate: f.from_date,
+        balances,
+        requests: employeeLeaves,
+        employee: selectedEmp,
+        hasDocument,
+        shiftLoginTime: shiftLogin,
+        shiftTimezone,
+      });
+      const finalType =
+        f.type === UNPAID_LEAVE_TYPE || submitResolution.forcedUnpaid
+          ? UNPAID_LEAVE_TYPE
+          : f.type;
       const toDate =
         f.duration_type === LEAVE_DURATION_HALF ? f.from_date : f.to_date || f.from_date;
 
@@ -207,8 +221,8 @@ function LeaveModal({
         return;
       }
       const note =
-        finalType === UNPAID_LEAVE_TYPE && resolution.forcedUnpaid
-          ? "Leave submitted as Unpaid (balance or monthly cap)"
+        finalType === UNPAID_LEAVE_TYPE && f.type !== UNPAID_LEAVE_TYPE
+          ? `Leave submitted as Unpaid (${submitResolution.unpaidReason ?? "balance or rules"})`
           : "Leave submitted";
       await hrAudit("Leave Applied", finalType, "—", f.from_date);
       onSaved(note);
@@ -270,6 +284,12 @@ function LeaveModal({
             </span>
           ))}
         </div>
+        {shownBalances.every((b) => leaveBalanceRemaining(b) <= 0) && (
+          <div style={{ fontSize: 11.5, color: "var(--rose)", marginTop: 8 }}>
+            No accrued balance yet — HR can run monthly accrual from Config. You may still apply; insufficient
+            balance submits as Unpaid Leave.
+          </div>
+        )}
         {f.from_date && (
           <div style={{ fontSize: 11.5, color: "var(--mut)", marginTop: 8 }}>
             This month: {monthUsed.toFixed(1)} / {MONTHLY_PAID_LEAVE_CAP} paid days used
@@ -296,7 +316,7 @@ function LeaveModal({
         </div>
       )}
 
-      {resolution.forcedUnpaid && resolution.unpaidReason && !resolution.ruleViolation && (
+      {showUnpaidWarning && (
         <div
           className="card"
           style={{
@@ -307,7 +327,8 @@ function LeaveModal({
             fontSize: 12.5,
           }}
         >
-          <strong>Unpaid leave auto-selected.</strong> {resolution.unpaidReason}
+          <strong>Paid leave not available.</strong> {resolution.unpaidReason} Leave will submit as{" "}
+          <strong>Unpaid Leave</strong> unless balance and rules are met.
         </div>
       )}
 
@@ -315,19 +336,15 @@ function LeaveModal({
         <span className="l">Leave Type</span>
         <select
           className="input"
-          value={resolution.forcedUnpaid ? UNPAID_LEAVE_TYPE : f.type}
+          value={f.type}
           onChange={(e) => setF({ ...f, type: e.target.value })}
-          disabled={resolution.forcedUnpaid}
         >
-          {PAID_APPLY_LEAVE_TYPES.map((o) => {
-            const allowed = resolution.selectablePaidTypes.includes(o);
-            return (
-              <option key={o} value={o} disabled={!allowed && !resolution.forcedUnpaid}>
-                {o}
-                {!allowed && f.from_date ? " (not available)" : ""}
-              </option>
-            );
-          })}
+          {PAID_APPLY_LEAVE_TYPES.map((o) => (
+            <option key={o} value={o}>
+              {o}
+              {leaveTypeOptionHint(o, resolution.selectablePaidTypes, balances)}
+            </option>
+          ))}
           <option value={UNPAID_LEAVE_TYPE}>{UNPAID_LEAVE_TYPE}</option>
         </select>
       </label>

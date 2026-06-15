@@ -291,24 +291,39 @@ export function resolveLeaveApplication(input: {
   const selectablePaidTypes = PAID_APPLY_LEAVE_TYPES.filter((t) => {
     const bal = balanceForType(balances, t);
     const remaining = bal ? leaveBalanceRemaining(bal) : 0;
-    if (remaining < days || monthUsed + days > MONTHLY_PAID_LEAVE_CAP) return false;
+    const minDays = fromDate ? days : 0.5;
+    if (remaining < minDays) return false;
+    if (fromDate && monthUsed + days > MONTHLY_PAID_LEAVE_CAP) return false;
     if (employee && !isLeaveEligible(employee)) return false;
-    const notice = validateLeaveNotice(days, fromDate);
-    if (!notice.valid) return false;
-    if (t === "Sick Leave") {
-      const sick = validateSickLeaveRules({
-        employeeId,
-        fromDate,
-        days,
-        hasDocument,
-        requests,
-        shiftLoginTime,
-        shiftTimezone,
-      });
-      if (!sick.valid) return false;
+    if (fromDate) {
+      const notice = validateLeaveNotice(days, fromDate);
+      if (!notice.valid) return false;
+      if (t === "Sick Leave") {
+        const sick = validateSickLeaveRules({
+          employeeId,
+          fromDate,
+          days,
+          hasDocument,
+          requests,
+          shiftLoginTime,
+          shiftTimezone,
+        });
+        if (!sick.valid) return false;
+      }
     }
     return true;
   });
+
+  /** While dates are empty, allow type pick — full rules apply on submit. */
+  if (!fromDate) {
+    return {
+      effectiveType: preferredType,
+      forcedUnpaid: false,
+      unpaidReason: null,
+      ruleViolation: null,
+      selectablePaidTypes,
+    };
+  }
 
   if (preferredType === UNPAID_LEAVE_TYPE) {
     return {
@@ -403,6 +418,19 @@ export function resolveLeaveApplication(input: {
     ruleViolation: null,
     selectablePaidTypes,
   };
+}
+
+export function leaveTypeOptionHint(
+  type: string,
+  selectablePaidTypes: PaidApplyLeaveType[],
+  balances: LeaveBalanceRow[],
+): string {
+  if (!PAID_APPLY_LEAVE_TYPES.includes(type as PaidApplyLeaveType)) return "";
+  if (selectablePaidTypes.includes(type as PaidApplyLeaveType)) return "";
+  const bal = balanceForType(balances, type);
+  const remaining = bal ? leaveBalanceRemaining(bal) : 0;
+  if (remaining <= 0) return " (no balance — unpaid if submitted)";
+  return " (not available for selected dates)";
 }
 
 /** Balances shown to employees — Casual and Sick only. */
