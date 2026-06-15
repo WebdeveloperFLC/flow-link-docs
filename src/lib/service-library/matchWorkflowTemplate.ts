@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Template } from "@/pages/Templates";
+import type { Template } from "@/components/templates/templateTypes";
 import { buildServiceCode } from "./serviceCodes";
 
 /** Resolve workflow_templates rows linked to a service_library record via category string. */

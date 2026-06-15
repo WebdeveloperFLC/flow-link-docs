@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -41,8 +42,8 @@ import Questionnaire from "./pages/Questionnaire";
 import CourseFinder from "./pages/CourseFinder";
 import Messages from "./pages/Messages";
 import WhatsAppInbox from "./pages/WhatsAppInbox";
-import ServiceLibrary from "./pages/ServiceLibrary";
-import ServiceLibraryAdmin from "./pages/ServiceLibraryAdmin";
+const ServiceLibrary = lazy(() => import("./pages/ServiceLibrary"));
+const ServiceLibraryAdmin = lazy(() => import("./pages/ServiceLibraryAdmin"));
 import { ServiceLibraryProtectedRoute } from "@/components/service-library/ServiceLibraryProtectedRoute";
 import Telecaller from "./pages/Telecaller";
 import Reports from "./pages/Reports";
@@ -213,6 +214,12 @@ import AiStudioPage from "./digital-success/ai/AiStudioPage";
 
 const queryClient = new QueryClient();
 
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="size-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+  </div>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -237,17 +244,21 @@ const App = () => (
                   <Route
                     path="/service-library"
                     element={
-                      <ServiceLibraryProtectedRoute>
-                        <ServiceLibrary />
-                      </ServiceLibraryProtectedRoute>
+                      <Suspense fallback={<RouteFallback />}>
+                        <ServiceLibraryProtectedRoute>
+                          <ServiceLibrary />
+                        </ServiceLibraryProtectedRoute>
+                      </Suspense>
                     }
                   />
                   <Route
                     path="/service-library-admin"
                     element={
-                      <ServiceLibraryProtectedRoute requireManage>
-                        <ServiceLibraryAdmin />
-                      </ServiceLibraryProtectedRoute>
+                      <Suspense fallback={<RouteFallback />}>
+                        <ServiceLibraryProtectedRoute requireManage>
+                          <ServiceLibraryAdmin />
+                        </ServiceLibraryProtectedRoute>
+                      </Suspense>
                     }
                   />
                   <Route path="/portal/auth" element={<PortalAuth />} />

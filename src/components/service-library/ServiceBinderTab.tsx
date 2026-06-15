@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Loader2, Workflow } from "lucide-react";
 import { fetchWorkflowTemplatesForService } from "@/lib/service-library/matchWorkflowTemplate";
-import type { Template } from "@/pages/Templates";
+import type { Template } from "@/components/templates/templateTypes";
 
 type Props = {
   libraryId: string;

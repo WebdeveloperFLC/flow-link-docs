@@ -231,13 +231,19 @@ export default function ServiceLibrary() {
 
   const detail = useServiceAcademyDetail(selectedId, detailCountryParam);
 
+  const detailView = detail.data?.view;
+  const detailStale =
+    !!selectedId && !!detail.data && detail.data.master.id !== selectedId;
+
+  const resolvedActiveTab = useMemo((): AcademyTabId => {
+    if (!detailView) return activeTab;
+    const allowed = resolveAcademyTabs(detailView);
+    return allowed.includes(activeTab) ? activeTab : defaultAcademyTab(detailView);
+  }, [detailView, activeTab]);
+
   useEffect(() => {
-    if (!detail.data?.view) return;
-    const allowed = resolveAcademyTabs(detail.data.view);
-    if (!allowed.includes(activeTab)) {
-      setActiveTab(defaultAcademyTab(detail.data.view));
-    }
-  }, [detail.data?.view.masterId, detail.data?.view.isCoaching, detail.data?.view.isMbbs, detail.data?.view.coachingProfile, activeTab]);
+    if (resolvedActiveTab !== activeTab) setActiveTab(resolvedActiveTab);
+  }, [resolvedActiveTab, activeTab]);
 
   useEffect(() => {
     if (!detail.data || categoryFilter !== "visa") return;
@@ -247,8 +253,8 @@ export default function ServiceLibrary() {
   }, [detail.data?.master.id, detail.data?.detailCountry, detailCountry, categoryFilter]);
 
   const pageSearchEntries = useMemo(
-    () => (detail.data?.view ? buildPageSearchIndex(detail.data.view) : []),
-    [detail.data?.view],
+    () => (detailView ? buildPageSearchIndex(detailView) : []),
+    [detailView],
   );
 
   useEffect(() => {
@@ -337,6 +343,15 @@ export default function ServiceLibrary() {
   const userName = user?.email?.split("@")[0] ?? "Counselor";
   const userInitials = userName.slice(0, 2).toUpperCase();
 
+  const showDetailLoading =
+    !!selectedId &&
+    navReadyForSelection &&
+    (detail.isLoading || detail.isFetching || detailStale) &&
+    !detail.data;
+
+  const showDetailError =
+    !!selectedId && navReadyForSelection && detail.isError && !detail.data;
+
   return (
     <div className="flex min-h-screen bg-background">
       <ServiceAcademySidebar
@@ -363,6 +378,11 @@ export default function ServiceLibrary() {
       />
 
       <div className="flex-1 flex flex-col min-w-0 min-h-screen bg-muted/20">
+        {masters.isError && (
+          <div className="mx-4 mt-4 rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            Could not load service catalogue. {(masters.error as Error)?.message ?? "Refresh the page."}
+          </div>
+        )}
         {showNavPanel ? (
           <ServiceAcademyNavPanel
             group={group}
@@ -375,7 +395,16 @@ export default function ServiceLibrary() {
             onCoachingVariant={handleCoachingVariantChange}
             onSelectService={setSelectedId}
           />
-        ) : detail.isLoading && !detail.data ? (
+        ) : showDetailLoading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <Loader2 className="size-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : showDetailError ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted-foreground px-6 text-center">
+            <p className="font-medium text-foreground">Could not load this service</p>
+            <p className="text-sm">{(detail.error as Error)?.message ?? "Try again or pick another service."}</p>
+          </div>
+        ) : detailStale ? (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="size-8 animate-spin text-muted-foreground" />
           </div>
@@ -406,7 +435,7 @@ export default function ServiceLibrary() {
                 <ServiceLibraryTabs
                   view={detail.data.view}
                   libraryId={detail.data.master.id}
-                  activeTab={activeTab}
+                  activeTab={resolvedActiveTab}
                   onTabChange={setActiveTab}
                   onToggleChecklistItem={toggleSub}
                   onPushChecklist={() => openClientDialog("push")}

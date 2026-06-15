@@ -21,7 +21,9 @@ export function useServiceAcademyDetail(masterId: string | null, country: string
     queryKey: ["sl-library-detail", masterId, country, user?.id],
     enabled: !!masterId,
     staleTime: 60_000,
-    placeholderData: (previous) => previous,
+    // Never show the previous service's view while another id is loading — invalid tabs crash Radix.
+    placeholderData: (previous) =>
+      previous && masterId && previous.master.id === masterId ? previous : undefined,
     queryFn: async () => {
       const { data: master, error } = await supabase
         .from("service_library")

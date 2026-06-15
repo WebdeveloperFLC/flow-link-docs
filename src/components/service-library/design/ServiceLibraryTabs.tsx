@@ -68,11 +68,13 @@ export function ServiceLibraryTabs({
 }: Props) {
   const [internalTab, setInternalTab] = useState<AcademyTabId>("overview");
   const [specimenDoc, setSpecimenDoc] = useState<(typeof view.sampleDocs)[number] | null>(null);
-  const activeTab = controlledTab ?? internalTab;
   const tabIds = resolveAcademyTabs(view);
+  const requestedTab = controlledTab ?? internalTab;
+  const activeTab = tabIds.includes(requestedTab) ? requestedTab : (tabIds[0] ?? "overview");
   const setTab = (t: AcademyTabId) => {
-    setInternalTab(t);
-    onTabChange?.(t);
+    const next = tabIds.includes(t) ? t : activeTab;
+    setInternalTab(next);
+    onTabChange?.(next);
   };
 
   const checklist = view.checklist;
