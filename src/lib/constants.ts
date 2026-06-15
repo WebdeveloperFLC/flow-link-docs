@@ -94,6 +94,27 @@ export function buildPreservedDocumentName(originalName: string, version: number
   return version > 1 ? `${stem}_v${version}` : stem;
 }
 
+/**
+ * Build a filename stem from the classified document label, falling back to the
+ * original upload name when classification is weak ("Other" / empty).
+ */
+export function buildClassifiedDocumentName(classifiedLabel: string, originalName: string, version: number): string {
+  const label = classifiedLabel.trim();
+  const lower = label.toLowerCase();
+  const useClassified = label.length > 0 && lower !== "other" && lower !== "document";
+  const stem = useClassified ? sanitizeOriginalStem(label) : sanitizeOriginalStem(originalName);
+  return version > 1 ? `${stem}_v${version}` : stem;
+}
+
+/** Count existing files whose stem matches (for version bumping). */
+export function countStemCollisions(existingFileNames: string[], stem: string): number {
+  const base = sanitizeOriginalStem(stem);
+  return existingFileNames.filter((name) => {
+    const s = sanitizeOriginalStem(name);
+    return s === base || s.startsWith(`${base}_v`);
+  }).length;
+}
+
 /** Today's date in YYYY-MM-DD using the user's local timezone. */
 function todayPrefix(): string {
   const d = new Date();

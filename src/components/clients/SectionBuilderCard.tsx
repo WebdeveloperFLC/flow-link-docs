@@ -35,7 +35,7 @@ import { markChecklistItemReady } from "@/lib/checklist";
 import { useMasterLabels } from "@/lib/masters";
 import { openClientDocument } from "@/lib/documentPreview";
 import { processToPdf } from "@/lib/processFile";
-import { buildPreservedDocumentName, sanitizeName, sanitizeOriginalStem } from "@/lib/constants";
+import { buildClassifiedDocumentName, countStemCollisions } from "@/lib/constants";
 import { runDocumentFieldExtraction } from "@/lib/runDocumentFieldExtraction";
 
 function isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[]): boolean {
@@ -124,7 +124,6 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
   const [combining, setCombining] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [binder, setBinder] = useState<BinderRow | null>(null);
-  const [dragActive, setDragActive] = useState(false);
   const [mergeMode, setMergeMode] = useState<{ anchorId: string; selected: Set<string> } | null>(null);
   const [merging, setMerging] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
@@ -308,23 +307,20 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         // - the resulting filename uses the structured naming convention so
         //   files are consistent across upload surfaces
         const effectiveType = docType === "Other" ? (customType || "Other") : docType;
-        // Preserve original filename identity. Bump _v{n} when the same
-        // original name already exists for this client.
+        const displayLabel = effectiveType;
         const { data: priorDocs } = await supabase
           .from("client_documents")
           .select("file_name")
           .eq("client_id", clientId);
-        const stem = sanitizeOriginalStem(f.name);
-        const collisions = (priorDocs ?? []).filter((d) => {
-          const s = sanitizeOriginalStem(d.file_name ?? "");
-          return s === stem || s.startsWith(`${stem}_v`);
-        }).length;
-        const baseName = buildPreservedDocumentName(f.name, collisions + 1);
+        const priorNames = (priorDocs ?? []).map((d) => d.file_name ?? "");
+        const classifiedStem = buildClassifiedDocumentName(displayLabel, f.name, 1);
+        const collisions = countStemCollisions(priorNames, classifiedStem);
+        const baseName = buildClassifiedDocumentName(displayLabel, f.name, collisions + 1);
         console.debug("[doc-debug] upload_received", f.name, "section", section.key);
         console.debug("[doc-debug] original_filename", f.name);
         console.debug("[doc-debug] classified_type", effectiveType);
         console.debug("[doc-debug] generated_title", `${baseName}.pdf`, "version", collisions + 1);
-        if (collisions > 0) console.debug("[doc-debug] duplicate_name_detected", { stem, collisions });
+        if (collisions > 0) console.debug("[doc-debug] duplicate_name_detected", { stem: classifiedStem, collisions });
         let processed: File;
         try {
           processed = await processToPdf(f, baseName);
@@ -339,10 +335,11 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         if (upErr) { toast.error(upErr.message); continue; }
 
         const docVersion = collisions + 1;
+        const customTypeForRow = docType === "Other" ? (customType ?? prettyTitle(f.name)) : null;
         const { data: insRow, error: insErr } = await supabase.from("client_documents").insert({
           client_id: clientId,
           document_type: docType,
-          custom_type: customType,
+          custom_type: customTypeForRow,
           file_name: processed.name,
           storage_path: path,
           mime_type: processed.type || "application/pdf",
@@ -363,7 +360,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
               insertedId,
               clientId,
               docType,
-              customType,
+              customTypeForRow,
               processed.name,
             );
           }
@@ -528,22 +525,17 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
   };
 
   return (
-    <Card
-      className={`overflow-hidden shadow-elev-sm transition-colors ${dragActive ? "ring-2 ring-primary bg-primary/5" : ""}`}
-      onDragOver={(e) => { if (!canEdit) return; e.preventDefault(); setDragActive(true); }}
-      onDragLeave={(e) => { if (e.currentTarget === e.target) setDragActive(false); }}
-      onDrop={(e) => {
-        if (!canEdit) return;
-        e.preventDefault(); setDragActive(false);
-        if (e.dataTransfer.files?.length) onUpload(e.dataTransfer.files);
-      }}
-    >
-      <div className="px-5 py-3.5 border-b flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <Layers className="size-4 text-primary" />
-          <div>
-            <div className="font-semibold text-sm">{section.label}</div>
-            <div className="text-xs text-muted-foreground">{items.length} document{items.length === 1 ? "" : "s"}{binder ? " · binder ready" : ""}</div>
+    <Card className="overflow-hidden shadow-elev-sm">
+      <div className="px-4 py-2.5 border-b flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2 min-w-0">
+          <Layers className="size-4 text-primary shrink-0" />
+          <div className="min-w-0">
+            <div className="font-semibold text-sm truncate">{section.label}</div>
+            <div className="text-[11px] text-muted-foreground">
+              {items.length} file{items.length === 1 ? "" : "s"}
+              {binder ? " · binder ready" : ""}
+              {items.length === 0 && canEdit ? " · upload to classify & rename" : ""}
+            </div>
           </div>
           {isAdmin && (
             <DropdownMenu>
@@ -585,17 +577,13 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
                 className="hidden"
                 onChange={(e) => { onUpload(e.target.files); e.currentTarget.value = ""; }}
               />
-              <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-                {uploading ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Upload className="size-3.5 mr-1.5" />}
-                Upload to {section.label}
+              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                {uploading ? <Loader2 className="size-3 mr-1 animate-spin" /> : <Upload className="size-3 mr-1" />}
+                Upload
               </Button>
-              <Button size="sm" onClick={onCombine} disabled={combining || items.length === 0} className="gradient-accent text-white">
-                {combining ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Layers className="size-3.5 mr-1.5" />}
-                {items.length === 0
-                  ? "Combine"
-                  : items.length === 1
-                    ? (binder ? "Re-build binder" : "Use as binder")
-                    : (binder ? `Re-combine ${items.length} files` : `Combine ${items.length} files`)}
+              <Button size="sm" className="h-7 text-xs gradient-accent text-white" onClick={onCombine} disabled={combining || items.length === 0}>
+                {combining ? <Loader2 className="size-3 mr-1 animate-spin" /> : <Layers className="size-3 mr-1" />}
+                {items.length === 0 ? "Combine" : items.length === 1 ? (binder ? "Rebuild" : "Binder") : binder ? `Rebuild (${items.length})` : `Combine (${items.length})`}
               </Button>
             </>
           )}
@@ -618,22 +606,13 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
       )}
 
       {items.length === 0 ? (
-        <>
-          <PendingRows
-            pending={pendingChecklist}
-            canEdit={canEdit}
-            linkableDocs={linkableDocs}
-            onLinkDocToChecklist={onLinkDocToChecklist}
-            onRemoveChecklistItem={onRemoveChecklistItem}
-          />
-          <div className="px-5 py-10 text-center text-xs text-muted-foreground border-2 border-dashed border-muted m-3 rounded">
-            {dragActive
-              ? `Drop files into ${section.label}`
-              : (canEdit
-                  ? `Drop files here or click "Upload to ${section.label}". Files are auto-classified, optimized ≤ 4 MB, and their information is extracted into this section.`
-                  : "No documents in this section yet.")}
-          </div>
-        </>
+        <PendingRows
+          pending={pendingChecklist}
+          canEdit={canEdit}
+          linkableDocs={linkableDocs}
+          onLinkDocToChecklist={onLinkDocToChecklist}
+          onRemoveChecklistItem={onRemoveChecklistItem}
+        />
       ) : (
         <>
         <PendingRows
@@ -791,7 +770,7 @@ function SortableRow({
   const isAnchor = mergeMode?.anchorId === doc.id;
   const isPicked = mergeMode?.selected.has(doc.id) ?? false;
   return (
-    <div ref={setNodeRef} style={style} className={`px-5 py-2.5 flex items-center gap-2 hover:bg-muted/30 ${isAnchor ? "bg-primary/10" : isPicked ? "bg-primary/5" : ""}`}>
+    <div ref={setNodeRef} style={style} className={`px-4 py-2 flex items-center gap-2 hover:bg-muted/30 ${isAnchor ? "bg-primary/10" : isPicked ? "bg-primary/5" : ""}`}>
       <button
         className={`size-6 flex items-center justify-center rounded ${manual ? "cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground" : "text-muted-foreground/30 cursor-not-allowed"}`}
         title={manual ? "Drag to reorder" : "Switch to Manual to reorder"}
@@ -879,7 +858,7 @@ function PendingRows({
         const isRejected = it.status === "rejected";
         const isReissue = it.status === "needs_reissue";
         return (
-          <div key={`pending-${it.id}`} className="px-5 py-2.5 flex items-center gap-2">
+          <div key={`pending-${it.id}`} className="px-4 py-2 flex items-center gap-2">
             <div className="size-6 flex items-center justify-center text-muted-foreground/50">
               <AlertCircle className="size-3.5" />
             </div>
