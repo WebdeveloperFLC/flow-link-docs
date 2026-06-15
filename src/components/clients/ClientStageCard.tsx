@@ -241,7 +241,6 @@ export function ClientStageCard({
     );
   }
 
-  const currentIdx = stages.findIndex((s) => s.id === current.current_stage_id);
   const showRefusalActions = currentStageKey === "visa_refused" || currentStageKey === "decision_received";
   const pipelineTitle = activeServiceLabel?.trim() || current.pipeline_name;
   const pipelineSubtitle =
