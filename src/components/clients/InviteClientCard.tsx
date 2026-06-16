@@ -63,15 +63,20 @@ export function InviteClientCard({ clientId, defaultEmail }: { clientId: string;
     const link = (data as any).link as string;
     const emailed = Boolean((data as any).emailed);
     const emailError = (data as any).emailError as string | undefined;
+    const emailDelivery = (data as any).emailDelivery as string | undefined;
     await navigator.clipboard.writeText(link).catch(() => undefined);
     if (emailed) {
-      toast.success("Invite email queued — link also copied to clipboard", {
-        description: "Ask the client to check inbox and spam. Link uses dms.futurelinkconsultants.com.",
+      toast.success("Invite email sent — link also copied to clipboard", {
+        description:
+          emailDelivery === "smtp"
+            ? "Sent via your firm SMTP. Ask the client to check inbox and spam."
+            : "Sent via system mail. Ask the client to check inbox and spam.",
       });
     } else {
       toast.warning(emailError ?? "Email was not sent — invite link copied to clipboard", {
-        description: "Paste the link in WhatsApp or resend to a different email.",
-        duration: 8000,
+        description:
+          "Configure SMTP under Settings → Email SMTP, or paste the link in WhatsApp.",
+        duration: 10000,
       });
     }
     // Notify assigned counselor / owner that portal invite was sent
@@ -138,8 +143,9 @@ export function InviteClientCard({ clientId, defaultEmail }: { clientId: string;
         <Label className="text-xs">Email</Label>
         <p className="text-[11px] text-muted-foreground leading-snug">
           Invite links open on{" "}
-          <span className="font-medium">dms.futurelinkconsultants.com</span>. If email does not arrive,
-          use Copy in history and send via WhatsApp.
+          <span className="font-medium">dms.futurelinkconsultants.com</span>. Email sends via your
+          firm SMTP (Settings → Email SMTP). If mail does not arrive, use Copy in history and send via
+          WhatsApp.
         </p>
         <div className="flex gap-2">
           <Input
