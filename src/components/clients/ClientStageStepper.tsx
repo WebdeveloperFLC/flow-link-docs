@@ -7,10 +7,21 @@ type Props = {
   clientId: string;
   refreshKey?: number;
   activeServiceLabel?: string | null;
+  caseId?: string | null;
+  caseClosed?: boolean;
+  caseOutcome?: string | null;
   onStageChanged?: () => void;
 };
 
-export function ClientStageStepper({ clientId, refreshKey = 0, activeServiceLabel, onStageChanged }: Props) {
+export function ClientStageStepper({
+  clientId,
+  refreshKey = 0,
+  activeServiceLabel,
+  caseId,
+  caseClosed,
+  caseOutcome,
+  onStageChanged,
+}: Props) {
   const {
     stages,
     busy,
@@ -26,7 +37,7 @@ export function ClientStageStepper({ clientId, refreshKey = 0, activeServiceLabe
     completionNotes,
     isStageDone,
     isStageCurrent,
-  } = useClientStage(clientId, refreshKey);
+  } = useClientStage(clientId, refreshKey, { caseId, caseClosed });
 
   const afterChange = async (fn: () => Promise<void>) => {
     await fn();
@@ -48,6 +59,13 @@ export function ClientStageStepper({ clientId, refreshKey = 0, activeServiceLabe
 
   return (
     <div className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90">
+      {caseClosed && (
+        <div className="px-4 sm:px-8 py-1.5 text-xs bg-muted/50 border-b text-muted-foreground flex flex-wrap gap-x-3">
+          <span>
+            Case closed{caseOutcome ? ` — ${caseOutcome}` : ""}. Journey is read-only.
+          </span>
+        </div>
+      )}
       <div className="px-4 sm:px-8 pt-3 pb-1 flex flex-wrap items-center justify-between gap-2">
         <div className="text-xs font-medium text-muted-foreground truncate">
           {pipelineTitle}

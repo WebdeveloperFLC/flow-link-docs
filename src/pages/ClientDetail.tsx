@@ -89,6 +89,8 @@ import { useActiveServiceContext } from "@/lib/clientActiveServiceContext";
 import { ClientIdentityHeader } from "@/components/clients/ClientIdentityHeader";
 import { ClientStageStepper } from "@/components/clients/ClientStageStepper";
 import { ClientOverviewDashboard } from "@/components/clients/ClientOverviewDashboard";
+import { CaseOutcomeDialog } from "@/components/clients/CaseOutcomeDialog";
+import { useActiveServiceCase } from "@/hooks/useActiveServiceCase";
 
 interface Client {
   id: string;
@@ -116,6 +118,7 @@ interface Client {
   english_test?: string | null;
   assigned_counselor_id?: string | null;
   current_stage_id?: string | null;
+  pipeline_id?: string | null;
 }
 
 interface Doc {
@@ -190,6 +193,7 @@ const ClientDetail = () => {
   const [trashUserNames, setTrashUserNames] = useState<Record<string, string>>({});
   const [secondaryLoading, setSecondaryLoading] = useState(true);
   const [stageRefreshKey, setStageRefreshKey] = useState(0);
+  const [outcomeOpen, setOutcomeOpen] = useState(false);
 
   // Critical fetch — only what's needed for the first paint above the fold
   // (client + template + active documents + sections). Runs in parallel.
@@ -294,7 +298,23 @@ const ClientDetail = () => {
   }, [loadCritical]);
 
   const serviceCtx = useActiveServiceContext(client, searchParams);
+  const {
+    serviceCase,
+    isClosed: caseClosed,
+    reload: reloadServiceCase,
+  } = useActiveServiceCase(
+    client?.id ?? "",
+    serviceCtx.activeServiceCode,
+    client?.pipeline_id ?? null,
+    stageRefreshKey,
+  );
   const uploadLimitLabel = serviceCtx.isCanadaDestination ? "IRCC ≤ 4 MB" : "≤ 4 MB";
+
+  const onCaseOutcomeComplete = useCallback(() => {
+    setStageRefreshKey((k) => k + 1);
+    void reloadServiceCase();
+    void loadCritical();
+  }, [reloadServiceCase, loadCritical]);
 
   // Critical paint first — secondary kicks off right after to avoid serial waterfall.
   useEffect(() => {
@@ -1038,6 +1058,18 @@ const ClientDetail = () => {
         generating={generating}
         generatingGroups={generatingGroups}
         hasTemplate={!!template}
+        refusalDocPending={serviceCase?.refusalDocPending}
+        caseClosed={caseClosed}
+        onCaseOutcome={() => setOutcomeOpen(true)}
+      />
+
+      <CaseOutcomeDialog
+        open={outcomeOpen}
+        onOpenChange={setOutcomeOpen}
+        clientId={client.id}
+        serviceCase={serviceCase}
+        serviceLabel={serviceCtx.serviceLabel}
+        onComplete={onCaseOutcomeComplete}
       />
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ClientDetailTabId)}>
@@ -1045,6 +1077,9 @@ const ClientDetail = () => {
           clientId={client.id}
           refreshKey={stageRefreshKey}
           activeServiceLabel={serviceCtx.serviceLabel}
+          caseId={serviceCase?.id}
+          caseClosed={caseClosed}
+          caseOutcome={serviceCase?.outcome}
           onStageChanged={() => setStageRefreshKey((k) => k + 1)}
         />
         <ClientDetailTabNav badges={{ documents: requiredMissing.length }} />
@@ -1107,6 +1142,8 @@ const ClientDetail = () => {
               clientCountry={client.country}
               destinationCountry={serviceCtx.destinationCountry}
               activeServiceLabel={serviceCtx.serviceLabel}
+              caseId={serviceCase?.id}
+              caseClosed={caseClosed}
             />
             <HandoffHistoryCard clientId={client.id} />
           </TabsContent>

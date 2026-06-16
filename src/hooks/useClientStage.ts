@@ -37,9 +37,17 @@ export interface ClientCurrentStage {
 export function useClientStage(
   clientId: string,
   refreshKey = 0,
-  options?: { clientCountry?: string | null; destinationCountry?: string | null },
+  options?: {
+    clientCountry?: string | null;
+    destinationCountry?: string | null;
+    caseId?: string | null;
+    caseClosed?: boolean;
+  },
 ) {
-  const { canUpload, user } = useAuth();
+  const { canUpload: authCanUpload, user } = useAuth();
+  const caseId = options?.caseId ?? null;
+  const caseClosed = options?.caseClosed ?? false;
+  const canUpload = authCanUpload && !caseClosed;
   const [current, setCurrent] = useState<ClientCurrentStage | null>(null);
   const [stages, setStages] = useState<PipelineStage[]>([]);
   const [completions, setCompletions] = useState<StageCompletion[]>([]);
@@ -56,22 +64,28 @@ export function useClientStage(
     setCurrent((cur as ClientCurrentStage) ?? null);
 
     if (cur?.pipeline_id) {
+      const compQuery = supabase
+        .from("client_stage_completions")
+        .select("stage_id, note, completed_at, completed_by")
+        .eq("client_id", clientId);
+      if (caseId) compQuery.eq("case_id", caseId);
+
+      const logQuery = supabase
+        .from("client_stage_completion_log")
+        .select("id, stage_id, action, note, actor_id, created_at, pipeline_stages(label)")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (caseId) logQuery.eq("case_id", caseId);
+
       const [{ data: st }, { data: compRows }, { data: logRows }] = await Promise.all([
         supabase
           .from("pipeline_stages")
           .select("id, pipeline_id, key, label, client_label, sort_order, color")
           .eq("pipeline_id", cur.pipeline_id)
           .order("sort_order"),
-        supabase
-          .from("client_stage_completions")
-          .select("stage_id, note, completed_at, completed_by")
-          .eq("client_id", clientId),
-        supabase
-          .from("client_stage_completion_log")
-          .select("id, stage_id, action, note, actor_id, created_at, pipeline_stages(label)")
-          .eq("client_id", clientId)
-          .order("created_at", { ascending: false })
-          .limit(100),
+        compQuery,
+        logQuery,
       ]);
       setStages((st ?? []) as PipelineStage[]);
       setCompletions(
@@ -128,7 +142,7 @@ export function useClientStage(
       setCompletions([]);
       setCompletionLog([]);
     }
-  }, [clientId]);
+  }, [clientId, caseId]);
 
   useEffect(() => {
     void load();
@@ -183,6 +197,7 @@ export function useClientStage(
       try {
         const { error: compErr } = await supabase.from("client_stage_completions").insert({
           client_id: clientId,
+          case_id: caseId,
           pipeline_id: current.pipeline_id,
           stage_id: stageId,
           note: note?.trim() || null,
@@ -192,6 +207,7 @@ export function useClientStage(
 
         const { error: logErr } = await supabase.from("client_stage_completion_log").insert({
           client_id: clientId,
+          case_id: caseId,
           pipeline_id: current.pipeline_id,
           stage_id: stageId,
           action: "tick",
@@ -211,7 +227,7 @@ export function useClientStage(
         setBusy(false);
       }
     },
-    [clientId, current?.pipeline_id, completedStageIds, stages, syncCurrentStage, load, user?.id],
+    [clientId, caseId, current?.pipeline_id, completedStageIds, stages, syncCurrentStage, load, user?.id],
   );
 
   const untickStage = useCallback(
@@ -229,6 +245,7 @@ export function useClientStage(
 
         const { error: logErr } = await supabase.from("client_stage_completion_log").insert({
           client_id: clientId,
+          case_id: caseId,
           pipeline_id: current.pipeline_id,
           stage_id: stageId,
           action: "untick",
@@ -276,6 +293,7 @@ export function useClientStage(
 
         const { error: logErr } = await supabase.from("client_stage_completion_log").insert({
           client_id: clientId,
+          case_id: caseId,
           pipeline_id: current.pipeline_id,
           stage_id: stageId,
           action: "note_cleared",
@@ -292,7 +310,7 @@ export function useClientStage(
         setBusy(false);
       }
     },
-    [clientId, current?.pipeline_id, completedStageIds, completionNotes, load, user?.id],
+    [clientId, caseId, current?.pipeline_id, completedStageIds, completionNotes, load, user?.id],
   );
 
   const displayLabel = (stage: PipelineStage) => stage.client_label?.trim() || stage.label;
@@ -330,5 +348,6 @@ export function useClientStage(
     derivedCurrentStageId,
     isStageDone,
     isStageCurrent,
+    caseClosed,
   };
 }

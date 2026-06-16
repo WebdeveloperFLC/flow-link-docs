@@ -7331,6 +7331,93 @@ export type Database = {
           },
         ]
       }
+      client_service_cases: {
+        Row: {
+          attempt_number: number
+          client_id: string
+          closed_at: string | null
+          created_at: string
+          id: string
+          outcome: string | null
+          outcome_at: string | null
+          outcome_by: string | null
+          outcome_document_id: string | null
+          pipeline_id: string | null
+          reapplication_of: string | null
+          refusal_doc_pending: boolean
+          service_code: string
+          status: string
+        }
+        Insert: {
+          attempt_number?: number
+          client_id: string
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          outcome?: string | null
+          outcome_at?: string | null
+          outcome_by?: string | null
+          outcome_document_id?: string | null
+          pipeline_id?: string | null
+          reapplication_of?: string | null
+          refusal_doc_pending?: boolean
+          service_code: string
+          status?: string
+        }
+        Update: {
+          attempt_number?: number
+          client_id?: string
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          outcome?: string | null
+          outcome_at?: string | null
+          outcome_by?: string | null
+          outcome_document_id?: string | null
+          pipeline_id?: string | null
+          reapplication_of?: string | null
+          refusal_doc_pending?: boolean
+          service_code?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      client_case_outcome_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          case_id: string
+          client_id: string
+          created_at: string
+          document_id: string | null
+          id: string
+          metadata: Json
+          note: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          case_id: string
+          client_id: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          metadata?: Json
+          note?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          case_id?: string
+          client_id?: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          metadata?: Json
+          note?: string | null
+        }
+        Relationships: []
+      }
       client_stage_history: {
         Row: {
           client_id: string

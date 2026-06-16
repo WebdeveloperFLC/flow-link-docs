@@ -12,6 +12,7 @@ import {
   Star,
   ArrowRightLeft,
   ListTodo,
+  Flag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,6 +63,9 @@ type Props = {
   generating?: boolean;
   generatingGroups?: boolean;
   hasTemplate?: boolean;
+  refusalDocPending?: boolean;
+  caseClosed?: boolean;
+  onCaseOutcome?: () => void;
 };
 
 function initials(name: string): string {
@@ -90,6 +94,9 @@ export function ClientIdentityHeader({
   generating,
   generatingGroups,
   hasTemplate,
+  refusalDocPending,
+  caseClosed,
+  onCaseOutcome,
 }: Props) {
   const [taskOpen, setTaskOpen] = useState(false);
   const destination = serviceCtx.destinationCountry ?? client.country;
@@ -121,6 +128,12 @@ export function ClientIdentityHeader({
                   <span className="inline-flex items-center gap-0.5 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
                     <Star className="size-3 fill-amber-500 text-amber-500" />
                     {score}
+                  </span>
+                )}
+                {refusalDocPending && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/60 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                    <Flag className="size-3" />
+                    Refusal letter pending
                   </span>
                 )}
               </div>
@@ -194,6 +207,11 @@ export function ClientIdentityHeader({
               <ListTodo className="size-3.5 mr-1.5" />
               Task
             </Button>
+            {canUpload && onCaseOutcome && !caseClosed && (
+              <Button size="sm" variant="secondary" onClick={onCaseOutcome}>
+                Case outcome
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="icon" variant="outline" className="size-9">

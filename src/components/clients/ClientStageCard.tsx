@@ -24,11 +24,15 @@ export function ClientStageCard({
   clientCountry,
   destinationCountry,
   activeServiceLabel,
+  caseId,
+  caseClosed,
 }: {
   clientId: string;
   clientCountry?: string | null;
   destinationCountry?: string | null;
   activeServiceLabel?: string | null;
+  caseId?: string | null;
+  caseClosed?: boolean;
 }) {
   const { canUpload } = useAuth();
   const {
@@ -49,7 +53,7 @@ export function ClientStageCard({
     isStageCurrent,
     load,
     derivedCurrentStageId,
-  } = useClientStage(clientId, 0, { clientCountry, destinationCountry });
+  } = useClientStage(clientId, 0, { clientCountry, destinationCountry, caseId, caseClosed });
 
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
   const [subStatus, setSubStatus] = useState("");
