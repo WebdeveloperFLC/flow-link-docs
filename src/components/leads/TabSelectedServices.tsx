@@ -3,7 +3,10 @@ import type { ServiceCatalogueItem } from "@/lib/leads";
 import { catalogueItemCode } from "@/lib/service-library/serviceSelectionMatch";
 import { SelectedServicesPanel } from "@/components/clients/SelectedServicesPanel";
 import type { ServiceSelection } from "@/components/leads/ServiceTabs";
-import type { ServiceTabKey } from "@/components/leads/serviceTabsConfig";
+import {
+  tabSelectionCount,
+  type ServiceTabKey,
+} from "@/components/leads/serviceTabsConfig";
 
 export function TabSelectedServices({
   tabKey,
@@ -25,6 +28,7 @@ export function TabSelectedServices({
   }, [catalogue]);
 
   const tabValue = useMemo((): ServiceSelection => {
+    if (tabKey === "all") return value;
     if (tabKey === "coaching_services") {
       return {
         coaching_services: value.coaching_services ?? [],
@@ -52,10 +56,7 @@ export function TabSelectedServices({
     };
   }, [tabKey, value]);
 
-  const count =
-    tabKey === "allied_travel"
-      ? (value.allied_services?.length ?? 0) + (value.travel_services?.length ?? 0)
-      : (value[tabKey === "coaching_services" ? "coaching_services" : "visa_services"]?.length ?? 0);
+  const count = tabSelectionCount(tabKey, value);
 
   if (count === 0) return null;
 
@@ -65,6 +66,10 @@ export function TabSelectedServices({
       catalogue={catalogue}
       labelByCode={labelByCode}
       onChange={(next) => {
+        if (tabKey === "all") {
+          onChange(next);
+          return;
+        }
         if (tabKey === "coaching_services") {
           onChange({ ...value, coaching_services: next.coaching_services });
           return;

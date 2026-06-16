@@ -15,6 +15,7 @@ import {
   selectionKeyForItem,
   shouldUseGroupedForTab,
   tabSelectionCount,
+  totalSelectionCount,
   type ServiceTabKey,
 } from "@/components/leads/serviceTabsConfig";
 import {
@@ -51,7 +52,7 @@ export const ServiceTabs = ({
   const [visaCountry, setVisaCountry] = useState<string>("ALL");
   const [feeCurrency, setFeeCurrency] = useState<FeeCurrency>("INR");
   const [openNote, setOpenNote] = useState<string | null>(null);
-  const [pickerTab, setPickerTab] = useState<ServiceTabKey | null>(null);
+  const [pickerTab, setPickerTab] = useState<Exclude<ServiceTabKey, "all"> | null>(null);
 
   useEffect(() => {
     fetchAllServiceCatalogue().then(setCatalogue).catch(() => setCatalogue([]));
@@ -115,10 +116,45 @@ export const ServiceTabs = ({
     };
   }, [activePickerTab, byKey, visaCountry, interestedCountries, feeCurrency, visaLocked]);
 
+  const totalCount = totalSelectionCount(value);
+  const visaNoCountriesPicked =
+    interestedCountries !== undefined && interestedCountries.length === 0;
+
+  const categoryAddButton = (
+    tab: (typeof SERVICE_TABS)[number],
+    opts?: { disabled?: boolean },
+  ) => {
+    const count = tabSelectionCount(tab.key, value);
+    const isVisa = tab.key === "visa_services";
+    const locked = isVisa && visaLocked;
+    const disabled = opts?.disabled ?? (locked || (isVisa && visaNoCountriesPicked));
+    return (
+      <Button
+        key={tab.key}
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={disabled}
+        onClick={() => setPickerTab(tab.key)}
+      >
+        <Plus className="size-4 mr-1.5" />
+        {tab.label}: {count > 0 ? "Edit services" : "Add services"}
+      </Button>
+    );
+  };
+
   return (
     <>
-      <Tabs defaultValue={SERVICE_TABS[0].key}>
+      <Tabs defaultValue="all">
         <TabsList className="w-full justify-start flex-wrap h-auto">
+          <TabsTrigger value="all" className="gap-1.5">
+            All
+            {totalCount > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                {totalCount}
+              </Badge>
+            )}
+          </TabsTrigger>
           {SERVICE_TABS.map((t) => {
             const count = tabSelectionCount(t.key, value);
             const isVisa = t.key === "visa_services";
@@ -136,6 +172,27 @@ export const ServiceTabs = ({
             );
           })}
         </TabsList>
+
+        <TabsContent value="all" className="space-y-3">
+          <TabSelectedServices
+            tabKey="all"
+            value={value}
+            catalogue={catalogue}
+            onChange={onChange}
+          />
+          {layout === "compact" ? (
+            <div className="space-y-3">
+              {totalCount === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No services selected yet. Use the buttons below or switch to a category tab.
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {SERVICE_TABS.map((t) => categoryAddButton(t))}
+              </div>
+            </div>
+          ) : null}
+        </TabsContent>
 
         {SERVICE_TABS.map((t) => {
           const filtered = filterCatalogueForTab(t, byKey, { visaCountry, interestedCountries });

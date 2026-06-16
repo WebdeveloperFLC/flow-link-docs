@@ -2,7 +2,7 @@ import type { ServiceCatalogueItem } from "@/lib/leads";
 import { shouldUseGroupedPicker, type ServicePickerTab } from "@/lib/leads/servicePickerGroups";
 import type { ServiceSelection } from "@/components/leads/ServiceTabs";
 
-export type ServiceTabKey = keyof ServiceSelection | "allied_travel";
+export type ServiceTabKey = keyof ServiceSelection | "allied_travel" | "all";
 
 export interface ServiceTabConfig {
   key: ServiceTabKey;
@@ -47,7 +47,18 @@ export function selectionKeyForItem(s: ServiceCatalogueItem): keyof ServiceSelec
   return "allied_services";
 }
 
+export function totalSelectionCount(value: ServiceSelection): number {
+  return (
+    (value.coaching_services?.length ?? 0) +
+    (value.visa_services?.length ?? 0) +
+    (value.allied_services?.length ?? 0) +
+    (value.travel_services?.length ?? 0) +
+    (value.admission_services?.length ?? 0)
+  );
+}
+
 export function tabSelectionCount(tabKey: ServiceTabKey, value: ServiceSelection): number {
+  if (tabKey === "all") return totalSelectionCount(value);
   if (tabKey === "allied_travel") {
     return (value.allied_services?.length ?? 0) + (value.travel_services?.length ?? 0);
   }
