@@ -27,18 +27,20 @@ export function Topbar({ searchSlot, quickActionsSlot, className }: TopbarProps)
       <RoleViewBanner />
       <div
         className={cn(
-          "fixed top-3 right-3 z-50 flex flex-wrap items-center justify-end gap-1.5",
-          "rounded-full border border-border/60 bg-card/85 backdrop-blur shadow-sm",
-          "px-2 py-1 max-w-[calc(100vw-1.5rem)]",
+          "fixed right-2 top-1/2 z-50 -translate-y-1/2",
+          "flex flex-col items-center gap-1 p-1.5",
+          "rounded-2xl border border-border/60 bg-card/90 backdrop-blur-md shadow-md",
           className,
         )}
         data-topbar="enterprise"
+        data-topbar-layout="rail"
+        aria-label="Global actions"
       >
         {searchSlot ? <div className="hidden md:block">{searchSlot}</div> : null}
         {quickActionsSlot ? <div className="hidden sm:block">{quickActionsSlot}</div> : null}
-        {!isPerformanceHub && <RoleViewSwitcher />}
-        {!isPerformanceHub && <ThemeModeToggle />}
-        <NotificationCenter />
+        {!isPerformanceHub && <RoleViewSwitcher layout="rail" />}
+        {!isPerformanceHub && <ThemeModeToggle tooltipSide="left" />}
+        <NotificationCenter popoverSide="left" />
       </div>
     </>
   );

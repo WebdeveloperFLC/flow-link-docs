@@ -91,7 +91,7 @@ function metaFor(cat: string) {
   return CATEGORY_META[cat] ?? CATEGORY_META.info;
 }
 
-export function NotificationCenter() {
+export function NotificationCenter({ popoverSide = "bottom" }: { popoverSide?: "top" | "right" | "bottom" | "left" } = {}) {
   const { user, isAdmin } = useAuth();
   const [items, setItems] = useState<AppNotification[]>([]);
   const [open, setOpen] = useState(false);
@@ -424,8 +424,8 @@ export function NotificationCenter() {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        align="end"
-        side="bottom"
+        align={popoverSide === "left" ? "center" : "end"}
+        side={popoverSide}
         sideOffset={8}
         className="w-[min(400px,calc(100vw-1rem))] p-0 z-[100] shadow-2xl border-border overflow-hidden animate-in fade-in-0 zoom-in-95 slide-in-from-top-2"
       >

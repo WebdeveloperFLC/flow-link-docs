@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 interface ThemeModeToggleProps {
   /** Hub topbar styling (dark chip on navy bar). */
   variant?: "default" | "hub";
+  tooltipSide?: "bottom" | "left";
 }
 
-export function ThemeModeToggle({ variant = "default" }: ThemeModeToggleProps) {
+export function ThemeModeToggle({ variant = "default", tooltipSide = "bottom" }: ThemeModeToggleProps) {
   const { theme, setTheme } = useTheme();
   const isDark = resolveThemeModeDark(theme.mode);
   const isHub = variant === "hub";
@@ -34,7 +35,7 @@ export function ThemeModeToggle({ variant = "default" }: ThemeModeToggleProps) {
           {isHub ? (isDark ? "Light" : "Dark") : null}
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="bottom">{isDark ? "Light mode" : "Dark mode"}</TooltipContent>
+      <TooltipContent side={tooltipSide}>{isDark ? "Light mode" : "Dark mode"}</TooltipContent>
     </Tooltip>
   );
 }

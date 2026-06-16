@@ -29,10 +29,12 @@ import {
 type RoleViewSwitcherProps = {
   /** Dark Performance Hub context bar styling */
   variant?: "default" | "hub";
+  /** Vertical right-edge topbar — stack icons, open menus to the left */
+  layout?: "default" | "rail";
 };
 
 /** Compact icon — opens menu on click (no inline label overlap in topbar). */
-export function RoleViewSwitcher({ variant = "default" }: RoleViewSwitcherProps) {
+export function RoleViewSwitcher({ variant = "default", layout = "default" }: RoleViewSwitcherProps) {
   const {
     loading,
     canUseViewAs,
@@ -54,11 +56,19 @@ export function RoleViewSwitcher({ variant = "default" }: RoleViewSwitcherProps)
   }, [viewAsRole, actualRoles, isPlatformOwner]);
 
   const isHub = variant === "hub";
+  const isRail = layout === "rail";
+  const menuSide = isRail ? "left" : "bottom";
 
   if (loading || !canUseViewAs) return null;
 
   return (
-    <div className="flex items-center gap-0.5 shrink-0" data-testid="role-view-switcher">
+    <div
+      className={cn(
+        "flex shrink-0",
+        isRail ? "flex-col items-center gap-0.5" : "items-center gap-0.5",
+      )}
+      data-testid="role-view-switcher"
+    >
       <DropdownMenu>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -89,9 +99,9 @@ export function RoleViewSwitcher({ variant = "default" }: RoleViewSwitcherProps)
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>
-          <TooltipContent side="bottom">View as — {currentLabel}</TooltipContent>
+          <TooltipContent side={menuSide}>View as — {currentLabel}</TooltipContent>
         </Tooltip>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent side={isRail ? "left" : undefined} align="end" className="w-56">
           <DropdownMenuLabel>View as</DropdownMenuLabel>
           {(actualRoles.length > 1 || isPlatformOwner) && (
             <DropdownMenuItem onClick={() => setViewAsRole(null)}>
@@ -127,9 +137,9 @@ export function RoleViewSwitcher({ variant = "default" }: RoleViewSwitcherProps)
                 </Button>
               </PopoverTrigger>
             </TooltipTrigger>
-            <TooltipContent side="bottom">Preview role catalog</TooltipContent>
+            <TooltipContent side={menuSide}>Preview role catalog</TooltipContent>
           </Tooltip>
-          <PopoverContent align="end" className="w-72">
+          <PopoverContent side={isRail ? "left" : "bottom"} align="end" className="w-72">
             <p className="text-sm font-semibold mb-1">Preview role catalog</p>
             <p className="text-xs text-muted-foreground mb-3">
               Choose which roles appear in View as. Your real permissions are unchanged — this only
