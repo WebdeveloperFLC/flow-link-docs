@@ -58,9 +58,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   ClientDetailTabNav,
-  isClientDetailTabId,
+  resolveClientDetailTab,
+  shouldOpenAssessmentFromTab,
   type ClientDetailTabId,
 } from "@/components/clients/ClientDetailTabNav";
+import { EligibilityAssessmentDialog } from "@/components/clients/EligibilityAssessmentDialog";
 import { openClientDocument } from "@/lib/documentPreview";
 import { ClientAccessDialog } from "@/components/clients/ClientAccessDialog";
 import { ClientAccessCard } from "@/components/clients/ClientAccessCard";
@@ -80,7 +82,6 @@ import { PersonWorkspaceCard } from "@/components/clients/PersonWorkspaceCard";
 import { ClientStageCard } from "@/components/clients/ClientStageCard";
 import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitcher";
 import { ClientSetupPanel } from "@/components/clients/ClientSetupPanel";
-import { ClientAssessmentsCard } from "@/components/clients/ClientAssessmentsCard";
 import { ContextBackBar } from "@/components/navigation/ContextBackBar";
 import {
   parseLibraryIdFromServiceCode,
@@ -154,7 +155,10 @@ const ClientDetail = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const fromServiceLibrary = searchParams.get("from") === "service-library";
   const tabParam = searchParams.get("tab");
-  const activeTab: ClientDetailTabId = isClientDetailTabId(tabParam) ? tabParam : "overview";
+  const activeTab: ClientDetailTabId = resolveClientDetailTab(tabParam);
+  const [assessmentOpen, setAssessmentOpen] = useState(
+    () => shouldOpenAssessmentFromTab(tabParam),
+  );
   const setActiveTab = (tab: ClientDetailTabId) => {
     setSearchParams(
       (prev) => {
@@ -165,6 +169,20 @@ const ClientDetail = () => {
       { replace: true },
     );
   };
+
+  useEffect(() => {
+    if (!tabParam || tabParam === activeTab) return;
+    if (tabParam === "qualification" || tabParam === "family" || tabParam === "services") {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set("tab", activeTab);
+          return next;
+        },
+        { replace: true },
+      );
+    }
+  }, [tabParam, activeTab, setSearchParams]);
   const slLibraryId =
     searchParams.get("library_id") ?? parseLibraryIdFromServiceCode(searchParams.get("service"));
   const slCountry = searchParams.get("sl_country") ?? searchParams.get("country");
@@ -1103,6 +1121,15 @@ const ClientDetail = () => {
           setOutcomeOpen(true);
         }}
         onRefusalDocUploaded={onCaseOutcomeComplete}
+        onOpenAssessment={() => setAssessmentOpen(true)}
+      />
+
+      <EligibilityAssessmentDialog
+        open={assessmentOpen}
+        onOpenChange={setAssessmentOpen}
+        clientId={client.id}
+        libraryId={slLibraryId ?? serviceCtx.libraryId}
+        country={slCountry ?? serviceCtx.destinationCountry}
       />
 
       <CaseOutcomeDialog
@@ -1135,7 +1162,13 @@ const ClientDetail = () => {
             <ClientOverviewDashboard
               client={client}
               serviceCtx={serviceCtx}
-              onOpenTab={(tab) => setActiveTab(tab as ClientDetailTabId)}
+              onOpenTab={(tab) => {
+                const resolved = resolveClientDetailTab(tab);
+                if (tab === "qualification") {
+                  setAssessmentOpen(true);
+                }
+                setActiveTab(resolved);
+              }}
             />
             <QuickActionsBar
               clientId={client.id}
@@ -1144,10 +1177,6 @@ const ClientDetail = () => {
               email={client.email ?? null}
             />
             <AiSummaryPanel clientId={client.id} />
-          </TabsContent>
-
-          <TabsContent value="qualification" className="mt-0 space-y-6">
-            <ClientAssessmentsCard clientId={client.id} />
           </TabsContent>
 
           <TabsContent value="profile" className="mt-0 space-y-6">
@@ -1160,13 +1189,7 @@ const ClientDetail = () => {
               syncingOdoo={syncingOdoo}
               refreshKey={profileRefreshKey}
             />
-          </TabsContent>
-
-          <TabsContent value="family" className="mt-0 space-y-6">
             <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
-          </TabsContent>
-
-          <TabsContent value="services" className="mt-0 space-y-6">
             <ClientServicesCard clientId={client.id} canEdit={canUpload} />
           </TabsContent>
 

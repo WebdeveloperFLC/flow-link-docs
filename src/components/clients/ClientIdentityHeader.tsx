@@ -16,6 +16,7 @@ import {
   Upload,
   Loader2,
   RotateCcw,
+  ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -81,6 +82,7 @@ type Props = {
   onCaseOutcome?: () => void;
   onReapply?: () => void;
   onRefusalDocUploaded?: () => void;
+  onOpenAssessment?: () => void;
 };
 
 function initials(name: string): string {
@@ -119,6 +121,7 @@ export function ClientIdentityHeader({
   onCaseOutcome,
   onReapply,
   onRefusalDocUploaded,
+  onOpenAssessment,
 }: Props) {
   const refusalInputRef = useRef<HTMLInputElement>(null);
   const [uploadingRefusal, setUploadingRefusal] = useState(false);
@@ -267,7 +270,14 @@ export function ClientIdentityHeader({
                 country={slCountry ?? serviceCtx.destinationCountry}
                 clientId={client.id}
                 showServiceLibraryBack={false}
+                showEligibility={false}
               />
+            )}
+            {onOpenAssessment && (
+              <Button variant="outline" size="sm" onClick={onOpenAssessment}>
+                <ClipboardCheck className="size-4 mr-1" />
+                Eligibility Assessment
+              </Button>
             )}
             {!(slLibraryId ?? serviceCtx.libraryId) && (
               <Button asChild variant="outline" size="icon" className="size-9">

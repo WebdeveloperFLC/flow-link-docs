@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronLeft, ClipboardCheck, Loader2 } from "lucide-react";
+import { ChevronLeft, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
-import { createStaffAssessmentSession } from "@/lib/service-eligibility/sessions";
-import { assessmentRunPath } from "@/lib/service-eligibility/settleAbroadBridge";
-import { fetchEligibilityQuestions, prefillEligibilityFromClient } from "@/lib/service-eligibility/questions";
-import { toast } from "sonner";
+import { EligibilityAssessmentDialog } from "@/components/clients/EligibilityAssessmentDialog";
 
 type Props = {
   libraryId: string;
@@ -28,55 +25,44 @@ export function ServiceLibraryContextActions({
   size = "sm",
 }: Props) {
   const navigate = useNavigate();
-  const [busy, setBusy] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const showAssessment = showEligibility ?? !!clientId;
 
-  const startEligibility = async () => {
+  const openAssessment = () => {
     if (!clientId) {
       navigate(buildServiceLibraryUrl({ libraryId, country, tab: "eligibility" }));
       return;
     }
-    setBusy(true);
-    try {
-      const qs = await fetchEligibilityQuestions(libraryId);
-      const prefillAnswers = await prefillEligibilityFromClient(clientId, qs);
-      const result = await createStaffAssessmentSession({
-        libraryId,
-        clientId,
-        prefillAnswers,
-      });
-      navigate(
-        result.runner === "settle_abroad"
-          ? assessmentRunPath(result.sessionId, libraryId)
-          : `/eligibility/run/${result.sessionId}`,
-      );
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Could not start assessment");
-    } finally {
-      setBusy(false);
-    }
+    setDialogOpen(true);
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {showServiceLibraryBack && (
-        <Button variant="outline" size={size} asChild>
-          <Link to={buildServiceLibraryUrl({ libraryId, country })}>
-            <ChevronLeft className="size-4 mr-1" />
-            Service Library
-          </Link>
-        </Button>
-      )}
-      {showAssessment && (
-        <Button variant="outline" size={size} onClick={startEligibility} disabled={busy}>
-          {busy ? (
-            <Loader2 className="size-4 mr-1 animate-spin" />
-          ) : (
+    <>
+      <div className="flex flex-wrap gap-2">
+        {showServiceLibraryBack && (
+          <Button variant="outline" size={size} asChild>
+            <Link to={buildServiceLibraryUrl({ libraryId, country })}>
+              <ChevronLeft className="size-4 mr-1" />
+              Service Library
+            </Link>
+          </Button>
+        )}
+        {showAssessment && (
+          <Button variant="outline" size={size} onClick={openAssessment}>
             <ClipboardCheck className="size-4 mr-1" />
-          )}
-          Eligibility Assessment
-        </Button>
+            Eligibility Assessment
+          </Button>
+        )}
+      </div>
+      {clientId && (
+        <EligibilityAssessmentDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          clientId={clientId}
+          libraryId={libraryId}
+          country={country}
+        />
       )}
-    </div>
+    </>
   );
 }

@@ -5,23 +5,17 @@ import {
   Receipt,
   MessageSquare,
   FileText,
-  Users,
-  ClipboardCheck,
   GitBranch,
   GraduationCap,
   ListTodo,
-  UsersRound,
-  Briefcase,
+  Users,
 } from "lucide-react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 export const CLIENT_DETAIL_TABS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "qualification", label: "Qualification", icon: ClipboardCheck },
   { id: "profile", label: "Profile", icon: UserCircle },
-  { id: "family", label: "Family", icon: UsersRound },
-  { id: "services", label: "Client service", icon: Briefcase },
   { id: "setup", label: "Stage & Setup", icon: GitBranch },
   { id: "programs", label: "Programs", icon: GraduationCap },
   { id: "documents", label: "Documents", icon: FolderOpen },
@@ -32,10 +26,26 @@ export const CLIENT_DETAIL_TABS = [
   { id: "team", label: "Team & Access", icon: Users },
 ] as const;
 
+/** @deprecated Removed tabs — kept for URL redirects. */
+export const LEGACY_CLIENT_DETAIL_TABS = ["qualification", "family", "services"] as const;
+
 export type ClientDetailTabId = (typeof CLIENT_DETAIL_TABS)[number]["id"];
 
 export function isClientDetailTabId(value: string | null): value is ClientDetailTabId {
   return CLIENT_DETAIL_TABS.some((t) => t.id === value);
+}
+
+/** Map old tab URLs to current tabs (e.g. ?tab=family → profile). */
+export function resolveClientDetailTab(value: string | null): ClientDetailTabId {
+  if (!value) return "overview";
+  if (value === "qualification") return "overview";
+  if (value === "family" || value === "services") return "profile";
+  if (isClientDetailTabId(value)) return value;
+  return "overview";
+}
+
+export function shouldOpenAssessmentFromTab(value: string | null): boolean {
+  return value === "qualification";
 }
 
 type Props = {
