@@ -90,10 +90,11 @@ export function sanitizeLeadDraft(draft: LeadDraft): LeadDraft {
 
 export async function createLead(draft: LeadDraft): Promise<Lead> {
   const payload = sanitizeLeadDraft(draft);
-  const { data: auth } = await supabase.auth.getUser();
+  // created_by is set by fn_assign_lead_number (BEFORE INSERT) — do not send from client.
+  const { created_by: _omit, ...row } = payload as LeadDraft & { created_by?: string | null };
   const { data, error } = await supabase
     .from("leads")
-    .insert([{ ...payload, created_by: auth.user?.id ?? null } as never])
+    .insert([row as never])
     .select()
     .single();
   if (error) throw error;
