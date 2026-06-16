@@ -89,7 +89,6 @@ import { useActiveServiceContext } from "@/lib/clientActiveServiceContext";
 import { ClientIdentityHeader } from "@/components/clients/ClientIdentityHeader";
 import { ClientStageStepper } from "@/components/clients/ClientStageStepper";
 import { ClientOverviewDashboard } from "@/components/clients/ClientOverviewDashboard";
-import { useClientStage } from "@/hooks/useClientStage";
 
 interface Client {
   id: string;
@@ -296,19 +295,6 @@ const ClientDetail = () => {
 
   const serviceCtx = useActiveServiceContext(client, searchParams);
   const uploadLimitLabel = serviceCtx.isCanadaDestination ? "IRCC ≤ 4 MB" : "≤ 4 MB";
-  const {
-    advance: advanceStage,
-    canAdvance,
-    busy: stageAdvancing,
-  } = useClientStage(client?.id ?? "", stageRefreshKey, {
-    clientCountry: client?.country,
-    destinationCountry: serviceCtx.destinationCountry,
-  });
-
-  const onAdvanceStage = useCallback(async () => {
-    await advanceStage();
-    setStageRefreshKey((k) => k + 1);
-  }, [advanceStage]);
 
   // Critical paint first — secondary kicks off right after to avoid serial waterfall.
   useEffect(() => {
@@ -1044,9 +1030,6 @@ const ClientDetail = () => {
         canUpload={canUpload}
         isAdmin={isAdmin}
         userId={user?.id}
-        canAdvance={canAdvance}
-        advancing={stageAdvancing}
-        onAdvanceStage={onAdvanceStage}
         onHandoff={() => setHandoffOpen(true)}
         onRemark={() => setRemarkOpen(true)}
         onManageAccess={() => setAccessOpen(true)}

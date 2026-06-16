@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, Workflow, Check, AlertTriangle } from "lucide-react";
+import { ChevronDown, Workflow, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -13,27 +13,11 @@ import { formatDistanceToNow } from "date-fns";
 import { subStatusesForStageKey } from "@/lib/stageSubStatuses";
 import { ClientRefusalWorkflowDialog } from "@/components/clients/ClientRefusalWorkflowDialog";
 import { AddTaskDialog } from "@/components/clients/AddTaskDialog";
-import { pipelineStepDisplay } from "@/lib/pipelineStageDisplay";
+import { useClientStage } from "@/hooks/useClientStage";
+import { StageCheckboxPicker } from "@/components/clients/StageCheckboxPicker";
+import { StageJourneyBar } from "@/components/clients/StageJourneyBar";
 
 interface Pipeline { id: string; name: string; country: string; service_category: string; }
-interface Stage {
-  id: string;
-  pipeline_id: string;
-  key: string;
-  label: string;
-  client_label: string | null;
-  sort_order: number;
-  color: string | null;
-}
-interface CurrentStage {
-  client_id: string; pipeline_id: string | null; pipeline_name: string | null;
-  current_stage_id: string | null; stage_label: string | null; stage_key: string | null;
-  stage_order: number | null; total_stages: number | null; progress_percent: number | null;
-}
-interface HistoryRow {
-  id: string; stage_id: string; entered_at: string; entered_by: string | null; notes: string | null;
-  label?: string; color?: string | null;
-}
 
 export function ClientStageCard({
   clientId,
@@ -44,61 +28,61 @@ export function ClientStageCard({
   clientId: string;
   clientCountry?: string | null;
   destinationCountry?: string | null;
-  /** Active visa/service label — shown instead of generic pipeline name when set. */
   activeServiceLabel?: string | null;
 }) {
   const { canUpload } = useAuth();
-  const [current, setCurrent] = useState<CurrentStage | null>(null);
-  const [stages, setStages] = useState<Stage[]>([]);
-  const [history, setHistory] = useState<HistoryRow[]>([]);
+  const {
+    current,
+    stages,
+    busy,
+    stepNumber,
+    stepTotal,
+    tickStage,
+    untickStage,
+    displayLabel,
+    hasPipeline,
+    completedStageIds,
+    completionNotes,
+    completionLog,
+    isStageDone,
+    isStageCurrent,
+    load,
+    derivedCurrentStageId,
+  } = useClientStage(clientId, 0, { clientCountry, destinationCountry });
+
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
   const [subStatus, setSubStatus] = useState("");
   const [subStatusNote, setSubStatusNote] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [refusalOpen, setRefusalOpen] = useState(false);
   const [assignTaskOpen, setAssignTaskOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [assignBusy, setAssignBusy] = useState(false);
 
-  const load = async () => {
-    const [{ data: cur }, { data: clientRow }] = await Promise.all([
-      supabase.from("vw_client_current_stage").select("*").eq("client_id", clientId).maybeSingle(),
-      supabase.from("clients").select("internal_sub_status, internal_sub_status_note").eq("id", clientId).maybeSingle(),
-    ]);
-    setCurrent((cur as CurrentStage) ?? null);
+  const loadClientMeta = async () => {
+    const { data: clientRow } = await supabase
+      .from("clients")
+      .select("internal_sub_status, internal_sub_status_note")
+      .eq("id", clientId)
+      .maybeSingle();
     setSubStatus((clientRow as { internal_sub_status?: string | null })?.internal_sub_status ?? "");
     setSubStatusNote((clientRow as { internal_sub_status_note?: string | null })?.internal_sub_status_note ?? "");
+  };
 
-    if (cur?.pipeline_id) {
-      const { data: st } = await supabase
-        .from("pipeline_stages")
-        .select("id, pipeline_id, key, label, client_label, sort_order, color")
-        .eq("pipeline_id", cur.pipeline_id)
-        .order("sort_order");
-      setStages((st ?? []) as Stage[]);
+  useEffect(() => {
+    void loadClientMeta();
+  }, [clientId]);
 
-      const { data: hist } = await supabase
-        .from("client_stage_history")
-        .select("id, stage_id, entered_at, entered_by, notes, pipeline_stages(label, color)")
-        .eq("client_id", clientId)
-        .order("entered_at", { ascending: false })
-        .limit(50);
-      setHistory(((hist ?? []) as any[]).map((r) => ({
-        id: r.id, stage_id: r.stage_id, entered_at: r.entered_at,
-        entered_by: r.entered_by, notes: r.notes,
-        label: r.pipeline_stages?.label, color: r.pipeline_stages?.color,
-      })));
-    } else {
-      setStages([]); setHistory([]);
+  useEffect(() => {
+    if (hasPipeline) return;
+    (async () => {
       const { data: pls } = await supabase
         .from("stage_pipelines")
         .select("id, name, country, service_category")
         .eq("is_active", true)
         .order("country");
       setPipelines((pls ?? []) as Pipeline[]);
-    }
-  };
-
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [clientId]);
+    })();
+  }, [hasPipeline]);
 
   const filteredPipelines = useMemo(() => {
     const filterCountry = (destinationCountry ?? clientCountry)?.trim().toLowerCase();
@@ -109,24 +93,14 @@ export function ClientStageCard({
 
   const currentStageKey = useMemo(() => {
     if (current?.stage_key) return current.stage_key;
-    const stage = stages.find((s) => s.id === current?.current_stage_id);
+    const stage = stages.find((s) => s.id === derivedCurrentStageId);
     return stage?.key ?? null;
-  }, [current, stages]);
+  }, [current, stages, derivedCurrentStageId]);
 
   const subStatusOptions = useMemo(() => subStatusesForStageKey(currentStageKey), [currentStageKey]);
 
-  const currentIdx = useMemo(
-    () => stages.findIndex((s) => s.id === current?.current_stage_id),
-    [stages, current?.current_stage_id],
-  );
-  const { step: stepNumber, total: stepTotal } = pipelineStepDisplay(
-    currentIdx,
-    stages.length,
-    current?.total_stages,
-  );
-
   const onAssignPipeline = async (pipelineId: string) => {
-    setBusy(true);
+    setAssignBusy(true);
     try {
       const { data: first } = await supabase
         .from("pipeline_stages")
@@ -143,32 +117,13 @@ export function ClientStageCard({
       if (error) throw error;
       toast.success("Pipeline assigned");
       await load();
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to assign pipeline");
-    } finally { setBusy(false); }
-  };
-
-  const onChangeStage = async (stageId: string) => {
-    if (stageId === current?.current_stage_id) return;
-    setBusy(true);
-    try {
-      const nextStage = stages.find((s) => s.id === stageId);
-      const patch: Record<string, unknown> = { current_stage_id: stageId };
-      if (nextStage && subStatus && !subStatusesForStageKey(nextStage.key).includes(subStatus)) {
-        patch.internal_sub_status = null;
-        patch.internal_sub_status_note = null;
-      }
-      const { error } = await supabase.from("clients").update(patch).eq("id", clientId);
-      if (error) throw error;
-      toast.success("Stage updated");
-      await load();
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to update stage");
-    } finally { setBusy(false); }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Failed to assign pipeline");
+    } finally { setAssignBusy(false); }
   };
 
   const onSaveSubStatus = async () => {
-    setBusy(true);
+    setAssignBusy(true);
     try {
       const { error } = await supabase
         .from("clients")
@@ -179,14 +134,14 @@ export function ClientStageCard({
         .eq("id", clientId);
       if (error) throw error;
       toast.success("Internal sub-status saved");
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to save sub-status");
-    } finally { setBusy(false); }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Failed to save sub-status");
+    } finally { setAssignBusy(false); }
   };
 
   const onMarkRefused = async () => {
     if (!current?.pipeline_id) return;
-    setBusy(true);
+    setAssignBusy(true);
     try {
       const { data: refusedStage } = await supabase
         .from("pipeline_stages")
@@ -209,12 +164,12 @@ export function ClientStageCard({
       } else {
         setRefusalOpen(true);
       }
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to mark refused");
-    } finally { setBusy(false); }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Failed to mark refused");
+    } finally { setAssignBusy(false); }
   };
 
-  if (!current?.pipeline_id) {
+  if (!hasPipeline) {
     return (
       <Card className="p-4 space-y-3">
         <div className="flex items-center gap-2 text-sm font-semibold">
@@ -224,7 +179,7 @@ export function ClientStageCard({
           <p className="text-sm text-muted-foreground">No pipeline assigned.</p>
         ) : (
           <div className="flex items-center gap-2">
-            <Select onValueChange={onAssignPipeline} disabled={busy || !filteredPipelines.length}>
+            <Select onValueChange={onAssignPipeline} disabled={assignBusy || !filteredPipelines.length}>
               <SelectTrigger className="max-w-sm">
                 <SelectValue placeholder={filteredPipelines.length ? "Assign a pipeline…" : "No pipelines available"} />
               </SelectTrigger>
@@ -243,13 +198,14 @@ export function ClientStageCard({
   }
 
   const showRefusalActions = currentStageKey === "visa_refused" || currentStageKey === "decision_received";
-  const pipelineTitle = activeServiceLabel?.trim() || current.pipeline_name;
+  const pipelineTitle = activeServiceLabel?.trim() || current?.pipeline_name;
   const pipelineSubtitle =
     activeServiceLabel?.trim() &&
-    current.pipeline_name &&
+    current?.pipeline_name &&
     activeServiceLabel.trim().toLowerCase() !== current.pipeline_name.trim().toLowerCase()
       ? current.pipeline_name
       : null;
+  const metaBusy = busy || assignBusy;
 
   return (
     <>
@@ -260,7 +216,7 @@ export function ClientStageCard({
               <Workflow className="size-4 text-muted-foreground shrink-0" />
               <span className="truncate">{pipelineTitle}</span>
               <span className="text-xs font-normal text-muted-foreground shrink-0">
-                · stage {stepNumber ?? "?"} of {stepTotal} · {current.progress_percent ?? 0}%
+                · stage {stepNumber ?? "?"} of {stepTotal} · {current?.progress_percent ?? 0}%
               </span>
             </div>
             {pipelineSubtitle && (
@@ -269,50 +225,27 @@ export function ClientStageCard({
               </div>
             )}
           </div>
-          {canUpload && (
-            <Select value={current.current_stage_id ?? undefined} onValueChange={onChangeStage} disabled={busy}>
-              <SelectTrigger className="w-[260px]"><SelectValue placeholder="Change stage…" /></SelectTrigger>
-              <SelectContent>
-                {stages.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>
-                    <span className="inline-block size-2 rounded-full mr-2 align-middle" style={{ background: s.color ?? "#6366f1" }} />
-                    {s.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {canUpload && stages.length > 0 && (
+            <StageCheckboxPicker
+              stages={stages}
+              completedStageIds={completedStageIds}
+              displayLabel={displayLabel}
+              disabled={metaBusy}
+              onTick={tickStage}
+              onUntick={untickStage}
+              triggerClassName="flex"
+            />
           )}
         </div>
 
-        <div className="flex items-center gap-1 overflow-x-auto pb-1">
-          {stages.map((s, i) => {
-            const passed = i <= currentIdx;
-            const isCurrent = s.id === current.current_stage_id;
-            return (
-              <div key={s.id} className="flex items-center gap-1 shrink-0">
-                {i > 0 && <div className={cn("h-0.5 w-4", passed ? "bg-primary" : "bg-muted")} />}
-                <button
-                  type="button"
-                  disabled={!canUpload || busy}
-                  onClick={() => onChangeStage(s.id)}
-                  title={s.label}
-                  className={cn(
-                    "flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs transition-colors",
-                    isCurrent && "border-primary bg-primary/10 font-semibold",
-                    !isCurrent && passed && "border-primary/40 bg-primary/5",
-                    !passed && "border-muted bg-muted/30 text-muted-foreground",
-                    canUpload && !busy && "hover:bg-accent cursor-pointer",
-                    (!canUpload || busy) && "cursor-default",
-                  )}
-                >
-                  <span className="inline-block size-2 rounded-full" style={{ background: s.color ?? "#6366f1" }} />
-                  {passed && !isCurrent && <Check className="size-3" />}
-                  <span>{s.label}</span>
-                </button>
-              </div>
-            );
-          })}
-        </div>
+        <StageJourneyBar
+          stages={stages}
+          isStageDone={isStageDone}
+          isStageCurrent={isStageCurrent}
+          completionNotes={completionNotes}
+          displayLabel={displayLabel}
+          compact
+        />
 
         {canUpload && (
           <div className="rounded-md border bg-muted/20 p-3 space-y-2">
@@ -320,7 +253,7 @@ export function ClientStageCard({
               Internal sub-status
             </div>
             <div className="flex flex-wrap gap-2">
-              <Select value={subStatus || "__none__"} onValueChange={(v) => setSubStatus(v === "__none__" ? "" : v)} disabled={busy}>
+              <Select value={subStatus || "__none__"} onValueChange={(v) => setSubStatus(v === "__none__" ? "" : v)} disabled={metaBusy}>
                 <SelectTrigger className="w-[220px] h-8 text-xs"><SelectValue placeholder="Sub-status…" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">— None —</SelectItem>
@@ -334,22 +267,22 @@ export function ClientStageCard({
                 placeholder="Internal note (optional)"
                 value={subStatusNote}
                 onChange={(e) => setSubStatusNote(e.target.value)}
-                disabled={busy}
+                disabled={metaBusy}
               />
-              <Button size="sm" variant="secondary" className="h-8" onClick={onSaveSubStatus} disabled={busy}>
+              <Button size="sm" variant="secondary" className="h-8" onClick={onSaveSubStatus} disabled={metaBusy}>
                 Save
               </Button>
               {!showRefusalActions && (
-                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={onMarkRefused} disabled={busy}>
+                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={onMarkRefused} disabled={metaBusy}>
                   <AlertTriangle className="size-3.5" /> Mark refused
                 </Button>
               )}
               {showRefusalActions && (
-                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => setRefusalOpen(true)} disabled={busy}>
+                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => setRefusalOpen(true)} disabled={metaBusy}>
                   <AlertTriangle className="size-3.5" /> Refusal workflow
                 </Button>
               )}
-              <Button size="sm" variant="outline" className="h-8" onClick={() => setAssignTaskOpen(true)} disabled={busy}>
+              <Button size="sm" variant="outline" className="h-8" onClick={() => setAssignTaskOpen(true)} disabled={metaBusy}>
                 Assign task
               </Button>
             </div>
@@ -360,20 +293,24 @@ export function ClientStageCard({
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground">
               <ChevronDown className={cn("size-3.5 mr-1 transition-transform", historyOpen && "rotate-180")} />
-              Stage history ({history.length})
+              Stage history ({completionLog.length})
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-2">
-            {history.length === 0 ? (
+            {completionLog.length === 0 ? (
               <p className="text-xs text-muted-foreground">No history yet.</p>
             ) : (
               <div className="space-y-1.5">
-                {history.map((h) => (
-                  <div key={h.id} className="flex items-center gap-2 text-xs border-l-2 pl-2 py-1"
-                    style={{ borderColor: h.color ?? "#6366f1" }}>
-                    <span className="font-medium">{h.label ?? "—"}</span>
-                    <span className="text-muted-foreground">· {formatDistanceToNow(new Date(h.entered_at), { addSuffix: true })}</span>
-                    {h.notes && <span className="text-muted-foreground truncate">— {h.notes}</span>}
+                {completionLog.map((h) => (
+                  <div key={h.id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs border-l-2 border-primary/40 pl-2 py-1">
+                    <span className={cn("font-medium", h.action === "tick" ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground")}>
+                      {h.action === "tick" ? "✓" : "○"} {h.stageLabel ?? "—"}
+                    </span>
+                    <span className="text-muted-foreground">
+                      · {formatDistanceToNow(new Date(h.createdAt), { addSuffix: true })}
+                    </span>
+                    {h.actorName && <span className="text-muted-foreground">· {h.actorName}</span>}
+                    {h.note && <span className="text-muted-foreground truncate">— {h.note}</span>}
                   </div>
                 ))}
               </div>
@@ -382,7 +319,7 @@ export function ClientStageCard({
         </Collapsible>
       </Card>
 
-      {current.pipeline_id && (
+      {current?.pipeline_id && (
         <ClientRefusalWorkflowDialog
           open={refusalOpen}
           onOpenChange={setRefusalOpen}
@@ -396,7 +333,7 @@ export function ClientStageCard({
         onOpenChange={setAssignTaskOpen}
         clientId={clientId}
         applicationMode
-        pipelineStageId={current?.current_stage_id}
+        pipelineStageId={derivedCurrentStageId ?? undefined}
         prefillTitle={
           current?.stage_label
             ? `Complete: ${current.stage_label}`

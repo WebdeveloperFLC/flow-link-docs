@@ -7414,6 +7414,113 @@ export type Database = {
           },
         ]
       }
+      client_stage_completion_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          client_id: string
+          created_at: string
+          id: string
+          note: string | null
+          pipeline_id: string
+          stage_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          pipeline_id: string
+          stage_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          pipeline_id?: string
+          stage_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_stage_completion_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completion_log_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "stage_pipelines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completion_log_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_stage_completions: {
+        Row: {
+          client_id: string
+          completed_at: string
+          completed_by: string | null
+          id: string
+          note: string | null
+          pipeline_id: string
+          stage_id: string
+        }
+        Insert: {
+          client_id: string
+          completed_at?: string
+          completed_by?: string | null
+          id?: string
+          note?: string | null
+          pipeline_id: string
+          stage_id: string
+        }
+        Update: {
+          client_id?: string
+          completed_at?: string
+          completed_by?: string | null
+          id?: string
+          note?: string | null
+          pipeline_id?: string
+          stage_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_stage_completions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completions_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "stage_pipelines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completions_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_tasks: {
         Row: {
           assigned_to: string | null

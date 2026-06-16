@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowRight,
   ChevronLeft,
   FileCheck2,
   FileText,
   FolderArchive,
-  Loader2,
   Mail,
   MessageCircle,
   MoreHorizontal,
@@ -56,9 +54,6 @@ type Props = {
   canUpload: boolean;
   isAdmin: boolean;
   userId?: string | null;
-  canAdvance: boolean;
-  advancing: boolean;
-  onAdvanceStage: () => void | Promise<void>;
   onHandoff: () => void;
   onRemark: () => void;
   onManageAccess: () => void;
@@ -87,9 +82,6 @@ export function ClientIdentityHeader({
   canUpload,
   isAdmin,
   userId,
-  canAdvance,
-  advancing,
-  onAdvanceStage,
   onHandoff,
   onRemark,
   onManageAccess,
@@ -202,21 +194,6 @@ export function ClientIdentityHeader({
               <ListTodo className="size-3.5 mr-1.5" />
               Task
             </Button>
-            {canUpload && (
-              <Button
-                size="sm"
-                variant="cta"
-                disabled={!canAdvance || advancing}
-                onClick={() => void onAdvanceStage()}
-              >
-                {advancing ? (
-                  <Loader2 className="size-4 mr-1.5 animate-spin" />
-                ) : (
-                  <ArrowRight className="size-4 mr-1.5" />
-                )}
-                Advance stage
-              </Button>
-            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="icon" variant="outline" className="size-9">

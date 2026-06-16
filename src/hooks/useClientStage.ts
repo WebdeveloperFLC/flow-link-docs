@@ -2,6 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { subStatusesForStageKey } from "@/lib/stageSubStatuses";
+import {
+  deriveCurrentStageId,
+  deriveCurrentStageIndex,
+  deriveStepNumber,
+  type StageCompletion,
+  type StageCompletionLogEntry,
+} from "@/lib/clientStageCompletions";
 import { useAuth } from "@/contexts/AuthContext";
 
 export interface PipelineStage {
@@ -31,9 +38,11 @@ export function useClientStage(
   refreshKey = 0,
   options?: { clientCountry?: string | null; destinationCountry?: string | null },
 ) {
-  const { canUpload } = useAuth();
+  const { canUpload, user } = useAuth();
   const [current, setCurrent] = useState<ClientCurrentStage | null>(null);
   const [stages, setStages] = useState<PipelineStage[]>([]);
+  const [completions, setCompletions] = useState<StageCompletion[]>([]);
+  const [completionLog, setCompletionLog] = useState<StageCompletionLogEntry[]>([]);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -46,14 +55,77 @@ export function useClientStage(
     setCurrent((cur as ClientCurrentStage) ?? null);
 
     if (cur?.pipeline_id) {
-      const { data: st } = await supabase
-        .from("pipeline_stages")
-        .select("id, pipeline_id, key, label, client_label, sort_order, color")
-        .eq("pipeline_id", cur.pipeline_id)
-        .order("sort_order");
+      const [{ data: st }, { data: compRows }, { data: logRows }] = await Promise.all([
+        supabase
+          .from("pipeline_stages")
+          .select("id, pipeline_id, key, label, client_label, sort_order, color")
+          .eq("pipeline_id", cur.pipeline_id)
+          .order("sort_order"),
+        supabase
+          .from("client_stage_completions")
+          .select("stage_id, note, completed_at, completed_by")
+          .eq("client_id", clientId),
+        supabase
+          .from("client_stage_completion_log")
+          .select("id, stage_id, action, note, actor_id, created_at, pipeline_stages(label)")
+          .eq("client_id", clientId)
+          .order("created_at", { ascending: false })
+          .limit(100),
+      ]);
       setStages((st ?? []) as PipelineStage[]);
+      setCompletions(
+        ((compRows ?? []) as Array<{
+          stage_id: string;
+          note: string | null;
+          completed_at: string;
+          completed_by: string | null;
+        }>).map((r) => ({
+          stageId: r.stage_id,
+          note: r.note,
+          completedAt: r.completed_at,
+          completedBy: r.completed_by,
+        })),
+      );
+
+      const rawLog = (logRows ?? []) as Array<{
+        id: string;
+        stage_id: string;
+        action: string;
+        note: string | null;
+        actor_id: string | null;
+        created_at: string;
+        pipeline_stages?: { label?: string } | null;
+      }>;
+      const actorIds = [...new Set(rawLog.map((r) => r.actor_id).filter(Boolean))] as string[];
+      let actorNames = new Map<string, string>();
+      if (actorIds.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", actorIds);
+        actorNames = new Map(
+          ((profs ?? []) as Array<{ id: string; full_name: string | null }>).map((p) => [
+            p.id,
+            p.full_name ?? "Staff",
+          ]),
+        );
+      }
+      setCompletionLog(
+        rawLog.map((r) => ({
+          id: r.id,
+          stageId: r.stage_id,
+          action: r.action as "tick" | "untick",
+          note: r.note,
+          actorId: r.actor_id,
+          createdAt: r.created_at,
+          stageLabel: r.pipeline_stages?.label,
+          actorName: r.actor_id ? (actorNames.get(r.actor_id) ?? null) : null,
+        })),
+      );
     } else {
       setStages([]);
+      setCompletions([]);
+      setCompletionLog([]);
     }
   }, [clientId]);
 
@@ -61,53 +133,146 @@ export function useClientStage(
     void load();
   }, [load, refreshKey]);
 
-  const currentIdx = useMemo(
-    () => stages.findIndex((s) => s.id === current?.current_stage_id),
-    [stages, current?.current_stage_id],
+  const completedStageIds = useMemo(
+    () => new Set(completions.map((c) => c.stageId)),
+    [completions],
   );
 
-  const onChangeStage = useCallback(
-    async (stageId: string) => {
-      if (stageId === current?.current_stage_id) return;
+  const completionNotes = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const c of completions) map.set(c.stageId, c.note);
+    return map;
+  }, [completions]);
+
+  const derivedCurrentStageId = useMemo(
+    () => deriveCurrentStageId(stages, completedStageIds),
+    [stages, completedStageIds],
+  );
+
+  const currentIdx = useMemo(
+    () => deriveCurrentStageIndex(stages, derivedCurrentStageId),
+    [stages, derivedCurrentStageId],
+  );
+
+  const syncCurrentStage = useCallback(
+    async (nextStageId: string | null) => {
+      if (!nextStageId || nextStageId === current?.current_stage_id) return;
+      const nextStage = stages.find((s) => s.id === nextStageId);
+      const { data: clientRow } = await supabase
+        .from("clients")
+        .select("internal_sub_status")
+        .eq("id", clientId)
+        .maybeSingle();
+      const subStatus = (clientRow as { internal_sub_status?: string | null })?.internal_sub_status ?? "";
+      const patch: Record<string, unknown> = { current_stage_id: nextStageId };
+      if (nextStage && subStatus && !subStatusesForStageKey(nextStage.key).includes(subStatus)) {
+        patch.internal_sub_status = null;
+        patch.internal_sub_status_note = null;
+      }
+      const { error } = await supabase.from("clients").update(patch).eq("id", clientId);
+      if (error) throw error;
+    },
+    [clientId, current?.current_stage_id, stages],
+  );
+
+  const tickStage = useCallback(
+    async (stageId: string, note?: string | null) => {
+      if (!current?.pipeline_id || completedStageIds.has(stageId)) return;
       setBusy(true);
       try {
-        const nextStage = stages.find((s) => s.id === stageId);
-        const { data: clientRow } = await supabase
-          .from("clients")
-          .select("internal_sub_status")
-          .eq("id", clientId)
-          .maybeSingle();
-        const subStatus = (clientRow as { internal_sub_status?: string | null })?.internal_sub_status ?? "";
-        const patch: Record<string, unknown> = { current_stage_id: stageId };
-        if (nextStage && subStatus && !subStatusesForStageKey(nextStage.key).includes(subStatus)) {
-          patch.internal_sub_status = null;
-          patch.internal_sub_status_note = null;
-        }
-        const { error } = await supabase.from("clients").update(patch).eq("id", clientId);
-        if (error) throw error;
-        toast.success("Stage updated");
+        const { error: compErr } = await supabase.from("client_stage_completions").insert({
+          client_id: clientId,
+          pipeline_id: current.pipeline_id,
+          stage_id: stageId,
+          note: note?.trim() || null,
+          completed_by: user?.id ?? null,
+        });
+        if (compErr) throw compErr;
+
+        const { error: logErr } = await supabase.from("client_stage_completion_log").insert({
+          client_id: clientId,
+          pipeline_id: current.pipeline_id,
+          stage_id: stageId,
+          action: "tick",
+          note: note?.trim() || null,
+          actor_id: user?.id ?? null,
+        });
+        if (logErr) throw logErr;
+
+        const nextCompleted = new Set(completedStageIds);
+        nextCompleted.add(stageId);
+        await syncCurrentStage(deriveCurrentStageId(stages, nextCompleted));
+        toast.success("Stage marked done");
         await load();
       } catch (e: unknown) {
-        toast.error(e instanceof Error ? e.message : "Failed to update stage");
+        toast.error(e instanceof Error ? e.message : "Failed to mark stage");
       } finally {
         setBusy(false);
       }
     },
-    [clientId, current?.current_stage_id, stages, load],
+    [clientId, current?.pipeline_id, completedStageIds, stages, syncCurrentStage, load, user?.id],
   );
 
-  const advance = useCallback(async () => {
-    if (currentIdx < 0 || currentIdx >= stages.length - 1) return;
-    await onChangeStage(stages[currentIdx + 1]!.id);
-  }, [currentIdx, stages, onChangeStage]);
+  const untickStage = useCallback(
+    async (stageId: string) => {
+      if (!current?.pipeline_id || !completedStageIds.has(stageId)) return;
+      setBusy(true);
+      try {
+        const existingNote = completionNotes.get(stageId) ?? null;
+        const { error: delErr } = await supabase
+          .from("client_stage_completions")
+          .delete()
+          .eq("client_id", clientId)
+          .eq("stage_id", stageId);
+        if (delErr) throw delErr;
 
-  const canAdvance = canUpload && currentIdx >= 0 && currentIdx < stages.length - 1 && !busy;
+        const { error: logErr } = await supabase.from("client_stage_completion_log").insert({
+          client_id: clientId,
+          pipeline_id: current.pipeline_id,
+          stage_id: stageId,
+          action: "untick",
+          note: existingNote,
+          actor_id: user?.id ?? null,
+        });
+        if (logErr) throw logErr;
 
-  const displayLabel = (stage: PipelineStage) =>
-    stage.client_label?.trim() || stage.label;
+        const nextCompleted = new Set(completedStageIds);
+        nextCompleted.delete(stageId);
+        await syncCurrentStage(deriveCurrentStageId(stages, nextCompleted));
+        toast.success("Stage unmarked");
+        await load();
+      } catch (e: unknown) {
+        toast.error(e instanceof Error ? e.message : "Failed to unmark stage");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [
+      clientId,
+      current?.pipeline_id,
+      completedStageIds,
+      completionNotes,
+      stages,
+      syncCurrentStage,
+      load,
+      user?.id,
+    ],
+  );
 
-  const stepNumber = currentIdx >= 0 ? currentIdx + 1 : null;
+  const displayLabel = (stage: PipelineStage) => stage.client_label?.trim() || stage.label;
+
+  const stepNumber = deriveStepNumber(currentIdx, stages.length);
   const stepTotal = stages.length > 0 ? stages.length : (current?.total_stages ?? 0);
+
+  const isStageDone = useCallback(
+    (stageId: string) => completedStageIds.has(stageId),
+    [completedStageIds],
+  );
+
+  const isStageCurrent = useCallback(
+    (stageId: string) => stageId === derivedCurrentStageId,
+    [derivedCurrentStageId],
+  );
 
   return {
     current,
@@ -117,11 +282,16 @@ export function useClientStage(
     currentIdx,
     stepNumber,
     stepTotal,
-    canAdvance,
     load,
-    onChangeStage,
-    advance,
+    tickStage,
+    untickStage,
     displayLabel,
     hasPipeline: !!current?.pipeline_id,
+    completedStageIds,
+    completionNotes,
+    completionLog,
+    derivedCurrentStageId,
+    isStageDone,
+    isStageCurrent,
   };
 }
