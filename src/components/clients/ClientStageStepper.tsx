@@ -1,7 +1,6 @@
 import { useClientStage } from "@/hooks/useClientStage";
 import { StageJourneyBar } from "@/components/clients/StageJourneyBar";
 import { StageCheckboxPicker } from "@/components/clients/StageCheckboxPicker";
-import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitcher";
 import { OUTCOME_BADGE } from "@/lib/caseOutcomeStyles";
 import type { CaseOutcome } from "@/lib/clientServiceCase";
 import type { ReactNode } from "react";
@@ -16,8 +15,6 @@ type Props = {
   caseOutcome?: CaseOutcome | null;
   onStageChanged?: () => void;
   onServiceSwitched?: () => void;
-  /** When false, render nothing (non-visa active service). */
-  visible?: boolean;
 };
 
 export function ClientStageStepper({
@@ -29,8 +26,6 @@ export function ClientStageStepper({
   caseClosed,
   caseOutcome,
   onStageChanged,
-  onServiceSwitched,
-  visible = true,
 }: Props) {
   const {
     stages,
@@ -47,43 +42,33 @@ export function ClientStageStepper({
     completionNotes,
     isStageDone,
     isStageCurrent,
-  } = useClientStage(clientId, refreshKey, { caseId, caseClosed });
+  } = useClientStage(clientId, refreshKey, { clientCountry, caseId, caseClosed });
 
   const afterChange = async (fn: () => Promise<void>) => {
     await fn();
     onStageChanged?.();
   };
 
-  if (!visible || !hasPipeline) {
+  if (!hasPipeline) {
     return null;
   }
 
-  const pipelineTitle = activeServiceLabel?.trim() || "Visa application";
+  const pipelineTitle = activeServiceLabel?.trim() || "Application workflow";
 
-  const headerActions: ReactNode = (
-    <div className="flex flex-wrap items-center justify-end gap-2">
-      <ClientServiceSwitcher
-        clientId={clientId}
-        clientCountry={clientCountry}
-        onSwitched={onServiceSwitched}
-        visaOnly
-        variant="compact"
+  const headerActions: ReactNode =
+    canUpload && stages.length > 0 ? (
+      <StageCheckboxPicker
+        stages={stages}
+        completedStageIds={completedStageIds}
+        completionNotes={completionNotes}
+        displayLabel={displayLabel}
+        disabled={busy}
+        onTick={(id, note) => afterChange(() => tickStage(id, note))}
+        onUntick={(id) => afterChange(() => untickStage(id))}
+        onClearNote={(id) => afterChange(() => clearStageNote(id))}
+        triggerClassName="flex"
       />
-      {canUpload && stages.length > 0 && (
-        <StageCheckboxPicker
-          stages={stages}
-          completedStageIds={completedStageIds}
-          completionNotes={completionNotes}
-          displayLabel={displayLabel}
-          disabled={busy}
-          onTick={(id, note) => afterChange(() => tickStage(id, note))}
-          onUntick={(id) => afterChange(() => untickStage(id))}
-          onClearNote={(id) => afterChange(() => clearStageNote(id))}
-          triggerClassName="flex"
-        />
-      )}
-    </div>
-  );
+    ) : null;
 
   return (
     <div className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90">

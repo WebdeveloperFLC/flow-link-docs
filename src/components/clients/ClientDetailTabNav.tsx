@@ -7,6 +7,7 @@ import {
   FileText,
   ListTodo,
   Users,
+  GitBranch,
 } from "lucide-react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,7 @@ import { cn } from "@/lib/utils";
 export const CLIENT_DETAIL_TABS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "profile", label: "Profile", icon: UserCircle },
+  { id: "staging", label: "Staging", icon: GitBranch },
   { id: "documents", label: "Documents", icon: FolderOpen },
   { id: "forms", label: "Forms & Letters", icon: FileText },
   { id: "commercial", label: "Payments", icon: Receipt },
@@ -41,7 +43,7 @@ export function isClientDetailTabId(value: string | null): value is ClientDetail
 export function resolveClientDetailTab(value: string | null): ClientDetailTabId {
   if (!value) return "overview";
   if (value === "qualification") return "overview";
-  if (value === "setup") return "overview";
+  if (value === "setup") return "staging";
   if (value === "family" || value === "services" || value === "programs") return "profile";
   if (isClientDetailTabId(value)) return value;
   return "overview";

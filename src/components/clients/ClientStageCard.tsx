@@ -26,6 +26,7 @@ export function ClientStageCard({
   activeServiceLabel,
   caseId,
   caseClosed,
+  hideOutcomeActions = false,
 }: {
   clientId: string;
   clientCountry?: string | null;
@@ -33,6 +34,8 @@ export function ClientStageCard({
   activeServiceLabel?: string | null;
   caseId?: string | null;
   caseClosed?: boolean;
+  /** Hide refused / outcome buttons — use identity header actions instead. */
+  hideOutcomeActions?: boolean;
 }) {
   const { canUpload } = useAuth();
   const {
@@ -282,12 +285,12 @@ export function ClientStageCard({
               <Button size="sm" variant="secondary" className="h-8" onClick={onSaveSubStatus} disabled={metaBusy}>
                 Save
               </Button>
-              {!showRefusalActions && (
+              {!hideOutcomeActions && !showRefusalActions && (
                 <Button size="sm" variant="outline" className="h-8 gap-1" onClick={onMarkRefused} disabled={metaBusy}>
                   <AlertTriangle className="size-3.5" /> Mark refused
                 </Button>
               )}
-              {showRefusalActions && (
+              {!hideOutcomeActions && showRefusalActions && (
                 <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => setRefusalOpen(true)} disabled={metaBusy}>
                   <AlertTriangle className="size-3.5" /> Refusal workflow
                 </Button>

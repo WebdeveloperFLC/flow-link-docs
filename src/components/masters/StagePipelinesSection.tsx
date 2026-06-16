@@ -15,9 +15,25 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Plus, Pencil, Trash2, ArrowUp, ArrowDown, Workflow } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical, Workflow } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { cn } from "@/lib/utils";
 
 interface Pipeline {
   id: string;
@@ -66,14 +82,24 @@ export function StagePipelinesSection() {
     (acc[p.country] ??= []).push(p); return acc;
   }, {});
 
-  const onMoveStage = async (stage: Stage, dir: -1 | 1) => {
-    const list = stagesByPipeline[stage.pipeline_id] ?? [];
-    const idx = list.findIndex((s) => s.id === stage.id);
-    const swap = list[idx + dir];
-    if (!swap) return;
-    await supabase.from("pipeline_stages").update({ sort_order: swap.sort_order }).eq("id", stage.id);
-    await supabase.from("pipeline_stages").update({ sort_order: stage.sort_order }).eq("id", swap.id);
-    await load();
+  const onReorderStages = async (pipelineId: string, oldIndex: number, newIndex: number) => {
+    const list = [...(stagesByPipeline[pipelineId] ?? [])];
+    if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) return;
+    const reordered = arrayMove(list, oldIndex, newIndex);
+    const withOrder = reordered.map((s, i) => ({ ...s, sort_order: (i + 1) * 10 }));
+    setStagesByPipeline((prev) => ({ ...prev, [pipelineId]: withOrder }));
+    try {
+      const results = await Promise.all(
+        withOrder.map((s) =>
+          supabase.from("pipeline_stages").update({ sort_order: s.sort_order }).eq("id", s.id),
+        ),
+      );
+      const failed = results.find((r) => r.error);
+      if (failed?.error) throw failed.error;
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not reorder stages");
+      await load();
+    }
   };
 
   const onDeleteStage = async (stage: Stage) => {
@@ -184,57 +210,20 @@ export function StagePipelinesSection() {
                       {stages.length === 0 && (
                         <div className="text-xs text-muted-foreground py-2">No stages yet.</div>
                       )}
-                      {stages.map((s, i) => (
-                        <div
-                          key={s.id}
-                          className={`flex items-center gap-2 text-sm border rounded-md px-3 py-1.5 ${
-                            s.is_client_visible ? "" : "opacity-60"
-                          }`}
-                        >
-                          {isAdmin && (
-                            <div className="flex gap-0.5">
-                              <Button size="icon" variant="ghost" className="size-6" disabled={i === 0}
-                                onClick={() => onMoveStage(s, -1)}><ArrowUp className="size-3" /></Button>
-                              <Button size="icon" variant="ghost" className="size-6" disabled={i === stages.length - 1}
-                                onClick={() => onMoveStage(s, 1)}><ArrowDown className="size-3" /></Button>
-                            </div>
-                          )}
-                          <span className="inline-block size-3 rounded-full border" style={{ background: s.color ?? "#6366f1" }} />
-                          <span className="font-medium min-w-[140px]">{s.label}</span>
-                          <span className="font-mono text-xs text-muted-foreground min-w-[100px]">{s.key}</span>
-                          <Input
-                            defaultValue={s.client_label ?? ""}
-                            placeholder="Same as internal label"
-                            disabled={!isAdmin}
-                            onBlur={(e) => onChangeClientLabel(s, e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-                            }}
-                            className="h-7 text-xs flex-1 min-w-[140px]"
-                          />
-                          {s.notify_client && <span className="text-[10px] uppercase tracking-wider text-primary">notify</span>}
-                          <div className="flex items-center gap-1.5">
-                            <Switch
-                              checked={s.is_client_visible}
-                              onCheckedChange={(v) => onToggleClientVisible(s, v)}
-                              disabled={!isAdmin}
-                            />
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">client</span>
-                          </div>
-                          {isAdmin && (
-                            <div className="flex gap-1">
-                              <Button size="icon" variant="ghost" className="size-7"
-                                onClick={() => { setEditingStage(s); setStageDialogPipelineId(p.id); setStageDialogOpen(true); }}>
-                                <Pencil className="size-3.5" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="size-7 text-destructive"
-                                onClick={() => onDeleteStage(s)}>
-                                <Trash2 className="size-3.5" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                      <PipelineStagesList
+                        pipelineId={p.id}
+                        stages={stages}
+                        isAdmin={isAdmin}
+                        onReorder={onReorderStages}
+                        onToggleClientVisible={onToggleClientVisible}
+                        onChangeClientLabel={onChangeClientLabel}
+                        onEdit={(s) => {
+                          setEditingStage(s);
+                          setStageDialogPipelineId(p.id);
+                          setStageDialogOpen(true);
+                        }}
+                        onDelete={onDeleteStage}
+                      />
                       {isAdmin && (
                         <Button size="sm" variant="outline"
                           onClick={() => { setEditingStage(null); setStageDialogPipelineId(p.id); setStageDialogOpen(true); }}>
@@ -270,6 +259,147 @@ export function StagePipelinesSection() {
         onSaved={load}
       />
     </div>
+  );
+}
+
+function SortableStageRow({
+  stage,
+  isAdmin,
+  onToggleClientVisible,
+  onChangeClientLabel,
+  onEdit,
+  onDelete,
+}: {
+  stage: Stage;
+  isAdmin: boolean;
+  onToggleClientVisible: (stage: Stage, next: boolean) => void;
+  onChangeClientLabel: (stage: Stage, value: string) => void;
+  onEdit: (stage: Stage) => void;
+  onDelete: (stage: Stage) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: stage.id,
+    disabled: !isAdmin,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "flex items-center gap-2 text-sm border rounded-md px-3 py-1.5 bg-card",
+        stage.is_client_visible ? "" : "opacity-60",
+        isDragging && "opacity-80 shadow-md z-10",
+      )}
+    >
+      {isAdmin ? (
+        <button
+          type="button"
+          className="touch-none text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
+          aria-label="Drag to reorder"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="size-4" />
+        </button>
+      ) : (
+        <span className="size-4" />
+      )}
+      <span className="inline-block size-3 rounded-full border shrink-0" style={{ background: stage.color ?? "#6366f1" }} />
+      <span className="font-medium min-w-[140px]">{stage.label}</span>
+      <span className="font-mono text-xs text-muted-foreground min-w-[100px]">{stage.key}</span>
+      <Input
+        defaultValue={stage.client_label ?? ""}
+        placeholder="Same as internal label"
+        disabled={!isAdmin}
+        onBlur={(e) => onChangeClientLabel(stage, e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+        }}
+        className="h-7 text-xs flex-1 min-w-[140px]"
+      />
+      {stage.notify_client && (
+        <span className="text-[10px] uppercase tracking-wider text-primary shrink-0">notify</span>
+      )}
+      <div className="flex items-center gap-1.5 shrink-0">
+        <Switch
+          checked={stage.is_client_visible}
+          onCheckedChange={(v) => onToggleClientVisible(stage, v)}
+          disabled={!isAdmin}
+        />
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">client</span>
+      </div>
+      {isAdmin && (
+        <div className="flex gap-1 shrink-0">
+          <Button size="icon" variant="ghost" className="size-7" onClick={() => onEdit(stage)}>
+            <Pencil className="size-3.5" />
+          </Button>
+          <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => onDelete(stage)}>
+            <Trash2 className="size-3.5" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PipelineStagesList({
+  pipelineId,
+  stages,
+  isAdmin,
+  onReorder,
+  onToggleClientVisible,
+  onChangeClientLabel,
+  onEdit,
+  onDelete,
+}: {
+  pipelineId: string;
+  stages: Stage[];
+  isAdmin: boolean;
+  onReorder: (pipelineId: string, oldIndex: number, newIndex: number) => void;
+  onToggleClientVisible: (stage: Stage, next: boolean) => void;
+  onChangeClientLabel: (stage: Stage, value: string) => void;
+  onEdit: (stage: Stage) => void;
+  onDelete: (stage: Stage) => void;
+}) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+  );
+
+  const onDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = stages.findIndex((s) => s.id === active.id);
+    const newIndex = stages.findIndex((s) => s.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    void onReorder(pipelineId, oldIndex, newIndex);
+  };
+
+  if (stages.length === 0) return null;
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+      <SortableContext items={stages.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+        <div className="space-y-2">
+          {stages.map((s) => (
+            <SortableStageRow
+              key={s.id}
+              stage={s}
+              isAdmin={isAdmin}
+              onToggleClientVisible={onToggleClientVisible}
+              onChangeClientLabel={onChangeClientLabel}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 }
 

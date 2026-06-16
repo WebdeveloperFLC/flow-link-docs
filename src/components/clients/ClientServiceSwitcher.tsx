@@ -10,6 +10,11 @@ import {
   switchClientActiveService,
   type ClientServiceEntry,
 } from "@/lib/clientActiveService";
+import {
+  collectUnresolvedLibraryIds,
+  fetchServiceLibraryLabels,
+  isUuidServiceCode,
+} from "@/lib/service-library/resolveServiceLabel";
 import { useServiceLabelMap } from "@/lib/service-library/useServiceLabelMap";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
@@ -43,6 +48,7 @@ export function ClientServiceSwitcher({
   const [services, setServices] = useState<ClientServiceEntry[]>([]);
   const [serviceCodes, setServiceCodes] = useState<string[]>([]);
   const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
+  const [prefetchedLabels, setPrefetchedLabels] = useState<Record<string, string>>({});
   const [activeCode, setActiveCode] = useState<string | null>(params.get("service"));
   const [loading, setLoading] = useState(true);
   const [switching, setSwitching] = useState<string | null>(null);
@@ -64,7 +70,13 @@ export function ClientServiceSwitcher({
 
       const codes = collectClientServices(clientRes.data ?? {});
       setServiceCodes(codes);
-      const entries = buildClientServiceEntries(codes, cat);
+
+      const missing = collectUnresolvedLibraryIds(codes, cat);
+      const labelMap =
+        missing.length > 0 ? await fetchServiceLibraryLabels(missing).catch(() => new Map<string, string>()) : new Map<string, string>();
+      setPrefetchedLabels(Object.fromEntries(labelMap));
+
+      const entries = buildClientServiceEntries(codes, cat, labelMap);
       setServices(entries);
 
       const visaEntries = entries.filter((e) => e.category === "visa");
@@ -120,10 +132,26 @@ export function ClientServiceSwitcher({
   }, [load]);
 
   const labelMap = useServiceLabelMap(serviceCodes, catalogue);
+  const mergedLabelMap = useMemo(() => {
+    const map = new Map(labelMap);
+    for (const [id, label] of Object.entries(prefetchedLabels)) {
+      if (label) map.set(id, label);
+    }
+    return map;
+  }, [labelMap, prefetchedLabels]);
+
   const displayServices = useMemo(() => {
-    const mapped = services.map((s) => ({ ...s, label: labelMap.get(s.code) ?? s.label }));
+    const mapped = services.map((s) => {
+      const label = mergedLabelMap.get(s.code) ?? s.label;
+      const labelPending = isUuidServiceCode(s.code) && label.trim() === s.code.trim();
+      return {
+        ...s,
+        label: labelPending ? "Loading…" : label,
+        labelPending,
+      };
+    });
     return visaOnly ? mapped.filter((s) => s.category === "visa") : mapped;
-  }, [services, labelMap, visaOnly]);
+  }, [services, mergedLabelMap, visaOnly]);
 
   const showSwitcher = displayServices.length > 1;
 
@@ -215,7 +243,8 @@ export function ClientServiceSwitcher({
   if (!showSwitcher) return null;
 
   return (
-    <div className="rounded-xl border bg-card p-2 shadow-elev-sm">
+    <div className="px-4 sm:px-8 pt-3 border-b bg-muted/20">
+      <div className="rounded-xl border bg-card p-2 shadow-elev-sm">
       <div className="px-2 pt-1 pb-2">
         <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Active application
@@ -243,10 +272,19 @@ export function ClientServiceSwitcher({
               )}
             >
               {busy && <Loader2 className="size-3.5 shrink-0 animate-spin" />}
-              <span className="truncate">{s.label}</span>
+              <span className="truncate">
+                {s.labelPending ? (
+                  <span className="inline-flex items-center gap-1 text-muted-foreground">
+                    <Loader2 className="size-3 animate-spin" /> Loading…
+                  </span>
+                ) : (
+                  s.label
+                )}
+              </span>
             </button>
           );
         })}
+      </div>
       </div>
     </div>
   );

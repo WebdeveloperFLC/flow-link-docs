@@ -79,15 +79,13 @@ import { ClientVoiceNotesCard } from "@/components/clients/ClientVoiceNotesCard"
 import { AiSummaryPanel } from "@/components/clients/AiSummaryPanel";
 import { PersonWorkspaceCard } from "@/components/clients/PersonWorkspaceCard";
 import { ContextBackBar } from "@/components/navigation/ContextBackBar";
-import { isVisaServiceCode } from "@/lib/clientActiveService";
-import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
-import {
-  parseLibraryIdFromServiceCode,
-} from "@/lib/service-library/serviceCodes";
+import { parseLibraryIdFromServiceCode } from "@/lib/service-library/serviceCodes";
 import { fetchWorkflowTemplatesForService } from "@/lib/service-library/matchWorkflowTemplate";
 import { useActiveServiceContext } from "@/lib/clientActiveServiceContext";
 import { ClientIdentityHeader } from "@/components/clients/ClientIdentityHeader";
 import { ClientStageStepper } from "@/components/clients/ClientStageStepper";
+import { ClientStageCard } from "@/components/clients/ClientStageCard";
+import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitcher";
 import { ClientOverviewDashboard } from "@/components/clients/ClientOverviewDashboard";
 import { CaseOutcomeDialog } from "@/components/clients/CaseOutcomeDialog";
 import { useActiveServiceCase } from "@/hooks/useActiveServiceCase";
@@ -217,11 +215,6 @@ const ClientDetail = () => {
     "approved" | "refused" | "reapply" | null
   >(null);
   const [pendingAppointmentCount, setPendingAppointmentCount] = useState(0);
-  const [serviceCatalogue, setServiceCatalogue] = useState<ServiceCatalogueItem[]>([]);
-
-  useEffect(() => {
-    fetchAllServiceCatalogue().then(setServiceCatalogue).catch(() => setServiceCatalogue([]));
-  }, []);
 
   // Critical fetch — only what's needed for the first paint above the fold
   // (client + template + active documents + sections). Runs in parallel.
@@ -333,15 +326,6 @@ const ClientDetail = () => {
 
   const serviceCtx = useActiveServiceContext(client, searchParams);
 
-  const showVisaStaging = useMemo(() => {
-    if (!client) return false;
-    const visas = client.visa_services ?? [];
-    if (visas.length === 0) return false;
-    const code = serviceCtx.activeServiceCode;
-    if (!code) return true;
-    if (visas.includes(code)) return true;
-    return isVisaServiceCode(code, serviceCatalogue);
-  }, [client, serviceCtx.activeServiceCode, serviceCatalogue]);
   const {
     serviceCase,
     allCases,
@@ -1161,6 +1145,11 @@ const ClientDetail = () => {
       />
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ClientDetailTabId)}>
+        <ClientServiceSwitcher
+          clientId={client.id}
+          clientCountry={client.country}
+          onSwitched={onServiceSwitched}
+        />
         <ClientStageStepper
           clientId={client.id}
           clientCountry={client.country}
@@ -1171,7 +1160,6 @@ const ClientDetail = () => {
           caseOutcome={serviceCase?.outcome}
           onStageChanged={() => setStageRefreshKey((k) => k + 1)}
           onServiceSwitched={onServiceSwitched}
-          visible={showVisaStaging}
         />
         <ClientDetailTabNav badges={{ documents: requiredMissing.length, communications: pendingAppointmentCount }} />
 
@@ -1210,6 +1198,19 @@ const ClientDetail = () => {
             <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
             <ClientServicesCard clientId={client.id} canEdit={canUpload} />
             <ClientProgramsCard clientId={client.id} canEdit={canUpload} />
+          </TabsContent>
+
+          <TabsContent value="staging" className="mt-0 space-y-6">
+            <ClientStageCard
+              key={stageRefreshKey}
+              clientId={client.id}
+              clientCountry={client.country}
+              destinationCountry={serviceCtx.destinationCountry}
+              activeServiceLabel={serviceCtx.serviceLabel}
+              caseId={serviceCase?.id}
+              caseClosed={caseClosed}
+              hideOutcomeActions
+            />
           </TabsContent>
 
           <TabsContent value="commercial" className="mt-0 space-y-6">
