@@ -13,10 +13,9 @@ import { toast } from "sonner";
 import { Loader2, Pencil, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  isActiveApplicationInProgress,
-  serviceRemovalBlockedMessage,
-  type PipelineProgressSnapshot,
-} from "@/lib/clientServiceGuards";
+  isServiceRemovalRestricted,
+} from "@/lib/clientProcessPolicy";
+import type { PipelineProgressSnapshot } from "@/lib/clientServiceGuards";
 
 const EMPTY: ServiceSelection = {
   coaching_services: [],
@@ -195,10 +194,7 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
     [selection],
   );
 
-  const removalLocked = isActiveApplicationInProgress(pipelineProgress);
-  const removalLockMessage = pipelineProgress
-    ? serviceRemovalBlockedMessage(pipelineProgress)
-    : undefined;
+  const removalLocked = isServiceRemovalRestricted(pipelineProgress);
 
   const startEdit = () => {
     setDraft(selection);
@@ -211,7 +207,7 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
       !isAdmin &&
       totalServiceCount(next) < totalServiceCount(draft)
     ) {
-      toast.error(removalLockMessage ?? "Cannot remove services while the application is in progress.");
+      toast.error("Cannot remove services while the application is in progress.");
       return;
     }
     setDraft(next);
@@ -223,7 +219,7 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
       !isAdmin &&
       totalServiceCount(draft) < totalServiceCount(selection)
     ) {
-      toast.error(removalLockMessage ?? "Cannot remove services while the application is in progress.");
+      toast.error("Cannot remove services while the application is in progress.");
       return;
     }
     if (
@@ -349,13 +345,18 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
             labelByCode={draftLabelMap}
             onChange={setDraftGuarded}
             removalLocked={removalLocked}
-            removalLockMessage={removalLockMessage}
-            isAdmin={isAdmin}
           />
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground pt-1">
             Add services
           </div>
-          <ServiceTabs value={draft} onChange={setDraftGuarded} visaLocked={false} layout="inline" />
+          <ServiceTabs
+            value={draft}
+            onChange={setDraftGuarded}
+            visaLocked={false}
+            layout="inline"
+            externalSelectedSummary
+            catalogue={catalogue}
+          />
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
             <Button onClick={save} disabled={saving}>

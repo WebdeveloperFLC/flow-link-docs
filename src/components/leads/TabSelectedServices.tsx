@@ -1,6 +1,9 @@
-import { useMemo } from "react";
 import type { ServiceCatalogueItem } from "@/lib/leads";
-import { catalogueItemCode } from "@/lib/service-library/serviceSelectionMatch";
+import { useServiceLabelMap } from "@/lib/service-library/useServiceLabelMap";
+import {
+  codesForTabSelection,
+  serviceSelectionForTab,
+} from "@/lib/service-library/serviceSelectionSummary";
 import { SelectedServicesPanel } from "@/components/clients/SelectedServicesPanel";
 import type { ServiceSelection } from "@/components/leads/ServiceTabs";
 import {
@@ -19,43 +22,9 @@ export function TabSelectedServices({
   catalogue: ServiceCatalogueItem[];
   onChange: (v: ServiceSelection) => void;
 }) {
-  const labelByCode = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const item of catalogue) {
-      m.set(catalogueItemCode(item), item.service_name);
-    }
-    return m;
-  }, [catalogue]);
-
-  const tabValue = useMemo((): ServiceSelection => {
-    if (tabKey === "all") return value;
-    if (tabKey === "coaching_services") {
-      return {
-        coaching_services: value.coaching_services ?? [],
-        visa_services: [],
-        admission_services: [],
-        allied_services: [],
-        travel_services: [],
-      };
-    }
-    if (tabKey === "visa_services") {
-      return {
-        coaching_services: [],
-        visa_services: value.visa_services ?? [],
-        admission_services: [],
-        allied_services: [],
-        travel_services: [],
-      };
-    }
-    return {
-      coaching_services: [],
-      visa_services: [],
-      admission_services: value.admission_services ?? [],
-      allied_services: value.allied_services ?? [],
-      travel_services: value.travel_services ?? [],
-    };
-  }, [tabKey, value]);
-
+  const codes = codesForTabSelection(tabKey, value);
+  const labelByCode = useServiceLabelMap(codes, catalogue);
+  const tabValue = serviceSelectionForTab(tabKey, value);
   const count = tabSelectionCount(tabKey, value);
 
   if (count === 0) return null;

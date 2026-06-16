@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import type { ServiceSelection } from "@/components/leads/ServiceTabs";
 import type { ServiceCatalogueItem } from "@/lib/leads";
 import { removeStoredServiceCode } from "@/lib/service-library/serviceSelectionMatch";
+import { isUuidServiceCode } from "@/lib/service-library/resolveServiceLabel";
 
 const GROUPS: { key: keyof ServiceSelection; label: string }[] = [
   { key: "visa_services", label: "Visa & Immigration" },
@@ -31,12 +32,16 @@ export function SelectedServicesPanel({
   isAdmin?: boolean;
 }) {
   const entries = GROUPS.flatMap(({ key, label }) =>
-    (value[key] ?? []).map((code) => ({
-      key,
-      groupLabel: label,
-      code,
-      name: labelByCode.get(code) ?? code,
-    })),
+    (value[key] ?? []).map((code) => {
+      const resolved = labelByCode.get(code) ?? code;
+      const loading = resolved === code && isUuidServiceCode(code);
+      return {
+        key,
+        groupLabel: label,
+        code,
+        name: loading ? "Loading…" : resolved,
+      };
+    }),
   );
 
   if (entries.length === 0) return null;

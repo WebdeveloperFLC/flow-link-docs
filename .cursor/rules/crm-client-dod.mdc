@@ -1,0 +1,45 @@
+---
+description: CRM client journey Definition of Done — service labels, selection UI, payment policy
+globs:
+  - src/components/clients/**
+  - src/components/leads/ServiceTabs.tsx
+  - src/components/leads/TabSelectedServices.tsx
+  - src/lib/service-library/**
+  - src/lib/clientProcessPolicy.ts
+  - src/lib/clientServiceGuards.ts
+alwaysApply: false
+---
+
+# CRM client journey — ship checklist
+
+Before shipping CRM client/service/staging changes:
+
+## 1. Service labels
+
+- Display stored codes with `useServiceLabelMap` or `resolveServiceLabelSync` — never `catalogueItemCode → service_name` only.
+- Variant UUID codes (`uuid::Country::variant`) must show human names, not raw codes.
+
+## 2. Service selection UI
+
+- **Edit client services** (`ClientServicesCard`): one `SelectedServicesPanel` at top; `ServiceTabs` with `layout="inline"` + `externalSelectedSummary`.
+- Do not render duplicate "Currently selected" via `TabSelectedServices` on the All tab when parent already shows the panel.
+
+## 3. Payment policy
+
+- Outstanding invoices **never** block stages, service add/remove, enrollment, or portal access.
+- Reminders (daily/weekly) are fine; hard stops are not.
+- Use `isServiceRemovalRestricted` from `clientProcessPolicy.ts` — must return `false`.
+
+## 4. Tests (required)
+
+```bash
+npm run test:crm
+```
+
+Includes: `CRM-R-001`, `CRM-R-002`, `CRM-R-003`, `resolveServiceLabel.test.ts`, `serviceSelectionSummary.test.ts`, `ClientDetailTabNav.test.ts`.
+
+## 5. Manual UAT paths
+
+1. Client → Profile → Edit services: single "Currently selected", human service names.
+2. Lead form / registration: compact tabs still show per-tab summary where expected.
+3. Client with outstanding invoice: can advance stages and edit services freely.

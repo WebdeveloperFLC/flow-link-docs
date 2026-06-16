@@ -22,6 +22,7 @@ import {
   catalogueItemCode,
   toggleServiceSelectionCodes,
 } from "@/lib/service-library/serviceSelectionMatch";
+import { shouldShowTabSelectedSummary } from "@/lib/service-library/serviceSelectionSummary";
 
 export interface ServiceSelection {
   coaching_services: string[];
@@ -40,6 +41,8 @@ export const ServiceTabs = ({
   onCommit,
   interestedCountries,
   layout = "compact",
+  externalSelectedSummary = false,
+  catalogue: catalogueProp,
 }: {
   value: ServiceSelection;
   onChange: (v: ServiceSelection) => void;
@@ -47,16 +50,24 @@ export const ServiceTabs = ({
   onCommit?: (key: keyof ServiceSelection, list: string[]) => void;
   interestedCountries?: string[];
   layout?: ServiceTabsLayout;
+  /** Parent already renders SelectedServicesPanel — skip duplicate on All tab (inline edit dialog). */
+  externalSelectedSummary?: boolean;
+  /** Optional shared catalogue (avoids duplicate fetch in edit dialog). */
+  catalogue?: ServiceCatalogueItem[];
 }) => {
-  const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
+  const [catalogueFetched, setCatalogueFetched] = useState<ServiceCatalogueItem[]>([]);
   const [visaCountry, setVisaCountry] = useState<string>("ALL");
   const [feeCurrency, setFeeCurrency] = useState<FeeCurrency>("INR");
   const [openNote, setOpenNote] = useState<string | null>(null);
   const [pickerTab, setPickerTab] = useState<Exclude<ServiceTabKey, "all"> | null>(null);
 
   useEffect(() => {
-    fetchAllServiceCatalogue().then(setCatalogue).catch(() => setCatalogue([]));
-  }, []);
+    if (catalogueProp) return;
+    fetchAllServiceCatalogue().then(setCatalogueFetched).catch(() => setCatalogueFetched([]));
+  }, [catalogueProp]);
+
+  const catalogue = catalogueProp ?? catalogueFetched;
+  const showTabSummary = shouldShowTabSelectedSummary(layout, externalSelectedSummary);
 
   const byKey = useMemo(() => {
     const m: Record<string, ServiceCatalogueItem[]> = {};
@@ -149,12 +160,14 @@ export const ServiceTabs = ({
         </TabsList>
 
         <TabsContent value="all" className="space-y-3">
-          <TabSelectedServices
-            tabKey="all"
-            value={value}
-            catalogue={catalogue}
-            onChange={onChange}
-          />
+          {showTabSummary && (
+            <TabSelectedServices
+              tabKey="all"
+              value={value}
+              catalogue={catalogue}
+              onChange={onChange}
+            />
+          )}
           {layout === "compact" && totalCount === 0 && (
             <p className="text-sm text-muted-foreground">
               No services selected yet. Switch to a category tab to add services.
