@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  fetchAllPipelineStages,
+  groupPipelineStagesByPipelineId,
+  nextPipelineStageSortOrder,
+  type PipelineStageRow,
+} from "@/lib/stagePipelines";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,17 +27,7 @@ interface Pipeline {
   is_active: boolean;
 }
 
-interface Stage {
-  id: string;
-  pipeline_id: string;
-  key: string;
-  label: string;
-  sort_order: number;
-  color: string | null;
-  notify_client: boolean;
-  is_client_visible: boolean;
-  client_label: string | null;
-}
+type Stage = PipelineStageRow;
 
 const slugify = (s: string) =>
   s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 60);
@@ -49,17 +45,19 @@ export function StagePipelinesSection() {
 
   const load = async () => {
     setLoading(true);
-    const [p, s] = await Promise.all([
-      supabase.from("stage_pipelines").select("*").order("country").order("name"),
-      supabase.from("pipeline_stages").select("*").order("sort_order"),
-    ]);
-    setPipelines((p.data ?? []) as Pipeline[]);
-    const grouped: Record<string, Stage[]> = {};
-    for (const st of (s.data ?? []) as Stage[]) {
-      (grouped[st.pipeline_id] ??= []).push(st);
+    try {
+      const [p, stages] = await Promise.all([
+        supabase.from("stage_pipelines").select("*").order("country").order("name"),
+        fetchAllPipelineStages(),
+      ]);
+      if (p.error) throw p.error;
+      setPipelines((p.data ?? []) as Pipeline[]);
+      setStagesByPipeline(groupPipelineStagesByPipelineId(stages));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to load stage pipelines");
+    } finally {
+      setLoading(false);
     }
-    setStagesByPipeline(grouped);
-    setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
@@ -263,7 +261,11 @@ export function StagePipelinesSection() {
         onOpenChange={setStageDialogOpen}
         pipelineId={stageDialogPipelineId}
         stage={editingStage}
-        nextSortOrder={(stageDialogPipelineId && (stagesByPipeline[stageDialogPipelineId]?.length ?? 0) * 10 + 10) || 10}
+        nextSortOrder={
+          stageDialogPipelineId
+            ? nextPipelineStageSortOrder(stagesByPipeline[stageDialogPipelineId] ?? [])
+            : 10
+        }
         existingKeys={(stageDialogPipelineId && stagesByPipeline[stageDialogPipelineId]?.map((s) => s.key)) || []}
         onSaved={load}
       />
@@ -381,7 +383,10 @@ function StageDialog({
   const onSubmit = async () => {
     if (!pipelineId) return;
     if (!label.trim() || !key.trim()) { toast.error("Label and key are required"); return; }
-    if (keyConflict) { toast.error("Key already used in this pipeline"); return; }
+    if (keyConflict) {
+      toast.error("Key already used in this pipeline — refresh the page if you do not see it listed.");
+      return;
+    }
     setBusy(true);
     try {
       if (stage) {
@@ -394,13 +399,31 @@ function StageDialog({
           pipeline_id: pipelineId, label: label.trim(), key: key.trim(),
           color, notify_client: notify, sort_order: nextSortOrder,
         });
-        if (error) throw error;
+        if (error) {
+          if (/duplicate key|unique/i.test(error.message)) {
+            const { data: existing } = await supabase
+              .from("pipeline_stages")
+              .select("id, label, key")
+              .eq("pipeline_id", pipelineId)
+              .eq("key", key.trim())
+              .maybeSingle();
+            if (existing) {
+              toast.error(
+                `Stage "${existing.label}" (${existing.key}) already exists — refreshing list.`,
+              );
+              onOpenChange(false);
+              onSaved();
+              return;
+            }
+          }
+          throw error;
+        }
       }
       toast.success(stage ? "Stage updated" : "Stage added");
       onOpenChange(false);
       onSaved();
-    } catch (e: any) {
-      toast.error(e?.message ?? "Save failed");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
     } finally { setBusy(false); }
   };
 

@@ -1,6 +1,60 @@
 import { supabase } from "@/integrations/supabase/client";
 import { LIBRARY_PIPELINE_SEED_SLUG } from "@/lib/stagePipelineLibrarySlug";
 
+const PIPELINE_STAGES_PAGE = 1000;
+
+export type PipelineStageRow = {
+  id: string;
+  pipeline_id: string;
+  key: string;
+  label: string;
+  sort_order: number;
+  color: string | null;
+  notify_client: boolean;
+  is_client_visible: boolean;
+  client_label: string | null;
+};
+
+/** PostgREST caps at ~1000 rows — paginate so Masters shows every stage. */
+export async function fetchAllPipelineStages(): Promise<PipelineStageRow[]> {
+  const rows: PipelineStageRow[] = [];
+  let from = 0;
+
+  for (;;) {
+    const to = from + PIPELINE_STAGES_PAGE - 1;
+    const { data, error } = await supabase
+      .from("pipeline_stages")
+      .select(
+        "id, pipeline_id, key, label, sort_order, color, notify_client, is_client_visible, client_label",
+      )
+      .order("pipeline_id", { ascending: true })
+      .order("sort_order", { ascending: true })
+      .range(from, to);
+    if (error) throw error;
+    const batch = (data ?? []) as PipelineStageRow[];
+    rows.push(...batch);
+    if (batch.length < PIPELINE_STAGES_PAGE) break;
+    from += PIPELINE_STAGES_PAGE;
+  }
+
+  return rows;
+}
+
+export function groupPipelineStagesByPipelineId(
+  stages: PipelineStageRow[],
+): Record<string, PipelineStageRow[]> {
+  const grouped: Record<string, PipelineStageRow[]> = {};
+  for (const st of stages) {
+    (grouped[st.pipeline_id] ??= []).push(st);
+  }
+  return grouped;
+}
+
+export function nextPipelineStageSortOrder(stages: PipelineStageRow[]): number {
+  if (!stages.length) return 10;
+  return Math.max(...stages.map((s) => s.sort_order)) + 10;
+}
+
 const norm = (s: string) => s.trim().toLowerCase();
 
 /** Generic words that cause false ties (e.g. PGWP vs BOWP both match "work permit"). */
