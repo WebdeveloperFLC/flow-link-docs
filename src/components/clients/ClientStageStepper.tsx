@@ -2,6 +2,8 @@ import { Workflow } from "lucide-react";
 import { useClientStage } from "@/hooks/useClientStage";
 import { StageJourneyBar } from "@/components/clients/StageJourneyBar";
 import { StageCheckboxPicker } from "@/components/clients/StageCheckboxPicker";
+import { OUTCOME_BADGE } from "@/lib/caseOutcomeStyles";
+import type { CaseOutcome } from "@/lib/clientServiceCase";
 
 type Props = {
   clientId: string;
@@ -9,7 +11,7 @@ type Props = {
   activeServiceLabel?: string | null;
   caseId?: string | null;
   caseClosed?: boolean;
-  caseOutcome?: string | null;
+  caseOutcome?: CaseOutcome | null;
   onStageChanged?: () => void;
 };
 
@@ -60,9 +62,21 @@ export function ClientStageStepper({
   return (
     <div className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90">
       {caseClosed && (
-        <div className="px-4 sm:px-8 py-1.5 text-xs bg-muted/50 border-b text-muted-foreground flex flex-wrap gap-x-3">
+        <div
+          className={`px-4 sm:px-8 py-1.5 text-xs border-b flex flex-wrap gap-x-3 font-medium ${
+            caseOutcome && OUTCOME_BADGE[caseOutcome]
+              ? OUTCOME_BADGE[caseOutcome].className
+              : "bg-muted/50 text-muted-foreground"
+          }`}
+        >
           <span>
-            Case closed{caseOutcome ? ` — ${caseOutcome}` : ""}. Journey is read-only.
+            Case closed
+            {caseOutcome && OUTCOME_BADGE[caseOutcome]
+              ? ` — ${OUTCOME_BADGE[caseOutcome].label}`
+              : caseOutcome
+                ? ` — ${caseOutcome}`
+                : ""}
+            . Journey is read-only.
           </span>
         </div>
       )}

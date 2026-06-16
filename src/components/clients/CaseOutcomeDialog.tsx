@@ -30,6 +30,7 @@ import {
   listTransferableDocuments,
   type ReapplyTransferOptions,
 } from "@/lib/caseReapplication";
+import { OUTCOME_PICKER } from "@/lib/caseOutcomeStyles";
 
 type OutcomeChoice = "approved" | "refused" | "reapply" | null;
 
@@ -39,6 +40,7 @@ type Props = {
   clientId: string;
   serviceCase: ClientServiceCase | null;
   serviceLabel?: string | null;
+  initialChoice?: OutcomeChoice;
   onComplete: () => void;
 };
 
@@ -48,6 +50,7 @@ export function CaseOutcomeDialog({
   clientId,
   serviceCase,
   serviceLabel,
+  initialChoice = null,
   onComplete,
 }: Props) {
   const { user } = useAuth();
@@ -71,12 +74,16 @@ export function CaseOutcomeDialog({
       setRefusalDeferred(false);
       setOriginalOutcome("refused");
       setTargetServiceId("");
+      setTargetCountry("");
       setTransfer(null);
       return;
     }
+    if (initialChoice) {
+      setChoice(initialChoice);
+    }
     void fetchAllServiceCatalogue().then(setCatalogue).catch(() => setCatalogue([]));
     void listTransferableDocuments(clientId).then(setTransferDocs);
-  }, [open, clientId]);
+  }, [open, clientId, initialChoice]);
 
   const targetItem = useMemo(
     () => catalogue.find((c) => c.id === targetServiceId) ?? null,
@@ -124,6 +131,15 @@ export function CaseOutcomeDialog({
       setTargetCountry(parts[1]?.trim() ?? countries[0] ?? "");
     }
   }, [open, serviceCase, targetCountry, countries]);
+
+  useEffect(() => {
+    if (!open || choice !== "reapply" || !serviceCase || targetServiceId || catalogue.length === 0) return;
+    const match = catalogue.find((c) => {
+      const code = buildServiceCode(c.library_id ?? c.id, c.country_tag);
+      return code.toLowerCase() === serviceCase.serviceCode.toLowerCase();
+    });
+    if (match) setTargetServiceId(match.id);
+  }, [open, choice, serviceCase, catalogue, targetServiceId]);
 
   const confirmApproved = async () => {
     if (!serviceCase || !approvalFile) return;
@@ -219,34 +235,51 @@ export function CaseOutcomeDialog({
   };
 
   const title = serviceLabel ?? serviceCase?.serviceCode ?? "Case";
+  const caseAlreadyClosed = serviceCase?.status === "closed";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Case outcome — {title}</DialogTitle>
+          <DialogTitle>
+            {choice === "reapply" || initialChoice === "reapply"
+              ? `Reapply — ${title}`
+              : `Case outcome — ${title}`}
+          </DialogTitle>
         </DialogHeader>
 
         {!choice && (
           <div className="grid gap-2 py-2">
-            <Button variant="outline" className="justify-start h-auto py-3" onClick={() => setChoice("approved")}>
-              <CheckCircle2 className="size-4 mr-2 text-emerald-600 shrink-0" />
+            <Button
+              variant="outline"
+              className={`justify-start h-auto py-3 ${OUTCOME_PICKER.approved.btn}`}
+              onClick={() => setChoice("approved")}
+            >
+              <CheckCircle2 className={`size-4 mr-2 shrink-0 ${OUTCOME_PICKER.approved.icon}`} />
               <span className="text-left">
-                <span className="font-medium block">Approved</span>
+                <span className="font-medium block text-emerald-900 dark:text-emerald-300">Approved</span>
                 <span className="text-xs text-muted-foreground">Upload visa / approval letter (required)</span>
               </span>
             </Button>
-            <Button variant="outline" className="justify-start h-auto py-3" onClick={() => setChoice("refused")}>
-              <XCircle className="size-4 mr-2 text-red-600 shrink-0" />
+            <Button
+              variant="outline"
+              className={`justify-start h-auto py-3 ${OUTCOME_PICKER.refused.btn}`}
+              onClick={() => setChoice("refused")}
+            >
+              <XCircle className={`size-4 mr-2 shrink-0 ${OUTCOME_PICKER.refused.icon}`} />
               <span className="text-left">
-                <span className="font-medium block">Refused</span>
+                <span className="font-medium block text-red-950 dark:text-red-300">Refused</span>
                 <span className="text-xs text-muted-foreground">Letter optional — can mark document to follow</span>
               </span>
             </Button>
-            <Button variant="outline" className="justify-start h-auto py-3" onClick={() => setChoice("reapply")}>
-              <RotateCcw className="size-4 mr-2 text-primary shrink-0" />
+            <Button
+              variant="outline"
+              className={`justify-start h-auto py-3 ${OUTCOME_PICKER.reapply.btn}`}
+              onClick={() => setChoice("reapply")}
+            >
+              <RotateCcw className={`size-4 mr-2 shrink-0 ${OUTCOME_PICKER.reapply.icon}`} />
               <span className="text-left">
-                <span className="font-medium block">Reapply</span>
+                <span className="font-medium block text-orange-700 dark:text-orange-300">Reapply</span>
                 <span className="text-xs text-muted-foreground">New attempt — any country/service, no documents required</span>
               </span>
             </Button>
@@ -270,7 +303,11 @@ export function CaseOutcomeDialog({
             </label>
             <DialogFooter>
               <Button variant="outline" onClick={() => setChoice(null)} disabled={busy}>Back</Button>
-              <Button onClick={() => void confirmApproved()} disabled={busy || !approvalFile}>
+              <Button
+                className={OUTCOME_PICKER.approved.confirm}
+                onClick={() => void confirmApproved()}
+                disabled={busy || !approvalFile}
+              >
                 {busy && <Loader2 className="size-4 mr-1 animate-spin" />}
                 Confirm approved
               </Button>
@@ -298,8 +335,8 @@ export function CaseOutcomeDialog({
             </label>
             {!refusalFile && (
               <Button
-                variant="secondary"
-                className="w-full"
+                variant="outline"
+                className={`w-full ${OUTCOME_PICKER.refused.btn} text-red-950 dark:text-red-300`}
                 onClick={() => setRefusalDeferred(true)}
               >
                 Mark refused — document to follow
@@ -308,6 +345,7 @@ export function CaseOutcomeDialog({
             <DialogFooter>
               <Button variant="outline" onClick={() => setChoice(null)} disabled={busy}>Back</Button>
               <Button
+                className={OUTCOME_PICKER.refused.confirm}
                 onClick={() => void confirmRefused()}
                 disabled={busy || (!refusalFile && !refusalDeferred)}
               >
@@ -318,22 +356,29 @@ export function CaseOutcomeDialog({
           </div>
         )}
 
-        {choice === "reapply" && transfer && (
+        {choice === "reapply" && (
           <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Close original case as</Label>
-              <Select
-                value={originalOutcome}
-                onValueChange={(v) => setOriginalOutcome(v as typeof originalOutcome)}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="refused">Refused (default)</SelectItem>
-                  <SelectItem value="withdrawn">Withdrawn</SelectItem>
-                  <SelectItem value="open">Leave open (freeze only)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {!caseAlreadyClosed && (
+              <div className="space-y-2">
+                <Label>Close original case as</Label>
+                <Select
+                  value={originalOutcome}
+                  onValueChange={(v) => setOriginalOutcome(v as typeof originalOutcome)}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="refused">Refused (default)</SelectItem>
+                    <SelectItem value="withdrawn">Withdrawn</SelectItem>
+                    <SelectItem value="open">Leave open (freeze only)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {caseAlreadyClosed && (
+              <p className="text-xs rounded-md border border-orange-500/40 bg-orange-500/10 text-orange-900 dark:text-orange-200 px-3 py-2">
+                Original case is already closed — a new attempt will be created from this file.
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label className="text-xs">Country</Label>
@@ -361,7 +406,7 @@ export function CaseOutcomeDialog({
               </div>
             </div>
 
-            {!sameServiceReapply && targetItem && (
+            {!sameServiceReapply && targetItem && transfer && (
               <div className="rounded-md border p-3 space-y-2 text-sm">
                 <p className="text-xs font-medium text-muted-foreground">Choose what to transfer</p>
                 {(
@@ -414,8 +459,14 @@ export function CaseOutcomeDialog({
             )}
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setChoice(null)} disabled={busy}>Back</Button>
-              <Button onClick={() => void confirmReapply()} disabled={busy || !targetServiceId}>
+              <Button variant="outline" onClick={() => (initialChoice ? onOpenChange(false) : setChoice(null))} disabled={busy}>
+                {initialChoice ? "Cancel" : "Back"}
+              </Button>
+              <Button
+                className={OUTCOME_PICKER.reapply.confirm}
+                onClick={() => void confirmReapply()}
+                disabled={busy || !targetServiceId || !transfer}
+              >
                 {busy && <Loader2 className="size-4 mr-1 animate-spin" />}
                 Create reapplication
               </Button>

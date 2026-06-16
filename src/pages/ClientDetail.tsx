@@ -194,6 +194,9 @@ const ClientDetail = () => {
   const [secondaryLoading, setSecondaryLoading] = useState(true);
   const [stageRefreshKey, setStageRefreshKey] = useState(0);
   const [outcomeOpen, setOutcomeOpen] = useState(false);
+  const [outcomeInitialChoice, setOutcomeInitialChoice] = useState<
+    "approved" | "refused" | "reapply" | null
+  >(null);
 
   // Critical fetch — only what's needed for the first paint above the fold
   // (client + template + active documents + sections). Runs in parallel.
@@ -1060,18 +1063,30 @@ const ClientDetail = () => {
         hasTemplate={!!template}
         refusalDocPending={serviceCase?.refusalDocPending}
         caseClosed={caseClosed}
+        caseOutcome={serviceCase?.outcome}
         caseId={serviceCase?.id}
         attemptNumber={serviceCase?.attemptNumber}
-        onCaseOutcome={() => setOutcomeOpen(true)}
+        onCaseOutcome={() => {
+          setOutcomeInitialChoice(null);
+          setOutcomeOpen(true);
+        }}
+        onReapply={() => {
+          setOutcomeInitialChoice("reapply");
+          setOutcomeOpen(true);
+        }}
         onRefusalDocUploaded={onCaseOutcomeComplete}
       />
 
       <CaseOutcomeDialog
         open={outcomeOpen}
-        onOpenChange={setOutcomeOpen}
+        onOpenChange={(open) => {
+          setOutcomeOpen(open);
+          if (!open) setOutcomeInitialChoice(null);
+        }}
         clientId={client.id}
         serviceCase={serviceCase}
         serviceLabel={serviceCtx.serviceLabel}
+        initialChoice={outcomeInitialChoice}
         onComplete={onCaseOutcomeComplete}
       />
 

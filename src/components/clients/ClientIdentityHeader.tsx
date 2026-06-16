@@ -15,6 +15,7 @@ import {
   Flag,
   Upload,
   Loader2,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,8 +32,8 @@ import { AddTaskDialog } from "@/components/clients/AddTaskDialog";
 import { ServiceLibraryContextActions } from "@/components/service-library/ServiceLibraryContextActions";
 import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
 import type { ActiveServiceContext } from "@/lib/clientActiveServiceContext";
-import { attachRefusalDocument, uploadOutcomeDocument } from "@/lib/caseOutcome";
-import { toast } from "sonner";
+import type { CaseOutcome } from "@/lib/clientServiceCase";
+import { OUTCOME_BADGE } from "@/lib/caseOutcomeStyles";
 
 export type ClientHeaderClient = {
   id: string;
@@ -69,9 +70,11 @@ type Props = {
   hasTemplate?: boolean;
   refusalDocPending?: boolean;
   caseClosed?: boolean;
+  caseOutcome?: CaseOutcome | null;
   caseId?: string | null;
   attemptNumber?: number;
   onCaseOutcome?: () => void;
+  onReapply?: () => void;
   onRefusalDocUploaded?: () => void;
 };
 
@@ -103,9 +106,11 @@ export function ClientIdentityHeader({
   hasTemplate,
   refusalDocPending,
   caseClosed,
+  caseOutcome,
   caseId,
   attemptNumber,
   onCaseOutcome,
+  onReapply,
   onRefusalDocUploaded,
 }: Props) {
   const refusalInputRef = useRef<HTMLInputElement>(null);
@@ -168,8 +173,15 @@ export function ClientIdentityHeader({
                     {score}
                   </span>
                 )}
+                {caseClosed && caseOutcome && OUTCOME_BADGE[caseOutcome] && (
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide ${OUTCOME_BADGE[caseOutcome].className}`}
+                  >
+                    {OUTCOME_BADGE[caseOutcome].label}
+                  </span>
+                )}
                 {refusalDocPending && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/60 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/50 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
                     <Flag className="size-3" />
                     Refusal letter pending
                     {canUpload && caseId && (
@@ -281,6 +293,16 @@ export function ClientIdentityHeader({
             {canUpload && onCaseOutcome && !caseClosed && (
               <Button size="sm" variant="secondary" onClick={onCaseOutcome}>
                 Case outcome
+              </Button>
+            )}
+            {canUpload && onReapply && caseClosed && (
+              <Button
+                size="sm"
+                className="bg-orange-600 hover:bg-orange-700 text-white border-orange-700"
+                onClick={onReapply}
+              >
+                <RotateCcw className="size-3.5 mr-1.5" />
+                Reapply
               </Button>
             )}
             <DropdownMenu>
