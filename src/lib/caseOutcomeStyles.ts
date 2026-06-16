@@ -1,6 +1,6 @@
 import type { CaseOutcome } from "@/lib/clientServiceCase";
 
-/** Shared outcome colours — approved dark green, refused blood red, reapply orange. */
+/** Shared outcome colours — approved dark green, refused rose red, reapply orange. */
 export const OUTCOME_BADGE: Record<
   CaseOutcome,
   { label: string; className: string }
@@ -13,7 +13,7 @@ export const OUTCOME_BADGE: Record<
   refused: {
     label: "Refused",
     className:
-      "border-red-950/90 bg-red-950 text-red-50 dark:border-red-900 dark:bg-red-950 dark:text-red-100",
+      "border-rose-700/80 bg-rose-600 text-rose-50 dark:border-rose-600 dark:bg-rose-700 dark:text-rose-50",
   },
   withdrawn: {
     label: "Withdrawn",
@@ -29,9 +29,9 @@ export const OUTCOME_PICKER = {
     confirm: "bg-emerald-900 hover:bg-emerald-950 text-white",
   },
   refused: {
-    btn: "border-red-900/70 bg-red-950/5 hover:bg-red-950/15 dark:border-red-800 dark:hover:bg-red-950/30",
-    icon: "text-red-900 dark:text-red-400",
-    confirm: "bg-red-950 hover:bg-red-900 text-white",
+    btn: "border-rose-600/70 bg-rose-500/5 hover:bg-rose-500/15 dark:border-rose-500 dark:hover:bg-rose-950/30",
+    icon: "text-rose-600 dark:text-rose-400",
+    confirm: "bg-rose-600 hover:bg-rose-700 text-white",
   },
   reapply: {
     btn: "border-orange-600/70 bg-orange-500/5 hover:bg-orange-500/15 dark:border-orange-500 dark:hover:bg-orange-950/30",

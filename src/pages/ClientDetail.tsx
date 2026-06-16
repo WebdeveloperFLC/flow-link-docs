@@ -303,13 +303,31 @@ const ClientDetail = () => {
   const serviceCtx = useActiveServiceContext(client, searchParams);
   const {
     serviceCase,
+    allCases,
     isClosed: caseClosed,
     reload: reloadServiceCase,
+    setActiveCaseId,
   } = useActiveServiceCase(
     client?.id ?? "",
     serviceCtx.activeServiceCode,
     client?.pipeline_id ?? null,
     stageRefreshKey,
+  );
+
+  const serviceAttempts = useMemo(() => {
+    const code = serviceCtx.activeServiceCode;
+    if (!code) return [];
+    return allCases
+      .filter((c) => c.serviceCode.toLowerCase() === code.toLowerCase())
+      .sort((a, b) => a.attemptNumber - b.attemptNumber);
+  }, [allCases, serviceCtx.activeServiceCode]);
+
+  const onSelectAttempt = useCallback(
+    (caseId: string) => {
+      setActiveCaseId(caseId);
+      setStageRefreshKey((k) => k + 1);
+    },
+    [setActiveCaseId],
   );
   const uploadLimitLabel = serviceCtx.isCanadaDestination ? "IRCC ≤ 4 MB" : "≤ 4 MB";
 
@@ -1066,6 +1084,8 @@ const ClientDetail = () => {
         caseOutcome={serviceCase?.outcome}
         caseId={serviceCase?.id}
         attemptNumber={serviceCase?.attemptNumber}
+        serviceAttempts={serviceAttempts}
+        onSelectAttempt={onSelectAttempt}
         onCaseOutcome={() => {
           setOutcomeInitialChoice(null);
           setOutcomeOpen(true);

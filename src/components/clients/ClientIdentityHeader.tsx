@@ -32,8 +32,11 @@ import { AddTaskDialog } from "@/components/clients/AddTaskDialog";
 import { ServiceLibraryContextActions } from "@/components/service-library/ServiceLibraryContextActions";
 import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
 import type { ActiveServiceContext } from "@/lib/clientActiveServiceContext";
-import type { CaseOutcome } from "@/lib/clientServiceCase";
+import type { CaseOutcome, ClientServiceCase } from "@/lib/clientServiceCase";
 import { OUTCOME_BADGE } from "@/lib/caseOutcomeStyles";
+import { attachRefusalDocument, uploadOutcomeDocument } from "@/lib/caseOutcome";
+import { toast } from "sonner";
+import { CaseAttemptSwitcher } from "@/components/clients/CaseAttemptSwitcher";
 
 export type ClientHeaderClient = {
   id: string;
@@ -73,6 +76,8 @@ type Props = {
   caseOutcome?: CaseOutcome | null;
   caseId?: string | null;
   attemptNumber?: number;
+  serviceAttempts?: ClientServiceCase[];
+  onSelectAttempt?: (caseId: string) => void;
   onCaseOutcome?: () => void;
   onReapply?: () => void;
   onRefusalDocUploaded?: () => void;
@@ -109,6 +114,8 @@ export function ClientIdentityHeader({
   caseOutcome,
   caseId,
   attemptNumber,
+  serviceAttempts = [],
+  onSelectAttempt,
   onCaseOutcome,
   onReapply,
   onRefusalDocUploaded,
@@ -229,11 +236,17 @@ export function ClientIdentityHeader({
                 {serviceLabel && (
                   <>
                     <span>·</span>
-                    <span>
+                    <span className="inline-flex flex-wrap items-center gap-x-1.5">
                       {serviceLabel}
-                      {attemptNumber != null && attemptNumber > 1 && (
-                        <span className="text-muted-foreground"> · Attempt {attemptNumber}</span>
-                      )}
+                      {serviceAttempts.length > 1 && onSelectAttempt ? (
+                        <CaseAttemptSwitcher
+                          attempts={serviceAttempts}
+                          activeCaseId={caseId}
+                          onSelect={onSelectAttempt}
+                        />
+                      ) : attemptNumber != null && attemptNumber > 1 ? (
+                        <span className="text-muted-foreground">· Attempt {attemptNumber}</span>
+                      ) : null}
                     </span>
                   </>
                 )}

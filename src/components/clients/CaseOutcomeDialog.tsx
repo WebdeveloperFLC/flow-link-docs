@@ -268,7 +268,7 @@ export function CaseOutcomeDialog({
             >
               <XCircle className={`size-4 mr-2 shrink-0 ${OUTCOME_PICKER.refused.icon}`} />
               <span className="text-left">
-                <span className="font-medium block text-red-950 dark:text-red-300">Refused</span>
+                <span className="font-medium block text-rose-700 dark:text-rose-300">Refused</span>
                 <span className="text-xs text-muted-foreground">Letter optional — can mark document to follow</span>
               </span>
             </Button>
@@ -336,7 +336,7 @@ export function CaseOutcomeDialog({
             {!refusalFile && (
               <Button
                 variant="outline"
-                className={`w-full ${OUTCOME_PICKER.refused.btn} text-red-950 dark:text-red-300`}
+                className={`w-full ${OUTCOME_PICKER.refused.btn} text-rose-700 dark:text-rose-300`}
                 onClick={() => setRefusalDeferred(true)}
               >
                 Mark refused — document to follow
