@@ -16,6 +16,7 @@ import {
   type LibraryGovtFee,
 } from "@/lib/leads/serviceFeeItems";
 import { convertGovtFee } from "@/lib/leads/govtFeeFx";
+import { formatServiceLibraryLabel } from "@/lib/service-library/resolveServiceLabel";
 
 export type LeadType = "warm" | "hot" | "cold";
 export type LeadStatus = "new" | "contacted" | "qualified" | "converted" | "unqualified" | "lost";
@@ -151,8 +152,16 @@ type PickerVariantRow = {
   display_order: number;
 };
 
-function visaVariantGroupKey(groupLabel: string): string {
-  return groupLabel.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
+/** Standard-tier fees only — picker variants are not separate visa services. */
+function pickCanonicalVariantFees(
+  variants: PickerVariantRow[] | undefined,
+): PickerVariantRow | undefined {
+  if (!variants?.length) return undefined;
+  return (
+    variants.find((v) => v.variant_key === "standard") ??
+    variants.find((v) => /standard/i.test(v.picker_label)) ??
+    variants[0]
+  );
 }
 
 function resolveVariantGovtOverride(v: PickerVariantRow): {
@@ -231,7 +240,7 @@ function withLibraryFees(
 }
 
 export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]> {
-  // Source of truth: service_library + picker_variants + fee_items.
+  // Visa: service_library display names only (one row per country). Variants → fee hints, not pickers.
   const libRes = await supabase
     .from("service_library")
     .select(
@@ -330,7 +339,12 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
 
     if (r.service_category === "visa_immigration") {
       if (!isPipelineBackedLibraryId(r.id)) continue;
-      const visaDisplayLabel = displayLabel ?? r.sub_service;
+      const visaDisplayLabel = formatServiceLibraryLabel({
+        id: r.id,
+        service: r.service,
+        sub_service: r.sub_service,
+        academy_metadata: r.academy_metadata,
+      });
       const serviceNorm = r.service.trim().toLowerCase();
       const mappedCountries = [
         ...new Set((r.service_library_countries ?? []).map((c) => c.country).filter(Boolean)),
@@ -356,41 +370,8 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
       for (const c of list) {
         const parentKey = c ? `${r.id}::${c}` : r.id;
         const parentVariants = c ? variantsByParent.get(`${r.id}::${c}`) : undefined;
-
-        if (parentVariants && parentVariants.length > 0) {
-          for (const v of parentVariants) {
-            const groupKey = visaVariantGroupKey(v.group_label);
-            pushItem(
-              withLibraryFees(
-                {
-                  id: `${r.id}::${c}::${v.variant_key}`,
-                  master_key: r.service_category,
-                  service_name: v.picker_label,
-                  sub_category: c,
-                  group_key: groupKey,
-                  group_label: v.group_label,
-                  service_code: `${r.id}::${c}::${v.variant_key}`,
-                  pricing_type: "FIXED",
-                  fee_inr: Number(v.fee_inr),
-                  fee_cad: Number(v.fee_cad),
-                  country_tag: c,
-                  is_active: r.is_active,
-                  is_bundled: false,
-                  display_order: v.display_order,
-                },
-                r.id,
-                consultMap,
-                govtMap,
-                resolveVariantGovtOverride(v),
-              ),
-            );
-          }
-          continue;
-        }
-
-        // Parent fallback only when no picker variants exist for this library row.
-        const hasAnyVariants = variants.some((pv) => pv.library_id === r.id);
-        if (hasAnyVariants) continue;
+        const feeVariant = pickCanonicalVariantFees(parentVariants);
+        const hasFees = feeVariant && (feeVariant.fee_inr > 0 || feeVariant.fee_cad > 0);
 
         pushItem(
           withLibraryFees(
@@ -400,7 +381,9 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
               service_name: visaDisplayLabel,
               sub_category: c ?? r.service,
               service_code: c ? `${r.id}::${c}` : r.id,
-              pricing_type: "ON_REQUEST",
+              pricing_type: hasFees ? "FIXED" : "ON_REQUEST",
+              fee_inr: feeVariant ? Number(feeVariant.fee_inr) : undefined,
+              fee_cad: feeVariant ? Number(feeVariant.fee_cad) : undefined,
               country_tag: c,
               is_active: r.is_active,
               is_bundled: false,
@@ -409,6 +392,7 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
             r.id,
             consultMap,
             govtMap,
+            feeVariant ? resolveVariantGovtOverride(feeVariant) : undefined,
           ),
         );
       }

@@ -13,6 +13,9 @@ describe("CRM-R-004 library → pipeline parity", () => {
     const src = readFileSync(resolve(process.cwd(), "src/lib/leads.ts"), "utf8");
     expect(src).toContain("isPipelineBackedLibraryId");
     expect(src).toMatch(/visa_immigration[\s\S]*isPipelineBackedLibraryId\(r\.id\)/);
+    expect(src).toContain("formatServiceLibraryLabel");
+    expect(src).not.toContain("service_name: v.picker_label");
+    expect(src).toContain("pickCanonicalVariantFees");
   });
 
   it("resolvePipelineForServiceLibrary rejects unknown library ids before fuzzy match", () => {
