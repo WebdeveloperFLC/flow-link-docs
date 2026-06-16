@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Accordion,
@@ -32,6 +32,9 @@ function GroupItems({
   openNote,
   onOpenNote,
   feeCurrency,
+  groupKey,
+  collapseOnSelect,
+  onCollapseGroup,
 }: {
   items: ServiceCatalogueItem[];
   catalogue: ServiceCatalogueItem[];
@@ -42,6 +45,9 @@ function GroupItems({
   openNote: string | null;
   onOpenNote: (id: string | null) => void;
   feeCurrency: FeeCurrency;
+  groupKey?: string;
+  collapseOnSelect?: boolean;
+  onCollapseGroup?: (groupKey: string) => void;
 }) {
   return (
     <div className="divide-y">
@@ -56,7 +62,10 @@ function GroupItems({
             checked={checked}
             disabled={disabled}
             openNote={openNote}
-            onToggle={() => onToggle(selectionKey, code)}
+            onToggle={() => {
+              onToggle(selectionKey, code);
+              if (collapseOnSelect && groupKey) onCollapseGroup?.(groupKey);
+            }}
             onOpenNote={onOpenNote}
             feeCurrency={feeCurrency}
           />
@@ -76,6 +85,8 @@ function GroupAccordion({
   openNote,
   onOpenNote,
   feeCurrency,
+  collapseOnSelect,
+  onCollapseGroup,
 }: {
   group: ServicePickerGroup;
   catalogue: ServiceCatalogueItem[];
@@ -86,13 +97,14 @@ function GroupAccordion({
   openNote: string | null;
   onOpenNote: (id: string | null) => void;
   feeCurrency: FeeCurrency;
+  collapseOnSelect?: boolean;
+  onCollapseGroup?: (groupKey: string) => void;
 }) {
   const selectedCount = group.items.filter((item) => {
     const key = getSelectionKey(item);
     return isServiceCodeSelected(value[key] ?? [], item, catalogue);
   }).length;
 
-  // Single-option groups: show fees inline without an extra accordion level.
   if (group.items.length === 1) {
     const item = group.items[0]!;
     const code = catalogueItemCode(item);
@@ -147,6 +159,9 @@ function GroupAccordion({
                   openNote={openNote}
                   onOpenNote={onOpenNote}
                   feeCurrency={feeCurrency}
+                  groupKey={group.key}
+                  collapseOnSelect={collapseOnSelect}
+                  onCollapseGroup={onCollapseGroup}
                 />
               </div>
             ))}
@@ -162,6 +177,9 @@ function GroupAccordion({
             openNote={openNote}
             onOpenNote={onOpenNote}
             feeCurrency={feeCurrency}
+            groupKey={group.key}
+            collapseOnSelect={collapseOnSelect}
+            onCollapseGroup={onCollapseGroup}
           />
         )}
       </AccordionContent>
@@ -181,6 +199,8 @@ export function GroupedServiceList({
   onOpenNote,
   feeCurrency = "INR",
   showFeeHeader = false,
+  collapseOnSelect = false,
+  accordionResetKey,
 }: {
   items: ServiceCatalogueItem[];
   catalogue: ServiceCatalogueItem[];
@@ -193,13 +213,27 @@ export function GroupedServiceList({
   onOpenNote: (id: string | null) => void;
   feeCurrency?: FeeCurrency;
   showFeeHeader?: boolean;
+  collapseOnSelect?: boolean;
+  /** When this value changes, accordion sections collapse (e.g. dialog open). */
+  accordionResetKey?: string | number;
 }) {
   const groups = useMemo(() => groupCatalogueItems(items, tab), [items, tab]);
+  const [openGroupKeys, setOpenGroupKeys] = useState<string[]>([]);
 
   const defaultOpen = useMemo(
     () => groupsWithSelection(groups, value, catalogue, getSelectionKey, isServiceCodeSelected),
     [groups, value, catalogue, getSelectionKey],
   );
+
+  useEffect(() => {
+    if (collapseOnSelect && accordionResetKey !== undefined) {
+      setOpenGroupKeys([]);
+    }
+  }, [accordionResetKey, collapseOnSelect]);
+
+  const collapseGroup = (groupKey: string) => {
+    setOpenGroupKeys((prev) => prev.filter((k) => k !== groupKey));
+  };
 
   if (items.length === 0) {
     return (
@@ -211,6 +245,13 @@ export function GroupedServiceList({
 
   const multiGroups = groups.filter((g) => g.items.length > 1);
   const singleGroups = groups.filter((g) => g.items.length === 1);
+
+  const accordionProps = collapseOnSelect
+    ? { type: "multiple" as const, value: openGroupKeys, onValueChange: setOpenGroupKeys }
+    : {
+        type: "multiple" as const,
+        defaultValue: defaultOpen.filter((k) => multiGroups.some((g) => g.key === k)),
+      };
 
   return (
     <div className={cn("border rounded-md divide-y min-w-0 overflow-x-auto", disabled && "opacity-50 pointer-events-none")}>
@@ -227,14 +268,12 @@ export function GroupedServiceList({
           openNote={openNote}
           onOpenNote={onOpenNote}
           feeCurrency={feeCurrency}
+          collapseOnSelect={collapseOnSelect}
+          onCollapseGroup={collapseGroup}
         />
       ))}
       {multiGroups.length > 0 && (
-        <Accordion
-          type="multiple"
-          defaultValue={defaultOpen.filter((k) => multiGroups.some((g) => g.key === k))}
-          className="divide-y"
-        >
+        <Accordion {...accordionProps} className="divide-y">
           {multiGroups.map((group) => (
             <GroupAccordion
               key={group.key}
@@ -247,6 +286,8 @@ export function GroupedServiceList({
               openNote={openNote}
               onOpenNote={onOpenNote}
               feeCurrency={feeCurrency}
+              collapseOnSelect={collapseOnSelect}
+              onCollapseGroup={collapseGroup}
             />
           ))}
         </Accordion>

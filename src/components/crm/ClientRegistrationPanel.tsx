@@ -677,6 +677,7 @@ export function ClientRegistrationPanel({
                 setTimeout(autosave, 0);
               }}
               visaLocked={false}
+              layout="compact"
             />
             {(services.allied_services.length > 0 || services.travel_services.length > 0) && (
               <div className="border-t pt-3 space-y-2">

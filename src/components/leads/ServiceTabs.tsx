@@ -1,19 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Lock, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
 import { type FeeCurrency } from "@/lib/leads/serviceFeeLabel";
-import { GroupedServiceList } from "@/components/leads/GroupedServiceList";
-import { ServicePickerRow, ServiceFeeColumnsHeader } from "@/components/leads/ServicePickerRow";
+import { ServicePickerDialog } from "@/components/leads/ServicePickerDialog";
+import { ServicePickerListBody } from "@/components/leads/ServicePickerListBody";
+import { TabSelectedServices } from "@/components/leads/TabSelectedServices";
 import {
-  shouldUseGroupedPicker,
-  type ServicePickerTab,
-} from "@/lib/leads/servicePickerGroups";
+  SERVICE_TABS,
+  filterCatalogueForTab,
+  selectionKeyForItem,
+  shouldUseGroupedForTab,
+  tabSelectionCount,
+  type ServiceTabKey,
+} from "@/components/leads/serviceTabsConfig";
 import {
   catalogueItemCode,
-  isServiceCodeSelected,
   toggleServiceSelectionCodes,
 } from "@/lib/service-library/serviceSelectionMatch";
 
@@ -25,91 +30,7 @@ export interface ServiceSelection {
   travel_services: string[];
 }
 
-type TabKey = keyof ServiceSelection | "allied_travel";
-
-interface Tab {
-  key: TabKey;
-  label: string;
-  masterKeys: string[];
-  selectionKey?: keyof ServiceSelection;
-  grouped?: ServicePickerTab;
-}
-
-const TABS: Tab[] = [
-  {
-    key: "coaching_services",
-    label: "Coaching",
-    masterKeys: ["coaching_services"],
-    selectionKey: "coaching_services",
-    grouped: "coaching_services",
-  },
-  {
-    key: "visa_services",
-    label: "Visa & Immigration",
-    masterKeys: ["visa_immigration"],
-    selectionKey: "visa_services",
-    grouped: "visa_services",
-  },
-  {
-    key: "allied_travel",
-    label: "Allied & Travel",
-    masterKeys: ["allied_services", "travel_financial"],
-    grouped: "allied_travel",
-  },
-];
-
-function FlatServiceList({
-  items,
-  catalogue,
-  getSelectionKey,
-  value,
-  onToggle,
-  disabled,
-  openNote,
-  onOpenNote,
-  feeCurrency,
-}: {
-  items: ServiceCatalogueItem[];
-  catalogue: ServiceCatalogueItem[];
-  getSelectionKey: (item: ServiceCatalogueItem) => keyof ServiceSelection;
-  value: ServiceSelection;
-  onToggle: (key: keyof ServiceSelection, code: string) => void;
-  disabled?: boolean;
-  openNote: string | null;
-  onOpenNote: (id: string | null) => void;
-  feeCurrency: FeeCurrency;
-}) {
-  if (items.length === 0) {
-    return (
-      <div className="p-4 text-sm text-muted-foreground text-center border rounded-md">
-        No services
-      </div>
-    );
-  }
-
-  return (
-    <div className={cn("border rounded-md divide-y overflow-x-auto min-w-0", disabled && "opacity-50 pointer-events-none")}>
-      <ServiceFeeColumnsHeader feeCurrency={feeCurrency} />
-      {items.map((s) => {
-        const code = catalogueItemCode(s);
-        const itemKey = getSelectionKey(s);
-        const checked = isServiceCodeSelected(value[itemKey] ?? [], s, catalogue);
-        return (
-          <ServicePickerRow
-            key={s.id}
-            item={s}
-            checked={checked}
-            disabled={disabled}
-            openNote={openNote}
-            onToggle={() => onToggle(itemKey, code)}
-            onOpenNote={onOpenNote}
-            feeCurrency={feeCurrency}
-          />
-        );
-      })}
-    </div>
-  );
-}
+export type ServiceTabsLayout = "inline" | "compact";
 
 export const ServiceTabs = ({
   value,
@@ -117,17 +38,20 @@ export const ServiceTabs = ({
   visaLocked,
   onCommit,
   interestedCountries,
+  layout = "compact",
 }: {
   value: ServiceSelection;
   onChange: (v: ServiceSelection) => void;
   visaLocked: boolean;
   onCommit?: (key: keyof ServiceSelection, list: string[]) => void;
   interestedCountries?: string[];
+  layout?: ServiceTabsLayout;
 }) => {
   const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
   const [visaCountry, setVisaCountry] = useState<string>("ALL");
   const [feeCurrency, setFeeCurrency] = useState<FeeCurrency>("INR");
   const [openNote, setOpenNote] = useState<string | null>(null);
+  const [pickerTab, setPickerTab] = useState<ServiceTabKey | null>(null);
 
   useEffect(() => {
     fetchAllServiceCatalogue().then(setCatalogue).catch(() => setCatalogue([]));
@@ -168,150 +92,200 @@ export const ServiceTabs = ({
     onCommit?.(key, next);
   };
 
-  const selectionKeyForItem = (s: ServiceCatalogueItem): keyof ServiceSelection => {
-    if (s.master_key === "travel_financial") return "travel_services";
-    if (s.master_key === "admission_services") return "admission_services";
-    if (s.master_key === "coaching_services") return "coaching_services";
-    if (s.master_key === "visa_immigration") return "visa_services";
-    return "allied_services";
-  };
+  const activePickerTab = pickerTab ? SERVICE_TABS.find((t) => t.key === pickerTab) : null;
+
+  const pickerDialogProps = useMemo(() => {
+    if (!activePickerTab) return null;
+    const filtered = filterCatalogueForTab(activePickerTab, byKey, {
+      visaCountry,
+      interestedCountries,
+    });
+    const getSelectionKey = (s: ServiceCatalogueItem): keyof ServiceSelection =>
+      activePickerTab.selectionKey ?? selectionKeyForItem(s);
+    const useGrouped = shouldUseGroupedForTab(activePickerTab, filtered);
+    const isVisa = activePickerTab.key === "visa_services";
+    return {
+      tab: activePickerTab,
+      items: filtered,
+      getSelectionKey,
+      useGrouped,
+      disabled: isVisa && visaLocked,
+      feeCurrency: (isVisa ? feeCurrency : "INR") as FeeCurrency,
+      showFeeHeader: isVisa,
+    };
+  }, [activePickerTab, byKey, visaCountry, interestedCountries, feeCurrency, visaLocked]);
 
   return (
-    <Tabs defaultValue={TABS[0].key}>
-      <TabsList className="w-full justify-start flex-wrap h-auto">
-        {TABS.map((t) => {
-          const count =
-            t.key === "allied_travel"
-              ? (value.allied_services?.length ?? 0) + (value.travel_services?.length ?? 0)
-              : (value[t.selectionKey!]?.length ?? 0);
+    <>
+      <Tabs defaultValue={SERVICE_TABS[0].key}>
+        <TabsList className="w-full justify-start flex-wrap h-auto">
+          {SERVICE_TABS.map((t) => {
+            const count = tabSelectionCount(t.key, value);
+            const isVisa = t.key === "visa_services";
+            const locked = isVisa && visaLocked;
+            return (
+              <TabsTrigger key={t.key} value={t.key} className={cn("gap-1.5", locked && "opacity-60")}>
+                {locked && <Lock className="h-3 w-3" />}
+                {t.label}
+                {count > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                    {count}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+
+        {SERVICE_TABS.map((t) => {
+          const filtered = filterCatalogueForTab(t, byKey, { visaCountry, interestedCountries });
           const isVisa = t.key === "visa_services";
           const locked = isVisa && visaLocked;
+          const noCountriesPicked =
+            isVisa && interestedCountries !== undefined && interestedCountries.length === 0;
+          const getSelectionKey = (s: ServiceCatalogueItem): keyof ServiceSelection =>
+            t.selectionKey ?? selectionKeyForItem(s);
+          const useGrouped = shouldUseGroupedForTab(t, filtered);
+          const count = tabSelectionCount(t.key, value);
+
           return (
-            <TabsTrigger key={t.key} value={t.key} className={cn("gap-1.5", locked && "opacity-60")}>
-              {locked && <Lock className="h-3 w-3" />}
-              {t.label}
-              {count > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
-                  {count}
-                </Badge>
+            <TabsContent key={t.key} value={t.key} className="space-y-3">
+              {isVisa && noCountriesPicked && (
+                <div className="p-4 text-sm text-muted-foreground border rounded-md bg-muted/30 text-center">
+                  Select countries of interest under Geography to see visa services.
+                </div>
               )}
-            </TabsTrigger>
+
+              {isVisa && !noCountriesPicked && (
+                <>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      Filter by destination country to add services. Consultancy ({feeCurrency}); government
+                      fees:
+                    </span>
+                    <div className="inline-flex rounded-md border p-0.5">
+                      {(["INR", "CAD"] as FeeCurrency[]).map((cur) => (
+                        <button
+                          key={cur}
+                          type="button"
+                          onClick={() => setFeeCurrency(cur)}
+                          className={cn(
+                            "text-xs px-2.5 py-1 rounded-sm",
+                            feeCurrency === cur
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:text-foreground",
+                          )}
+                        >
+                          {cur}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {visaCountries.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setVisaCountry("ALL")}
+                        className={cn(
+                          "text-xs px-2.5 py-1 rounded-full border",
+                          visaCountry === "ALL"
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background hover:bg-accent",
+                        )}
+                      >
+                        All
+                      </button>
+                      {visaCountries.map((c) => (
+                        <button
+                          type="button"
+                          key={c}
+                          onClick={() => setVisaCountry(c)}
+                          className={cn(
+                            "text-xs px-2.5 py-1 rounded-full border",
+                            visaCountry === c
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-background hover:bg-accent",
+                          )}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {layout === "compact" ? (
+                <div className="space-y-3">
+                  <TabSelectedServices
+                    tabKey={t.key}
+                    value={value}
+                    catalogue={catalogue}
+                    onChange={onChange}
+                  />
+                  {!(isVisa && noCountriesPicked) && (
+                    <>
+                      {count === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          No services selected yet. Open the picker to add services.
+                        </p>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={locked || (isVisa && noCountriesPicked)}
+                        onClick={() => setPickerTab(t.key)}
+                      >
+                        <Plus className="size-4 mr-1.5" />
+                        {count > 0 ? "Edit services" : "Add services"}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                !(isVisa && noCountriesPicked) && (
+                  <ServicePickerListBody
+                    items={filtered}
+                    catalogue={catalogue}
+                    groupedTab={t.grouped}
+                    useGrouped={useGrouped}
+                    getSelectionKey={getSelectionKey}
+                    value={value}
+                    onToggle={toggle}
+                    disabled={locked}
+                    openNote={openNote}
+                    onOpenNote={setOpenNote}
+                    feeCurrency={isVisa ? feeCurrency : "INR"}
+                    showFeeHeader={isVisa}
+                    collapseOnSelect={false}
+                  />
+                )
+              )}
+            </TabsContent>
           );
         })}
-      </TabsList>
+      </Tabs>
 
-      {TABS.map((t) => {
-        const list = t.masterKeys.flatMap((mk) => byKey[mk] ?? []);
-        const isVisa = t.key === "visa_services";
-        const filtered = isVisa
-          ? visaCountry !== "ALL"
-            ? list.filter((s) => s.country_tag === visaCountry)
-            : interestedCountries
-              ? list.filter((s) => !s.country_tag || interestedCountries.includes(s.country_tag))
-              : list
-          : list;
-        const locked = isVisa && visaLocked;
-        const noCountriesPicked =
-          isVisa && interestedCountries !== undefined && interestedCountries.length === 0;
-        const getSelectionKey = (s: ServiceCatalogueItem): keyof ServiceSelection =>
-          t.selectionKey ?? selectionKeyForItem(s);
-        const useGrouped = !!t.grouped && shouldUseGroupedPicker(t.grouped, filtered);
-
-        return (
-          <TabsContent key={t.key} value={t.key} className="space-y-3">
-            {isVisa && noCountriesPicked && (
-              <div className="p-4 text-sm text-muted-foreground border rounded-md bg-muted/30 text-center">
-                Select countries of interest under Geography to see visa services.
-              </div>
-            )}
-            {isVisa && !noCountriesPicked && (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  Filter by destination country to add services. Consultancy ({feeCurrency}); government fees:
-                </span>
-                <div className="inline-flex rounded-md border p-0.5">
-                  {(["INR", "CAD"] as FeeCurrency[]).map((cur) => (
-                    <button
-                      key={cur}
-                      type="button"
-                      onClick={() => setFeeCurrency(cur)}
-                      className={cn(
-                        "text-xs px-2.5 py-1 rounded-sm",
-                        feeCurrency === cur
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      {cur}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            {isVisa && !noCountriesPicked && visaCountries.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setVisaCountry("ALL")}
-                  className={cn(
-                    "text-xs px-2.5 py-1 rounded-full border",
-                    visaCountry === "ALL"
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background hover:bg-accent",
-                  )}
-                >
-                  All
-                </button>
-                {visaCountries.map((c) => (
-                  <button
-                    type="button"
-                    key={c}
-                    onClick={() => setVisaCountry(c)}
-                    className={cn(
-                      "text-xs px-2.5 py-1 rounded-full border",
-                      visaCountry === c
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background hover:bg-accent",
-                    )}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {useGrouped && t.grouped ? (
-              <div className={cn(locked && "opacity-50 pointer-events-none")}>
-                <GroupedServiceList
-                  items={filtered}
-                  catalogue={catalogue}
-                  tab={t.grouped}
-                  getSelectionKey={getSelectionKey}
-                  value={value}
-                  onToggle={toggle}
-                  disabled={locked}
-                  openNote={openNote}
-                  onOpenNote={setOpenNote}
-                  feeCurrency={isVisa ? feeCurrency : "INR"}
-                  showFeeHeader={isVisa}
-                />
-              </div>
-            ) : (
-              <FlatServiceList
-                items={filtered}
-                catalogue={catalogue}
-                getSelectionKey={getSelectionKey}
-                value={value}
-                onToggle={toggle}
-                disabled={locked}
-                openNote={openNote}
-                onOpenNote={setOpenNote}
-                feeCurrency={isVisa ? feeCurrency : "INR"}
-              />
-            )}
-          </TabsContent>
-        );
-      })}
-    </Tabs>
+      {pickerDialogProps && (
+        <ServicePickerDialog
+          open={pickerTab !== null}
+          onOpenChange={(open) => {
+            if (!open) setPickerTab(null);
+          }}
+          tab={pickerDialogProps.tab}
+          title={pickerDialogProps.tab.dialogTitle}
+          items={pickerDialogProps.items}
+          catalogue={catalogue}
+          useGrouped={pickerDialogProps.useGrouped}
+          getSelectionKey={pickerDialogProps.getSelectionKey}
+          value={value}
+          onToggle={toggle}
+          disabled={pickerDialogProps.disabled}
+          feeCurrency={pickerDialogProps.feeCurrency}
+          showFeeHeader={pickerDialogProps.showFeeHeader}
+        />
+      )}
+    </>
   );
 };

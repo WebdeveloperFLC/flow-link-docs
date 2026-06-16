@@ -355,7 +355,7 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground pt-1">
             Add services
           </div>
-          <ServiceTabs value={draft} onChange={setDraftGuarded} visaLocked={false} />
+          <ServiceTabs value={draft} onChange={setDraftGuarded} visaLocked={false} layout="inline" />
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
             <Button onClick={save} disabled={saving}>

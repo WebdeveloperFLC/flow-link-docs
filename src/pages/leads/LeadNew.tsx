@@ -534,6 +534,7 @@ const LeadNew = () => {
                     onChange={(v) => { setServices(v); setTimeout(autosave, 0); }}
                     visaLocked={visaLocked}
                     interestedCountries={interestedCountries}
+                    layout="compact"
                   />
                   {visaLockBlock}
                 </Card>
@@ -649,6 +650,7 @@ const LeadNew = () => {
                       onChange={(v) => { setServices(v); setTimeout(autosave, 0); }}
                       visaLocked={visaLocked}
                       interestedCountries={interestedCountries}
+                      layout="compact"
                     />
                   </>
                 )}
