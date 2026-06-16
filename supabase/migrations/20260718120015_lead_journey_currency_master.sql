@@ -40,14 +40,13 @@ ALTER TABLE public.clients
   ADD COLUMN IF NOT EXISTS start_timeline text,
   ADD COLUMN IF NOT EXISTS phone_alternate_country_code text;
 
--- Year of passing: store as date (YYYY-MM-DD).
+-- Year of passing: store as date (YYYY-MM-DD). Column is integer today — use make_date, not ::date cast.
 ALTER TABLE public.clients
   ALTER COLUMN year_of_passing TYPE date
   USING (
     CASE
       WHEN year_of_passing IS NULL THEN NULL
-      WHEN year_of_passing::text ~ '^\d{4}$' THEN make_date(year_of_passing::int, 6, 30)
-      ELSE year_of_passing::date
+      ELSE make_date(year_of_passing, 6, 30)
     END
   );
 
