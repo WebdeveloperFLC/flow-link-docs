@@ -65,6 +65,7 @@ import { openClientDocument } from "@/lib/documentPreview";
 import { ClientAccessDialog } from "@/components/clients/ClientAccessDialog";
 import { ClientAccessCard } from "@/components/clients/ClientAccessCard";
 import { InviteClientCard } from "@/components/clients/InviteClientCard";
+import { ClientAppointmentsCard } from "@/components/clients/ClientAppointmentsCard";
 import { HandoffDialog } from "@/components/clients/HandoffDialog";
 import { AddRemarkDialog } from "@/components/clients/AddRemarkDialog";
 import { ClientChatWorkspace } from "@/components/clients/ClientChatWorkspace";
@@ -197,6 +198,7 @@ const ClientDetail = () => {
   const [outcomeInitialChoice, setOutcomeInitialChoice] = useState<
     "approved" | "refused" | "reapply" | null
   >(null);
+  const [pendingAppointmentCount, setPendingAppointmentCount] = useState(0);
 
   // Critical fetch — only what's needed for the first paint above the fold
   // (client + template + active documents + sections). Runs in parallel.
@@ -256,7 +258,7 @@ const ClientDetail = () => {
   const loadSecondary = useCallback(async () => {
     if (!id) return;
     setSecondaryLoading(true);
-    const [{ data: trashed }, { data: b }, casePeople] = await Promise.all([
+    const [{ data: trashed }, { data: b }, casePeople, { count: pendingAppts }] = await Promise.all([
       supabase
         .from("client_documents")
         .select("*")
@@ -269,11 +271,17 @@ const ClientDetail = () => {
         .eq("client_id", id)
         .order("generated_at", { ascending: false }),
       fetchCasePeople(id),
+      supabase
+        .from("client_appointments")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", id)
+        .eq("status", "requested"),
     ]);
     const trashedRows = (trashed ?? []) as Doc[];
     setTrashedDocs(trashedRows);
     setBinders((b ?? []) as BinderRow[]);
     setPeople(sortRoster(casePeople));
+    setPendingAppointmentCount(pendingAppts ?? 0);
     const uids = Array.from(new Set(trashedRows.map((x) => x.deleted_by).filter(Boolean) as string[]));
     if (uids.length) {
       const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", uids);
@@ -1120,7 +1128,7 @@ const ClientDetail = () => {
           caseOutcome={serviceCase?.outcome}
           onStageChanged={() => setStageRefreshKey((k) => k + 1)}
         />
-        <ClientDetailTabNav badges={{ documents: requiredMissing.length }} />
+        <ClientDetailTabNav badges={{ documents: requiredMissing.length, communications: pendingAppointmentCount }} />
 
         <div className="p-6 sm:p-8 max-w-7xl mx-auto">
           <TabsContent value="overview" className="mt-0 space-y-6">
@@ -1215,6 +1223,11 @@ const ClientDetail = () => {
           </TabsContent>
 
           <TabsContent value="communications" className="mt-0 space-y-6">
+            <ClientAppointmentsCard
+              clientId={client.id}
+              canEdit={canUpload}
+              onPendingCountChange={setPendingAppointmentCount}
+            />
             <div className="grid lg:grid-cols-2 gap-6">
               <ClientEmailCard
                 clientId={client.id}

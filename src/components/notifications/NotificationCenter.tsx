@@ -20,6 +20,7 @@ import {
   BellOff,
   Megaphone,
   FileText,
+  Calendar,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -78,6 +79,7 @@ const CATEGORY_META: Record<string, { icon: React.ComponentType<{ className?: st
   document_uploaded: { icon: FileUp, label: "Document", tone: "text-cyan-600 bg-cyan-500/10" },
   portal_invite_sent: { icon: Mail, label: "Portal", tone: "text-blue-600 bg-blue-500/10" },
   portal_message: { icon: MessageSquare, label: "Message", tone: "text-blue-600 bg-blue-500/10" },
+  appointment_request: { icon: Calendar, label: "Appointment", tone: "text-amber-600 bg-amber-500/10" },
   direct_message: { icon: MessageSquare, label: "Direct message", tone: "text-blue-600 bg-blue-500/10" },
   team_message: { icon: MessageSquare, label: "Team chat", tone: "text-indigo-600 bg-indigo-500/10" },
   client_team_message: { icon: MessageSquare, label: "Client team", tone: "text-emerald-600 bg-emerald-500/10" },

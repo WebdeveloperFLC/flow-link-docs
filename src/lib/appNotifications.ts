@@ -12,6 +12,7 @@ export type NotificationCategory =
   | "lead_converted"
   | "urgent_review_required"
   | "portal_message"
+  | "appointment_request"
   | "direct_message"
   | "team_message"
   | "client_team_message"
