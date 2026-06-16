@@ -375,7 +375,8 @@ const LeadNew = () => {
         <Input type="email" value={(f.email as string) || ""} onChange={(e) => setField("email", e.target.value)} onBlur={autosave} />
       </div>
       <PhoneInputRow
-        label={`Phone${isCold ? "" : " *"}`}
+        className="md:col-span-2 lg:col-span-2"
+        label="Phone"
         required={!isCold}
         countryCode={(f.phone_country_code as string) || ""}
         phone={(f.phone as string) || ""}

@@ -600,7 +600,7 @@ export function ClientRegistrationPanel({
                   </div>
                 </>
               )}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 md:col-span-2 xl:col-span-2">
                 <PhoneInputRow
                   label="Phone (alternate)"
                   countryCode={f.phone_alternate_country_code ?? "+91"}

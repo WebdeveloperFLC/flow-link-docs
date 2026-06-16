@@ -31,14 +31,14 @@ export function PhoneInputRow({
         {label}
         {required ? " *" : ""}
       </Label>
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
         <PhoneCodeSelect
           value={countryCode ?? ""}
           onChange={onCountryCodeChange}
-          className="w-[min(100%,240px)] shrink-0"
+          className="w-full sm:w-[min(100%,260px)] sm:shrink-0"
         />
         <Input
-          className="flex-1 min-w-0"
+          className="w-full flex-1 min-w-0"
           value={phone ?? ""}
           onChange={(e) => onPhoneChange(e.target.value)}
           onBlur={onBlur}
