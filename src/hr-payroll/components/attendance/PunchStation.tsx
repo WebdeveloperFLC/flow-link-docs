@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { dayMetrics, fmtDur, nowHhmm, type ShiftMetrics } from "../../lib/attendanceMetrics";
+import { dayMetrics, fmtDur, type ShiftMetrics } from "../../lib/attendanceMetrics";
+import { formatClockInTz, formatDateLongInTz, timezoneAbbrev } from "../../lib/employeeTimezone";
 import type { AttendanceRow, EmployeeRow, ShiftRow } from "../../lib/types";
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
   todayRow: AttendanceRow | null;
   todayDate: string;
   carryOverFrom?: string | null;
+  timezone: string;
   canPunch: boolean;
   onPunch: (field: "check_in" | "check_out" | "break_start" | "break_end") => void;
   onStartDay: () => void;
@@ -20,6 +22,7 @@ export function PunchStation({
   todayRow,
   todayDate,
   carryOverFrom,
+  timezone,
   canPunch,
   onPunch,
   onStartDay,
@@ -41,7 +44,8 @@ export function PunchStation({
   };
 
   const m = todayRow ? dayMetrics(todayRow, shiftMetrics) : null;
-  const hhmmss = clock.toLocaleTimeString("en-IN", { hour12: false });
+  const hhmmss = formatClockInTz(timezone, clock);
+  const tzLabel = timezoneAbbrev(timezone);
 
   const Btn = ({
     field,
@@ -106,10 +110,11 @@ export function PunchStation({
             Punch Station · {employee.full_name.split(" ")[0]}
           </div>
           <div className="mono" style={{ fontSize: 30, fontWeight: 600, marginTop: 2 }}>
-            {hhmmss}
+            {hhmmss}{" "}
+            <span style={{ fontSize: 14, fontWeight: 500, opacity: 0.85 }}>{tzLabel}</span>
           </div>
           <div style={{ fontSize: 12, opacity: 0.85 }}>
-            No row for {todayDate} yet — start your day to check in (any time, 24h).
+            {formatDateLongInTz(timezone, clock)} · No row for {todayDate} yet — start your day to check in (any time, 24h).
           </div>
         </div>
         {canPunch && (
@@ -154,10 +159,11 @@ export function PunchStation({
             Punch Station · {employee.full_name.split(" ")[0]}
           </div>
           <div className="mono" style={{ fontSize: 30, fontWeight: 600, marginTop: 2 }}>
-            {hhmmss}
+            {hhmmss}{" "}
+            <span style={{ fontSize: 14, fontWeight: 500, opacity: 0.85 }}>{tzLabel}</span>
           </div>
           <div style={{ fontSize: 12, opacity: 0.8 }}>
-            {clock.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })} · Shift{" "}
+            {formatDateLongInTz(timezone, clock)} · Shift{" "}
             {shiftMetrics.login}–{shiftMetrics.logout} (salary reference) · punch anytime
           </div>
           <div style={{ fontSize: 12, opacity: 0.8 }}>
@@ -261,5 +267,3 @@ export function PunchStation({
     </div>
   );
 }
-
-export { nowHhmm };

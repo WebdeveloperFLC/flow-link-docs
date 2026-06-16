@@ -18,6 +18,7 @@ import {
   todayIso,
 } from "../lib/attendanceMetrics";
 import { resolvePunchSession } from "../lib/punchSession";
+import { timezoneForEmployee, todayIsoInTz } from "../lib/employeeTimezone";
 import type { AttendanceRow, ShiftRow } from "../lib/types";
 
 function rollupStats(att: AttendanceRow[], shift: ShiftRow) {
@@ -74,6 +75,7 @@ export function AttendanceView({ mode }: AttendanceViewProps) {
   const [empId, setEmpId] = useState("");
   const emp = employees.find((e) => e.id === empId) ?? employees[0];
   const shift = shifts.find((s) => s.id === emp?.shift_id) ?? shifts[0];
+  const tz = timezoneForEmployee(emp, shift);
   const effectiveId = emp?.id;
 
   const { data: att = [] } = useHrAttendance(
@@ -81,9 +83,9 @@ export function AttendanceView({ mode }: AttendanceViewProps) {
     cycle?.start_date,
     cycle?.end_date,
   );
-  const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, fire);
+  const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, tz, fire);
 
-  const today = todayIso();
+  const today = todayIsoInTz(tz);
   const punchSession = resolvePunchSession(att, today);
   const todayRow = punchSession.punchRow;
   const ru = shift && att.length ? rollupStats(att, shift) : null;
@@ -117,6 +119,7 @@ export function AttendanceView({ mode }: AttendanceViewProps) {
         todayRow={todayRow}
         todayDate={formatWorkDate(punchSession.displayDate)}
         carryOverFrom={punchSession.carryOverFrom ? formatWorkDate(punchSession.carryOverFrom) : null}
+        timezone={tz}
         canPunch={!!canPunch}
         onPunch={(field) => {
           if (!todayRow) return;

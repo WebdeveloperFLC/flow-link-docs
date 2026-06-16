@@ -10,7 +10,7 @@ export function useHrEmployees() {
       const { data, error } = await supabase
         .from("employees" as never)
         .select(
-          "*, companies(name, legal_name, currency), branches(name), shifts(name, login_time, logout_time, working_days_per_week)",
+          "*, companies(name, legal_name, currency), branches(name), shifts(name, login_time, logout_time, working_days_per_week, timezone)",
         )
         .eq("org_id", HR_ORG_ID)
         .order("full_name");
@@ -29,7 +29,7 @@ export function useHrEmployee(employeeId: string | undefined) {
       const { data, error } = await supabase
         .from("employees" as never)
         .select(
-          "*, companies(name, legal_name, currency), branches(name), shifts(name, login_time, logout_time, working_days_per_week)",
+          "*, companies(name, legal_name, currency), branches(name), shifts(name, login_time, logout_time, working_days_per_week, timezone)",
         )
         .eq("id", employeeId!)
         .single();

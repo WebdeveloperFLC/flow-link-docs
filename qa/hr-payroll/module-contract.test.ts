@@ -223,6 +223,7 @@ describe("HR Payroll module contract", () => {
     expect(m43).not.toContain("Check-in too early");
     const punch = readFileSync(join(ROOT, "src/hr-payroll/components/attendance/PunchStation.tsx"), "utf8");
     expect(punch).toContain("Check In again");
+    expect(punch).toContain("timezone");
   });
 
   it("migration 36 sandwich half-day exception and 5-day night EST", () => {

@@ -135,7 +135,7 @@ export type EmployeeRow = {
   bank_verified_at?: string | null;
   companies?: { name: string; legal_name?: string | null; currency?: string } | null;
   branches?: { name: string } | null;
-  shifts?: { name: string; login_time: string; logout_time: string; working_days_per_week?: number } | null;
+  shifts?: { name: string; login_time: string; logout_time: string; working_days_per_week?: number; timezone?: string } | null;
 };
 
 export type EmergencyContact = { name: string; phone: string; relation: string };

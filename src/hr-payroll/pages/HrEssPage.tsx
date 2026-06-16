@@ -20,8 +20,9 @@ import { useAttendanceActions } from "../hooks/useAttendanceActions";
 import { Stat } from "../components/ui/Stat";
 import { PunchStation } from "../components/attendance/PunchStation";
 import { EmployeeAvatar } from "../components/ui/EmployeeAvatar";
-import { formatWorkDate, todayIso } from "../lib/attendanceMetrics";
+import { formatWorkDate } from "../lib/attendanceMetrics";
 import { resolvePunchSession } from "../lib/punchSession";
+import { timezoneForEmployee, todayIsoInTz } from "../lib/employeeTimezone";
 import { essAttendanceStatus } from "../lib/attendanceStatus";
 import { formatMoney } from "../lib/format";
 import { printSalarySlip } from "../lib/salarySlip";
@@ -41,12 +42,13 @@ export default function HrEssPage() {
     [employees, user?.id],
   );
   const shift = shifts.find((s) => s.id === emp?.shift_id) ?? shifts[0];
+  const tz = useMemo(() => timezoneForEmployee(emp, shift), [emp, shift]);
 
   const { data: att = [] } = useHrAttendance(emp?.id, cycle?.start_date, cycle?.end_date);
   const { data: line } = useHrPayrollLine(emp?.id, cycle?.id);
   const { data: leaveBalances = [] } = useHrLeaveBalances(emp?.id);
   const { data: allLeaves = [] } = useHrLeaveRequests();
-  const today = todayIso();
+  const today = todayIsoInTz(tz);
   const punchSession = useMemo(() => resolvePunchSession(att, today), [att, today]);
   const todayRow = punchSession.punchRow;
   const shownLeaveBalances = useMemo(
@@ -57,7 +59,7 @@ export default function HrEssPage() {
     () => (emp ? monthlyPaidLeaveUsed(allLeaves, emp.id, today) : 0),
     [allLeaves, emp, today],
   );
-  const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, fire);
+  const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, tz, fire);
 
   const attStatus = essAttendanceStatus(todayRow);
   const money = (n: number) => formatMoney(n, emp?.salary_currency ?? "INR");
@@ -171,6 +173,7 @@ export default function HrEssPage() {
         todayRow={todayRow}
         todayDate={formatWorkDate(punchSession.displayDate)}
         carryOverFrom={punchSession.carryOverFrom ? formatWorkDate(punchSession.carryOverFrom) : null}
+        timezone={tz}
         canPunch
         onPunch={(field) => {
           if (!todayRow) return;

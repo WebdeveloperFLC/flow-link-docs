@@ -175,19 +175,21 @@ export function rpcErrorMessage(e: unknown, fallback: string): string {
   return fallback;
 }
 
-export async function recordPunch(attendanceId: string, field: string) {
+export async function recordPunch(attendanceId: string, field: string, punchTime: string) {
   const { data, error } = await supabase.rpc("fn_record_punch" as never, {
     p_attendance: attendanceId,
     p_field: field,
+    p_time: punchTime,
   } as never);
   if (error) throw new Error(error.message || "Punch failed");
   return data as import("./types").AttendanceRow;
 }
 
-export async function startAttendanceDay(employeeId: string, workDate: string) {
+export async function startAttendanceDay(employeeId: string, workDate: string, checkInTime: string) {
   const { data, error } = await supabase.rpc("fn_start_attendance_day" as never, {
     p_employee: employeeId,
     p_work_date: workDate,
+    p_check_in: checkInTime,
   } as never);
   if (error) throw new Error(error.message || "Check-in failed");
   return data as import("./types").AttendanceRow;

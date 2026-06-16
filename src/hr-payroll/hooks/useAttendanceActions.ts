@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../lib/constants";
 import { hrAudit, rebuildPayrollLine, recordPunch, rpcErrorMessage, setEssUnavailable, startAttendanceDay } from "../lib/hrApi";
-import { nowHhmm, todayIso } from "../lib/attendanceMetrics";
+import { nowTimeInTz, todayIsoInTz } from "../lib/employeeTimezone";
 import type { AttendanceRow } from "../lib/types";
 
 function mergeAttendanceCache(
@@ -30,6 +30,7 @@ export function useAttendanceActions(
   cycleId: string | undefined,
   cycleStart: string | undefined,
   cycleEnd: string | undefined,
+  timezone: string,
   fire: (msg: string) => void,
 ) {
   const qc = useQueryClient();
@@ -51,7 +52,7 @@ export function useAttendanceActions(
   };
 
   const addToday = async (employeeId: string, empName: string) => {
-    const work_date = todayIso();
+    const work_date = todayIsoInTz(timezone);
     const { error } = await supabase.from("attendance" as never).insert({
       org_id: HR_ORG_ID,
       employee_id: employeeId,
@@ -70,15 +71,16 @@ export function useAttendanceActions(
   };
 
   const startAndCheckIn = async (employeeId: string, empName: string) => {
-    const work_date = todayIso();
+    const work_date = todayIsoInTz(timezone);
+    const punchTime = nowTimeInTz(timezone);
     let row: AttendanceRow;
     try {
-      row = await startAttendanceDay(employeeId, work_date);
+      row = await startAttendanceDay(employeeId, work_date, punchTime);
     } catch (e) {
       fire(rpcErrorMessage(e, "Check-in failed"));
       return;
     }
-    await hrAudit("Check In", `${empName} · ${work_date}`, "—", nowHhmm());
+    await hrAudit("Check In", `${empName} · ${work_date}`, "—", punchTime);
     fire("Checked in");
     await invalidate(employeeId, row);
   };
@@ -91,12 +93,12 @@ export function useAttendanceActions(
   ) => {
     let updated: AttendanceRow;
     try {
-      updated = (await recordPunch(row.id, field)) as AttendanceRow;
+      updated = (await recordPunch(row.id, field, nowTimeInTz(timezone))) as AttendanceRow;
     } catch (e) {
       fire(rpcErrorMessage(e, "Punch failed"));
       return;
     }
-    await hrAudit("Punch", `${empName} · ${workDate}`, field, nowHhmm());
+    await hrAudit("Punch", `${empName} · ${workDate}`, field, nowTimeInTz(timezone));
     fire(`${field.replace("_", " ")} recorded`);
     await invalidate(row.employee_id, updated);
   };
