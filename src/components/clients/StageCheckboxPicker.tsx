@@ -10,6 +10,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -18,30 +28,37 @@ import type { PipelineStage } from "@/hooks/useClientStage";
 type Props = {
   stages: PipelineStage[];
   completedStageIds: Set<string>;
+  completionNotes?: Map<string, string | null>;
   displayLabel: (stage: PipelineStage) => string;
   disabled?: boolean;
   onTick: (stageId: string, note?: string | null) => Promise<void>;
   onUntick: (stageId: string) => Promise<void>;
+  onClearNote?: (stageId: string) => Promise<void>;
   triggerClassName?: string;
 };
 
 export function StageCheckboxPicker({
   stages,
   completedStageIds,
+  completionNotes,
   displayLabel,
   disabled,
   onTick,
   onUntick,
+  onClearNote,
   triggerClassName,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [pendingStageId, setPendingStageId] = useState<string | null>(null);
+  const [clearStageId, setClearStageId] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const doneCount = stages.filter((s) => completedStageIds.has(s.id)).length;
   const pendingStage = pendingStageId ? stages.find((s) => s.id === pendingStageId) : null;
+  const clearStage = clearStageId ? stages.find((s) => s.id === clearStageId) : null;
+  const clearNoteText = clearStageId ? completionNotes?.get(clearStageId)?.trim() : null;
 
   const handleToggle = async (stageId: string, checked: boolean) => {
     if (disabled) return;
@@ -67,6 +84,17 @@ export function StageCheckboxPicker({
       setNoteOpen(false);
       setPendingStageId(null);
       setNote("");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const confirmClear = async () => {
+    if (!clearStageId || !onClearNote) return;
+    setSubmitting(true);
+    try {
+      await onClearNote(clearStageId);
+      setClearStageId(null);
     } finally {
       setSubmitting(false);
     }
@@ -103,22 +131,45 @@ export function StageCheckboxPicker({
           <div className="max-h-64 overflow-y-auto p-2 space-y-0.5">
             {stages.map((s) => {
               const checked = completedStageIds.has(s.id);
+              const stageNote = completionNotes?.get(s.id)?.trim();
+              const hasNote = Boolean(stageNote);
               return (
-                <label
+                <div
                   key={s.id}
                   className={cn(
-                    "flex items-start gap-2.5 rounded-md px-2 py-1.5 text-sm cursor-pointer hover:bg-muted/60",
-                    disabled && "opacity-50 cursor-not-allowed",
+                    "flex items-start gap-2 rounded-md px-2 py-1.5 hover:bg-muted/60",
+                    disabled && "opacity-50",
                   )}
                 >
-                  <Checkbox
-                    checked={checked}
-                    disabled={disabled || submitting}
-                    onCheckedChange={(v) => void handleToggle(s.id, v === true)}
-                    className="mt-0.5"
-                  />
-                  <span className="leading-snug">{displayLabel(s)}</span>
-                </label>
+                  <label className="flex items-start gap-2.5 flex-1 min-w-0 cursor-pointer">
+                    <Checkbox
+                      checked={checked}
+                      disabled={disabled || submitting}
+                      onCheckedChange={(v) => void handleToggle(s.id, v === true)}
+                      className="mt-0.5"
+                    />
+                    <span
+                      className={cn(
+                        "leading-snug text-sm",
+                        hasNote && "text-amber-700 dark:text-amber-400 font-medium",
+                      )}
+                    >
+                      {displayLabel(s)}
+                    </span>
+                  </label>
+                  {hasNote && onClearNote && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-1.5 text-[10px] text-amber-700 hover:text-amber-800 hover:bg-amber-50 dark:text-amber-400 shrink-0"
+                      disabled={disabled || submitting}
+                      onClick={() => setClearStageId(s.id)}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -155,6 +206,27 @@ export function StageCheckboxPicker({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!clearStageId} onOpenChange={(v) => !v && setClearStageId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear stage note?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Remove the note from &ldquo;{clearStage ? displayLabel(clearStage) : "stage"}&rdquo;?
+              {clearNoteText && (
+                <span className="block mt-2 text-foreground/80 italic">&ldquo;{clearNoteText}&rdquo;</span>
+              )}
+              The stage stays marked done.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction disabled={submitting} onClick={() => void confirmClear()}>
+              Clear note
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

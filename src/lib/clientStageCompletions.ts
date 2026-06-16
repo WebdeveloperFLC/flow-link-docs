@@ -7,10 +7,12 @@ export type StageCompletion = {
   completedBy: string | null;
 };
 
+export type StageCompletionLogAction = "tick" | "untick" | "note_cleared";
+
 export type StageCompletionLogEntry = {
   id: string;
   stageId: string;
-  action: "tick" | "untick";
+  action: StageCompletionLogAction;
   note: string | null;
   actorId: string | null;
   createdAt: string;

@@ -8,6 +8,7 @@ import {
   deriveStepNumber,
   type StageCompletion,
   type StageCompletionLogEntry,
+  type StageCompletionLogAction,
 } from "@/lib/clientStageCompletions";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -114,7 +115,7 @@ export function useClientStage(
         rawLog.map((r) => ({
           id: r.id,
           stageId: r.stage_id,
-          action: r.action as "tick" | "untick",
+          action: r.action as StageCompletionLogAction,
           note: r.note,
           actorId: r.actor_id,
           createdAt: r.created_at,
@@ -259,6 +260,41 @@ export function useClientStage(
     ],
   );
 
+  const clearStageNote = useCallback(
+    async (stageId: string) => {
+      if (!current?.pipeline_id || !completedStageIds.has(stageId)) return;
+      const existingNote = completionNotes.get(stageId)?.trim();
+      if (!existingNote) return;
+      setBusy(true);
+      try {
+        const { error: updErr } = await supabase
+          .from("client_stage_completions")
+          .update({ note: null })
+          .eq("client_id", clientId)
+          .eq("stage_id", stageId);
+        if (updErr) throw updErr;
+
+        const { error: logErr } = await supabase.from("client_stage_completion_log").insert({
+          client_id: clientId,
+          pipeline_id: current.pipeline_id,
+          stage_id: stageId,
+          action: "note_cleared",
+          note: existingNote,
+          actor_id: user?.id ?? null,
+        });
+        if (logErr) throw logErr;
+
+        toast.success("Note cleared — stage stays done");
+        await load();
+      } catch (e: unknown) {
+        toast.error(e instanceof Error ? e.message : "Failed to clear note");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [clientId, current?.pipeline_id, completedStageIds, completionNotes, load, user?.id],
+  );
+
   const displayLabel = (stage: PipelineStage) => stage.client_label?.trim() || stage.label;
 
   const stepNumber = deriveStepNumber(currentIdx, stages.length);
@@ -285,6 +321,7 @@ export function useClientStage(
     load,
     tickStage,
     untickStage,
+    clearStageNote,
     displayLabel,
     hasPipeline: !!current?.pipeline_id,
     completedStageIds,

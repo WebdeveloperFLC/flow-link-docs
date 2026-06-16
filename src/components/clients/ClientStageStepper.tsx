@@ -19,6 +19,7 @@ export function ClientStageStepper({ clientId, refreshKey = 0, activeServiceLabe
     stepTotal,
     tickStage,
     untickStage,
+    clearStageNote,
     displayLabel,
     hasPipeline,
     completedStageIds,
@@ -58,10 +59,12 @@ export function ClientStageStepper({ clientId, refreshKey = 0, activeServiceLabe
           <StageCheckboxPicker
             stages={stages}
             completedStageIds={completedStageIds}
+            completionNotes={completionNotes}
             displayLabel={displayLabel}
             disabled={busy}
             onTick={(id, note) => afterChange(() => tickStage(id, note))}
             onUntick={(id) => afterChange(() => untickStage(id))}
+            onClearNote={(id) => afterChange(() => clearStageNote(id))}
             triggerClassName="flex"
           />
         )}
@@ -72,6 +75,9 @@ export function ClientStageStepper({ clientId, refreshKey = 0, activeServiceLabe
         isStageCurrent={isStageCurrent}
         completionNotes={completionNotes}
         displayLabel={displayLabel}
+        canUpload={canUpload}
+        onClearNote={(id) => afterChange(() => clearStageNote(id))}
+        clearing={busy}
       />
     </div>
   );

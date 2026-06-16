@@ -39,6 +39,7 @@ export function ClientStageCard({
     stepTotal,
     tickStage,
     untickStage,
+    clearStageNote,
     displayLabel,
     hasPipeline,
     completedStageIds,
@@ -229,10 +230,12 @@ export function ClientStageCard({
             <StageCheckboxPicker
               stages={stages}
               completedStageIds={completedStageIds}
+              completionNotes={completionNotes}
               displayLabel={displayLabel}
               disabled={metaBusy}
               onTick={tickStage}
               onUntick={untickStage}
+              onClearNote={clearStageNote}
               triggerClassName="flex"
             />
           )}
@@ -245,6 +248,9 @@ export function ClientStageCard({
           completionNotes={completionNotes}
           displayLabel={displayLabel}
           compact
+          canUpload={canUpload}
+          onClearNote={clearStageNote}
+          clearing={metaBusy}
         />
 
         {canUpload && (
@@ -302,15 +308,36 @@ export function ClientStageCard({
             ) : (
               <div className="space-y-1.5">
                 {completionLog.map((h) => (
-                  <div key={h.id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs border-l-2 border-primary/40 pl-2 py-1">
-                    <span className={cn("font-medium", h.action === "tick" ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground")}>
-                      {h.action === "tick" ? "✓" : "○"} {h.stageLabel ?? "—"}
+                  <div
+                    key={h.id}
+                    className={cn(
+                      "flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs border-l-2 pl-2 py-1",
+                      h.action === "tick" && "border-emerald-500/50",
+                      h.action === "untick" && "border-muted-foreground/30",
+                      h.action === "note_cleared" && "border-slate-400/50",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "font-medium",
+                        h.action === "tick" && "text-emerald-700 dark:text-emerald-400",
+                        h.action === "untick" && "text-muted-foreground",
+                        h.action === "note_cleared" && "text-slate-600 dark:text-slate-400",
+                      )}
+                    >
+                      {h.action === "tick" && `✓ ${h.stageLabel ?? "—"}`}
+                      {h.action === "untick" && `○ ${h.stageLabel ?? "—"}`}
+                      {h.action === "note_cleared" && `✕ Note cleared — ${h.stageLabel ?? "—"}`}
                     </span>
                     <span className="text-muted-foreground">
                       · {formatDistanceToNow(new Date(h.createdAt), { addSuffix: true })}
                     </span>
                     {h.actorName && <span className="text-muted-foreground">· {h.actorName}</span>}
-                    {h.note && <span className="text-muted-foreground truncate">— {h.note}</span>}
+                    {h.note && (
+                      <span className="text-muted-foreground truncate italic">
+                        — &ldquo;{h.note}&rdquo;
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
