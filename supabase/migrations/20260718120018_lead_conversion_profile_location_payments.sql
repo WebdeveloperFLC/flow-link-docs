@@ -1,5 +1,24 @@
 -- Lead→Client SSOT: profile journey fields, location preferences, payment/receipt controls.
 
+-- 0) Journey columns on leads/clients (from 20260718120015 — idempotent if that migration was skipped).
+ALTER TABLE public.leads
+  ADD COLUMN IF NOT EXISTS sponsor text,
+  ADD COLUMN IF NOT EXISTS sponsor_other text,
+  ADD COLUMN IF NOT EXISTS has_budget text,
+  ADD COLUMN IF NOT EXISTS budget_currency text DEFAULT 'INR',
+  ADD COLUMN IF NOT EXISTS budget_min numeric,
+  ADD COLUMN IF NOT EXISTS budget_max numeric;
+
+ALTER TABLE public.clients
+  ADD COLUMN IF NOT EXISTS sponsor text,
+  ADD COLUMN IF NOT EXISTS sponsor_other text,
+  ADD COLUMN IF NOT EXISTS has_budget text,
+  ADD COLUMN IF NOT EXISTS budget_currency text DEFAULT 'INR',
+  ADD COLUMN IF NOT EXISTS budget_min numeric,
+  ADD COLUMN IF NOT EXISTS budget_max numeric,
+  ADD COLUMN IF NOT EXISTS start_timeline text,
+  ADD COLUMN IF NOT EXISTS phone_alternate_country_code text;
+
 -- 1) Extend client_profile with journey + source fields (canonical after conversion).
 ALTER TABLE public.client_profile
   ADD COLUMN IF NOT EXISTS sponsor text,
