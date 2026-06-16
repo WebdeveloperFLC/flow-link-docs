@@ -1,4 +1,4 @@
--- Multi-tick stage completions: tick any stage in any order; current stage = first unticked.
+-- Catch-up for partial applies: tables/policies may exist from a failed first run.
 
 CREATE TABLE IF NOT EXISTS public.client_stage_completions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS public.client_stage_completion_log (
   client_id uuid NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
   pipeline_id uuid NOT NULL REFERENCES public.stage_pipelines(id) ON DELETE CASCADE,
   stage_id uuid NOT NULL REFERENCES public.pipeline_stages(id) ON DELETE CASCADE,
-  action text NOT NULL CHECK (action IN ('tick', 'untick')),
+  action text NOT NULL,
   note text,
   actor_id uuid REFERENCES auth.users(id),
   created_at timestamptz NOT NULL DEFAULT now()
@@ -52,7 +52,13 @@ CREATE POLICY "client_stage_completion_log insert scoped"
   ON public.client_stage_completion_log FOR INSERT TO authenticated
   WITH CHECK (public.can_edit_client(auth.uid(), client_id));
 
--- Backfill: stages before current_stage_id are treated as already done.
+ALTER TABLE public.client_stage_completion_log
+  DROP CONSTRAINT IF EXISTS client_stage_completion_log_action_check;
+
+ALTER TABLE public.client_stage_completion_log
+  ADD CONSTRAINT client_stage_completion_log_action_check
+  CHECK (action IN ('tick', 'untick', 'note_cleared'));
+
 INSERT INTO public.client_stage_completions (client_id, pipeline_id, stage_id, completed_at)
 SELECT c.id, c.pipeline_id, ps.id, now()
 FROM public.clients c
@@ -63,8 +69,3 @@ JOIN public.pipeline_stages ps
 WHERE c.pipeline_id IS NOT NULL
   AND c.current_stage_id IS NOT NULL
 ON CONFLICT (client_id, stage_id) DO NOTHING;
-
-COMMENT ON TABLE public.client_stage_completions IS
-  'Stages manually marked done (any order). Current stage = first pipeline stage without a row here.';
-COMMENT ON TABLE public.client_stage_completion_log IS
-  'Audit log for stage tick/untick with optional note.';
