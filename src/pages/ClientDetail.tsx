@@ -1060,7 +1060,10 @@ const ClientDetail = () => {
         hasTemplate={!!template}
         refusalDocPending={serviceCase?.refusalDocPending}
         caseClosed={caseClosed}
+        caseId={serviceCase?.id}
+        attemptNumber={serviceCase?.attemptNumber}
         onCaseOutcome={() => setOutcomeOpen(true)}
+        onRefusalDocUploaded={onCaseOutcomeComplete}
       />
 
       <CaseOutcomeDialog

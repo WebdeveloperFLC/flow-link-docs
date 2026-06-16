@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ChevronLeft,
@@ -13,6 +13,8 @@ import {
   ArrowRightLeft,
   ListTodo,
   Flag,
+  Upload,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +31,8 @@ import { AddTaskDialog } from "@/components/clients/AddTaskDialog";
 import { ServiceLibraryContextActions } from "@/components/service-library/ServiceLibraryContextActions";
 import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
 import type { ActiveServiceContext } from "@/lib/clientActiveServiceContext";
+import { attachRefusalDocument, uploadOutcomeDocument } from "@/lib/caseOutcome";
+import { toast } from "sonner";
 
 export type ClientHeaderClient = {
   id: string;
@@ -65,7 +69,10 @@ type Props = {
   hasTemplate?: boolean;
   refusalDocPending?: boolean;
   caseClosed?: boolean;
+  caseId?: string | null;
+  attemptNumber?: number;
   onCaseOutcome?: () => void;
+  onRefusalDocUploaded?: () => void;
 };
 
 function initials(name: string): string {
@@ -96,8 +103,13 @@ export function ClientIdentityHeader({
   hasTemplate,
   refusalDocPending,
   caseClosed,
+  caseId,
+  attemptNumber,
   onCaseOutcome,
+  onRefusalDocUploaded,
 }: Props) {
+  const refusalInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingRefusal, setUploadingRefusal] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
   const destination = serviceCtx.destinationCountry ?? client.country;
   const flag = destination ? countryFlagEmoji(destination) : "";
@@ -107,6 +119,32 @@ export function ClientIdentityHeader({
     isAdmin || (!!userId && (client.owner_id === userId || client.created_by === userId));
   const score = client.lead_score ?? 0;
   const showScore = score > 0;
+
+  const onRefusalFile = async (file: File) => {
+    if (!caseId || !canUpload) return;
+    setUploadingRefusal(true);
+    try {
+      const docId = await uploadOutcomeDocument({
+        clientId: client.id,
+        caseId,
+        file,
+        documentType: "Other",
+        customType: "Visa refusal letter",
+      });
+      await attachRefusalDocument({
+        caseId,
+        clientId: client.id,
+        documentId: docId,
+        actorId: userId ?? null,
+      });
+      toast.success("Refusal letter uploaded");
+      onRefusalDocUploaded?.();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploadingRefusal(false);
+    }
+  };
 
   return (
     <>
@@ -134,6 +172,34 @@ export function ClientIdentityHeader({
                   <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/60 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
                     <Flag className="size-3" />
                     Refusal letter pending
+                    {canUpload && caseId && (
+                      <>
+                        <input
+                          ref={refusalInputRef}
+                          type="file"
+                          className="hidden"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) void onRefusalFile(f);
+                            e.target.value = "";
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="ml-1 inline-flex items-center gap-0.5 underline underline-offset-2 hover:no-underline disabled:opacity-50"
+                          disabled={uploadingRefusal}
+                          onClick={() => refusalInputRef.current?.click()}
+                        >
+                          {uploadingRefusal ? (
+                            <Loader2 className="size-3 animate-spin" />
+                          ) : (
+                            <Upload className="size-3" />
+                          )}
+                          Upload
+                        </button>
+                      </>
+                    )}
                   </span>
                 )}
               </div>
@@ -151,7 +217,12 @@ export function ClientIdentityHeader({
                 {serviceLabel && (
                   <>
                     <span>·</span>
-                    <span>{serviceLabel}</span>
+                    <span>
+                      {serviceLabel}
+                      {attemptNumber != null && attemptNumber > 1 && (
+                        <span className="text-muted-foreground"> · Attempt {attemptNumber}</span>
+                      )}
+                    </span>
                   </>
                 )}
                 {client.branch && (

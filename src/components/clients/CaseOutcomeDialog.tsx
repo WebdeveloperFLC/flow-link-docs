@@ -92,8 +92,17 @@ export function CaseOutcomeDialog({
   useEffect(() => {
     if (choice !== "reapply" || !serviceCase || !targetItem) return;
     const code = buildServiceCode(targetItem.library_id ?? targetItem.id, targetItem.country_tag);
-    setTransfer(buildDefaultTransfer(serviceCase.serviceCode, code));
-  }, [choice, serviceCase, targetItem]);
+    const same = code.toLowerCase() === serviceCase.serviceCode.toLowerCase();
+    const base = buildDefaultTransfer(serviceCase.serviceCode, code);
+    if (!same && transferDocs.length) {
+      const passportIds = transferDocs
+        .filter((d) => /passport/i.test(d.documentType) || /passport/i.test(d.label))
+        .map((d) => d.id);
+      setTransfer({ ...base, documents: passportIds });
+    } else {
+      setTransfer(base);
+    }
+  }, [choice, serviceCase, targetItem, transferDocs]);
 
   const countries = useMemo(() => {
     const set = new Set<string>();
