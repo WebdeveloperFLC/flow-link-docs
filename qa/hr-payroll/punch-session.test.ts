@@ -37,4 +37,14 @@ describe("resolvePunchSession", () => {
     expect(s.punchRow?.id).toBe("y");
     expect(s.carryOverFrom).toBe("2026-06-15");
   });
+
+  it("prefers today open session over older carry-over", () => {
+    const att = [
+      row({ id: "y", work_date: "2026-06-15", check_in: "19:48", check_out: null }),
+      row({ id: "t", work_date: "2026-06-16", check_in: "05:00", check_out: null }),
+    ];
+    const s = resolvePunchSession(att, "2026-06-16");
+    expect(s.punchRow?.id).toBe("t");
+    expect(s.carryOverFrom).toBeNull();
+  });
 });

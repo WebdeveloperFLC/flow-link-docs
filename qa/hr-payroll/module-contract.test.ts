@@ -42,6 +42,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120040_hr_payroll_punch_24h_all_shifts.sql",
   "20260717120041_hr_payroll_punch_close_locked_open.sql",
   "20260717120042_hr_payroll_attendance_columns_catchup.sql",
+  "20260717120043_hr_payroll_punch_final.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -210,6 +211,18 @@ describe("HR Payroll module contract", () => {
     );
     expect(m42).toContain("shift_work_min");
     expect(m42).toContain("off_shift_min");
+  });
+
+  it("migration 43 final punch — self-service never blocked by cycle lock", () => {
+    const m43 = readFileSync(
+      join(MIGRATIONS, "20260717120043_hr_payroll_punch_final.sql"),
+      "utf8",
+    );
+    expect(m43).toContain("source, 'self'");
+    expect(m43).toContain("fn_start_attendance_day");
+    expect(m43).not.toContain("Check-in too early");
+    const punch = readFileSync(join(ROOT, "src/hr-payroll/components/attendance/PunchStation.tsx"), "utf8");
+    expect(punch).toContain("Check In again");
   });
 
   it("migration 36 sandwich half-day exception and 5-day night EST", () => {

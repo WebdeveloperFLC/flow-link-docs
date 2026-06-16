@@ -133,6 +133,7 @@ export function PunchStation({
   const onBreak = !!todayRow.break_start && !todayRow.break_end;
   const unavailable = !!todayRow.ess_unavailable;
   const openSession = checkedIn && !checkedOut;
+  const sessionClosed = checkedIn && checkedOut;
   const showMispunch = todayRow.is_mispunch && !openSession;
 
   return (
@@ -201,18 +202,18 @@ export function PunchStation({
       <div className="row-flex" style={{ gap: 10, flexWrap: "wrap" }}>
         <Btn
           field="check_in"
-          label="Check In"
+          label={sessionClosed ? "Check In again" : "Check In"}
           color="#16a06a"
-          disabled={checkedIn}
-          done={checkedIn}
-          doneVal={todayRow.check_in}
+          disabled={openSession}
+          done={openSession}
+          doneVal={openSession ? todayRow.check_in : null}
         />
         <Btn
           field="break_start"
           label="Break Start"
           color="#e0a82e"
-          disabled={!checkedIn || !!checkedOut || !!todayRow.break_start}
-          done={!!todayRow.break_start}
+          disabled={!openSession || !!todayRow.break_start}
+          done={openSession && !!todayRow.break_start}
           doneVal={todayRow.break_start}
         />
         <Btn
@@ -220,14 +221,14 @@ export function PunchStation({
           label="Break End"
           color="#e8732e"
           disabled={!onBreak}
-          done={!!todayRow.break_end}
+          done={openSession && !!todayRow.break_end}
           doneVal={todayRow.break_end}
         />
         <Btn
           field="check_out"
           label="Check Out"
           color="#e5484d"
-          disabled={!checkedIn || !!checkedOut}
+          disabled={!openSession}
           done={!!checkedOut}
           doneVal={todayRow.check_out}
         />

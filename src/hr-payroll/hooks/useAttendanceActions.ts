@@ -75,7 +75,7 @@ export function useAttendanceActions(
     try {
       row = await startAttendanceDay(employeeId, work_date);
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Check-in failed — apply migration 15");
+      fire(rpcErrorMessage(e, "Check-in failed"));
       return;
     }
     await hrAudit("Check In", `${empName} · ${work_date}`, "—", nowHhmm());

@@ -189,7 +189,7 @@ export async function startAttendanceDay(employeeId: string, workDate: string) {
     p_employee: employeeId,
     p_work_date: workDate,
   } as never);
-  if (error) throw error;
+  if (error) throw new Error(error.message || "Check-in failed");
   return data as import("./types").AttendanceRow;
 }
 

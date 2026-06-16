@@ -9,21 +9,26 @@ export type PunchSession = {
   carryOverFrom: string | null;
 };
 
-/** Prefer an open check-in session; otherwise today's row. */
+/** Prefer today's open session; else today; else any open carry-over. */
 export function resolvePunchSession(att: AttendanceRow[], today: string): PunchSession {
-  const open = att
-    .filter((a) => a.check_in && !a.check_out)
+  const todayRow = att.find((a) => a.work_date === today) ?? null;
+
+  if (todayRow?.check_in && !todayRow.check_out) {
+    return { punchRow: todayRow, displayDate: today, carryOverFrom: null };
+  }
+
+  const openOther = att
+    .filter((a) => a.work_date !== today && a.check_in && !a.check_out)
     .sort((a, b) => b.work_date.localeCompare(a.work_date))[0];
 
-  if (open) {
+  if (openOther) {
     return {
-      punchRow: open,
-      displayDate: open.work_date,
-      carryOverFrom: open.work_date !== today ? open.work_date : null,
+      punchRow: openOther,
+      displayDate: openOther.work_date,
+      carryOverFrom: openOther.work_date,
     };
   }
 
-  const todayRow = att.find((a) => a.work_date === today) ?? null;
   return {
     punchRow: todayRow,
     displayDate: today,
