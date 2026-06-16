@@ -6,7 +6,7 @@ import { ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { ThemeModeToggle } from "@/components/theme/ThemeModeToggle";
-import { RoleViewBanner, RoleViewSwitcher, RoleViewSwitcherMobile } from "@/components/layout/RoleViewSwitcher";
+import { RoleViewBanner, RoleViewSwitcher } from "@/components/layout/RoleViewSwitcher";
 import { isPerformanceHubPath } from "@/lib/performanceHubTokens";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +37,6 @@ export function Topbar({ searchSlot, quickActionsSlot, className }: TopbarProps)
         {searchSlot ? <div className="hidden md:block">{searchSlot}</div> : null}
         {quickActionsSlot ? <div className="hidden sm:block">{quickActionsSlot}</div> : null}
         {!isPerformanceHub && <RoleViewSwitcher />}
-        {!isPerformanceHub && <RoleViewSwitcherMobile />}
         {!isPerformanceHub && <ThemeModeToggle />}
         <NotificationCenter />
       </div>
