@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -62,50 +62,81 @@ function StageNode({
   note: string | null;
   isLast: boolean;
 }) {
+  const hasNote = Boolean(note?.trim());
+
   const circle = (
     <span
       className={cn(
-        "flex size-7 items-center justify-center rounded-full border-2 text-[11px] font-bold",
-        isDone && "border-emerald-600 bg-emerald-600 text-white",
+        "relative flex size-7 items-center justify-center rounded-full border-2 text-[11px] font-bold transition-colors",
+        isDone && hasNote && "border-amber-500 bg-amber-500 text-white ring-2 ring-amber-200 ring-offset-1 shadow-sm cursor-help",
+        isDone && !hasNote && "border-emerald-600 bg-emerald-600 text-white",
         isCurrent && !isDone && "border-primary bg-primary text-primary-foreground shadow-sm",
         !isDone && !isCurrent && "border-muted-foreground/25 bg-muted/40 text-muted-foreground",
       )}
     >
       {isDone ? <Check className="size-3.5" strokeWidth={3} /> : index + 1}
+      {isDone && hasNote && (
+        <span
+          className="absolute -top-0.5 -right-0.5 flex size-3.5 items-center justify-center rounded-full bg-white text-amber-600 shadow-sm"
+          aria-hidden
+        >
+          <MessageSquare className="size-2" fill="currentColor" />
+        </span>
+      )}
+    </span>
+  );
+
+  const labelEl = (
+    <span
+      className={cn(
+        "text-[10px] leading-tight text-center line-clamp-2 w-full",
+        isCurrent && "font-semibold text-primary",
+        isDone && hasNote && "font-medium text-amber-700 dark:text-amber-400",
+        isDone && !hasNote && !isCurrent && "text-emerald-700 dark:text-emerald-400",
+        !isDone && !isCurrent && "text-muted-foreground",
+      )}
+    >
+      {label}
     </span>
   );
 
   return (
     <div className="flex items-start shrink-0">
       <div className="flex flex-col items-center gap-1.5 min-w-[4.5rem] max-w-[5.5rem] px-1">
-        {isDone && note ? (
+        {isDone && hasNote ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="cursor-default">{circle}</span>
+              <span className="cursor-help">{circle}</span>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-xs text-xs">
+              <span className="font-medium text-amber-600 dark:text-amber-400">Note · </span>
               {note}
             </TooltipContent>
           </Tooltip>
         ) : (
           circle
         )}
-        <span
-          className={cn(
-            "text-[10px] leading-tight text-center line-clamp-2 w-full",
-            isCurrent && "font-semibold text-primary",
-            isDone && !isCurrent && "text-emerald-700 dark:text-emerald-400",
-            !isDone && !isCurrent && "text-muted-foreground",
-          )}
-        >
-          {label}
-        </span>
+        {isDone && hasNote ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="cursor-help">{labelEl}</span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs text-xs">
+              <span className="font-medium text-amber-600 dark:text-amber-400">Note · </span>
+              {note}
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          labelEl
+        )}
       </div>
       {!isLast && (
         <div
           className={cn(
             "h-0.5 w-6 mt-3.5 shrink-0 rounded-full",
-            isDone ? "bg-emerald-500" : "bg-muted-foreground/20",
+            isDone && hasNote && "bg-amber-400",
+            isDone && !hasNote && "bg-emerald-500",
+            !isDone && "bg-muted-foreground/20",
           )}
           aria-hidden
         />
