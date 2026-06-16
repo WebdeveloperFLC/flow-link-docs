@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -6,9 +6,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Plus, Search, ArrowUpRight, Globe2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { NewClientDialog } from "@/components/clients/NewClientDialog";
-import { useAuth } from "@/contexts/AuthContext";
+import { Search, ArrowUpRight, Globe2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Client {
@@ -42,7 +40,6 @@ function formatAppType(raw: string | null | undefined, names: Record<string, str
 }
 
 const Clients = () => {
-  const { canCreateClient } = useAuth();
   const [params, setParams] = useSearchParams();
   const q = params.get("q") ?? "";
   const page = Math.max(1, Number(params.get("page") ?? "1"));
@@ -52,7 +49,6 @@ const Clients = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(q);
   const [serviceNames, setServiceNames] = useState<Record<string, string>>({});
 
@@ -129,13 +125,6 @@ const Clients = () => {
       <PageHeader
         title="Clients"
         description="Manage applicant profiles and their document workspaces."
-        actions={
-          canCreateClient && (
-            <Button onClick={() => setOpen(true)} className="gradient-brand text-primary-foreground">
-              <Plus className="size-4 mr-1.5" /> New client
-            </Button>
-          )
-        }
       />
       <div className="p-8 space-y-4">
         <div className="flex flex-wrap gap-3 items-center">
@@ -189,7 +178,7 @@ const Clients = () => {
             )}
             {!loading && clients.length === 0 && (
               <div className="px-6 py-16 text-center text-sm text-muted-foreground">
-                {q ? "No matches." : "No clients yet."}
+                {q ? "No matches." : "No clients yet. Register clients from Warm, Hot, or Cold leads."}
               </div>
             )}
             {clients.map((c) => (
@@ -224,8 +213,6 @@ const Clients = () => {
           </div>
         </Card>
       </div>
-
-      <NewClientDialog open={open} onOpenChange={setOpen} onCreated={load} />
     </AppLayout>
   );
 };
