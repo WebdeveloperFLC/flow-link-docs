@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   fetchAllPipelineStages,
@@ -15,6 +15,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, GripVertical, Workflow } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -58,6 +59,7 @@ export function StagePipelinesSection() {
   const [stageDialogOpen, setStageDialogOpen] = useState(false);
   const [stageDialogPipelineId, setStageDialogPipelineId] = useState<string | null>(null);
   const [editingStage, setEditingStage] = useState<Stage | null>(null);
+  const [countryFilter, setCountryFilter] = useState("all");
 
   const load = async () => {
     setLoading(true);
@@ -78,9 +80,25 @@ export function StagePipelinesSection() {
 
   useEffect(() => { load(); }, []);
 
-  const grouped = pipelines.reduce<Record<string, Pipeline[]>>((acc, p) => {
-    (acc[p.country] ??= []).push(p); return acc;
-  }, {});
+  const countryOptions = useMemo(() => {
+    const countries = [...new Set(pipelines.map((p) => p.country).filter(Boolean))];
+    countries.sort((a, b) => a.localeCompare(b));
+    return countries;
+  }, [pipelines]);
+
+  const visiblePipelines = useMemo(() => {
+    if (countryFilter === "all") return pipelines;
+    return pipelines.filter((p) => p.country === countryFilter);
+  }, [pipelines, countryFilter]);
+
+  const grouped = useMemo(
+    () =>
+      visiblePipelines.reduce<Record<string, Pipeline[]>>((acc, p) => {
+        (acc[p.country] ??= []).push(p);
+        return acc;
+      }, {}),
+    [visiblePipelines],
+  );
 
   const onReorderStages = async (pipelineId: string, oldIndex: number, newIndex: number) => {
     const list = [...(stagesByPipeline[pipelineId] ?? [])];
@@ -168,9 +186,38 @@ export function StagePipelinesSection() {
         )}
       </div>
 
+      {!loading && pipelines.length > 0 && (
+        <div className="flex items-center gap-3 flex-wrap">
+          <Select value={countryFilter} onValueChange={setCountryFilter}>
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="All countries" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All countries</SelectItem>
+              {countryOptions.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-xs text-muted-foreground ml-auto">
+            {visiblePipelines.length} of {pipelines.length} pipelines
+            {countryFilter !== "all" && (
+              <span className="block text-[10px] mt-0.5">Showing {countryFilter} only</span>
+            )}
+          </span>
+        </div>
+      )}
+
       {loading && <Card className="p-8 text-center text-sm text-muted-foreground">Loading…</Card>}
       {!loading && pipelines.length === 0 && (
         <Card className="p-8 text-center text-sm text-muted-foreground">No pipelines yet.</Card>
+      )}
+      {!loading && pipelines.length > 0 && visiblePipelines.length === 0 && (
+        <Card className="p-8 text-center text-sm text-muted-foreground">
+          No pipelines for {countryFilter}.
+        </Card>
       )}
 
       {Object.entries(grouped).map(([country, list]) => (
