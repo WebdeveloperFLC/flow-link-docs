@@ -41,6 +41,7 @@ const REQUIRED_MIGRATIONS = [
   "20260717120039_hr_payroll_companies_accounting_sync.sql",
   "20260717120040_hr_payroll_punch_24h_all_shifts.sql",
   "20260717120041_hr_payroll_punch_close_locked_open.sql",
+  "20260717120042_hr_payroll_attendance_columns_catchup.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -200,6 +201,15 @@ describe("HR Payroll module contract", () => {
     );
     expect(m41).toContain("fn_attendance_close_only_update");
     expect(m41).toContain("check_out IS NULL");
+  });
+
+  it("migration 42 adds shift_work_min columns for punch trigger", () => {
+    const m42 = readFileSync(
+      join(MIGRATIONS, "20260717120042_hr_payroll_attendance_columns_catchup.sql"),
+      "utf8",
+    );
+    expect(m42).toContain("shift_work_min");
+    expect(m42).toContain("off_shift_min");
   });
 
   it("migration 36 sandwich half-day exception and 5-day night EST", () => {
