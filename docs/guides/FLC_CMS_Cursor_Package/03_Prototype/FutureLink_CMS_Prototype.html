@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future Link CMS — Commercial Management Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;450;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Brand (sampled from FLC logo) */
+  --flc-blue:#005BA4;        /* primary */
+  --flc-blue-700:#01457c;
+  --flc-blue-800:#02335c;
+  --flc-blue-900:#062a48;
+  --flc-sky:#2284C5;         /* secondary / globe */
+  --flc-sky-200:#cfe6f5;
+  --flc-sky-50:#eef6fc;
+  --flc-red:#ED1B24;         /* critical / action accent — used sparingly */
+  --flc-red-700:#c4131b;
+  /* Neutrals (cool) */
+  --ink:#0e1b2a;
+  --slate:#334a61;
+  --muted:#647d96;
+  --line:#e3eaf1;
+  --line-2:#eef2f6;
+  --bg:#f4f7fa;
+  --surface:#ffffff;
+  --surface-2:#fbfcfe;
+  /* States */
+  --green:#1f9d63; --green-bg:#e7f6ee;
+  --amber:#c98a00; --amber-bg:#fdf3dc;
+  --violet:#6b4cc4; --violet-bg:#efeafa;
+  --teal:#0f8a8a; --teal-bg:#e2f4f4;
+  /* Type */
+  --d:'Sora',system-ui,sans-serif;
+  --b:'Inter',system-ui,sans-serif;
+  --m:'IBM Plex Mono',ui-monospace,monospace;
+  /* Geometry */
+  --r:10px; --r-sm:7px; --r-lg:16px;
+  --sb:264px; --hd:60px;
+  --sh-1:0 1px 2px rgba(6,42,72,.06),0 1px 3px rgba(6,42,72,.05);
+  --sh-2:0 4px 14px rgba(6,42,72,.08);
+  --sh-3:0 18px 48px rgba(6,42,72,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--b);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+::selection{background:var(--flc-sky-200);color:var(--flc-blue-900)}
+.mono{font-family:var(--m);font-variant-numeric:tabular-nums}
+h1,h2,h3,h4{font-family:var(--d);font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+
+/* ---------- App shell ---------- */
+.app{display:flex;min-height:100vh}
+.sidebar{width:var(--sb);flex:0 0 var(--sb);background:linear-gradient(180deg,#02335c 0%,#062a48 100%);color:#cfe0ee;position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;z-index:60;transition:transform .25s ease}
+.sb-brand{padding:16px 18px 14px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.sb-brand .logo-chip{background:#fff;border-radius:9px;padding:7px 9px;display:flex;align-items:center;box-shadow:var(--sh-1)}
+.sb-brand .logo-chip img{height:30px;display:block}
+.sb-brand .sub{font-family:var(--d);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--flc-sky);font-weight:600;margin-top:2px}
+.sb-brand .ttl{font-family:var(--d);font-size:13px;font-weight:700;color:#fff;line-height:1.1}
+.sb-scroll{overflow-y:auto;flex:1;padding:10px 10px 24px}
+.sb-scroll::-webkit-scrollbar{width:7px}.sb-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:4px}
+.nav-grp{margin-top:14px}
+.nav-grp-t{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#6f8eaa;font-weight:600;padding:0 12px 6px}
+.nav-i{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:8px;color:#bcd0e3;font-weight:500;font-size:13.5px;position:relative;transition:background .14s,color .14s}
+.nav-i:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-i.active{background:linear-gradient(90deg,rgba(34,132,197,.28),rgba(34,132,197,.06));color:#fff}
+.nav-i.active::before{content:"";position:absolute;left:-10px;top:7px;bottom:7px;width:3px;border-radius:0 3px 3px 0;background:var(--flc-sky)}
+.nav-i .ic{width:18px;height:18px;flex:0 0 18px;opacity:.92}
+.nav-i .badge{margin-left:auto;background:var(--flc-red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;font-family:var(--m)}
+.nav-i .badge.soft{background:rgba(34,132,197,.3);color:#dcebf7}
+
+/* ---------- Main ---------- */
+.main{margin-left:var(--sb);flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:var(--hd);background:rgba(255,255,255,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:0 22px}
+.tb-burger{display:none}
+.crumb{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted)}
+.crumb b{color:var(--ink);font-weight:600}
+.crumb .sep{opacity:.45}
+.tb-search{margin-left:8px;flex:1;max-width:340px;position:relative}
+.tb-search input{width:100%;height:36px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);padding:0 12px 0 34px;font-family:var(--b);font-size:13px;color:var(--ink)}
+.tb-search input:focus{outline:none;border-color:var(--flc-sky);box-shadow:0 0 0 3px var(--flc-sky-50)}
+.tb-search svg{position:absolute;left:10px;top:9px;color:var(--muted)}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.icon-btn{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--slate);border:1px solid transparent;position:relative}
+.icon-btn:hover{background:var(--flc-sky-50);color:var(--flc-blue)}
+.icon-btn .dot{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--flc-red);border:2px solid #fff}
+
+/* Role switcher */
+.role-sw{position:relative}
+.role-trigger{display:flex;align-items:center;gap:9px;padding:5px 9px 5px 6px;border:1px solid var(--line);border-radius:30px;background:var(--surface)}
+.role-trigger:hover{border-color:var(--flc-sky);box-shadow:var(--sh-1)}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--flc-blue),var(--flc-sky));color:#fff;font-weight:700;font-family:var(--d);font-size:12px;display:flex;align-items:center;justify-content:center;flex:0 0 30px}
+.role-meta{line-height:1.1;text-align:left}
+.role-meta .n{font-size:12.5px;font-weight:600}
+.role-meta .r{font-size:11px;color:var(--flc-blue);font-weight:600}
+.role-caret{color:var(--muted)}
+.role-menu{position:absolute;right:0;top:46px;width:300px;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-3);padding:8px;opacity:0;visibility:hidden;transform:translateY(-6px);transition:.16s;z-index:80}
+.role-menu.open{opacity:1;visibility:visible;transform:none}
+.role-menu .rm-h{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 10px 6px}
+.role-opt{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer}
+.role-opt:hover{background:var(--flc-sky-50)}
+.role-opt.sel{background:var(--flc-sky-50)}
+.role-opt .ra{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;font-family:var(--d)}
+.role-opt .rt{font-size:13px;font-weight:600}
+.role-opt .rd{font-size:11px;color:var(--muted)}
+.role-opt .chk{margin-left:auto;color:var(--flc-blue)}
+
+/* ---------- Page canvas ---------- */
+.canvas{padding:22px;max-width:1500px;width:100%;margin:0 auto}
+.page-head{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.page-head .ph-eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--flc-blue);font-weight:600;margin-bottom:5px}
+.page-head h1{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.page-head p{color:var(--muted);font-size:13.5px;margin-top:4px;max-width:620px}
+.page-head .ph-actions{margin-left:auto;display:flex;gap:9px;align-items:center}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 15px;border-radius:9px;font-weight:600;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--slate);transition:.14s}
+.btn:hover{border-color:var(--flc-sky);color:var(--flc-blue);box-shadow:var(--sh-1)}
+.btn svg{width:16px;height:16px}
+.btn-primary{background:var(--flc-blue);border-color:var(--flc-blue);color:#fff}
+.btn-primary:hover{background:var(--flc-blue-700);border-color:var(--flc-blue-700);color:#fff}
+.btn-danger{background:var(--flc-red);border-color:var(--flc-red);color:#fff}
+.btn-danger:hover{background:var(--flc-red-700);border-color:var(--flc-red-700);color:#fff}
+.btn-ghost{background:transparent;border-color:transparent}
+.btn-sm{height:31px;padding:0 11px;font-size:12px}
+.chip-btn{height:32px;padding:0 12px;border-radius:30px;font-size:12.5px;border:1px solid var(--line);background:#fff;color:var(--slate);font-weight:500}
+.chip-btn.on{background:var(--flc-blue);border-color:var(--flc-blue);color:#fff}
+
+/* Cards & grid */
+.grid{display:grid;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-1)}
+.card-pad{padding:18px}
+.card-h{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line-2)}
+.card-h h3{font-size:15px;font-weight:700}
+.card-h .sub{font-size:12px;color:var(--muted);font-weight:400}
+.card-h .ch-r{margin-left:auto;display:flex;gap:7px;align-items:center}
+
+/* KPI */
+.kpi{padding:17px 18px;position:relative;overflow:hidden}
+.kpi .k-top{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.kpi .k-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--flc-sky-50);color:var(--flc-blue)}
+.kpi .k-label{font-size:12px;color:var(--muted);font-weight:500}
+.kpi .k-val{font-family:var(--d);font-size:27px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.kpi .k-val .cur{font-size:14px;color:var(--muted);font-weight:600;margin-right:3px}
+.kpi .k-sub{margin-top:9px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.delta{display:inline-flex;align-items:center;gap:3px;font-weight:600;font-family:var(--m);font-size:11.5px;padding:2px 7px;border-radius:20px}
+.delta.up{color:var(--green);background:var(--green-bg)}
+.delta.down{color:var(--flc-red);background:#fdeaea}
+.kpi .spark{position:absolute;right:14px;bottom:12px;opacity:.9}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.tbl th{text-align:left;font-family:var(--b);font-weight:600;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface-2)}
+table.tbl td{padding:12px 14px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+table.tbl tr:last-child td{border-bottom:none}
+table.tbl tbody tr:hover{background:var(--flc-sky-50)}
+table.tbl td.num,table.tbl th.num{text-align:right;font-family:var(--m);font-variant-numeric:tabular-nums}
+.t-strong{font-weight:600;color:var(--ink)}
+.t-mut{color:var(--muted);font-size:12px}
+.cell-id{font-family:var(--m);font-size:12px;color:var(--flc-blue);font-weight:500}
+
+/* Badges / pills */
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.pill .pd{width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.green{color:var(--green);background:var(--green-bg)}
+.pill.amber{color:var(--amber);background:var(--amber-bg)}
+.pill.red{color:var(--flc-red-700);background:#fdeaea}
+.pill.blue{color:var(--flc-blue);background:var(--flc-sky-50)}
+.pill.violet{color:var(--violet);background:var(--violet-bg)}
+.pill.teal{color:var(--teal);background:var(--teal-bg)}
+.pill.gray{color:var(--slate);background:#eef2f6}
+
+.avatar-sm{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--flc-blue),var(--flc-sky));color:#fff;font-weight:700;font-size:11px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--d);flex:0 0 28px}
+.u-cell{display:flex;align-items:center;gap:9px}
+.flag{font-size:15px;line-height:1}
+
+/* Progress / meter */
+.meter{height:7px;border-radius:6px;background:var(--line);overflow:hidden;position:relative}
+.meter > i{position:absolute;inset:0 auto 0 0;border-radius:6px;background:linear-gradient(90deg,var(--flc-sky),var(--flc-blue))}
+.meter.warn > i{background:linear-gradient(90deg,#f0b429,var(--amber))}
+.meter.crit > i{background:linear-gradient(90deg,#f47171,var(--flc-red))}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto}
+.tab{padding:10px 15px;font-size:13px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.tab:hover{color:var(--flc-blue)}
+.tab.active{color:var(--flc-blue);border-bottom-color:var(--flc-blue)}
+
+/* Banners */
+.banner{display:flex;gap:12px;padding:13px 15px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);align-items:flex-start}
+.banner.info{background:var(--flc-sky-50);border-color:var(--flc-sky-200)}
+.banner.warn{background:var(--amber-bg);border-color:#f4dd9b}
+.banner .b-ic{flex:0 0 20px;color:var(--flc-blue)}
+.banner.warn .b-ic{color:var(--amber)}
+.banner .b-t{font-weight:600;font-size:13px}
+.banner .b-d{font-size:12.5px;color:var(--slate);margin-top:2px}
+
+/* Stepper / workflow */
+.flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+.flow-step{flex:1;min-width:150px;position:relative;padding:14px 16px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r)}
+.flow-step + .flow-step{margin-left:10px}
+.flow-step .fs-n{width:24px;height:24px;border-radius:50%;background:var(--flc-sky-50);color:var(--flc-blue);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;font-family:var(--d);margin-bottom:8px}
+.flow-step.done .fs-n{background:var(--green);color:#fff}
+.flow-step.active{border-color:var(--flc-blue);box-shadow:0 0 0 3px var(--flc-sky-50)}
+.flow-step.active .fs-n{background:var(--flc-blue);color:#fff}
+.flow-step .fs-t{font-weight:600;font-size:13px}
+.flow-step .fs-d{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+/* Forms */
+.field{margin-bottom:14px}
+.field > label{display:block;font-size:12px;font-weight:600;color:var(--slate);margin-bottom:6px}
+.field .hint{font-size:11.5px;color:var(--muted);margin-top:5px}
+.inp,select.inp,textarea.inp{width:100%;height:38px;border:1px solid var(--line);border-radius:9px;background:#fff;padding:0 12px;font-family:var(--b);font-size:13.5px;color:var(--ink)}
+textarea.inp{height:auto;padding:10px 12px;resize:vertical}
+.inp:focus{outline:none;border-color:var(--flc-sky);box-shadow:0 0 0 3px var(--flc-sky-50)}
+.inp-pre{display:flex;align-items:center;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}
+.inp-pre .pre{padding:0 11px;color:var(--muted);background:var(--surface-2);height:38px;display:flex;align-items:center;font-size:13px;border-right:1px solid var(--line);font-family:var(--m)}
+.inp-pre input{border:none;flex:1;height:38px;padding:0 12px;font-family:var(--b);font-size:13.5px}
+.inp-pre input:focus{outline:none}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.toggle{position:relative;width:40px;height:22px;border-radius:20px;background:var(--line);transition:.15s;flex:0 0 40px}
+.toggle.on{background:var(--flc-blue)}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(18px)}
+
+/* Modal */
+.modal-bk{position:fixed;inset:0;background:rgba(6,42,72,.45);backdrop-filter:blur(2px);z-index:90;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bk.open{display:flex}
+.modal{background:#fff;border-radius:var(--r-lg);box-shadow:var(--sh-3);width:100%;max-width:560px;max-height:88vh;overflow:auto}
+.modal-h{padding:18px 20px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;gap:10px}
+.modal-h h3{font-size:16px}
+.modal-b{padding:20px}
+.modal-f{padding:14px 20px;border-top:1px solid var(--line-2);display:flex;gap:9px;justify-content:flex-end;background:var(--surface-2)}
+
+/* Misc layout helpers */
+.muted{color:var(--muted)}
+.tiny{font-size:11.5px}
+.right{margin-left:auto}
+.flex{display:flex}.aic{align-items:center}.gap{gap:10px}.gap-sm{gap:6px}.wrap{flex-wrap:wrap}
+.mt{margin-top:16px}.mt-s{margin-top:8px}.mb{margin-bottom:16px}
+.divider{height:1px;background:var(--line-2);margin:16px 0}
+.empty{text-align:center;padding:46px 20px;color:var(--muted)}
+.empty .e-ic{width:46px;height:46px;border-radius:13px;background:var(--flc-sky-50);color:var(--flc-blue);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+/* Bars chart */
+.bars{display:flex;align-items:flex-end;gap:10px;height:170px;padding-top:8px}
+.bars .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end}
+.bars .bar{width:100%;max-width:34px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--flc-sky),var(--flc-blue));position:relative;transition:height .3s}
+.bars .bar.alt{background:linear-gradient(180deg,#9ec9e8,#5fa3d4)}
+.bars .bx{font-size:11px;color:var(--muted);font-weight:500}
+
+/* Donut */
+.donut-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.donut{width:140px;height:140px;border-radius:50%;flex:0 0 140px}
+.donut-legend{flex:1;min-width:160px;display:flex;flex-direction:column;gap:9px}
+.dl-row{display:flex;align-items:center;gap:9px;font-size:13px}
+.dl-row .sw{width:11px;height:11px;border-radius:3px}
+.dl-row .v{margin-left:auto;font-family:var(--m);font-weight:600}
+
+/* Heat cells */
+.heat{display:inline-block;padding:5px 9px;border-radius:7px;font-family:var(--m);font-size:12px;font-weight:600}
+
+/* Audit timeline */
+.tl{position:relative;padding-left:26px}
+.tl::before{content:"";position:absolute;left:9px;top:4px;bottom:4px;width:2px;background:var(--line)}
+.tl-i{position:relative;padding:0 0 18px}
+.tl-i::before{content:"";position:absolute;left:-21px;top:3px;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--flc-sky)}
+.tl-i.create::before{border-color:var(--green)}
+.tl-i.reject::before{border-color:var(--flc-red)}
+.tl-i.edit::before{border-color:var(--amber)}
+.tl-i .tl-h{font-size:13px;font-weight:600}
+.tl-i .tl-m{font-size:12px;color:var(--muted);margin-top:1px}
+.tl-i .tl-time{font-size:11px;color:var(--muted);font-family:var(--m);margin-top:3px}
+
+/* Comparison */
+.vs-grid{display:grid;grid-template-columns:1fr 54px 1fr;gap:0;align-items:stretch}
+.vs-col{padding:18px;border:1px solid var(--line);background:var(--surface)}
+.vs-col:first-child{border-radius:var(--r-lg) 0 0 var(--r-lg)}
+.vs-col:last-child{border-radius:0 var(--r-lg) var(--r-lg) 0}
+.vs-mid{display:flex;align-items:center;justify-content:center;font-family:var(--d);font-weight:800;color:var(--muted);background:var(--surface-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.vs-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line-2);font-size:13px}
+.vs-row .vl{color:var(--muted)}
+.vs-row .vv{font-family:var(--m);font-weight:600}
+.vs-win{color:var(--green)}
+
+/* responsive */
+.scrim{display:none;position:fixed;inset:0;background:rgba(6,42,72,.4);z-index:55}
+@media(max-width:1100px){.row-3{grid-template-columns:1fr 1fr}}
+@media(max-width:980px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:none}
+  .main{margin-left:0}
+  .tb-burger{display:flex}
+  .scrim.show{display:block}
+  .tb-search{display:none}
+}
+@media(max-width:680px){
+  .canvas{padding:15px}
+  .row-2,.row-3{grid-template-columns:1fr}
+  .vs-grid{grid-template-columns:1fr}
+  .vs-mid{border-radius:0}
+  .page-head .ph-actions{margin-left:0;width:100%}
+  .role-meta{display:none}
+  .flow-step + .flow-step{margin-left:0;margin-top:10px}
+}
+</style>
+</head><body><div id="app"></div>
+<script>
+/* ============================================================
+   FUTURE LINK CMS — DATA LAYER (mock, deterministic)
+   Real branches, counselors and service master list.
+   Currencies shown: CAD & INR.
+   ============================================================ */
+const FX = { CAD:1, INR:0.0162 }; // → CAD base. INR shown natively too.
+const fmt = (n)=> n.toLocaleString('en-CA',{maximumFractionDigits:0});
+const money = (n,cur='CAD')=> `<span class="cur">${cur}</span>${fmt(n)}`;
+const k = (n)=> n>=1e7 ? (n/1e7).toFixed(2)+'Cr' : n>=1e5 ? (n/1e5).toFixed(2)+'L' : n>=1e3 ? (n/1e3).toFixed(1)+'K' : n;
+const kc = (n)=> n>=1e6 ? (n/1e6).toFixed(2)+'M' : n>=1e3 ? (n/1e3).toFixed(1)+'K' : n;
+
+const ROLES = [
+  {id:'super', name:'Aria Mehta', title:'Super Admin', desc:'Full system control', init:'AM', color:'#062a48'},
+  {id:'admin', name:'Devon Clarke', title:'Admin', desc:'Configuration & settings', init:'DC', color:'#005BA4'},
+  {id:'regional', name:'Priya Sharma', title:'Regional Manager', desc:'Gujarat region', init:'PS', color:'#2284C5'},
+  {id:'branch', name:'Insia', title:'Branch Manager', desc:'Vadodara — Karelibaug', init:'IN', color:'#0f8a8a'},
+  {id:'lead', name:'Meena', title:'Team Leader', desc:'Study Abroad pod', init:'ME', color:'#6b4cc4'},
+  {id:'counselor', name:'Ankita', title:'Counselor', desc:'Study Abroad — Canada', init:'AN', color:'#c98a00'},
+  {id:'visa', name:'Namrata', title:'Visa Officer', desc:'Permits & visas', init:'NA', color:'#1f9d63'},
+  {id:'finance', name:'Raj Patel', title:'Finance', desc:'Revenue & commissions', init:'RP', color:'#c4131b'},
+];
+
+/* Branches — Vadodara (5), Bharuch, Anand (India, INR), Toronto (Canada, CAD) */
+const BRANCHES = [
+  {id:'BR-KRB', name:'Vadodara — Karelibaug', city:'Vadodara', country:'IN', cur:'INR', flag:'🇮🇳', rev:18400000, target:20000000, margin:41, counselors:5, rank:1},
+  {id:'BR-GND', name:'Vadodara — Genda Circle', city:'Vadodara', country:'IN', cur:'INR', flag:'🇮🇳', rev:15200000, target:16000000, margin:39, counselors:4, rank:2},
+  {id:'BR-MNP', name:'Vadodara — Manjalpur', city:'Vadodara', country:'IN', cur:'INR', flag:'🇮🇳', rev:12600000, target:14000000, margin:37, counselors:3, rank:4},
+  {id:'BR-AJW', name:'Vadodara — Ajwa', city:'Vadodara', country:'IN', cur:'INR', flag:'🇮🇳', rev:9800000, target:11000000, margin:35, counselors:3, rank:6},
+  {id:'BR-BHY', name:'Vadodara — Bhayli', city:'Vadodara', country:'IN', cur:'INR', flag:'🇮🇳', rev:8400000, target:9000000, margin:34, counselors:2, rank:7},
+  {id:'BR-BRC', name:'Bharuch', city:'Bharuch', country:'IN', cur:'INR', flag:'🇮🇳', rev:11200000, target:12000000, margin:38, counselors:3, rank:5},
+  {id:'BR-AND', name:'Anand', city:'Anand', country:'IN', cur:'INR', flag:'🇮🇳', rev:13100000, target:13500000, margin:40, counselors:3, rank:3},
+  {id:'BR-TOR', name:'Toronto', city:'Toronto', country:'CA', cur:'CAD', flag:'🇨🇦', rev:2640000, target:3000000, margin:36, counselors:4, rank:8},
+];
+
+/* Counselors — real names. India branches in INR, Toronto in CAD. */
+const COUNSELORS = [
+  {id:'C-1042', name:'Insia',   init:'IN', branch:'BR-KRB', team:'Study Abroad', cur:'INR', rev:4860000, enroll:62, conv:34, margin:42, wallet:820000, walletUsed:540000, rank:1},
+  {id:'C-1108', name:'Meena',   init:'ME', branch:'BR-KRB', team:'Immigration',  cur:'INR', rev:4510000, enroll:41, conv:38, margin:44, wallet:700000, walletUsed:610000, rank:2},
+  {id:'C-1077', name:'Ankita',  init:'AN', branch:'BR-GND', team:'Study Abroad', cur:'INR', rev:4300000, enroll:71, conv:31, margin:35, wallet:900000, walletUsed:870000, rank:3},
+  {id:'C-1155', name:'Namrata', init:'NA', branch:'BR-KRB', team:'Visa',         cur:'INR', rev:3880000, enroll:58, conv:29, margin:33, wallet:650000, walletUsed:320000, rank:4},
+  {id:'C-1190', name:'Sneha',   init:'SN', branch:'BR-AND', team:'Coaching',     cur:'INR', rev:3520000, enroll:96, conv:42, margin:48, wallet:500000, walletUsed:485000, rank:5},
+  {id:'C-1203', name:'Yashika', init:'YA', branch:'BR-GND', team:'Study Abroad', cur:'INR', rev:2980000, enroll:37, conv:27, margin:30, wallet:550000, walletUsed:210000, rank:6},
+  {id:'C-1221', name:'Heena',   init:'HE', branch:'BR-BRC', team:'Settlement',   cur:'INR', rev:2760000, enroll:22, conv:25, margin:41, wallet:600000, walletUsed:190000, rank:7},
+  {id:'C-1245', name:'Dhara',   init:'DH', branch:'BR-MNP', team:'Study Abroad', cur:'INR', rev:2540000, enroll:33, conv:28, margin:36, wallet:480000, walletUsed:300000, rank:8},
+  {id:'C-1260', name:'Krishna', init:'KR', branch:'BR-AND', team:'Immigration',  cur:'INR', rev:2390000, enroll:28, conv:30, margin:39, wallet:450000, walletUsed:260000, rank:9},
+  {id:'C-1281', name:'Yogita',  init:'YO', branch:'BR-AJW', team:'Coaching',     cur:'INR', rev:2180000, enroll:74, conv:40, margin:46, wallet:400000, walletUsed:355000, rank:10},
+  {id:'C-1299', name:'Krati',   init:'KT', branch:'BR-BHY', team:'Visa',         cur:'INR', rev:1980000, enroll:44, conv:26, margin:32, wallet:380000, walletUsed:140000, rank:11},
+  {id:'C-1310', name:'Bhavna',  init:'BH', branch:'BR-MNP', team:'Study Abroad', cur:'INR', rev:1840000, enroll:31, conv:29, margin:34, wallet:360000, walletUsed:220000, rank:12},
+  {id:'C-1322', name:'Siya',    init:'SI', branch:'BR-AJW', team:'Allied',       cur:'INR', rev:1620000, enroll:39, conv:24, margin:38, wallet:300000, walletUsed:120000, rank:13},
+  {id:'C-1101', name:'Sonali',  init:'SO', branch:'BR-TOR', team:'Study Abroad', cur:'CAD', rev:486000,  enroll:52, conv:35, margin:37, wallet:8200,   walletUsed:5400,   rank:14},
+];
+
+/* Service master — derived from client catalog */
+const SERVICES = {
+  coaching:['IELTS Academic','IELTS General','PTE Academic','CELPIP General','TOEFL iBT','Duolingo Prep','Spoken English','Business English','Interview Prep','French A1–C2','TEF Canada','TCF Canada','TEFAQ','German A1–C2','Goethe Prep','TELC Prep','GRE','GMAT','SAT','ACT','UKVI IELTS','PTE Core','OET'],
+  study:['Canada','United States','United Kingdom','Ireland','Germany','France','Netherlands','Australia','New Zealand','UAE / Dubai','Singapore','Malaysia','+ 18 more European destinations'],
+  immigration:['Express Entry','Federal Skilled Worker','Canadian Experience Class','Provincial Nominee (PNP)','Ontario / Alberta / BC / Saskatchewan / Manitoba PNP','Atlantic Immigration','Caregiver Programs','Family / Spousal Sponsorship','Citizenship','Business / Investor','Germany Opportunity Card','Germany Skilled Worker','Australia Skilled Independent','NZ Skilled Migrant','UK Skilled Worker / ILR','Portugal Residency','EU Golden Visa'],
+  visa:['Canada Visitor','USA Visitor','UK Visitor','Schengen','Australia Visitor','Canada Super Visa','Canada Study Permit','USA F1','UK Student','Germany Student','Canada Work Permit','LMIA','PGWP','Open Work Permit','Spouse Open Work Permit','UK / Germany Spouse','Business / Investor','Dependent Child / Spouse','Transit'],
+  allied:['Education Loan','GIC','Forex','Blocked Account','SOP Writing','LOR Assistance','Resume Prep','Translation','Notarization','WES / IQAS / ICAS / CES / ECA','APS Certificate','Health Insurance','Flight Booking','Accommodation','Airport Pickup','Travel Insurance','SIM Card']
+};
+
+const DEPARTMENTS = ['Coaching','Study Abroad','Immigration','Visa Processing','Admissions','Allied Services','Finance','Marketing','Business Development','B2B Partnerships','HR'];
+
+const WALLETS = [
+  {id:'WL-9001', name:'Q2 Monthly — Karelibaug', type:'Monthly', scope:'BR-KRB', cur:'INR', alloc:1200000, used:784000, expiry:'2026-06-30', status:'Active', approval:'Auto', carry:'Partial 30%'},
+  {id:'WL-9002', name:'Diwali Festival 2026', type:'Festival', scope:'Country: India', cur:'INR', alloc:2500000, used:412000, expiry:'2026-11-15', status:'Scheduled', approval:'Director', carry:'None'},
+  {id:'WL-9003', name:'Germany Opportunity Card Push', type:'Campaign', scope:'Program', cur:'INR', alloc:1800000, used:1523000, expiry:'2026-07-31', status:'Active', approval:'Manager', carry:'Full'},
+  {id:'WL-9004', name:'Canada PR — Revival Leads', type:'Revival Lead', scope:'Lead Age > 90d', cur:'INR', alloc:900000, used:889000, expiry:'2026-06-20', status:'Active', approval:'Multi-Level', carry:'None'},
+  {id:'WL-9005', name:'IELTS Coaching Promo — Anand', type:'Promotional', scope:'Service: IELTS', cur:'INR', alloc:600000, used:331000, expiry:'2026-09-30', status:'Active', approval:'Manager', carry:'Partial 50%'},
+  {id:'WL-9006', name:'Counselor Pool — Ankita', type:'Counselor', scope:'C-1077', cur:'INR', alloc:900000, used:870000, expiry:'2026-06-30', status:'Active', approval:'Auto', carry:'None'},
+  {id:'WL-9007', name:'Toronto Branch Wallet', type:'Branch', scope:'BR-TOR', cur:'CAD', alloc:120000, used:42700, expiry:'2026-08-15', status:'Active', approval:'Manager', carry:'None'},
+];
+
+const OFFERS = [
+  {id:'OF-501', name:'Early Bird — Fall 2026 Intake', type:'Percentage', value:'15%', scope:'Study Abroad · Canada', status:'Live', used:142, cap:300, end:'2026-07-15'},
+  {id:'OF-502', name:'GIC + Study Permit Bundle', type:'Bundle', value:'INR 12,000 off', scope:'Allied + Visa', status:'Live', used:88, cap:200, end:'2026-08-30'},
+  {id:'OF-503', name:'Free IELTS Mock Pack', type:'Free Service', value:'5 mocks', scope:'Coaching · IELTS', status:'Live', used:410, cap:500, end:'2026-06-30'},
+  {id:'OF-504', name:'Germany Opp. Card Cashback', type:'Cashback', value:'INR 15,000', scope:'Immigration · Germany', status:'Scheduled', used:0, cap:150, end:'2026-09-01'},
+  {id:'OF-505', name:'Diwali Festival Discount', type:'Festival', value:'12%', scope:'All · India', status:'Draft', used:0, cap:1000, end:'2026-11-15'},
+  {id:'OF-506', name:'Spousal OWP Add-on', type:'Fixed', value:'CAD 250 off', scope:'Visa · Canada', status:'Live', used:34, cap:100, end:'2026-07-31'},
+];
+
+const PROMOS = [
+  {id:'PR-301', title:'Gujarat French→Canada Funnel', by:'Sneha', role:'Counselor', branch:'BR-AND', budget:450000, fc_rev:5200000, fc_enroll:60, roi:11.6, stage:'Director Review', status:'pending', cur:'INR'},
+  {id:'PR-302', title:'Bharuch PR Webinar Series', by:'Heena', role:'Counselor', branch:'BR-BRC', budget:280000, fc_rev:3400000, fc_enroll:38, roi:12.1, stage:'Manager Review', status:'pending', cur:'INR'},
+  {id:'PR-303', title:'Germany Opp Card Bootcamp', by:'Meena', role:'Team Leader', branch:'BR-KRB', budget:600000, fc_rev:7800000, fc_enroll:95, roi:13.0, stage:'Approved', status:'approved', cur:'INR'},
+  {id:'PR-304', title:'Summer PTE Intensive', by:'Ankita', role:'Counselor', branch:'BR-GND', budget:180000, fc_rev:1400000, fc_enroll:120, roi:7.8, stage:'Rejected', status:'rejected', cur:'INR'},
+];
+
+const INCENTIVES = [
+  {id:'IN-201', name:'Revenue Slab — Counselor', basis:'Revenue', rule:'> INR 40L → 2% · > 80L → 3.5%', applies:'All counselors', payout:1420000, status:'Active', cur:'INR'},
+  {id:'IN-202', name:'Germany Opp Card Bonus', basis:'Service', rule:'INR 8,000 / enrollment', applies:'Immigration team', payout:380000, status:'Active', cur:'INR'},
+  {id:'IN-203', name:'Canada PR Bonus', basis:'Service', rule:'INR 12,000 / approval', applies:'Immigration team', payout:546000, status:'Active', cur:'INR'},
+  {id:'IN-204', name:'Branch Margin Reward', basis:'Margin', rule:'> 40% margin → pool 1.5%', applies:'Branch managers', payout:670000, status:'Active', cur:'INR'},
+  {id:'IN-205', name:'Referral Bonus', basis:'Referral', rule:'INR 3,000 / converted referral', applies:'All staff', payout:210000, status:'Active', cur:'INR'},
+  {id:'IN-206', name:'Enrollment Slab — Coaching', basis:'Enrollment', rule:'> 80 enrol → INR 50K flat', applies:'Coaching team', payout:160000, status:'Paused', cur:'INR'},
+];
+
+const COMMISSIONS = [
+  {id:'CM-701', partner:'Conestoga College', type:'Institution', received:184000, pending:62000, reversed:4000, forecast:90000, cur:'CAD'},
+  {id:'CM-702', partner:'University of Hertfordshire', type:'Institution', received:96000, pending:48000, reversed:0, forecast:55000, cur:'CAD'},
+  {id:'CM-703', partner:'GIC — Scotiabank', type:'Partner', received:420000, pending:110000, reversed:0, forecast:180000, cur:'INR'},
+  {id:'CM-704', partner:'TU Munich Pathway', type:'Institution', received:71000, pending:33000, reversed:2500, forecast:40000, cur:'CAD'},
+  {id:'CM-705', partner:'Referral Network — Gujarat', type:'Referral', received:280000, pending:90000, reversed:0, forecast:140000, cur:'INR'},
+];
+
+const APPROVALS = [
+  {id:'AP-880', item:'Wallet top-up · Diwali Festival', amt:500000, cur:'INR', by:'Priya Sharma', stage:'Director Approval', age:'2h', risk:'med'},
+  {id:'AP-881', item:'Discount override 22% · Ankita', amt:44000, cur:'INR', by:'Ankita', stage:'Manager Approval', age:'40m', risk:'high'},
+  {id:'AP-882', item:'Offer launch · GIC Bundle', amt:0, cur:'INR', by:'Insia', stage:'Director Approval', age:'5h', risk:'low'},
+  {id:'AP-883', item:'Incentive plan edit · Margin Reward', amt:0, cur:'INR', by:'Devon Clarke', stage:'Multi-Level', age:'1d', risk:'med'},
+];
+
+const AUDIT = [
+  {t:'create', who:'Insia', act:'created wallet', obj:'WL-9001 Q2 Monthly — Karelibaug', time:'Today · 09:14', meta:'Alloc INR 12,00,000 · Auto approval'},
+  {t:'approve', who:'Priya Sharma', act:'approved promotion', obj:'PR-303 Germany Opp Card Bootcamp', time:'Today · 08:51', meta:'Budget INR 6,00,000 · ROI 13.0×'},
+  {t:'edit', who:'Devon Clarke', act:'edited offer', obj:'OF-501 Early Bird — Fall 2026', time:'Yesterday · 17:32', meta:'Cap 250 → 300'},
+  {t:'reject', who:'Priya Sharma', act:'rejected promotion', obj:'PR-304 Summer PTE Intensive', time:'Yesterday · 16:08', meta:'ROI below 8× threshold'},
+  {t:'consume', who:'Ankita', act:'applied discount', obj:'Lead L-44219 · 15% Early Bird', time:'Yesterday · 14:20', meta:'INR 13,500 from WL-9001'},
+  {t:'edit', who:'Raj Patel', act:'overrode FX rate', obj:'CAD→INR 61.7 (manual)', time:'Yesterday · 11:02', meta:'Was auto 61.4'},
+];
+
+const CURRENCIES = [
+  {code:'INR', name:'Indian Rupee', rate:0.0162, rev:88700000, status:'Base'},
+  {code:'CAD', name:'Canadian Dollar', rate:1, rev:2640000, status:'Live'},
+];
+
+// Permissions matrix — modules x roles
+const PERM_MODULES = ['Discount Wallets','Offer Management','Promotion Requests','Incentives','Commissions','Multi-Currency','Dashboards','Reporting','Approvals','Audit Log','System Config'];
+const PERM = {
+  super:    ['F','F','F','F','F','F','F','F','F','F','F'],
+  admin:    ['F','F','F','F','F','F','F','F','A','R','F'],
+  regional: ['F','F','A','E','F','R','F','F','A','R','-'],
+  branch:   ['E','E','C','R','R','R','F','F','A','R','-'],
+  lead:     ['E','C','C','R','-','-','R','R','-','-','-'],
+  counselor:['R','R','C','R','-','-','R','R','-','-','-'],
+  visa:     ['R','R','-','R','-','-','R','R','-','-','-'],
+  finance:  ['R','R','R','E','F','F','R','F','A','R','-'],
+};
+const PERM_KEY = {F:['Full','green'],E:['Edit','blue'],C:['Create','teal'],A:['Approve','violet'],R:['Read','amber'],'-':['None','gray']};
+
+/* Offer codes (Module: code management) */
+const OFFERCODES = [
+  {code:'FLC-EBIRD-7K3M', offer:'Early Bird — Fall 2026', type:'Multi-use', scope:'Study Abroad · Canada', branch:'All', used:142, cap:300, expiry:'2026-07-15', status:'Active'},
+  {code:'KRB-DIWALI-9F2X', offer:'Diwali Festival', type:'Multi-use', scope:'All · India', branch:'BR-KRB', used:0, cap:200, expiry:'2026-11-15', status:'Scheduled'},
+  {code:'GIC-BUNDLE-A1B2', offer:'GIC + Study Permit', type:'Multi-use', scope:'Allied + Visa', branch:'All', used:88, cap:200, expiry:'2026-08-30', status:'Active'},
+  {code:'ANKITA-REF-5520', offer:'Referral — Ankita', type:'One-time', scope:'Counselor: Ankita', branch:'BR-GND', used:1, cap:1, expiry:'2026-06-30', status:'Redeemed'},
+  {code:'OPPCARD-DE-3J8K', offer:'Germany Opp. Card Cashback', type:'Multi-use', scope:'Immigration · Germany', branch:'All', used:0, cap:150, expiry:'2026-09-01', status:'Scheduled'},
+  {code:'PTE-FREE-MOCKS', offer:'Free IELTS/PTE Mock', type:'Bulk (500)', scope:'Coaching', branch:'All', used:410, cap:500, expiry:'2026-06-30', status:'Active'},
+];
+
+/* Clients (inherited from CRM — referenced, not owned) */
+const CLIENTS = [
+  {id:'CL-20471', name:'Rahul Desai', lead:'L-44219', branch:'BR-KRB', counselor:'Ankita', service:'Study Abroad · Canada', stage:'Invoice draft', orig:380000, offer:'FLC-EBIRD-7K3M', offerDisc:57000, walletDisc:0, final:323000, paid:0, cur:'INR'},
+  {id:'CL-20488', name:'Sneha Patel', lead:'L-44102', branch:'BR-GND', counselor:'Yashika', service:'GIC + Study Permit', stage:'Partial paid', orig:145000, offer:'GIC-BUNDLE-A1B2', offerDisc:12000, walletDisc:0, final:133000, paid:60000, cur:'INR'},
+  {id:'CL-20502', name:'Amit Shah', lead:'L-43998', branch:'BR-KRB', counselor:'Ankita', service:'Germany Opp. Card', stage:'Quote', orig:260000, offer:'', offerDisc:0, walletDisc:44000, final:216000, paid:0, cur:'INR'},
+  {id:'CL-20510', name:'Olivia Brown', lead:'L-44560', branch:'BR-TOR', counselor:'Sonali', service:'Study Permit', stage:'Full paid', orig:4200, offer:'', offerDisc:0, walletDisc:250, final:3950, paid:3950, cur:'CAD'},
+];
+
+/* Incentive ledger — lifecycle states per employee */
+const LEDGER = [
+  {emp:'Ankita', branch:'BR-GND', earned:121000, approved:96000, pending:25000, eligible:71000, paid:48000, reversed:3000, clawback:0, cur:'INR'},
+  {emp:'Insia', branch:'BR-KRB', earned:148000, approved:148000, pending:0, eligible:92000, paid:92000, reversed:0, clawback:0, cur:'INR'},
+  {emp:'Meena', branch:'BR-KRB', earned:140000, approved:118000, pending:22000, eligible:80000, paid:80000, reversed:0, clawback:5000, cur:'INR'},
+  {emp:'Sneha', branch:'BR-AND', earned:96000, approved:96000, pending:0, eligible:60000, paid:42000, reversed:0, clawback:0, cur:'INR'},
+  {emp:'Sonali', branch:'BR-TOR', earned:6800, approved:5200, pending:1600, eligible:3200, paid:3200, reversed:0, clawback:0, cur:'CAD'},
+];
+
+/* CRM master entities inherited (counts illustrative) */
+const CRM_ENTITIES = [
+  ['Companies',1,'cog'],['Branches',8,'branch'],['Departments',11,'users'],['Users',46,'users'],
+  ['Roles',8,'shield'],['Leads',3840,'idcard'],['Clients',1290,'idcard'],['Lead Forms',12,'doc'],
+  ['Countries',38,'globe'],['Services',95,'combine'],['Coaching Programs',23,'award'],
+  ['Visa Categories',19,'ticket'],['Immigration Programs',17,'rocket'],['Institutions',210,'layers'],
+  ['Intakes',8,'tag'],['Lead Sources',9,'bolt']
+];
+</script>
+<script>
+/* ---------- Icon set (inline SVG, 18px stroke) ---------- */
+const IC = {
+  grid:'<path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>',
+  wallet:'<path d="M3 7a2 2 0 0 1 2-2h13v4M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3M3 7h16"/><circle cx="17" cy="13" r="1.4"/>',
+  combine:'<path d="M7 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM17 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/><path d="M11 12h2"/>',
+  tag:'<path d="M3 11l8-8 9 9-8 8z"/><circle cx="8" cy="8" r="1.4"/>',
+  rocket:'<path d="M5 15c-1.5 1.5-2 5-2 5s3.5-.5 5-2M12 15l-3-3a8 8 0 0 1 9-9 8 8 0 0 1-9 9z"/><circle cx="14.5" cy="9.5" r="1.4"/>',
+  award:'<circle cx="12" cy="9" r="6"/><path d="M9 14l-2 7 5-3 5 3-2-7"/>',
+  pct:'<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2"/><circle cx="17" cy="17" r="2"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"/>',
+  chart:'<path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 5-6"/>',
+  scale:'<path d="M12 4v16M5 8h14M5 8l-2.5 5h5zM19 8l-2.5 5h5z"/>',
+  doc:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/>',
+  check2:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/>',
+  bell:'<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/>',
+  cog:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.3 1a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.5L4.1 11a7 7 0 0 0 0 2l-2 1.5 2 3.5 2.3-1a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.5-2-1.5a7 7 0 0 0 .1-1z"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+  branch:'<path d="M6 3v12M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 6c0 6-12 3-12 9"/>',
+  flame:'<path d="M12 3c2 4 5 5 5 9a5 5 0 0 1-10 0c0-2 1-3 1.5-4 .8 1 2 1.5 2 1.5C10 7 11 5 12 3z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  download:'<path d="M12 3v12M7 11l5 5 5-5M5 21h14"/>',
+  filter:'<path d="M3 4h18l-7 8v6l-4 2v-8z"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  bolt:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+  layers:'<path d="M12 2l9 5-9 5-9-5zM3 12l9 5 9-5M3 17l9 5 9-5"/>',
+  ticket:'<path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z"/><path d="M14 6v12"/>',
+  idcard:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M14 9h4M14 13h4M6 15h6"/>',
+  ledger:'<path d="M5 3h11l4 4v14a0 0 0 0 1 0 0H5a0 0 0 0 1 0 0z"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+  coins:'<circle cx="9" cy="9" r="5"/><path d="M14.5 5.5a5 5 0 1 1 0 13"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>',
+  lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+};
+const svg=(n,s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[n]||''}</svg>`;
+
+/* ---------- Navigation model ---------- */
+const NAV = [
+  {grp:'Overview', items:[
+    {id:'dashboard', label:'Dashboards', icon:'grid'},
+    {id:'analytics', label:'Revenue Analytics', icon:'chart'},
+    {id:'compare', label:'Comparison Engine', icon:'scale'},
+  ]},
+  {grp:'Commercial Engine', items:[
+    {id:'wallets', label:'Discount Wallets', icon:'wallet', badge:'7'},
+    {id:'combinations', label:'Combination Engine', icon:'combine'},
+    {id:'offers', label:'Offer Management', icon:'tag'},
+    {id:'offercodes', label:'Offer Codes', icon:'ticket'},
+    {id:'promotions', label:'Promotion Requests', icon:'rocket', badge:'2'},
+    {id:'clientdesk', label:'Client Commercials', icon:'idcard'},
+  ]},
+  {grp:'Earnings', items:[
+    {id:'incentives', label:'Incentive Plans', icon:'award'},
+    {id:'payouts', label:'Incentive Ledger & Payouts', icon:'ledger'},
+    {id:'commissions', label:'Commission Tracking', icon:'pct'},
+    {id:'currency', label:'Multi-Currency', icon:'globe'},
+  ]},
+  {grp:'Governance', items:[
+    {id:'approvals', label:'Approvals', icon:'check2', badge:'4'},
+    {id:'reporting', label:'Report Builder', icon:'doc'},
+    {id:'profitability', label:'Profitability', icon:'coins'},
+    {id:'audit', label:'Audit Trail', icon:'shield'},
+    {id:'permissions', label:'Roles & Permissions', icon:'users'},
+  ]},
+  {grp:'System', items:[
+    {id:'crm', label:'CRM Integration', icon:'link'},
+    {id:'settings', label:'Configuration', icon:'cog'},
+    {id:'architecture', label:'Architecture & API', icon:'layers'},
+  ]},
+];
+
+/* ---------- App state ---------- */
+const STATE = { role:'super', route:'dashboard', cur:'INR' };
+
+function roleColor(id){return (ROLES.find(r=>r.id===id)||{}).color||'#005BA4';}
+
+/* ---------- Render shell ---------- */
+function renderShell(){
+  const r = ROLES.find(x=>x.id===STATE.role);
+  document.getElementById('app').innerHTML = `
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="logo-chip"><img src="data:image/png;base64,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" alt="Future Link Consultants"></div>
+    </div>
+    <div style="padding:12px 18px 4px"><div class="sub" style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--flc-sky);font-weight:600">Commercial Suite</div><div class="ttl" style="color:#fff;font-family:var(--d);font-size:14px;font-weight:700">CMS Control Center</div></div>
+    <nav class="sb-scroll">${NAV.map(g=>`
+      <div class="nav-grp">
+        <div class="nav-grp-t">${g.grp}</div>
+        ${g.items.map(it=>`<a class="nav-i ${STATE.route===it.id?'active':''}" onclick="go('${it.id}')">
+          <span class="ic">${svg(it.icon)}</span><span>${it.label}</span>
+          ${it.badge?`<span class="badge ${it.id==='approvals'||it.id==='promotions'?'':'soft'}">${it.badge}</span>`:''}
+        </a>`).join('')}
+      </div>`).join('')}
+    </nav>
+  </aside>
+  <div class="scrim" id="scrim" onclick="toggleSidebar(false)"></div>
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn tb-burger" onclick="toggleSidebar(true)">${svg('layers')}</button>
+      <div class="crumb" id="crumb"></div>
+      <div class="tb-search"><span>${svg('search',16)}</span><input placeholder="Search wallets, offers, leads, partners…"></div>
+      <div class="tb-right">
+        <button class="icon-btn">${svg('bolt')}</button>
+        <button class="icon-btn">${svg('bell')}<span class="dot"></span></button>
+        <div class="role-sw">
+          <button class="role-trigger" onclick="toggleRole(event)">
+            <span class="avatar" style="background:linear-gradient(135deg,${r.color},var(--flc-sky))">${r.init}</span>
+            <span class="role-meta"><span class="n">${r.name}</span><br><span class="r">${r.title}</span></span>
+            <span class="role-caret">${svg('arrow',14)}</span>
+          </button>
+          <div class="role-menu" id="roleMenu">
+            <div class="rm-h">Switch perspective — no logout</div>
+            ${ROLES.map(o=>`<div class="role-opt ${o.id===STATE.role?'sel':''}" onclick="setRole('${o.id}')">
+              <span class="ra" style="background:linear-gradient(135deg,${o.color},var(--flc-sky))">${o.init}</span>
+              <span><span class="rt" style="display:block">${o.title}</span><span class="rd">${o.desc}</span></span>
+              ${o.id===STATE.role?`<span class="chk">${svg('check2',16)}</span>`:''}
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </header>
+    <main id="view"></main>
+  </div>`;
+  renderView();
+}
+function toggleSidebar(open){const sb=document.getElementById('sidebar'),sc=document.getElementById('scrim');if(open===undefined)open=!sb.classList.contains('open');sb.classList.toggle('open',open);sc.classList.toggle('show',open);}
+function toggleRole(e){e.stopPropagation();document.getElementById('roleMenu').classList.toggle('open');}
+document.addEventListener('click',()=>{const m=document.getElementById('roleMenu');if(m)m.classList.remove('open');});
+function setRole(id){STATE.role=id;renderShell();}
+function go(id){STATE.route=id;toggleSidebar(false);renderShell();window.scrollTo(0,0);}
+
+/* crumb + view dispatch */
+function findNav(id){for(const g of NAV)for(const it of g.items)if(it.id===id)return{...it,grp:g.grp};return{label:'Dashboards',grp:'Overview'};}
+function renderView(){
+  const nav=findNav(STATE.route);
+  document.getElementById('crumb').innerHTML=`Future Link CMS <span class="sep">/</span> ${nav.grp} <span class="sep">/</span> <b>${nav.label}</b>`;
+  const fn = PAGES[STATE.route]||PAGES.dashboard;
+  document.getElementById('view').innerHTML = `<div class="canvas">${fn()}</div>`;
+  if(window._afterRender) window._afterRender();
+}
+const PAGES = {}; // populated by module scripts
+</script>
+<script>
+/* ============ shared UI helpers ============ */
+function kpi(label,val,cur,delta,dir,icon,spark){
+  return `<div class="card kpi">
+    <div class="k-top"><div class="k-ic">${svg(icon,18)}</div><div class="k-label">${label}</div></div>
+    <div class="k-val">${cur?`<span class="cur">${cur} </span>`:''}${val}</div>
+    <div class="k-sub"><span class="delta ${dir}">${dir==='up'?'▲':'▼'} ${delta}</span><span>vs last period</span></div>
+    ${spark?`<svg class="spark" width="74" height="34" viewBox="0 0 74 34"><polyline fill="none" stroke="${dir==='up'?'var(--green)':'var(--flc-red)'}" stroke-width="2" points="${spark}"/></svg>`:''}
+  </div>`;
+}
+function bars(data,alt){const max=Math.max(...data.map(d=>d.v));return `<div class="bars">${data.map(d=>`<div class="bar-col"><div class="bar ${d.alt?'alt':''}" style="height:${Math.round(d.v/max*100)}%" title="${d.label}: ${d.v}"></div><div class="bx">${d.label}</div></div>`).join('')}</div>`;}
+function donut(segs){let acc=0;const grad=segs.map(s=>{const a=acc;acc+=s.v;return `${s.c} ${a}% ${acc}%`;}).join(',');
+  return `<div class="donut-wrap"><div class="donut" style="background:conic-gradient(${grad});-webkit-mask:radial-gradient(circle 42px at center,transparent 98%,#000 100%);mask:radial-gradient(circle 42px at center,transparent 98%,#000 100%)"></div>
+  <div class="donut-legend">${segs.map(s=>`<div class="dl-row"><span class="sw" style="background:${s.c}"></span>${s.label}<span class="v">${s.v}%</span></div>`).join('')}</div></div>`;}
+function meter(used,alloc,cls=''){const p=Math.min(100,Math.round(used/alloc*100));const c=p>90?'crit':p>70?'warn':cls;return `<div class="meter ${c}"><i style="width:${p}%"></i></div>`;}
+
+/* ============ DASHBOARD (role-aware) ============ */
+PAGES.dashboard = function(){
+  const r=ROLES.find(x=>x.id===STATE.role);
+  const isExec = ['super','admin','regional'].includes(STATE.role);
+  const isFin = STATE.role==='finance';
+  const isCounselor = ['counselor','visa','lead'].includes(STATE.role);
+  let head = `<div class="page-head">
+    <div><div class="ph-eyebrow">${r.title} workspace</div>
+    <h1>${isCounselor?'My Commercial Performance':isFin?'Finance & Revenue Control':'Executive Command Center'}</h1>
+    <p>${isCounselor?'Your wallet balance, applied offers, conversions and incentive earnings — June 2026.':'Live commercial position across all branches, currencies and services. Figures consolidated to '+STATE.cur+'.'}</p></div>
+    <div class="ph-actions">
+      <button class="btn btn-sm" onclick="openModal('exportModal')">${svg('download',15)} Export</button>
+      <button class="btn btn-sm">${svg('filter',15)} This Quarter</button>
+      ${isExec?`<button class="btn btn-primary btn-sm" onclick="go('reporting')">${svg('plus',15)} New report</button>`:''}
+    </div></div>`;
+
+  if(isCounselor){
+    const c=COUNSELORS.find(x=>x.name==='Ankita')||COUNSELORS[2];
+    const avail=c.wallet-c.walletUsed, usedPct=Math.round(c.walletUsed/c.wallet*100);
+    return head + `
+    <div class="grid" style="grid-template-columns:repeat(4,1fr)">
+      ${kpi('Revenue booked',k(c.rev),'INR','12.4%','up','chart','0,28 12,22 24,24 36,14 48,16 60,8 74,4')}
+      ${kpi('Enrollments',c.enroll,'','9','up','users','0,26 14,24 28,18 42,20 56,10 74,6')}
+      ${kpi('Conversion',c.conv+'%','','3.1%','up','bolt','0,22 18,20 36,16 54,12 74,9')}
+      ${kpi('Incentive earned','1.51L','INR','21%','up','award','0,30 18,22 36,18 54,12 74,5')}
+    </div>
+    <div class="grid mt" style="grid-template-columns:1.4fr 1fr">
+      <div class="card"><div class="card-h"><h3>My wallet allocation</h3><span class="ch-r"><span class="pill blue"><span class="pd"></span>WL-9006</span></span></div>
+        <div class="card-pad">
+          <div class="flex aic gap" style="justify-content:space-between"><div><div class="muted tiny">Available to allocate</div><div class="k-val" style="font-size:30px"><span class="cur">INR </span>${fmt(avail)}</div></div>
+          <div style="text-align:right"><div class="muted tiny">Used of ${fmt(c.wallet)}</div><div class="mono t-strong" style="font-size:18px">${fmt(c.walletUsed)}</div></div></div>
+          <div class="mt">${meter(c.walletUsed,c.wallet)}</div>
+          <div class="legend mt"><span><i style="background:var(--flc-blue)"></i>Used ${usedPct}%</span><span><i style="background:var(--line)"></i>Available ${100-usedPct}%</span><span class="right">Expires 30 Jun 2026</span></div>
+          <div class="divider"></div>
+          <div class="muted tiny mb">Recent discount applications</div>
+          <table class="tbl"><tbody>
+            <tr><td><span class="t-strong">L-44219</span><div class="t-mut">Early Bird 15%</div></td><td class="num t-strong">INR 13,500</td><td><span class="pill green"><span class="pd"></span>Approved</span></td></tr>
+            <tr><td><span class="t-strong">L-44102</span><div class="t-mut">GIC Bundle</div></td><td class="num t-strong">INR 12,000</td><td><span class="pill green"><span class="pd"></span>Approved</span></td></tr>
+            <tr><td><span class="t-strong">L-43998</span><div class="t-mut">Override 22%</div></td><td class="num t-strong">INR 44,000</td><td><span class="pill amber"><span class="pd"></span>Pending</span></td></tr>
+          </tbody></table>
+        </div></div>
+      <div class="card"><div class="card-h"><h3>Incentive progress</h3></div><div class="card-pad">
+        <div class="muted tiny">Revenue slab — next tier at INR 80L → 3.5%</div>
+        <div class="k-val mt-s" style="font-size:24px">INR ${k(c.rev)} <span class="muted" style="font-size:13px">/ 80L</span></div>
+        <div class="mt">${meter(c.rev,8000000,'')}</div>
+        <div class="banner info mt"><span class="b-ic">${svg('award',18)}</span><div><div class="b-t">INR 3.7L to unlock 3.5% tier</div><div class="b-d">Close more Study Abroad enrollments this quarter to cross the threshold.</div></div></div>
+        <div class="divider"></div>
+        <div class="dl-row"><span class="sw" style="background:var(--flc-blue)"></span>Revenue slab<span class="v">INR 1,02,000</span></div>
+        <div class="dl-row mt-s"><span class="sw" style="background:var(--teal)"></span>Germany Opp Card<span class="v">INR 24,000</span></div>
+        <div class="dl-row mt-s"><span class="sw" style="background:var(--violet)"></span>Referral bonus<span class="v">INR 18,000</span></div>
+      </div></div>
+    </div>`;
+  }
+
+  // Executive / Finance — consolidated to INR base (Toronto CAD converted)
+  const totBase = BRANCHES.reduce((s,b)=>s+ b.rev*(b.cur==='CAD'?1/FX.INR:1),0); // in INR
+  return head + `
+  <div class="grid" style="grid-template-columns:repeat(4,1fr)">
+    ${kpi('Total revenue (INR base)','25.2Cr','INR','9.8%','up','chart','0,30 12,24 24,26 36,16 48,18 60,9 74,3')}
+    ${kpi('Gross margin','38.4%','','1.6%','up','pct','0,24 18,22 36,18 54,14 74,10')}
+    ${kpi('Wallet utilization','71%','','4.2%','up','wallet','0,22 18,20 36,17 54,13 74,8')}
+    ${kpi('Pending approvals','4','','2','down','check2','0,10 18,14 36,16 54,20 74,22')}
+  </div>
+  <div class="grid mt" style="grid-template-columns:1.5fr 1fr">
+    <div class="card"><div class="card-h"><h3>Revenue vs target by branch</h3><span class="card-h sub" style="border:none;padding:0">% of target attainment</span>
+      <span class="ch-r"><button class="chip-btn on">Attainment</button><button class="chip-btn">Margin</button></span></div>
+      <div class="card-pad">${bars(BRANCHES.map(b=>({label:b.id.replace('BR-',''),v:Math.round(b.rev/b.target*100)})))}
+      <div class="legend mt"><span><i style="background:var(--flc-blue)"></i>Revenue as % of target (currency-neutral)</span><span class="right muted">Each branch in its own currency</span></div></div></div>
+    <div class="card"><div class="card-h"><h3>Revenue by service line</h3></div><div class="card-pad">
+      ${donut([{label:'Study Abroad',v:42,c:'#005BA4'},{label:'Immigration',v:24,c:'#2284C5'},{label:'Visa Services',v:15,c:'#0f8a8a'},{label:'Coaching',v:12,c:'#c98a00'},{label:'Allied',v:7,c:'#6b4cc4'}])}
+    </div></div>
+  </div>
+  <div class="grid mt" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="card"><div class="card-h"><h3>Branch leaderboard</h3></div><div class="tbl-wrap"><table class="tbl"><tbody>
+      ${[...BRANCHES].sort((a,b)=>a.rank-b.rank).slice(0,6).map(b=>`<tr><td><span class="u-cell"><span class="flag">${b.flag}</span><span><span class="t-strong">${b.name}</span><div class="t-mut">#${b.rank} · ${b.counselors} counselors</div></span></span></td>
+      <td class="num"><span class="t-strong">${b.cur==='INR'?'<span class=cur>INR </span>'+k(b.rev):money(b.rev,'CAD')}</span><div class="t-mut">${b.margin}% margin</div></td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="card"><div class="card-h"><h3>Counselor ranking</h3></div><div class="tbl-wrap"><table class="tbl"><tbody>
+      ${COUNSELORS.slice(0,6).map(c=>`<tr><td><span class="u-cell"><span class="avatar-sm">${c.init}</span><span><span class="t-strong">${c.name}</span><div class="t-mut">${c.team} · #${c.rank}</div></span></span></td>
+      <td class="num"><span class="t-strong">${c.cur==='INR'?'<span class=cur>INR </span>'+k(c.rev):money(c.rev,'CAD')}</span><div class="t-mut">${c.enroll} enrol</div></td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="card"><div class="card-h"><h3>Approvals waiting on you</h3><span class="ch-r"><span class="pill red"><span class="pd"></span>4 open</span></span></div><div class="card-pad" style="padding-top:6px">
+      ${APPROVALS.map(a=>`<div class="flex aic gap" style="padding:9px 0;border-bottom:1px solid var(--line-2)">
+        <span class="avatar-sm">${a.by.split(' ').map(x=>x[0]).join('')}</span>
+        <div style="min-width:0"><div class="t-strong" style="font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.item}</div><div class="t-mut">${a.stage} · ${a.age}</div></div>
+        <span class="right pill ${a.risk==='high'?'red':a.risk==='med'?'amber':'green'}"><span class="pd"></span>${a.risk}</span></div>`).join('')}
+      <button class="btn btn-sm mt" style="width:100%" onclick="go('approvals')">Open approvals queue ${svg('arrow',14)}</button>
+    </div></div>
+  </div>`;
+};
+
+/* ============ REVENUE ANALYTICS ============ */
+PAGES.analytics = function(){
+  return `<div class="page-head"><div><div class="ph-eyebrow">Business Intelligence</div><h1>Revenue Analytics</h1>
+    <p>Profitability, multi-currency revenue and performance trends across the commercial portfolio.</p></div>
+    <div class="ph-actions"><button class="btn btn-sm">${svg('filter',15)} Filters</button><button class="btn btn-primary btn-sm" onclick="openModal('exportModal')">${svg('download',15)} Export</button></div></div>
+  <div class="grid" style="grid-template-columns:repeat(4,1fr)">
+    ${kpi('Net revenue','25.2Cr','INR','9.8%','up','chart')}
+    ${kpi('Discount given','1.69Cr','INR','3.1%','down','wallet')}
+    ${kpi('Effective discount %','6.7%','','0.4%','down','pct')}
+    ${kpi('Commission income','42L','INR','14%','up','award')}
+  </div>
+  <div class="grid mt" style="grid-template-columns:2fr 1fr">
+    <div class="card"><div class="card-h"><h3>12-month revenue & margin</h3><span class="ch-r"><button class="chip-btn on">Revenue</button><button class="chip-btn">Discount</button><button class="chip-btn">Margin</button></span></div>
+      <div class="card-pad">${bars([{label:'Jul',v:880},{label:'Aug',v:910},{label:'Sep',v:1040},{label:'Oct',v:1120},{label:'Nov',v:1340},{label:'Dec',v:980},{label:'Jan',v:1010},{label:'Feb',v:1180},{label:'Mar',v:1290},{label:'Apr',v:1210},{label:'May',v:1360},{label:'Jun',v:1270}])}
+      <div class="legend mt"><span><i style="background:var(--flc-blue)"></i>Monthly revenue (INR Lakh)</span></div></div></div>
+    <div class="card"><div class="card-h"><h3>Profitability by service</h3></div><div class="card-pad">
+      <table class="tbl"><thead><tr><th>Service</th><th class="num">Rev</th><th class="num">Margin</th></tr></thead><tbody>
+      ${[['Study Abroad',5290,41],['Immigration',3020,46],['Visa Services',1890,52],['Coaching',1510,33],['Settlement',880,38]].map(s=>`<tr><td class="t-strong">${s[0]}</td><td class="num">${k(s[1]*1000)}</td><td class="num"><span class="heat" style="background:hsl(${s[2]*2.2},60%,92%);color:hsl(${s[2]*2.2},60%,30%)">${s[2]}%</span></td></tr>`).join('')}
+      </tbody></table></div></div>
+  </div>
+  <div class="grid mt" style="grid-template-columns:1fr 1fr">
+    <div class="card"><div class="card-h"><h3>Lead source performance</h3></div><div class="card-pad">
+      ${[['Organic / Website',1820,'34%'],['Referral Network',1340,'41%'],['Paid Campaigns',980,'22%'],['Walk-in / Branch',760,'38%'],['Revival Leads',420,'19%']].map(l=>`<div class="flex aic gap mb"><div style="flex:1"><div class="flex aic" style="justify-content:space-between"><span class="t-strong tiny">${l[0]}</span><span class="mono tiny muted">conv ${l[2]}</span></div><div class="mt-s">${meter(parseInt(l[2]),50)}</div></div><span class="mono t-strong" style="width:64px;text-align:right">${k(l[1]*1000)}</span></div>`).join('')}
+    </div></div>
+    <div class="card"><div class="card-h"><h3>Country revenue mix</h3></div><div class="card-pad">
+      ${donut([{label:'Canada',v:48,c:'#005BA4'},{label:'Germany',v:14,c:'#2284C5'},{label:'UK',v:11,c:'#0f8a8a'},{label:'Australia',v:9,c:'#c98a00'},{label:'USA',v:8,c:'#6b4cc4'},{label:'Others',v:10,c:'#9ec9e8'}])}
+    </div></div>
+  </div>`;
+};
+
+/* ============ COMPARISON ENGINE ============ */
+PAGES.compare = function(){
+  return `<div class="page-head"><div><div class="ph-eyebrow">Module 9</div><h1>Comparison Engine</h1>
+    <p>Side-by-side analysis across counselors, branches, countries, institutions, campaigns and time periods.</p></div></div>
+  <div class="flex gap wrap mb">
+    <button class="chip-btn on">Counselor vs Counselor</button>
+    <button class="chip-btn">Branch vs Branch</button>
+    <button class="chip-btn">Country vs Country</button>
+    <button class="chip-btn">Institution vs Institution</button>
+    <button class="chip-btn">Campaign vs Campaign</button>
+    <button class="chip-btn">MoM</button>
+    <button class="chip-btn">YoY</button>
+  </div>
+  <div class="row-2 mb">
+    <div class="field" style="margin:0"><label>Entity A</label><select class="inp">${COUNSELORS.map(c=>`<option ${c.id==='C-1042'?'selected':''}>${c.name} — ${c.team}</option>`).join('')}</select></div>
+    <div class="field" style="margin:0"><label>Entity B</label><select class="inp">${COUNSELORS.map(c=>`<option ${c.id==='C-1108'?'selected':''}>${c.name} — ${c.team}</option>`).join('')}</select></div>
+  </div>
+  <div class="vs-grid">
+    <div class="vs-col">
+      <div class="flex aic gap mb"><span class="avatar-sm" style="width:36px;height:36px;font-size:13px">IN</span><div><div class="t-strong">Insia</div><div class="t-mut">Study Abroad · Karelibaug</div></div></div>
+      <div class="vs-row"><span class="vl">Revenue</span><span class="vv vs-win">INR 48,60,000</span></div>
+      <div class="vs-row"><span class="vl">Enrollments</span><span class="vv vs-win">62</span></div>
+      <div class="vs-row"><span class="vl">Conversion</span><span class="vv">34%</span></div>
+      <div class="vs-row"><span class="vl">Margin</span><span class="vv">42%</span></div>
+      <div class="vs-row"><span class="vl">Wallet used</span><span class="vv">INR 5,40,000</span></div>
+      <div class="vs-row"><span class="vl">Discount given</span><span class="vv vs-win">6.1%</span></div>
+      <div class="vs-row" style="border:none"><span class="vl">Incentive earned</span><span class="vv">INR 1,21,000</span></div>
+    </div>
+    <div class="vs-mid">VS</div>
+    <div class="vs-col">
+      <div class="flex aic gap mb"><span class="avatar-sm" style="width:36px;height:36px;font-size:13px">ME</span><div><div class="t-strong">Meena</div><div class="t-mut">Immigration · Karelibaug</div></div></div>
+      <div class="vs-row"><span class="vl">Revenue</span><span class="vv">INR 45,10,000</span></div>
+      <div class="vs-row"><span class="vl">Enrollments</span><span class="vv">41</span></div>
+      <div class="vs-row"><span class="vl">Conversion</span><span class="vv vs-win">38%</span></div>
+      <div class="vs-row"><span class="vl">Margin</span><span class="vv vs-win">44%</span></div>
+      <div class="vs-row"><span class="vl">Wallet used</span><span class="vv vs-win">INR 6,10,000</span></div>
+      <div class="vs-row"><span class="vl">Discount given</span><span class="vv">7.8%</span></div>
+      <div class="vs-row" style="border:none"><span class="vl">Incentive earned</span><span class="vv vs-win">INR 1,40,000</span></div>
+    </div>
+  </div>
+  <div class="card mt"><div class="card-h"><h3>Revenue trend overlay</h3><span class="ch-r legend"><span><i style="background:var(--flc-blue)"></i>Insia</span><span><i style="background:#9ec9e8"></i>Meena</span></span></div>
+    <div class="card-pad"><div class="bars">${[['Jan',38,33],['Feb',42,39],['Mar',55,44],['Apr',61,52],['May',72,68],['Jun',81,76]].map(m=>`<div class="bar-col" style="flex-direction:row;align-items:flex-end;gap:3px"><div class="bar" style="height:${m[1]}%"></div><div class="bar alt" style="height:${m[2]}%"></div></div>`).join('')}</div>
+    <div class="legend mt"><span class="right muted">Last 6 months · INR Lakh</span></div></div></div>`;
+};
+</script>
+<script>
+/* ============ DISCOUNT WALLETS ============ */
+PAGES.wallets = function(){
+  const totAlloc=WALLETS.reduce((s,w)=>s+w.alloc,0), totUsed=WALLETS.reduce((s,w)=>s+w.used,0);
+  return `<div class="page-head"><div><div class="ph-eyebrow">Module 1</div><h1>Discount Wallet Management</h1>
+    <p>Allocate, track and govern discount budgets across branches, campaigns, countries, institutions and counselors.</p></div>
+    <div class="ph-actions"><button class="btn btn-sm">${svg('filter',15)} All types</button><button class="btn btn-primary btn-sm" onclick="openModal('walletModal')">${svg('plus',15)} New wallet</button></div></div>
+  <div class="grid mb" style="grid-template-columns:repeat(4,1fr)">
+    ${kpi('Total allocated',k(totAlloc),'INR','—','up','wallet')}
+    ${kpi('Consumed',k(totUsed),'INR',(totUsed/totAlloc*100).toFixed(0)+'%','up','bolt')}
+    ${kpi('Active wallets','5','','—','up','layers')}
+    ${kpi('Expiring < 14d','2','','','down','flame')}
+  </div>
+  <div class="card"><div class="card-h"><h3>Wallets</h3><span class="card-h sub" style="border:none;padding:0">11 wallet types supported</span>
+    <span class="ch-r"><button class="chip-btn on">All</button><button class="chip-btn">Active</button><button class="chip-btn">Frozen</button><button class="chip-btn">Scheduled</button></span></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Wallet</th><th>Type</th><th>Scope</th><th class="num">Allocation</th><th>Utilization</th><th>Approval</th><th>Expiry</th><th>Status</th><th></th></tr></thead><tbody>
+    ${WALLETS.map(w=>`<tr style="cursor:pointer" onclick="openWallet('${w.id}')">
+      <td><span class="cell-id">${w.id}</span><div class="t-strong">${w.name}</div></td>
+      <td><span class="pill blue">${w.type}</span></td>
+      <td class="t-mut">${w.scope}</td>
+      <td class="num"><span class="t-strong">${w.cur==='INR'?'<span class=cur>INR </span>'+fmt(w.alloc):money(w.alloc,'CAD')}</span></td>
+      <td style="min-width:140px"><div class="flex aic gap-sm"><div style="flex:1">${meter(w.used,w.alloc)}</div><span class="mono tiny muted">${Math.round(w.used/w.alloc*100)}%</span></div></td>
+      <td><span class="pill ${w.approval==='Auto'?'green':w.approval==='Multi-Level'?'violet':'amber'}">${w.approval}</span></td>
+      <td class="t-mut mono tiny">${w.expiry}</td>
+      <td><span class="pill ${w.status==='Active'?'green':w.status==='Frozen'?'red':'amber'}"><span class="pd"></span>${w.status}</span></td>
+      <td>${svg('arrow',16)}</td></tr>`).join('')}
+    </tbody></table></div></div>
+  <div class="grid mt" style="grid-template-columns:1fr 1fr">
+    <div class="card"><div class="card-h"><h3>Wallet lifecycle actions</h3></div><div class="card-pad">
+      <div class="flex wrap gap">${['Allocate','Freeze','Revoke','Transfer','Merge','Carry forward','Partial carry','Audit'].map(a=>`<button class="chip-btn">${a}</button>`).join('')}</div>
+      <div class="divider"></div>
+      <div class="muted tiny mb">Rule limits enforced per wallet</div>
+      <div class="row-2"><div><div class="t-mut tiny">Max amount</div><div class="t-strong mono">INR 50,000</div></div><div><div class="t-mut tiny">Max percentage</div><div class="t-strong mono">25%</div></div></div>
+      <div class="row-2 mt"><div><div class="t-mut tiny">Service limit</div><div class="t-strong">Study Abroad, Visa</div></div><div><div class="t-mut tiny">Country limit</div><div class="t-strong">Canada only</div></div></div>
+    </div></div>
+    <div class="card"><div class="card-h"><h3>Allocation by wallet type</h3></div><div class="card-pad">
+      ${donut([{label:'Campaign',v:28,c:'#005BA4'},{label:'Festival',v:24,c:'#2284C5'},{label:'Institution',v:14,c:'#0f8a8a'},{label:'Monthly',v:12,c:'#c98a00'},{label:'Revival',v:10,c:'#6b4cc4'},{label:'Other',v:12,c:'#9ec9e8'}])}
+    </div></div>
+  </div>`;
+};
+function openWallet(id){const w=WALLETS.find(x=>x.id===id);
+  document.getElementById('detailTitle').innerHTML=`<span class="cell-id">${w.id}</span> · ${w.name}`;
+  document.getElementById('detailBody').innerHTML=`
+    <div class="grid" style="grid-template-columns:1fr 1fr 1fr"><div class="card card-pad"><div class="t-mut tiny">Allocation</div><div class="k-val" style="font-size:22px">${w.cur==='INR'?'<span class=cur>INR </span>'+fmt(w.alloc):money(w.alloc,'CAD')}</div></div>
+    <div class="card card-pad"><div class="t-mut tiny">Consumed</div><div class="k-val" style="font-size:22px">${w.cur==='INR'?'<span class=cur>INR </span>'+fmt(w.used):money(w.used,'CAD')}</div></div>
+    <div class="card card-pad"><div class="t-mut tiny">Remaining</div><div class="k-val" style="font-size:22px">${w.cur==='INR'?'<span class=cur>INR </span>'+fmt(w.alloc-w.used):money(w.alloc-w.used,'CAD')}</div></div></div>
+    <div class="mt">${meter(w.used,w.alloc)}</div>
+    <div class="divider"></div>
+    <div class="row-2"><div><div class="t-mut tiny">Type</div><div class="t-strong">${w.type}</div></div><div><div class="t-mut tiny">Scope</div><div class="t-strong">${w.scope}</div></div>
+    <div><div class="t-mut tiny">Approval rule</div><div class="t-strong">${w.approval}</div></div><div><div class="t-mut tiny">Carry forward</div><div class="t-strong">${w.carry}</div></div></div>
+    <div class="divider"></div><div class="muted tiny mb">Recent activity</div>
+    <div class="tl"><div class="tl-i create"><div class="tl-h">Wallet created</div><div class="tl-m">Insia · alloc ${w.cur==='INR'?'INR '+fmt(w.alloc):money(w.alloc,'CAD')}</div><div class="tl-time">Today · 09:14</div></div>
+    <div class="tl-i"><div class="tl-h">Discount consumed</div><div class="tl-m">Ankita · INR 13,500 · Lead L-44219</div><div class="tl-time">Yesterday · 14:20</div></div></div>`;
+  document.getElementById('detailFoot').innerHTML=`<button class="btn" onclick="closeModal('detailModal')">Close</button><button class="btn">Freeze</button><button class="btn btn-primary">Edit allocation</button>`;
+  openModal('detailModal');
+}
+
+/* ============ COMBINATION ENGINE ============ */
+PAGES.combinations = function(){
+  const combos=[['Coaching'],['Visa'],['Immigration'],['Study Abroad'],['Germany Opp. Card'],['Canada PR'],['Study Abroad','Visa'],['Coaching','Study Abroad'],['Coaching','Immigration'],['Immigration','Visa'],['Coaching','Study Abroad','Visa'],['French','Canada Admission'],['German','Germany Opp. Card'],['Canada Admission','Visa','GIC']];
+  return `<div class="page-head"><div><div class="ph-eyebrow">Module 2</div><h1>Commercial Combination Engine</h1>
+    <p>Build unlimited service combinations with no hardcoded restrictions. Each combination carries its own pricing, eligibility and discount ceiling.</p></div>
+    <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="openModal('comboModal')">${svg('plus',15)} New combination</button></div></div>
+  <div class="banner info mb"><span class="b-ic">${svg('combine',18)}</span><div><div class="b-t">No combination is hardcoded</div><div class="b-d">Combinations are composed from service primitives at runtime. Admins add new services and the engine auto-generates valid permutations.</div></div></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(230px,1fr))">
+    ${combos.map((c,i)=>`<div class="card card-pad" style="cursor:pointer">
+      <div class="flex aic gap-sm wrap mb">${c.map(s=>`<span class="pill ${['blue','teal','violet','amber','green'][s.length%5]}">${s}</span>`).join('<span class="muted">+</span>')}</div>
+      <div class="flex aic" style="justify-content:space-between"><span class="t-mut tiny">Bundle price</span><span class="mono t-strong">INR ${fmt(24000+i*4500)}</span></div>
+      <div class="flex aic mt-s" style="justify-content:space-between"><span class="t-mut tiny">Max discount</span><span class="mono t-strong">${12+i%10}%</span></div>
+      <div class="mt-s">${meter((i*7)%40,40)}</div>
+      <div class="flex gap-sm mt-s"><span class="pill blue" style="padding:1px 7px" title="Discount rule">D</span><span class="pill teal" style="padding:1px 7px" title="Offer rule">O</span><span class="pill violet" style="padding:1px 7px" title="Incentive rule">I</span><span class="t-mut tiny right">own rules</span></div>
+    </div>`).join('')}
+  </div>
+  <div class="banner info mt"><span class="b-ic">${svg('layers',18)}</span><div><div class="b-t">Per-combination rules</div><div class="b-d">Each combination carries its own discount ceiling, offer eligibility and incentive formula (the D / O / I tags). Management creates unlimited combinations as data — no developer involvement.</div></div></div>`;
+};
+
+/* ============ OFFER MANAGEMENT ============ */
+PAGES.offers = function(){
+  return `<div class="page-head"><div><div class="ph-eyebrow">Module 3</div><h1>Offer Management</h1>
+    <p>Full lifecycle for percentage, fixed, bundle, cashback, free-service and seasonal promotions across every applicability dimension.</p></div>
+    <div class="ph-actions"><button class="btn btn-sm">${svg('filter',15)} Status</button><button class="btn btn-primary btn-sm" onclick="openModal('offerModal')">${svg('plus',15)} Create offer</button></div></div>
+  <div class="flow mb">
+    <div class="flow-step done"><div class="fs-n">1</div><div class="fs-t">Draft</div><div class="fs-d">Define type & value</div></div>
+    <div class="flow-step done"><div class="fs-n">2</div><div class="fs-t">Configure</div><div class="fs-d">Applicability & caps</div></div>
+    <div class="flow-step active"><div class="fs-n">3</div><div class="fs-t">Approval</div><div class="fs-d">Manager / Director</div></div>
+    <div class="flow-step"><div class="fs-n">4</div><div class="fs-t">Live</div><div class="fs-d">Active & tracked</div></div>
+    <div class="flow-step"><div class="fs-n">5</div><div class="fs-t">Expire / Archive</div><div class="fs-d">Auto on end date</div></div>
+  </div>
+  <div class="card"><div class="card-h"><h3>Offers</h3>
+    <span class="ch-r"><button class="chip-btn on">All</button><button class="chip-btn">Live</button><button class="chip-btn">Scheduled</button><button class="chip-btn">Draft</button></span></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Offer</th><th>Type</th><th>Value</th><th>Applicability</th><th>Redemptions</th><th>Ends</th><th>Status</th></tr></thead><tbody>
+    ${OFFERS.map(o=>`<tr>
+      <td><span class="cell-id">${o.id}</span><div class="t-strong">${o.name}</div></td>
+      <td><span class="pill blue">${o.type}</span></td>
+      <td class="mono t-strong">${o.value}</td>
+      <td class="t-mut">${o.scope}</td>
+      <td style="min-width:130px"><div class="flex aic gap-sm"><div style="flex:1">${meter(o.used,o.cap)}</div><span class="mono tiny muted">${o.used}/${o.cap}</span></div></td>
+      <td class="t-mut mono tiny">${o.end}</td>
+      <td><span class="pill ${o.status==='Live'?'green':o.status==='Scheduled'?'amber':'gray'}"><span class="pd"></span>${o.status}</span></td></tr>`).join('')}
+    </tbody></table></div></div>
+  <div class="grid mt" style="grid-template-columns:1fr 1fr">
+    <div class="card"><div class="card-h"><h3>Conflict resolution rules</h3><span class="card-h sub" style="border:none;padding:0">When multiple offers qualify</span></div><div class="card-pad">
+      <div class="field"><label>Resolution strategy</label><div class="flex gap-sm wrap"><span class="chip-btn on">Best for client</span><span class="chip-btn">Highest priority</span><span class="chip-btn">Non-stackable</span><span class="chip-btn">Explicit stack list</span></div></div>
+      <table class="tbl"><tbody>
+      <tr><td class="t-strong">Stacking</td><td class="t-mut">Offers may stack only if both flagged stackable</td></tr>
+      <tr><td class="t-strong">Priority</td><td class="t-mut">Higher-priority offer wins ties</td></tr>
+      <tr><td class="t-strong">Ceiling</td><td class="t-mut">Combined discount capped by wallet/combination max %</td></tr>
+      </tbody></table>
+    </div></div>
+    <div class="card"><div class="card-h"><h3>Offer proposal workflow</h3></div><div class="card-pad">
+      <div class="muted tiny mb">Counselors and branch managers propose; management approves or rejects.</div>
+      <div class="flex aic gap mb"><span class="avatar-sm">YA</span><div style="flex:1"><div class="t-strong tiny">PTE Summer Intensive 10%</div><div class="t-mut tiny">Yashika · Genda Circle</div></div><span class="pill amber">Manager review</span></div>
+      <div class="flex aic gap mb"><span class="avatar-sm">HE</span><div style="flex:1"><div class="t-strong tiny">Bharuch Coaching Combo</div><div class="t-mut tiny">Heena · Bharuch</div></div><span class="pill green">Approved</span></div>
+      <div class="flex gap mt"><button class="btn btn-sm btn-danger" style="flex:1">Reject</button><button class="btn btn-sm btn-primary" style="flex:1">Approve</button></div>
+    </div></div>
+  </div>`;
+};
+
+/* ============ PROMOTION REQUESTS ============ */
+PAGES.promotions = function(){
+  const sb=(s)=>s==='approved'?'green':s==='rejected'?'red':'amber';
+  return `<div class="page-head"><div><div class="ph-eyebrow">Module 4</div><h1>Promotion Request System</h1>
+    <p>Counselors and managers submit proposals with budget, forecast and ROI. Management reviews, approves and launches.</p></div>
+    <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="openModal('promoModal')">${svg('plus',15)} Submit proposal</button></div></div>
+  <div class="flow mb">
+    <div class="flow-step done"><div class="fs-n">1</div><div class="fs-t">Submitted</div><div class="fs-d">By counselor / manager</div></div>
+    <div class="flow-step active"><div class="fs-n">2</div><div class="fs-t">Manager review</div><div class="fs-d">Budget & feasibility</div></div>
+    <div class="flow-step"><div class="fs-n">3</div><div class="fs-t">Director review</div><div class="fs-d">ROI threshold ≥ 8×</div></div>
+    <div class="flow-step"><div class="fs-n">4</div><div class="fs-t">Launched</div><div class="fs-d">Wallet funded</div></div>
+  </div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))">
+    ${PROMOS.map(p=>`<div class="card card-pad">
+      <div class="flex aic gap" style="justify-content:space-between"><span class="cell-id">${p.id}</span><span class="pill ${sb(p.status)}"><span class="pd"></span>${p.stage}</span></div>
+      <div class="t-strong mt-s" style="font-size:15px">${p.title}</div>
+      <div class="u-cell mt-s"><span class="avatar-sm">${p.by.split(' ').map(x=>x[0]).join('')}</span><span class="t-mut">${p.by} · ${p.role}</span></div>
+      <div class="divider"></div>
+      <div class="row-3"><div><div class="t-mut tiny">Budget</div><div class="mono t-strong">${p.cur} ${fmt(p.budget)}</div></div>
+      <div><div class="t-mut tiny">Fc. revenue</div><div class="mono t-strong">${p.cur} ${fmt(p.fc_rev)}</div></div>
+      <div><div class="t-mut tiny">ROI</div><div class="mono t-strong" style="color:${p.roi>=8?'var(--green)':'var(--flc-red)'}">${p.roi}×</div></div></div>
+      ${p.status==='pending'?`<div class="flex gap mt"><button class="btn btn-sm btn-danger" style="flex:1">Reject</button><button class="btn btn-sm btn-primary" style="flex:1">Approve</button></div>`:''}
+    </div>`).join('')}
+  </div>`;
+};
+</script>
+<script>
+/* ============ INCENTIVES ============ */
+PAGES.incentives = function(){
+  const tot=INCENTIVES.reduce((s,i)=>s+i.payout,0);
+  return `<div class="page-head"><div><div class="ph-eyebrow">Module 5</div><h1>Incentive Management</h1>
+    <p>Flexible incentive engine — revenue, enrollment, margin, profit, service, team, referral and hybrid structures running simultaneously.</p></div>
+    <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="openModal('incentiveModal')">${svg('plus',15)} New plan</button></div></div>
+  <div class="grid mb" style="grid-template-columns:repeat(4,1fr)">
+    ${kpi('Total payout (YTD)',k(tot),'INR','18%','up','award')}
+    ${kpi('Active plans','5','','1','up','layers')}
+    ${kpi('Staff earning','48','','6','up','users')}
+    ${kpi('Avg per head','62K','INR','9%','up','bolt')}
+  </div>
+  <div class="card"><div class="card-h"><h3>Incentive plans</h3><span class="card-h sub" style="border:none;padding:0">Multiple plans stack per staff member</span></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Plan</th><th>Basis</th><th>Rule</th><th>Applies to</th><th class="num">Payout YTD</th><th>Status</th></tr></thead><tbody>
+    ${INCENTIVES.map(i=>`<tr><td><span class="cell-id">${i.id}</span><div class="t-strong">${i.name}</div></td>
+      <td><span class="pill ${{Revenue:'blue',Service:'teal',Margin:'violet',Enrollment:'amber',Referral:'green'}[i.basis]||'gray'}">${i.basis}</span></td>
+      <td class="t-mut">${i.rule}</td><td class="t-mut">${i.applies}</td>
+      <td class="num t-strong"><span class="cur">INR </span>${fmt(i.payout)}</td>
+      <td><span class="pill ${i.status==='Active'?'green':'gray'}"><span class="pd"></span>${i.status}</span></td></tr>`).join('')}
+    </tbody></table></div></div>
+  <div class="card mt"><div class="card-h"><h3>Incentive structure builder</h3></div><div class="card-pad">
+    <div class="flex wrap gap mb">${['Revenue','Enrollment','Margin','Profit','Commission','Service','Country','Institution','Branch','Department','Team','Referral','Campaign','Hybrid'].map((b,i)=>`<button class="chip-btn ${i===0?'on':''}">${b} based</button>`).join('')}</div>
+    <div class="banner info"><span class="b-ic">${svg('bolt',18)}</span><div><div class="b-t">Example: Revenue slab</div><div class="b-d">IF revenue > INR 40L → 2% · IF > INR 80L → 3.5% · stacks with Germany Opp Card bonus (INR 8,000/enrollment).</div></div></div>
+  </div></div>
+  <div class="grid mt" style="grid-template-columns:1fr 1fr">
+    <div class="card"><div class="card-h"><h3>Incentive base configuration</h3></div><div class="card-pad">
+      <div class="field"><label>Compute incentive on</label><div class="flex gap-sm"><span class="chip-btn on">Gross revenue</span><span class="chip-btn">Net revenue</span><span class="chip-btn">Profit</span><span class="chip-btn">Margin</span></div></div>
+      <div class="muted tiny mb">Do these reduce the incentive base?</div>
+      ${[['Wallet discounts',true],['Offer-code discounts',true],['Promotional discounts',false]].map(r=>`<div class="flex aic gap mb"><div style="flex:1"><div class="t-strong tiny">${r[0]}</div></div><span class="toggle ${r[1]?'on':''}"></span></div>`).join('')}
+    </div></div>
+    <div class="card"><div class="card-h"><h3>Rules by client type</h3></div><div class="card-pad">
+      <table class="tbl"><thead><tr><th>Client type</th><th>Incentive treatment</th></tr></thead><tbody>
+      ${[['Full-fee client','100% of slab'],['Wallet-discount client','On net after wallet'],['Offer-code client','On net after offer'],['Promotional/campaign client','Flat campaign rate'],['Combination-offer client','Per-combination rule']].map(r=>`<tr><td class="t-strong">${r[0]}</td><td class="t-mut">${r[1]}</td></tr>`).join('')}
+      </tbody></table>
+    </div></div>
+  </div>`;
+};
+
+/* ============ COMMISSIONS ============ */
+PAGES.commissions = function(){
+  const rec=COMMISSIONS.reduce((s,c)=>s+c.received*FX[c.cur],0);
+  const pen=COMMISSIONS.reduce((s,c)=>s+c.pending*FX[c.cur],0);
+  return `<div class="page-head"><div><div class="ph-eyebrow">Module 6</div><h1>Commission Management</h1>
+    <p>Track institution, partner and referral commissions — received, pending, reversed and forecast — in original and consolidated currency.</p></div>
+    <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="openModal('exportModal')">${svg('download',15)} Statement</button></div></div>
+  <div class="grid mb" style="grid-template-columns:repeat(4,1fr)">
+    ${kpi('Received',k(Math.round(rec/FX.INR)),'INR','14%','up','pct')}
+    ${kpi('Pending',k(Math.round(pen/FX.INR)),'INR','5%','up','flame')}
+    ${kpi('Reversed','4.2L','INR','2%','down','arrow')}
+    ${kpi('Forecast (Q3)','1.3Cr','INR','11%','up','chart')}
+  </div>
+  <div class="card"><div class="card-h"><h3>Commission ledger</h3></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Partner / Source</th><th>Type</th><th>Cur</th><th class="num">Received</th><th class="num">Pending</th><th class="num">Reversed</th><th class="num">Forecast</th><th class="num">In INR</th></tr></thead><tbody>
+    ${COMMISSIONS.map(c=>`<tr><td class="t-strong">${c.partner}</td><td><span class="pill blue">${c.type}</span></td>
+      <td class="mono t-mut">${c.cur}</td>
+      <td class="num">${fmt(c.received)}</td><td class="num">${fmt(c.pending)}</td>
+      <td class="num">${c.reversed?`<span style="color:var(--flc-red)">${fmt(c.reversed)}</span>`:'—'}</td>
+      <td class="num t-mut">${fmt(c.forecast)}</td>
+      <td class="num t-strong">${fmt(Math.round(c.received*FX[c.cur]/FX.INR))}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+};
+
+/* ============ MULTI-CURRENCY ============ */
+PAGES.currency = function(){
+  return `<div class="page-head"><div><div class="ph-eyebrow">Module 7</div><h1>Multi-Currency System</h1>
+    <p>Store original and converted amounts with historical rates and manual override. INR (base) and CAD are live today; additional currencies are configuration-ready for future expansion.</p></div>
+    <div class="ph-actions"><button class="btn btn-sm">${svg('cog',15)} Rate source</button><button class="btn btn-primary btn-sm" onclick="openModal('fxModal')">${svg('plus',15)} Override rate</button></div></div>
+  <div class="card mb"><div class="card-h"><h3>Currency configuration</h3><span class="card-h sub" style="border:none;padding:0">Base currency: INR</span></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Currency</th><th>Code</th><th class="num">Rate → INR</th><th class="num">Revenue (orig)</th><th class="num">Revenue (INR)</th><th>Status</th></tr></thead><tbody>
+    ${CURRENCIES.map(c=>{const toINR = c.code==='INR'?1:(1/FX.INR); return `<tr><td class="t-strong">${c.name}</td><td class="mono cell-id">${c.code}</td>
+      <td class="num mono">${c.code==='INR'?'1.0000':toINR.toFixed(2)}</td>
+      <td class="num">${c.rev?fmt(c.rev):'—'}</td>
+      <td class="num t-strong">${c.rev?fmt(Math.round(c.rev*toINR)):'—'}</td>
+      <td><span class="pill ${c.status==='Base'?'blue':c.status==='Live'?'green':'gray'}"><span class="pd"></span>${c.status}</span></td></tr>`;}).join('')}
+    </tbody></table></div></div>
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+    <div class="card"><div class="card-h"><h3>Revenue by currency (INR equiv.)</h3></div><div class="card-pad">
+      ${donut([{label:'INR',v:86,c:'#005BA4'},{label:'CAD',v:14,c:'#2284C5'}])}</div></div>
+    <div class="card"><div class="card-h"><h3>Historical rate — CAD→INR</h3><span class="ch-r"><span class="pill amber"><span class="pd"></span>Manual override active</span></span></div>
+      <div class="card-pad">${bars([{label:'Jan',v:608},{label:'Feb',v:611},{label:'Mar',v:604},{label:'Apr',v:615},{label:'May',v:619},{label:'Jun',v:617}])}
+      <div class="legend mt"><span class="muted">CAD→INR · current 61.7 (manual, was 61.4 auto)</span></div></div></div>
+  </div>`;
+};
+
+/* ============ APPROVALS ============ */
+PAGES.approvals = function(){
+  return `<div class="page-head"><div><div class="ph-eyebrow">Governance</div><h1>Commercial Approval Workflows</h1>
+    <p>Auto, manager, director and multi-level approval routing for wallets, discounts, offers, promotions and incentive edits.</p></div></div>
+  <div class="flow mb">
+    <div class="flow-step done"><div class="fs-n">1</div><div class="fs-t">Auto-approve</div><div class="fs-d">Within counselor limits</div></div>
+    <div class="flow-step active"><div class="fs-n">2</div><div class="fs-t">Manager</div><div class="fs-d">Above branch threshold</div></div>
+    <div class="flow-step"><div class="fs-n">3</div><div class="fs-t">Director</div><div class="fs-d">High value / override</div></div>
+    <div class="flow-step"><div class="fs-n">4</div><div class="fs-t">Multi-level</div><div class="fs-d">Policy / plan changes</div></div>
+  </div>
+  <div class="card"><div class="card-h"><h3>Approval queue</h3><span class="ch-r"><span class="pill red"><span class="pd"></span>4 pending</span></span></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Request</th><th>Item</th><th class="num">Amount</th><th>Requested by</th><th>Stage</th><th>Risk</th><th>Age</th><th></th></tr></thead><tbody>
+    ${APPROVALS.map(a=>`<tr><td class="cell-id">${a.id}</td><td class="t-strong">${a.item}</td>
+      <td class="num">${a.amt?(a.cur==='INR'?'<span class=cur>INR </span>'+fmt(a.amt):money(a.amt,'CAD')):'—'}</td>
+      <td><span class="u-cell"><span class="avatar-sm">${a.by.split(' ').map(x=>x[0]).join('')}</span>${a.by}</span></td>
+      <td><span class="pill ${a.stage.includes('Director')?'violet':a.stage.includes('Multi')?'blue':'amber'}">${a.stage}</span></td>
+      <td><span class="pill ${a.risk==='high'?'red':a.risk==='med'?'amber':'green'}"><span class="pd"></span>${a.risk}</span></td>
+      <td class="t-mut mono">${a.age}</td>
+      <td><div class="flex gap-sm"><button class="btn btn-sm btn-danger">Reject</button><button class="btn btn-sm btn-primary">Approve</button></div></td></tr>`).join('')}
+    </tbody></table></div></div>`;
+};
+
+/* ============ REPORTING ============ */
+PAGES.reporting = function(){
+  return `<div class="page-head"><div><div class="ph-eyebrow">Module 11</div><h1>Report Builder</h1>
+    <p>Compose daily, weekly, monthly, quarterly, yearly or custom reports across every commercial dimension.</p></div>
+    <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="openModal('exportModal')">${svg('download',15)} Generate</button></div></div>
+  <div class="grid" style="grid-template-columns:300px 1fr">
+    <div class="card card-pad">
+      <div class="field"><label>Report period</label><select class="inp"><option>This month</option><option>This quarter</option><option>This year</option><option>Custom range…</option></select></div>
+      <div class="field"><label>Group by</label><select class="inp"><option>Branch</option><option>Counselor</option><option>Country</option><option>Institution</option><option>Service</option><option>Campaign</option></select></div>
+      <div class="field"><label>Metrics</label>
+        ${['Revenue','Discount given','Margin','Wallet usage','Commissions','Incentives','Enrollments'].map((m,i)=>`<div class="flex aic gap-sm" style="padding:5px 0"><span class="toggle ${i<3?'on':''}"></span><span class="tiny">${m}</span></div>`).join('')}
+      </div>
+      <div class="field"><label>Filters</label>
+        <div class="flex wrap gap-sm">${['Branch','Country','Institution','Currency','Lead Source'].map(f=>`<span class="chip-btn btn-sm">${f}</span>`).join('')}</div></div>
+      <button class="btn btn-primary" style="width:100%">${svg('doc',15)} Build report</button>
+    </div>
+    <div class="card"><div class="card-h"><h3>Preview — Monthly revenue by branch</h3><span class="ch-r"><button class="chip-btn">PDF</button><button class="chip-btn">XLSX</button><button class="chip-btn on">CSV</button></span></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Branch</th><th class="num">Revenue</th><th class="num">Discount</th><th class="num">Margin</th><th class="num">Enrol</th><th class="num">vs Target</th></tr></thead><tbody>
+      ${BRANCHES.map(b=>`<tr><td class="u-cell"><span class="flag">${b.flag}</span><span class="t-strong">${b.name.split('—')[0]}</span></td>
+        <td class="num t-strong">${b.cur==='INR'?'<span class=cur>INR </span>'+k(b.rev):money(b.rev,'CAD')}</td><td class="num t-mut">${fmt(Math.round(b.rev*0.06))}</td>
+        <td class="num">${b.margin}%</td><td class="num">${Math.round(b.rev/45000)}</td>
+        <td class="num"><span class="pill ${b.rev>=b.target?'green':'amber'}">${Math.round(b.rev/b.target*100)}%</span></td></tr>`).join('')}
+      </tbody></table></div></div>
+  </div>`;
+};
+
+/* ============ AUDIT ============ */
+PAGES.audit = function(){
+  const ic={create:'green',approve:'',edit:'amber',reject:'red',consume:'blue'};
+  return `<div class="page-head"><div><div class="ph-eyebrow">Module 12</div><h1>Audit Trail</h1>
+    <p>Immutable record of every commercial action — who created, edited, approved, rejected, allocated, consumed or modified.</p></div>
+    <div class="ph-actions"><button class="btn btn-sm">${svg('filter',15)} All actions</button><button class="btn btn-sm" onclick="openModal('exportModal')">${svg('download',15)} Export log</button></div></div>
+  <div class="grid" style="grid-template-columns:1fr 300px">
+    <div class="card card-pad"><div class="tl">
+      ${AUDIT.map(a=>`<div class="tl-i ${a.t}"><div class="tl-h">${a.who} <span class="muted" style="font-weight:400">${a.act}</span> ${a.obj}</div><div class="tl-m">${a.meta}</div><div class="tl-time">${a.time}</div></div>`).join('')}
+    </div></div>
+    <div class="card card-pad"><div class="card-h" style="padding:0 0 12px;margin-bottom:12px"><h3>Activity by type</h3></div>
+      ${[['Created',38,'var(--green)'],['Edited',54,'var(--amber)'],['Approved',29,'var(--flc-blue)'],['Rejected',7,'var(--flc-red)'],['Consumed',412,'var(--teal)']].map(r=>`<div class="dl-row mb"><span class="sw" style="background:${r[2]}"></span>${r[0]}<span class="v">${r[1]}</span></div>`).join('')}
+      <div class="divider"></div><div class="banner info"><span class="b-ic">${svg('shield',18)}</span><div><div class="b-t">Tamper-evident</div><div class="b-d">Entries are append-only and hash-chained for integrity verification.</div></div></div>
+    </div>
+  </div>`;
+};
+
+/* ============ PERMISSIONS ============ */
+PAGES.permissions = function(){
+  return `<div class="page-head"><div><div class="ph-eyebrow">Module 10</div><h1>Roles & Permissions</h1>
+    <p>Granular capability matrix across 8 roles and 11 modules. Switch perspective any time from the top-right role selector.</p></div></div>
+  <div class="legend mb">${Object.entries(PERM_KEY).map(([key,[lbl,c]])=>`<span><i class="pill ${c}" style="width:auto;height:auto;padding:2px 7px;border-radius:6px">${key}</i> ${lbl}</span>`).join('')}</div>
+  <div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Role</th>${PERM_MODULES.map(m=>`<th style="text-align:center">${m}</th>`).join('')}</tr></thead><tbody>
+    ${ROLES.map(r=>`<tr><td><span class="u-cell"><span class="avatar-sm" style="background:linear-gradient(135deg,${r.color},var(--flc-sky))">${r.init}</span><span class="t-strong">${r.title}</span></span></td>
+      ${PERM[r.id].map(p=>{const[lbl,c]=PERM_KEY[p];return `<td style="text-align:center"><span class="pill ${c}" title="${lbl}" style="padding:2px 8px">${p}</span></td>`;}).join('')}</tr>`).join('')}
+  </tbody></table></div></div>`;
+};
+</script>
+<script>
+/* ============ CONFIGURATION ============ */
+PAGES.settings = function(){
+  return `<div class="page-head"><div><div class="ph-eyebrow">System</div><h1>Configuration</h1>
+    <p>Every commercial rule is configurable here — no developer intervention required.</p></div></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
+    ${[['Approval thresholds','wallet','Set auto / manager / director limits per branch & service'],
+       ['Discount ceilings','pct','Max % and max amount by role, service, country'],
+       ['Wallet rules','layers','Carry-forward, expiry, freeze & transfer policies'],
+       ['Currency & FX','globe','Base currency, rate source, manual override window'],
+       ['Incentive policies','award','Slabs, bonuses, stacking and payout cycles'],
+       ['Services & combinations','combine','Add services; engine auto-generates combinations'],
+       ['Branches & regions','branch','Onboard branches, regions and future countries'],
+       ['Roles & access','users','Define roles and module-level capabilities']
+    ].map(c=>`<div class="card card-pad" style="cursor:pointer"><div class="flex aic gap mb"><div class="k-ic">${svg(c[1],18)}</div><div class="t-strong">${c[0]}</div></div><div class="t-mut tiny">${c[2]}</div><div class="flex aic mt" style="justify-content:space-between"><span class="pill green"><span class="pd"></span>Configured</span>${svg('arrow',16)}</div></div>`).join('')}
+  </div>
+  <div class="card mt"><div class="card-h"><h3>Eligibility controls</h3><span class="card-h sub" style="border:none;padding:0">Who can receive offers & wallet discounts</span></div><div class="card-pad">
+    <div class="field"><label>Available to</label><div class="flex wrap gap-sm">${['New leads','New clients','Existing clients','Re-enrolled clients','Specific lead statuses'].map((x,i)=>`<span class="chip-btn ${i<2?'on':''}">${x}</span>`).join('')}</div></div>
+    <div class="muted tiny mb">Eligibility is evaluated against CRM client history:</div>
+    <div class="flex wrap gap-sm mb">${['Previous enrollments','Previous invoices','Previous payments','Services already purchased'].map(x=>`<span class="chip-btn" style="cursor:default">${x}</span>`).join('')}</div>
+    <div class="banner warn"><span class="b-ic">${svg('shield',18)}</span><div><div class="b-t">Block re-discounting an active service</div><div class="b-d">Example: a client already enrolled in IELTS cannot receive an IELTS offer — but the same client enrolling for Germany Opportunity Card is eligible. Rules are set per service, country, institution and program.</div></div></div>
+  </div></div>
+  <div class="card mt"><div class="card-h"><h3>Invoice-based commercial controls</h3><span class="card-h sub" style="border:none;padding:0">Lock terms once payment begins</span></div><div class="card-pad">
+    ${[['Discounts only before invoice finalization',true],['Block offer code after invoice approved',true],['Block wallet use after any payment received',true],['Auto-lock commercial terms when payment activity begins',true],['Allow authorised override (with audit)',false]].map(r=>`<div class="flex aic gap mb"><div style="flex:1"><div class="t-strong tiny">${r[0]}</div></div><span class="toggle ${r[1]?'on':''}"></span></div>`).join('')}
+    <div class="banner info"><span class="b-ic">${svg('lock',18)}</span><div class="b-d">Once partial or full payment is received, or the invoice is closed, commercial terms lock. Overrides require an authorised role and are written to the audit trail.</div></div>
+  </div></div>
+  <div class="card mt"><div class="card-h"><h3>Service catalog</h3><span class="card-h sub" style="border:none;padding:0">Master list — used across CMS, CRM, Wallet, Offer, Incentive & Reporting</span></div><div class="card-pad">
+    ${[['Coaching','coaching','blue'],['Study Abroad Destinations','study','teal'],['Immigration / Settlement','immigration','violet'],['Visa Categories','visa','amber'],['Allied Services','allied','green']].map(cat=>`
+      <div class="mb"><div class="flex aic gap-sm mb"><span class="pill ${cat[2]}">${cat[0]}</span><span class="t-mut tiny">${SERVICES[cat[1]].length} items</span></div>
+      <div class="flex wrap gap-sm">${SERVICES[cat[1]].map(s=>`<span class="chip-btn btn-sm" style="cursor:default">${s}</span>`).join('')}</div></div>`).join('')}
+    <div class="banner info"><span class="b-ic">${svg('combine',18)}</span><div><div class="b-t">Unlimited additions</div><div class="b-d">New services, destinations, programs, visa types and allied offerings are added as data — the combination engine composes valid bundles automatically.</div></div></div>
+  </div></div>
+  <div class="card mt"><div class="card-h"><h3>Departments</h3><span class="card-h sub" style="border:none;padding:0">${DEPARTMENTS.length} departments</span></div><div class="card-pad">
+    <div class="flex wrap gap-sm">${DEPARTMENTS.map(d=>`<span class="chip-btn" style="cursor:default">${d} Department</span>`).join('')}</div>
+  </div></div>
+  <div class="card mt"><div class="card-h"><h3>AI Recommendation Engine</h3><span class="ch-r"><span class="pill violet"><span class="pd"></span>Roadmap · Phase 2</span></span></div><div class="card-pad">
+    <div class="banner info"><span class="b-ic">${svg('bolt',18)}</span><div><div class="b-t">Future capability</div><div class="b-d">The engine will recommend optimal discount levels per lead, predict campaign ROI before launch, flag wallet over-burn, and suggest incentive structures from historical conversion and margin data.</div></div></div>
+    <div class="grid mt" style="grid-template-columns:repeat(3,1fr)">
+      ${[['Discount optimizer','Suggests the minimum discount likely to convert each lead'],['Campaign ROI forecast','Predicts revenue & enrollment before a promotion launches'],['Anomaly detection','Flags unusual discount patterns and wallet over-consumption']].map(a=>`<div class="card card-pad" style="background:var(--surface-2)"><div class="t-strong tiny mb">${a[0]}</div><div class="t-mut tiny">${a[1]}</div></div>`).join('')}
+    </div>
+  </div></div>`;
+};
+
+/* ============ ARCHITECTURE & API ============ */
+PAGES.architecture = function(){
+  const tables=[['wallets','Wallet master — type, scope, allocation, rules'],['wallet_transactions','Allocations & consumption ledger'],['offers','Offer definitions & lifecycle'],['offer_redemptions','Per-lead redemption records'],['combinations','Service combination definitions'],['promotions','Promotion proposals & forecasts'],['incentive_plans','Incentive rules & slabs'],['incentive_payouts','Computed payouts per staff'],['commissions','Partner / institution commission ledger'],['currencies','Currency config & rate source'],['fx_rates','Historical & override exchange rates'],['approvals','Approval requests & routing state'],['audit_log','Append-only hash-chained events'],['branches','Branch & region master'],['users / roles','Identity & RBAC'],['leads','Lead reference (FK from CRM)']];
+  const apis=[['GET','/api/v1/wallets','List & filter wallets'],['POST','/api/v1/wallets','Create wallet'],['POST','/api/v1/wallets/{id}/allocate','Allocate / consume'],['GET','/api/v1/offers','List offers'],['POST','/api/v1/offers/{id}/redeem','Apply offer to a lead'],['POST','/api/v1/promotions','Submit proposal'],['POST','/api/v1/approvals/{id}/decision','Approve / reject'],['GET','/api/v1/incentives/payouts','Computed payouts'],['GET','/api/v1/commissions','Commission ledger'],['GET','/api/v1/fx/rates','Current & historical FX'],['GET','/api/v1/reports/build','Report builder query'],['GET','/api/v1/audit','Query audit log']];
+  return `<div class="page-head"><div><div class="ph-eyebrow">Deliverables</div><h1>Architecture & API</h1>
+    <p>Production reference: data model, REST surface and scalability posture for a multi-country, multi-currency deployment.</p></div></div>
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+    <div class="card"><div class="card-h"><h3>Core database tables</h3><span class="card-h sub" style="border:none;padding:0">${tables.length} entities</span></div>
+      <div class="tbl-wrap"><table class="tbl"><tbody>
+      ${tables.map(t=>`<tr><td class="cell-id" style="white-space:nowrap">${t[0]}</td><td class="t-mut">${t[1]}</td></tr>`).join('')}
+      </tbody></table></div></div>
+    <div class="card"><div class="card-h"><h3>REST API surface</h3><span class="card-h sub" style="border:none;padding:0">v1 · token + RBAC</span></div>
+      <div class="tbl-wrap"><table class="tbl"><tbody>
+      ${apis.map(a=>`<tr><td><span class="pill ${a[0]==='GET'?'blue':'green'}" style="font-family:var(--m)">${a[0]}</span></td><td class="mono tiny t-strong">${a[1]}</td><td class="t-mut tiny">${a[2]}</td></tr>`).join('')}
+      </tbody></table></div></div>
+  </div>
+  <div class="card mt"><div class="card-h"><h3>Scalability & expansion framework</h3></div><div class="card-pad">
+    <div class="grid" style="grid-template-columns:repeat(2,1fr)">
+      ${[['Multi-tenant by region','Branch & country partition keys; data residency per region (Canada, India, future).'],['Currency-agnostic core','All money stored as (amount, currency, fx_at_txn); consolidation computed on read.'],['Stateless API + cache','Horizontal scale behind a load balancer; Redis for rate tables & permission lookups.'],['Event-driven audit','Every mutation emits an event to an append-only, hash-chained log.'],['Config-as-data','Rules, thresholds and combinations are data rows — new policy needs no deploy.'],['Future countries','Onboard a country by adding region, currency, services & branches — engine adapts.']].map(s=>`<div class="card card-pad" style="background:var(--surface-2)"><div class="t-strong tiny mb">${s[0]}</div><div class="t-mut tiny">${s[1]}</div></div>`).join('')}
+    </div>
+  </div></div>`;
+};
+
+/* ============ MODALS + BOOT ============ */
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function modalShell(){
+  const m=[
+    ['walletModal','New discount wallet','wallet',`
+      <div class="field"><label>Wallet name</label><input class="inp" placeholder="e.g. Q3 Monthly — Vancouver"></div>
+      <div class="row-2"><div class="field"><label>Type</label><select class="inp"><option>Monthly</option><option>Festival</option><option>Campaign</option><option>Country</option><option>Institution</option><option>Branch</option><option>Department</option><option>Revival Lead</option><option>Counselor</option><option>Manager</option><option>Promotional</option></select></div>
+      <div class="field"><label>Approval rule</label><select class="inp"><option>Auto</option><option>Manager</option><option>Director</option><option>Multi-Level</option></select></div></div>
+      <div class="row-2"><div class="field"><label>Allocation</label><div class="inp-pre"><span class="pre">INR</span><input placeholder="12,00,000"></div></div>
+      <div class="field"><label>Expiry</label><input class="inp" type="date"></div></div>
+      <div class="row-2"><div class="field"><label>Max amount / txn</label><div class="inp-pre"><span class="pre">INR</span><input placeholder="50,000"></div></div>
+      <div class="field"><label>Max percentage</label><div class="inp-pre"><span class="pre">%</span><input placeholder="25"></div></div></div>
+      <div class="field"><label>Carry forward</label><select class="inp"><option>None</option><option>Full</option><option>Partial 30%</option><option>Partial 50%</option></select></div>`],
+    ['offerModal','Create offer','tag',`
+      <div class="field"><label>Offer name</label><input class="inp" placeholder="e.g. Early Bird — Winter 2027"></div>
+      <div class="row-2"><div class="field"><label>Type</label><select class="inp"><option>Percentage</option><option>Fixed</option><option>Bundle</option><option>Free Service</option><option>Cashback</option><option>Seasonal / Festival</option></select></div>
+      <div class="field"><label>Value</label><input class="inp" placeholder="15% or INR 12,000"></div></div>
+      <div class="field"><label>Applicability</label><div class="flex wrap gap-sm">${['Branch','Service','Country','Institution','Program','Intake','Lead Source','Counselor'].map(x=>`<span class="chip-btn btn-sm">${x}</span>`).join('')}</div></div>
+      <div class="row-2"><div class="field"><label>Redemption cap</label><input class="inp" placeholder="300"></div><div class="field"><label>End date</label><input class="inp" type="date"></div></div>`],
+    ['promoModal','Submit promotion proposal','rocket',`
+      <div class="field"><label>Title</label><input class="inp" placeholder="e.g. Autumn PR Webinar Series"></div>
+      <div class="field"><label>Objective</label><textarea class="inp" rows="2" placeholder="What this promotion aims to achieve"></textarea></div>
+      <div class="row-3"><div class="field"><label>Budget</label><div class="inp-pre"><span class="pre">INR</span><input placeholder="2,80,000"></div></div>
+      <div class="field"><label>Revenue forecast</label><div class="inp-pre"><span class="pre">INR</span><input placeholder="34,00,000"></div></div>
+      <div class="field"><label>Enrollment forecast</label><input class="inp" placeholder="38"></div></div>
+      <div class="banner info"><span class="b-ic">${svg('bolt',16)}</span><div class="b-d">Expected ROI is computed automatically. Proposals below 8× route to Director review.</div></div>`],
+    ['incentiveModal','New incentive plan','award',`
+      <div class="field"><label>Plan name</label><input class="inp" placeholder="e.g. Q3 Visa Service Bonus"></div>
+      <div class="field"><label>Basis</label><select class="inp"><option>Revenue</option><option>Enrollment</option><option>Margin</option><option>Profit</option><option>Service</option><option>Referral</option><option>Hybrid</option></select></div>
+      <div class="field"><label>Rule</label><input class="inp" placeholder="> INR 40L → 2% · > 80L → 3.5%"></div>
+      <div class="field"><label>Applies to</label><select class="inp"><option>All counselors</option><option>Branch managers</option><option>Specific team</option><option>All staff</option></select></div>`],
+    ['comboModal','New service combination','combine',`
+      <div class="field"><label>Select services</label><div class="flex wrap gap-sm">${['Coaching','Study Abroad','Immigration','Visa','Settlement','GIC','Forex','Insurance'].map(x=>`<span class="chip-btn btn-sm">${x}</span>`).join('')}</div></div>
+      <div class="row-2"><div class="field"><label>Bundle price</label><div class="inp-pre"><span class="pre">INR</span><input placeholder="35,000"></div></div>
+      <div class="field"><label>Max discount</label><div class="inp-pre"><span class="pre">%</span><input placeholder="18"></div></div></div>`],
+    ['fxModal','Override exchange rate','globe',`
+      <div class="row-2"><div class="field"><label>Currency</label><select class="inp"><option>CAD → INR</option><option>INR → CAD</option></select></div>
+      <div class="field"><label>Manual rate</label><input class="inp" placeholder="61.70"></div></div>
+      <div class="field"><label>Effective until</label><input class="inp" type="date"></div>
+      <div class="banner warn"><span class="b-ic">${svg('shield',16)}</span><div class="b-d">Manual overrides are logged to the audit trail with the prior auto rate.</div></div>`],
+    ['codeModal','New offer code','ticket',`
+      <div class="field"><label>Linked offer</label><select class="inp">${OFFERS.map(o=>`<option>${o.name}</option>`).join('')}</select></div>
+      <div class="row-2"><div class="field"><label>Generation</label><select class="inp"><option>Auto-generate</option><option>Manual entry</option></select></div>
+      <div class="field"><label>Prefix</label><input class="inp" placeholder="FLC- / KRB- / ANKITA-"></div></div>
+      <div class="row-2"><div class="field"><label>Type</label><select class="inp"><option>Multi-use</option><option>One-time</option></select></div>
+      <div class="field"><label>Usage cap</label><input class="inp" placeholder="300"></div></div>
+      <div class="field"><label>Restrict to</label><div class="flex wrap gap-sm">${['Branch','Campaign','Counselor','Service','Country','Institution','Intake'].map(x=>`<span class="chip-btn btn-sm">${x}</span>`).join('')}</div></div>
+      <div class="field"><label>Expiry</label><input class="inp" type="date"></div>`],
+    ['bulkCodeModal','Bulk generate codes','layers',`
+      <div class="field"><label>Linked offer</label><select class="inp">${OFFERS.map(o=>`<option>${o.name}</option>`).join('')}</select></div>
+      <div class="row-2"><div class="field"><label>Quantity</label><input class="inp" placeholder="500"></div>
+      <div class="field"><label>Prefix</label><input class="inp" placeholder="PTE-FREE-"></div></div>
+      <div class="row-2"><div class="field"><label>Per-code uses</label><select class="inp"><option>One-time each</option><option>Multi-use</option></select></div>
+      <div class="field"><label>Expiry</label><input class="inp" type="date"></div></div>
+      <div class="banner info"><span class="b-ic">${svg('ticket',16)}</span><div class="b-d">Generates a unique pool; each code tracked individually for redemption performance.</div></div>`],
+    ['applyModal','Apply to client','idcard',`
+      <div class="field"><label>Client / lead (from CRM)</label><select class="inp">${CLIENTS.map(c=>`<option>${c.name} — ${c.lead}</option>`).join('')}</select></div>
+      <div class="field"><label>Apply</label><div class="flex gap-sm"><span class="chip-btn on">Offer code</span><span class="chip-btn">Wallet discount</span></div></div>
+      <div class="field"><label>Offer code</label><input class="inp" placeholder="FLC-EBIRD-7K3M"></div>
+      <div class="banner info"><span class="b-ic">${svg('check2',16)}</span><div class="b-d">Eligibility is validated automatically: not already enrolled in this service, code valid for branch/service, and invoice not yet finalized.</div></div>`],
+    ['payoutModal','Run payout cycle','coins',`
+      <div class="row-2"><div class="field"><label>Plan</label><select class="inp">${INCENTIVES.map(i=>`<option>${i.name}</option>`).join('')}</select></div>
+      <div class="field"><label>Cycle</label><select class="inp"><option>Monthly</option><option>Quarterly</option><option>Half-yearly</option><option>Annually</option><option>Custom</option></select></div></div>
+      <div class="field"><label>Minimum threshold</label><div class="inp-pre"><span class="pre">INR</span><input value="50,000"></div></div>
+      <div class="flex aic gap-sm"><span class="toggle on"></span><span class="tiny">Carry sub-threshold balance forward</span></div>
+      <div class="flex aic gap-sm mt-s"><span class="toggle"></span><span class="tiny">Allow partial payout</span></div>
+      <div class="banner warn mt"><span class="b-ic">${svg('shield',16)}</span><div class="b-d">Payout run is exported to payroll and written to the audit trail with full cash-out history.</div></div>`],
+    ['exportModal','Export','download',`
+      <div class="field"><label>Format</label><div class="flex gap-sm"><span class="chip-btn on">CSV</span><span class="chip-btn">XLSX</span><span class="chip-btn">PDF</span></div></div>
+      <div class="field"><label>Scope</label><select class="inp"><option>Current view</option><option>All records</option><option>Filtered selection</option></select></div>
+      <div class="banner info"><span class="b-ic">${svg('doc',16)}</span><div class="b-d">Prototype export is illustrative. Production wires to the reporting service.</div></div>`],
+  ];
+  let html=m.map(x=>`<div class="modal-bk" id="${x[0]}" onclick="if(event.target===this)closeModal('${x[0]}')">
+    <div class="modal"><div class="modal-h">${svg(x[2],18)}<h3>${x[1]}</h3></div><div class="modal-b">${x[3]}</div>
+    <div class="modal-f"><button class="btn" onclick="closeModal('${x[0]}')">Cancel</button><button class="btn btn-primary" onclick="closeModal('${x[0]}')">Save</button></div></div></div>`).join('');
+  // generic detail modal
+  html+=`<div class="modal-bk" id="detailModal" onclick="if(event.target===this)closeModal('detailModal')">
+    <div class="modal"><div class="modal-h">${svg('wallet',18)}<h3 id="detailTitle"></h3></div><div class="modal-b" id="detailBody"></div><div class="modal-f" id="detailFoot"></div></div></div>`;
+  return html;
+}
+
+/* boot */
+window.addEventListener('DOMContentLoaded',()=>{
+  renderShell();
+  const wrap=document.createElement('div'); wrap.innerHTML=modalShell(); document.body.appendChild(wrap);
+});
+</script>
+<script>
+/* ============ OFFER CODES ============ */
+PAGES.offercodes = function(){
+  const sb=(s)=>s==='Active'?'green':s==='Scheduled'?'amber':s==='Redeemed'?'blue':'gray';
+  return `<div class="page-head"><div><div class="ph-eyebrow">Commercial Engine</div><h1>Offer Code Management</h1>
+    <p>Auto or manual code generation with prefixes, scoping, usage limits, one-time and bulk codes — every redemption tracked.</p></div>
+    <div class="ph-actions"><button class="btn btn-sm" onclick="openModal('bulkCodeModal')">${svg('layers',15)} Bulk generate</button><button class="btn btn-primary btn-sm" onclick="openModal('codeModal')">${svg('plus',15)} New code</button></div></div>
+  <div class="grid mb" style="grid-template-columns:repeat(4,1fr)">
+    ${kpi('Active codes','4','','1','up','ticket')}
+    ${kpi('Total redemptions','641','','12%','up','bolt')}
+    ${kpi('One-time codes','1','','','up','lock')}
+    ${kpi('Bulk pool issued','500','','','up','layers')}
+  </div>
+  <div class="card"><div class="card-h"><h3>Offer codes</h3>
+    <span class="ch-r"><button class="chip-btn on">All</button><button class="chip-btn">Active</button><button class="chip-btn">One-time</button><button class="chip-btn">Bulk</button></span></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Code</th><th>Linked offer</th><th>Type</th><th>Scope</th><th>Branch</th><th>Redemptions</th><th>Expiry</th><th>Status</th></tr></thead><tbody>
+    ${OFFERCODES.map(c=>`<tr>
+      <td><span class="cell-id" style="font-size:13px">${c.code}</span></td>
+      <td class="t-strong">${c.offer}</td>
+      <td><span class="pill ${c.type.includes('One')?'violet':c.type.includes('Bulk')?'teal':'blue'}">${c.type}</span></td>
+      <td class="t-mut">${c.scope}</td>
+      <td class="t-mut">${c.branch}</td>
+      <td style="min-width:130px"><div class="flex aic gap-sm"><div style="flex:1">${meter(c.used,c.cap)}</div><span class="mono tiny muted">${c.used}/${c.cap}</span></div></td>
+      <td class="t-mut mono tiny">${c.expiry}</td>
+      <td><span class="pill ${sb(c.status)}"><span class="pd"></span>${c.status}</span></td></tr>`).join('')}
+    </tbody></table></div></div>
+  <div class="grid mt" style="grid-template-columns:1fr 1fr">
+    <div class="card"><div class="card-h"><h3>Code constraints supported</h3></div><div class="card-pad">
+      <div class="flex wrap gap-sm">${['Prefix','Usage count','Expiry date','Service','Country','Institution','Intake','Branch-specific','Campaign-specific','Counselor-specific','One-time','Bulk pool'].map(x=>`<span class="chip-btn" style="cursor:default">${x}</span>`).join('')}</div>
+    </div></div>
+    <div class="card"><div class="card-h"><h3>Redemption performance</h3></div><div class="card-pad">
+      ${bars([{label:'EBIRD',v:142},{label:'GIC',v:88},{label:'MOCK',v:410},{label:'REF',v:1}])}
+      <div class="legend mt"><span class="muted">Redemptions by code</span></div></div></div>
+  </div>`;
+};
+
+/* ============ CLIENT COMMERCIALS (client-level wallet/offer usage) ============ */
+PAGES.clientdesk = function(){
+  return `<div class="page-head"><div><div class="ph-eyebrow">Commercial Engine · CRM-linked</div><h1>Client Commercials</h1>
+    <p>Apply wallet discounts and offer codes directly from a CRM lead/client profile, with automatic eligibility validation and a locked price breakdown.</p></div>
+    <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="openModal('applyModal')">${svg('plus',15)} Apply to client</button></div></div>
+  <div class="banner info mb"><span class="b-ic">${svg('link',18)}</span><div><div class="b-t">Records are inherited from the CRM</div><div class="b-d">Clients, leads, services and invoices live in the CRM. The CMS reads them and writes back the commercial outcome — no duplicate records.</div></div></div>
+  <div class="card"><div class="card-h"><h3>Client commercial records</h3>
+    <span class="ch-r"><button class="chip-btn on">All</button><button class="chip-btn">Quote</button><button class="chip-btn">Invoice draft</button><button class="chip-btn">Paid</button></span></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Client</th><th>Lead</th><th>Service</th><th>Stage</th><th class="num">Original</th><th class="num">Discount</th><th class="num">Final</th><th class="num">Paid</th><th></th></tr></thead><tbody>
+    ${CLIENTS.map(c=>{const disc=c.offerDisc+c.walletDisc; const cur=c.cur; const m=(v)=>`<span class="cur">${cur} </span>${fmt(v)}`;
+      const locked = c.stage==='Partial paid'||c.stage==='Full paid';
+      return `<tr style="cursor:pointer" onclick="openClient('${c.id}')">
+      <td><span class="cell-id">${c.id}</span><div class="t-strong">${c.name}</div><div class="t-mut tiny">${c.counselor} · ${c.branch}</div></td>
+      <td class="mono tiny">${c.lead}</td>
+      <td class="t-mut">${c.service}</td>
+      <td><span class="pill ${locked?'gray':c.stage==='Quote'?'amber':'blue'}">${locked?svg('lock',12)+' ':''}${c.stage}</span></td>
+      <td class="num mono">${fmt(c.orig)}</td>
+      <td class="num">${disc?'<span class="t-strong" style="color:var(--green)">-'+fmt(disc)+'</span>':'—'}<div class="t-mut tiny">${c.offer||'wallet'}</div></td>
+      <td class="num t-strong">${m(c.final)}</td>
+      <td class="num mono ${c.paid?'':'muted'}">${c.paid?fmt(c.paid):'—'}</td>
+      <td>${svg('arrow',16)}</td></tr>`;}).join('')}
+    </tbody></table></div></div>`;
+};
+function openClient(id){const c=CLIENTS.find(x=>x.id===id);const cur=c.cur;const m=(v)=>`${cur} ${fmt(v)}`;
+  const disc=c.offerDisc+c.walletDisc; const out=c.final-c.paid;
+  const locked=c.stage==='Partial paid'||c.stage==='Full paid';
+  document.getElementById('detailTitle').innerHTML=`<span class="cell-id">${c.id}</span> · ${c.name}`;
+  document.getElementById('detailBody').innerHTML=`
+    <div class="flex aic gap wrap mb"><span class="pill blue">${c.service}</span><span class="pill ${locked?'gray':'amber'}">${locked?svg('lock',12)+' Commercial terms locked':c.stage}</span><span class="t-mut tiny">Lead ${c.lead} · ${c.counselor}</span></div>
+    ${locked?`<div class="banner warn mb"><span class="b-ic">${svg('lock',18)}</span><div><div class="b-t">Locked — payment activity has begun</div><div class="b-d">Offer codes and wallet discounts can no longer be applied. An authorised override with reason is required to change terms.</div></div></div>`:''}
+    <div class="card" style="background:var(--surface-2)"><div class="card-pad">
+      <div class="vs-row"><span class="vl">Original price</span><span class="vv">${m(c.orig)}</span></div>
+      <div class="vs-row"><span class="vl">Offer discount ${c.offer?'· '+c.offer:''}</span><span class="vv" style="color:var(--green)">${c.offerDisc?'-'+m(c.offerDisc):'—'}</span></div>
+      <div class="vs-row"><span class="vl">Wallet discount</span><span class="vv" style="color:var(--green)">${c.walletDisc?'-'+m(c.walletDisc):'—'}</span></div>
+      <div class="vs-row"><span class="vl t-strong">Final invoice amount</span><span class="vv t-strong">${m(c.final)}</span></div>
+      <div class="vs-row"><span class="vl">Payment received</span><span class="vv">${c.paid?m(c.paid):'—'}</span></div>
+      <div class="vs-row" style="border:none"><span class="vl">Outstanding balance</span><span class="vv ${out>0?'':'muted'}">${m(out)}</span></div>
+    </div></div>
+    <div class="divider"></div>
+    <div class="muted tiny mb">Eligibility checks (auto)</div>
+    <div class="flex wrap gap-sm mb">
+      <span class="pill green"><span class="pd"></span>Not enrolled in this service</span>
+      <span class="pill green"><span class="pd"></span>Wallet has balance</span>
+      <span class="pill green"><span class="pd"></span>Code valid for branch/service</span>
+      ${locked?'<span class="pill red"><span class="pd"></span>Invoice locked</span>':'<span class="pill green"><span class="pd"></span>Before invoice finalization</span>'}
+    </div>
+    <div class="muted tiny mb">Commercial history</div>
+    <div class="tl"><div class="tl-i create"><div class="tl-h">Discount applied</div><div class="tl-m">${c.counselor} · ${disc?m(disc):'none'} ${c.offer?'· '+c.offer:''}</div><div class="tl-time">From lead profile</div></div>
+    ${c.paid?`<div class="tl-i edit"><div class="tl-h">Payment received → terms locked</div><div class="tl-m">${m(c.paid)}</div><div class="tl-time">Auto-lock triggered</div></div>`:''}</div>`;
+  document.getElementById('detailFoot').innerHTML=`<button class="btn" onclick="closeModal('detailModal')">Close</button>${locked?'<button class="btn btn-danger">Request override</button>':'<button class="btn btn-primary">Apply / update discount</button>'}`;
+  openModal('detailModal');
+}
+
+/* ============ INCENTIVE LEDGER & PAYOUTS ============ */
+PAGES.payouts = function(){
+  const sum=(f)=>LEDGER.filter(l=>l.cur==='INR').reduce((s,l)=>s+l[f],0);
+  return `<div class="page-head"><div><div class="ph-eyebrow">Earnings</div><h1>Incentive Ledger & Payouts</h1>
+    <p>Full lifecycle per employee — earned, approved, pending, eligible, paid, reversed and clawback — with configurable payout cycles, thresholds and forecasting.</p></div>
+    <div class="ph-actions"><button class="btn btn-sm" onclick="openModal('exportModal')">${svg('download',15)} Export to payroll</button><button class="btn btn-primary btn-sm" onclick="openModal('payoutModal')">${svg('coins',15)} Run payout cycle</button></div></div>
+  <div class="grid mb" style="grid-template-columns:repeat(5,1fr)">
+    ${kpi('Earned',k(sum('earned')),'INR','12%','up','award')}
+    ${kpi('Approved',k(sum('approved')),'INR','9%','up','check2')}
+    ${kpi('Eligible',k(sum('eligible')),'INR','6%','up','coins')}
+    ${kpi('Paid',k(sum('paid')),'INR','14%','up','ledger')}
+    ${kpi('Clawback',k(sum('clawback')),'INR','','down','arrow')}
+  </div>
+  <div class="card mb"><div class="card-h"><h3>Employee incentive ledger</h3><span class="card-h sub" style="border:none;padding:0">Lifecycle states</span></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Employee</th><th>Branch</th><th class="num">Earned</th><th class="num">Approved</th><th class="num">Pending</th><th class="num">Eligible</th><th class="num">Paid</th><th class="num">Reversed</th><th class="num">Clawback</th></tr></thead><tbody>
+    ${LEDGER.map(l=>`<tr><td><span class="u-cell"><span class="avatar-sm">${l.emp.slice(0,2).toUpperCase()}</span><span class="t-strong">${l.emp}</span></span></td>
+      <td class="t-mut">${l.branch}</td>
+      <td class="num mono t-strong">${l.cur} ${fmt(l.earned)}</td>
+      <td class="num mono">${fmt(l.approved)}</td>
+      <td class="num mono" style="color:var(--amber)">${l.pending?fmt(l.pending):'—'}</td>
+      <td class="num mono" style="color:var(--flc-blue)">${fmt(l.eligible)}</td>
+      <td class="num mono" style="color:var(--green)">${fmt(l.paid)}</td>
+      <td class="num mono">${l.reversed?fmt(l.reversed):'—'}</td>
+      <td class="num mono" style="color:var(--flc-red)">${l.clawback?fmt(l.clawback):'—'}</td></tr>`).join('')}
+    </tbody></table></div></div>
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+    <div class="card"><div class="card-h"><h3>Payout cycle configuration</h3></div><div class="card-pad">
+      <div class="row-2"><div class="field" style="margin:0"><label>Frequency (per plan)</label><select class="inp"><option>Monthly</option><option>Quarterly</option><option>Half-yearly</option><option>Annually</option><option>Custom date</option></select></div>
+      <div class="field" style="margin:0"><label>Minimum threshold</label><div class="inp-pre"><span class="pre">INR</span><input value="50,000"></div></div></div>
+      <div class="flex aic gap-sm mt"><span class="toggle on"></span><span class="tiny">Carry forward balance until threshold is reached</span></div>
+      <div class="flex aic gap-sm mt-s"><span class="toggle on"></span><span class="tiny">Different plans may run different cycles simultaneously</span></div>
+      <div class="banner info mt"><span class="b-ic">${svg('coins',16)}</span><div class="b-d">Example: pay only after INR 50,000 earned; sub-threshold balance carries to the next cycle.</div></div>
+    </div></div>
+    <div class="card"><div class="card-h"><h3>Forecast — incentive liability</h3><span class="ch-r"><span class="pill violet"><span class="pd"></span>Projected</span></span></div><div class="card-pad">
+      ${bars([{label:'Jul',v:62},{label:'Aug',v:71},{label:'Sep',v:88},{label:'Q3 tot',v:96,alt:true}])}
+      <div class="legend mt"><span class="muted">Projected payout liability (INR Lakh) from current revenue, enrollments & expected commissions</span></div>
+      <div class="divider"></div>
+      <div class="dl-row"><span class="sw" style="background:var(--flc-blue)"></span>Eligible now<span class="v">INR 3.06L</span></div>
+      <div class="dl-row mt-s"><span class="sw" style="background:var(--amber)"></span>Pending approval<span class="v">INR 0.72L</span></div>
+      <div class="dl-row mt-s"><span class="sw" style="background:var(--violet)"></span>Forecast next quarter<span class="v">INR 9.6L</span></div>
+    </div></div>
+  </div>`;
+};
+
+/* ============ PROFITABILITY ============ */
+PAGES.profitability = function(){
+  const rows=[['By counselor','Ankita',4300000,260000,540000,121000,38],['','Insia',4860000,210000,300000,148000,42],['By branch','Karelibaug',18400000,980000,1840000,640000,41],['','Anand',13100000,720000,1310000,410000,40],['By service','Study Abroad',9200000,540000,920000,310000,39],['','Immigration',6100000,310000,610000,280000,46],['By campaign','Germany Opp Card',7800000,420000,780000,190000,44]];
+  return `<div class="page-head"><div><div class="ph-eyebrow">Governance</div><h1>Profitability Controls</h1>
+    <p>Revenue, discount, wallet, incentive and commission impact — before and after — for every counselor, branch, country, institution, service and campaign.</p></div>
+    <div class="ph-actions"><button class="btn btn-sm">${svg('filter',15)} Dimension</button><button class="btn btn-primary btn-sm" onclick="openModal('exportModal')">${svg('download',15)} Export</button></div></div>
+  <div class="grid mb" style="grid-template-columns:repeat(4,1fr)">
+    ${kpi('Gross revenue','25.2Cr','INR','9.8%','up','chart')}
+    ${kpi('Total discount + wallet','1.69Cr','INR','3%','down','wallet')}
+    ${kpi('Incentives + commissions','84L','INR','11%','up','award')}
+    ${kpi('Net profit','8.9Cr','INR','7%','up','coins')}
+  </div>
+  <div class="card"><div class="card-h"><h3>Profitability matrix</h3><span class="card-h sub" style="border:none;padding:0">After discounts, wallet, incentives & commissions</span></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Dimension</th><th>Entity</th><th class="num">Revenue</th><th class="num">Discount/Wallet</th><th class="num">Incentive</th><th class="num">Net margin</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr>${r[0]?`<td class="t-mut tiny" style="font-weight:600">${r[0]}</td>`:'<td></td>'}
+      <td class="t-strong">${r[1]}</td>
+      <td class="num mono">${k(r[2])}</td>
+      <td class="num mono" style="color:var(--amber)">-${k(r[3]+r[4])}</td>
+      <td class="num mono">-${k(r[5])}</td>
+      <td class="num"><span class="heat" style="background:hsl(${r[6]*2.2},60%,92%);color:hsl(${r[6]*2.2},60%,30%)">${r[6]}%</span></td></tr>`).join('')}
+    </tbody></table></div></div>
+  <div class="banner info mt"><span class="b-ic">${svg('coins',18)}</span><div><div class="b-t">Configurable incentive base</div><div class="b-d">Management chooses whether wallet, offer and promotional discounts reduce the incentive base — and whether incentives compute on gross revenue, net revenue, profit or margin. Different rules apply to full-fee, discounted, wallet, offer-code and campaign clients.</div></div></div>`;
+};
+
+/* ============ CRM INTEGRATION ============ */
+PAGES.crm = function(){
+  return `<div class="page-head"><div><div class="ph-eyebrow">System</div><h1>CRM Integration</h1>
+    <p>The CMS is a commercial layer on top of the existing CRM. It inherits all master data and stays synchronized with future additions — no duplicate records, no redeployment.</p></div>
+    <div class="ph-actions"><span class="pill green" style="height:32px;padding:0 12px"><span class="pd"></span>Live · synced 2 min ago</span></div></div>
+  <div class="banner info mb"><span class="b-ic">${svg('link',18)}</span><div><div class="b-t">Inherited, not duplicated</div><div class="b-d">Companies, branches, departments, users, roles, leads, clients, countries, services, programs, visa categories, institutions, intakes and lead sources are read directly from the CRM. The CMS only owns commercial records (wallets, offers, codes, incentives, approvals, audit).</div></div></div>
+  <div class="card mb"><div class="card-h"><h3>Inherited CRM master entities</h3><span class="card-h sub" style="border:none;padding:0">Read-only references</span></div><div class="card-pad">
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(190px,1fr))">
+    ${CRM_ENTITIES.map(e=>`<div class="card card-pad" style="background:var(--surface-2)"><div class="flex aic gap"><div class="k-ic" style="width:30px;height:30px">${svg(e[2],16)}</div><div><div class="t-strong tiny">${e[0]}</div><div class="mono t-mut tiny">${fmt(e[1])} records</div></div><span class="right pill green" style="padding:2px 7px">synced</span></div></div>`).join('')}
+    </div>
+  </div></div>
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+    <div class="card"><div class="card-h"><h3>Auto-apply to new CRM records</h3></div><div class="card-pad">
+      <div class="muted tiny mb">When the CRM adds a new country, service, institution or program, decide how existing commercial rules treat it:</div>
+      ${[['New countries','Auto-include in active wallets'],['New services','Require explicit opt-in'],['New institutions','Auto-include in commissions'],['New programs','Inherit parent service rules'],['New intakes','Auto-include in offers']].map((r,i)=>`<div class="flex aic gap mb"><div style="flex:1"><div class="t-strong tiny">${r[0]}</div><div class="t-mut tiny">${r[1]}</div></div><span class="toggle ${i%2?'':'on'}"></span></div>`).join('')}
+    </div></div>
+    <div class="card"><div class="card-h"><h3>Sync & integration health</h3></div><div class="card-pad">
+      <div class="dl-row"><span class="sw" style="background:var(--green)"></span>Master data sync<span class="v">OK</span></div>
+      <div class="dl-row mt-s"><span class="sw" style="background:var(--green)"></span>Lead / client read API<span class="v">OK</span></div>
+      <div class="dl-row mt-s"><span class="sw" style="background:var(--green)"></span>Invoice write-back<span class="v">OK</span></div>
+      <div class="dl-row mt-s"><span class="sw" style="background:var(--amber)"></span>Webhook backlog<span class="v">3</span></div>
+      <div class="divider"></div>
+      <div class="muted tiny mb">Integration pattern</div>
+      <div class="banner info"><span class="b-ic">${svg('layers',16)}</span><div class="b-d">CRM is system-of-record for entities & leads. CMS subscribes to CRM change events and references entities by ID — consolidated reporting spans all companies, branches, countries and users.</div></div>
+    </div></div>
+  </div>`;
+};
+</script>
+</body></html>

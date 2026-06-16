@@ -1,0 +1,37 @@
+FLC CMS — Cursor Handoff Package — File Manifest
+=================================================
+
+00_START_HERE_Cursor_Handoff.md      ← READ FIRST. Orientation, reading order, build plan, guardrails.
+
+01_Build_Guide/
+  FLC_CMS_Transformation_Brief.md     ← PRIMARY build guide: gap analysis, reuse map, smallest extensions, 4 phases.
+  FutureLink_CMS_Specification.md     ← Full product/system spec + requirement traceability matrix.
+
+02_QA_and_Testing/
+  FLC_CMS_QA_Testing_Framework.md     ← Complete AI-driven QA framework (test architecture, Playwright plan,
+                                          business-rule matrix, regression, test-data generator, AI QA agent,
+                                          QA dashboard, release gate, UAT package).
+  scaffold/
+    README.md                          ← How to use the scaffold files.
+    playwright.config.ts               ← E2E config (per-role auth, JSON report feeds QA dashboard).
+    e2e/specs/golden-lifecycle.spec.ts ← Lead→Client→Wallet→Offer→Invoice→Payment→Incentive→Dashboard E2E.
+    qa/rules/_harness.ts               ← Table-driven business-rule test harness (Vitest).
+    qa/rules/wallet.rules.ts           ← Example rule matrix importing the REAL engine logic.
+    qa/generators/index.ts             ← Deterministic, staging-only test-data generator interface.
+
+03_Prototype/
+  FutureLink_CMS_Prototype.html        ← Interactive standalone prototype (mock data). VISUAL REFERENCE ONLY.
+
+04_Screenshots/                        ← 31 labeled 2x screenshots — design/UX target per screen.
+  00_INDEX.md                          ← Maps each screenshot to its screen + CMS module.
+  01..22                               ← All 21 pages (+ dashboard).
+  02a/02b/02c                          ← Role-aware dashboard variants (counselor / finance / branch).
+  23..27                               ← Key modals (wallet detail, invoice-lock, new wallet, new code, payout).
+  28..29                               ← Mobile views.
+
+USAGE SUMMARY
+-------------
+Source of truth  = the existing `Future Link Flow` repo (NOT in this zip — it's your codebase).
+Build guide      = 01_Build_Guide/FLC_CMS_Transformation_Brief.md
+Testing/AI QA    = 02_QA_and_Testing/
+UX target        = 03_Prototype/ + 04_Screenshots/  (reference only; never copy code)
