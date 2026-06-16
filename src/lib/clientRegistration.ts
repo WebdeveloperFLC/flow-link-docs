@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Lead } from "@/lib/leads";
+import { ensureClientProfileSynced } from "@/lib/clientProfileSync";
 import { runWithAuthRetry } from "@/lib/supabaseSafeInsert";
 
 export interface FamilyMember extends FamilyMemberExtras {
@@ -190,13 +191,21 @@ export async function upsertClientRegistration(
       supabase.from("clients").update(body as never).eq("id", id).select().single(),
       { table: "clients", operation: "update" },
     );
-    return data as unknown as ClientRow;
+    const row = data as unknown as ClientRow;
+    await ensureClientProfileSynced(row.id).catch((e) =>
+      console.warn("[upsertClientRegistration] profile sync failed", e),
+    );
+    return row;
   }
   const data = await runWithAuthRetry(() =>
     supabase.from("clients").insert([body as never]).select().single(),
     { table: "clients", operation: "insert" },
   );
-  return data as unknown as ClientRow;
+  const row = data as unknown as ClientRow;
+  await ensureClientProfileSynced(row.id).catch((e) =>
+    console.warn("[upsertClientRegistration] profile sync failed", e),
+  );
+  return row;
 }
 
 export async function fetchClient(id: string): Promise<ClientRow | null> {

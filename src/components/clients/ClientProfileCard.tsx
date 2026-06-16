@@ -23,6 +23,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PROFILE_FIELDS } from "@/lib/extractedFields";
+import {
+  clientToProfileFallback,
+  ensureClientProfileSynced,
+} from "@/lib/clientProfileSync";
 import { dialCodeFor, COUNTRY_OPTIONS } from "@/lib/countryCodes";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -186,6 +190,7 @@ export const ClientProfileCard = ({
   refreshKey,
 }: Props) => {
   const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
+  const [profileFallback, setProfileFallback] = useState<Record<string, string>>({});
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -199,19 +204,41 @@ export const ClientProfileCard = ({
 
   const load = async () => {
     setLoading(true);
-    const [{ data }, { data: clientRow }, { data: edu }] = await Promise.all([
-      supabase.from("client_profile").select("*").eq("client_id", clientId).maybeSingle(),
-      supabase.from("clients").select("phone, country_code, country").eq("id", clientId).maybeSingle(),
-      supabase.from("client_education").select("*").eq("client_id", clientId).order("end_year", { ascending: false }),
-    ]);
-    setProfile(data as Record<string, unknown> | null);
-    setPrimaryPhone(clientRow?.phone ?? "");
-    setPrimaryPhoneEdit(null);
-    setCountryCode((clientRow as { country_code?: string } | null)?.country_code ?? "");
-    setCountryCodeEdit(null);
-    setEducation((edu as Array<Record<string, unknown>>) ?? []);
-    setEdits({});
-    setLoading(false);
+    try {
+      await ensureClientProfileSynced(clientId);
+      const [{ data }, { data: clientRow }, { data: edu }, { data: spouse }] = await Promise.all([
+        supabase.from("client_profile").select("*").eq("client_id", clientId).maybeSingle(),
+        supabase.from("clients").select("*").eq("id", clientId).maybeSingle(),
+        supabase.from("client_education").select("*").eq("client_id", clientId).order("end_year", { ascending: false }),
+        supabase
+          .from("client_family_members")
+          .select("first_name, last_name")
+          .eq("primary_client_id", clientId)
+          .eq("relationship", "spouse")
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+      const spouseName = spouse
+        ? [spouse.first_name, spouse.last_name].filter(Boolean).join(" ").trim() || null
+        : null;
+      setProfile(data as Record<string, unknown> | null);
+      setProfileFallback(
+        clientRow ? clientToProfileFallback(clientRow as Record<string, unknown>, spouseName) : {},
+      );
+      setPrimaryPhone(clientRow?.phone ?? "");
+      setPrimaryPhoneEdit(null);
+      setCountryCode(
+        (clientRow as { country_code?: string; phone_country_code?: string } | null)?.country_code ??
+          (clientRow as { phone_country_code?: string } | null)?.phone_country_code ??
+          "",
+      );
+      setCountryCodeEdit(null);
+      setEducation((edu as Array<Record<string, unknown>>) ?? []);
+      setEdits({});
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -228,8 +255,8 @@ export const ClientProfileCard = ({
   const valFor = (k: string): string => {
     if (k in edits) return edits[k];
     const v = profile?.[k];
-    if (v === null || v === undefined) return "";
-    return String(v);
+    if (v !== null && v !== undefined && String(v).trim().length > 0) return String(v);
+    return profileFallback[k] ?? "";
   };
 
   const dirty = Object.keys(edits).length > 0 || primaryPhoneEdit !== null || countryCodeEdit !== null;
