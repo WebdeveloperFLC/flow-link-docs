@@ -65,10 +65,35 @@ export interface Lead {
 
 export type LeadDraft = Partial<Omit<Lead, "id" | "lead_number" | "created_at" | "updated_at">>;
 
+const ENUM_NULL_IF_EMPTY: (keyof LeadDraft)[] = [
+  "gender",
+  "marital_status",
+  "last_education",
+  "start_timeline",
+  "lead_source",
+  "branch",
+  "department",
+  "cold_pool_campaign",
+];
+
+/** Empty strings violate CHECK constraints on enum-like lead columns — store null instead. */
+export function sanitizeLeadDraft(draft: LeadDraft): LeadDraft {
+  const out = { ...draft };
+  for (const key of ENUM_NULL_IF_EMPTY) {
+    if (out[key] === "") (out as Record<string, unknown>)[key] = null;
+  }
+  if (out.email === "") out.email = null;
+  if (out.phone === "") out.phone = null;
+  if (out.phone_country_code === "") out.phone_country_code = null;
+  return out;
+}
+
 export async function createLead(draft: LeadDraft): Promise<Lead> {
+  const payload = sanitizeLeadDraft(draft);
+  const { data: auth } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from("leads")
-    .insert([draft as never])
+    .insert([{ ...payload, created_by: auth.user?.id ?? null } as never])
     .select()
     .single();
   if (error) throw error;
@@ -76,9 +101,10 @@ export async function createLead(draft: LeadDraft): Promise<Lead> {
 }
 
 export async function updateLead(id: string, patch: LeadDraft): Promise<Lead> {
+  const payload = sanitizeLeadDraft(patch);
   const { data, error } = await supabase
     .from("leads")
-    .update(patch as never)
+    .update(payload as never)
     .eq("id", id)
     .select()
     .single();

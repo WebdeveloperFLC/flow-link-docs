@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Lock, ChevronLeft, UserCheck, User, MapPin, Briefcase, Building2, StickyNote, Snowflake } from "lucide-react";
+import { Lock, ChevronLeft, UserCheck } from "lucide-react";
 
 import { LeadModeToggle, type LeadMode } from "@/components/leads/LeadModeToggle";
 import { RegionCountriesPicker } from "@/components/leads/RegionCountriesPicker";
@@ -33,27 +33,13 @@ import { useMasterItems, useMasterLabels } from "@/lib/masters";
 import { dialCodeFor } from "@/lib/countryCodes";
 import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
 import { ContextBackBar } from "@/components/navigation/ContextBackBar";
+import { formatSupabaseError } from "@/lib/formatSupabaseError";
 import {
   ClientRegistrationPanel,
   type LeadFieldSnapshot,
 } from "@/components/crm/ClientRegistrationPanel";
-import { RegistrationWorkspace, type RegistrationSection } from "@/components/crm/RegistrationWorkspace";
 import { LeadSummaryStrip } from "@/components/crm/LeadSummaryStrip";
 import { cn } from "@/lib/utils";
-
-const LEAD_SECTIONS_WARM: RegistrationSection[] = [
-  { id: "personal", label: "Personal", shortLabel: "Personal", icon: User, hint: "Name, contact" },
-  { id: "geography", label: "Geography & Background", shortLabel: "Geography", icon: MapPin, hint: "Countries, education" },
-  { id: "services", label: "Services", shortLabel: "Services", icon: Briefcase, hint: "Visa, coaching, etc." },
-  { id: "assignment", label: "Assignment", shortLabel: "Branch", icon: Building2, hint: "Branch, source" },
-  { id: "notes", label: "Notes", shortLabel: "Notes", icon: StickyNote, hint: "Counselor notes" },
-];
-
-const LEAD_SECTIONS_COLD: RegistrationSection[] = [
-  { id: "personal", label: "Contact", shortLabel: "Contact", icon: User, hint: "Name & contact" },
-  { id: "cold", label: "Cold Pool", shortLabel: "Campaign", icon: Snowflake, hint: "List & source" },
-  { id: "notes", label: "Notes", shortLabel: "Notes", icon: StickyNote, hint: "Follow-up notes" },
-];
 
 const VISA_LOCK_TEMPLATE = (reason: string) =>
   `Visa not pursued at this stage. Reason: ${reason || "(please specify)"}\n\nFollow-up: Re-engage when visa interest is expressed.\n\n`;
@@ -81,7 +67,6 @@ const LeadNew = () => {
   const [convertedClientId, setConvertedClientId] = useState<string | null>(null);
   const [initialClientDraft, setInitialClientDraft] = useState<ClientDraft | undefined>();
   const clientSectionRef = useRef<HTMLDivElement>(null);
-  const [activeLeadSection, setActiveLeadSection] = useState("personal");
 
   const [f, setF] = useState<Record<string, unknown>>({});
   const [services, setServices] = useState<ServiceSelection>({
@@ -102,10 +87,6 @@ const LeadNew = () => {
     fetchBranches().then(setBranches);
     fetchDepartments().then(setDepartments);
   }, []);
-
-  useEffect(() => {
-    setActiveLeadSection("personal");
-  }, [mode]);
 
   useEffect(() => {
     if (editId || leadId) return;
@@ -223,7 +204,7 @@ const LeadNew = () => {
       }
       return saved.id;
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Save failed";
+      const msg = formatSupabaseError(e, "Save failed");
       console.error("[lead autosave]", e);
       toast.error(msg);
       return null;
@@ -332,7 +313,7 @@ const LeadNew = () => {
       toast.success(`Saved ${saved.lead_number}`);
       nav(`/leads/${saved.id}`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Save failed");
+      toast.error(formatSupabaseError(e, "Save failed"));
     } finally {
       setSaving(false);
     }
@@ -340,7 +321,6 @@ const LeadNew = () => {
 
   const isCold = mode === "cold";
   const isClientPhase = phase === "client";
-  const leadSections = isCold ? LEAD_SECTIONS_COLD : LEAD_SECTIONS_WARM;
 
   const personalFields = (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -394,145 +374,25 @@ const LeadNew = () => {
     </div>
   );
 
-  const leadSectionContent = (() => {
-    switch (activeLeadSection) {
-      case "personal":
-        return personalFields;
-      case "geography":
-        return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Country of Citizenship *</Label>
-                <CountrySelect value={(f.country_of_citizenship as string) || ""} onChange={(v) => { setField("country_of_citizenship", v); setTimeout(autosave, 0); }} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Country of Residence *</Label>
-                <CountrySelect value={(f.country_of_residence as string) || ""} onChange={(v) => { setField("country_of_residence", v); setTimeout(autosave, 0); }} />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Countries of Interest *</Label>
-              <RegionCountriesPicker value={interestedCountries} onChange={(v) => { setInterestedCountries(v); setTimeout(autosave, 0); }} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <Label>Last Education</Label>
-                <Select value={(f.last_education as string) || ""} onValueChange={(v) => { setField("last_education", v); setTimeout(autosave, 0); }}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>{qualificationLevels.map((q) => <SelectItem key={q.code} value={q.code}>{q.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              {String(f.last_education ?? "").toLowerCase() === "other" && (
-                <div className="space-y-1.5">
-                  <Label>Specify</Label>
-                  <Input value={(f.last_education_other as string) || ""} onChange={(e) => setField("last_education_other", e.target.value)} onBlur={autosave} />
-                </div>
-              )}
-            </div>
+  const visaLockBlock = (
+    <div className="border-t pt-4 space-y-3">
+      <label className="flex items-start gap-3 cursor-pointer">
+        <Checkbox checked={visaLocked} onCheckedChange={(c) => onToggleVisaLock(!!c)} />
+        <div className="space-y-1">
+          <div className="text-sm font-medium flex items-center gap-1.5">
+            <Lock className="h-3.5 w-3.5" /> Lock visa services (not pursuing visa)
           </div>
-        );
-      case "services":
-        return (
-          <div className="space-y-4">
-            <ServiceTabs
-              value={services}
-              onChange={(v) => { setServices(v); setTimeout(autosave, 0); }}
-              visaLocked={visaLocked}
-              interestedCountries={interestedCountries}
-            />
-            <div className="border-t pt-4 space-y-3">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <Checkbox checked={visaLocked} onCheckedChange={(c) => onToggleVisaLock(!!c)} />
-                <div className="space-y-1">
-                  <div className="text-sm font-medium flex items-center gap-1.5">
-                    <Lock className="h-3.5 w-3.5" /> Lock visa services (not pursuing visa)
-                  </div>
-                  <div className="text-xs text-muted-foreground">Greys out the Visa tab and requires a reason in notes.</div>
-                </div>
-              </label>
-              {visaLocked && (
-                <div className="space-y-1.5 ml-8">
-                  <Label>Reason *</Label>
-                  <Input value={visaLockReason} onChange={(e) => setVisaLockReason(e.target.value)} onBlur={autosave} placeholder="e.g. Coaching only" />
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      case "assignment":
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <Label>Branch</Label>
-              <Select value={(f.branch as string) || ""} onValueChange={(v) => { setField("branch", v); setTimeout(autosave, 0); }}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>{branches.map((b) => <SelectItem key={b.id} value={b.name}>{b.name}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Department {suggestedDept && f.department !== suggestedDept && <span className="text-xs text-muted-foreground">(suggested: {suggestedDept})</span>}</Label>
-              <Select value={(f.department as string) || ""} onValueChange={(v) => { setField("department", v); setTimeout(autosave, 0); }}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>{departments.map((d) => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Temperature</Label>
-              <Select value={(f.lead_temperature as string) || "warm"} onValueChange={(v) => { setField("lead_temperature", v); setTimeout(autosave, 0); }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="warm">Warm</SelectItem>
-                  <SelectItem value="hot">Hot</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Lead Source</Label>
-              <Select value={(f.lead_source as string) || ""} onValueChange={(v) => { setField("lead_source", v); setTimeout(autosave, 0); }}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>{lead_sources.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-          </div>
-        );
-      case "cold":
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Campaign / List Name</Label>
-                <Input value={(f.cold_pool_campaign as string) || ""} onChange={(e) => setField("cold_pool_campaign", e.target.value)} onBlur={autosave} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Lead Source</Label>
-                <Select value={(f.lead_source as string) || ""} onValueChange={(v) => { setField("lead_source", v); setTimeout(autosave, 0); }}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>{lead_sources.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Cold leads only need first name, last name, and one of email/phone. Click Register as Client when they show interest.
-            </p>
-          </div>
-        );
-      case "notes":
-        return (
-          <Textarea
-            ref={notesRef}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            onBlur={autosave}
-            rows={8}
-            placeholder="Counsellor notes, follow-up plan, special considerations…"
-            className="min-h-[200px]"
-          />
-        );
-      default:
-        return null;
-    }
-  })();
+          <div className="text-xs text-muted-foreground">Greys out the Visa tab and requires a reason in notes.</div>
+        </div>
+      </label>
+      {visaLocked && (
+        <div className="space-y-1.5 ml-8">
+          <Label>Reason *</Label>
+          <Input value={visaLockReason} onChange={(e) => setVisaLockReason(e.target.value)} onBlur={autosave} placeholder="e.g. Coaching only" />
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <AppLayout>
@@ -597,37 +457,159 @@ const LeadNew = () => {
       />
       <div
         className={cn(
-          "p-3 sm:p-6 mx-auto space-y-5",
+          "p-3 sm:p-6 mx-auto space-y-6",
           isClientPhase ? "max-w-7xl" : "max-w-5xl",
         )}
       >
+        {!isClientPhase ? (
+          <Card className="p-3 bg-muted/40 border-dashed text-sm text-muted-foreground">
+            Capture lead details first. When the person confirms they want to proceed, click{" "}
+            <span className="font-semibold text-foreground">Register as Client</span> to unlock
+            academics, family, and invoice sections.
+            {leadNumber && (
+              <span className="block mt-1 text-foreground/80">Lead # {leadNumber} · autosaves when you leave a field</span>
+            )}
+          </Card>
+        ) : !leadId ? (
+          <Card className="p-3 bg-amber-500/10 border-amber-500/30 text-sm">
+            Enter first and last name — the lead saves on blur, then client registration sections appear below.
+          </Card>
+        ) : null}
+
         {!isClientPhase && (
           <>
-            <Card className="p-3 bg-primary/5 border-primary/20 text-sm">
-              <span className="text-primary font-medium">Step 1 — Lead capture.</span>{" "}
-              Fill each section using the menu on the left. When the person confirms they want to proceed, click{" "}
-              <span className="font-semibold">Register as Client</span>.
-            </Card>
-
             <div className="flex items-center justify-between gap-4">
               <LeadModeToggle value={mode} onChange={setMode} disabled={!!leadId} />
               {leadId && <span className="text-xs text-muted-foreground">Mode locked after first save</span>}
             </div>
 
-            <RegistrationWorkspace
-              sections={leadSections}
-              activeId={activeLeadSection}
-              onSectionChange={setActiveLeadSection}
-              title={editId ? "Edit Lead" : "New Lead"}
-              subtitle={leadNumber ? `Lead # ${leadNumber}` : "Autosaves when you leave a field"}
-              footer={
-                <Button className="w-full" onClick={validateAndSubmit} disabled={saving}>
-                  Save &amp; View Lead
-                </Button>
-              }
-            >
-              {leadSectionContent}
-            </RegistrationWorkspace>
+            <Card className="p-4 sm:p-6 space-y-4">
+              <h3 className="font-semibold">1. Personal Information</h3>
+              {personalFields}
+            </Card>
+
+            {!isCold && (
+              <>
+                <Card className="p-4 sm:p-6 space-y-4">
+                  <h3 className="font-semibold">2. Geography</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label>Country of Citizenship *</Label>
+                      <CountrySelect value={(f.country_of_citizenship as string) || ""} onChange={(v) => { setField("country_of_citizenship", v); setTimeout(autosave, 0); }} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Country of Residence *</Label>
+                      <CountrySelect value={(f.country_of_residence as string) || ""} onChange={(v) => { setField("country_of_residence", v); setTimeout(autosave, 0); }} />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Countries of Interest *</Label>
+                    <RegionCountriesPicker value={interestedCountries} onChange={(v) => { setInterestedCountries(v); setTimeout(autosave, 0); }} />
+                  </div>
+                </Card>
+
+                <Card className="p-4 sm:p-6 space-y-4">
+                  <h3 className="font-semibold">3. Background</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                      <Label>Last Education</Label>
+                      <Select value={(f.last_education as string) || ""} onValueChange={(v) => { setField("last_education", v); setTimeout(autosave, 0); }}>
+                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>{qualificationLevels.map((q) => <SelectItem key={q.code} value={q.code}>{q.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    {String(f.last_education ?? "").toLowerCase() === "other" && (
+                      <div className="space-y-1.5">
+                        <Label>Specify</Label>
+                        <Input value={(f.last_education_other as string) || ""} onChange={(e) => setField("last_education_other", e.target.value)} onBlur={autosave} />
+                      </div>
+                    )}
+                  </div>
+                </Card>
+
+                <Card className="p-4 sm:p-6 space-y-4">
+                  <h3 className="font-semibold">4. Services Required *</h3>
+                  <ServiceTabs
+                    value={services}
+                    onChange={(v) => { setServices(v); setTimeout(autosave, 0); }}
+                    visaLocked={visaLocked}
+                    interestedCountries={interestedCountries}
+                  />
+                  {visaLockBlock}
+                </Card>
+
+                <Card className="p-4 sm:p-6 space-y-4">
+                  <h3 className="font-semibold">5. Assignment</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                      <Label>Branch</Label>
+                      <Select value={(f.branch as string) || ""} onValueChange={(v) => { setField("branch", v); setTimeout(autosave, 0); }}>
+                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>{branches.map((b) => <SelectItem key={b.id} value={b.name}>{b.name}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Department {suggestedDept && f.department !== suggestedDept && <span className="text-xs text-muted-foreground">(suggested: {suggestedDept})</span>}</Label>
+                      <Select value={(f.department as string) || ""} onValueChange={(v) => { setField("department", v); setTimeout(autosave, 0); }}>
+                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>{departments.map((d) => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Temperature</Label>
+                      <Select value={(f.lead_temperature as string) || "warm"} onValueChange={(v) => { setField("lead_temperature", v); setTimeout(autosave, 0); }}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="warm">Warm</SelectItem>
+                          <SelectItem value="hot">Hot</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Lead Source</Label>
+                      <Select value={(f.lead_source as string) || ""} onValueChange={(v) => { setField("lead_source", v); setTimeout(autosave, 0); }}>
+                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>{lead_sources.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </Card>
+              </>
+            )}
+
+            {isCold && (
+              <Card className="p-4 sm:p-6 space-y-4">
+                <h3 className="font-semibold">Cold Pool Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label>Campaign / List Name</Label>
+                    <Input value={(f.cold_pool_campaign as string) || ""} onChange={(e) => setField("cold_pool_campaign", e.target.value)} onBlur={autosave} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Lead Source</Label>
+                    <Select value={(f.lead_source as string) || ""} onValueChange={(v) => { setField("lead_source", v); setTimeout(autosave, 0); }}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>{lead_sources.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Cold leads only need first name, last name, and one of email/phone. Click Register as Client when they show interest.
+                </p>
+              </Card>
+            )}
+
+            <Card className="p-6 space-y-3">
+              <h3 className="font-semibold">{isCold ? "Notes" : "6. Notes"}</h3>
+              <Textarea
+                ref={notesRef}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                onBlur={autosave}
+                rows={6}
+                placeholder="Counsellor notes, follow-up plan, special considerations…"
+              />
+            </Card>
           </>
         )}
 
@@ -672,12 +654,6 @@ const LeadNew = () => {
                 )}
               </div>
             </LeadSummaryStrip>
-
-            {!leadId && (
-              <Card className="p-3 bg-amber-500/10 border-amber-500/30 text-sm">
-                Enter first and last name — the lead saves on blur, then client registration sections appear below.
-              </Card>
-            )}
 
             {leadId && leadNumber && (
               <div ref={clientSectionRef}>
