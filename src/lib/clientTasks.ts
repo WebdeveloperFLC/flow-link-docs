@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { notifyUsers } from "@/lib/appNotifications";
+import { appendClientActivityLog } from "@/lib/clientActivityLog";
 
 export type TaskKind = "task" | "callback" | "reminder";
 export type TaskPriority = "low" | "normal" | "high" | "urgent";
@@ -71,6 +72,28 @@ export async function createTask(input: {
     .select()
     .single();
   if (error) throw error;
+  const task = data as ClientTask;
+  await appendClientActivityLog({
+    clientId: input.clientId,
+    action: input.assignedTo ? "task_created" : "task_created",
+    summary: task.title,
+    newValue: task.description ?? task.title,
+    metadata: {
+      task_id: task.id,
+      assigned_to: task.assigned_to,
+      due_at: task.due_at,
+      priority: task.priority,
+    },
+  });
+  if (input.assignedTo) {
+    await appendClientActivityLog({
+      clientId: input.clientId,
+      action: "task_assigned",
+      summary: `Task assigned: ${task.title}`,
+      newValue: input.assignedTo,
+      metadata: { task_id: task.id, assigned_to: input.assignedTo },
+    });
+  }
   // Fire-and-forget in-app notification to the assignee
   if (input.assignedTo && input.assignedTo !== me) {
     const isUrgent = (input.priority ?? "normal") === "urgent";
@@ -110,6 +133,14 @@ export async function updateTask(id: string, patch: Partial<Pick<ClientTask, "ti
   if (error) throw error;
   const newAssignee = (patch as any).assigned_to ?? null;
   if (newAssignee && newAssignee !== prevAssignee && clientId) {
+    await appendClientActivityLog({
+      clientId,
+      action: prevAssignee ? "task_reassigned" : "task_assigned",
+      summary: title ? `Task: ${title}` : "Task reassigned",
+      previousValue: prevAssignee ?? "—",
+      newValue: newAssignee,
+      metadata: { task_id: id },
+    });
     const { data: u } = await supabase.auth.getUser();
     const me = u?.user?.id ?? null;
     if (newAssignee !== me) {
@@ -130,12 +161,28 @@ export async function updateTask(id: string, patch: Partial<Pick<ClientTask, "ti
 export async function completeTask(id: string) {
   const { data: u } = await supabase.auth.getUser();
   const me = u?.user?.id ?? null;
+  const { data: prev } = await supabase
+    .from("client_tasks" as never)
+    .select("client_id, title, status")
+    .eq("id", id)
+    .maybeSingle();
   const { error } = await supabase.from("client_tasks" as never).update({
     status: "done",
     completed_by: me,
     completed_at: new Date().toISOString(),
   } as never).eq("id", id);
   if (error) throw error;
+  const row = prev as { client_id?: string; title?: string; status?: string } | null;
+  if (row?.client_id && row.status !== "done") {
+    await appendClientActivityLog({
+      clientId: row.client_id,
+      action: "task_completed",
+      summary: row.title ? `Task completed: ${row.title}` : "Task completed",
+      previousValue: row.status ?? "open",
+      newValue: "done",
+      metadata: { task_id: id },
+    });
+  }
 }
 
 export async function deleteTask(id: string) {

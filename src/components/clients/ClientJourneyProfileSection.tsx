@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { LeadJourneyFieldsBlock } from "@/components/leads/LeadJourneyFields";
 import { InterestedCountriesPicker } from "@/components/leads/InterestedCountriesPicker";
 import { Textarea } from "@/components/ui/textarea";
+import { appendClientActivityLog, diffRecordFields, formatFieldChanges } from "@/lib/clientActivityLog";
 
 type JourneyProfile = {
   sponsor: string | null;
@@ -81,6 +82,7 @@ export function ClientJourneyProfileSection({
     setSaving(true);
     try {
       const payload = { ...data };
+      const beforeSnapshot = { ...data };
       const { data: existing } = await supabase
         .from("client_profile")
         .select("client_id")
@@ -110,6 +112,21 @@ export function ClientJourneyProfileSection({
           counselor_notes: data.counselor_notes,
         } as never)
         .eq("id", clientId);
+      const changes = diffRecordFields(
+        beforeSnapshot as Record<string, unknown>,
+        payload as Record<string, unknown>,
+        Object.keys(EMPTY),
+      );
+      if (changes.length) {
+        const { previousValue, newValue } = formatFieldChanges(changes);
+        await appendClientActivityLog({
+          clientId,
+          action: "profile_updated",
+          summary: "Education & journey profile updated",
+          previousValue,
+          newValue,
+        });
+      }
       toast.success("Funding & timeline saved");
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Save failed");

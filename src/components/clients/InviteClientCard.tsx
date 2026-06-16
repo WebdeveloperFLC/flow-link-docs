@@ -9,6 +9,7 @@ import { Mail, Copy, Loader2, X, Send, UserCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
 import { publicUrl } from "@/lib/publicUrl";
+import { appendClientActivityLog } from "@/lib/clientActivityLog";
 
 interface Invite {
   id: string;
@@ -100,6 +101,13 @@ export function InviteClientCard({ clientId, defaultEmail }: { clientId: string;
     } catch {
       /* best-effort */
     }
+    await appendClientActivityLog({
+      clientId,
+      action: "portal_invitation_sent",
+      summary: "Portal invitation sent",
+      newValue: email.trim(),
+      metadata: { emailed, emailDelivery },
+    });
     load();
   };
 

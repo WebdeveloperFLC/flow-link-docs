@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { appendTimeline } from "@/lib/timeline";
+import { appendClientActivityLog } from "@/lib/clientActivityLog";
 import type { LeadStatus } from "@/lib/telecallerQueue";
 import { Plus } from "lucide-react";
 
@@ -77,6 +78,13 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, queueItemId, cal
         clientId, eventType: "remark",
         summary: finalRemark.slice(0, 140),
         metadata: { outcome, leadStatus, callbackAt, presetId },
+      });
+      await appendClientActivityLog({
+        clientId,
+        action: "note_added",
+        summary: "Remark added",
+        newValue: finalRemark,
+        metadata: { outcome, leadStatus, callbackAt },
       });
       if (queueItemId) {
         const patch: Record<string, unknown> = {};

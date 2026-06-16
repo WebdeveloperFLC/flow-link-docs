@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MessageCircle, Mail, StickyNote, ListTodo, ArrowRightLeft, Upload, Flame, Snowflake, Thermometer, Sparkles } from "lucide-react";
+import { MessageCircle, Mail, StickyNote, ArrowRightLeft, Upload, Flame, Snowflake, Thermometer, Sparkles } from "lucide-react";
 import { CallClientButton } from "./CallClientButton";
 import { HandoffDialog } from "./HandoffDialog";
 import { AddRemarkDialog } from "./AddRemarkDialog";
-import { AddTaskDialog } from "./AddTaskDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { applyContactMask } from "@/lib/masking";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,7 +29,6 @@ export function QuickActionsBar({ clientId, clientName, phone, email, onUpload, 
 
   const [handoff, setHandoff] = useState(false);
   const [remark, setRemark] = useState(false);
-  const [task, setTask] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
 
   const setLeadStatus = async (status: "hot" | "warm" | "cold") => {
@@ -77,7 +75,6 @@ export function QuickActionsBar({ clientId, clientName, phone, email, onUpload, 
         </span>
       )}
       <Button size="sm" variant="outline" onClick={() => setRemark(true)}><StickyNote className="size-3.5 mr-1" /> Note</Button>
-      <Button size="sm" variant="outline" onClick={() => setTask(true)}><ListTodo className="size-3.5 mr-1" /> Task</Button>
       <Button size="sm" variant="outline" onClick={() => setHandoff(true)}><ArrowRightLeft className="size-3.5 mr-1" /> Hand off</Button>
       <VoiceRecorderButton clientId={clientId} contextType="timeline" />
       <Button size="sm" variant="outline" disabled={aiBusy} onClick={async () => { setAiBusy(true); try { await generateSummary({ clientId, scope: "client_overview" }); toast.success("AI summary generated"); } catch (e) { const m = String((e as Error).message ?? e); toast.error(m.includes("402") ? "AI credits exhausted" : m.includes("429") ? "Rate limited" : m); } finally { setAiBusy(false); } }}>
@@ -93,7 +90,6 @@ export function QuickActionsBar({ clientId, clientName, phone, email, onUpload, 
       </div>
       <HandoffDialog open={handoff} onOpenChange={setHandoff} clientId={clientId} clientName={clientName} />
       <AddRemarkDialog open={remark} onOpenChange={setRemark} clientId={clientId} />
-      <AddTaskDialog open={task} onOpenChange={setTask} clientId={clientId} />
     </Card>
   );
 }

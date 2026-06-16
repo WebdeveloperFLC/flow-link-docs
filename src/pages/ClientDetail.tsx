@@ -86,7 +86,8 @@ import { fetchWorkflowTemplatesForService } from "@/lib/service-library/matchWor
 import { useActiveServiceContext } from "@/lib/clientActiveServiceContext";
 import { ClientIdentityHeader } from "@/components/clients/ClientIdentityHeader";
 import { ClientStageStepper } from "@/components/clients/ClientStageStepper";
-import { ClientStageCard } from "@/components/clients/ClientStageCard";
+import { ClientActivityLogCard } from "@/components/clients/ClientActivityLogCard";
+import { ClientTaskHistoryCard } from "@/components/clients/ClientTaskHistoryCard";
 import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitcher";
 import { ClientOverviewDashboard } from "@/components/clients/ClientOverviewDashboard";
 import { CaseOutcomeDialog } from "@/components/clients/CaseOutcomeDialog";
@@ -1155,6 +1156,7 @@ const ClientDetail = () => {
         <ClientStageStepper
           clientId={client.id}
           clientCountry={client.country}
+          destinationCountry={serviceCtx.destinationCountry}
           refreshKey={stageRefreshKey}
           activeServiceLabel={serviceCtx.serviceLabel}
           caseId={serviceCase?.id}
@@ -1212,19 +1214,8 @@ const ClientDetail = () => {
             <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
             <ClientServicesCard clientId={client.id} canEdit={canUpload} />
             <ClientProgramsCard clientId={client.id} canEdit={canUpload} />
-          </TabsContent>
-
-          <TabsContent value="staging" className="mt-0 space-y-6">
-            <ClientStageCard
-              key={stageRefreshKey}
-              clientId={client.id}
-              clientCountry={client.country}
-              destinationCountry={serviceCtx.destinationCountry}
-              activeServiceLabel={serviceCtx.serviceLabel}
-              caseId={serviceCase?.id}
-              caseClosed={caseClosed}
-              hideOutcomeActions
-            />
+            <ClientActivityLogCard clientId={client.id} />
+            <ClientTaskHistoryCard clientId={client.id} />
           </TabsContent>
 
           <TabsContent value="commercial" className="mt-0 space-y-6">

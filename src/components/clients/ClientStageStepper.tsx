@@ -1,6 +1,7 @@
 import { useClientStage } from "@/hooks/useClientStage";
 import { StageJourneyBar } from "@/components/clients/StageJourneyBar";
 import { StageCheckboxPicker } from "@/components/clients/StageCheckboxPicker";
+import { ClientStageInternalPanel } from "@/components/clients/ClientStageInternalPanel";
 import { OUTCOME_BADGE } from "@/lib/caseOutcomeStyles";
 import type { CaseOutcome } from "@/lib/clientServiceCase";
 import type { ReactNode } from "react";
@@ -8,6 +9,7 @@ import type { ReactNode } from "react";
 type Props = {
   clientId: string;
   clientCountry?: string | null;
+  destinationCountry?: string | null;
   refreshKey?: number;
   activeServiceLabel?: string | null;
   caseId?: string | null;
@@ -20,6 +22,7 @@ type Props = {
 export function ClientStageStepper({
   clientId,
   clientCountry,
+  destinationCountry,
   refreshKey = 0,
   activeServiceLabel,
   caseId,
@@ -28,6 +31,7 @@ export function ClientStageStepper({
   onStageChanged,
 }: Props) {
   const {
+    current,
     stages,
     busy,
     canUpload,
@@ -42,21 +46,21 @@ export function ClientStageStepper({
     completionNotes,
     isStageDone,
     isStageCurrent,
-  } = useClientStage(clientId, refreshKey, { clientCountry, caseId, caseClosed });
+    load,
+    derivedCurrentStageId,
+  } = useClientStage(clientId, refreshKey, { clientCountry, destinationCountry, caseId, caseClosed });
 
   const afterChange = async (fn: () => Promise<void>) => {
     await fn();
     onStageChanged?.();
   };
 
-  if (!hasPipeline) {
-    return null;
-  }
-
   const pipelineTitle = activeServiceLabel?.trim() || "Application workflow";
+  const currentStageKey =
+    current?.stage_key ?? stages.find((s) => s.id === derivedCurrentStageId)?.key ?? null;
 
   const headerActions: ReactNode =
-    canUpload && stages.length > 0 ? (
+    canUpload && hasPipeline && stages.length > 0 && !caseClosed ? (
       <StageCheckboxPicker
         stages={stages}
         completedStageIds={completedStageIds}
@@ -91,24 +95,44 @@ export function ClientStageStepper({
           </span>
         </div>
       )}
-      <div className="px-4 sm:px-8 pt-3 pb-1 flex flex-wrap items-center justify-between gap-2">
-        <div className="text-xs font-medium text-muted-foreground truncate min-w-0">
-          {pipelineTitle}
-          <span className="ml-2 text-foreground/80">
-            · stage {stepNumber ?? "?"} of {stepTotal}
-          </span>
-        </div>
-        {headerActions}
-      </div>
-      <StageJourneyBar
-        stages={stages}
-        isStageDone={isStageDone}
-        isStageCurrent={isStageCurrent}
-        completionNotes={completionNotes}
-        displayLabel={displayLabel}
-        canUpload={canUpload}
-        onClearNote={(id) => afterChange(() => clearStageNote(id))}
-        clearing={busy}
+      {hasPipeline && (
+        <>
+          <div className="px-4 sm:px-8 pt-3 pb-1 flex flex-wrap items-center justify-between gap-2">
+            <div className="text-xs font-medium text-muted-foreground truncate min-w-0">
+              {pipelineTitle}
+              <span className="ml-2 text-foreground/80">
+                · stage {stepNumber ?? "?"} of {stepTotal}
+              </span>
+            </div>
+            {headerActions}
+          </div>
+          <StageJourneyBar
+            stages={stages}
+            isStageDone={isStageDone}
+            isStageCurrent={isStageCurrent}
+            completionNotes={completionNotes}
+            displayLabel={displayLabel}
+            canUpload={canUpload && !caseClosed}
+            onClearNote={(id) => afterChange(() => clearStageNote(id))}
+            clearing={busy}
+          />
+        </>
+      )}
+      <ClientStageInternalPanel
+        clientId={clientId}
+        clientCountry={clientCountry}
+        destinationCountry={destinationCountry}
+        caseClosed={caseClosed}
+        hasPipeline={hasPipeline}
+        pipelineId={current?.pipeline_id}
+        currentStageKey={currentStageKey}
+        derivedCurrentStageId={derivedCurrentStageId}
+        currentStageLabel={current?.stage_label}
+        busy={busy}
+        onReload={() => {
+          void load();
+          onStageChanged?.();
+        }}
       />
     </div>
   );

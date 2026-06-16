@@ -9,13 +9,13 @@ describe("resolveClientDetailTab", () => {
     expect(resolveClientDetailTab("family")).toBe("profile");
     expect(resolveClientDetailTab("services")).toBe("profile");
     expect(resolveClientDetailTab("programs")).toBe("profile");
-    expect(resolveClientDetailTab("setup")).toBe("staging");
+    expect(resolveClientDetailTab("setup")).toBe("overview");
+    expect(resolveClientDetailTab("staging")).toBe("overview");
     expect(resolveClientDetailTab("qualification")).toBe("overview");
   });
 
   it("keeps current tabs", () => {
     expect(resolveClientDetailTab("profile")).toBe("profile");
-    expect(resolveClientDetailTab("staging")).toBe("staging");
     expect(resolveClientDetailTab("documents")).toBe("documents");
   });
 

@@ -14,6 +14,7 @@ import { autoAssignPipelineForClient } from "@/lib/stagePipelines";
 import { completeClientServiceEnrollment } from "@/lib/service-library/completeClientServiceEnrollment";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
 import { ensureClientProfileSynced } from "@/lib/clientProfileSync";
+import { copyLeadHistoryToClientActivity, appendClientActivityLog } from "@/lib/clientActivityLog";
 import type { ServiceSelection } from "@/components/leads/ServiceTabs";
 
 export type ConvertLeadOptions = {
@@ -174,6 +175,17 @@ export async function convertLeadToClient(
   }
 
   await notifyLeadConverted(saved.id, lead);
+
+  await copyLeadHistoryToClientActivity(lead.id, saved.id).catch((e) =>
+    console.warn("[convertLeadToClient] activity log copy failed", e),
+  );
+  await appendClientActivityLog({
+    clientId: saved.id,
+    action: "client_created",
+    summary: "Client created from lead",
+    newValue: saved.registration_number ?? saved.id,
+    metadata: { source_lead_id: lead.id, invoice_lines: invoiceLinesCreated },
+  }).catch(() => {});
 
   return {
     clientId: saved.id,

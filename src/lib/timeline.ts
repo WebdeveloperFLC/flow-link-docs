@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { appendClientActivityLog } from "@/lib/clientActivityLog";
 
 export type TimelineEventType = "call" | "remark" | "handoff" | "chat" | "note" | "task" | "file" | "recording";
 
@@ -52,6 +53,15 @@ export async function appendTimeline(opts: {
     metadata: (opts.metadata ?? {}) as never,
     is_staff_only: isStaffOnly,
   } as never);
+  await appendClientActivityLog({
+    clientId: opts.clientId,
+    action: opts.eventType,
+    summary: opts.summary ?? opts.eventType.replace(/_/g, " "),
+    previousValue:
+      typeof opts.metadata?.previous_value === "string" ? opts.metadata.previous_value : null,
+    newValue: typeof opts.metadata?.new_value === "string" ? opts.metadata.new_value : opts.summary ?? null,
+    metadata: opts.metadata ?? {},
+  }).catch(() => {});
 }
 
 export function subscribeTimeline(clientId: string, onEvent: (row: TimelineRow) => void) {

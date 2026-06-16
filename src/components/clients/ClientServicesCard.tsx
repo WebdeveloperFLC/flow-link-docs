@@ -9,6 +9,7 @@ import { SelectedServicesPanel } from "@/components/clients/SelectedServicesPane
 import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
 import { useServiceLabelMap } from "@/lib/service-library/useServiceLabelMap";
 import { appendTimeline } from "@/lib/timeline";
+import { appendClientActivityLog } from "@/lib/clientActivityLog";
 import { autoDraftInvoiceForServices } from "@/lib/autoDraftInvoice";
 import { toast } from "sonner";
 import { Loader2, Pencil, Sparkles } from "lucide-react";
@@ -173,6 +174,14 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
         }
       }
       const summary = diffParts.length ? `Services updated: ${diffParts.join(", ")}` : "Services updated";
+      const formatServices = (sel: ServiceSelection) =>
+        [
+          ...(sel.visa_services ?? []).map((s) => `Visa: ${s}`),
+          ...(sel.coaching_services ?? []).map((s) => `Coaching: ${s}`),
+          ...(sel.admission_services ?? []).map((s) => `Admission: ${s}`),
+          ...(sel.allied_services ?? []).map((s) => `Allied: ${s}`),
+          ...(sel.travel_services ?? []).map((s) => `Travel: ${s}`),
+        ].join("\n") || "—";
       try {
         await appendTimeline({
           clientId,
@@ -182,6 +191,14 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
             before: selection,
             after: draft,
           },
+        });
+        await appendClientActivityLog({
+          clientId,
+          action: "services_updated",
+          summary: "Services updated",
+          previousValue: formatServices(selection),
+          newValue: formatServices(draft),
+          metadata: { before: selection, after: draft },
         });
       } catch { /* best-effort */ }
 

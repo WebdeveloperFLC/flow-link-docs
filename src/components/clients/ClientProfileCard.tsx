@@ -22,6 +22,7 @@ import {
   Maximize2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { appendClientActivityLog, diffRecordFields, formatFieldChanges } from "@/lib/clientActivityLog";
 import { PROFILE_FIELDS } from "@/lib/extractedFields";
 import {
   clientToProfileFallback,
@@ -333,6 +334,37 @@ export const ClientProfileCard = ({
           .update({ country_code: cleaned } as never)
           .eq("id", clientId);
         if (ccErr) throw ccErr;
+      }
+      const changedFields = Object.keys(edits);
+      if (changedFields.length || primaryPhoneEdit !== null || countryCodeEdit !== null) {
+        const before: Record<string, unknown> = {};
+        const after: Record<string, unknown> = {};
+        for (const k of changedFields) {
+          before[k] = profile?.[k] ?? "";
+          after[k] = edits[k];
+        }
+        if (primaryPhoneEdit !== null) {
+          before.phone = primaryPhone;
+          after.phone = primaryPhoneEdit;
+        }
+        if (countryCodeEdit !== null) {
+          before.country_code = countryCode;
+          after.country_code = countryCodeEdit;
+        }
+        const keys = [...changedFields, ...(primaryPhoneEdit !== null ? ["phone"] : []), ...(countryCodeEdit !== null ? ["country_code"] : [])];
+        const changes = diffRecordFields(before, after, keys);
+        if (changes.length) {
+          const { previousValue, newValue } = formatFieldChanges(changes);
+          const contactKeys = new Set(["phone", "email", "country_code", "alternate_phone", "email_alternate"]);
+          const isContact = keys.every((k) => contactKeys.has(k));
+          await appendClientActivityLog({
+            clientId,
+            action: isContact ? "contact_updated" : "profile_updated",
+            summary: isContact ? "Contact information updated" : "Profile updated",
+            previousValue,
+            newValue,
+          });
+        }
       }
       toast.success("Profile saved");
       load();

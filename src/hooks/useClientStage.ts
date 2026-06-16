@@ -11,6 +11,7 @@ import {
   type StageCompletionLogAction,
 } from "@/lib/clientStageCompletions";
 import { useAuth } from "@/contexts/AuthContext";
+import { appendClientActivityLog } from "@/lib/clientActivityLog";
 
 export interface PipelineStage {
   id: string;
@@ -184,10 +185,21 @@ export function useClientStage(
         patch.internal_sub_status = null;
         patch.internal_sub_status_note = null;
       }
+      const prevStage = stages.find((s) => s.id === current?.current_stage_id);
       const { error } = await supabase.from("clients").update(patch).eq("id", clientId);
       if (error) throw error;
+      if (nextStage && prevStage?.id !== nextStage.id) {
+        await appendClientActivityLog({
+          clientId,
+          action: "stage_changed",
+          summary: "Current stage updated",
+          previousValue: prevStage ? (prevStage.client_label?.trim() || prevStage.label) : "—",
+          newValue: nextStage.client_label?.trim() || nextStage.label,
+          metadata: { stage_id: nextStageId, pipeline_id: current?.pipeline_id },
+        });
+      }
     },
-    [clientId, current?.current_stage_id, stages],
+    [clientId, current?.current_stage_id, current?.pipeline_id, stages],
   );
 
   const tickStage = useCallback(
@@ -215,6 +227,16 @@ export function useClientStage(
           actor_id: user?.id ?? null,
         });
         if (logErr) throw logErr;
+
+        const tickStageRow = stages.find((s) => s.id === stageId);
+        const tickLabel = tickStageRow ? (tickStageRow.client_label?.trim() || tickStageRow.label) : "Stage";
+        await appendClientActivityLog({
+          clientId,
+          action: "stage_completed",
+          summary: `Stage completed: ${tickLabel}`,
+          newValue: note?.trim() ? `${tickLabel}\nNote: ${note.trim()}` : tickLabel,
+          metadata: { stage_id: stageId, note: note?.trim() || null },
+        });
 
         const nextCompleted = new Set(completedStageIds);
         nextCompleted.add(stageId);
@@ -254,8 +276,17 @@ export function useClientStage(
         });
         if (logErr) throw logErr;
 
+        const stage = stages.find((s) => s.id === stageId);
+        const stageLabel = stage ? (stage.client_label?.trim() || stage.label) : "Stage";
+        await appendClientActivityLog({
+          clientId,
+          action: "stage_uncompleted",
+          summary: `Stage unmarked: ${stageLabel}`,
+          previousValue: stageLabel,
+          metadata: { stage_id: stageId, note: existingNote },
+        });
+
         const nextCompleted = new Set(completedStageIds);
-        nextCompleted.delete(stageId);
         await syncCurrentStage(deriveCurrentStageId(stages, nextCompleted));
         toast.success("Stage unmarked");
         await load();
@@ -301,6 +332,16 @@ export function useClientStage(
           actor_id: user?.id ?? null,
         });
         if (logErr) throw logErr;
+
+        const stage = stages.find((s) => s.id === stageId);
+        const stageLabel = stage ? (stage.client_label?.trim() || stage.label) : "Stage";
+        await appendClientActivityLog({
+          clientId,
+          action: "stage_note_cleared",
+          summary: `Stage note cleared: ${stageLabel}`,
+          previousValue: existingNote ?? undefined,
+          metadata: { stage_id: stageId },
+        });
 
         toast.success("Note cleared — stage stays done");
         await load();
