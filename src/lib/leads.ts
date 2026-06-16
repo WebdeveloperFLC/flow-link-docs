@@ -90,25 +90,14 @@ export function sanitizeLeadDraft(draft: LeadDraft): LeadDraft {
 
 export async function createLead(draft: LeadDraft): Promise<Lead> {
   const payload = sanitizeLeadDraft(draft);
-  // created_by is set by fn_assign_lead_number (BEFORE INSERT) — do not send from client.
-  const { created_by: _omit, ...row } = payload as LeadDraft & { created_by?: string | null };
-  const { data, error } = await supabase
-    .from("leads")
-    .insert([row as never])
-    .select()
-    .single();
+  const { data, error } = await supabase.rpc("create_lead_draft", { _data: payload });
   if (error) throw error;
   return data as unknown as Lead;
 }
 
 export async function updateLead(id: string, patch: LeadDraft): Promise<Lead> {
   const payload = sanitizeLeadDraft(patch);
-  const { data, error } = await supabase
-    .from("leads")
-    .update(payload as never)
-    .eq("id", id)
-    .select()
-    .single();
+  const { data, error } = await supabase.rpc("patch_lead_draft", { _id: id, _data: payload });
   if (error) throw error;
   return data as unknown as Lead;
 }
