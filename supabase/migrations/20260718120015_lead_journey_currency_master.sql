@@ -40,17 +40,29 @@ ALTER TABLE public.clients
   ADD COLUMN IF NOT EXISTS start_timeline text,
   ADD COLUMN IF NOT EXISTS phone_alternate_country_code text;
 
--- Year of passing: store as date (YYYY-MM-DD). Drop profile-sync trigger first (depends on column).
+-- Year of passing: store as date (YYYY-MM-DD). Skip if already date (e.g. 17 applied first).
 DROP TRIGGER IF EXISTS clients_sync_client_profile ON public.clients;
 
-ALTER TABLE public.clients
-  ALTER COLUMN year_of_passing TYPE date
-  USING (
-    CASE
-      WHEN year_of_passing IS NULL THEN NULL
-      ELSE make_date(year_of_passing, 6, 30)
-    END
-  );
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+      FROM information_schema.columns
+     WHERE table_schema = 'public'
+       AND table_name = 'clients'
+       AND column_name = 'year_of_passing'
+       AND udt_name = 'int4'
+  ) THEN
+    ALTER TABLE public.clients
+      ALTER COLUMN year_of_passing TYPE date
+      USING (
+        CASE
+          WHEN year_of_passing IS NULL THEN NULL
+          ELSE make_date(year_of_passing::integer, 6, 30)
+        END
+      );
+  END IF;
+END $$;
 
 -- graduation_year on client_profile is int; extract calendar year from date.
 CREATE OR REPLACE FUNCTION public.sync_client_profile_from_client(_client_id uuid)

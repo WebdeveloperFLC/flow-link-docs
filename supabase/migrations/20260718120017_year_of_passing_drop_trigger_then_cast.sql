@@ -18,7 +18,7 @@ BEGIN
       USING (
         CASE
           WHEN year_of_passing IS NULL THEN NULL
-          ELSE make_date(year_of_passing, 6, 30)
+          ELSE make_date(year_of_passing::integer, 6, 30)
         END
       );
   END IF;
