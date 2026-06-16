@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type MasterListKey =
   | "countries"
+  | "currencies"
   | "application_types"
   | "document_types"
   | "relationships"
@@ -87,6 +88,7 @@ export function useMasterLabels(key: MasterListKey): string[] {
 export async function loadAllMasters() {
   await Promise.all([
     fetchList("countries"),
+    fetchList("currencies"),
     fetchList("application_types"),
     fetchList("document_types"),
     fetchList("relationships"),

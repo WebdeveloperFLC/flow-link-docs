@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useMasterLabels } from "@/lib/masters";
+import { PhoneInputRow } from "@/components/leads/PhoneInputRow";
+import { dialCodeFor } from "@/lib/countryCodes";
 import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
 import { z } from "zod";
-import { COUNTRY_OPTIONS, dialCodeFor } from "@/lib/countryCodes";
 
 interface Template { id: string; name: string; country: string; category: string; }
 interface VisaService { service_code: string; service_name: string; country_tag: string | null; display_order: number | null; }
@@ -35,8 +36,8 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
   const [appType, setAppType] = useState<string>("");
   const [templateId, setTemplateId] = useState<string>("");
   const [gender, setGender] = useState<string>("");
-  const [phoneCountry, setPhoneCountry] = useState<string>("India");
-  const phoneCode = dialCodeFor(phoneCountry) || "91";
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+91");
+  const [phone, setPhone] = useState("");
   const [templates, setTemplates] = useState<Template[]>([]);
   const [visaServices, setVisaServices] = useState<VisaService[]>([]);
   const COUNTRIES = useMasterLabels("countries");
@@ -68,16 +69,16 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
   }, {});
   const groupOrder = Object.keys(groupedVisaServices).sort();
 
-  // Auto-sync phone country when the client country changes (still editable).
   useEffect(() => {
     if (!country) return;
-    if (dialCodeFor(country)) setPhoneCountry(country);
+    const code = dialCodeFor(country);
+    if (code) setPhoneCountryCode(`+${code}`);
   }, [country]);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const rawPhone = String(fd.get("phone") || "").trim();
+    const rawPhone = phone.trim();
     const parsed = schema.safeParse({
       first_name: fd.get("first_name"),
       middle_name: fd.get("middle_name") || "",
@@ -85,13 +86,13 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
       gender,
       email: fd.get("email") || "",
       phone: rawPhone,
-      phone_code: phoneCode,
+      phone_code: phoneCountryCode.replace(/\D/g, ""),
       country, application_type: appType, template_id: templateId || undefined,
     });
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     const fullName = [parsed.data.first_name, parsed.data.middle_name, parsed.data.last_name]
       .map((s) => (s ?? "").trim()).filter(Boolean).join(" ");
-    const fullPhone = parsed.data.phone ? `+${phoneCode} ${parsed.data.phone}`.trim() : null;
+    const fullPhone = parsed.data.phone ? `${phoneCountryCode} ${parsed.data.phone}`.trim() : null;
     setBusy(true);
     try {
       const { data, error } = await supabase.rpc("create_client", {
@@ -111,7 +112,7 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
       await logActivity("client.created", "client", row.id, { application_id: row.application_id });
       toast.success(`Created ${row.application_id}`);
       onOpenChange(false);
-      setCountry(""); setAppType(""); setTemplateId(""); setGender(""); setPhoneCountry("India");
+      setCountry(""); setAppType(""); setTemplateId(""); setGender(""); setPhoneCountryCode("+91"); setPhone("");
       onCreated();
     } catch (err) {
       const e = err as { code?: string; message?: string; details?: string; hint?: string } | null;
@@ -156,26 +157,13 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
               <Label htmlFor="email">Email</Label>
               <Input id="email" name="email" type="email" />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="phone">Phone</Label>
-              <div className="flex gap-2">
-                <Select value={phoneCountry} onValueChange={setPhoneCountry}>
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue>
-                      <span className="truncate">+{phoneCode} · {phoneCountry}</span>
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COUNTRY_OPTIONS.map((o) => (
-                      <SelectItem key={`${o.name}-${o.code}`} value={o.name}>
-                        +{o.code} · {o.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input id="phone" name="phone" className="flex-1" />
-              </div>
-            </div>
+            <PhoneInputRow
+              label="Phone"
+              countryCode={phoneCountryCode}
+              phone={phone}
+              onCountryCodeChange={setPhoneCountryCode}
+              onPhoneChange={setPhone}
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">

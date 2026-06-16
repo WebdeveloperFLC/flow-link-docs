@@ -17,10 +17,13 @@ import {
   StickyNote,
   Globe,
   Receipt,
+  CircleDollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { CountrySelect } from "@/components/leads/CountrySelect";
+import { PhoneInputRow } from "@/components/leads/PhoneInputRow";
+import { LeadJourneyFieldsBlock } from "@/components/leads/LeadJourneyFields";
 import { InterestedCountriesPicker } from "@/components/leads/InterestedCountriesPicker";
 import { ServiceTabs, type ServiceSelection } from "@/components/leads/ServiceTabs";
 import { FamilyMembersSection } from "@/components/clients/registration/FamilyMembersSection";
@@ -83,6 +86,7 @@ const CLIENT_SECTIONS: RegistrationSection[] = [
   { id: "education", label: "Education & Tests", shortLabel: "Education", icon: GraduationCap, hint: "Scores & experience" },
   { id: "family", label: "Family Members", shortLabel: "Family", icon: Users, hint: "Spouse, dependents" },
   { id: "services", label: "Services", shortLabel: "Services", icon: Briefcase, hint: "Confirm & fees" },
+  { id: "journey", label: "Funding & Timeline", shortLabel: "Funding", icon: CircleDollarSign, hint: "Sponsor, budget" },
   { id: "intake", label: "Intake & Branch", shortLabel: "Intake", icon: Building2, hint: "Branch, countries" },
   { id: "notes", label: "Counselor Notes", shortLabel: "Notes", icon: StickyNote, hint: "Internal notes" },
   { id: "portal", label: "Client Portal", shortLabel: "Portal", icon: Globe, hint: "Login access" },
@@ -110,6 +114,13 @@ export type LeadFieldSnapshot = {
   allied_services: string[];
   travel_services: string[];
   interested_countries: string[];
+  sponsor?: string | null;
+  sponsor_other?: string | null;
+  start_timeline?: string | null;
+  has_budget?: string | null;
+  budget_currency?: string | null;
+  budget_min?: number | null;
+  budget_max?: number | null;
 };
 
 type Props = {
@@ -177,6 +188,10 @@ export function ClientRegistrationPanel({
   const [departments, setDepartments] = useState<Department[]>([]);
   const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
   const [activeSection, setActiveSection] = useState(CLIENT_SECTIONS[0].id);
+  const visibleSections = useMemo(
+    () => (isColdLead ? CLIENT_SECTIONS.filter((s) => s.id !== "journey") : CLIENT_SECTIONS),
+    [isColdLead],
+  );
 
   useEffect(() => {
     fetchBranches().then(setBranches);
@@ -259,6 +274,13 @@ export function ClientRegistrationPanel({
       travel_financial_services: services.travel_services.length
         ? services.travel_services
         : lead.travel_services,
+      sponsor: f.sponsor ?? lead.sponsor ?? null,
+      sponsor_other: f.sponsor_other ?? lead.sponsor_other ?? null,
+      start_timeline: f.start_timeline ?? lead.start_timeline ?? null,
+      has_budget: f.has_budget ?? lead.has_budget ?? null,
+      budget_currency: f.budget_currency ?? lead.budget_currency ?? "INR",
+      budget_min: f.budget_min ?? lead.budget_min ?? null,
+      budget_max: f.budget_max ?? lead.budget_max ?? null,
       other_tests: otherTests,
       english_sections: f.english_sections ?? {},
       education_history: f.education_history ?? [],
@@ -579,10 +601,15 @@ export function ClientRegistrationPanel({
                 </>
               )}
               <div className="space-y-1.5">
-                <Label>Phone (alternate)</Label>
-                <Input
-                  value={f.phone_alternate ?? ""}
-                  onChange={(e) => setField("phone_alternate", e.target.value)}
+                <PhoneInputRow
+                  label="Phone (alternate)"
+                  countryCode={f.phone_alternate_country_code ?? "+91"}
+                  phone={f.phone_alternate ?? ""}
+                  onCountryCodeChange={(v) => {
+                    setField("phone_alternate_country_code", v);
+                    setTimeout(autosave, 0);
+                  }}
+                  onPhoneChange={(v) => setField("phone_alternate", v)}
                   onBlur={autosave}
                 />
               </div>
@@ -711,6 +738,31 @@ export function ClientRegistrationPanel({
                 })}
               </div>
             )}
+          </div>
+        );
+      case "journey":
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Sponsor, process timeline, and budget from the lead — editable here for the full student journey.
+            </p>
+            <LeadJourneyFieldsBlock
+              interestedCountries={interestedCountries}
+              value={{
+                sponsor: f.sponsor ?? getLeadFields().sponsor ?? null,
+                sponsor_other: f.sponsor_other ?? getLeadFields().sponsor_other ?? null,
+                start_timeline: f.start_timeline ?? getLeadFields().start_timeline ?? null,
+                has_budget: f.has_budget ?? getLeadFields().has_budget ?? null,
+                budget_currency: f.budget_currency ?? getLeadFields().budget_currency ?? "INR",
+                budget_min: f.budget_min ?? getLeadFields().budget_min ?? null,
+                budget_max: f.budget_max ?? getLeadFields().budget_max ?? null,
+              }}
+              onChange={(patch) => {
+                setF((p) => ({ ...p, ...patch }));
+                setTimeout(autosave, 0);
+              }}
+              onBlur={autosave}
+            />
           </div>
         );
       case "intake":
@@ -907,7 +959,7 @@ export function ClientRegistrationPanel({
   return (
     <div className="col-span-full grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-6">
       <RegistrationWorkspace
-        sections={CLIENT_SECTIONS}
+        sections={visibleSections}
         activeId={activeSection}
         onSectionChange={setActiveSection}
         title="Client Registration"

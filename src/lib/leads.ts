@@ -47,6 +47,12 @@ export interface Lead {
   last_education?: string | null;
   last_education_other?: string | null;
   start_timeline?: string | null;
+  sponsor?: string | null;
+  sponsor_other?: string | null;
+  has_budget?: string | null;
+  budget_currency?: string | null;
+  budget_min?: number | null;
+  budget_max?: number | null;
   lead_source?: string | null;
   lead_temperature: LeadTemperature;
   branch?: string | null;
@@ -72,6 +78,10 @@ const ENUM_NULL_IF_EMPTY: (keyof LeadDraft)[] = [
   "marital_status",
   "last_education",
   "start_timeline",
+  "sponsor",
+  "sponsor_other",
+  "has_budget",
+  "budget_currency",
   "lead_source",
   "branch",
   "department",

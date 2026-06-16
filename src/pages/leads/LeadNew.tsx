@@ -16,7 +16,8 @@ import { LeadModeToggle, type LeadMode } from "@/components/leads/LeadModeToggle
 import { RegionCountriesPicker } from "@/components/leads/RegionCountriesPicker";
 import { ServiceTabs, type ServiceSelection } from "@/components/leads/ServiceTabs";
 import { CountrySelect } from "@/components/leads/CountrySelect";
-import { PhoneCodeSelect } from "@/components/leads/PhoneCodeSelect";
+import { PhoneInputRow } from "@/components/leads/PhoneInputRow";
+import { LeadJourneyFieldsBlock } from "@/components/leads/LeadJourneyFields";
 import {
   upsertLeadAutosave,
   fetchLead,
@@ -120,6 +121,9 @@ const LeadNew = () => {
       country_of_citizenship: l.country_of_citizenship, country_of_residence: l.country_of_residence,
       last_education: l.last_education, last_education_other: l.last_education_other,
       start_timeline: l.start_timeline, lead_source: l.lead_source,
+      sponsor: l.sponsor, sponsor_other: l.sponsor_other,
+      has_budget: l.has_budget, budget_currency: l.budget_currency,
+      budget_min: l.budget_min, budget_max: l.budget_max,
       lead_temperature: l.lead_temperature, branch: l.branch, department: l.department,
       cold_pool_campaign: l.cold_pool_campaign,
     });
@@ -186,6 +190,13 @@ const LeadNew = () => {
     allied_services: services.allied_services,
     travel_services: services.travel_services,
     interested_countries: interestedCountries,
+    sponsor: (f.sponsor as string) || null,
+    sponsor_other: (f.sponsor_other as string) || null,
+    start_timeline: (f.start_timeline as string) || null,
+    has_budget: (f.has_budget as string) || null,
+    budget_currency: (f.budget_currency as string) || null,
+    budget_min: (f.budget_min as number) ?? null,
+    budget_max: (f.budget_max as number) ?? null,
   }), [f, services, interestedCountries]);
 
   const autosave = async (): Promise<string | null> => {
@@ -363,14 +374,15 @@ const LeadNew = () => {
         <Label>Email {isCold ? "" : "*"}</Label>
         <Input type="email" value={(f.email as string) || ""} onChange={(e) => setField("email", e.target.value)} onBlur={autosave} />
       </div>
-      <div className="space-y-1.5">
-        <Label>Phone Code</Label>
-        <PhoneCodeSelect value={(f.phone_country_code as string) || ""} onChange={(v) => { setField("phone_country_code", v); setTimeout(autosave, 0); }} />
-      </div>
-      <div className="space-y-1.5">
-        <Label>Phone {isCold ? "" : "*"}</Label>
-        <Input value={(f.phone as string) || ""} onChange={(e) => setField("phone", e.target.value)} onBlur={autosave} />
-      </div>
+      <PhoneInputRow
+        label={`Phone${isCold ? "" : " *"}`}
+        required={!isCold}
+        countryCode={(f.phone_country_code as string) || ""}
+        phone={(f.phone as string) || ""}
+        onCountryCodeChange={(v) => { setField("phone_country_code", v); setTimeout(autosave, 0); }}
+        onPhoneChange={(v) => setField("phone", v)}
+        onBlur={autosave}
+      />
     </div>
   );
 
@@ -528,7 +540,28 @@ const LeadNew = () => {
                 </Card>
 
                 <Card className="p-4 sm:p-6 space-y-4">
-                  <h3 className="font-semibold">4. Services Required *</h3>
+                  <h3 className="font-semibold">4. Funding &amp; Timeline</h3>
+                  <LeadJourneyFieldsBlock
+                    interestedCountries={interestedCountries}
+                    value={{
+                      sponsor: (f.sponsor as string) ?? null,
+                      sponsor_other: (f.sponsor_other as string) ?? null,
+                      start_timeline: (f.start_timeline as string) ?? null,
+                      has_budget: (f.has_budget as string) ?? null,
+                      budget_currency: (f.budget_currency as string) ?? "INR",
+                      budget_min: (f.budget_min as number) ?? null,
+                      budget_max: (f.budget_max as number) ?? null,
+                    }}
+                    onChange={(patch) => {
+                      setF((p) => ({ ...p, ...patch }));
+                      setTimeout(autosave, 0);
+                    }}
+                    onBlur={autosave}
+                  />
+                </Card>
+
+                <Card className="p-4 sm:p-6 space-y-4">
+                  <h3 className="font-semibold">5. Services Required *</h3>
                   <ServiceTabs
                     value={services}
                     onChange={(v) => { setServices(v); setTimeout(autosave, 0); }}
@@ -540,7 +573,7 @@ const LeadNew = () => {
                 </Card>
 
                 <Card className="p-4 sm:p-6 space-y-4">
-                  <h3 className="font-semibold">5. Assignment</h3>
+                  <h3 className="font-semibold">6. Assignment</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
                       <Label>Branch</Label>
@@ -601,7 +634,7 @@ const LeadNew = () => {
             )}
 
             <Card className="p-6 space-y-3">
-              <h3 className="font-semibold">{isCold ? "Notes" : "6. Notes"}</h3>
+              <h3 className="font-semibold">{isCold ? "Notes" : "7. Notes"}</h3>
               <Textarea
                 ref={notesRef}
                 value={notes}

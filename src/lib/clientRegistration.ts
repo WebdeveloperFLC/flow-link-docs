@@ -23,7 +23,7 @@ export interface FamilyMember extends FamilyMemberExtras {
 export interface EducationEntry {
   level?: string;
   institution?: string;
-  year?: number | null;
+  year?: string | null;
   percentage_cgpa?: string;
   country?: string;
   specialization?: string;
@@ -42,7 +42,7 @@ export interface ExperienceEntry {
 export interface FamilyMemberExtras {
   last_education?: string | null;
   institution_name?: string | null;
-  year_of_passing?: number | null;
+  year_of_passing?: string | null;
   percentage_cgpa?: string | null;
   english_test?: string | null;
   english_overall?: string | null;
@@ -77,6 +77,7 @@ export interface ClientRow {
   phone?: string | null;
   phone_country_code?: string | null;
   phone_alternate?: string | null;
+  phone_alternate_country_code?: string | null;
   country?: string | null;
   country_of_citizenship?: string | null;
   country_of_residence?: string | null;
@@ -88,7 +89,7 @@ export interface ClientRow {
   last_education?: string | null;
   last_education_other?: string | null;
   institution_name?: string | null;
-  year_of_passing?: number | null;
+  year_of_passing?: string | null;
   percentage_cgpa?: string | null;
   english_test?: string | null;
   english_overall?: string | null;
@@ -116,6 +117,13 @@ export interface ClientRow {
   travel_financial_services?: string[];
   service_fees?: Record<string, { amount: number; complimentary?: boolean; currency?: string }>;
   application_type?: string | null;
+  sponsor?: string | null;
+  sponsor_other?: string | null;
+  start_timeline?: string | null;
+  has_budget?: string | null;
+  budget_currency?: string | null;
+  budget_min?: number | null;
+  budget_max?: number | null;
 }
 
 export type ClientDraft = Partial<Omit<ClientRow, "id" | "registration_number" | "application_id">>;
@@ -152,6 +160,13 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     admission_services: lead.admission_services ?? [],
     allied_services: lead.allied_services ?? [],
     application_type: visaCode.includes("::") ? "Visa application" : visaCode || "Student Visa",
+    sponsor: lead.sponsor ?? null,
+    sponsor_other: lead.sponsor_other ?? null,
+    start_timeline: lead.start_timeline ?? null,
+    has_budget: lead.has_budget ?? null,
+    budget_currency: lead.budget_currency ?? "INR",
+    budget_min: lead.budget_min ?? null,
+    budget_max: lead.budget_max ?? null,
   };
 }
 

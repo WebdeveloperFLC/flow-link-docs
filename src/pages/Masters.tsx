@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Database, ArrowUp, ArrowDown, Building2, Users2, Workflow, BookOpen, Network } from "lucide-react";
+import { Plus, Pencil, Trash2, Database, ArrowUp, ArrowDown, Building2, Users2, Workflow, BookOpen, Network, DollarSign } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { refreshMaster, type MasterListKey, type MasterItem } from "@/lib/masters";
@@ -20,6 +20,7 @@ import { DepartmentsSection } from "@/components/masters/DepartmentsSection";
 import { ServiceLibraryMastersSection } from "@/components/masters/ServiceLibraryMastersSection";
 import { StagePipelinesSection } from "@/components/masters/StagePipelinesSection";
 import { AggregatorsSection } from "@/components/masters/AggregatorsSection";
+import { CurrenciesSection } from "@/components/masters/CurrenciesSection";
 
 interface MasterList {
   key: string;
@@ -30,6 +31,7 @@ interface MasterList {
 const SPECIAL_SECTIONS = [
   { key: "__branches", label: "Branches", icon: Building2 },
   { key: "__departments", label: "Departments", icon: Users2 },
+  { key: "__currencies", label: "Currency Master", icon: DollarSign },
   { key: "__service_library", label: "Service Library", icon: BookOpen },
   { key: "__stage_pipelines", label: "Stage pipelines", icon: Workflow },
   { key: "__aggregators", label: "Aggregators", icon: Network },
@@ -208,6 +210,7 @@ const Masters = () => {
         <div className="col-span-9 space-y-4">
           {activeKey === "__branches" && <BranchesSection />}
           {activeKey === "__departments" && <DepartmentsSection />}
+          {activeKey === "__currencies" && <CurrenciesSection />}
           {activeKey === "__service_library" && <ServiceLibraryMastersSection />}
           {activeKey === "__stage_pipelines" && <StagePipelinesSection />}
           {activeKey === "__aggregators" && <AggregatorsSection />}

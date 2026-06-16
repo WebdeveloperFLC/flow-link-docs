@@ -105,7 +105,7 @@ export const EducationExperienceFields = ({ value, onChange, onCommit, compact }
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Year of Passing</Label>
-                <Input type="number" value={e.year ?? ""} onChange={(ev) => patchEducation(i, { year: ev.target.value ? Number(ev.target.value) : null })} onBlur={commit} />
+                <Input type="date" value={e.year ?? ""} onChange={(ev) => patchEducation(i, { year: ev.target.value || null })} onBlur={commit} />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Percentage / CGPA</Label>

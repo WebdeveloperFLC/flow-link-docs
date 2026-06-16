@@ -36,6 +36,7 @@ import { ContentSetupSummary } from "@/components/service-library/admin/ContentS
 import { ServiceAcademyNavPanel } from "@/components/service-library/design/ServiceAcademyNavPanel";
 import { WorkflowTemplatePanel } from "@/components/templates/WorkflowTemplatePanel";
 import { buildServiceCode } from "@/lib/service-library/serviceCodes";
+import { MasterCurrencySelect } from "@/components/masters/MasterCurrencySelect";
 import {
   ALLOWED_SERVICE_LIBRARY_COUNTRIES, ALLOWED_COUNTRY_SET,
   type Master, type Override,
@@ -1381,8 +1382,6 @@ type PickerVariant = {
   is_active: boolean;
 };
 
-const GOVT_CURRENCIES = ["GBP", "EUR", "CAD", "AUD", "USD", "NZD", "INR"];
-
 function PackagesTab({ master }: { master: Master }) {
   const qc = useQueryClient();
   const variants = useQuery({
@@ -1501,16 +1500,14 @@ function PackagesTab({ master }: { master: Master }) {
               placeholder="Govt amt"
               onBlur={(e) => update(v.id, { govt_amount: numOrNull(e.target.value) })}
             />
-            <Select
-              value={v.govt_currency ?? "__none"}
-              onValueChange={(c) => update(v.id, { govt_currency: c === "__none" ? null : c })}
-            >
-              <SelectTrigger className="col-span-1"><SelectValue placeholder="Cur" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none">—</SelectItem>
-                {GOVT_CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <div className="col-span-1">
+              <MasterCurrencySelect
+                allowNone
+                value={v.govt_currency}
+                onValueChange={(c) => update(v.id, { govt_currency: c || null })}
+                className="h-9"
+              />
+            </div>
             <Input
               className="col-span-1"
               type="number"
@@ -1581,7 +1578,13 @@ function FeesTab({ master }: { master: Master }) {
           <div key={it.id} className="grid grid-cols-12 gap-2 rounded-lg border p-2">
             <Input className="col-span-4" defaultValue={it.fee_label} onBlur={(e) => update(it.id, { fee_label: e.target.value })} />
             <Input className="col-span-2" defaultValue={it.amount ?? ""} onBlur={(e) => update(it.id, { amount: e.target.value })} />
-            <Input className="col-span-1" defaultValue={it.currency ?? ""} onBlur={(e) => update(it.id, { currency: e.target.value })} />
+            <div className="col-span-1">
+              <MasterCurrencySelect
+                value={it.currency ?? "INR"}
+                onValueChange={(c) => update(it.id, { currency: c })}
+                className="h-9"
+              />
+            </div>
             <Input className="col-span-2" defaultValue={it.notes ?? ""} placeholder="Notes" onBlur={(e) => update(it.id, { notes: e.target.value })} />
             <Select value={it.country ?? "__all"} onValueChange={(v) => update(it.id, { country: v === "__all" ? null : v })}>
               <SelectTrigger className="col-span-2"><SelectValue /></SelectTrigger>

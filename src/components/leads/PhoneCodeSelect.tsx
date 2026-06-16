@@ -20,9 +20,10 @@ const REST_OPTS = ALL.filter((o) => !PINNED.includes(o.name)).sort((a, b) => a.n
 interface Props {
   value?: string | null; // stored as "+91"
   onChange: (v: string) => void;
+  className?: string;
 }
 
-export function PhoneCodeSelect({ value, onChange }: Props) {
+export function PhoneCodeSelect({ value, onChange, className }: Props) {
   const [open, setOpen] = useState(false);
   const current = useMemo(() => {
     const digits = (value || "").replace(/\D/g, "");
@@ -32,9 +33,19 @@ export function PhoneCodeSelect({ value, onChange }: Props) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
-          <span className="truncate">
-            {current ? <>{flag(current.a2)} +{current.code}</> : (value ? value : <span className="text-muted-foreground">+ code</span>)}
+        <Button variant="outline" role="combobox" className={cn("w-full justify-between font-normal gap-1", className)}>
+          <span className="truncate flex items-center gap-1.5 min-w-0">
+            {current ? (
+              <>
+                <span className="shrink-0">{flag(current.a2)}</span>
+                <span className="truncate">{current.name}</span>
+                <span className="text-muted-foreground shrink-0">+{current.code}</span>
+              </>
+            ) : value ? (
+              value
+            ) : (
+              <span className="text-muted-foreground">Country code</span>
+            )}
           </span>
           <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
         </Button>
