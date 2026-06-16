@@ -194,7 +194,7 @@ export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props
             <Field label="Counselor" value={counselorName ?? "Unassigned"} />
             {onOpenTab && (
               <div className="flex gap-2 pt-1">
-                <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => onOpenTab("programs")}>
+                <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => onOpenTab("profile")}>
                   Programmes
                 </Button>
                 <Button variant="outline" size="sm" className="h-8 text-xs" asChild>

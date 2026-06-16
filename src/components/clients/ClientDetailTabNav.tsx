@@ -5,8 +5,6 @@ import {
   Receipt,
   MessageSquare,
   FileText,
-  GitBranch,
-  GraduationCap,
   ListTodo,
   Users,
 } from "lucide-react";
@@ -16,8 +14,6 @@ import { cn } from "@/lib/utils";
 export const CLIENT_DETAIL_TABS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "profile", label: "Profile", icon: UserCircle },
-  { id: "setup", label: "Stage & Setup", icon: GitBranch },
-  { id: "programs", label: "Programs", icon: GraduationCap },
   { id: "documents", label: "Documents", icon: FolderOpen },
   { id: "forms", label: "Forms & Letters", icon: FileText },
   { id: "commercial", label: "Payments", icon: Receipt },
@@ -27,7 +23,13 @@ export const CLIENT_DETAIL_TABS = [
 ] as const;
 
 /** @deprecated Removed tabs — kept for URL redirects. */
-export const LEGACY_CLIENT_DETAIL_TABS = ["qualification", "family", "services"] as const;
+export const LEGACY_CLIENT_DETAIL_TABS = [
+  "qualification",
+  "family",
+  "services",
+  "setup",
+  "programs",
+] as const;
 
 export type ClientDetailTabId = (typeof CLIENT_DETAIL_TABS)[number]["id"];
 
@@ -39,7 +41,8 @@ export function isClientDetailTabId(value: string | null): value is ClientDetail
 export function resolveClientDetailTab(value: string | null): ClientDetailTabId {
   if (!value) return "overview";
   if (value === "qualification") return "overview";
-  if (value === "family" || value === "services") return "profile";
+  if (value === "setup") return "overview";
+  if (value === "family" || value === "services" || value === "programs") return "profile";
   if (isClientDetailTabId(value)) return value;
   return "overview";
 }

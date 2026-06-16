@@ -39,19 +39,32 @@ export function buildClientServiceEntries(
 ): ClientServiceEntry[] {
   return codes.map((code) => {
     const item = findCatalogueItemForStoredCode(code, catalogue);
-    const master = item?.master_key ?? "";
-    let category: ClientServiceEntry["category"] = "visa";
-    if (master === "coaching_services") category = "coaching";
-    else if (master === "admission_services") category = "admission";
-    else if (master === "allied_services") category = "allied";
-    else if (master === "travel_financial") category = "travel";
-
     return {
       code,
       label: resolveServiceLabelSync(code, catalogue, libraryLabels),
-      category,
+      category: categoryForCatalogueItem(item),
     };
   });
+}
+
+export function categoryForCatalogueItem(
+  item: ServiceCatalogueItem | null | undefined,
+): ClientServiceEntry["category"] {
+  const master = item?.master_key ?? "";
+  if (master === "coaching_services") return "coaching";
+  if (master === "admission_services") return "admission";
+  if (master === "allied_services") return "allied";
+  if (master === "travel_financial") return "travel";
+  return "visa";
+}
+
+export function isVisaServiceCode(
+  code: string | null | undefined,
+  catalogue: ServiceCatalogueItem[],
+): boolean {
+  if (!code) return false;
+  const item = findCatalogueItemForStoredCode(code, catalogue);
+  return categoryForCatalogueItem(item) === "visa";
 }
 
 function catalogueItemForCode(code: string, catalogue: ServiceCatalogueItem[]) {

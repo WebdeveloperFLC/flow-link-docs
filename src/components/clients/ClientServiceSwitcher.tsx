@@ -14,14 +14,31 @@ import { useServiceLabelMap } from "@/lib/service-library/useServiceLabelMap";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = {
   clientId: string;
   clientCountry?: string | null;
   onSwitched?: () => void;
+  /** Only list visa & immigration services (for staging bar). */
+  visaOnly?: boolean;
+  /** card = Stage & Setup pills; compact = header dropdown. */
+  variant?: "card" | "compact";
 };
 
-export function ClientServiceSwitcher({ clientId, clientCountry, onSwitched }: Props) {
+export function ClientServiceSwitcher({
+  clientId,
+  clientCountry,
+  onSwitched,
+  visaOnly = false,
+  variant = "card",
+}: Props) {
   const [params, setParams] = useSearchParams();
   const [services, setServices] = useState<ClientServiceEntry[]>([]);
   const [serviceCodes, setServiceCodes] = useState<string[]>([]);
@@ -50,15 +67,25 @@ export function ClientServiceSwitcher({ clientId, clientCountry, onSwitched }: P
       const entries = buildClientServiceEntries(codes, cat);
       setServices(entries);
 
-      if (entries.length <= 1) {
-        setActiveCode(entries[0]?.code ?? null);
+      const visaEntries = entries.filter((e) => e.category === "visa");
+      const pool = visaOnly ? visaEntries : entries;
+
+      if (pool.length === 0) {
+        setActiveCode(null);
+        return;
+      }
+
+      if (pool.length === 1) {
+        setActiveCode(pool[0]!.code);
         return;
       }
 
       const urlCode = params.get("service");
       let targetCode: string | null = null;
-      if (urlCode && codes.includes(urlCode)) {
+      if (urlCode && pool.some((e) => e.code === urlCode)) {
         targetCode = urlCode;
+      } else if (visaOnly) {
+        targetCode = visaEntries[0]?.code ?? null;
       } else {
         targetCode = await guessServiceCodeForPipeline(
           clientRes.data?.pipeline_id,
@@ -69,7 +96,6 @@ export function ClientServiceSwitcher({ clientId, clientCountry, onSwitched }: P
       }
       setActiveCode(targetCode);
 
-      // Sync pipeline only when URL explicitly selects a service (not on passive load).
       if (targetCode && params.get("service")) {
         const expected = await resolvePipelineForServiceCode(targetCode, cat, clientCountry);
         const currentPipeline = clientRes.data?.pipeline_id ?? null;
@@ -87,17 +113,17 @@ export function ClientServiceSwitcher({ clientId, clientCountry, onSwitched }: P
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sync once per client/URL service param
-  }, [clientId, clientCountry, params.get("service")]);
+  }, [clientId, clientCountry, params.get("service"), visaOnly]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   const labelMap = useServiceLabelMap(serviceCodes, catalogue);
-  const displayServices = useMemo(
-    () => services.map((s) => ({ ...s, label: labelMap.get(s.code) ?? s.label })),
-    [services, labelMap],
-  );
+  const displayServices = useMemo(() => {
+    const mapped = services.map((s) => ({ ...s, label: labelMap.get(s.code) ?? s.label }));
+    return visaOnly ? mapped.filter((s) => s.category === "visa") : mapped;
+  }, [services, labelMap, visaOnly]);
 
   const showSwitcher = displayServices.length > 1;
 
@@ -112,7 +138,7 @@ export function ClientServiceSwitcher({ clientId, clientCountry, onSwitched }: P
         clientCountry,
       });
       if (!ok) {
-        toast.error("No matching pipeline for this service — assign manually below");
+        toast.error("No matching pipeline for this service — assign a workflow template first");
         setActiveCode(code);
         setParams((p) => {
           const next = new URLSearchParams(p);
@@ -135,7 +161,58 @@ export function ClientServiceSwitcher({ clientId, clientCountry, onSwitched }: P
     }
   };
 
-  if (loading || !showSwitcher) return null;
+  if (loading) {
+    if (variant === "compact") {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+          <Loader2 className="size-3.5 animate-spin" />
+        </span>
+      );
+    }
+    return null;
+  }
+
+  if (displayServices.length === 0) return null;
+
+  if (variant === "compact") {
+    if (!showSwitcher) {
+      const only = displayServices[0];
+      if (!only) return null;
+      return (
+        <span className="text-xs font-medium text-muted-foreground truncate max-w-[200px] sm:max-w-xs">
+          {only.label}
+        </span>
+      );
+    }
+    return (
+      <Select
+        value={activeCode ?? undefined}
+        onValueChange={(v) => void onSelect(v)}
+        disabled={!!switching}
+      >
+        <SelectTrigger
+          className={cn(
+            "h-8 w-auto min-w-[10rem] max-w-[14rem] sm:max-w-xs text-xs font-medium border-primary/30 bg-primary/5",
+            switching && "opacity-60",
+          )}
+        >
+          {switching ? (
+            <Loader2 className="size-3.5 shrink-0 animate-spin mr-1" />
+          ) : null}
+          <SelectValue placeholder="Visa service" />
+        </SelectTrigger>
+        <SelectContent align="end">
+          {displayServices.map((s) => (
+            <SelectItem key={s.code} value={s.code} className="text-sm">
+              {s.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  }
+
+  if (!showSwitcher) return null;
 
   return (
     <div className="rounded-xl border bg-card p-2 shadow-elev-sm">

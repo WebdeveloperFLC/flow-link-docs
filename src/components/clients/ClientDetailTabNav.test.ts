@@ -8,6 +8,8 @@ describe("resolveClientDetailTab", () => {
   it("maps removed tabs to profile or overview", () => {
     expect(resolveClientDetailTab("family")).toBe("profile");
     expect(resolveClientDetailTab("services")).toBe("profile");
+    expect(resolveClientDetailTab("programs")).toBe("profile");
+    expect(resolveClientDetailTab("setup")).toBe("overview");
     expect(resolveClientDetailTab("qualification")).toBe("overview");
   });
 

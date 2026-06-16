@@ -73,16 +73,14 @@ import { AddRemarkDialog } from "@/components/clients/AddRemarkDialog";
 import { ClientChatWorkspace } from "@/components/clients/ClientChatWorkspace";
 import { ClientTimelineCard } from "@/components/clients/ClientTimelineCard";
 import { ClientTasksCard } from "@/components/clients/ClientTasksCard";
-import { HandoffHistoryCard } from "@/components/clients/HandoffHistoryCard";
 import { QuickActionsBar } from "@/components/clients/QuickActionsBar";
 import { ClientEmailCard } from "@/components/clients/ClientEmailCard";
 import { ClientVoiceNotesCard } from "@/components/clients/ClientVoiceNotesCard";
 import { AiSummaryPanel } from "@/components/clients/AiSummaryPanel";
 import { PersonWorkspaceCard } from "@/components/clients/PersonWorkspaceCard";
-import { ClientStageCard } from "@/components/clients/ClientStageCard";
-import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitcher";
-import { ClientSetupPanel } from "@/components/clients/ClientSetupPanel";
 import { ContextBackBar } from "@/components/navigation/ContextBackBar";
+import { isVisaServiceCode } from "@/lib/clientActiveService";
+import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
 import {
   parseLibraryIdFromServiceCode,
 } from "@/lib/service-library/serviceCodes";
@@ -121,6 +119,7 @@ interface Client {
   assigned_counselor_id?: string | null;
   current_stage_id?: string | null;
   pipeline_id?: string | null;
+  visa_services?: string[] | null;
 }
 
 interface Doc {
@@ -172,7 +171,8 @@ const ClientDetail = () => {
 
   useEffect(() => {
     if (!tabParam || tabParam === activeTab) return;
-    if (tabParam === "qualification" || tabParam === "family" || tabParam === "services") {
+    const legacy = ["qualification", "family", "services", "setup", "programs"];
+    if (legacy.includes(tabParam)) {
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev);
@@ -217,6 +217,11 @@ const ClientDetail = () => {
     "approved" | "refused" | "reapply" | null
   >(null);
   const [pendingAppointmentCount, setPendingAppointmentCount] = useState(0);
+  const [serviceCatalogue, setServiceCatalogue] = useState<ServiceCatalogueItem[]>([]);
+
+  useEffect(() => {
+    fetchAllServiceCatalogue().then(setServiceCatalogue).catch(() => setServiceCatalogue([]));
+  }, []);
 
   // Critical fetch — only what's needed for the first paint above the fold
   // (client + template + active documents + sections). Runs in parallel.
@@ -327,6 +332,16 @@ const ClientDetail = () => {
   }, [loadCritical]);
 
   const serviceCtx = useActiveServiceContext(client, searchParams);
+
+  const showVisaStaging = useMemo(() => {
+    if (!client) return false;
+    const visas = client.visa_services ?? [];
+    if (visas.length === 0) return false;
+    const code = serviceCtx.activeServiceCode;
+    if (!code) return true;
+    if (visas.includes(code)) return true;
+    return isVisaServiceCode(code, serviceCatalogue);
+  }, [client, serviceCtx.activeServiceCode, serviceCatalogue]);
   const {
     serviceCase,
     allCases,
@@ -1148,12 +1163,15 @@ const ClientDetail = () => {
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ClientDetailTabId)}>
         <ClientStageStepper
           clientId={client.id}
+          clientCountry={client.country}
           refreshKey={stageRefreshKey}
           activeServiceLabel={serviceCtx.serviceLabel}
           caseId={serviceCase?.id}
           caseClosed={caseClosed}
           caseOutcome={serviceCase?.outcome}
           onStageChanged={() => setStageRefreshKey((k) => k + 1)}
+          onServiceSwitched={onServiceSwitched}
+          visible={showVisaStaging}
         />
         <ClientDetailTabNav badges={{ documents: requiredMissing.length, communications: pendingAppointmentCount }} />
 
@@ -1191,33 +1209,6 @@ const ClientDetail = () => {
             />
             <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
             <ClientServicesCard clientId={client.id} canEdit={canUpload} />
-          </TabsContent>
-
-          <TabsContent value="setup" className="mt-0 space-y-6">
-            <ClientSetupPanel
-              clientId={client.id}
-              libraryId={serviceCtx.libraryId ?? slLibraryId}
-              destinationCountry={serviceCtx.destinationCountry}
-              onRefresh={load}
-            />
-            <ClientServiceSwitcher
-              clientId={client.id}
-              clientCountry={client.country}
-              onSwitched={onServiceSwitched}
-            />
-            <ClientStageCard
-              key={stageRefreshKey}
-              clientId={client.id}
-              clientCountry={client.country}
-              destinationCountry={serviceCtx.destinationCountry}
-              activeServiceLabel={serviceCtx.serviceLabel}
-              caseId={serviceCase?.id}
-              caseClosed={caseClosed}
-            />
-            <HandoffHistoryCard clientId={client.id} />
-          </TabsContent>
-
-          <TabsContent value="programs" className="mt-0 space-y-6">
             <ClientProgramsCard clientId={client.id} canEdit={canUpload} />
           </TabsContent>
 

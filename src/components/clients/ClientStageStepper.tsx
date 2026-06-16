@@ -1,28 +1,36 @@
-import { Workflow } from "lucide-react";
 import { useClientStage } from "@/hooks/useClientStage";
 import { StageJourneyBar } from "@/components/clients/StageJourneyBar";
 import { StageCheckboxPicker } from "@/components/clients/StageCheckboxPicker";
+import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitcher";
 import { OUTCOME_BADGE } from "@/lib/caseOutcomeStyles";
 import type { CaseOutcome } from "@/lib/clientServiceCase";
+import type { ReactNode } from "react";
 
 type Props = {
   clientId: string;
+  clientCountry?: string | null;
   refreshKey?: number;
   activeServiceLabel?: string | null;
   caseId?: string | null;
   caseClosed?: boolean;
   caseOutcome?: CaseOutcome | null;
   onStageChanged?: () => void;
+  onServiceSwitched?: () => void;
+  /** When false, render nothing (non-visa active service). */
+  visible?: boolean;
 };
 
 export function ClientStageStepper({
   clientId,
+  clientCountry,
   refreshKey = 0,
   activeServiceLabel,
   caseId,
   caseClosed,
   caseOutcome,
   onStageChanged,
+  onServiceSwitched,
+  visible = true,
 }: Props) {
   const {
     stages,
@@ -46,18 +54,36 @@ export function ClientStageStepper({
     onStageChanged?.();
   };
 
-  if (!hasPipeline) {
-    return (
-      <div className="border-b bg-muted/30 px-4 sm:px-8 py-3">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Workflow className="size-4 shrink-0" />
-          No pipeline assigned — assign one from Stage & Setup.
-        </div>
-      </div>
-    );
+  if (!visible || !hasPipeline) {
+    return null;
   }
 
-  const pipelineTitle = activeServiceLabel?.trim() || "Application pipeline";
+  const pipelineTitle = activeServiceLabel?.trim() || "Visa application";
+
+  const headerActions: ReactNode = (
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      <ClientServiceSwitcher
+        clientId={clientId}
+        clientCountry={clientCountry}
+        onSwitched={onServiceSwitched}
+        visaOnly
+        variant="compact"
+      />
+      {canUpload && stages.length > 0 && (
+        <StageCheckboxPicker
+          stages={stages}
+          completedStageIds={completedStageIds}
+          completionNotes={completionNotes}
+          displayLabel={displayLabel}
+          disabled={busy}
+          onTick={(id, note) => afterChange(() => tickStage(id, note))}
+          onUntick={(id) => afterChange(() => untickStage(id))}
+          onClearNote={(id) => afterChange(() => clearStageNote(id))}
+          triggerClassName="flex"
+        />
+      )}
+    </div>
+  );
 
   return (
     <div className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90">
@@ -81,25 +107,13 @@ export function ClientStageStepper({
         </div>
       )}
       <div className="px-4 sm:px-8 pt-3 pb-1 flex flex-wrap items-center justify-between gap-2">
-        <div className="text-xs font-medium text-muted-foreground truncate">
+        <div className="text-xs font-medium text-muted-foreground truncate min-w-0">
           {pipelineTitle}
           <span className="ml-2 text-foreground/80">
-            · {stepNumber ?? "?"} / {stepTotal}
+            · stage {stepNumber ?? "?"} of {stepTotal}
           </span>
         </div>
-        {canUpload && stages.length > 0 && (
-          <StageCheckboxPicker
-            stages={stages}
-            completedStageIds={completedStageIds}
-            completionNotes={completionNotes}
-            displayLabel={displayLabel}
-            disabled={busy}
-            onTick={(id, note) => afterChange(() => tickStage(id, note))}
-            onUntick={(id) => afterChange(() => untickStage(id))}
-            onClearNote={(id) => afterChange(() => clearStageNote(id))}
-            triggerClassName="flex"
-          />
-        )}
+        {headerActions}
       </div>
       <StageJourneyBar
         stages={stages}
