@@ -28,24 +28,17 @@ import {
   type Branch,
   type Department,
 } from "@/lib/leads";
-import { prefillFromLead, type ClientDraft } from "@/lib/clientRegistration";
 import { leadColdSchema, leadWarmHotSchema, GENDERS, MARITAL_STATUSES } from "@/lib/leadSchemas";
 import { useMasterItems, useMasterLabels } from "@/lib/masters";
 import { dialCodeFor } from "@/lib/countryCodes";
-import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
+import { buildServiceLibraryUrl, buildClientDetailUrlFromServiceLibrary } from "@/lib/service-library/serviceCodes";
 import { ContextBackBar } from "@/components/navigation/ContextBackBar";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
-import {
-  ClientRegistrationPanel,
-  type LeadFieldSnapshot,
-} from "@/components/crm/ClientRegistrationPanel";
-import { LeadSummaryStrip } from "@/components/crm/LeadSummaryStrip";
-import { cn } from "@/lib/utils";
+import { convertLeadToClient } from "@/lib/convertLeadToClient";
+import type { Lead } from "@/lib/leads";
 
 const VISA_LOCK_TEMPLATE = (reason: string) =>
   `Visa not pursued at this stage. Reason: ${reason || "(please specify)"}\n\nFollow-up: Re-engage when visa interest is expressed.\n\n`;
-
-type RegistrationPhase = "lead" | "client";
 
 const LeadNew = () => {
   const nav = useNavigate();
@@ -60,14 +53,12 @@ const LeadNew = () => {
   const initialMode: LeadMode = sp.get("mode") === "cold" ? "cold" : "warm_hot";
 
   const [mode, setMode] = useState<LeadMode>(initialMode);
-  const [phase, setPhase] = useState<RegistrationPhase>(registerClientParam ? "client" : "lead");
   const [leadId, setLeadId] = useState<string | null>(editId);
   const [leadNumber, setLeadNumber] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [clientSaving, setClientSaving] = useState(false);
+  const [converting, setConverting] = useState(false);
   const [convertedClientId, setConvertedClientId] = useState<string | null>(null);
-  const [initialClientDraft, setInitialClientDraft] = useState<ClientDraft | undefined>();
-  const clientSectionRef = useRef<HTMLDivElement>(null);
+  const autoConvertStarted = useRef(false);
 
   const [f, setF] = useState<Record<string, unknown>>({});
   const [services, setServices] = useState<ServiceSelection>({
@@ -140,7 +131,6 @@ const LeadNew = () => {
     setNotes(l.notes ?? "");
     if (l.converted_to_client_id) {
       setConvertedClientId(l.converted_to_client_id);
-      setInitialClientDraft(prefillFromLead(l));
     }
   }, []);
 
@@ -169,36 +159,6 @@ const LeadNew = () => {
     } as LeadDraft;
   };
 
-  const getLeadFields = useCallback((): LeadFieldSnapshot => ({
-    first_name: (f.first_name as string) || undefined,
-    middle_name: (f.middle_name as string) || null,
-    last_name: (f.last_name as string) || undefined,
-    email: (f.email as string) || null,
-    phone: (f.phone as string) || null,
-    phone_country_code: (f.phone_country_code as string) || null,
-    gender: (f.gender as string) || null,
-    marital_status: (f.marital_status as string) || null,
-    country_of_citizenship: (f.country_of_citizenship as string) || null,
-    country_of_residence: (f.country_of_residence as string) || null,
-    last_education: (f.last_education as string) || null,
-    last_education_other: (f.last_education_other as string) || null,
-    branch: (f.branch as string) || null,
-    department: (f.department as string) || null,
-    coaching_services: services.coaching_services,
-    visa_services: services.visa_services,
-    admission_services: services.admission_services,
-    allied_services: services.allied_services,
-    travel_services: services.travel_services,
-    interested_countries: interestedCountries,
-    sponsor: (f.sponsor as string) || null,
-    sponsor_other: (f.sponsor_other as string) || null,
-    start_timeline: (f.start_timeline as string) || null,
-    has_budget: (f.has_budget as string) || null,
-    budget_currency: (f.budget_currency as string) || null,
-    budget_min: (f.budget_min as number) ?? null,
-    budget_max: (f.budget_max as number) ?? null,
-  }), [f, services, interestedCountries]);
-
   const autosave = async (): Promise<string | null> => {
     if (!leadId) {
       const fn = (f.first_name as string)?.trim();
@@ -223,6 +183,84 @@ const LeadNew = () => {
       setSaving(false);
     }
   };
+
+  const mergeLeadFromForm = useCallback((lead: Lead): Lead => ({
+    ...lead,
+    coaching_services: services.coaching_services,
+    visa_services: services.visa_services,
+    admission_services: services.admission_services,
+    allied_services: services.allied_services,
+    interested_countries: interestedCountries,
+    notes,
+    ...(f as Partial<Lead>),
+  }), [f, services, interestedCountries, notes]);
+
+  const convertAndNavigate = async () => {
+    let id = leadId;
+    if (!id) {
+      id = await autosave();
+      if (!id) {
+        toast.error("Enter first and last name to save the lead first");
+        return;
+      }
+    } else {
+      await autosave();
+    }
+
+    const lead = await fetchLead(id);
+    if (!lead) {
+      toast.error("Lead not found");
+      return;
+    }
+    if (lead.converted_to_client_id) {
+      nav(`/clients/${lead.converted_to_client_id}`);
+      return;
+    }
+
+    setConverting(true);
+    try {
+      const merged = mergeLeadFromForm(lead);
+      const result = await convertLeadToClient(merged, {
+        leadNotes: notes,
+        slCountry,
+        slVisaService,
+        slServiceLabel,
+        slLibraryId,
+        slSubService,
+      });
+      const label = result.registrationNumber ?? result.clientId.slice(0, 8);
+      toast.success(result.alreadyConverted ? "Opening client profile" : `Client created: ${label}`);
+      if (slLibraryId) {
+        nav(
+          buildClientDetailUrlFromServiceLibrary({
+            clientId: result.clientId,
+            libraryId: slLibraryId,
+            country: slCountry,
+            serviceCode: slVisaService ?? undefined,
+          }),
+        );
+      } else {
+        nav(`/clients/${result.clientId}`);
+      }
+    } catch (e: unknown) {
+      toast.error(formatSupabaseError(e, "Conversion failed"));
+    } finally {
+      setConverting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!registerClientParam || !editId || autoConvertStarted.current) return;
+    if (convertedClientId) {
+      nav(`/clients/${convertedClientId}`);
+      return;
+    }
+    if (leadId && leadNumber) {
+      autoConvertStarted.current = true;
+      void convertAndNavigate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registerClientParam, editId, leadId, leadNumber, convertedClientId]);
 
   useEffect(() => {
     const cor = f.country_of_residence as string | undefined;
@@ -260,54 +298,6 @@ const LeadNew = () => {
     }
   };
 
-  const enterClientPhase = async () => {
-    let id = leadId;
-    if (!id) {
-      id = await autosave();
-      if (!id) {
-        toast.error("Enter first and last name to save the lead first");
-        return;
-      }
-    } else {
-      await autosave();
-    }
-
-    const lead = await fetchLead(id);
-    if (!lead) {
-      toast.error("Lead not found");
-      return;
-    }
-    if (lead.converted_to_client_id) {
-      nav(`/clients/${lead.converted_to_client_id}`);
-      return;
-    }
-
-    setInitialClientDraft(prefillFromLead(lead));
-    setPhase("client");
-    setTimeout(() => clientSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-  };
-
-  useEffect(() => {
-    if (!registerClientParam || !editId) return;
-    if (convertedClientId) return;
-    if (phase === "client" && initialClientDraft) return;
-    if (leadId && leadNumber) {
-      void enterClientPhase();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [registerClientParam, editId, leadId, leadNumber, convertedClientId]);
-
-  useEffect(() => {
-    if (phase !== "client" || !leadId || initialClientDraft) return;
-    fetchLead(leadId).then((lead) => {
-      if (!lead) return;
-      if (lead.converted_to_client_id) {
-        setConvertedClientId(lead.converted_to_client_id);
-      }
-      setInitialClientDraft(prefillFromLead(lead));
-    });
-  }, [phase, leadId, initialClientDraft]);
-
   const validateAndSubmit = async () => {
     const draft = buildDraft();
     const payload = mode === "cold"
@@ -331,7 +321,6 @@ const LeadNew = () => {
   };
 
   const isCold = mode === "cold";
-  const isClientPhase = phase === "client";
 
   const personalFields = (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -416,18 +405,16 @@ const LeadNew = () => {
         fallbackHref="/leads"
       />
       <PageHeader
-        title={isClientPhase ? "Register Client" : editId ? "Edit Lead" : "New Lead"}
+        title={editId ? "Edit Lead" : "New Lead"}
         description={
-          isClientPhase
-            ? "Complete the additional sections below to register this lead as a client."
-            : leadNumber
-              ? `Lead # ${leadNumber}`
-              : "Start with lead details. Click Register as Client when they confirm they want to proceed."
+          leadNumber
+            ? `Lead # ${leadNumber}`
+            : "Capture lead details, then Register as Client to open the client profile."
         }
         actions={
           <div className="flex items-center gap-2 flex-wrap justify-end">
-            {(saving || clientSaving) && (
-              <span className="text-xs text-muted-foreground">Saving…</span>
+            {(saving || converting) && (
+              <span className="text-xs text-muted-foreground">{converting ? "Converting…" : "Saving…"}</span>
             )}
             {slLibraryId ? (
               <Button
@@ -442,16 +429,25 @@ const LeadNew = () => {
                 Cancel
               </Button>
             )}
-            {!isClientPhase && (
+            {convertedClientId ? (
+              <Button variant="outline" onClick={() => nav(`/clients/${convertedClientId}`)}>
+                View Client
+              </Button>
+            ) : (
               <>
                 <Button
                   variant="secondary"
-                  onClick={enterClientPhase}
-                  disabled={saving || (!(f.first_name as string)?.trim() || !(f.last_name as string)?.trim())}
+                  onClick={convertAndNavigate}
+                  disabled={
+                    converting ||
+                    saving ||
+                    !(f.first_name as string)?.trim() ||
+                    !(f.last_name as string)?.trim()
+                  }
                   title={
                     !(f.first_name as string)?.trim() || !(f.last_name as string)?.trim()
                       ? "Enter first and last name first"
-                      : "Unlock client registration sections"
+                      : "Create client and open profile"
                   }
                 >
                   <UserCheck className="size-4 mr-1" />
@@ -460,37 +456,20 @@ const LeadNew = () => {
                 <Button onClick={validateAndSubmit}>Save &amp; View</Button>
               </>
             )}
-            {isClientPhase && convertedClientId && (
-              <Button variant="outline" onClick={() => nav(`/clients/${convertedClientId}`)}>
-                View Client
-              </Button>
-            )}
           </div>
         }
       />
-      <div
-        className={cn(
-          "p-3 sm:p-6 mx-auto space-y-6",
-          isClientPhase ? "max-w-7xl" : "max-w-5xl",
-        )}
-      >
-        {!isClientPhase ? (
-          <Card className="p-3 bg-muted/40 border-dashed text-sm text-muted-foreground">
-            Capture lead details first. When the person confirms they want to proceed, click{" "}
-            <span className="font-semibold text-foreground">Register as Client</span> to unlock
-            academics, family, and invoice sections.
-            {leadNumber && (
-              <span className="block mt-1 text-foreground/80">Lead # {leadNumber} · autosaves when you leave a field</span>
-            )}
-          </Card>
-        ) : !leadId ? (
-          <Card className="p-3 bg-amber-500/10 border-amber-500/30 text-sm">
-            Enter first and last name — the lead saves on blur, then client registration sections appear below.
-          </Card>
-        ) : null}
+      <div className="p-3 sm:p-6 mx-auto space-y-6 max-w-5xl">
+        <Card className="p-3 bg-muted/40 border-dashed text-sm text-muted-foreground">
+          When the person confirms they want to proceed, click{" "}
+          <span className="font-semibold text-foreground">Register as Client</span> — the client is created
+          immediately and you are taken to their profile. A draft invoice is generated from selected services.
+          {leadNumber && (
+            <span className="block mt-1 text-foreground/80">Lead # {leadNumber} · autosaves when you leave a field</span>
+          )}
+        </Card>
 
-        {!isClientPhase && (
-          <>
+        <>
             <div className="flex items-center justify-between gap-4">
               <LeadModeToggle value={mode} onChange={setMode} disabled={!!leadId} />
               {leadId && <span className="text-xs text-muted-foreground">Mode locked after first save</span>}
@@ -645,74 +624,7 @@ const LeadNew = () => {
                 placeholder="Counsellor notes, follow-up plan, special considerations…"
               />
             </Card>
-          </>
-        )}
-
-        {isClientPhase && (
-          <>
-            <LeadSummaryStrip
-              leadNumber={leadNumber ?? "—"}
-              fields={getLeadFields()}
-              notes={notes}
-            >
-              <div className="space-y-4">
-                <div className="flex items-center justify-between gap-2">
-                  <LeadModeToggle value={mode} onChange={setMode} disabled />
-                  <span className="text-xs text-muted-foreground">Lead fields (autosave on blur)</span>
-                </div>
-                {personalFields}
-                {!isCold && (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t">
-                      <div className="space-y-1.5">
-                        <Label>Branch</Label>
-                        <Select value={(f.branch as string) || ""} onValueChange={(v) => { setField("branch", v); setTimeout(autosave, 0); }}>
-                          <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                          <SelectContent>{branches.map((b) => <SelectItem key={b.id} value={b.name}>{b.name}</SelectItem>)}</SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Department</Label>
-                        <Select value={(f.department as string) || ""} onValueChange={(v) => { setField("department", v); setTimeout(autosave, 0); }}>
-                          <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                          <SelectContent>{departments.map((d) => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}</SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <ServiceTabs
-                      value={services}
-                      onChange={(v) => { setServices(v); setTimeout(autosave, 0); }}
-                      visaLocked={visaLocked}
-                      interestedCountries={interestedCountries}
-                      layout="compact"
-                    />
-                  </>
-                )}
-              </div>
-            </LeadSummaryStrip>
-
-            {leadId && leadNumber && (
-              <div ref={clientSectionRef}>
-                <ClientRegistrationPanel
-                  leadId={leadId}
-                  leadNumber={leadNumber}
-                  leadNotes={notes}
-                  isColdLead={isCold}
-                  getLeadFields={getLeadFields}
-                  initialClientDraft={initialClientDraft}
-                  existingClientId={convertedClientId}
-                  slCountry={slCountry}
-                  slVisaService={slVisaService}
-                  slServiceLabel={slServiceLabel}
-                  slLibraryId={slLibraryId}
-                  slSubService={slSubService}
-                  onClientIdChange={setConvertedClientId}
-                  onSavingChange={setClientSaving}
-                />
-              </div>
-            )}
-          </>
-        )}
+        </>
       </div>
     </AppLayout>
   );

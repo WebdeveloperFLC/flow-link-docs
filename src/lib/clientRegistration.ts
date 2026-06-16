@@ -124,6 +124,7 @@ export interface ClientRow {
   budget_currency?: string | null;
   budget_min?: number | null;
   budget_max?: number | null;
+  lead_source?: string | null;
 }
 
 export type ClientDraft = Partial<Omit<ClientRow, "id" | "registration_number" | "application_id">>;
@@ -167,6 +168,7 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     budget_currency: lead.budget_currency ?? "INR",
     budget_min: lead.budget_min ?? null,
     budget_max: lead.budget_max ?? null,
+    lead_source: lead.lead_source ?? null,
   };
 }
 

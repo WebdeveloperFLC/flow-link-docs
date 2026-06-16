@@ -28,6 +28,16 @@ export function clientToProfilePatch(
   if (sections?.writing) patch.ielts_writing = sections.writing;
   if (sections?.speaking) patch.ielts_speaking = sections.speaking;
   if (spouseName?.trim()) patch.spouse_name = spouseName.trim();
+  if (client.sponsor) patch.sponsor = client.sponsor;
+  if (client.sponsor_other) patch.sponsor_other = client.sponsor_other;
+  if (client.start_timeline) patch.start_timeline = client.start_timeline;
+  if (client.has_budget) patch.has_budget = client.has_budget;
+  if (client.budget_currency) patch.budget_currency = client.budget_currency;
+  if (client.budget_min != null) patch.budget_min = client.budget_min;
+  if (client.budget_max != null) patch.budget_max = client.budget_max;
+  if (client.interested_countries?.length) patch.interested_countries = client.interested_countries;
+  if (client.lead_source) patch.lead_source = client.lead_source;
+  if (client.counselor_notes) patch.counselor_notes = client.counselor_notes;
   return patch;
 }
 

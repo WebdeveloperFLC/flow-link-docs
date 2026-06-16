@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fetchLead, fetchServiceCodeMap, type Lead } from "@/lib/leads";
+import { convertLeadToClient } from "@/lib/convertLeadToClient";
+import { formatSupabaseError } from "@/lib/formatSupabaseError";
 import { LeadOwnerCard } from "@/components/leads/LeadOwnerCard";
 import { WhatsAppInboxLink } from "@/components/whatsapp/WhatsAppInboxLink";
 import { leadPhoneToE164 } from "@/lib/whatsapp/phone";
@@ -49,6 +51,25 @@ const LeadDetail = () => {
   const [loading, setLoading] = useState(true);
   const [serviceMap, setServiceMap] = useState<Map<string, string>>(new Map());
   const [convertedClient, setConvertedClient] = useState<{ id: string; client_number: string | null } | null>(null);
+  const [converting, setConverting] = useState(false);
+
+  const onRegisterAsClient = async () => {
+    if (!lead) return;
+    if (lead.converted_to_client_id) {
+      nav(`/clients/${lead.converted_to_client_id}`);
+      return;
+    }
+    setConverting(true);
+    try {
+      const result = await convertLeadToClient(lead, { leadNotes: lead.notes ?? undefined });
+      toast.success(`Client created — opening profile`);
+      nav(`/clients/${result.clientId}`);
+    } catch (e: unknown) {
+      toast.error(formatSupabaseError(e, "Conversion failed"));
+    } finally {
+      setConverting(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -84,8 +105,9 @@ const LeadDetail = () => {
               <Pencil className="h-4 w-4 mr-1" /> Edit
             </Button>
             {lead.status !== "converted" ? (
-              <Button onClick={() => nav(`/leads/new?id=${lead.id}&register_client=1`)}>
-                <UserCheck className="h-4 w-4 mr-1" /> Register as Client
+              <Button onClick={onRegisterAsClient} disabled={converting}>
+                <UserCheck className="h-4 w-4 mr-1" />
+                {converting ? "Converting…" : "Register as Client"}
               </Button>
             ) : convertedClient ? (
               <Button variant="outline" asChild>

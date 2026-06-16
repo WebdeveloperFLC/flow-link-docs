@@ -32,6 +32,8 @@ import { ShareLinkDialog } from "@/components/documents/ShareLinkDialog";
 import { BINDER_GROUPS, groupForType } from "@/lib/binderGroups";
 import { AddDocTypeDialog, type ExtraItem } from "@/components/clients/AddDocTypeDialog";
 import { ClientProfileCard } from "@/components/clients/ClientProfileCard";
+import { ClientJourneyProfileSection } from "@/components/clients/ClientJourneyProfileSection";
+import { ClientLocationPreferencesSection } from "@/components/clients/ClientLocationPreferencesSection";
 import { ClientPaymentsCard } from "@/components/clients/ClientPaymentsCard";
 import { ClientServicesCard } from "@/components/clients/ClientServicesCard";
 import { ClientProgramsCard } from "@/components/clients/ClientProgramsCard";
@@ -1194,6 +1196,18 @@ const ClientDetail = () => {
               onSyncOdoo={onSyncOdoo}
               syncingOdoo={syncingOdoo}
               refreshKey={profileRefreshKey}
+            />
+            <ClientJourneyProfileSection clientId={client.id} canEdit={canUpload} />
+            <ClientLocationPreferencesSection
+              clientId={client.id}
+              canEdit={canUpload}
+              services={{
+                coaching_services: client.coaching_services ?? [],
+                visa_services: client.visa_services ?? [],
+                admission_services: client.admission_services ?? [],
+                allied_services: client.allied_services ?? [],
+                travel_services: client.travel_financial_services ?? [],
+              }}
             />
             <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
             <ClientServicesCard clientId={client.id} canEdit={canUpload} />

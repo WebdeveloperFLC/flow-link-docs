@@ -28,6 +28,7 @@ import { getFxRate, SUPPORTED_CURRENCIES, convert } from "@/accounting/lib/fx";
 import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/accounting/lib/paymentProof";
 import { Checkbox } from "@/components/ui/checkbox";
 import { verifyPayment, rejectPayment, openPaymentProof } from "@/accounting/lib/paymentVerification";
+import { checkPaymentPermissions, paymentStatusLabel } from "@/lib/paymentApprovers";
 import { appendTimeline } from "@/lib/timeline";
 import { buildCatalogueLookup, fetchAllServiceCatalogue } from "@/lib/leads";
 import {
@@ -193,6 +194,7 @@ export function ClientInvoicesPanel({
   const [paymentCount, setPaymentCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [isAccounts, setIsAccounts] = useState(false);
+  const [canApprove, setCanApprove] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [editInvoice, setEditInvoice] = useState<Invoice | null>(null);
   const [collectFor, setCollectFor] = useState<Invoice | null>(null);
@@ -283,6 +285,8 @@ export function ClientInvoicesPanel({
       ]);
       const adm = (roles ?? []).some((r: any) => r.role === "admin");
       setIsAccounts(!!au || adm);
+      const perms = await checkPaymentPermissions(u.user.id);
+      setCanApprove(perms.canApprove);
     })();
 
     const ch = supabase
@@ -429,16 +433,16 @@ export function ClientInvoicesPanel({
                 const totals = computeInvoiceTotals(r, verifiedPaidByInvoice[r.id] ?? 0);
                 const discountSummary = summarizeInvoiceDiscounts(r);
                 const balance = totals.outstanding;
-                const collectDisabled = !isAccounts || balance <= 0 || TERMINAL_STATUSES.has(r.status);
+                const collectDisabled = balance <= 0 || TERMINAL_STATUSES.has(r.status);
                 const remLocked =
                   !!r.external_request_sent_today ||
                   (!!r.invoice_reminder_locked_until && new Date(r.invoice_reminder_locked_until) > new Date());
                 const verifiedIds = verifiedPaymentsByInvoice[r.id] ?? [];
                 const unreceiptedVerified = verifiedIds.filter((id) => !receiptedPaymentIds.has(id)).length;
                 const allVerifiedReceipted = verifiedIds.length > 0 && unreceiptedVerified === 0;
-                const receiptDisabled = !isAccounts || totals.paid <= 0 || allVerifiedReceipted;
-                const receiptTitle = !isAccounts
-                  ? "Only accounts users can generate receipts."
+                const receiptDisabled = !canApprove || totals.paid <= 0 || allVerifiedReceipted;
+                const receiptTitle = !canApprove
+                  ? "Only authorized finance users can issue official receipts."
                   : totals.paid <= 0
                     ? "No verified payments yet"
                     : allVerifiedReceipted
@@ -511,17 +515,17 @@ export function ClientInvoicesPanel({
                         className="ml-1"
                         disabled={collectDisabled}
                         title={
-                          !isAccounts
-                            ? "Only accounts users can post payments."
-                            : TERMINAL_STATUSES.has(r.status)
-                              ? `Invoice is ${r.status}`
-                              : balance <= 0
-                                ? "Nothing outstanding"
-                                : undefined
+                          TERMINAL_STATUSES.has(r.status)
+                            ? `Invoice is ${r.status}`
+                            : balance <= 0
+                              ? "Nothing outstanding"
+                              : canApprove
+                                ? "Collect payment"
+                                : "Record payment (pending verification)"
                         }
                         onClick={() => setCollectFor(r)}
                       >
-                        <DollarSign className="size-3.5 mr-1" /> Collect
+                        <DollarSign className="size-3.5 mr-1" /> {canApprove ? "Collect" : "Record"}
                       </Button>
                       <Button
                         size="sm"
@@ -544,7 +548,7 @@ export function ClientInvoicesPanel({
 
       {/* Awaiting verification queue */}
       {!loading && pending.length > 0 && (
-        <PendingVerificationQueue payments={pending} invoices={rows} isAccounts={isAccounts} onChange={load} />
+        <PendingVerificationQueue payments={pending} invoices={rows} canApprove={canApprove} onChange={load} />
       )}
 
       {createOpen && (
@@ -565,6 +569,7 @@ export function ClientInvoicesPanel({
       {collectFor && (
         <CollectPaymentDialog
           invoice={collectFor}
+          canApprove={canApprove}
           onClose={() => {
             setCollectFor(null);
             load();
@@ -603,12 +608,12 @@ export function ClientInvoicesPanel({
 function PendingVerificationQueue({
   payments,
   invoices,
-  isAccounts,
+  canApprove,
   onChange,
 }: {
   payments: any[];
   invoices: Invoice[];
-  isAccounts: boolean;
+  canApprove: boolean;
   onChange: () => void;
 }) {
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -632,7 +637,7 @@ function PendingVerificationQueue({
   return (
     <div className="mt-4 rounded-md border border-amber-500/30 bg-amber-500/5">
       <div className="px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-400 flex items-center gap-2">
-        <Clock className="size-3.5" /> Awaiting verification ({payments.length})
+        <Clock className="size-3.5" /> Pending verification ({payments.length})
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -668,7 +673,7 @@ function PendingVerificationQueue({
                           : "bg-amber-500/10 text-amber-700 border-amber-500/20"
                       }
                     >
-                      {rejected ? "rejected" : "awaiting verification"}
+                      {rejected ? "rejected" : paymentStatusLabel("awaiting_verification")}
                     </Badge>
                     {rejected && p.verification_rejected_reason && (
                       <div className="text-[11px] text-destructive mt-0.5">{p.verification_rejected_reason}</div>
@@ -680,7 +685,7 @@ function PendingVerificationQueue({
                         View proof
                       </Button>
                     )}
-                    {isAccounts && !rejected && (
+                    {canApprove && !rejected && (
                       <>
                         <Button
                           size="sm"
@@ -1508,7 +1513,15 @@ function InvoiceEditorDialog({
 }
 
 /* ───────────────────── Collect Payment ───────────────────── */
-function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose: () => void }) {
+function CollectPaymentDialog({
+  invoice,
+  canApprove: canApproveProp,
+  onClose,
+}: {
+  invoice: Invoice;
+  canApprove: boolean;
+  onClose: () => void;
+}) {
   const balance = Math.max(Number(invoice.amount) - Number(invoice.amount_paid || 0), 0);
   const invCcy = (invoice.currency || "INR").toUpperCase();
 
@@ -1554,28 +1567,21 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmNote, setConfirmNote] = useState("");
-  const [isAccountsUser, setIsAccountsUser] = useState(false);
+  const [canApprove, setCanApprove] = useState(canApproveProp);
   const [isAdmin, setIsAdmin] = useState(false);
-  // Admin override: post a payment without proof and mark it verified immediately.
-  // Restores the legacy "trusted admin" flow that bypasses the verification queue.
   const [adminOverride, setAdminOverride] = useState(false);
+
+  useEffect(() => {
+    setCanApprove(canApproveProp);
+  }, [canApproveProp]);
 
   useEffect(() => {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u?.user) return;
-      const [{ data: au }, { data: roles }] = await Promise.all([
-        supabase
-          .from("accounting_users")
-          .select("id")
-          .eq("auth_user_id", u.user.id)
-          .eq("status", "ACTIVE")
-          .maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", u.user.id),
-      ]);
-      const adm = (roles ?? []).some((r: any) => r.role === "admin");
-      setIsAccountsUser(!!au || adm);
-      setIsAdmin(adm);
+      const perms = await checkPaymentPermissions(u.user.id);
+      setCanApprove(perms.canApprove);
+      setIsAdmin(perms.isAdmin);
     })();
   }, []);
 
@@ -1872,10 +1878,10 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
       // forceAwaiting (from "Submit for verification" button) also pins to awaiting_verification.
       // Admin override (admins only) pins the payment to "verified" and skips the queue.
       const baseStatus = defaultPaymentStatus(method);
-      const overrideActive = isAdmin && adminOverride;
+      const overrideActive = isAdmin && adminOverride && canApprove;
       const status = overrideActive
         ? "verified"
-        : forceAwaiting || !isAccountsUser
+        : forceAwaiting || !canApprove
           ? "awaiting_verification"
           : baseStatus;
       // Breadcrumbs: admin override decision → payment status resolution → routing.
@@ -1886,7 +1892,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
         method,
         baseStatus,
         forceAwaiting,
-        isAccountsUser,
+        canApprove,
         resolvedStatus: status,
         proofAttached: !!proofFile,
       });
@@ -2484,7 +2490,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
         <AlertDialogContent className="z-[70] w-[95vw] sm:max-w-[600px] max-h-[88vh] overflow-y-auto p-6 gap-4">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {!isAccountsUser || willBeAwaitingVerification
+              {!canApprove || willBeAwaitingVerification
                 ? "Submit payment for verification?"
                 : "Confirm payment received?"}
             </AlertDialogTitle>
@@ -2533,7 +2539,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
                 placeholder="e.g. Cash received at branch, Bank transfer confirmed…"
               />
             </div>
-            {!isAccountsUser || willBeAwaitingVerification ? (
+            {!canApprove || willBeAwaitingVerification ? (
               <div className="text-amber-700 text-xs">
                 This payment will be marked <b>awaiting verification</b>. It will NOT reduce outstanding until an
                 accounts user verifies it.
@@ -2547,7 +2553,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
 
           <AlertDialogFooter className="pt-2">
             <AlertDialogCancel disabled={saving}>Cancel</AlertDialogCancel>
-            {isAccountsUser && !willBeAwaitingVerification && (
+            {canApprove && !willBeAwaitingVerification && (
               <Button variant="outline" disabled={saving} onClick={() => save(true)}>
                 Submit for verification instead
               </Button>
@@ -2556,12 +2562,12 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
               disabled={saving}
               onClick={(e) => {
                 e.preventDefault();
-                void save(!isAccountsUser || willBeAwaitingVerification);
+                void save(!canApprove || willBeAwaitingVerification);
               }}
             >
               {saving
                 ? "Posting…"
-                : !isAccountsUser || willBeAwaitingVerification
+                : !canApprove || willBeAwaitingVerification
                   ? "Submit for verification"
                   : "Confirm payment received"}
             </AlertDialogAction>
