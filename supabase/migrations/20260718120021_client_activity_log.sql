@@ -28,7 +28,7 @@ CREATE INDEX IF NOT EXISTS idx_client_activity_log_action
   ON public.client_activity_log (client_id, action, created_at DESC);
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_client_activity_log_source_unique
-  ON public.client_activity_log (source_table, source_id)
+  ON public.client_activity_log (source_table, source_id, client_id)
   WHERE source_table IS NOT NULL AND source_id IS NOT NULL;
 
 ALTER TABLE public.client_activity_log ENABLE ROW LEVEL SECURITY;
@@ -237,7 +237,7 @@ FROM public.clients c
 JOIN public.leads l ON l.id = c.source_lead_id
 WHERE NOT EXISTS (
   SELECT 1 FROM public.client_activity_log cal
-  WHERE cal.source_table = 'leads' AND cal.source_id = l.id AND cal.action = 'lead_created'
+  WHERE cal.source_table = 'leads' AND cal.source_id = l.id AND cal.client_id = c.id AND cal.action = 'lead_created'
 );
 
 INSERT INTO public.client_activity_log (
@@ -263,7 +263,7 @@ FROM public.clients c
 JOIN public.leads l ON l.id = c.source_lead_id
 WHERE NOT EXISTS (
   SELECT 1 FROM public.client_activity_log cal
-  WHERE cal.source_table = 'leads_converted' AND cal.source_id = l.id
+  WHERE cal.source_table = 'leads_converted' AND cal.source_id = l.id AND cal.client_id = c.id
 );
 
 -- Backfill: lead remarks linked to client
