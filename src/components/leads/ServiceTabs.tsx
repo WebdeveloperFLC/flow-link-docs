@@ -117,31 +117,6 @@ export const ServiceTabs = ({
   }, [activePickerTab, byKey, visaCountry, interestedCountries, feeCurrency, visaLocked]);
 
   const totalCount = totalSelectionCount(value);
-  const visaNoCountriesPicked =
-    interestedCountries !== undefined && interestedCountries.length === 0;
-
-  const categoryAddButton = (
-    tab: (typeof SERVICE_TABS)[number],
-    opts?: { disabled?: boolean },
-  ) => {
-    const count = tabSelectionCount(tab.key, value);
-    const isVisa = tab.key === "visa_services";
-    const locked = isVisa && visaLocked;
-    const disabled = opts?.disabled ?? (locked || (isVisa && visaNoCountriesPicked));
-    return (
-      <Button
-        key={tab.key}
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={disabled}
-        onClick={() => setPickerTab(tab.key)}
-      >
-        <Plus className="size-4 mr-1.5" />
-        {tab.label}: {count > 0 ? "Edit services" : "Add services"}
-      </Button>
-    );
-  };
 
   return (
     <>
@@ -180,18 +155,11 @@ export const ServiceTabs = ({
             catalogue={catalogue}
             onChange={onChange}
           />
-          {layout === "compact" ? (
-            <div className="space-y-3">
-              {totalCount === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  No services selected yet. Use the buttons below or switch to a category tab.
-                </p>
-              )}
-              <div className="flex flex-wrap gap-2">
-                {SERVICE_TABS.map((t) => categoryAddButton(t))}
-              </div>
-            </div>
-          ) : null}
+          {layout === "compact" && totalCount === 0 && (
+            <p className="text-sm text-muted-foreground">
+              No services selected yet. Switch to a category tab to add services.
+            </p>
+          )}
         </TabsContent>
 
         {SERVICE_TABS.map((t) => {
