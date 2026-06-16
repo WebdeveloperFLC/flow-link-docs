@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Mail, Copy, Loader2, X, Send, UserCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
+import { publicUrl } from "@/lib/publicUrl";
 
 interface Invite {
   id: string;
@@ -60,11 +61,19 @@ export function InviteClientCard({ clientId, defaultEmail }: { clientId: string;
       return;
     }
     const link = (data as any).link as string;
-    const emailed = (data as any).emailed as boolean;
+    const emailed = Boolean((data as any).emailed);
+    const emailError = (data as any).emailError as string | undefined;
     await navigator.clipboard.writeText(link).catch(() => undefined);
-    toast.success(
-      emailed ? "Invite sent by email — link copied to clipboard" : "Invite link copied — paste it to the client",
-    );
+    if (emailed) {
+      toast.success("Invite email queued — link also copied to clipboard", {
+        description: "Ask the client to check inbox and spam. Link uses dms.futurelinkconsultants.com.",
+      });
+    } else {
+      toast.warning(emailError ?? "Email was not sent — invite link copied to clipboard", {
+        description: "Paste the link in WhatsApp or resend to a different email.",
+        duration: 8000,
+      });
+    }
     // Notify assigned counselor / owner that portal invite was sent
     try {
       const { data: cli } = await supabase
@@ -107,7 +116,7 @@ export function InviteClientCard({ clientId, defaultEmail }: { clientId: string;
       toast.error(error?.message ?? "Only the inviter or an admin can copy this link");
       return;
     }
-    const link = `${window.location.origin}/portal/invite?token=${token}`;
+    const link = publicUrl(`/portal/invite?token=${token}`);
     await navigator.clipboard.writeText(link);
     toast.success("Link copied");
   };
@@ -127,6 +136,11 @@ export function InviteClientCard({ clientId, defaultEmail }: { clientId: string;
       )}
       <div className="space-y-2">
         <Label className="text-xs">Email</Label>
+        <p className="text-[11px] text-muted-foreground leading-snug">
+          Invite links open on{" "}
+          <span className="font-medium">dms.futurelinkconsultants.com</span>. If email does not arrive,
+          use Copy in history and send via WhatsApp.
+        </p>
         <div className="flex gap-2">
           <Input
             value={email}
