@@ -77,7 +77,7 @@ export function SelectedServicesPanel({
             ? "Services are locked while the application pipeline is in progress."
             : removalLocked
               ? "Admin only: uncheck to remove in-progress services (e.g. test files)."
-              : "Uncheck to remove. Browse below by country to add more services."}
+              : "Uncheck the box to remove a service."}
         </p>
         {removalLocked && removalLockMessage && (
           <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 flex items-start gap-1">
@@ -88,14 +88,14 @@ export function SelectedServicesPanel({
       </div>
       <div className="space-y-1.5">
         {entries.map(({ key, groupLabel, code, name }) => (
-          <label
+          <div
             key={`${key}:${code}`}
-            className="flex items-start gap-2.5 rounded-md border bg-background px-3 py-2 cursor-pointer hover:bg-muted/40"
+            className="flex items-start gap-2.5 rounded-md border bg-background px-3 py-2"
           >
             <Checkbox
               checked
               disabled={removalLocked && !isAdmin}
-              className="mt-0.5"
+              className="mt-0.5 shrink-0"
               onCheckedChange={(checked) => {
                 if (!checked) tryRemove(key, code, name);
               }}
@@ -109,7 +109,7 @@ export function SelectedServicesPanel({
                 {groupLabel}
               </Badge>
             </div>
-          </label>
+          </div>
         ))}
       </div>
     </div>
