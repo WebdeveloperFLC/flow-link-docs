@@ -191,6 +191,11 @@ export function ServiceLibraryMastersSection() {
         </div>
         <span className="text-xs text-muted-foreground ml-auto">
           {filtered.length} of {rows.length}
+          {filterKey === "visa_immigration" && countryFilter !== "all" && (
+            <span className="block text-[10px] mt-0.5">
+              Visa list matches Stage pipelines for {countryFilter}
+            </span>
+          )}
         </span>
       </div>
 
