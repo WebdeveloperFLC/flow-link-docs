@@ -8,6 +8,7 @@ import {
   type CoachingVariant,
 } from "@/lib/service-library/serviceNavClassification";
 import { isExcludedCatalogueService } from "@/lib/service-library/excludedCatalogueServices";
+import { isPipelineBackedLibraryId } from "@/lib/service-library/pipelineBackedLibraryIds";
 import {
   resolveCoachingFamilyKey,
   resolveCoachingVariantLabel,
@@ -97,6 +98,8 @@ const NON_VISA_SERVICE_FIELDS = new Set([
 /** True when row belongs in counselor Visa & Immigration nav (excludes admission junk). */
 export function isAcademyVisaServiceRow(m: MasterRow): boolean {
   if (isLegacyVisaRow(m)) return false;
+
+  if (m.service_category === "visa_immigration" && !isPipelineBackedLibraryId(m.id)) return false;
 
   if (
     isExcludedCatalogueService({

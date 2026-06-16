@@ -76,12 +76,37 @@ function keywordTokens(...parts: (string | null | undefined)[]): string[] {
   return [...tokens];
 }
 
+async function firstStageForPipeline(
+  pipelineId: string,
+): Promise<{ pipelineId: string; stageId: string } | null> {
+  const { data: stage } = await supabase
+    .from("pipeline_stages")
+    .select("id")
+    .eq("pipeline_id", pipelineId)
+    .order("sort_order", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (!stage) return null;
+  return { pipelineId, stageId: stage.id };
+}
+
+/** Resolve pipeline from service_library.id — library is source of truth; staging follows. */
 async function resolvePipelineByLibrarySeed(
   libraryId: string,
   country: string,
 ): Promise<{ pipelineId: string; stageId: string } | null> {
   const slug = LIBRARY_PIPELINE_SEED_SLUG[libraryId];
   if (!slug) return null;
+
+  const { data: byLibraryId } = await supabase
+    .from("stage_pipelines")
+    .select("id")
+    .eq("library_id", libraryId)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (byLibraryId?.id) {
+    return firstStageForPipeline(byLibraryId.id);
+  }
 
   const { data: pipeline } = await supabase
     .from("stage_pipelines")
@@ -92,16 +117,7 @@ async function resolvePipelineByLibrarySeed(
     .maybeSingle();
   if (!pipeline) return null;
 
-  const { data: stage } = await supabase
-    .from("pipeline_stages")
-    .select("id")
-    .eq("pipeline_id", pipeline.id)
-    .order("sort_order", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (!stage) return null;
-
-  return { pipelineId: pipeline.id, stageId: stage.id };
+  return firstStageForPipeline(pipeline.id);
 }
 
 /**
@@ -122,6 +138,7 @@ export async function resolvePipelineForServiceLibrary(params: {
 
   const primaryCountry = countries[0]!;
   if (params.libraryId) {
+    if (!LIBRARY_PIPELINE_SEED_SLUG[params.libraryId]) return null;
     const direct = await resolvePipelineByLibrarySeed(params.libraryId, primaryCountry);
     if (direct) return direct;
   }

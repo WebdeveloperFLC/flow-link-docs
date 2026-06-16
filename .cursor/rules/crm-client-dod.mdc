@@ -30,6 +30,13 @@ Before shipping CRM client/service/staging changes:
 - Reminders (daily/weekly) are fine; hard stops are not.
 - Use `isServiceRemovalRestricted` from `clientProcessPolicy.ts` — must return `false`.
 
+## 3b. Service Library → staging (primary source)
+
+- **Service Library is primary** — stage pipelines follow via `stage_pipelines.library_id`.
+- Visa pickers (`fetchAllServiceCatalogue`, academy nav) only show `isPipelineBackedLibraryId` rows.
+- Regenerate slug map: `node scripts/generate-library-pipeline-slug-ts.mjs`
+- CRM-R-004 + `pipelineLibraryParity.test.ts` must pass.
+
 ## 4. Tests (required)
 
 ```bash

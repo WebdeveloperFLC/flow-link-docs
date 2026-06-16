@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { isExcludedCatalogueService } from "@/lib/service-library/excludedCatalogueServices";
+import { isPipelineBackedLibraryId } from "@/lib/service-library/pipelineBackedLibraryIds";
 import {
   resolveAlliedAdmissionGrouping,
   resolveCoachingFamilyKey,
@@ -328,6 +329,7 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
     }
 
     if (r.service_category === "visa_immigration") {
+      if (!isPipelineBackedLibraryId(r.id)) continue;
       const visaDisplayLabel = displayLabel ?? r.sub_service;
       const serviceNorm = r.service.trim().toLowerCase();
       const mappedCountries = [
