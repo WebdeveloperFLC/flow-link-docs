@@ -37,7 +37,20 @@ function readStoredPosition(storageKey: string): Position | null {
   }
 }
 
-export function useDraggableFixedPanel(storageKey = DEFAULT_STORAGE_KEY) {
+export function getCenterBottomDefaultPosition(el: HTMLElement | null): Position {
+  if (typeof window === "undefined") return { x: 0, y: 0 };
+  const w = el?.offsetWidth ?? 420;
+  const h = el?.offsetHeight ?? 36;
+  return {
+    x: Math.max(VIEWPORT_MARGIN, (window.innerWidth - w) / 2),
+    y: Math.max(VIEWPORT_MARGIN, window.innerHeight - h - VIEWPORT_MARGIN - 64),
+  };
+}
+
+export function useDraggableFixedPanel(
+  storageKey = DEFAULT_STORAGE_KEY,
+  resolveDefaultPosition: (el: HTMLElement | null) => Position = getDefaultPosition,
+) {
   const ref = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<Position | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -46,8 +59,8 @@ export function useDraggableFixedPanel(storageKey = DEFAULT_STORAGE_KEY) {
   useEffect(() => {
     const el = ref.current;
     const stored = readStoredPosition(storageKey);
-    setPosition(clampPosition(stored ?? getDefaultPosition(el), el));
-  }, [storageKey]);
+    setPosition(clampPosition(stored ?? resolveDefaultPosition(el), el));
+  }, [storageKey, resolveDefaultPosition]);
 
   useEffect(() => {
     const onResize = () => {
@@ -115,14 +128,14 @@ export function useDraggableFixedPanel(storageKey = DEFAULT_STORAGE_KEY) {
   );
 
   const resetPosition = useCallback(() => {
-    const next = getDefaultPosition(ref.current);
+    const next = resolveDefaultPosition(ref.current);
     setPosition(next);
     try {
       localStorage.removeItem(storageKey);
     } catch {
       /* ignore */
     }
-  }, [storageKey]);
+  }, [storageKey, resolveDefaultPosition]);
 
   return {
     ref,

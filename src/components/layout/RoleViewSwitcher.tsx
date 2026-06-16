@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Eye, Settings2 } from "lucide-react";
+import { Eye, GripVertical, Settings2 } from "lucide-react";
+import { getCenterBottomDefaultPosition, useDraggableFixedPanel } from "@/hooks/useDraggableFixedPanel";
 import { useAuth } from "@/contexts/AuthContext";
 import type { AppRole } from "@/lib/appRoles";
 import { PREVIEWABLE_APP_ROLES, viewAsFullAccessLabel, viewAsRoleLabel } from "@/lib/roleViewAs";
@@ -183,9 +184,13 @@ export function RoleViewSwitcher({ variant = "default", layout = "default" }: Ro
   );
 }
 
+const ROLE_VIEW_BANNER_STORAGE_KEY = "role-view-banner:position";
+
 /** Compact banner when viewing as a different role */
 export function RoleViewBanner() {
   const { viewAsRole, setViewAsRole, actualRoles, canUseViewAs } = useAuth();
+  const { ref, position, isDragging, isReady, startDrag, moveDrag, endDrag, resetPosition } =
+    useDraggableFixedPanel(ROLE_VIEW_BANNER_STORAGE_KEY, getCenterBottomDefaultPosition);
 
   if (!canUseViewAs || !viewAsRole) return null;
 
@@ -196,17 +201,45 @@ export function RoleViewBanner() {
 
   return (
     <div
-      className="fixed top-14 left-1/2 z-[45] -translate-x-1/2 max-w-lg rounded-full border border-amber-400/50 bg-amber-50/95 px-4 py-1.5 text-xs shadow-sm backdrop-blur dark:bg-amber-950/90"
+      ref={ref}
+      style={
+        isReady && position
+          ? { left: position.x, top: position.y }
+          : { left: "50%", bottom: "4.5rem", transform: "translateX(-50%)" }
+      }
+      className={cn(
+        "fixed z-[45] flex max-w-[min(100vw-1rem,36rem)] items-center gap-1 rounded-full border border-amber-400/50 bg-amber-50/95 py-1.5 pl-1 pr-4 text-xs shadow-sm backdrop-blur dark:bg-amber-950/90",
+        !isReady && "opacity-0 pointer-events-none",
+        isDragging && "shadow-md ring-2 ring-amber-400/40",
+      )}
       data-testid="role-view-banner"
     >
-      <span className="font-medium text-amber-900 dark:text-amber-100">
-        Previewing as {viewAsRoleLabel(viewAsRole)}
-      </span>
-      <span className="text-amber-800/80 dark:text-amber-200/80 mx-1.5">·</span>
-      <span className="text-muted-foreground">Signed in as {actualLabel}</span>
       <button
         type="button"
-        className="ml-2 font-semibold underline underline-offset-2 hover:no-underline"
+        className={cn(
+          "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-amber-800/70 hover:bg-amber-200/60 dark:text-amber-200/70 dark:hover:bg-amber-900/50 touch-none",
+          isDragging ? "cursor-grabbing" : "cursor-grab",
+        )}
+        aria-label="Drag preview banner. Double-click to reset position."
+        title="Drag to move · double-click to reset"
+        onPointerDown={startDrag}
+        onPointerMove={moveDrag}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onDoubleClick={resetPosition}
+      >
+        <GripVertical className="size-3.5" aria-hidden />
+      </button>
+      <div className="min-w-0 flex-1 leading-snug">
+        <span className="font-medium text-amber-900 dark:text-amber-100">
+          Previewing as {viewAsRoleLabel(viewAsRole)}
+        </span>
+        <span className="text-amber-800/80 dark:text-amber-200/80 mx-1.5 hidden sm:inline">·</span>
+        <span className="text-muted-foreground hidden sm:inline">Signed in as {actualLabel}</span>
+      </div>
+      <button
+        type="button"
+        className="ml-1 shrink-0 font-semibold underline underline-offset-2 hover:no-underline text-amber-900 dark:text-amber-100"
         onClick={() => setViewAsRole(null)}
       >
         Exit preview
