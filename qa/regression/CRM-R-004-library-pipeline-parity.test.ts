@@ -42,6 +42,28 @@ describe("CRM-R-004 library → pipeline parity", () => {
     expect(src).toContain("isPipelineBackedLibraryId(m.id)");
   });
 
+  it("migration syncs stage_pipelines.name from service_library", () => {
+    const sql = readFileSync(
+      resolve(
+        process.cwd(),
+        "supabase/migrations/20260718120014_stage_pipelines_sync_library_names.sql",
+      ),
+      "utf8",
+    );
+    expect(sql).toContain("academy_metadata->>'displayName'");
+    expect(sql).toContain("sp.library_id = lib.id");
+  });
+
+  it("Stage pipelines UI shows Service Library labels when linked", () => {
+    const src = readFileSync(
+      resolve(process.cwd(), "src/components/masters/StagePipelinesSection.tsx"),
+      "utf8",
+    );
+    expect(src).toContain("formatServiceLibraryLabel");
+    expect(src).toContain("pipelineDisplayName");
+    expect(src).not.toMatch(/font-medium">\{p\.name\}/);
+  });
+
   it("non-backed library id has no slug (e.g. admission-only rows)", () => {
     expect(isPipelineBackedLibraryId("00000000-0000-4000-8000-000000000099")).toBe(false);
     expect(LIBRARY_PIPELINE_SEED_SLUG["b2000001-0001-4000-8000-000000000021"]).toBe(

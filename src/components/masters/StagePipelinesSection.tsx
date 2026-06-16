@@ -35,6 +35,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
+import { formatServiceLibraryLabel } from "@/lib/service-library/resolveServiceLabel";
 
 interface Pipeline {
   id: string;
@@ -42,6 +43,19 @@ interface Pipeline {
   country: string;
   service_category: string;
   is_active: boolean;
+  library_id?: string | null;
+}
+
+type LibraryLabelRow = {
+  id: string;
+  service: string;
+  sub_service: string;
+  academy_metadata?: { displayName?: string } | null;
+};
+
+function pipelineDisplayName(p: Pipeline, libraryLabels: Record<string, string>): string {
+  if (p.library_id && libraryLabels[p.library_id]) return libraryLabels[p.library_id];
+  return p.name;
 }
 
 type Stage = PipelineStageRow;
@@ -60,6 +74,7 @@ export function StagePipelinesSection() {
   const [stageDialogPipelineId, setStageDialogPipelineId] = useState<string | null>(null);
   const [editingStage, setEditingStage] = useState<Stage | null>(null);
   const [countryFilter, setCountryFilter] = useState("all");
+  const [libraryLabels, setLibraryLabels] = useState<Record<string, string>>({});
 
   const load = async () => {
     setLoading(true);
@@ -69,7 +84,25 @@ export function StagePipelinesSection() {
         fetchAllPipelineStages(),
       ]);
       if (p.error) throw p.error;
-      setPipelines((p.data ?? []) as Pipeline[]);
+      const rows = (p.data ?? []) as Pipeline[];
+      setPipelines(rows);
+
+      const libraryIds = [...new Set(rows.map((r) => r.library_id).filter(Boolean))] as string[];
+      if (libraryIds.length) {
+        const { data: libs, error: libErr } = await supabase
+          .from("service_library")
+          .select("id, service, sub_service, academy_metadata")
+          .in("id", libraryIds);
+        if (libErr) throw libErr;
+        const labels: Record<string, string> = {};
+        for (const row of (libs ?? []) as LibraryLabelRow[]) {
+          labels[row.id] = formatServiceLibraryLabel(row);
+        }
+        setLibraryLabels(labels);
+      } else {
+        setLibraryLabels({});
+      }
+
       setStagesByPipeline(groupPipelineStagesByPipelineId(stages));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to load stage pipelines");
@@ -129,7 +162,8 @@ export function StagePipelinesSection() {
   };
 
   const onDeletePipeline = async (p: Pipeline) => {
-    if (!confirm(`Delete pipeline "${p.name}" and all its stages?`)) return;
+    const label = pipelineDisplayName(p, libraryLabels);
+    if (!confirm(`Delete pipeline "${label}" and all its stages?`)) return;
     const { error } = await supabase.from("stage_pipelines").delete().eq("id", p.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Pipeline deleted");
@@ -233,8 +267,10 @@ export function StagePipelinesSection() {
                   <div className="flex items-center gap-2 px-4">
                     <AccordionTrigger className="flex-1">
                       <div className="flex items-center gap-3 text-left">
-                        <span className="font-medium">{p.name}</span>
-                        <span className="text-xs text-muted-foreground">{p.service_category}</span>
+                        <span className="font-medium">{pipelineDisplayName(p, libraryLabels)}</span>
+                        {!p.library_id && (
+                          <span className="text-xs text-muted-foreground">{p.service_category}</span>
+                        )}
                         <span className="text-xs text-muted-foreground">· {stages.length} stages</span>
                         {!p.is_active && <span className="text-xs text-destructive">inactive</span>}
                       </div>
@@ -290,6 +326,9 @@ export function StagePipelinesSection() {
         open={pipelineDialogOpen}
         onOpenChange={setPipelineDialogOpen}
         pipeline={editingPipeline}
+        libraryLabel={
+          editingPipeline?.library_id ? libraryLabels[editingPipeline.library_id] : undefined
+        }
         onSaved={load}
       />
       <StageDialog
@@ -451,10 +490,12 @@ function PipelineStagesList({
 }
 
 function PipelineDialog({
-  open, onOpenChange, pipeline, onSaved,
+  open, onOpenChange, pipeline, libraryLabel, onSaved,
 }: {
   open: boolean; onOpenChange: (o: boolean) => void;
-  pipeline: Pipeline | null; onSaved: () => void;
+  pipeline: Pipeline | null;
+  libraryLabel?: string;
+  onSaved: () => void;
 }) {
   const [name, setName] = useState("");
   const [country, setCountry] = useState("");
@@ -472,18 +513,29 @@ function PipelineDialog({
   }, [open, pipeline]);
 
   const onSubmit = async () => {
-    if (!name.trim() || !country.trim() || !serviceCategory.trim()) {
-      toast.error("Name, country and service category are required"); return;
+    if (!libraryLabel && !name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+    if (!country.trim() || !serviceCategory.trim()) {
+      toast.error("Country and service category are required"); return;
     }
     setBusy(true);
     try {
       if (pipeline) {
-        const { error } = await supabase.from("stage_pipelines").update({
-          name: name.trim(), country: country.trim(),
-          service_category: serviceCategory.trim(), is_active: isActive,
-        }).eq("id", pipeline.id);
+        const patch: Record<string, unknown> = {
+          country: country.trim(),
+          service_category: serviceCategory.trim(),
+          is_active: isActive,
+        };
+        if (!libraryLabel) patch.name = name.trim();
+        const { error } = await supabase.from("stage_pipelines").update(patch).eq("id", pipeline.id);
         if (error) throw error;
       } else {
+        if (!name.trim()) {
+          toast.error("Name is required");
+          return;
+        }
         const { error } = await supabase.from("stage_pipelines").insert({
           name: name.trim(), country: country.trim(),
           service_category: serviceCategory.trim(), is_active: isActive,
@@ -504,7 +556,16 @@ function PipelineDialog({
         <DialogHeader><DialogTitle>{pipeline ? "Edit pipeline" : "New pipeline"}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5"><Label>Name *</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Canada Study Visa" autoFocus />
+            {libraryLabel ? (
+              <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                {libraryLabel}
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Name follows Service Library. Edit the service there to rename.
+                </p>
+              </div>
+            ) : (
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Canada Study Visa" autoFocus />
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5"><Label>Country *</Label>
