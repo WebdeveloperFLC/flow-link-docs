@@ -51,3 +51,8 @@ export function startTimelineLabel(value: string | null | undefined): string {
   if (!value) return "—";
   return START_TIMELINE_OPTIONS.find((o) => o.value === value)?.label ?? value;
 }
+
+export function hasBudgetLabel(value: string | null | undefined): string {
+  if (!value) return "—";
+  return HAS_BUDGET_OPTIONS.find((o) => o.value === value)?.label ?? value;
+}

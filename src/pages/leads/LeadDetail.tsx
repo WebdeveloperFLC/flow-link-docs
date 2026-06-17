@@ -15,7 +15,13 @@ import { formatSupabaseError } from "@/lib/formatSupabaseError";
 import { LeadOwnerCard } from "@/components/leads/LeadOwnerCard";
 import { WhatsAppInboxLink } from "@/components/whatsapp/WhatsAppInboxLink";
 import { leadPhoneToE164 } from "@/lib/whatsapp/phone";
-// badges shown inline via PageHeader description string
+import { useMasterItems } from "@/lib/masters";
+import {
+  hasBudgetLabel,
+  sponsorLabel,
+  startTimelineLabel,
+} from "@/lib/leadJourney";
+import { formatBudgetRange } from "@/lib/currencyMaster";
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="space-y-0.5">
@@ -47,6 +53,7 @@ const ServiceChipList = ({ items, map }: { items: string[] | null | undefined; m
 const LeadDetail = () => {
   const { id } = useParams();
   const nav = useNavigate();
+  const qualificationLevels = useMasterItems("qualification_levels");
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
   const [serviceMap, setServiceMap] = useState<Map<string, string>>(new Map());
@@ -89,6 +96,14 @@ const LeadDetail = () => {
 
   if (loading) return <AppLayout><div className="p-12 text-center text-muted-foreground">Loading…</div></AppLayout>;
   if (!lead) return <AppLayout><div className="p-12 text-center text-muted-foreground">Lead not found</div></AppLayout>;
+
+  const lastEducationLabel =
+    qualificationLevels.find((q) => q.code === lead.last_education)?.label ??
+    lead.last_education;
+  const sponsorDisplay =
+    lead.sponsor === "other" && lead.sponsor_other
+      ? `${sponsorLabel(lead.sponsor)} — ${lead.sponsor_other}`
+      : sponsorLabel(lead.sponsor);
 
   return (
     <AppLayout>
@@ -145,6 +160,35 @@ const LeadDetail = () => {
                 <Row label="Residence" value={lead.country_of_residence} />
               </div>
               <Row label="Interested Countries" value={<ChipList items={lead.interested_countries} />} />
+            </Card>
+
+            <Card className="p-6 space-y-4">
+              <h3 className="font-semibold">Background</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Row label="Last Education" value={lastEducationLabel} />
+                {String(lead.last_education ?? "").toLowerCase() === "other" && (
+                  <Row label="Education (specify)" value={lead.last_education_other} />
+                )}
+              </div>
+            </Card>
+
+            <Card className="p-6 space-y-4">
+              <h3 className="font-semibold">Funding &amp; Timeline</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Row label="Sponsor" value={sponsorDisplay} />
+                <Row label="Start Timeline" value={startTimelineLabel(lead.start_timeline)} />
+                <Row label="Has Budget" value={hasBudgetLabel(lead.has_budget)} />
+                {lead.has_budget === "yes" && (
+                  <Row
+                    label="Budget Range"
+                    value={formatBudgetRange(
+                      lead.budget_min ?? null,
+                      lead.budget_max ?? null,
+                      lead.budget_currency || "INR",
+                    )}
+                  />
+                )}
+              </div>
             </Card>
 
             <Card className="p-6 space-y-4">
