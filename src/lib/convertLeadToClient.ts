@@ -24,6 +24,7 @@ export type ConvertLeadOptions = {
   slServiceLabel?: string | null;
   slLibraryId?: string | null;
   slSubService?: string | null;
+  slServiceCategory?: string | null;
 };
 
 export type ConvertLeadResult = {
@@ -48,7 +49,7 @@ function serviceSelectionFromLead(lead: Lead): ServiceSelection {
     visa_services: lead.visa_services ?? [],
     admission_services: lead.admission_services ?? [],
     allied_services: lead.allied_services ?? [],
-    travel_services: lead.travel_services ?? [],
+    travel_services: lead.travel_financial_services ?? [],
   };
 }
 
@@ -69,7 +70,19 @@ async function runServiceEnrollment(
       serviceTitle: opts.slServiceLabel ?? undefined,
       subService: opts.slSubService ?? undefined,
       serviceCode: opts.slVisaService ?? undefined,
+      serviceCategory: opts.slServiceCategory ?? undefined,
       counselorNote: opts.slServiceLabel ? `Service Library application: ${opts.slServiceLabel}` : null,
+    });
+    return;
+  }
+
+  const firstCoaching = services.coaching_services?.[0] ?? null;
+  if (firstCoaching?.includes("::")) {
+    await completeClientServiceEnrollment({
+      clientId,
+      serviceCode: firstCoaching,
+      country: primaryCountry,
+      serviceCategory: "coaching_services",
     });
     return;
   }

@@ -258,11 +258,13 @@ export function useClientStage(
       setBusy(true);
       try {
         const existingNote = completionNotes.get(stageId) ?? null;
-        const { error: delErr } = await supabase
+        let delQuery = supabase
           .from("client_stage_completions")
           .delete()
           .eq("client_id", clientId)
           .eq("stage_id", stageId);
+        if (caseId) delQuery = delQuery.eq("case_id", caseId);
+        const { error: delErr } = await delQuery;
         if (delErr) throw delErr;
 
         const { error: logErr } = await supabase.from("client_stage_completion_log").insert({
@@ -287,6 +289,7 @@ export function useClientStage(
         });
 
         const nextCompleted = new Set(completedStageIds);
+        nextCompleted.delete(stageId);
         await syncCurrentStage(deriveCurrentStageId(stages, nextCompleted));
         toast.success("Stage unmarked");
         await load();
@@ -298,6 +301,7 @@ export function useClientStage(
     },
     [
       clientId,
+      caseId,
       current?.pipeline_id,
       completedStageIds,
       completionNotes,
@@ -315,11 +319,13 @@ export function useClientStage(
       if (!existingNote) return;
       setBusy(true);
       try {
-        const { error: updErr } = await supabase
+        let noteQuery = supabase
           .from("client_stage_completions")
           .update({ note: null })
           .eq("client_id", clientId)
           .eq("stage_id", stageId);
+        if (caseId) noteQuery = noteQuery.eq("case_id", caseId);
+        const { error: updErr } = await noteQuery;
         if (updErr) throw updErr;
 
         const { error: logErr } = await supabase.from("client_stage_completion_log").insert({

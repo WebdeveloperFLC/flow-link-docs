@@ -41,6 +41,7 @@ export interface Lead {
   visa_services: string[];
   admission_services: string[];
   allied_services: string[];
+  travel_financial_services?: string[];
   interested_countries: string[];
   visa_locked: boolean;
   visa_lock_reason?: string | null;
@@ -131,6 +132,32 @@ export async function fetchLead(id: string): Promise<Lead | null> {
   const { data, error } = await supabase.from("leads").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return data as unknown as Lead | null;
+}
+
+/** Active (non-converted) leads matching email or phone — duplicate guard for warm/hot saves. */
+export async function findDuplicateLeads(opts: {
+  email?: string | null;
+  phone?: string | null;
+  excludeId?: string | null;
+}): Promise<Array<{ id: string; lead_number: string; email: string | null; phone: string | null }>> {
+  const email = opts.email?.trim().toLowerCase();
+  const phone = opts.phone?.trim();
+  if (!email && !phone) return [];
+
+  let q = supabase
+    .from("leads")
+    .select("id, lead_number, email, phone")
+    .is("converted_to_client_id", null);
+  if (opts.excludeId) q = q.neq("id", opts.excludeId);
+
+  const orParts: string[] = [];
+  if (email) orParts.push(`email.ilike.${email}`);
+  if (phone) orParts.push(`phone.eq.${phone}`);
+  if (orParts.length) q = q.or(orParts.join(","));
+
+  const { data, error } = await q.limit(5);
+  if (error) throw error;
+  return (data ?? []) as Array<{ id: string; lead_number: string; email: string | null; phone: string | null }>;
 }
 
 /** Auto-save: insert (when id is null) or patch one or more fields. */

@@ -273,7 +273,7 @@ export function ClientRegistrationPanel({
       allied_services: services.allied_services.length ? services.allied_services : lead.allied_services,
       travel_financial_services: services.travel_services.length
         ? services.travel_services
-        : lead.travel_services,
+        : lead.travel_financial_services,
       sponsor: f.sponsor ?? lead.sponsor ?? null,
       sponsor_other: f.sponsor_other ?? lead.sponsor_other ?? null,
       start_timeline: f.start_timeline ?? lead.start_timeline ?? null,

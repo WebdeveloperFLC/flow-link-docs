@@ -1977,16 +1977,23 @@ function CollectPaymentDialog({
           .select("id");
         const insertedCount = Array.isArray(allocInserted) ? allocInserted.length : 0;
         if (allocErr || insertedCount !== rows.length) {
-          // Compensating rollback: remove the payment row so no silent allocation gap remains.
-          const { error: rollbackErr } = await supabase.from("client_invoice_payments").delete().eq("id", paymentId);
+          // Compensating rollback: archive the payment row so no silent allocation gap remains.
+          const { error: rollbackErr } = await supabase
+            .from("client_invoice_payments")
+            .update({
+              archived_at: new Date().toISOString(),
+              archived_by: u?.user?.id ?? null,
+              notes: "Auto-archived: allocation insert failed",
+            })
+            .eq("id", paymentId);
           // Best-effort audit trail of the failure for ops.
           try {
             await appendTimeline({
               clientId,
               eventType: "payment_allocation_failed",
               summary: rollbackErr
-                ? `CRITICAL: allocation insert failed AND payment rollback failed (payment_id=${paymentId}). Manual reconciliation required.`
-                : `Payment rolled back: allocation insert failed (${rows.length} allocation${rows.length === 1 ? "" : "s"} expected, ${insertedCount} written).`,
+                ? `CRITICAL: allocation insert failed AND payment archive failed (payment_id=${paymentId}). Manual reconciliation required.`
+                : `Payment archived: allocation insert failed (${rows.length} allocation${rows.length === 1 ? "" : "s"} expected, ${insertedCount} written).`,
               metadata: {
                 payment_id: paymentId,
                 invoice_id: invoice.id,
@@ -2011,7 +2018,7 @@ function CollectPaymentDialog({
             `Payment was not posted: allocation save failed (${allocErr?.message ?? "partial insert"}). Please retry.`,
             { duration: 12000 },
           );
-          throw new Error(`Allocation insert failed; payment rolled back: ${allocErr?.message ?? "partial insert"}`);
+          throw new Error(`Allocation insert failed; payment archived: ${allocErr?.message ?? "partial insert"}`);
         }
       }
 

@@ -83,6 +83,17 @@ export const LeadOwnerCard = ({
         .update({ assigned_counselor_id: value || null })
         .eq("id", leadId);
       if (error) throw error;
+      if (convertedClientId) {
+        const ownerId = value || null;
+        const { error: clientErr } = await supabase
+          .from("clients")
+          .update({
+            assigned_counselor_id: ownerId,
+            owner_id: ownerId,
+          })
+          .eq("id", convertedClientId);
+        if (clientErr) throw clientErr;
+      }
       await logLeadPrimaryUserChange({
         leadId,
         clientId: convertedClientId ?? null,

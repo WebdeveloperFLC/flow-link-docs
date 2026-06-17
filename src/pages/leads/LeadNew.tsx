@@ -23,6 +23,7 @@ import {
   fetchLead,
   fetchBranches,
   fetchDepartments,
+  findDuplicateLeads,
   suggestDepartmentFromServices,
   type LeadDraft,
   type Branch,
@@ -57,6 +58,7 @@ const LeadNew = () => {
   const slServiceLabel = sp.get("service_label");
   const slLibraryId = sp.get("library_id");
   const slSubService = sp.get("sub_service");
+  const slCat = sp.get("cat");
   const registerClientParam = sp.get("register_client") === "1";
   const initialMode: LeadMode = sp.get("mode") === "cold" ? "cold" : "warm_hot";
 
@@ -124,9 +126,16 @@ const LeadNew = () => {
     if (editId || leadId) return;
     if (slCountry) setInterestedCountries([slCountry]);
     if (slVisaService) {
+      const isCoaching = slCat === "coaching";
       setServices((s) => ({
         ...s,
-        visa_services: s.visa_services?.length ? s.visa_services : [slVisaService],
+        ...(isCoaching
+          ? {
+              coaching_services: s.coaching_services?.length ? s.coaching_services : [slVisaService],
+            }
+          : {
+              visa_services: s.visa_services?.length ? s.visa_services : [slVisaService],
+            }),
       }));
     }
     if (slLibraryId || slServiceLabel) {
@@ -138,7 +147,7 @@ const LeadNew = () => {
         .join(" · ");
       setNotes((n) => (n ? `${n}\n${line}` : line));
     }
-  }, [slCountry, slVisaService, slServiceLabel, slLibraryId, editId, leadId]);
+  }, [slCountry, slVisaService, slServiceLabel, slLibraryId, slCat, editId, leadId]);
 
   const hydrateLeadForm = useCallback((l: Awaited<ReturnType<typeof fetchLead>>) => {
     if (!l) return;
@@ -165,7 +174,7 @@ const LeadNew = () => {
       visa_services: l.visa_services ?? [],
       admission_services: l.admission_services ?? [],
       allied_services: l.allied_services ?? [],
-      travel_services: [],
+      travel_services: l.travel_financial_services ?? [],
     });
     setInterestedCountries(l.interested_countries ?? []);
     setVisaLocked(l.visa_locked);
@@ -194,6 +203,7 @@ const LeadNew = () => {
       visa_services: services.visa_services,
       admission_services: services.admission_services,
       allied_services: services.allied_services,
+      travel_financial_services: services.travel_services,
       interested_countries: interestedCountries,
       visa_locked: visaLocked,
       visa_lock_reason: visaLocked ? visaLockReason : null,
@@ -206,6 +216,16 @@ const LeadNew = () => {
       const fn = (f.first_name as string)?.trim();
       const ln = (f.last_name as string)?.trim();
       if (!fn || !ln) return null;
+      if (mode !== "cold") {
+        const dups = await findDuplicateLeads({
+          email: (f.email as string) ?? null,
+          phone: (f.phone as string) ?? null,
+        }).catch(() => []);
+        if (dups.length) {
+          toast.error(`Duplicate lead: ${dups[0].lead_number} already uses this email or phone`);
+          return null;
+        }
+      }
     }
     setSaving(true);
     try {
@@ -243,6 +263,7 @@ const LeadNew = () => {
     visa_services: services.visa_services,
     admission_services: services.admission_services,
     allied_services: services.allied_services,
+    travel_financial_services: services.travel_services,
     interested_countries: interestedCountries,
     notes,
     ...(f as Partial<Lead>),
@@ -270,6 +291,15 @@ const LeadNew = () => {
       return;
     }
 
+    const draft = buildDraft();
+    const validation = mode === "cold"
+      ? leadColdSchema.safeParse({ ...draft })
+      : leadWarmHotSchema.safeParse({ ...draft, travel_services: services.travel_services });
+    if (!validation.success) {
+      toast.error(validation.error.errors[0]?.message ?? "Complete required lead fields before converting");
+      return;
+    }
+
     setConverting(true);
     try {
       const merged = mergeLeadFromForm(lead);
@@ -280,6 +310,7 @@ const LeadNew = () => {
         slServiceLabel,
         slLibraryId,
         slSubService,
+        slServiceCategory: slCat === "coaching" ? "coaching_services" : null,
       });
       const label = result.registrationNumber ?? result.clientId.slice(0, 8);
       toast.success(result.alreadyConverted ? "Opening client profile" : `Client created: ${label}`);

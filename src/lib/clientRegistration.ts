@@ -166,6 +166,7 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     visa_services: lead.visa_services ?? [],
     admission_services: lead.admission_services ?? [],
     allied_services: lead.allied_services ?? [],
+    travel_financial_services: lead.travel_financial_services ?? [],
     application_type: visaCode.includes("::") ? "Visa application" : visaCode || "Student Visa",
     sponsor: lead.sponsor ?? null,
     sponsor_other: lead.sponsor_other ?? null,

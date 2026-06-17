@@ -78,8 +78,9 @@ export function ServiceLibraryClientDialog({
         serviceTitle,
         serviceCode,
         subService,
+        serviceCategory,
       }),
-    [libraryId, country, serviceTitle, serviceCode, subService],
+    [libraryId, country, serviceTitle, serviceCode, subService, serviceCategory],
   );
 
   useEffect(() => {
@@ -167,13 +168,29 @@ export function ServiceLibraryClientDialog({
 
   const openClient = async (clientId: string) => {
     if (mode === "push") {
-      const ok = await copyToClipboard(shareLink);
-      toast[ok ? "success" : "error"](
-        ok ? "Service Library link copied — paste in client chat or notes" : "Could not copy link",
-      );
-      onOpenChange(false);
-      rememberServiceLibraryReturn(libraryId, country);
-      navigate(clientDetailUrl(clientId, serviceCode));
+      setBusy(true);
+      try {
+        const result = await enrollClientInServiceLibraryApplication({
+          clientId,
+          libraryId,
+          country,
+          serviceTitle,
+          subService,
+          serviceCategory,
+        });
+        const ok = await copyToClipboard(shareLink);
+        toast[ok ? "success" : "error"](
+          ok ? "Service linked and link copied — paste in client chat or notes" : "Service linked — could not copy link",
+        );
+        onOpenChange(false);
+        rememberServiceLibraryReturn(libraryId, country);
+        navigate(clientDetailUrl(clientId, result.serviceCode));
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Could not link client to this service";
+        toast.error(msg);
+      } finally {
+        setBusy(false);
+      }
       return;
     }
 

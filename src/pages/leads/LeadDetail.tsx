@@ -16,6 +16,7 @@ import { LeadOwnerCard } from "@/components/leads/LeadOwnerCard";
 import { WhatsAppInboxLink } from "@/components/whatsapp/WhatsAppInboxLink";
 import { leadPhoneToE164 } from "@/lib/whatsapp/phone";
 import { useMasterItems } from "@/lib/masters";
+import { leadWarmHotSchema } from "@/lib/leadSchemas";
 import {
   hasBudgetLabel,
   sponsorLabel,
@@ -57,7 +58,7 @@ const LeadDetail = () => {
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
   const [serviceMap, setServiceMap] = useState<Map<string, string>>(new Map());
-  const [convertedClient, setConvertedClient] = useState<{ id: string; client_number: string | null } | null>(null);
+  const [convertedClient, setConvertedClient] = useState<{ id: string; registration_number: string | null } | null>(null);
   const [converting, setConverting] = useState(false);
 
   const onRegisterAsClient = async () => {
@@ -65,6 +66,17 @@ const LeadDetail = () => {
     if (lead.converted_to_client_id) {
       nav(`/clients/${lead.converted_to_client_id}`);
       return;
+    }
+    const isCold = lead.lead_type === "cold" || lead.is_cold_pool;
+    if (!isCold) {
+      const validation = leadWarmHotSchema.safeParse({
+        ...lead,
+        travel_services: lead.travel_financial_services ?? [],
+      });
+      if (!validation.success) {
+        toast.error(validation.error.errors[0]?.message ?? "Complete required lead fields before converting");
+        return;
+      }
     }
     setConverting(true);
     try {
@@ -88,7 +100,7 @@ const LeadDetail = () => {
   useEffect(() => {
     if (!lead || lead.status !== "converted") return;
     (supabase.from("clients") as any)
-      .select("id, client_number")
+      .select("id, registration_number")
       .eq("source_lead_id", lead.id)
       .maybeSingle()
       .then(({ data }: any) => { if (data) setConvertedClient(data); });
@@ -128,7 +140,7 @@ const LeadDetail = () => {
               <Button variant="outline" asChild>
                 <Link to={`/clients/${convertedClient.id}`}>
                   <ExternalLink className="h-4 w-4 mr-1" />
-                  Converted{convertedClient.client_number ? ` · ${convertedClient.client_number}` : ""}
+                  Converted{convertedClient.registration_number ? ` · ${convertedClient.registration_number}` : ""}
                 </Link>
               </Button>
             ) : (
