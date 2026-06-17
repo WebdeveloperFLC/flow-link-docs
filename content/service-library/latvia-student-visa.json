@@ -1,20 +1,20 @@
 {
-  "displayName": "Latvia – Student Residence Permit (National D Visa)",
-  "shortDescription": "Latvian Embassy · PMLP (Office of Citizenship) · D visa · University acceptance · Proof of funds",
-  "version": "v2.0",
+  "displayName": "Latvia – Student Residence Permit (OCMA/PMLP) + National D Visa",
+  "shortDescription": "OCMA/PMLP (Office of Citizenship and Migration Affairs) · University invitation → residence permit → D visa · Registration in Riga",
+  "version": "v2.2",
   "versionStatus": "Live",
   "reviewStatus": "active",
-  "updatedLabel": "Updated 10 Jun 2026",
+  "updatedLabel": "Updated 16 Jun 2026",
   "learningLevel": "Intermediate",
   "learningMinutes": 22,
   "policyAlert": {
     "active": true,
-    "date": "10 Jun 2026",
-    "summary": "Confirm requirements on www.pmlp.gov.lv before quoting."
+    "date": "16 Jun 2026",
+    "summary": "Latvia uses a distinctive REVERSE order: the university files an invitation with OCMA (Office of Citizenship and Migration Affairs / PMLP) → the student submits the residence-permit application, which OCMA reviews FIRST → ONLY IF OCMA approves does the student then apply for the National Type D visa (commonly via VFS Global) to travel → on arrival, give biometrics and collect the residence-permit card from PMLP. Latvia does NOT use German concepts (APS, Anabin, Sperrkonto/blocked account) — do not import them. Fees, the subsistence figure and work rules are time-sensitive ({{VERIFY_LIVE}}). Verify all amounts on pmlp.gov.lv before quoting."
   },
   "alert": {
-    "title": "Residence permit after arrival",
-    "body": "After entry, apply for temporary residence permit at Latvian Embassy within required deadline."
+    "title": "OCMA approves the residence permit first, then the D visa",
+    "body": "The university lodges an invitation with OCMA; the student submits the residence-permit application (OCMA reviews on a 30 / 10-working-day / 5-working-day fee track). ONLY after a positive OCMA decision does the student apply for the National Type D visa to enter Latvia. After arrival, give biometrics and collect the residence-permit card from PMLP, and register as required. Note: Latvia uses OCMA/PMLP in Riga — not a German Ausländerbehörde, and no Sperrkonto/blocked account."
   },
   "tags": [
     {
@@ -22,59 +22,59 @@
       "variant": "success"
     },
     {
-      "label": "Proof of funds required",
+      "label": "Proof of funds critical",
       "variant": "warning"
     },
     {
-      "label": "6–12 weeks",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
-      "label": "Embassy appointment",
+      "label": "OCMA / PMLP",
       "variant": "neutral"
     }
   ],
   "chips": [
     {
-      "label": "6–12 weeks",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
-      "label": "€75 + proof of funds",
+      "label": "Govt fees + proof of funds (verify)",
       "variant": "neutral"
     },
     {
-      "label": "Admission letter",
+      "label": "University invitation via OCMA",
       "variant": "success"
     },
     {
-      "label": "Latvia admission docs",
+      "label": "Residence permit → then D visa",
       "variant": "warning"
     }
   ],
   "kpis": [
     {
       "label": "Processing time",
-      "value": "6–12w",
-      "sub": "After complete file complete",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "OCMA review track (30 / 10 / 5 working days) — verify live",
       "tone": "primary"
     },
     {
       "label": "Government fee",
-      "value": "€75",
-      "sub": "+ proof of funds required living funds",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "OCMA state fee + consular fee + D visa fee — verify live",
       "tone": "warning"
     },
     {
-      "label": "Our approval rate",
-      "value": "88%",
-      "sub": "~74% benchmark",
-      "tone": "success"
+      "label": "Approval rate",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Pull from live CRM case data; not a prediction of any individual outcome",
+      "tone": "primary"
     },
     {
       "label": "Required docs",
-      "value": "15",
-      "sub": "+ proof of funds €7,440",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Document count varies by profile — see live checklist",
       "tone": "violet"
     },
     {
@@ -87,303 +87,282 @@
   "about": [
     {
       "label": "Description",
-      "value": "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit."
+      "value": "Temporary residence permit for studies in Latvia for non-EU/EEA/Swiss nationals, administered by OCMA (Office of Citizenship and Migration Affairs / PMLP). The university files an invitation with OCMA; the residence-permit application is reviewed by OCMA, and only after a positive decision does the student obtain a National Type D visa to travel. The permit is typically issued for the study year/programme and renewed annually."
     },
     {
       "label": "Eligible applicants",
-      "value": "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
+      "value": "Admission to an accredited Latvian institution (the university files the OCMA invitation) · Proof of subsistence ({{VERIFY_LIVE}}) · Health insurance meeting current Latvian visa/residence-permit requirements ({{VERIFY_LIVE}}) · Accommodation evidence · Language ability matching the programme · AIC statement on the foreign qualification where required · Valid passport. EU/EEA/Swiss citizens need no permit, only OCMA registration for stays over 90 days."
     },
     {
       "label": "Proof of funds",
-      "value": "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting.",
+      "value": "Proof of necessary subsistence per OCMA, set by the current Latvian minimum wage and the corresponding OCMA subsistence requirement ({{VERIFY_LIVE}}; verify the current amount and multiplier on pmlp.gov.lv). Shown via an original bank statement (commonly valid 3 months), a scholarship, or a notarised sponsor arrangement. Latvia does NOT operate a German-style blocked account.",
       "warning": true
     },
     {
       "label": "Key authority",
-      "value": "Latvian Embassy · PMLP (Office of Citizenship)"
+      "value": "OCMA / PMLP – Pilsonības un migrācijas lietu pārvalde (Office of Citizenship and Migration Affairs, pmlp.gov.lv), in Riga · the Latvian embassy/VFS Global for the D visa · the Academic Information Centre (AIC) for qualification recognition"
     },
     {
       "label": "After approval",
-      "value": "Enter Latvia; register address; apply for residence permit within visa validity."
+      "value": "After a positive OCMA decision, apply for the National Type D visa and travel to Latvia; give biometrics and collect the residence-permit card from PMLP. Register as required and renew annually with continued enrolment, funds and insurance. Graduates may qualify for post-study residence options subject to current Latvian immigration regulations to seek work or continue studies; eligibility, duration and conditions are time-sensitive and not automatic — verify current rules."
     }
   ],
   "eligibility": [
     {
-      "criterion": "Admission from recognised Latvia institution",
-      "met": true
-    },
-    {
-      "criterion": "Proof of funds for study period",
-      "met": false,
-      "note": "Verify current amount on official portal"
-    },
-    {
-      "criterion": "Health insurance (travel + statutory)",
-      "met": false
-    },
-    {
-      "criterion": "Motivation letter and CV",
-      "met": true
-    },
-    {
-      "criterion": "Language proficiency (as required)",
+      "criterion": "Admission to an accredited Latvian institution (OCMA invitation)",
       "met": true,
-      "note": "English or local language per program"
+      "note": "The university files the invitation with OCMA and provides the invitation number for the application."
+    },
+    {
+      "criterion": "Proof of subsistence",
+      "met": false,
+      "note": "Per OCMA, set by the current Latvian minimum wage and OCMA subsistence requirement ({{VERIFY_LIVE}}). Original bank statement (commonly valid 3 months), scholarship, or notarised sponsor."
+    },
+    {
+      "criterion": "Health insurance",
+      "met": false,
+      "note": "Health insurance meeting current Latvian visa/residence-permit requirements ({{VERIFY_LIVE}}); verify the current requirement."
+    },
+    {
+      "criterion": "Accommodation evidence",
+      "met": false,
+      "note": "Evidence of where the student will live (dormitory certificate from the university, lease, or host declaration)."
+    },
+    {
+      "criterion": "Qualification recognition (AIC) where required",
+      "met": false,
+      "note": "A statement from the Academic Information Centre (AIC) that the foreign education documents are sufficient for study in Latvia. (Not the German Anabin.)"
+    },
+    {
+      "criterion": "Language ability matching the programme",
+      "met": true,
+      "note": "English or Latvian per the programme; provide the evidence the institution specifies. Many programmes are taught in English."
     },
     {
       "criterion": "Valid passport",
-      "met": true
+      "met": true,
+      "note": "Valid for more than 3 months beyond the intended stay; the permit cannot exceed passport validity."
     }
   ],
-  "redFlagsBanner": "After refusal, address embassy feedback before rebooking—proof of funds and admission letter cannot be rushed last minute.",
+  "redFlagsBanner": "After a refusal, address OCMA's stated reason before reapplying — proof of subsistence, the OCMA invitation and insurance cannot be fixed last-minute.",
   "redFlags": [
     {
-      "title": "Proof of funds insufficient",
-      "description": "Proof of funds below €620/month × 12 (verify PMLP amount) or inconsistent bank history.",
-      "fix": "Open blocked account or show €7,440 equivalent with 3–6 month bank history before embassy slot",
+      "title": "Importing German concepts (Sperrkonto/blocked account, APS, Anabin, Ausländerbehörde)",
+      "description": "Latvia does NOT use a German Sperrkonto/blocked account, an academic APS, the Anabin database, or the Ausländerbehörde. Telling a Latvia client they need any of these is a cross-country (Germany) contamination error.",
+      "fix": "Use Latvian concepts: the OCMA invitation, proof of subsistence via bank statement/sponsor, the AIC recognition statement, OCMA/PMLP, and the residence permit → then D visa order",
+      "severity": "Critical"
+    },
+    {
+      "title": "Wrong process order",
+      "description": "Treating the D visa as the first step. In Latvia the residence-permit application is reviewed by OCMA FIRST; only a positive OCMA decision unlocks the D visa.",
+      "fix": "Sequence it correctly: university invitation via OCMA → residence-permit application/decision → D visa → travel and collect the card",
       "severity": "Very common"
     },
     {
-      "title": "Insufficient proof of funds",
-      "description": "Amount below required monthly sum or not from recognised provider.",
-      "fix": "Open proof of funds at approved bank for full required amount",
+      "title": "Insufficient / wrong proof of subsistence",
+      "description": "Funds below the OCMA requirement (linked to the minimum wage), or without proper bank history, for the study period.",
+      "fix": "Show the current OCMA subsistence amount ({{VERIFY_LIVE}}; tracks the current Latvian minimum wage) with an original bank statement (commonly valid 3 months), in the student's own/sponsored funds",
       "severity": "Very common"
     },
     {
-      "title": "Admission not from recognised institution",
-      "description": "Private unrecognised college or institution not listed for international students.",
-      "fix": "Verify institution on www.pmlp.gov.lv/ before collecting fees",
+      "title": "Missing or inadequate health insurance",
+      "description": "No insurance, or cover below the current required insurer liability ({{VERIFY_LIVE}}).",
+      "fix": "Arrange compliant insurance for the stay before submission; verify the current minimum",
       "severity": "Common"
     },
     {
-      "title": "Weak motivation letter",
-      "description": "Generic letter not explaining study plan and Latvia choice.",
-      "fix": "Course-specific motivation linking prior study to Latvian program",
+      "title": "Exceeding the work-hour limit",
+      "description": "Working beyond the current permitted limits can jeopardise the permit; bachelor's and master's/doctoral rights differ — verify.",
+      "fix": "Keep work within the current permitted limits (verify); bachelor's and master's/doctoral rights differ — confirm with OCMA",
       "severity": "Common"
     },
     {
-      "title": "Language proof missing",
-      "description": "Program requires Latvian/English certificate not provided.",
-      "fix": "Obtain required IELTS/TOEFL or Latvian certificate per admission",
-      "severity": "Common"
-    },
-    {
-      "title": "Prior refusals not addressed",
-      "description": "Schengen or Latvian refusals hidden.",
-      "fix": "Disclose and explain changed circumstances",
+      "title": "Prior refusals or misrepresentation not addressed",
+      "description": "Hidden refusals, false documents, or enrolment with no genuine study intent.",
+      "fix": "Disclose every prior refusal and explain changed circumstances; never submit false documents or sham enrolment",
       "severity": "High"
     }
   ],
   "faqs": [
     {
-      "q": "Can we guarantee student visa approval?",
-      "a": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
+      "q": "Can we guarantee approval of the student visa/permit?",
+      "a": "No. OCMA decides based on the university invitation, proof of subsistence, insurance and credibility. A strong, honest file improves the chances but approval is never guaranteed — and we never promise one."
     },
     {
-      "q": "What is proof of funds for Latvia?",
-      "a": "Typically €620/month × 12 (verify PMLP amount) months (€7,440/year) living funds or equivalent. Verify current amount on www.pmlp.gov.lv before quoting."
+      "q": "What is the application order in Latvia?",
+      "a": "Distinctively, the residence permit comes FIRST: the university files an invitation with OCMA; the student submits the residence-permit application; OCMA reviews it (30 / 10-working-day / 5-working-day fee tracks); and ONLY after a positive OCMA decision does the student apply for the National Type D visa to travel. After arrival, biometrics and the permit card are completed at PMLP."
     },
     {
-      "q": "Proof of funds amount for 2026?",
-      "a": "Typically €620/month × 12 (verify PMLP amount) (€7,440/year). Verify current amount on www.pmlp.gov.lv before quoting."
+      "q": "Who is OCMA / PMLP?",
+      "a": "The Office of Citizenship and Migration Affairs (Pilsonības un migrācijas lietu pārvalde, pmlp.gov.lv), Latvia's immigration authority, based in Riga. It is not a German Ausländerbehörde; do not import German terminology."
     },
     {
-      "q": "Can spouse accompany?",
-      "a": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
+      "q": "How much money must a student show?",
+      "a": "Proof of necessary subsistence per OCMA, linked to the Latvian minimum monthly wage ({{VERIFY_LIVE}}; the student figure tracks the current Latvian minimum wage). Shown via an original bank statement (commonly valid 3 months), a scholarship, or a notarised sponsor. Latvia does NOT use a German-style blocked account. Verify the current amount on pmlp.gov.lv."
     },
     {
-      "q": "English-taught programs need Latvian?",
-      "a": "Depends on program—follow admission and embassy requirements."
+      "q": "What are the government fees?",
+      "a": "An OCMA residence-permit state fee on a review track ({{VERIFY_LIVE}}), a consular fee ({{VERIFY_LIVE}}), and the National Type D visa fee ({{VERIFY_LIVE}}). Fees change — verify the current amounts on pmlp.gov.lv before quoting."
     },
     {
-      "q": "How long to convert to residence permit?",
-      "a": "Apply at Migration Department (www.pmlp.gov.lv) soon after arrival and university registration."
+      "q": "Can the student work?",
+      "a": "Yes — with a valid residence permit, students are generally permitted limited employment during studies, subject to current Latvian regulations (bachelor's students are commonly limited to part-time during term, with broader rights during holidays; master's/doctoral rights commonly differ). The right to employment must be endorsed in the permit. Verify the current work-right limits with OCMA before advising."
     },
     {
-      "q": "Can I work on student visa?",
-      "a": "Limited working hours permitted—verify current rules for students in Latvia."
+      "q": "Do English-taught programs require Latvian?",
+      "a": "No. Many Latvian programmes are taught in English; provide the English evidence the institution specifies. Latvian helps with daily life but is not a permit requirement. (Some programmes admit without IELTS — confirm with the institution.)"
     },
     {
       "q": "What after graduation?",
-      "a": "Discuss Graduate job-search temporary residence permit (verify on www.pmlp.gov.lv) separately."
+      "a": "Graduates may qualify for post-study residence options subject to current Latvian immigration regulations — to seek work or continue studying. Eligibility, duration and conditions are time-sensitive and not automatic; a job offer then leads to a residence permit with the right to employment (the employer registers the vacancy with the State Employment Agency, NVA). Verify current rules before advising."
     },
     {
-      "q": "What is Description for this service?",
-      "a": "National visa (Type D) for study at a recognised Latvian university. After entry, apply for temporary residence permit at Migration Department (www.pmlp.gov.lv)."
+      "q": "What is the AIC statement?",
+      "a": "A statement from the Academic Information Centre (AIC) confirming the foreign education documents are sufficient for study in Latvia."
     },
     {
-      "q": "What is Eligible applicants for this service?",
-      "a": "University admission letter · Proof of funds (€620/month × 12 (verify PMLP amount)) · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
+      "q": "What is the National Type D visa for?",
+      "a": "It is the long-stay entry visa the student applies for AFTER a positive OCMA residence-permit decision, to travel to Latvia. Courses under 90 days use a Schengen C visa; courses over 90 days use the D visa with the residence permit."
     },
     {
-      "q": "What is Proof of funds for this service?",
-      "a": "€620/month × 12 (verify PMLP amount) months (€7,440/year) typically required unless scholarship or sponsor alternative applies."
+      "q": "How long does processing take?",
+      "a": "OCMA reviews the residence-permit application on the chosen fee track (30 / 10-working-day / 5-working-day); the D visa is then issued within a short period. Apply early and quote the live OCMA track and estimate rather than a fixed number."
     },
     {
-      "q": "Important note on Proof of funds?",
-      "a": "€620/month × 12 (verify PMLP amount) months (€7,440/year) typically required unless scholarship or sponsor alternative applies."
+      "q": "Can a refused application be appealed?",
+      "a": "An OCMA refusal can be challenged through the available remedy within the stated deadline, or corrected and re-lodged. Read the reason carefully (commonly subsistence, the invitation, or documents) and fix the specific issue rather than re-lodging the same file."
     },
     {
-      "q": "What is Key authority for this service?",
-      "a": "Latvian Embassy/Consulate in India · VFS Global Latvia · Migration Department (www.pmlp.gov.lv) after arrival"
+      "q": "Can a spouse or children accompany?",
+      "a": "Family reunification is limited and assessed separately under its own rules, with its own subsistence requirements (commonly cited higher per adult/child). Verify current OCMA rules before advising; do not present family accompaniment as automatically available on a study permit."
     },
     {
-      "q": "What is After approval for this service?",
-      "a": "Enter Latvia; register address; apply for temporary residence permit at Migration Department (www.pmlp.gov.lv) within visa validity."
+      "q": "Does the residence permit need renewing?",
+      "a": "Yes — the temporary residence permit is registered/renewed (commonly annually) with OCMA, confirming continued enrolment, funds and insurance. If the underlying basis (enrolment) lapses, the permit can be cancelled."
     },
     {
-      "q": "Is Admission from recognised Latvian institution required?",
-      "a": "Admission from recognised Latvian institution is typically required."
+      "q": "Is there a path to permanent residence?",
+      "a": "Long-term residence and permanent-residence eligibility depend on current Latvian immigration regulations and the residence category. Study-based time and its treatment should be verified with OCMA — do not assume it counts toward permanent residence."
     },
     {
-      "q": "Is Proof of funds (€620/month × 12 (verify PMLP amount)) required?",
-      "a": "Apply early—processing takes weeks"
-    },
-    {
-      "q": "Is Proof of funds or financial proof required?",
-      "a": "€7,440/year or equivalent with 3–6 month bank history"
-    },
-    {
-      "q": "Is Health insurance (travel + statutory) required?",
-      "a": "Assess whether Health insurance (travel + statutory) is satisfied for this case."
-    },
-    {
-      "q": "Is Motivation letter and CV required?",
-      "a": "Motivation letter and CV is typically required."
-    },
-    {
-      "q": "Is Language proficiency (as required) required?",
-      "a": "Latvian or English per program"
-    },
-    {
-      "q": "Is Valid passport required?",
-      "a": "Valid passport is typically required."
-    },
-    {
-      "q": "What is the Processing time?",
-      "a": "6–12w — After complete file complete"
-    },
-    {
-      "q": "What is the Government fee?",
-      "a": "€75 — + proof of funds required living funds"
-    },
-    {
-      "q": "What is the Our approval rate?",
-      "a": "88% — ~74% benchmark"
-    },
-    {
-      "q": "What is the Required docs?",
-      "a": "15 — + proof of funds €7,440"
-    },
-    {
-      "q": "What is the Consultancy fee?",
-      "a": "See fee tab — + govt & third-party"
-    },
-    {
-      "q": "What if the client has Proof of funds insufficient?",
-      "a": "Open blocked account or show €7,440 equivalent with 3–6 month bank history before embassy slot"
-    },
-    {
-      "q": "Why is Proof of funds insufficient a problem?",
-      "a": "Proof of funds below €620/month × 12 (verify PMLP amount) or inconsistent bank history."
-    },
-    {
-      "q": "What if the client has Insufficient proof of funds?",
-      "a": "Open proof of funds at approved bank for full required amount"
-    },
-    {
-      "q": "Why is Insufficient proof of funds a problem?",
-      "a": "Amount below required monthly sum or not from recognised provider."
+      "q": "What does FLC actually guarantee?",
+      "a": "Nothing about the outcome — OCMA decides. FLC prepares a strong, honest, well-documented file (OCMA invitation, proof of subsistence, insurance) and never promises a permit/visa, in writing or verbally."
     }
   ],
   "compliance": [
-    "Client service agreement and consent must be on file before submission",
-    "Never guarantee visa or immigration approval; use approved-language only",
-    "Fee quotes must separate consultancy, government, and third-party costs",
-    "Proof of funds funds belong to client—never commingle with firm accounts"
+    "Client service agreement and consent must be on file before submission.",
+    "Never guarantee a visa/permit or approval; use approved, non-guaranteeing language only.",
+    "Fee quotes must separate consultancy, government (OCMA + consular + D visa) and third-party (insurance) costs.",
+    "Proof-of-subsistence funds belong to the client — never receive, hold or route them through firm accounts.",
+    "Never import German requirements (Sperrkonto/blocked account, APS, Anabin, Ausländerbehörde) into a Latvia file.",
+    "Get the process order right (OCMA residence permit first, then D visa); do not misstate it to clients.",
+    "Do not publish a firm approval rate or an unsourced 'industry benchmark' as a headline figure; use live, sourced CRM data labelled as not predictive of any individual outcome.",
+    "Handle academic, financial and insurance documents under data-protection rules: store securely, share only with authorised parties, retain only as needed."
   ],
   "proTips": [
-    "Confirm proof of funds and admission letter 3–4 months before intended intake",
-    "Open proof of funds only after admission confirmed",
-    "Book embassy slot when file 90% ready",
-    "Motivation letter must match admission course",
-    "Verify health insurance accepted by embassy"
+    "Get the order right: university invitation via OCMA → residence-permit decision → THEN the D visa. The visa is not the first step.",
+    "Never use German terms in a Latvia file — there is no Sperrkonto/blocked account, APS or Anabin; use the OCMA invitation, bank-statement proof and the AIC recognition statement.",
+    "Proof of subsistence tracks the Latvian minimum wage (current Latvian minimum wage / OCMA subsistence requirement — {{VERIFY_LIVE}}) — show it with an original bank statement (commonly valid 3 months).",
+    "Choose the OCMA review track deliberately (30 / 10-working-day / 5-working-day) — higher fee, faster decision.",
+    "Student work is limited and subject to current Latvian regulations; bachelor's and master's/doctoral rights differ — verify with OCMA.",
+    "Insurance: confirm the current minimum insurer liability ({{VERIFY_LIVE}}) before submission."
   ],
   "postApproval": [
-    "Explain address registration (Anmeldung) within deadline",
-    "Guide on Migration Department (www.pmlp.gov.lv) appointment after arrival",
-    "Remind proof of funds monthly withdrawal rules",
-    "Discuss post-study job-seeker pathway"
+    "After a positive OCMA decision, apply for the National Type D visa and travel to Latvia",
+    "Give biometrics and collect the residence-permit card from PMLP; register as required",
+    "Keep work within the current permitted limits (verify; bachelor's and master's/PhD differ)",
+    "Renew the permit before expiry with continued enrolment, funds and insurance"
   ],
   "performance": {
-    "ourRate": 0,
-    "industryRate": 0,
+    "ourRate": null,
+    "industryRate": null,
+    "note": "Approval rate and file counts must be populated live from CRM case data, not published as fixed figures. Do not display a comparative 'industry benchmark' unless independently sourced and cited.",
     "stats": [
       {
-        "label": "Files this year",
-        "value": "0"
+        "label": "Files this period",
+        "value": "{{VERIFY_LIVE}}"
       },
       {
         "label": "Approved",
-        "value": "0"
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Refused",
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "{{VERIFY_LIVE}}"
       }
     ]
   },
   "approvalFactors": [
     {
-      "label": "Our rate vs industry",
-      "ours": 88,
-      "benchmark": 74
+      "label": "OCMA invitation + admission in order",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "Proof of funds timing",
-      "ours": 85,
-      "benchmark": 68
+      "label": "Proof of subsistence (correct amount + bank history)",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "Financial docs",
-      "ours": 87,
-      "benchmark": 72
+      "label": "Insurance + accommodation documented",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
       "label": "First-submit completeness",
-      "ours": 92,
-      "benchmark": 76
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     }
   ],
   "timeline": [
     {
       "weeks": "1–2",
-      "title": "Counseling, admission review, funds documentation"
+      "title": "Counselling, admission, university files the OCMA invitation"
     },
     {
-      "weeks": "2–8",
-      "title": "Proof of funds, insurance, document compilation"
+      "weeks": "2–4",
+      "title": "Proof of subsistence, insurance, accommodation; residence-permit application to OCMA"
     },
     {
-      "weeks": "8–10",
-      "title": "Embassy appointment & submission"
+      "weeks": "{{VERIFY_LIVE}}",
+      "title": "OCMA review (30 / 10 / 5 working-day track — verify live)"
     },
     {
-      "weeks": "6–12",
-      "title": "Embassy processing"
+      "weeks": "after approval",
+      "title": "National Type D visa → travel → biometrics + permit card at PMLP"
     }
   ],
   "relatedServices": [
     {
-      "label": "Latvia – Graduate job-search permit",
+      "label": "Latvia – Post-Study Residence Permit (job search)",
       "libraryId": ""
     },
     {
-      "label": "Latvia – Student extension",
+      "label": "Latvia – Student Residence Permit Renewal",
       "libraryId": ""
     },
     {
-      "label": "Latvia – Visitor Visa",
+      "label": "Latvia – Residence Permit with Right to Employment",
       "libraryId": ""
     }
   ],
   "changelog": [
+    {
+      "version": "v2.2",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Audit revision (released as v2.2): removed hardcoded minimum-wage references (€780/month) from all client-facing content, leaving 'current Latvian minimum wage / OCMA subsistence requirement ({{VERIFY_LIVE}})'; removed fixed insurance figures (€42,600) for 'insurance meeting current Latvian requirements ({{VERIFY_LIVE}})'; removed hardcoded government fees (€160/€280/€560 OCMA, €100 consular, €90 D visa) for 'current OCMA state fee / consular fee / National D visa fee ({{VERIFY_LIVE}})'; revised post-study guidance to 'graduates may qualify for post-study residence options subject to current Latvian immigration regulations — verify eligibility, duration and conditions' (removed the fixed 4-month / extension framing); softened work-rights wording so 20 h/week and holiday full-time are presented as 'limited employment subject to current regulations — verify limits'; tightened permanent-residence wording to 'long-term/PR eligibility depends on current OCMA rules and residence category — verify' (removed the '5 years / tightened in 2026' framing); rewrote sample-document descriptions to be client-facing (keeping contamination warnings only in compliance/staff notes/red flags); updated affected quiz questions/explanations to verification-based wording; reviewed the cost breakdown so flight and first-year-total figures are illustrative/{{VERIFY_LIVE}}; fixed a garbled tuition note (editorial cleanup); corrected the changelog chronology (v1.0 now predates v2.0); re-ran a full cross-country contamination scan (Germany/Portugal/Lithuania/UK/Canada) — all such terms remain only as warnings or wrong-answer quiz distractors. Preserved all keys, {{VERIFY_LIVE}} placeholders, OCMA/PMLP and AIC guidance, the reverse-order process explanation (residence permit first, D visa second), compliance and contamination warnings, and counsellor-training content. No statistics, approval rates, immigration benefits, stay-back rights, or cross-country terms were introduced."
+    },
+    {
+      "version": "v2.1",
+      "date": "10 Jun 2026",
+      "author": "Service Library",
+      "summary": "Major decontamination + uplift: removed cross-country residue — a German 'Sperrkonto'/blocked-account sample-doc note and red-flag wording, a stray 'Vilnius' (Lithuania; Latvia's capital is Riga) in the cost breakdown, and a Portugal source URL (imigrante.sef.pt) in BOTH workingRights.applicant.sourceUrl and workingRights.spouse.sourceUrl (replaced with pmlp.gov.lv). Replaced auto-generated template FAQs and quiz with real Latvia counsellor Q&A; redistributed the quiz answer key (was ~73/75 on one option); removed the hardcoded approval rate (88%) and '74% benchmark'; converted time-sensitive values to {{VERIFY_LIVE}} placeholders. Corrected facts to OCMA/PMLP guidance: the distinctive REVERSE order (university invitation via OCMA → residence-permit decision → THEN National Type D visa); OCMA/PMLP in Riga; proof of subsistence linked to the €780/month minimum wage (removed the outdated €620/€576/€7,440 figures); OCMA review tracks (€160/€280/€560 by speed) + consular fee (~€100) + D visa fee (~€90) — placeholdered; bachelor's work 20 h/week in term (master's/PhD broader); recognition via the AIC (not Anabin); insurance minimum commonly €42,600; post-study +4 months for bachelor's (master's/PhD extendable); PR after ~5 years (2026 rules stricter). Rebuilt resources to official PMLP/AIC/Study in Latvia/MFA sources. No statistics were invented."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",
@@ -392,948 +371,361 @@
     },
     {
       "version": "v1.0",
-      "date": "10 Jun 2026",
+      "date": "6 Jun 2026",
       "author": "Service Library",
       "summary": "Initial Latvia student visa content."
     }
   ],
   "staffNotes": [
     {
+      "author": "Service Library",
+      "date": "16 Jun 2026",
+      "text": "Dynamic values are marked {{VERIFY_LIVE}} and MUST be populated from live official sources / CRM before client use: proof-of-subsistence amount (linked to the €780/month minimum wage — verify OCMA), OCMA state fee (commonly €160/€280/€560 by track), consular fee (~€100), D visa fee (~€90), insurance minimum (commonly €42,600), tuition, living costs, processing tracks, doc counts, post-study terms, and any approval/file-count figures. Never publish invented statistics."
+    },
+    {
       "author": "Documentation team",
-      "date": "6 Jun 2026",
-      "text": "Proof-of-funds and admission timing matter—do not promise intake without confirming €7,440 equivalent."
+      "date": "16 Jun 2026",
+      "text": "CONTAMINATION WARNING: clean cross-country residue. Latvia does NOT use a German Sperrkonto/blocked account, APS, Anabin or Ausländerbehörde; recognition is via the AIC, not Anabin. Earlier drafts contained: a German 'Sperrkonto' sample-doc note (removed), a stray 'Vilnius' (which is in Lithuania — Latvia's capital is Riga) in the cost breakdown (fixed to Riga), a Portugal source URL 'imigrante.sef.pt' in BOTH workingRights.applicant.sourceUrl and workingRights.spouse.sourceUrl (replaced with pmlp.gov.lv), and outdated subsistence figures (€620/€576/€7,440 — replaced with the minimum-wage-linked placeholder). KEY LATVIA FACTS: REVERSE order (university invitation via OCMA → residence-permit decision → THEN D visa); OCMA/PMLP in Riga; subsistence linked to the €780/month minimum wage; bachelor's work 20 h/week in term (master's/PhD broader); post-study +4 months (bachelor's), extendable for master's/PhD. Never reintroduce German/Portugal/Lithuania residue."
     }
   ],
   "resources": [
     {
-      "title": "Latvia immigration portal",
-      "url": "https://www.pmlp.gov.lv/",
-      "description": "Official requirements"
+      "title": "OCMA / PMLP — official immigration authority",
+      "url": "https://www.pmlp.gov.lv/en",
+      "description": "Residence permits, fees, necessary subsistence, registration"
+    },
+    {
+      "title": "PMLP — necessary subsistence (official)",
+      "url": "https://www.pmlp.gov.lv/en/necessary-subsistence-0",
+      "description": "Minimum-wage-linked subsistence amounts for residence permits"
+    },
+    {
+      "title": "Study in Latvia (official portal)",
+      "url": "https://studyinlatvia.lv/",
+      "description": "Programmes, admission, visas and residence permits"
+    },
+    {
+      "title": "Academic Information Centre (AIC)",
+      "url": "https://www.aic.lv/en",
+      "description": "Recognition of foreign qualifications for study in Latvia"
+    },
+    {
+      "title": "Latvian MFA — study in Latvia / visa guidance",
+      "url": "https://www.mfa.gov.lv/en",
+      "description": "Consular information, D visa and residence-permit procedure"
     }
   ],
   "quiz": [
     {
-      "question": "Indian students generally need:",
+      "level": 1,
+      "question": "Which authority administers Latvian student residence permits?",
       "options": [
-        "Only passport",
-        "admission documentation + admission + proof of funds",
-        "Job offer",
-        "EU citizenship"
+        "OCMA / PMLP (Office of Citizenship and Migration Affairs)",
+        "The Ausländerbehörde",
+        "Migri",
+        "Campus France"
+      ],
+      "correctIndex": 0,
+      "explanation": "OCMA/PMLP (pmlp.gov.lv) administers residence permits."
+    },
+    {
+      "level": 1,
+      "question": "What is the distinctive order of the Latvian process?",
+      "options": [
+        "D visa first, then everything else",
+        "University invitation via OCMA → residence-permit decision → THEN D visa",
+        "Blocked account first",
+        "Permit and visa at once abroad"
       ],
       "correctIndex": 1,
-      "explanation": "Proof of funds €7,440/year mandatory for student visa.",
-      "level": 1
+      "explanation": "OCMA decides the residence permit first; only then is the D visa applied for."
     },
     {
       "level": 1,
-      "question": "For Latvia – Student Residence Permit (National D Visa), which statement about Description is correct?",
+      "question": "Does Latvia use a German-style blocked account?",
       "options": [
-        "National visa (Type D) for study at a recognised Latvian university. After entry, apply for temporary residence permit at Migration Department.",
-        "University admission letter · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "Typically €576/month (12 months = €7,440) or equivalent. Verify current amount on www.pmlp.gov.lv before quoting.",
-        "Latvian Embassy/Consulate in India · VFS Global Latvia · Migration Department (www.pmlp.gov.lv) after arrival"
+        "Yes, €992/month",
+        "Yes, for all Indians",
+        "No — bank statement / scholarship / sponsor proof",
+        "Only in Riga"
       ],
-      "correctIndex": 0,
-      "explanation": "National visa (Type D) for study at a recognised Latvian university. After entry, apply for temporary residence permit at Migration Department."
+      "correctIndex": 2,
+      "explanation": "Latvia does not operate a German Sperrkonto/blocked account."
     },
     {
       "level": 1,
-      "question": "For Latvia – Student Residence Permit (National D Visa), which statement about Key authority is correct?",
+      "question": "Latvia's capital (and OCMA's main location) is:",
       "options": [
-        "Latvian Embassy/Consulate in India · VFS Global Latvia · Migration Department (www.pmlp.gov.lv) after arrival",
-        "National visa (Type D) for study at a recognised Latvian university. After entry, apply for temporary residence permit at Migration Department.",
-        "University admission letter · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "Typically €576/month (12 months = €7,440) or equivalent. Verify current amount on www.pmlp.gov.lv before quoting."
+        "Vilnius",
+        "Tallinn",
+        "Berlin",
+        "Riga"
       ],
-      "correctIndex": 0,
-      "explanation": "Latvian Embassy/Consulate in India · VFS Global Latvia · Migration Department (www.pmlp.gov.lv) after arrival"
+      "correctIndex": 3,
+      "explanation": "Riga is Latvia's capital; Vilnius is in Lithuania."
     },
     {
       "level": 1,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is true regarding Eligible applicants?",
+      "question": "Student work rights in Latvia are best described as:",
       "options": [
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting.",
-        "Latvian Embassy · PMLP (Office of Citizenship)"
+        "Limited and subject to current Latvian regulations — verify limits",
+        "Unlimited all year",
+        "Always exactly 40 hours/week",
+        "No work permitted ever"
       ],
       "correctIndex": 0,
-      "explanation": "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
+      "explanation": "Student work is limited and subject to current rules; bachelor's and master's/doctoral rights differ — verify."
     },
     {
       "level": 1,
-      "question": "A counselor explaining Latvia – Student Residence Permit (National D Visa) should state correctly about Proof of funds:",
+      "question": "Proof of subsistence in Latvia is:",
       "options": [
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "Latvian Embassy · PMLP (Office of Citizenship)"
-      ],
-      "correctIndex": 0,
-      "explanation": "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting. — verify current rules."
-    },
-    {
-      "level": 1,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is true regarding After approval?",
-      "options": [
-        "Enter Latvia; register address; apply for residence permit within visa validity.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Enter Latvia; register address; apply for residence permit within visa validity."
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Latvia – Student Residence Permit (National D Visa) should state correctly about Admission from recognised Latvia institution:",
-      "options": [
-        "Admission from recognised Latvia institution is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Admission from recognised Latvia institution"
-    },
-    {
-      "level": 1,
-      "question": "For Latvia – Student Residence Permit (National D Visa), which statement about Proof of funds for study period is correct?",
-      "options": [
-        "Proof of funds for study period is often required or assessed for this service. Note: Verify current amount on official portal",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Verify current amount on official portal"
-    },
-    {
-      "level": 1,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is true regarding Health insurance (travel + statutory)?",
-      "options": [
-        "Health insurance (travel + statutory) is often required or assessed for this service.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Health insurance (travel + statutory)"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Latvia – Student Residence Permit (National D Visa) should state correctly about Motivation letter and CV:",
-      "options": [
-        "Motivation letter and CV is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Motivation letter and CV"
-    },
-    {
-      "level": 1,
-      "question": "For Latvia – Student Residence Permit (National D Visa), which statement about Language proficiency (as required) is correct?",
-      "options": [
-        "Language proficiency (as required) is a core requirement for this service. Note: English or local language per program",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "English or local language per program"
-    },
-    {
-      "level": 1,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is true regarding Valid passport?",
-      "options": [
-        "Valid passport is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Valid passport"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Latvia – Student Residence Permit (National D Visa) should state correctly about Processing time:",
-      "options": [
-        "Processing time: 6–12w — After complete file complete",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "After complete file complete"
-    },
-    {
-      "level": 1,
-      "question": "For Latvia – Student Residence Permit (National D Visa), which statement about Government fee is correct?",
-      "options": [
-        "Government fee: €75 — + proof of funds required living funds",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ proof of funds required living funds"
-    },
-    {
-      "level": 1,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is true regarding Our approval rate?",
-      "options": [
-        "Our approval rate: 88% — ~74% benchmark",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "~74% benchmark"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Latvia – Student Residence Permit (National D Visa) should state correctly about Required docs:",
-      "options": [
-        "Required docs: 15 — + proof of funds €7,440",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ proof of funds €7,440"
-    },
-    {
-      "level": 1,
-      "question": "For Latvia – Student Residence Permit (National D Visa), which statement about Consultancy fee is correct?",
-      "options": [
-        "Consultancy fee: See fee tab — + govt & third-party",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ govt & third-party"
-    },
-    {
-      "level": 1,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is true regarding service summary?",
-      "options": [
-        "Latvian Embassy · PMLP (Office of Citizenship) · D visa · University acceptance · Proof of funds",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Latvian Embassy · PMLP (Office of Citizenship) · D visa · University acceptance · Proof of funds"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Latvia – Student Residence Permit (National D Visa) should state correctly about Residence permit after arrival:",
-      "options": [
-        "After entry, apply for temporary residence permit at Latvian Embassy within required deadline.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "After entry, apply for temporary residence permit at Latvian Embassy within required deadline."
-    },
-    {
-      "level": 1,
-      "question": "For Latvia – Student Residence Permit (National D Visa), which statement about policy update is correct?",
-      "options": [
-        "Confirm requirements on www.pmlp.gov.lv before quoting.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Confirm requirements on www.pmlp.gov.lv before quoting."
-    },
-    {
-      "level": 1,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is true regarding Can we guarantee student visa approval?",
-      "options": [
-        "No. Embassy decides based on admission, funds, and credibility. Never promise approval.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Latvia – Student Residence Permit (National D Visa) should state correctly about What is proof of funds for Latvia:",
-      "options": [
-        "Typically €620/month × 12 (verify PMLP amount) months (€7,440/year) living funds or equivalent. Verify current amount on www.pmlp.gov.lv before quoting.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Typically €620/month × 12 (verify PMLP amount) months (€7,440/year) living funds or equivalent. Verify current amount on www.pmlp.gov.lv before quoting."
-    },
-    {
-      "level": 1,
-      "question": "For Latvia – Student Residence Permit (National D Visa), which statement about Proof of funds amount for 2026 is correct?",
-      "options": [
-        "Typically €620/month × 12 (verify PMLP amount) (€7,440/year). Verify current amount on www.pmlp.gov.lv before quoting.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Typically €620/month × 12 (verify PMLP amount) (€7,440/year). Verify current amount on www.pmlp.gov.lv before quoting."
-    },
-    {
-      "level": 1,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is true regarding Can spouse accompany?",
-      "options": [
-        "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Latvia – Student Residence Permit (National D Visa) should state correctly about English-taught programs need Latvian:",
-      "options": [
-        "Depends on program—follow admission and embassy requirements.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Depends on program—follow admission and embassy requirements."
-    },
-    {
-      "question": "After arrival student must:",
-      "options": [
-        "Ignore registration",
-        "Register address and apply residence permit",
-        "Work full-time immediately",
-        "Leave in 1 week"
+        "A fixed German Sperrkonto",
+        "Set by the current minimum wage / OCMA subsistence requirement — verify",
+        "A UK 28-day balance",
+        "A Canada GIC"
       ],
       "correctIndex": 1,
-      "explanation": "Address registration and Migration Department appointment required after arrival.",
-      "level": 2
+      "explanation": "The subsistence figure tracks the current Latvian minimum wage / OCMA requirement; verify the current amount."
+    },
+    {
+      "level": 1,
+      "question": "Qualification recognition in Latvia is via:",
+      "options": [
+        "The German Anabin",
+        "A UK NARIC",
+        "The Academic Information Centre (AIC)",
+        "A blocked account"
+      ],
+      "correctIndex": 2,
+      "explanation": "AIC issues the recognition statement, not Anabin."
+    },
+    {
+      "level": 1,
+      "question": "Which visa do non-EU students need for courses over 90 days?",
+      "options": [
+        "Schengen C visa",
+        "A German APS",
+        "A UK CAS",
+        "National Type D visa (after OCMA approval)"
+      ],
+      "correctIndex": 3,
+      "explanation": "A National Type D visa, applied for after a positive OCMA decision."
     },
     {
       "level": 2,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is true regarding Eligible applicants?",
+      "question": "OCMA residence-permit review tracks are commonly:",
       "options": [
-        "University admission letter · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "National visa (Type D) for study at a recognised Latvian university. After entry, apply for temporary residence permit at Migration Department.",
-        "Typically €576/month (12 months = €7,440) or equivalent. Verify current amount on www.pmlp.gov.lv before quoting.",
-        "Latvian Embassy/Consulate in India · VFS Global Latvia · Migration Department (www.pmlp.gov.lv) after arrival"
+        "30 / 10-working-day / 5-working-day (higher fee = faster)",
+        "Always 6 months",
+        "One week flat",
+        "No tracks exist"
       ],
       "correctIndex": 0,
-      "explanation": "University admission letter · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
+      "explanation": "OCMA offers tiered review tracks at different state fees."
     },
     {
       "level": 2,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is true regarding After approval?",
+      "question": "Master's/doctoral student work rights are:",
       "options": [
-        "Enter Latvia; register address; apply for temporary residence permit at Migration Department within visa validity.",
-        "National visa (Type D) for study at a recognised Latvian university. After entry, apply for temporary residence permit at Migration Department.",
-        "University admission letter · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "Typically €576/month (12 months = €7,440) or equivalent. Verify current amount on www.pmlp.gov.lv before quoting."
+        "Always zero",
+        "Commonly broader than bachelor's — verify with OCMA",
+        "Always 10 hours",
+        "Identical to tourists"
       ],
-      "correctIndex": 0,
-      "explanation": "Enter Latvia; register address; apply for temporary residence permit at Migration Department within visa validity."
+      "correctIndex": 1,
+      "explanation": "Master's/doctoral students commonly have broader work rights."
     },
     {
       "level": 2,
-      "question": "In the Latvia – Student Residence Permit (National D Visa) process, what is the correct approach to client question: Can we guarantee student visa approval?",
+      "question": "After graduation, a bachelor's graduate commonly gets:",
       "options": [
-        "No. Embassy decides based on admission, funds, and credibility. Never promise approval.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
+        "Automatic PR",
+        "A German job-seeker visa",
+        "Post-study residence options subject to current rules (verify)",
+        "Nothing"
       ],
-      "correctIndex": 0,
-      "explanation": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
+      "correctIndex": 2,
+      "explanation": "Post-study options are subject to current ISD/OCMA rules; verify eligibility and duration."
     },
     {
       "level": 2,
-      "question": "For Latvia – Student Residence Permit (National D Visa), what should happen during client question: What is proof of funds for Latvia?",
+      "question": "The proof-of-subsistence bank document is commonly valid for:",
       "options": [
-        "Typically €620/month × 12 (verify PMLP amount) months (€7,440/year) living funds or equivalent. Verify current amount on www.pmlp.gov.lv before quoting.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
+        "10 years",
+        "1 week",
+        "Forever",
+        "About 3 months from issue"
       ],
-      "correctIndex": 0,
-      "explanation": "Typically €620/month × 12 (verify PMLP amount) months (€7,440/year) living funds or equivalent. Verify current amount on www.pmlp.gov.lv before quoting."
+      "correctIndex": 3,
+      "explanation": "Subsistence/bank documents are commonly valid ~3 months."
     },
     {
       "level": 2,
-      "question": "Latvia – Student Residence Permit (National D Visa) workflow — best practice for client question: Proof of funds amount for 2026:",
+      "question": "Health insurance minimum liability is commonly cited at:",
       "options": [
-        "Typically €620/month × 12 (verify PMLP amount) (€7,440/year). Verify current amount on www.pmlp.gov.lv before quoting.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
+        "the current required level (verify current requirement)",
+        "€30,000 fixed forever",
+        "No requirement",
+        "€1,000"
       ],
       "correctIndex": 0,
-      "explanation": "Typically €620/month × 12 (verify PMLP amount) (€7,440/year). Verify current amount on www.pmlp.gov.lv before quoting."
+      "explanation": "Insurer liability the current required level ({{VERIFY_LIVE}}); verify."
     },
     {
       "level": 2,
-      "question": "In the Latvia – Student Residence Permit (National D Visa) process, what is the correct approach to client question: Can spouse accompany?",
+      "question": "The Type D visa is applied for:",
       "options": [
-        "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
+        "Before contacting the university",
+        "After a positive OCMA residence-permit decision",
+        "Instead of a permit",
+        "At the Ausländerbehörde"
       ],
-      "correctIndex": 0,
-      "explanation": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
+      "correctIndex": 1,
+      "explanation": "The D visa follows a positive OCMA decision."
     },
     {
       "level": 2,
-      "question": "For Latvia – Student Residence Permit (National D Visa), what should happen during client question: English-taught programs need Latvian?",
+      "question": "English-taught programmes require:",
       "options": [
-        "Depends on program—follow admission and embassy requirements.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
+        "Latvian C1",
+        "German TestDaF",
+        "English evidence where specified (some admit without IELTS)",
+        "No study at all"
       ],
-      "correctIndex": 0,
-      "explanation": "Depends on program—follow admission and embassy requirements."
+      "correctIndex": 2,
+      "explanation": "Provide English evidence per the institution; some programmes admit without IELTS."
     },
     {
       "level": 2,
-      "question": "Latvia – Student Residence Permit (National D Visa) workflow — best practice for client question: How long to convert to residence permit:",
+      "question": "Long-term/permanent residence in Latvia:",
       "options": [
-        "Apply at Migration Department (www.pmlp.gov.lv) soon after arrival and university registration.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
+        "Is automatic after 6 months",
+        "Is guaranteed for all students",
+        "Is never possible",
+        "Depends on current OCMA rules and residence category — verify"
       ],
-      "correctIndex": 0,
-      "explanation": "Apply at Migration Department (www.pmlp.gov.lv) soon after arrival and university registration."
-    },
-    {
-      "level": 2,
-      "question": "In the Latvia – Student Residence Permit (National D Visa) process, what is the correct approach to client question: Can I work on student visa?",
-      "options": [
-        "Limited working hours permitted—verify current rules for students in Latvia.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Limited working hours permitted—verify current rules for students in Latvia."
-    },
-    {
-      "level": 2,
-      "question": "For Latvia – Student Residence Permit (National D Visa), what should happen during client question: What after graduation?",
-      "options": [
-        "Discuss Graduate job-search temporary residence permit (verify on www.pmlp.gov.lv) separately.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Discuss Graduate job-search temporary residence permit (verify on www.pmlp.gov.lv) separately."
-    },
-    {
-      "level": 2,
-      "question": "Latvia – Student Residence Permit (National D Visa) workflow — best practice for client question: What is Description for this service:",
-      "options": [
-        "National visa (Type D) for study at a recognised Latvian university. After entry, apply for temporary residence permit at Migration Department (www.pmlp.gov.lv…",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "National visa (Type D) for study at a recognised Latvian university. After entry, apply for temporary residence permit at Migration Department (www.pmlp.gov.lv)."
-    },
-    {
-      "level": 2,
-      "question": "In the Latvia – Student Residence Permit (National D Visa) process, what is the correct approach to client question: What is Eligible applicants for this service?",
-      "options": [
-        "University admission letter · Proof of funds (€620/month × 12 (verify PMLP amount)) · Health insurance · Motivation letter · Valid passport · Language proficie…",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "University admission letter · Proof of funds (€620/month × 12 (verify PMLP amount)) · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
-    },
-    {
-      "level": 2,
-      "question": "For Latvia – Student Residence Permit (National D Visa), what should happen during client question: What is Proof of funds for this service?",
-      "options": [
-        "€620/month × 12 (verify PMLP amount) months (€7,440/year) typically required unless scholarship or sponsor alternative applies.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "€620/month × 12 (verify PMLP amount) months (€7,440/year) typically required unless scholarship or sponsor alternative applies."
-    },
-    {
-      "level": 2,
-      "question": "Latvia – Student Residence Permit (National D Visa) workflow — best practice for client question: Important note on Proof of funds:",
-      "options": [
-        "€620/month × 12 (verify PMLP amount) months (€7,440/year) typically required unless scholarship or sponsor alternative applies.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "€620/month × 12 (verify PMLP amount) months (€7,440/year) typically required unless scholarship or sponsor alternative applies."
-    },
-    {
-      "level": 2,
-      "question": "In the Latvia – Student Residence Permit (National D Visa) process, what is the correct approach to client question: What is Key authority for this service?",
-      "options": [
-        "Latvian Embassy/Consulate in India · VFS Global Latvia · Migration Department (www.pmlp.gov.lv) after arrival",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Latvian Embassy/Consulate in India · VFS Global Latvia · Migration Department (www.pmlp.gov.lv) after arrival"
-    },
-    {
-      "level": 2,
-      "question": "For Latvia – Student Residence Permit (National D Visa), what should happen during client question: What is After approval for this service?",
-      "options": [
-        "Enter Latvia; register address; apply for temporary residence permit at Migration Department (www.pmlp.gov.lv) within visa validity.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Enter Latvia; register address; apply for temporary residence permit at Migration Department (www.pmlp.gov.lv) within visa validity."
-    },
-    {
-      "level": 2,
-      "question": "Latvia – Student Residence Permit (National D Visa) workflow — best practice for client question: Is Admission from recognised Latvian institution required:",
-      "options": [
-        "Admission from recognised Latvian institution is typically required.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Admission from recognised Latvian institution is typically required."
-    },
-    {
-      "level": 2,
-      "question": "In the Latvia – Student Residence Permit (National D Visa) process, what is the correct approach to client question: Is Proof of funds (€620/month × 12 (verify PMLP amount)) requi…?",
-      "options": [
-        "Apply early—processing takes weeks",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Apply early—processing takes weeks"
-    },
-    {
-      "level": 2,
-      "question": "For Latvia – Student Residence Permit (National D Visa), what should happen during client question: Is Proof of funds or financial proof required?",
-      "options": [
-        "€7,440/year or equivalent with 3–6 month bank history",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "€7,440/year or equivalent with 3–6 month bank history"
-    },
-    {
-      "level": 2,
-      "question": "Latvia – Student Residence Permit (National D Visa) workflow — best practice for client question: Is Health insurance (travel + statutory) required:",
-      "options": [
-        "Assess whether Health insurance (travel + statutory) is satisfied for this case.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Assess whether Health insurance (travel + statutory) is satisfied for this case."
-    },
-    {
-      "level": 2,
-      "question": "In the Latvia – Student Residence Permit (National D Visa) process, what is the correct approach to client question: Is Motivation letter and CV required?",
-      "options": [
-        "Motivation letter and CV is typically required.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Motivation letter and CV is typically required."
-    },
-    {
-      "level": 2,
-      "question": "For Latvia – Student Residence Permit (National D Visa), what should happen during client question: Is Language proficiency (as required) required?",
-      "options": [
-        "Latvian or English per program",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Latvian or English per program"
-    },
-    {
-      "level": 2,
-      "question": "Latvia – Student Residence Permit (National D Visa) workflow — best practice for client question: Is Valid passport required:",
-      "options": [
-        "Valid passport is typically required.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Valid passport is typically required."
-    },
-    {
-      "level": 2,
-      "question": "In the Latvia – Student Residence Permit (National D Visa) process, what is the correct approach to client question: What is the Processing time?",
-      "options": [
-        "6–12w — After complete file complete",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "6–12w — After complete file complete"
+      "correctIndex": 3,
+      "explanation": "Long-term/PR eligibility depends on current OCMA rules and category; verify."
     },
     {
       "level": 3,
-      "question": "Latvia – Student Residence Permit (National D Visa) (National Visa): what is true regarding Eligible applicants?",
+      "question": "A client's file says 'open a Sperrkonto'. The issue?",
       "options": [
-        "University admission letter · Proof of funds (€620/month × 12 (verify PMLP amount)) · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "National visa (Type D) for study at a recognised Latvian university. After entry, apply for temporary residence permit at Migration Department (www.pmlp.gov.lv).",
-        "€620/month × 12 (verify PMLP amount) months (€7,440/year) typically required unless scholarship or sponsor alternative applies.",
-        "Latvian Embassy/Consulate in India · VFS Global Latvia · Migration Department (www.pmlp.gov.lv) after arrival"
+        "That is German — Latvia uses bank-statement/sponsor proof (contamination)",
+        "No issue",
+        "It is required",
+        "It speeds approval"
       ],
       "correctIndex": 0,
-      "explanation": "University admission letter · Proof of funds (€620/month × 12 (verify PMLP amount)) · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
+      "explanation": "Sperrkonto/blocked-account wording is German residue."
     },
     {
       "level": 3,
-      "question": "A counselor explaining Latvia – Student Residence Permit (National D Visa) should state correctly about Proof of funds:",
+      "question": "A cost sheet lists 'Accommodation (Vilnius)'. The issue?",
       "options": [
-        "Typically €576/month (12 months = €7,440) or equivalent. Verify current amount on www.pmlp.gov.lv before quoting.",
-        "National visa (Type D) for study at a recognised Latvian university. After entry, apply for temporary residence permit at Migration Department.",
-        "University admission letter · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "Latvian Embassy/Consulate in India · VFS Global Latvia · Migration Department (www.pmlp.gov.lv) after arrival"
+        "No issue",
+        "Vilnius is in Lithuania — Latvia's capital is Riga (contamination)",
+        "Vilnius is in Latvia",
+        "It lowers the fee"
       ],
-      "correctIndex": 0,
-      "explanation": "Typically €576/month (12 months = €7,440) or equivalent. Verify current amount on www.pmlp.gov.lv before quoting. — verify current rules."
+      "correctIndex": 1,
+      "explanation": "A stray 'Vilnius' is a Lithuania leftover; Latvia's capital is Riga."
     },
     {
       "level": 3,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is the compliance risk with Latvia – Student Residence Permit (National D Visa) (National Visa): what is tr…?",
+      "question": "A working-rights field links to 'imigrante.sef.pt'. The issue?",
       "options": [
-        "University admission letter · Proof of funds (€620/month × 12 (verify PMLP amount)) · Health insurance · Motivation letter · Valid passport · Language proficie…",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
+        "No issue",
+        "It is the Latvian source",
+        "That is a Portugal URL — replace with pmlp.gov.lv (contamination)",
+        "It is faster"
       ],
-      "correctIndex": 0,
-      "explanation": "University admission letter · Proof of funds (€620/month × 12 (verify PMLP amount)) · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
+      "correctIndex": 2,
+      "explanation": "imigrante.sef.pt is a Portuguese immigration site — wrong country."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Latvia – Student Residence Permit (National D Visa) — key issue with A counselor explaining Latvia – Student Residence Permit (National D Visa) shou…:",
+      "question": "A counsellor sequences the D visa before the OCMA decision. Correct them:",
       "options": [
-        "Typically €576/month (12 months = €7,440) or equivalent. Verify current amount on www.pmlp.gov.lv before quoting.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
+        "The visa is always first",
+        "Order does not matter",
+        "Do both abroad simultaneously",
+        "OCMA decides the residence permit FIRST; the D visa follows"
       ],
-      "correctIndex": 0,
-      "explanation": "Typically €576/month (12 months = €7,440) or equivalent. Verify current amount on www.pmlp.gov.lv before quoting. — verify current rules."
+      "correctIndex": 3,
+      "explanation": "Latvia's order is OCMA permit decision first, then the D visa."
     },
     {
       "level": 3,
-      "question": "For Latvia – Student Residence Permit (National D Visa), counselors must avoid this mistake related to Proof of funds insufficient:",
+      "question": "A client asks FLC to hold their proof-of-subsistence money. You:",
       "options": [
-        "Open blocked account or show €7,440 equivalent with 3–6 month bank history before embassy slot",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
+        "Refuse — the funds belong to the client and are never routed through the firm",
+        "Hold them",
+        "Route them through the firm",
+        "Charge a fee"
       ],
       "correctIndex": 0,
-      "explanation": "Proof of funds below €620/month × 12 (verify PMLP amount) or inconsistent bank history."
+      "explanation": "Never receive or route client funds — a compliance breach."
     },
     {
       "level": 3,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is the compliance risk with Proof of funds insufficient (detail)?",
+      "question": "A client wants a written guarantee of the permit. You:",
       "options": [
-        "Proof of funds below €620/month × 12 (verify PMLP amount) or inconsistent bank history.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
+        "Provide it",
+        "Refuse and use approved non-guaranteeing language",
+        "Charge extra",
+        "Promise a date"
       ],
-      "correctIndex": 0,
-      "explanation": "Open blocked account or show €7,440 equivalent with 3–6 month bank history before embassy slot"
+      "correctIndex": 1,
+      "explanation": "Never guarantee an outcome; OCMA decides."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Latvia – Student Residence Permit (National D Visa) — key issue with Insufficient proof of funds:",
+      "question": "A bachelor's student works 35 hours/week all term. Consequence?",
       "options": [
-        "Open proof of funds at approved bank for full required amount",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
+        "Allowed",
+        "Encouraged",
+        "Over the 20 h/week term limit — can jeopardise the permit",
+        "No effect"
       ],
-      "correctIndex": 0,
-      "explanation": "Amount below required monthly sum or not from recognised provider."
+      "correctIndex": 2,
+      "explanation": "Exceeding 20 h/week in term can jeopardise the permit."
     },
     {
       "level": 3,
-      "question": "For Latvia – Student Residence Permit (National D Visa), counselors must avoid this mistake related to Insufficient proof of funds (detail):",
+      "question": "A counsellor wants to publish a firm approval rate vs an unnamed 'industry' figure. The issue?",
       "options": [
-        "Amount below required monthly sum or not from recognised provider.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
+        "No issue",
+        "It is required",
+        "It lowers the fee",
+        "Unsourced/comparative claims risk misleading advertising and implying a guarantee"
       ],
-      "correctIndex": 0,
-      "explanation": "Open proof of funds at approved bank for full required amount"
-    },
-    {
-      "level": 3,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is the compliance risk with Admission not from recognised institution?",
-      "options": [
-        "Verify institution on www.pmlp.gov.lv/ before collecting fees",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Private unrecognised college or institution not listed for international students."
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Latvia – Student Residence Permit (National D Visa) — key issue with Admission not from recognised institution (detail):",
-      "options": [
-        "Private unrecognised college or institution not listed for international students.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Verify institution on www.pmlp.gov.lv/ before collecting fees"
-    },
-    {
-      "level": 3,
-      "question": "For Latvia – Student Residence Permit (National D Visa), counselors must avoid this mistake related to Weak motivation letter:",
-      "options": [
-        "Course-specific motivation linking prior study to Latvian program",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Generic letter not explaining study plan and Latvia choice."
-    },
-    {
-      "level": 3,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is the compliance risk with Weak motivation letter (detail)?",
-      "options": [
-        "Generic letter not explaining study plan and Latvia choice.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Course-specific motivation linking prior study to Latvian program"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Latvia – Student Residence Permit (National D Visa) — key issue with Language proof missing:",
-      "options": [
-        "Obtain required IELTS/TOEFL or Latvian certificate per admission",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Program requires Latvian/English certificate not provided."
-    },
-    {
-      "level": 3,
-      "question": "For Latvia – Student Residence Permit (National D Visa), counselors must avoid this mistake related to Language proof missing (detail):",
-      "options": [
-        "Program requires Latvian/English certificate not provided.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Obtain required IELTS/TOEFL or Latvian certificate per admission"
-    },
-    {
-      "level": 3,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is the compliance risk with Prior refusals not addressed?",
-      "options": [
-        "Disclose and explain changed circumstances",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Schengen or Latvian refusals hidden."
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Latvia – Student Residence Permit (National D Visa) — key issue with Prior refusals not addressed (detail):",
-      "options": [
-        "Schengen or Latvian refusals hidden.",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Disclose and explain changed circumstances"
-    },
-    {
-      "level": 3,
-      "question": "For Latvia – Student Residence Permit (National D Visa), counselors must avoid this mistake related to counselor don't:",
-      "options": [
-        "Do not guarantee approval",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not guarantee approval"
-    },
-    {
-      "level": 3,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is the compliance risk with counselor don't?",
-      "options": [
-        "Do not book embassy without proof of funds",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not book embassy without proof of funds"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Latvia – Student Residence Permit (National D Visa) — key issue with counselor don't:",
-      "options": [
-        "Do not use unrecognised institutions",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not use unrecognised institutions"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Latvia – Student Residence Permit (National D Visa) — key issue with common mistake:",
-      "options": [
-        "Proof of funds documentation too late for intake",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Proof of funds documentation too late for intake"
-    },
-    {
-      "level": 3,
-      "question": "For Latvia – Student Residence Permit (National D Visa), counselors must avoid this mistake related to common mistake:",
-      "options": [
-        "Proof of funds short by even €1",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Proof of funds short by even €1"
-    },
-    {
-      "level": 3,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is the compliance risk with common mistake?",
-      "options": [
-        "Generic motivation letter",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Generic motivation letter"
-    },
-    {
-      "level": 3,
-      "question": "Latvia – Student Residence Permit (National D Visa): what is the compliance risk with compliance rule?",
-      "options": [
-        "Client service agreement and consent must be on file before submission",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Client service agreement and consent must be on file before submission"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Latvia – Student Residence Permit (National D Visa) — key issue with compliance rule:",
-      "options": [
-        "Never guarantee visa or immigration approval; use approved-language only",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
-    },
-    {
-      "level": 3,
-      "question": "For Latvia – Student Residence Permit (National D Visa), counselors must avoid this mistake related to compliance rule:",
-      "options": [
-        "Fee quotes must separate consultancy, government, and third-party costs",
-        "National visa (Type D) for study at a recognised Latvia university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "€620/month × 12 (verify PMLP amount). Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
+      "correctIndex": 3,
+      "explanation": "Do not publish firm rates or comparative benchmarks as headline claims."
     }
   ],
   "donts": {
     "dos": [
-      "Confirm proof of funds early",
-      "Verify institution on www.pmlp.gov.lv/",
-      "Open proof of funds for full required amount",
-      "Write course-specific motivation letter",
-      "Disclose prior refusals"
+      "Sequence the case: OCMA invitation → residence-permit decision → D visa → travel",
+      "Show the current OCMA subsistence amount with an original bank statement",
+      "Arrange compliant insurance (verify the current minimum liability)",
+      "Choose the OCMA review track that fits the timeline",
+      "Keep work within the current permitted limits (verify; bachelor's and master's/PhD differ)",
+      "Quote consultancy, government (OCMA + consular + D visa) and third-party costs separately"
     ],
     "donts": [
-      "Do not guarantee approval",
-      "Do not book embassy without proof of funds",
-      "Do not use unrecognised institutions",
-      "Do not hide Schengen refusals",
-      "Do not quote outdated proof of funds amount"
+      "Do not use German concepts (Sperrkonto/blocked account, APS, Anabin, Ausländerbehörde) in a Latvia file",
+      "Do not treat the D visa as the first step — OCMA decides the permit first",
+      "Do not promise approval, a fixed processing time, or a guaranteed post-study stay",
+      "Do not mix tuition into the subsistence figure or rely on work income for funds",
+      "Do not let a student exceed the current permitted work limits"
     ],
     "mistakes": [
-      "Proof of funds documentation too late for intake",
-      "Proof of funds short by even €1",
-      "Generic motivation letter",
-      "Wrong health insurance type",
-      "Expired admission letter"
+      "Carrying over a German Sperrkonto / blocked-account requirement",
+      "Leftover figures or city names from another country (e.g. 'Vilnius', which is in Lithuania, not Latvia — the capital is Riga)",
+      "A Portugal source URL (imigrante.sef.pt) left in working-rights fields",
+      "Reversing the OCMA-first / D-visa-second order"
     ]
   },
   "sampleDocs": [
@@ -1345,31 +737,31 @@
     },
     {
       "title": "Sample university admission letter (mock)",
-      "description": "Latvian university admission letter for national D visa.",
+      "description": "Admission/invitation from a recognised Latvian institution; counsellors should confirm the OCMA invitation number is provided for the application.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
-      "title": "Sample admission documentation (mock)",
-      "description": "Proof of funds documentation (€7,440/year equivalent) for India.",
+      "title": "Sample proof of subsistence (mock)",
+      "description": "Original bank statement (commonly valid around 3 months) evidencing the OCMA subsistence amount, held separately from tuition; counsellors should confirm it is the applicant's own or a properly documented sponsor's funds.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
       "title": "Sample proof of funds confirmation (mock)",
-      "description": "Sperrkonto required living funds+ — explain to clients.",
+      "description": "Original bank statement / scholarship / notarised sponsor arrangement evidencing the OCMA subsistence amount.",
       "mimeType": "application/pdf",
       "docKind": "financial"
     },
     {
-      "title": "Sample IELTS / IELTS/TOEFL certificate (mock)",
-      "description": "Language proof for degree program.",
+      "title": "Sample IELTS / English-language certificate (mock)",
+      "description": "English-language evidence where the programme requires it; some Latvian programmes admit without IELTS — confirm with the institution.",
       "mimeType": "image/jpeg",
       "docKind": "language"
     },
     {
       "title": "Sample CV & motivation letter (mock)",
-      "description": "Latvian embassy standard application packet.",
+      "description": "Latvian consulate application packet.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
@@ -1383,51 +775,63 @@
   "navBucket": "visa",
   "workingRights": {
     "applicant": {
-      "summary": "Long-stay national student visa for Latvia allows limited part-time work (typically up to 20 hours/week or per local law) after residence permit is issued.",
+      "summary": "With a valid residence permit, students are generally permitted limited employment during studies, subject to current Latvian regulations (bachelor's commonly limited to part-time during term; master's/doctoral rights commonly differ). The right to employment must be endorsed in the permit. Verify current work-right limits with OCMA before advising.",
       "details": [
-        "Verify exact hours with local immigration office after arrival.",
-        "Cannot rely on work income alone for residence renewal."
+        "Bachelor's: limited part-time employment in term, broader during holidays — verify current limits.",
+        "Master's/doctoral: commonly broader work rights — verify with OCMA.",
+        "The right to employment is endorsed within the residence permit.",
+        "Students are taxed as residents; obtain the necessary tax registration.",
+        "Exceeding the current permitted limits can jeopardise the permit."
       ],
       "restrictions": [
-        "Work not allowed until residence permit issued in many cases"
+        "Bachelor's: the current permitted limits (verify)",
+        "Right to employment must be endorsed in the permit; verify master's/PhD rights"
       ],
-      "sourceUrl": "https://imigrante.sef.pt/",
+      "sourceUrl": "https://www.pmlp.gov.lv/",
       "lastVerified": "Jun 2026"
     },
     "spouse": {
-      "summary": "Spouse/partner may apply for family reunion; work rights depend on Latvia residence permit conditions.",
+      "summary": "Family reunification is limited and assessed separately under its own rules and subsistence requirements (commonly cited higher per adult/child). Verify current OCMA rules.",
       "details": [
-        "Often requires proof of accommodation, integration, and sufficient income of sponsor."
+        "No automatic family accompaniment on a study permit.",
+        "Family reunification assessed separately with its own subsistence tests."
       ],
       "restrictions": [],
-      "sourceUrl": "https://imigrante.sef.pt/",
+      "sourceUrl": "https://www.pmlp.gov.lv/",
       "lastVerified": "Jun 2026"
     }
   },
   "fullCostBreakdown": {
     "title": "Full cost breakdown — Latvia – Student Residence Permit (National D Visa)",
     "currency": "EUR",
-    "lastVerified": "Jun 2026",
-    "disclaimer": "Indicative costs — verify on www.pmlp.gov.lv and embassy before quoting.",
-    "sourceUrl": "https://www.www.pmlp.gov.lv/",
+    "lastVerified": "16 Jun 2026",
+    "disclaimer": "Indicative costs for counsellor discussions only. Values marked {{VERIFY_LIVE}} are dynamic and MUST be verified on official sources (pmlp.gov.lv) before quoting. Proof-of-subsistence funds are the student's own/sponsored money (linked to the minimum wage), not a fee. Latvia does NOT operate a German-style blocked account. INR equivalents move with exchange rates.",
+    "sourceUrl": "https://www.pmlp.gov.lv/",
     "sections": [
       {
         "id": "fees",
         "label": "Government & visa fees",
         "items": [
           {
-            "label": "National D visa",
-            "range": "€60–120",
-            "unit": "per applicant",
+            "label": "OCMA residence-permit state fee (review track)",
+            "range": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Current OCMA state fee by review track ({{VERIFY_LIVE}}); verify"
           },
           {
-            "label": "Residence permit",
-            "range": "€28–114",
-            "notes": "After arrival",
+            "label": "Consular fee",
+            "amount": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Current consular fee ({{VERIFY_LIVE}}); verify"
+          },
+          {
+            "label": "National Type D visa fee",
+            "amount": "{{VERIFY_LIVE}}",
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Current National D visa fee ({{VERIFY_LIVE}}); verify"
           }
         ]
       },
@@ -1437,18 +841,19 @@
         "items": [
           {
             "label": "Undergraduate tuition",
-            "range": "€1,500–5,000",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per year",
-            "notes": "Public universities lower",
+            "notes": "Tuition varies by programme; public universities are often lower. Use the offer letter for the exact amount.",
             "currency": "EUR",
             "applicable": true
           },
           {
             "label": "Postgraduate tuition",
-            "range": "€2,000–8,000",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per year",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Use the offer; varies by programme."
           }
         ]
       },
@@ -1457,23 +862,28 @@
         "label": "Living costs",
         "items": [
           {
-            "label": "Living funds (embassy guideline)",
-            "range": "€7,440",
-            "unit": "per year",
-            "notes": "€620/month × 12 (verify PMLP amount)",
-            "currency": "EUR"
+            "label": "Proof of subsistence (OCMA, minimum-wage linked)",
+            "range": "{{VERIFY_LIVE}}",
+            "unit": "per month/year",
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Tracks the current Latvian minimum wage; verify current amount"
           },
           {
-            "label": "Accommodation (Vilnius)",
-            "range": "€250–500",
+            "label": "Accommodation (Riga / other cities)",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Riga higher; varies by city"
           },
           {
             "label": "Food & transport",
-            "range": "€200–350",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Verify current range"
           }
         ]
       },
@@ -1488,8 +898,8 @@
           },
           {
             "label": "Flight to Latvia",
-            "range": "₹40,000–90,000",
-            "notes": "Season dependent"
+            "range": "{{VERIFY_LIVE}}",
+            "notes": "Season dependent Illustrative only; varies by season/route — verify."
           }
         ]
       }
@@ -1497,8 +907,8 @@
     "totals": [
       {
         "label": "Indicative first year",
-        "value": "€10,000–18,000",
-        "notes": "Tuition + living + visa fees."
+        "value": "{{VERIFY_LIVE}}",
+        "notes": "Illustrative first-year estimate only, not an official requirement; verify all components."
       }
     ]
   }

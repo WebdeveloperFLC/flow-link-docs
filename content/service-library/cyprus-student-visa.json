@@ -1,10 +1,10 @@
 {
   "displayName": "Cyprus – Student Visa (Entry Permit + Pink Slip)",
-  "shortDescription": "CRMD Cyprus · VFS India · Entry Permit → Pink Slip within 7 days",
-  "version": "v2.0",
+  "shortDescription": "CRMD Cyprus · VFS India · Entry Permit → Pink Slip within the timeframe set by CRMD after arrival (commonly cited as 7–10 days; confirm the current requirement)",
+  "version": "v2.2",
   "versionStatus": "Live",
   "reviewStatus": "active",
-  "updatedLabel": "Updated 10 Jun 2026",
+  "updatedLabel": "Updated 16 Jun 2026",
   "learningLevel": "Intermediate",
   "learningMinutes": 24,
   "policyAlert": {
@@ -14,7 +14,7 @@
   },
   "alert": {
     "title": "Two-stage visa + NOT Schengen",
-    "body": "Entry Permit before travel; Pink Slip within 7–10 days of arrival. Cyprus residence permit does NOT allow Schengen travel without a separate visa. Confirm institution is in South Cyprus (EU), not TRNC."
+    "body": "Entry Permit before travel; Apply for the Pink Slip (Temporary Residence Permit) within the CRMD-set timeframe after arrival (commonly 7–10 days — verify). Cyprus residence permit does NOT allow Schengen travel without a separate visa. Confirm institution is in South Cyprus (EU), not TRNC."
   },
   "tags": [
     {
@@ -48,7 +48,7 @@
       "variant": "neutral"
     },
     {
-      "label": "Pink Slip 7 days",
+      "label": "Pink Slip: CRMD timeframe",
       "variant": "warning"
     },
     {
@@ -59,26 +59,26 @@
   "kpis": [
     {
       "label": "Processing time",
-      "value": "4–8w",
-      "sub": "Entry Permit via VFS India",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Entry Permit via VFS India — verify current processing time",
       "tone": "primary"
     },
     {
       "label": "Government fee",
-      "value": "€60–90",
-      "sub": "+ Pink Slip €70–140 after arrival",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Entry Permit + Pink Slip (TRP) fees — verify live",
       "tone": "warning"
     },
     {
-      "label": "Our approval rate",
-      "value": "90%",
-      "sub": "~78% benchmark",
-      "tone": "success"
+      "label": "Approval rate",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Pull from live CRM case data; not a prediction of any individual outcome",
+      "tone": "primary"
     },
     {
       "label": "Required docs",
-      "value": "18",
-      "sub": "+ PCC apostille & medical panel",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Document count varies by profile — see live checklist",
       "tone": "violet"
     },
     {
@@ -91,15 +91,15 @@
   "about": [
     {
       "label": "Description",
-      "value": "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Permit (Pink Slip) at local CRMD within 7–10 days of arrival in Cyprus."
+      "value": "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Permit (Pink Slip) at local CRMD within the timeframe set by CRMD after arrival (commonly cited as 7–10 days; confirm the current requirement) in Cyprus."
     },
     {
       "label": "Eligible applicants",
-      "value": "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (HIV, Hep B/C, Syphilis, TB — 4-month validity) · Financial proof €7,000–€10,000+"
+      "value": "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (HIV, Hep B/C, Syphilis, TB — 4-month validity) · Financial proof €7,000–€10,000 (illustrative working benchmark only — NOT an official minimum; verify with CRMD and the institution)+"
     },
     {
       "label": "Proof of funds",
-      "value": "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confirmation.",
+      "value": "No single official published student minimum; institutions/CRMD expect a confirmed financial ability to cover tuition, living and repatriation, evidenced by bank statements with history (working benchmark {{VERIFY_LIVE}}; commonly cited around €7,000–€10,000) and/or a bank guarantee for repatriation (amount varies by nationality). Verify the current expectation with CRMD / the institution.",
       "warning": true
     },
     {
@@ -108,7 +108,7 @@
     },
     {
       "label": "After approval",
-      "value": "Travel on Entry Permit; register at university on first working day; apply for Pink Slip at CRMD within 7–10 days; register with GHS (gesy.org.cy); renew Pink Slip annually."
+      "value": "Travel on Entry Permit; register at university on first working day; apply for Pink Slip at CRMD within the timeframe set by CRMD after arrival (commonly cited as 7–10 days; confirm the current requirement); register with GHS (gesy.org.cy); renew Pink Slip annually."
     },
     {
       "label": "TRNC warning",
@@ -129,12 +129,12 @@
     {
       "criterion": "Medical panel (HIV, Hep B/C, Syphilis, TB — valid 4 months)",
       "met": false,
-      "note": "Time tests for application date"
+      "note": "Time tests for application date Medical requirements can change — verify the current panel required by CRMD and the institution."
     },
     {
-      "criterion": "Financial proof €7,000–€10,000+",
+      "criterion": "Financial proof (bank statements + history; bank guarantee if required)",
       "met": false,
-      "note": "3–6 months bank history; sponsor acceptable"
+      "note": "Confirmed ability to cover tuition, living and repatriation; working benchmark {{VERIFY_LIVE}} with 3–6 months history; a repatriation bank guarantee may apply (varies by nationality). Sponsor acceptable with relationship + funds proof."
     },
     {
       "criterion": "Proof of accommodation in Cyprus",
@@ -145,7 +145,7 @@
       "met": false
     },
     {
-      "criterion": "Valid passport (1+ year beyond arrival)",
+      "criterion": "Valid passport meeting current embassy/CRMD validity requirements",
       "met": true
     },
     {
@@ -164,9 +164,9 @@
     },
     {
       "title": "TRNC institution (North Cyprus)",
-      "description": "Student enrolled at TRNC university expecting EU degree recognition.",
+      "description": "Offer from a TRNC (north Cyprus) institution, which is NOT recognised by the Republic of Cyprus/EU. The Entry Permit/Pink Slip route is for Republic-of-Cyprus (south) CRMD-recognised institutions only.",
       "fix": "Redirect to South Cyprus EU-recognised institutions only; disclose NMC/EU limitations for TRNC",
-      "severity": "Very common"
+      "severity": "Critical"
     },
     {
       "title": "Expired medical tests",
@@ -176,7 +176,7 @@
     },
     {
       "title": "Pink Slip delay after arrival",
-      "description": "Student did not apply at CRMD within 7–10 days.",
+      "description": "Student did not apply at CRMD within the timeframe set by CRMD after arrival (commonly cited as 7–10 days; confirm the current requirement).",
       "fix": "Register at university day 1; university arranges CRMD appointment immediately",
       "severity": "High"
     },
@@ -188,8 +188,20 @@
     },
     {
       "title": "Insufficient financial proof",
-      "description": "Bank balance below €7,000 or inconsistent history.",
+      "description": "Bank a balance below the illustrative benchmark (€7,000 is not an official minimum) or inconsistent history.",
       "fix": "Show consistent savings; sponsor letter + sponsor bank statement if applicable",
+      "severity": "Common"
+    },
+    {
+      "title": "Student working before completing first semester / wrong sector",
+      "description": "Working before completing the first academic semester, outside permitted sectors, or on a contract not approved by the District Labour Office — all are breaches under the 2026 student-employment Decree.",
+      "fix": "No work until the first semester is completed; only permitted sectors; the employer must lodge the contract with the District Labour Office for approval before any work",
+      "severity": "High"
+    },
+    {
+      "title": "Bank guarantee / repatriation proof overlooked",
+      "description": "Missing the repatriation bank guarantee where required (amount varies by nationality), causing TRP/Pink Slip delay or refusal.",
+      "fix": "Check whether a repatriation bank guarantee applies for the client's nationality and arrange it before the immigration-unit appointment",
       "severity": "Common"
     }
   ],
@@ -203,171 +215,140 @@
       "a": "Police Clearance Certificate (PCC) from India with MEA apostille and Cyprus Embassy attestation — mandatory for Cyprus student visa applicants."
     },
     {
-      "q": "Proof of funds amount for 2026?",
-      "a": "Benchmark €7,000–€10,000 bank balance with 3–6 months history. No official published minimum — verify with university and VFS."
+      "q": "How much money must a student show?",
+      "a": "There is no single official published student minimum. CRMD/institutions expect a confirmed ability to cover tuition, living and repatriation — evidenced by bank statements with history (working benchmark {{VERIFY_LIVE}}; commonly cited around €7,000–€10,000) and, for many nationalities, a repatriation bank guarantee (amount varies). Verify the current expectation before quoting."
     },
     {
       "q": "Can spouse accompany?",
-      "a": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
+      "a": "Not automatically. Dependant/family applications are assessed individually by CRMD and approval is discretionary, with separate proof of relationship, accommodation and means. A student's family-reunification prospects are limited and conditional. Verify the current CRMD rules before advising; do not present this as a guaranteed route."
     },
     {
-      "q": "English-taught programs need Cypriot?",
-      "a": "Depends on program—follow admission and embassy requirements."
+      "q": "Do English-taught programs require Greek?",
+      "a": "No. English-taught programs do not require Greek for admission; provide the English evidence the institution specifies (commonly IELTS 5.5–6.5 or an equivalent/waiver). Greek helps with daily life and some part-time work but is not a visa requirement."
     },
     {
       "q": "How long to convert to residence permit?",
-      "a": "Apply at CRMD district office soon after arrival and registration."
+      "a": "Travel on the Entry Permit, register at the institution, and apply for the Temporary Residence Permit (Pink Slip) at the immigration unit within the timeframe set by CRMD after arrival (commonly cited as 7–10 days; confirm the current requirement) (book the appointment early). The TRP is granted for one year and renewed annually on proof of continued full-time enrolment, funds and insurance."
     },
     {
       "q": "Can I work on student visa?",
-      "a": "Limited working hours permitted—verify current rules for students in Cyprus."
+      "a": "Only after completing the first academic semester, in permitted sectors, up to 20 hours/week in term (up to 38 in official holidays). The employer must lodge the employment contract with the District Labour Office for approval before work starts; internships need a Department-of-Labour-approved agreement. Work income cannot replace the financial-proof requirement."
     },
     {
       "q": "What after graduation?",
-      "a": "Discuss 12-month post-study permit (Master's/PhD only) residence permit or Post-Study Residence Permit separately."
+      "a": "Post-study and employment options are subject to current immigration regulations and must be verified before advising clients. The Migration Department indicates graduates may be allowed to stay up to 12 months after completing studies to seek qualified work or set up a business, subject to that route's legal criteria — this is not automatic and conditions change. Confirm the current rules with CRMD before advising."
     },
     {
-      "q": "What is Description for this service?",
-      "a": "Two-stage route: Entry Permit via VFS India before travel, then Temporary Residence Permit (Pink Slip) at CRMD within 7–10 days of arrival."
+      "q": "What is the Entry Permit → Pink Slip two-stage process?",
+      "a": "Stage 1: obtain the Entry Permit (long-stay study visa / Category D) from India via VFS Global or through the institution before travel. Stage 2: after arriving, register and apply for the Temporary Residence Permit (Pink Slip) at the district immigration unit within the timeframe set by CRMD after arrival (commonly cited as 7–10 days; confirm the current requirement). Both stages are required; the Pink Slip is the residence document, renewed annually."
     },
     {
-      "q": "What is Eligible applicants for this service?",
-      "a": "Unconditional offer from CRMD-recognised institution · PCC apostilled + Cyprus Embassy attested · Medical panel · Financial proof €7,000–€10,000+ · Health insurance · Motivation letter"
+      "q": "Is Cyprus part of Schengen?",
+      "a": "No. The Republic of Cyprus is in the EU but NOT in the Schengen area, so the Entry Permit/Pink Slip does not allow travel to Schengen countries — a separate Schengen visa is needed for, e.g., France or Germany. Set this expectation clearly with clients."
     },
     {
-      "q": "What is Proof of funds for this service?",
-      "a": "€7,000–€10,000 bank balance benchmark (no official minimum published) typically required unless scholarship or sponsor alternative applies."
+      "q": "Why does the south (Republic) vs north (TRNC) distinction matter?",
+      "a": "Only Republic-of-Cyprus (south) institutions recognised by CRMD lead to an EU-recognised qualification and the proper Entry Permit/Pink Slip route. TRNC (north Cyprus) institutions are NOT recognised by the Republic/EU. Always confirm the institution is CRMD-recognised in the south before any fee."
     },
     {
-      "q": "Important note on Proof of funds?",
-      "a": "€7,000–€10,000 bank balance benchmark (no official minimum published) typically required unless scholarship or sponsor alternative applies."
+      "q": "What is the PCC apostille/attestation requirement?",
+      "a": "A Police Clearance Certificate, apostilled (MEA in India) and attested by the Cyprus mission as required, is a critical document. Start it immediately — apostille and attestation take weeks and a missing/incorrect PCC is a leading cause of delay."
     },
     {
-      "q": "What is Key authority for this service?",
-      "a": "CRMD Cyprus (crmd.moi.gov.cy) · VFS Global Cyprus India · Cyprus Embassy in India (PCC attestation)"
+      "q": "What medical tests are needed?",
+      "a": "A medical panel (commonly HIV, Hepatitis B/C, syphilis and TB) valid within about 4 months, with tests often repeated in Cyprus for the Pink Slip. Time the tests to the application date so they do not expire. These medical requirements can change — verify the current panel required by CRMD and the institution before advising."
     },
     {
-      "q": "What is After approval for this service?",
-      "a": "Travel on Entry Permit; register at university; apply for Pink Slip at CRMD within 7–10 days; register with GHS (gesy.org.cy)."
+      "q": "What health insurance is required?",
+      "a": "Valid health insurance covering the stay (travel/incoming cover for entry, then a policy valid in Cyprus). Insurance is required for the Pink Slip; confirm the current accepted cover and premium ({{VERIFY_LIVE}})."
     },
     {
-      "q": "Is Unconditional offer from CRMD-recognised institution required?",
-      "a": "Unconditional offer from CRMD-recognised institution is typically required."
+      "q": "How does accommodation proof work?",
+      "a": "A rental agreement (typically at least one year) or dorm confirmation is required; for the Pink Slip the rental may need certification (e.g. by the Muhtar) and tax-office stamping. Arrange accommodation before the immigration-unit appointment."
     },
     {
-      "q": "Is PCC apostilled + Cyprus Embassy attested required?",
-      "a": "Apply early—processing takes weeks"
+      "q": "Can a refused application be appealed?",
+      "a": "A refusal can be challenged through the available administrative/judicial review within the stated deadline, or corrected and re-lodged. Read the reason carefully (commonly funds, PCC/medical documents, or institution recognition) and fix the specific issue."
     },
     {
-      "q": "Is Proof of funds or financial proof required?",
-      "a": "€7,000–€10,000+ with 3–6 month bank history"
+      "q": "What are the government fees?",
+      "a": "The Entry Permit (via VFS/embassy) and the Pink Slip/TRP each carry fees ({{VERIFY_LIVE}}; the TRP commonly involves an application + registration fee at the immigration unit), plus VFS service charges and medical-panel costs. Verify current amounts on the CRMD/VFS sites — they change."
     },
     {
-      "q": "Is Health insurance (travel + statutory) required?",
-      "a": "Assess whether Health insurance (travel + statutory) is satisfied for this case."
-    },
-    {
-      "q": "Is Motivation letter and CV required?",
-      "a": "Motivation letter and CV is typically required."
-    },
-    {
-      "q": "Is Language proficiency (as required) required?",
-      "a": "English per program (IELTS 5.5–6.5 typical; some waive)"
-    },
-    {
-      "q": "Is Valid passport required?",
-      "a": "Valid passport is typically required."
-    },
-    {
-      "q": "What is the Processing time?",
-      "a": "4–8w — After complete file + PCC apostille"
-    },
-    {
-      "q": "What is the Government fee?",
-      "a": "€60–90 — + financial proof €7,000–€10,000+"
-    },
-    {
-      "q": "What is the Our approval rate?",
-      "a": "88% — ~74% benchmark"
-    },
-    {
-      "q": "What is the Required docs?",
-      "a": "18 — + PCC apostille & medical panel"
-    },
-    {
-      "q": "What is the Consultancy fee?",
-      "a": "See fee tab — + govt & third-party"
-    },
-    {
-      "q": "What if the client has PCC apostille not completed?",
-      "a": "Start PCC → MEA apostille → Cyprus Embassy attestation immediately; allow 4–6 weeks"
-    },
-    {
-      "q": "Why is PCC apostille not completed a problem?",
-      "a": "PCC submitted without MEA apostille or Cyprus Embassy attestation."
-    },
-    {
-      "q": "What if the client has Insufficient financial proof (€7,000–€10,000+)?",
-      "a": "Open financial proof (€7,000–€10,000+) at approved bank for full required amount"
-    },
-    {
-      "q": "Why is Insufficient financial proof (€7,000–€10,000+) a problem?",
-      "a": "Bank balance below €7,000 or inconsistent 3–6 month history."
+      "q": "What does FLC actually guarantee?",
+      "a": "Nothing about the outcome — CRMD and the immigration unit decide. FLC prepares a strong, honest, well-documented file (recognised admission, apostilled PCC, financial proof, medical, insurance, accommodation) and never promises a visa, in writing or verbally."
     }
   ],
   "compliance": [
-    "Client service agreement and consent must be on file before submission",
-    "Never guarantee visa or immigration approval; use approved-language only",
-    "Fee quotes must separate consultancy, government, and third-party costs",
-    "Proof of funds funds belong to client—never commingle with firm accounts"
+    "Client service agreement and consent must be on file before submission.",
+    "Never guarantee a visa or approval; use approved, non-guaranteeing language only.",
+    "Fee quotes must separate consultancy, government (Entry Permit + Pink Slip) and third-party (VFS/medical) costs.",
+    "Financial-proof funds belong to the client — never receive, hold or route them through firm accounts.",
+    "Only place clients at CRMD-recognised Republic-of-Cyprus institutions; never a TRNC institution for this route.",
+    "Do not publish a firm approval rate or an unsourced 'industry benchmark' as a headline figure; use live, sourced CRM data labelled as not predictive of any individual outcome.",
+    "Handle academic, financial, medical and police-clearance documents under data-protection rules: store securely, share only with authorised parties, retain only as needed.",
+    "Advise students never to work before the first semester, outside permitted sectors, or on an unapproved contract; illegal work risks the permit and fines."
   ],
   "proTips": [
     "Start PCC process the day offer letter arrives — longest lead item",
     "Book VFS appointment 8–12 weeks before intended travel",
     "Time medical tests for 4-month validity window",
     "Confirm institution at moec.gov.cy — South Cyprus only",
-    "Warn clients: Cyprus Pink Slip ≠ Schengen travel document"
+    "Warn clients: Cyprus Pink Slip ≠ Schengen travel document",
+    "Confirm the institution is CRMD-recognised in the Republic (south) — TRNC (north) degrees are not EU-recognised.",
+    "Start the PCC apostille + Cyprus attestation immediately; it is the most common cause of delay.",
+    "On work: no employment before the first semester is completed, permitted sectors only, contract approved by the District Labour Office — set this expectation early.",
+    "Treat fees, the funds benchmark, insurance and minimum wage as live values — verify on CRMD/VFS before quoting."
   ],
   "postApproval": [
     "Register at university on first working day after arrival",
-    "Apply for Pink Slip at CRMD within 7–10 days (university assists)",
+    "Apply for Pink Slip at CRMD within the timeframe set by CRMD after arrival (commonly cited as 7–10 days; confirm the current requirement) (university assists)",
     "Open Cyprus bank account; register with GHS at gesy.org.cy",
-    "Discuss 12-month post-study permit for Master's/PhD graduates"
+    "Discuss post-study options (the Migration Department indicates graduates may stay up to 12 months to seek work or set up a business, subject to the route's legal criteria) — verify current rules"
   ],
   "performance": {
-    "ourRate": 0,
-    "industryRate": 0,
+    "ourRate": null,
+    "industryRate": null,
+    "note": "Approval rate and file counts must be populated live from CRM case data, not published as fixed figures. Do not display a comparative 'industry benchmark' unless independently sourced and cited.",
     "stats": [
       {
-        "label": "Files this year",
-        "value": "0"
+        "label": "Files this period",
+        "value": "{{VERIFY_LIVE}}"
       },
       {
         "label": "Approved",
-        "value": "0"
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Refused",
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "{{VERIFY_LIVE}}"
       }
     ]
   },
   "approvalFactors": [
     {
-      "label": "Our rate vs industry",
-      "ours": 88,
-      "benchmark": 74
+      "label": "PCC apostilled + embassy-attested",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "PCC apostille timing",
-      "ours": 85,
-      "benchmark": 68
+      "label": "CRMD-recognised (South Cyprus) institution",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "Financial docs",
-      "ours": 87,
-      "benchmark": 72
+      "label": "Financial proof + medical panel in order",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
       "label": "First-submit completeness",
-      "ours": 92,
-      "benchmark": 76
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     }
   ],
   "timeline": [
@@ -389,7 +370,7 @@
     },
     {
       "weeks": "Arrival",
-      "title": "Pink Slip at CRMD within 7–10 days"
+      "title": "Pink Slip at CRMD within the timeframe set by CRMD after arrival (commonly cited as 7–10 days; confirm the current requirement)"
     }
   ],
   "relatedServices": [
@@ -408,10 +389,16 @@
   ],
   "changelog": [
     {
-      "version": "v2.0",
-      "date": "10 Jun 2026",
+      "version": "v2.2",
+      "date": "16 Jun 2026",
       "author": "Service Library",
-      "summary": "Copy fix: removed Malta/Germany/Schengen template remnants."
+      "summary": "Compliance revision: standardised the Pink Slip timing to one cautious CRMD-set-timeframe wording (commonly 7–10 days, verify) instead of mixed 7 / 7–10 / ~7-day phrasings; rewrote dependant/spouse guidance to make clear family applications are individually assessed, discretionary and not a guaranteed route; softened the fixed one-year passport-validity claim to 'as required by embassy/CRMD'; added 'medical requirements can change — verify' caveats to the test-panel references while retaining the list; reframed post-study to the officially-supported 'up to 12 months to seek work/business, subject to criteria — verify' (removed the unsupported Master's/PhD-only framing); labelled €7,000–€10,000 as an illustrative working benchmark, not an official minimum; renamed the mislabelled 'admission documentation' sample to a Police Clearance Certificate; removed a duplicate changelog entry; reaffirmed work-rights consistency (post-first-semester, permitted sectors, District Labour Office approval, 20h term / 38h holiday). No statistics, approval rates or unsupported benefits were added; TRNC, Schengen, compliance and financial-proof warnings retained; {{VERIFY_LIVE}} placeholders preserved."
+    },
+    {
+      "version": "v2.1",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Audit + uplift: replaced auto-generated template FAQs and quiz questions with real Cyprus counsellor Q&A; redistributed the quiz answer key; removed the hardcoded approval rate (90%) and the unsourced '78% benchmark'; converted time-sensitive values (Entry Permit + Pink Slip fees, VFS/medical costs, funds benchmark, repatriation bank guarantee, insurance premium, minimum wage, processing times) to {{VERIFY_LIVE}} placeholders. Refined work rights to the 2026 Decree (work only after the first academic semester, permitted sectors only, contract approved by the District Labour Office; 20 h/week term, up to 38 h/week holidays). Reinforced the NOT-Schengen and Republic (south) vs TRNC (north) recognition warnings; added red flags (illegal/early work, repatriation guarantee) and compliance notes; cleaned residual German/template artifacts (Sperrkonto, TestDaF, 'Cypriot' language/embassy wording) from sample documents and FAQs. No statistics were invented."
     },
     {
       "version": "v2.0",
@@ -434,14 +421,14 @@
   ],
   "staffNotes": [
     {
-      "author": "Documentation team",
-      "date": "10 Jun 2026",
-      "text": "PCC apostille + Cyprus Embassy attestation is the bottleneck — never promise intake without PCC timeline confirmation."
+      "author": "Service Library",
+      "date": "16 Jun 2026",
+      "text": "Dynamic values are marked {{VERIFY_LIVE}} and MUST be populated from live official sources / CRM before client use: Entry Permit + Pink Slip fees, VFS/medical costs, the funds benchmark and repatriation bank guarantee, insurance premium, minimum wage, processing times, doc counts, and any approval/file-count figures. Never publish invented statistics."
     },
     {
-      "author": "Compliance",
-      "date": "10 Jun 2026",
-      "text": "Always distinguish South Cyprus (EU) from TRNC. UNIC Medical School is South Cyprus; CIU/NEU in North are NOT EU-recognised."
+      "author": "Documentation team",
+      "date": "16 Jun 2026",
+      "text": "KEY CYPRUS RULES: Cyprus is NOT Schengen (Pink Slip ≠ EU travel). Only Republic-of-Cyprus (south) CRMD-recognised institutions — never TRNC (north). Student work only AFTER the first semester, permitted sectors only, contract approved by the District Labour Office; 20 h/week term, up to 38 h/week holidays. Apply for the Pink Slip within the timeframe set by CRMD after arrival (commonly cited as 7–10 days; confirm the current requirement)."
     }
   ],
   "resources": [
@@ -473,927 +460,321 @@
   ],
   "quiz": [
     {
-      "question": "Indian students generally need:",
+      "level": 1,
+      "question": "What two stages make up the Cyprus student route?",
       "options": [
-        "Only passport",
-        "admission documentation + admission + financial proof (€7,000–€10,000+)",
-        "Job offer",
-        "EU citizenship"
+        "Entry Permit before travel, then Pink Slip (TRP) after arrival",
+        "Only a Schengen visa",
+        "Only an online form",
+        "A work permit then a visa"
+      ],
+      "correctIndex": 0,
+      "explanation": "Stage 1 Entry Permit (Category D), stage 2 Pink Slip/TRP within the timeframe set by CRMD after arrival (commonly cited as 7–10 days; confirm the current requirement)."
+    },
+    {
+      "level": 1,
+      "question": "Is the Cyprus Pink Slip valid for Schengen travel?",
+      "options": [
+        "Yes, anywhere in the EU",
+        "No — Cyprus is not in Schengen",
+        "Yes, for 90 days",
+        "Only to Greece"
       ],
       "correctIndex": 1,
-      "explanation": "PCC apostille mandatory for India.",
-      "level": 1
+      "explanation": "Cyprus is in the EU but NOT Schengen; a separate Schengen visa is needed."
     },
     {
-      "question": "After arrival student must:",
+      "level": 1,
+      "question": "Which institutions are valid for this route?",
       "options": [
-        "Ignore registration",
-        "Register address and apply residence permit",
-        "Work full-time immediately",
-        "Leave in 1 week"
+        "TRNC (north Cyprus) institutions",
+        "Any institution on the island",
+        "CRMD-recognised Republic-of-Cyprus (south) institutions",
+        "Only language schools"
+      ],
+      "correctIndex": 2,
+      "explanation": "Only south (Republic) CRMD-recognised institutions; TRNC is not EU-recognised."
+    },
+    {
+      "level": 1,
+      "question": "When must the Pink Slip (TRP) be applied for?",
+      "options": [
+        "Within 90 days",
+        "Before leaving India",
+        "No deadline",
+        "Within the CRMD-set timeframe after arrival (commonly 7–10 days)"
+      ],
+      "correctIndex": 3,
+      "explanation": "The Pink Slip (TRP) must be applied for within the CRMD-set timeframe after arrival (commonly cited as 7–10 days; verify the current requirement)."
+    },
+    {
+      "level": 1,
+      "question": "A critical document that often causes delay is the:",
+      "options": [
+        "Apostilled + attested Police Clearance Certificate (PCC)",
+        "Driving licence",
+        "Schengen visa",
+        "Tax return"
+      ],
+      "correctIndex": 0,
+      "explanation": "An apostilled, attested PCC is a leading cause of delay if missing/incorrect."
+    },
+    {
+      "level": 1,
+      "question": "When can a third-country student start working?",
+      "options": [
+        "Immediately on arrival",
+        "Only after completing the first academic semester",
+        "Never",
+        "After 2 years"
       ],
       "correctIndex": 1,
-      "explanation": "university registration and CRMD district office required.",
-      "level": 1
+      "explanation": "Work is allowed only after completing the first semester, in permitted sectors."
     },
     {
       "level": 1,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is true regarding Eligible applicants?",
+      "question": "Term-time student work is capped at:",
       "options": [
-        "Unconditional offer from CRMD-recognised institution · PCC apostilled + Cyprus Embassy attested · Medical panel · Financial proof €7,000–€10,000+ · Health insurance · Motivation letter",
-        "Two-stage route: Entry Permit via VFS India before travel, then Temporary Residence Permit (Pink Slip) at CRMD within 7–10 days of arrival.",
-        "€7,000–€10,000 bank balance benchmark (no official minimum published) typically required unless scholarship or sponsor alternative applies.",
-        "CRMD Cyprus (crmd.moi.gov.cy) · VFS Global Cyprus India · Cyprus Embassy in India (PCC attestation)"
+        "40 hours/week",
+        "No cap",
+        "20 hours/week",
+        "10 hours/week"
       ],
-      "correctIndex": 0,
-      "explanation": "Unconditional offer from CRMD-recognised institution · PCC apostilled + Cyprus Embassy attested · Medical panel · Financial proof €7,000–€10,000+ · Health insurance · Motivation letter"
+      "correctIndex": 2,
+      "explanation": "20 hours/week in term; up to 38 hours/week in official holidays."
     },
     {
       "level": 1,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), which statement about Description is correct?",
+      "question": "The medical panel typically covers:",
       "options": [
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…",
-        "CRMD Cyprus (crmd.moi.gov.cy) · VFS Global Cyprus India (visa.vfsglobal.com/cyprus/india) · Cyprus Embassy in India (PCC attestation)"
+        "Only eyesight",
+        "Only dental",
+        "No tests",
+        "HIV, Hepatitis B/C, syphilis, TB"
       ],
-      "correctIndex": 0,
-      "explanation": "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Permit (Pink Slip) at local CRMD within 7–10 days of arrival in…"
+      "correctIndex": 3,
+      "explanation": "The panel covers HIV, Hep B/C, syphilis and TB, valid ~4 months."
     },
     {
-      "level": 1,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is true regarding Eligible applicants?",
+      "level": 2,
+      "question": "During official holidays, student work hours may rise to:",
       "options": [
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…",
-        "CRMD Cyprus (crmd.moi.gov.cy) · VFS Global Cyprus India (visa.vfsglobal.com/cyprus/india) · Cyprus Embassy in India (PCC attestation)"
+        "Up to 38 hours/week",
+        "Still 20",
+        "Unlimited",
+        "30"
       ],
       "correctIndex": 0,
-      "explanation": "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (HIV, Hep B/C, Syphilis, TB — 4-month validity) · Financial pr…"
+      "explanation": "Holiday work is up to 38 h/week (the former 30 was reduced)."
     },
     {
-      "level": 1,
-      "question": "A counselor explaining Cyprus – Student Visa (Entry Permit + Pink Slip) should state correctly about Proof of funds:",
+      "level": 2,
+      "question": "Before a student works, the employment contract must be:",
       "options": [
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "CRMD Cyprus (crmd.moi.gov.cy) · VFS Global Cyprus India (visa.vfsglobal.com/cyprus/india) · Cyprus Embassy in India (PCC attestation)"
-      ],
-      "correctIndex": 0,
-      "explanation": "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confirmation. — verify current rules."
-    },
-    {
-      "level": 1,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), which statement about Key authority is correct?",
-      "options": [
-        "CRMD Cyprus (crmd.moi.gov.cy) · VFS Global Cyprus India (visa.vfsglobal.com/cyprus/india) · Cyprus Embassy in India (PCC attestation)",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "CRMD Cyprus (crmd.moi.gov.cy) · VFS Global Cyprus India (visa.vfsglobal.com/cyprus/india) · Cyprus Embassy in India (PCC attestation)"
-    },
-    {
-      "level": 1,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is true regarding After approval?",
-      "options": [
-        "Travel on Entry Permit; register at university on first working day; apply for Pink Slip at CRMD within 7–10 days; register with GHS (gesy.org.cy); renew Pink …",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Travel on Entry Permit; register at university on first working day; apply for Pink Slip at CRMD within 7–10 days; register with GHS (gesy.org.cy); renew Pink Slip annually."
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Cyprus – Student Visa (Entry Permit + Pink Slip) should state correctly about TRNC warning:",
-      "options": [
-        "North Cyprus (TRNC) institutions are NOT EU-recognised. Degrees from TRNC cannot be used for EU employment or NMC licensing in India. Always confirm South Cypr…",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "North Cyprus (TRNC) institutions are NOT EU-recognised. Degrees from TRNC cannot be used for EU employment or NMC licensing in India. Always confirm South Cyprus (Republic of Cyprus) institution. — verify current rules."
-    },
-    {
-      "level": 1,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), which statement about Unconditional offer from CRMD-recognised institution is correct?",
-      "options": [
-        "Unconditional offer from CRMD-recognised institution is a core requirement for this service.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Unconditional offer from CRMD-recognised institution"
-    },
-    {
-      "level": 1,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is true regarding PCC apostilled (MEA) + Cyprus Embassy attested?",
-      "options": [
-        "PCC apostilled (MEA) + Cyprus Embassy attested is often required or assessed for this service. Note: Start immediately — allow 4–6 weeks",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Start immediately — allow 4–6 weeks"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Cyprus – Student Visa (Entry Permit + Pink Slip) should state correctly about Medical panel (HIV, Hep B/C, Syphilis, TB — valid 4 months):",
-      "options": [
-        "Medical panel (HIV, Hep B/C, Syphilis, TB — valid 4 months) is often required or assessed for this service. Note: Time tests for application date",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Time tests for application date"
-    },
-    {
-      "level": 1,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), which statement about Financial proof €7,000–€10,000+ is correct?",
-      "options": [
-        "Financial proof €7,000–€10,000+ is often required or assessed for this service. Note: 3–6 months bank history; sponsor acceptable",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "3–6 months bank history; sponsor acceptable"
-    },
-    {
-      "level": 1,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is true regarding Proof of accommodation in Cyprus?",
-      "options": [
-        "Proof of accommodation in Cyprus is often required or assessed for this service.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Proof of accommodation in Cyprus"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Cyprus – Student Visa (Entry Permit + Pink Slip) should state correctly about Tuition deposit paid (university receipt):",
-      "options": [
-        "Tuition deposit paid (university receipt) is often required or assessed for this service.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Tuition deposit paid (university receipt)"
-    },
-    {
-      "level": 1,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), which statement about Valid passport (1+ year beyond arrival) is correct?",
-      "options": [
-        "Valid passport (1+ year beyond arrival) is a core requirement for this service.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Valid passport (1+ year beyond arrival)"
-    },
-    {
-      "level": 1,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is true regarding English proficiency or university waiver?",
-      "options": [
-        "English proficiency or university waiver is a core requirement for this service. Note: IELTS 5.5–6.5 typical; some waive",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "IELTS 5.5–6.5 typical; some waive"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Cyprus – Student Visa (Entry Permit + Pink Slip) should state correctly about Processing time:",
-      "options": [
-        "Processing time: 4–8w — Entry Permit via VFS India",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Entry Permit via VFS India"
-    },
-    {
-      "level": 1,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), which statement about Government fee is correct?",
-      "options": [
-        "Government fee: €60–90 — + Pink Slip €70–140 after arrival",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "+ Pink Slip €70–140 after arrival"
-    },
-    {
-      "level": 1,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is true regarding Our approval rate?",
-      "options": [
-        "Our approval rate: 90% — ~78% benchmark",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "~78% benchmark"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Cyprus – Student Visa (Entry Permit + Pink Slip) should state correctly about Required docs:",
-      "options": [
-        "Required docs: 18 — + PCC apostille & medical panel",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "+ PCC apostille & medical panel"
-    },
-    {
-      "level": 1,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), which statement about Consultancy fee is correct?",
-      "options": [
-        "Consultancy fee: See fee tab — + govt & third-party",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "+ govt & third-party"
-    },
-    {
-      "level": 1,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is true regarding service summary?",
-      "options": [
-        "CRMD Cyprus · VFS India · Entry Permit → Pink Slip within 7 days",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "CRMD Cyprus · VFS India · Entry Permit → Pink Slip within 7 days"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Cyprus – Student Visa (Entry Permit + Pink Slip) should state correctly about Two-stage visa + NOT Schengen:",
-      "options": [
-        "Entry Permit before travel; Pink Slip within 7–10 days of arrival. Cyprus residence permit does NOT allow Schengen travel without a separate visa. Confirm inst…",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Entry Permit before travel; Pink Slip within 7–10 days of arrival. Cyprus residence permit does NOT allow Schengen travel without a separate visa. Confirm institution is in South Cyprus (EU), not TRNC."
-    },
-    {
-      "level": 1,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), which statement about policy update is correct?",
-      "options": [
-        "Cyprus is NOT Schengen — Pink Slip does not allow EU travel. Confirm fees at visa.vfsglobal.com/cyprus/india.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Cyprus is NOT Schengen — Pink Slip does not allow EU travel. Confirm fees at visa.vfsglobal.com/cyprus/india."
-    },
-    {
-      "question": "Proof of funds 2026 amount approx:",
-      "options": [
-        "€5,000",
-        "required living funds",
-        "€50,000",
-        "€500"
+        "Signed only by the student",
+        "Approved/stamped by the District Labour Office",
+        "Notarised in India",
+        "Posted online"
       ],
       "correctIndex": 1,
-      "explanation": "€7,000–€10,000 financial proof benchmark with consistent bank history.",
-      "level": 2
+      "explanation": "The employer lodges the contract with the District Labour Office for approval."
     },
     {
-      "question": "Counselors must never:",
+      "level": 2,
+      "question": "Students may work only in:",
       "options": [
-        "Track PCC apostille",
-        "Guarantee visa approval",
-        "Verify admission",
-        "Check financial proof (€7,000–€10,000+)"
+        "Any job they like",
+        "Government roles only",
+        "Permitted sectors defined by Decree (+ study-relevant internships)",
+        "No sectors"
+      ],
+      "correctIndex": 2,
+      "explanation": "Only Decree-permitted sectors (e.g. Trade, Health, Agriculture, Manufacturing, Hospitality)."
+    },
+    {
+      "level": 2,
+      "question": "Cyprus student financial proof is best described as:",
+      "options": [
+        "A fixed €11,904 blocked account",
+        "A €992/month figure",
+        "No requirement",
+        "Confirmed ability to cover tuition/living/repatriation (no single official minimum)"
+      ],
+      "correctIndex": 3,
+      "explanation": "There is no single official student minimum; show ability via statements/guarantee."
+    },
+    {
+      "level": 2,
+      "question": "For many nationalities, the Pink Slip also needs a:",
+      "options": [
+        "Repatriation bank guarantee (amount varies)",
+        "German Sperrkonto",
+        "Schengen visa",
+        "Yellow Slip"
+      ],
+      "correctIndex": 0,
+      "explanation": "A repatriation bank guarantee applies for many nationalities; amount varies."
+    },
+    {
+      "level": 2,
+      "question": "The TRP/Pink Slip is granted and renewed:",
+      "options": [
+        "Permanently",
+        "For one year, renewed annually on continued enrolment",
+        "For five years",
+        "Once only"
       ],
       "correctIndex": 1,
-      "explanation": "No guarantees.",
-      "level": 2
+      "explanation": "It is a one-year permit renewed annually with proof of continued full-time study."
     },
     {
       "level": 2,
-      "question": "A counselor explaining Cyprus – Student Visa (Entry Permit + Pink Slip) should state correctly about Proof of funds:",
+      "question": "English-taught programs require:",
       "options": [
-        "€7,000–€10,000 bank balance benchmark (no official minimum published) typically required unless scholarship or sponsor alternative applies.",
-        "Two-stage route: Entry Permit via VFS India before travel, then Temporary Residence Permit (Pink Slip) at CRMD within 7–10 days of arrival.",
-        "Unconditional offer from CRMD-recognised institution · PCC apostilled + Cyprus Embassy attested · Medical panel · Financial proof €7,000–€10,000+ · Health insurance · Motivation letter",
-        "CRMD Cyprus (crmd.moi.gov.cy) · VFS Global Cyprus India · Cyprus Embassy in India (PCC attestation)"
+        "Greek B2",
+        "German",
+        "English evidence (e.g. IELTS) — not Greek",
+        "No evidence"
       ],
-      "correctIndex": 0,
-      "explanation": "€7,000–€10,000 bank balance benchmark (no official minimum published) typically required unless scholarship or sponsor alternative applies. — verify current rules."
+      "correctIndex": 2,
+      "explanation": "English programs need English evidence; Greek is not a visa requirement."
     },
     {
       "level": 2,
-      "question": "In the Cyprus – Student Visa (Entry Permit + Pink Slip) process, what is the correct approach to client question: Can we guarantee student visa approval?",
+      "question": "Accommodation proof for the Pink Slip may require:",
       "options": [
-        "No. Embassy decides based on admission, funds, and credibility. Never promise approval.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
+        "Nothing",
+        "A hotel booking only",
+        "A Schengen visa",
+        "A certified/stamped rental agreement"
       ],
-      "correctIndex": 0,
-      "explanation": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
+      "correctIndex": 3,
+      "explanation": "A rental (often 1-year) certified/tax-stamped is commonly required."
     },
     {
-      "level": 2,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), what should happen during client question: What is PCC apostille?",
+      "level": 3,
+      "question": "A client has an offer from a north-Cyprus (TRNC) college. Advise:",
       "options": [
-        "Police Clearance Certificate (PCC) from India with MEA apostille and Cyprus Embassy attestation — mandatory for Cyprus student visa applicants.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
+        "Not valid for this route — TRNC is not Republic/EU-recognised",
+        "Proceed normally",
+        "Faster processing",
+        "Cheaper option"
       ],
       "correctIndex": 0,
-      "explanation": "Police Clearance Certificate (PCC) from India with MEA apostille and Cyprus Embassy attestation — mandatory for Cyprus student visa applicants."
+      "explanation": "Only Republic-of-Cyprus (south) CRMD-recognised institutions qualify."
     },
     {
-      "level": 2,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip) workflow — best practice for client question: Proof of funds amount for 2026:",
+      "level": 3,
+      "question": "A student wants to work in month 2 of semester 1. The issue?",
       "options": [
-        "Benchmark €7,000–€10,000 bank balance with 3–6 months history. No official published minimum — verify with university and VFS.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Benchmark €7,000–€10,000 bank balance with 3–6 months history. No official published minimum — verify with university and VFS."
-    },
-    {
-      "level": 2,
-      "question": "In the Cyprus – Student Visa (Entry Permit + Pink Slip) process, what is the correct approach to client question: Can spouse accompany?",
-      "options": [
-        "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
-    },
-    {
-      "level": 2,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), what should happen during client question: English-taught programs need Cypriot?",
-      "options": [
-        "Depends on program—follow admission and embassy requirements.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Depends on program—follow admission and embassy requirements."
-    },
-    {
-      "level": 2,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip) workflow — best practice for client question: How long to convert to residence permit:",
-      "options": [
-        "Apply at CRMD district office soon after arrival and registration.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Apply at CRMD district office soon after arrival and registration."
-    },
-    {
-      "level": 2,
-      "question": "In the Cyprus – Student Visa (Entry Permit + Pink Slip) process, what is the correct approach to client question: Can I work on student visa?",
-      "options": [
-        "Limited working hours permitted—verify current rules for students in Cyprus.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Limited working hours permitted—verify current rules for students in Cyprus."
-    },
-    {
-      "level": 2,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), what should happen during client question: What after graduation?",
-      "options": [
-        "Discuss 12-month post-study permit (Master's/PhD only) residence permit or Post-Study Residence Permit separately.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Discuss 12-month post-study permit (Master's/PhD only) residence permit or Post-Study Residence Permit separately."
-    },
-    {
-      "level": 2,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip) workflow — best practice for client question: What is Description for this service:",
-      "options": [
-        "National visa (Type D) for study at a recognised Cypriot university or preparatory course. After entry, convert to residence permit at local CRMD district offi…",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Two-stage route: Entry Permit via VFS India before travel, then Temporary Residence Permit (Pink Slip) at CRMD within 7–10 days of arrival."
-    },
-    {
-      "level": 2,
-      "question": "In the Cyprus – Student Visa (Entry Permit + Pink Slip) process, what is the correct approach to client question: What is Eligible applicants for this service?",
-      "options": [
-        "Unconditional university offer letter or conditional admission · Proof of funds or scholarship · PCC apostilled + Cyprus Embassy attested · Health insurance · Motiv…",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Unconditional offer from CRMD-recognised institution · PCC apostilled + Cyprus Embassy attested · Medical panel · Financial proof €7,000–€10,000+ · Health insurance · Motivation letter"
-    },
-    {
-      "level": 2,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), what should happen during client question: What is Proof of funds for this service?",
-      "options": [
-        "€7,000–€10,000 bank balance benchmark (no official minimum published) typically required unless scholarship or sponsor alternative applies.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "€7,000–€10,000 bank balance benchmark (no official minimum published) typically required unless scholarship or sponsor alternative applies."
-    },
-    {
-      "level": 2,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip) workflow — best practice for client question: Important note on Proof of funds:",
-      "options": [
-        "€7,000–€10,000 bank balance benchmark (no official minimum published) typically required unless scholarship or sponsor alternative applies.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "€7,000–€10,000 bank balance benchmark (no official minimum published) typically required unless scholarship or sponsor alternative applies."
-    },
-    {
-      "level": 2,
-      "question": "In the Cyprus – Student Visa (Entry Permit + Pink Slip) process, what is the correct approach to client question: What is Key authority for this service?",
-      "options": [
-        "CRMD Cyprus (crmd.moi.gov.cy) · VFS Global Cyprus India · Cyprus Embassy in India (PCC attestation)",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "CRMD Cyprus (crmd.moi.gov.cy) · VFS Global Cyprus India · Cyprus Embassy in India (PCC attestation)"
-    },
-    {
-      "level": 2,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), what should happen during client question: What is After approval for this service?",
-      "options": [
-        "Travel on Entry Permit; register at university; apply for Pink Slip at CRMD within 7–10 days; register with GHS (gesy.org.cy).",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Travel on Entry Permit; register at university; apply for Pink Slip at CRMD within 7–10 days; register with GHS (gesy.org.cy)."
-    },
-    {
-      "level": 2,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip) workflow — best practice for client question: Is Unconditional offer from CRMD-recognised institution required:",
-      "options": [
-        "Unconditional offer from CRMD-recognised institution is typically required.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Unconditional offer from CRMD-recognised institution is typically required."
-    },
-    {
-      "level": 2,
-      "question": "In the Cyprus – Student Visa (Entry Permit + Pink Slip) process, what is the correct approach to client question: Is PCC apostilled + Cyprus Embassy attested required?",
-      "options": [
-        "Apply early—processing takes weeks",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Apply early—processing takes weeks"
-    },
-    {
-      "level": 2,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), what should happen during client question: Is Proof of funds or financial proof required?",
-      "options": [
-        "€7,000–€10,000+ with 3–6 month bank history",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "€7,000–€10,000+ with 3–6 month bank history"
-    },
-    {
-      "level": 2,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip) workflow — best practice for client question: Is Health insurance (travel + statutory) required:",
-      "options": [
-        "Assess whether Health insurance (travel + statutory) is satisfied for this case.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Assess whether Health insurance (travel + statutory) is satisfied for this case."
-    },
-    {
-      "level": 2,
-      "question": "In the Cyprus – Student Visa (Entry Permit + Pink Slip) process, what is the correct approach to client question: Is Motivation letter and CV required?",
-      "options": [
-        "Motivation letter and CV is typically required.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Motivation letter and CV is typically required."
-    },
-    {
-      "level": 2,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), what should happen during client question: Is Language proficiency (as required) required?",
-      "options": [
-        "English per program (IELTS 5.5–6.5 typical; some waive)",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "English per program (IELTS 5.5–6.5 typical; some waive)"
-    },
-    {
-      "level": 2,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip) workflow — best practice for client question: Is Valid passport required:",
-      "options": [
-        "Valid passport is typically required.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Valid passport is typically required."
-    },
-    {
-      "level": 2,
-      "question": "In the Cyprus – Student Visa (Entry Permit + Pink Slip) process, what is the correct approach to client question: What is the Processing time?",
-      "options": [
-        "4–8w — After complete file + PCC apostille",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "4–8w — After complete file + PCC apostille"
-    },
-    {
-      "question": "National visa fee approx:",
-      "options": [
-        "€500",
-        "€60–90",
-        "€2,000",
-        "Free"
+        "No issue",
+        "Not allowed — work only after completing the first semester",
+        "Allowed part-time",
+        "Allowed in holidays"
       ],
       "correctIndex": 1,
-      "explanation": "Embassy national visa fee.",
-      "level": 3
+      "explanation": "No work is permitted before completing the first academic semester."
     },
     {
       "level": 3,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), which statement about Description is correct?",
+      "question": "A client assumes the Pink Slip lets them visit France. Correct them:",
       "options": [
-        "Two-stage route: Entry Permit via VFS India before travel, then Temporary Residence Permit (Pink Slip) at CRMD within 7–10 days of arrival.",
-        "Unconditional offer from CRMD-recognised institution · PCC apostilled + Cyprus Embassy attested · Medical panel · Financial proof €7,000–€10,000+ · Health insurance · Motivation letter",
-        "€7,000–€10,000 bank balance benchmark (no official minimum published) typically required unless scholarship or sponsor alternative applies.",
-        "CRMD Cyprus (crmd.moi.gov.cy) · VFS Global Cyprus India · Cyprus Embassy in India (PCC attestation)"
+        "It does allow it",
+        "Only to Germany",
+        "Cyprus is not Schengen; a separate Schengen visa is needed",
+        "Only in summer"
       ],
-      "correctIndex": 0,
-      "explanation": "Two-stage route: Entry Permit via VFS India before travel, then Temporary Residence Permit (Pink Slip) at CRMD within 7–10 days of arrival."
+      "correctIndex": 2,
+      "explanation": "The Pink Slip does not permit Schengen travel."
     },
     {
       "level": 3,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is the compliance risk with National visa fee approx:?",
+      "question": "A client asks FLC to hold their financial-proof funds. You:",
       "options": [
-        "€60–90",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
+        "Hold them",
+        "Route them through the firm",
+        "Charge a fee",
+        "Refuse — the funds belong to the client and are never routed through the firm"
       ],
-      "correctIndex": 0,
-      "explanation": "Embassy national visa fee."
+      "correctIndex": 3,
+      "explanation": "Never receive or route client funds — a compliance breach."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Cyprus – Student Visa (Entry Permit + Pink Slip) — key issue with For Cyprus – Student Visa (Entry Permit + Pink Slip), which statement about Description is…:",
+      "question": "A client wants a written guarantee of the visa. You:",
       "options": [
-        "National visa (Type D) for study at a recognised Cypriot university or preparatory course. After entry, convert to residence permit at local CRMD district offi…",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
+        "Refuse and use approved non-guaranteeing language",
+        "Provide it",
+        "Charge extra",
+        "Promise a date"
       ],
       "correctIndex": 0,
-      "explanation": "Two-stage route: Entry Permit via VFS India before travel, then Temporary Residence Permit (Pink Slip) at CRMD within 7–10 days of arrival."
+      "explanation": "Never guarantee an outcome; CRMD/immigration decide."
     },
     {
       "level": 3,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), counselors must avoid this mistake related to PCC not apostilled or attested:",
+      "question": "The PCC apostille is left to the last week before travel. Risk?",
       "options": [
-        "PCC → MEA apostille (VFS can assist) → Cyprus Embassy attestation; allow 4–6 weeks",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
+        "No risk",
+        "Apostille + attestation take weeks — likely delay/refusal",
+        "Speeds things up",
+        "Lowers the fee"
       ],
-      "correctIndex": 0,
-      "explanation": "PCC submitted without MEA apostille or Cyprus Embassy attestation."
+      "correctIndex": 1,
+      "explanation": "PCC apostille/attestation is slow and a common delay cause."
     },
     {
       "level": 3,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is the compliance risk with PCC not apostilled or attested (detail)?",
+      "question": "An employment contract is not lodged with the Labour Office. Consequence?",
       "options": [
-        "PCC submitted without MEA apostille or Cyprus Embassy attestation.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
+        "It is fine",
+        "Faster pay",
+        "The work is not authorised — risk to the permit and fines",
+        "More hours"
       ],
-      "correctIndex": 0,
-      "explanation": "PCC → MEA apostille (VFS can assist) → Cyprus Embassy attestation; allow 4–6 weeks"
+      "correctIndex": 2,
+      "explanation": "Unapproved contracts mean unauthorised work, risking the permit and fines."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Cyprus – Student Visa (Entry Permit + Pink Slip) — key issue with TRNC institution (North Cyprus):",
+      "question": "A counsellor wants to publish a firm approval rate vs an unnamed 'industry' figure. The issue?",
       "options": [
-        "Redirect to South Cyprus EU-recognised institutions only; disclose NMC/EU limitations for TRNC",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
+        "No issue",
+        "It is required",
+        "It lowers the fee",
+        "Unsourced/comparative claims risk misleading advertising and implying a guarantee"
       ],
-      "correctIndex": 0,
-      "explanation": "Student enrolled at TRNC university expecting EU degree recognition."
-    },
-    {
-      "level": 3,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), counselors must avoid this mistake related to TRNC institution (North Cyprus) (detail):",
-      "options": [
-        "Student enrolled at TRNC university expecting EU degree recognition.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Redirect to South Cyprus EU-recognised institutions only; disclose NMC/EU limitations for TRNC"
-    },
-    {
-      "level": 3,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is the compliance risk with Expired medical tests?",
-      "options": [
-        "Repeat tests at government hospital 2–3 months before filing",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Medical panel older than 4 months at application."
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Cyprus – Student Visa (Entry Permit + Pink Slip) — key issue with Expired medical tests (detail):",
-      "options": [
-        "Medical panel older than 4 months at application.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Repeat tests at government hospital 2–3 months before filing"
-    },
-    {
-      "level": 3,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), counselors must avoid this mistake related to Pink Slip delay after arrival:",
-      "options": [
-        "Register at university day 1; university arranges CRMD appointment immediately",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Student did not apply at CRMD within 7–10 days."
-    },
-    {
-      "level": 3,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is the compliance risk with Pink Slip delay after arrival (detail)?",
-      "options": [
-        "Student did not apply at CRMD within 7–10 days.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Register at university day 1; university arranges CRMD appointment immediately"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Cyprus – Student Visa (Entry Permit + Pink Slip) — key issue with Schengen travel misconception:",
-      "options": [
-        "Explain Cyprus is NOT Schengen; separate Schengen visa needed for France/Germany/etc.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Client believes Cyprus permit allows EU travel."
-    },
-    {
-      "level": 3,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), counselors must avoid this mistake related to Schengen travel misconception (detail):",
-      "options": [
-        "Client believes Cyprus permit allows EU travel.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Explain Cyprus is NOT Schengen; separate Schengen visa needed for France/Germany/etc."
-    },
-    {
-      "level": 3,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is the compliance risk with Insufficient financial proof?",
-      "options": [
-        "Show consistent savings; sponsor letter + sponsor bank statement if applicable",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Bank balance below €7,000 or inconsistent history."
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Cyprus – Student Visa (Entry Permit + Pink Slip) — key issue with Insufficient financial proof (detail):",
-      "options": [
-        "Bank balance below €7,000 or inconsistent history.",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Show consistent savings; sponsor letter + sponsor bank statement if applicable"
-    },
-    {
-      "level": 3,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), counselors must avoid this mistake related to counselor don't:",
-      "options": [
-        "Do not guarantee approval",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not guarantee approval"
-    },
-    {
-      "level": 3,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is the compliance risk with counselor don't?",
-      "options": [
-        "Do not book embassy without PCC apostille",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not book embassy without PCC apostille"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Cyprus – Student Visa (Entry Permit + Pink Slip) — key issue with counselor don't:",
-      "options": [
-        "Do not use unrecognised institutions",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not use unrecognised institutions"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Cyprus – Student Visa (Entry Permit + Pink Slip) — key issue with common mistake:",
-      "options": [
-        "PCC apostille applied too late for intake",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: PCC apostille applied too late for intake"
-    },
-    {
-      "level": 3,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), counselors must avoid this mistake related to common mistake:",
-      "options": [
-        "Proof of funds short by even €1",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Proof of funds short by even €1"
-    },
-    {
-      "level": 3,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is the compliance risk with common mistake?",
-      "options": [
-        "Generic motivation letter",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Generic motivation letter"
-    },
-    {
-      "level": 3,
-      "question": "Cyprus – Student Visa (Entry Permit + Pink Slip): what is the compliance risk with compliance rule?",
-      "options": [
-        "Client service agreement and consent must be on file before submission",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Client service agreement and consent must be on file before submission"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Cyprus – Student Visa (Entry Permit + Pink Slip) — key issue with compliance rule:",
-      "options": [
-        "Never guarantee visa or immigration approval; use approved-language only",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
-    },
-    {
-      "level": 3,
-      "question": "For Cyprus – Student Visa (Entry Permit + Pink Slip), counselors must avoid this mistake related to compliance rule:",
-      "options": [
-        "Fee quotes must separate consultancy, government, and third-party costs",
-        "Two-stage student immigration: (1) Entry Permit obtained from India via VFS Global or university-assisted CRMD route before travel; (2) Temporary Residence Per…",
-        "Unconditional offer from CRMD-recognised institution · Full-time study (min. 12 credits/semester) · PCC apostilled + Cyprus Embassy attested · Medical panel (H…",
-        "No official published minimum; benchmark €7,000–€10,000 in bank with 3–6 months history. Tuition deposit (€2,000–€5,000) typically required before offer confir…"
-      ],
-      "correctIndex": 0,
-      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
+      "correctIndex": 3,
+      "explanation": "Do not publish firm rates or comparative benchmarks as headline claims."
     }
   ],
   "donts": {
     "dos": [
       "Start PCC apostille early",
       "Verify institution on moec.gov.cy — South Cyprus (EU) only, not TRNC",
-      "Open financial proof (€7,000–€10,000+) for full required amount",
+      "Open financial proof (€7,000–€10,000 (illustrative working benchmark only — NOT an official minimum; verify with CRMD and the institution)+) for full required amount",
       "Write course-specific motivation letter",
-      "Disclose prior refusals"
+      "Disclose prior refusals",
+      "Confirm CRMD (south Cyprus) institution recognition before any fee",
+      "Apply for the Pink Slip (TRP) within the timeframe set by CRMD after arrival (commonly cited as 7–10 days; confirm the current requirement); book the immigration-unit appointment early"
     ],
     "donts": [
       "Do not guarantee approval",
       "Do not book embassy without PCC apostille",
       "Do not use unrecognised institutions",
       "Do not hide Schengen refusals",
-      "Do not quote outdated financial proof (€7,000–€10,000+) amount"
+      "Do not quote outdated financial proof (€7,000–€10,000 (illustrative working benchmark only — NOT an official minimum; verify with CRMD and the institution)+) amount",
+      "Do not enrol a client at a TRNC (north Cyprus) institution for this route",
+      "Do not let a student work before completing the first semester or outside permitted sectors"
     ],
     "mistakes": [
       "PCC apostille applied too late for intake",
       "Proof of funds short by even €1",
       "Generic motivation letter",
       "Wrong health insurance type",
-      "Expired admission letter"
+      "Expired admission letter",
+      "Assuming the Pink Slip allows Schengen travel — it does not",
+      "Missing the ~7-day Pink Slip application window after arrival"
     ]
   },
   "sampleDocs": [
@@ -1410,26 +791,26 @@
       "docKind": "academic"
     },
     {
-      "title": "Sample admission documentation (mock)",
+      "title": "Sample Police Clearance Certificate (PCC) — apostilled & attested (mock)",
       "description": "PCC apostille + Cyprus Embassy attestation certificate for India.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
-      "title": "Sample financial proof (€7,000–€10,000+) confirmation (mock)",
-      "description": "Sperrkonto required living funds+ — explain to clients.",
+      "title": "Sample financial proof (€7,000–€10,000 (illustrative working benchmark only — NOT an official minimum; verify with CRMD and the institution)+) confirmation (mock)",
+      "description": "Bank statements/financial-ability confirmation (+ repatriation bank guarantee if required) — explain to clients.",
       "mimeType": "application/pdf",
       "docKind": "financial"
     },
     {
-      "title": "Sample IELTS / TestDaF certificate (mock)",
+      "title": "Sample IELTS / TOEFL certificate (mock)",
       "description": "Language proof for degree program.",
       "mimeType": "image/jpeg",
       "docKind": "language"
     },
     {
       "title": "Sample CV & motivation letter (mock)",
-      "description": "Cypriot embassy standard application packet.",
+      "description": "Cyprus embassy standard application packet.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
@@ -1443,24 +824,28 @@
   "navBucket": "visa",
   "workingRights": {
     "applicant": {
-      "summary": "20 hours/week during semester; 38 hours/week during school holidays — sector-restricted (restaurants, cleaning, retail, healthcare, agriculture, manufacturing, food delivery, etc.). Employment contract must be certified by Department of Labour.",
+      "summary": "Third-country students may work only AFTER completing the first academic semester, in permitted sectors only, with the employment contract approved/stamped by the District Labour Office before starting. Hours: up to 20/week in term, up to 38/week in official holidays. Work income cannot replace the financial-proof requirement. Verify current rules — they change.",
       "details": [
-        "Minimum wage from Jan 2026: €979/month (0–6 months), €1,088/month (6+ months)",
-        "Pro-rated at 20 hrs/week: approx. €490–€545/month"
+        "Eligible only after successfully completing the first academic semester (per the Decree published 6 Mar 2026).",
+        "Permitted sectors are defined by Decree (e.g. Trade, Health, Agriculture, Manufacturing, Hospitality) plus study-relevant internships — not any sector.",
+        "Hours: 20/week in term, up to 38/week in official holidays (reduced from the former 30/week).",
+        "Minimum wage and pro-rated earnings are time-sensitive ({{VERIFY_LIVE}}); do not quote fixed figures.",
+        "Work income cannot be relied on to meet living-cost/financial-proof requirements."
       ],
       "restrictions": [
-        "Work only in permitted sectors",
-        "Contract must be Labour-office certified",
-        "Cannot rely on work income alone for living costs"
+        "No work before completing the first academic semester",
+        "Permitted sectors only; employment contract must be Labour-Office approved/stamped",
+        "20 h/week term cap (up to 38 h/week in official holidays)"
       ],
-      "sourceUrl": "https://home-affairs.ec.europa.eu/",
+      "sourceUrl": "https://crmd.moi.gov.cy/",
       "lastVerified": "Jun 2026"
     },
     "spouse": {
-      "summary": "Dependants may apply for separate residence permits; additional funds and accommodation proof required.",
+      "summary": "Dependant/family applications are assessed individually and are NOT automatic; a student's family-reunification prospects are limited and conditional. Any dependant must file a separate application meeting CRMD's current requirements (relationship, accommodation, means). Always verify the current CRMD family-reunification rules before advising — do not present a guaranteed spouse route.",
       "details": [
-        "Marriage/birth certificates apostilled",
-        "Sponsor must show sufficient means for dependants"
+        "Separate application per dependant; approval is discretionary and not guaranteed.",
+        "Requires proof of relationship, adequate accommodation and sufficient means.",
+        "Verify current CRMD family-reunification rules before advising."
       ],
       "restrictions": [
         "Dependants may not have automatic work rights"
@@ -1472,8 +857,8 @@
   "fullCostBreakdown": {
     "title": "Full cost breakdown — Cyprus – Student Visa (Entry Permit + Pink Slip)",
     "currency": "EUR",
-    "lastVerified": "Jun 2026",
-    "disclaimer": "Indicative costs for counselor discussions only. Verify at VFS and university before quoting.",
+    "lastVerified": "16 Jun 2026",
+    "disclaimer": "Indicative costs for counsellor discussions only. Values marked {{VERIFY_LIVE}} are dynamic and MUST be verified on official sources (CRMD crmd.moi.gov.cy / VFS) before quoting. There is no single official student funds minimum; figures shown are working benchmarks. INR equivalents move with exchange rates.",
     "sourceUrl": "https://visa.vfsglobal.com/cyprus/india",
     "sections": [
       {
@@ -1482,30 +867,31 @@
         "items": [
           {
             "label": "Entry Permit (VFS/Embassy)",
-            "amount": 75,
-            "range": "€60–90",
+            "amount": "{{VERIFY_LIVE}}",
             "unit": "per applicant",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Long-stay study visa / Category D; verify current fee"
           },
           {
             "label": "Pink Slip (TRP) after arrival",
-            "range": "€70–140",
-            "unit": "at CRMD",
+            "amount": "{{VERIFY_LIVE}}",
+            "unit": "at immigration unit",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Commonly an application + registration fee; verify"
           },
           {
             "label": "VFS service charge",
-            "range": "Check VFS site",
-            "notes": "Separate from visa fee",
+            "range": "{{VERIFY_LIVE}}",
+            "notes": "Separate from the visa fee; check VFS site",
             "currency": "EUR",
             "applicable": true
           },
           {
-            "label": "Medical panel (pre-visa)",
-            "range": "€100–250",
-            "notes": "Government hospital preferred",
+            "label": "Medical panel",
+            "range": "{{VERIFY_LIVE}}",
+            "notes": "HIV/Hep B-C/syphilis/TB; verify cost",
             "currency": "EUR",
             "applicable": true
           }
@@ -1540,8 +926,8 @@
           },
           {
             "label": "Scholarships",
-            "range": "30–50%",
-            "notes": "Merit-based at private universities",
+            "range": "{{VERIFY_LIVE}}",
+            "notes": "Merit-based at private universities (scholarship amount varies — verify)",
             "currency": "EUR",
             "applicable": true
           }
@@ -1553,28 +939,34 @@
         "items": [
           {
             "label": "Monthly living (Nicosia)",
-            "range": "€500–800",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Verify current range"
           },
           {
             "label": "Monthly living (Limassol)",
-            "range": "€700–1,000",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Limassol typically higher"
           },
           {
             "label": "Accommodation",
-            "range": "€250–600",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "notes": "Shared flat or university dorm",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Shared flat or university dorm"
           },
           {
             "label": "Financial proof benchmark",
-            "range": "€7,000–10,000",
-            "notes": "Bank balance for visa",
-            "currency": "EUR"
+            "range": "{{VERIFY_LIVE}}",
+            "notes": "No single official minimum; working benchmark — verify",
+            "currency": "EUR",
+            "applicable": true
           }
         ]
       },
@@ -1609,7 +1001,7 @@
       {
         "label": "Indicative first year (private university)",
         "value": "€14,000–20,000",
-        "notes": "Tuition + living + visa fees. With 30% scholarship: ~€12,000–17,000."
+        "notes": "Tuition + living + visa fees; scholarship reductions vary — verify live."
       }
     ]
   }

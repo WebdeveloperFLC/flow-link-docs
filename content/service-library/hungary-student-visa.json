@@ -1,20 +1,20 @@
 {
   "displayName": "Hungary – Student Residence Permit (National D Visa)",
-  "shortDescription": "Hungarian Embassy · OIF after arrival · D visa · University acceptance · Proof of funds",
-  "version": "v2.0",
+  "shortDescription": "OIF (National Directorate-General for Aliens Policing) · Residence permit for studies · D visa to collect it · Enter Hungary after arrival",
+  "version": "v2.2",
   "versionStatus": "Live",
   "reviewStatus": "active",
-  "updatedLabel": "Updated 10 Jun 2026",
+  "updatedLabel": "Updated 16 Jun 2026",
   "learningLevel": "Intermediate",
   "learningMinutes": 22,
   "policyAlert": {
     "active": true,
-    "date": "10 Jun 2026",
-    "summary": "Confirm requirements on oif.gov.hu before quoting."
+    "date": "16 Jun 2026",
+    "summary": "Hungary issues a residence permit for the purpose of studies, processed by the OIF (Országos Idegenrendészeti Főigazgatóság — National Directorate-General for Aliens Policing). The application is lodged at a Hungarian consulate abroad and ITSELF comprises the visa: on approval a national Type D visa is issued to facilitate entry into Hungary and collection of the residence-permit card (verify current validity and entry conditions with OIF). Enter Hungary within 3 months of issuance or the permit becomes invalid. Fees, proof-of-funds and work rules are time-sensitive ({{VERIFY_LIVE}}). Verify all amounts on oif.gov.hu before quoting."
   },
   "alert": {
-    "title": "Residence permit after arrival",
-    "body": "After entry, apply for temporary residence permit at Hungarian Embassy within required deadline."
+    "title": "One application at the consulate → D visa → collect the residence permit",
+    "body": "Submit the residence-permit-for-studies application at the Hungarian consulate in your country; a separate visa application is NOT required. On approval a national Type D visa is issued to facilitate entry and collection of the residence-permit card (verify current conditions with OIF). Register/finalise via the Enter Hungary platform after arrival. CRITICAL: if you do not enter Hungary within 3 months of issuance, the permit becomes invalid."
   },
   "tags": [
     {
@@ -22,25 +22,25 @@
       "variant": "success"
     },
     {
-      "label": "Proof of funds required",
+      "label": "Proof of funds critical",
       "variant": "warning"
     },
     {
-      "label": "4–10 weeks",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
-      "label": "Embassy appointment",
+      "label": "OIF / Enter Hungary",
       "variant": "neutral"
     }
   ],
   "chips": [
     {
-      "label": "4–10 weeks",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
-      "label": "€75 + proof of funds",
+      "label": "Govt fee + proof of funds (verify)",
       "variant": "neutral"
     },
     {
@@ -48,33 +48,33 @@
       "variant": "success"
     },
     {
-      "label": "Hungary admission docs",
+      "label": "Enter Hungary after arrival",
       "variant": "warning"
     }
   ],
   "kpis": [
     {
       "label": "Processing time",
-      "value": "6–12w",
-      "sub": "After complete file complete",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Processing varies by volume and case — verify current OIF estimates",
       "tone": "primary"
     },
     {
       "label": "Government fee",
-      "value": "€75",
-      "sub": "+ proof of funds required living funds",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Residence-permit fee (EUR at consulate / HUF in Hungary) — verify live",
       "tone": "warning"
     },
     {
-      "label": "Our approval rate",
-      "value": "88%",
-      "sub": "~74% benchmark",
-      "tone": "success"
+      "label": "Approval rate",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Pull from live CRM case data; not a prediction of any individual outcome",
+      "tone": "primary"
     },
     {
       "label": "Required docs",
-      "value": "15",
-      "sub": "+ proof of funds HUF benchmark",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Document count varies by profile — see live checklist",
       "tone": "violet"
     },
     {
@@ -87,90 +87,94 @@
   "about": [
     {
       "label": "Description",
-      "value": "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit."
+      "value": "Residence permit for the purpose of studies for non-EU/EEA/Swiss nationals studying full-time in Hungary for more than 90 days, processed by the OIF (National Directorate-General for Aliens Policing). The consulate application comprises the visa: on approval a national Type D visa is issued to facilitate entry and collection of the residence-permit card (verify current conditions with OIF). The permit is valid at least 1 year (or the programme length), to a maximum of 3 years, and is extendable."
     },
     {
       "label": "Eligible applicants",
-      "value": "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
+      "value": "Full-time admission to a recognised Hungarian institution (state-recognised, or a foreign institution authorised to operate in Hungary) · Proof of subsistence funds ({{VERIFY_LIVE}}) · Health insurance · Proof of accommodation · Language ability matching the programme · Valid passport (the permit cannot exceed passport validity). EU/EEA/Swiss citizens need no visa, only registration for stays over 90 days."
     },
     {
       "label": "Proof of funds",
-      "value": "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting.",
+      "value": "Proof of subsistence for the study period per OIF guidelines (proof of subsistence according to current OIF requirements — {{VERIFY_LIVE}}). Shown via bank statements with history, a scholarship award, or a sponsor's documentation. Verify the current expectation on oif.gov.hu.",
       "warning": true
     },
     {
       "label": "Key authority",
-      "value": "Hungarian Embassy · OIF after arrival"
+      "value": "OIF – Országos Idegenrendészeti Főigazgatóság (National Directorate-General for Aliens Policing, oif.gov.hu) · the Hungarian consulate for the application + D visa · the Enter Hungary platform for post-arrival steps and extensions"
     },
     {
       "label": "After approval",
-      "value": "Enter Hungary; register address; apply for residence permit within visa validity."
+      "value": "Travel on the Type D visa within the validity window set by OIF (the permit can lapse if entry is not made in time — verify the current deadline) and collect the residence-permit card (often delivered to the institution's address). Register your address and finalise via Enter Hungary. Extensions are only made from inside Hungary via Enter Hungary, no later than 30 days before expiry. Graduates may qualify for a post-study residence permit for job-search or business activities, subject to current OIF regulations (verify eligibility and conditions)."
     }
   ],
   "eligibility": [
     {
-      "criterion": "Admission from recognised Hungary institution",
-      "met": true
-    },
-    {
-      "criterion": "Proof of funds for study period",
-      "met": false,
-      "note": "Verify current amount on official portal"
-    },
-    {
-      "criterion": "Health insurance (travel + statutory)",
-      "met": false
-    },
-    {
-      "criterion": "Motivation letter and CV",
-      "met": true
-    },
-    {
-      "criterion": "Language proficiency (as required)",
+      "criterion": "Full-time admission to a recognised Hungarian institution",
       "met": true,
-      "note": "English or local language per program"
+      "note": "State-recognised institution (or a foreign one authorised to operate in Hungary); part-time/short courses are not suitable for this permit."
+    },
+    {
+      "criterion": "Proof of subsistence funds",
+      "met": false,
+      "note": "For the study period per OIF guidelines (proof of subsistence according to current OIF requirements — {{VERIFY_LIVE}}). Bank statements with history, scholarship, or sponsor documentation."
+    },
+    {
+      "criterion": "Health insurance",
+      "met": false,
+      "note": "Full health cover for the stay; confirm the current accepted cover with the institution/OIF."
+    },
+    {
+      "criterion": "Proof of accommodation",
+      "met": false,
+      "note": "Evidence of where the student will live in Hungary (lease, dormitory or host declaration)."
+    },
+    {
+      "criterion": "Language ability matching the programme",
+      "met": true,
+      "note": "English or Hungarian per the programme; provide the evidence the institution specifies (e.g. IELTS/TOEFL for English-taught programmes)."
     },
     {
       "criterion": "Valid passport",
-      "met": true
+      "met": true,
+      "note": "The residence permit cannot exceed the passport's validity; check the consulate's current rule."
     }
   ],
-  "redFlagsBanner": "After refusal, address embassy feedback before rebooking—proof of funds and admission letter cannot be rushed last minute.",
+  "redFlagsBanner": "After a refusal, address the OIF/consulate's stated reason before reapplying — proof of funds, admission and accommodation cannot be fixed last-minute.",
   "redFlags": [
     {
-      "title": "Proof of funds insufficient",
-      "description": "Proof of funds below HUF living funds per OIF guidelines or inconsistent bank history.",
-      "fix": "Open blocked account or show HUF benchmark equivalent with 3–6 month bank history before embassy slot",
+      "title": "Insufficient / wrong proof of subsistence",
+      "description": "Funds below the OIF expectation, or without consistent bank history, for the study period.",
+      "fix": "Show subsistence funds for the study period (proof of subsistence per current OIF requirements — verify) with 3–6 months' bank history, in the student's own/sponsored funds",
       "severity": "Very common"
     },
     {
-      "title": "Insufficient proof of funds",
-      "description": "Amount below required monthly sum or not from recognised provider.",
-      "fix": "Open proof of funds at approved bank for full required amount",
-      "severity": "Very common"
+      "title": "Not entering Hungary within 3 months of issuance",
+      "description": "The residence permit becomes invalid if the holder does not enter Hungary and begin the authorised stay within 3 months of issuance.",
+      "fix": "Plan travel so the student enters Hungary well within the 3-month window after the permit/D visa is issued",
+      "severity": "High"
     },
     {
-      "title": "Admission not from recognised institution",
-      "description": "Private unrecognised college or institution not listed for international students.",
-      "fix": "Verify institution on oif.gov.hu/ before collecting fees",
+      "title": "Missing Enter Hungary registration / extension deadline",
+      "description": "Not finalising via Enter Hungary after arrival, or missing the extension window (extensions only from inside Hungary, no later than 30 days before expiry, with ≥90 days' residence in any 180-day period).",
+      "fix": "Register on Enter Hungary after arrival; diarise the extension deadline and apply from within Hungary in good time",
+      "severity": "High"
+    },
+    {
+      "title": "Exceeding the work-hour limit",
+      "description": "Working more than 30 hours/week in term, or beyond the 90-days/66-working-days full-time allowance outside term, can jeopardise the permit.",
+      "fix": "Keep within 30 hours/week in term; full-time only outside term up to 90 days/year (no separate work permit needed within these limits)",
       "severity": "Common"
     },
     {
-      "title": "Weak motivation letter",
-      "description": "Generic letter not explaining study plan and Hungary choice.",
-      "fix": "Course-specific motivation linking prior study to Hungarian program",
+      "title": "Assuming family or long-term/PR outcomes from the study permit without checking current OIF rules",
+      "description": "Family accompaniment is limited and subject to current OIF regulations, and study-based residence may be treated differently from employment-based residence for long-term/PR purposes — verify before advising.",
+      "fix": "Set expectations: family accompaniment is limited and subject to current OIF rules; long-term/PR routes generally need a different permit type — verify",
       "severity": "Common"
     },
     {
-      "title": "Language proof missing",
-      "description": "Program requires Hungarian/English certificate not provided.",
-      "fix": "Obtain required IELTS/TOEFL or Hungarian certificate per admission",
-      "severity": "Common"
-    },
-    {
-      "title": "Prior refusals not addressed",
-      "description": "Schengen or Hungarian refusals hidden.",
-      "fix": "Disclose and explain changed circumstances",
+      "title": "Prior refusals or misrepresentation not addressed",
+      "description": "Hidden refusals, false documents, or enrolment with no genuine study intent.",
+      "fix": "Disclose every prior refusal and explain changed circumstances; never submit false documents or sham enrolment",
       "severity": "High"
     }
   ],
@@ -181,209 +185,191 @@
     },
     {
       "q": "What is proof of funds for Hungary?",
-      "a": "Typically HUF living funds per OIF guidelines months (HUF benchmark/year) living funds or equivalent. Verify current amount on oif.gov.hu before quoting."
+      "a": "Evidence that the student can support themselves for the study period — bank statements with 3–6 months' history, a scholarship award letter, or a sponsor's documentation. Hungary does NOT operate a German-style blocked account; do not import that requirement. Verify the current amount on oif.gov.hu."
     },
     {
-      "q": "Proof of funds amount for 2026?",
-      "a": "Typically HUF living funds per OIF guidelines (HUF benchmark/year). Verify current amount on oif.gov.hu before quoting."
+      "q": "How much money must a student show?",
+      "a": "Proof of subsistence for the study period per OIF guidelines ({{VERIFY_LIVE}}). Proof of subsistence is assessed according to current OIF requirements; there is no single neatly-published official figure, so verify the current expectation on oif.gov.hu before advising ({{VERIFY_LIVE}}). Show the funds via bank statements with history, a scholarship, or a sponsor."
     },
     {
       "q": "Can spouse accompany?",
-      "a": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
+      "a": "Family accompaniment options are limited and subject to current OIF regulations. A student permit may not provide family-sponsorship rights in the way other permit types do; any family member would be assessed separately under their own route. Always verify current OIF eligibility before advising — do not present family accompaniment as guaranteed or as unavailable without checking."
     },
     {
-      "q": "English-taught programs need Hungarian?",
-      "a": "Depends on program—follow admission and embassy requirements."
+      "q": "Do English-taught programs require Hungarian?",
+      "a": "No. English-taught programmes do not require Hungarian for admission; provide the English evidence the institution specifies (e.g. IELTS/TOEFL). Hungarian helps with daily life and some part-time work but is not a permit requirement."
     },
     {
       "q": "How long to convert to residence permit?",
-      "a": "Apply at Migration Department (oif.gov.hu) soon after arrival and university registration."
+      "a": "The consulate application already comprises the residence permit — on approval you receive a Type D visa to enter Hungary and collect the residence-permit card. Enter within 3 months of issuance, register via Enter Hungary, and the card is typically delivered to the institution's address. The permit is valid at least 1 year (or programme length), max 3 years."
     },
     {
       "q": "Can I work on student visa?",
-      "a": "Limited working hours permitted—verify current rules for students in Hungary."
+      "a": "Yes — a residence permit for studies allows work up to 30 hours/week during term and full-time outside term up to 90 days (or 66 working days) per year, with no separate work permit. The same rules apply to Stipendium Hungaricum scholarship holders. Exceeding the limits can jeopardise the permit."
     },
     {
       "q": "What after graduation?",
-      "a": "Discuss Graduate job-search temporary residence permit (verify on oif.gov.hu) separately."
+      "a": "Graduates holding a valid student residence permit may qualify for a post-study residence permit for job-search or business activities, subject to current OIF regulations. Eligibility, duration and conditions vary and are not automatic — apply from inside Hungary before the student permit expires and verify the current rules. Moving to an employment permit needs a concrete job offer."
     },
     {
-      "q": "What is Description for this service?",
-      "a": "National visa (Type D) for study at a recognised Hungarian university. After entry, apply for temporary residence permit at Migration Department (oif.gov.hu)."
+      "q": "Who processes the application and how?",
+      "a": "The OIF (Országos Idegenrendészeti Főigazgatóság — National Directorate-General for Aliens Policing). The residence-permit-for-studies application is lodged at the Hungarian consulate in your country; a separate visa application is not required, because the residence-permit application comprises it. On approval the consulate issues a Type D entry visa."
     },
     {
-      "q": "What is Eligible applicants for this service?",
-      "a": "University admission letter · Proof of funds (HUF living funds per OIF guidelines) · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
+      "q": "What is the Type D visa exactly?",
+      "a": "A national Type D visa issued following approval of the residence-permit application to facilitate entry into Hungary and collection of the residence-permit card. It is not the residence status itself — the residence permit is. Verify current validity conditions and entry requirements with OIF before advising."
     },
     {
-      "q": "What is Proof of funds for this service?",
-      "a": "HUF living funds per OIF guidelines months (HUF benchmark/year) typically required unless scholarship or sponsor alternative applies."
+      "q": "What is Enter Hungary?",
+      "a": "The official online platform (oif.gov.hu / enterhungary) used to register after arrival and to submit extensions. Applying via Enter Hungary in Hungary may carry a different (often lower) fee than applying in person; verify the current amounts."
     },
     {
-      "q": "Important note on Proof of funds?",
-      "a": "HUF living funds per OIF guidelines months (HUF benchmark/year) typically required unless scholarship or sponsor alternative applies."
+      "q": "How long is the permit valid and how is it extended?",
+      "a": "At least 1 year (or the programme length if shorter), to a maximum of 3 years, and extendable for 1–3 years. Extensions are made ONLY from inside Hungary via Enter Hungary, no later than 30 days before expiry, and require having resided in Hungary at least 90 days in any 180-day period."
     },
     {
-      "q": "What is Key authority for this service?",
-      "a": "Hungarian Embassy/Consulate in India · VFS Global Hungary · Migration Department (oif.gov.hu) after arrival"
+      "q": "What are the government fees?",
+      "a": "The administrative fee is set by OIF and differs for consular vs in-Hungary (and Enter Hungary) submissions and for extensions. Current OIF administrative fee ({{VERIFY_LIVE}}). Verify before advising. Verify the current amounts on oif.gov.hu before quoting."
     },
     {
-      "q": "What is After approval for this service?",
-      "a": "Enter Hungary; register address; apply for temporary residence permit at Migration Department (oif.gov.hu) within visa validity."
+      "q": "What is the Stipendium Hungaricum?",
+      "a": "A major Hungarian government scholarship for international students. It does NOT change the immigration rules — scholarship holders follow the same residence-permit-for-studies process and the same work limits (30 hours/week in term)."
     },
     {
-      "q": "Is Admission from recognised Hungarian institution required?",
-      "a": "Admission from recognised Hungarian institution is typically required."
+      "q": "Does the study time count toward permanent residence?",
+      "a": "Residence under a study permit may be treated differently from employment-based residence for long-term residence and permanent residence purposes. The study permit does not itself function as a long-term/national residence card, and a change of permit type is generally needed for long-term/PR routes. Verify current OIF rules before advising."
     },
     {
-      "q": "Is Proof of funds (HUF living funds per OIF guidelines) required?",
-      "a": "Apply early—processing takes weeks"
+      "q": "What happens if the student doesn't enter Hungary in time?",
+      "a": "If the student does not enter Hungary within 3 months of the residence permit's issuance and begin the authorised stay, the permit becomes invalid and the right to entry and stay ceases. Plan travel within that window."
     },
     {
-      "q": "Is Proof of funds or financial proof required?",
-      "a": "HUF benchmark/year or equivalent with 3–6 month bank history"
+      "q": "Can a refused application be appealed?",
+      "a": "A refusal can be challenged through the available remedy within the stated deadline, or corrected and re-lodged. Read the reason carefully (commonly proof of funds, accommodation, or documents) and fix the specific issue rather than re-lodging the same file."
     },
     {
-      "q": "Is Health insurance (travel + statutory) required?",
-      "a": "Assess whether Health insurance (travel + statutory) is satisfied for this case."
+      "q": "How long does processing take?",
+      "a": "Processing times vary depending on application volume and individual circumstances; verify current OIF estimates before advising. Apply early — well before travel — and quote the live OIF estimate rather than a fixed number."
     },
     {
-      "q": "Is Motivation letter and CV required?",
-      "a": "Motivation letter and CV is typically required."
-    },
-    {
-      "q": "Is Language proficiency (as required) required?",
-      "a": "Hungarian or English per program"
-    },
-    {
-      "q": "Is Valid passport required?",
-      "a": "Valid passport is typically required."
-    },
-    {
-      "q": "What is the Processing time?",
-      "a": "6–12w — After complete file complete"
-    },
-    {
-      "q": "What is the Government fee?",
-      "a": "€75 — + proof of funds required living funds"
-    },
-    {
-      "q": "What is the Our approval rate?",
-      "a": "88% — ~74% benchmark"
-    },
-    {
-      "q": "What is the Required docs?",
-      "a": "15 — + proof of funds HUF benchmark"
-    },
-    {
-      "q": "What is the Consultancy fee?",
-      "a": "See fee tab — + govt & third-party"
-    },
-    {
-      "q": "What if the client has Proof of funds insufficient?",
-      "a": "Open blocked account or show HUF benchmark equivalent with 3–6 month bank history before embassy slot"
-    },
-    {
-      "q": "Why is Proof of funds insufficient a problem?",
-      "a": "Proof of funds below HUF living funds per OIF guidelines or inconsistent bank history."
-    },
-    {
-      "q": "What if the client has Insufficient proof of funds?",
-      "a": "Open proof of funds at approved bank for full required amount"
-    },
-    {
-      "q": "Why is Insufficient proof of funds a problem?",
-      "a": "Amount below required monthly sum or not from recognised provider."
+      "q": "What does FLC actually guarantee?",
+      "a": "Nothing about the outcome — the consulate/OIF decides. FLC prepares a strong, honest, well-documented file (admission, proof of subsistence, accommodation, insurance) and never promises a permit, in writing or verbally."
     }
   ],
   "compliance": [
-    "Client service agreement and consent must be on file before submission",
-    "Never guarantee visa or immigration approval; use approved-language only",
-    "Fee quotes must separate consultancy, government, and third-party costs",
-    "Proof of funds funds belong to client—never commingle with firm accounts"
+    "Client service agreement and consent must be on file before submission.",
+    "Never guarantee a visa/permit or approval; use approved, non-guaranteeing language only.",
+    "Fee quotes must separate consultancy, government (OIF) and third-party costs.",
+    "Proof-of-subsistence funds belong to the client — never receive, hold or route them through firm accounts.",
+    "Never import another country's requirements (e.g. a German Sperrkonto/blocked account) into a Hungary file.",
+    "Be accurate about limits: family accompaniment is limited (verify current OIF rules), and study-based residence may be treated differently for long-term/PR purposes (verify) — do not overstate these.",
+    "Do not publish a firm approval rate or an unsourced 'industry benchmark' as a headline figure; use live, sourced CRM data labelled as not predictive of any individual outcome.",
+    "Handle academic and financial documents under data-protection rules: store securely, share only with authorised parties, retain only as needed."
   ],
   "proTips": [
-    "Confirm proof of funds and admission letter 3–4 months before intended intake",
-    "Open proof of funds only after admission confirmed",
-    "Book embassy slot when file 90% ready",
-    "Motivation letter must match admission course",
-    "Verify health insurance accepted by embassy"
+    "One application at the consulate comprises the visa — on approval the D visa is issued to enter and collect the residence-permit card.",
+    "Enter Hungary within 3 months of issuance or the permit becomes invalid.",
+    "Proof of subsistence: show funds for the study period per current OIF requirements (verify) with bank history; Hungary does NOT use a German-style blocked account.",
+    "Work is 30 hours/week in term, full-time outside term up to 90 days/year — same for Stipendium Hungaricum holders.",
+    "Extensions are only from inside Hungary via Enter Hungary, no later than 30 days before expiry (needs ≥90 days' residence in any 180-day period).",
+    "Set expectations carefully: family accompaniment is limited and study-based residence may be treated differently for long-term/PR purposes — verify current OIF rules."
   ],
   "postApproval": [
-    "Explain address registration (Anmeldung) within deadline",
-    "Guide on Migration Department (oif.gov.hu) appointment after arrival",
-    "Remind proof of funds monthly withdrawal rules",
-    "Discuss post-study job-seeker pathway"
+    "Enter Hungary on the D visa within 3 months of issuance and collect the residence-permit card",
+    "Register your address and finalise via the Enter Hungary platform after arrival",
+    "Keep work within 30 hours/week in term (full-time outside term up to 90 days/year)",
+    "Diarise the extension (from inside Hungary via Enter Hungary, 30+ days before expiry)"
   ],
   "performance": {
-    "ourRate": 0,
-    "industryRate": 0,
+    "ourRate": null,
+    "industryRate": null,
+    "note": "Approval rate and file counts must be populated live from CRM case data, not published as fixed figures. Do not display a comparative 'industry benchmark' unless independently sourced and cited.",
     "stats": [
       {
-        "label": "Files this year",
-        "value": "0"
+        "label": "Files this period",
+        "value": "{{VERIFY_LIVE}}"
       },
       {
         "label": "Approved",
-        "value": "0"
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Refused",
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "{{VERIFY_LIVE}}"
       }
     ]
   },
   "approvalFactors": [
     {
-      "label": "Our rate vs industry",
-      "ours": 88,
-      "benchmark": 74
+      "label": "Proof of subsistence (study period, bank history)",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "Proof of funds timing",
-      "ours": 85,
-      "benchmark": 68
+      "label": "Recognised institution + admission in order",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "Financial docs",
-      "ours": 87,
-      "benchmark": 72
+      "label": "Accommodation + insurance documented",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
       "label": "First-submit completeness",
-      "ours": 92,
-      "benchmark": 76
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     }
   ],
   "timeline": [
     {
       "weeks": "1–2",
-      "title": "Counseling, admission review, funds documentation"
+      "title": "Counselling, institution recognition, admission"
     },
     {
-      "weeks": "2–8",
-      "title": "Proof of funds, insurance, document compilation"
+      "weeks": "2–4",
+      "title": "Proof of subsistence, accommodation, insurance; consulate application (comprises the visa)"
     },
     {
-      "weeks": "8–10",
-      "title": "Embassy appointment & submission"
+      "weeks": "{{VERIFY_LIVE}}",
+      "title": "OIF decision + D visa issuance (varies — verify live)"
     },
     {
-      "weeks": "6–12",
-      "title": "Embassy processing"
+      "weeks": "on arrival",
+      "title": "Enter within 3 months; Enter Hungary registration; collect permit card"
     }
   ],
   "relatedServices": [
     {
-      "label": "Hungary – Graduate job-search permit",
+      "label": "Hungary – Post-Study Job-search / Business Residence Permit",
       "libraryId": ""
     },
     {
-      "label": "Hungary – Student extension",
+      "label": "Hungary – Student Residence Permit Extension",
       "libraryId": ""
     },
     {
-      "label": "Hungary – Visitor Visa",
+      "label": "Hungary – Residence Permit for Employment",
       "libraryId": ""
     }
   ],
   "changelog": [
+    {
+      "version": "v2.2",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Audit revision: removed hardcoded Type D visa validity specifics (entry type and fixed validity/stay periods) in favour of 'a national Type D visa is issued to facilitate entry — verify current validity/entry conditions with OIF'; removed client-facing proof-of-subsistence benchmarks (HUF 200,000 / €500 / €640), leaving 'proof of subsistence per current OIF requirements ({{VERIFY_LIVE}})' and keeping the figures only in staff notes clearly labelled as unofficial estimates; softened family-accompaniment wording to 'limited and subject to current OIF regulations — verify' (no absolute 'no family sponsorship'); qualified permanent-residence wording to 'study-based residence may be treated differently from employment-based residence for long-term/PR purposes — verify'; replaced the fixed '9-month' post-study duration with 'a post-study residence permit for job-search or business activities, subject to current OIF regulations'; removed hardcoded government fees (EUR 110 / HUF 39,000 / HUF 24,000 / HUF 23,000) throughout, using 'current OIF administrative fee ({{VERIFY_LIVE}})'; removed fixed processing-time references (60–70 days / a few weeks) for 'processing times vary — verify current OIF estimates'; REMOVED a Portugal source-URL contamination from workingRights.spouse.sourceUrl and replaced it with oif.gov.hu; updated affected quiz questions/explanations to verification-based wording; reviewed the cost breakdown so all amounts are {{VERIFY_LIVE}}; corrected changelog chronology (v1.0 now predates v2.0). Preserved all keys, {{VERIFY_LIVE}} placeholders, OIF/Enter Hungary guidance, the 30-hours/week work rule, Stipendium Hungaricum notes, and contamination warnings. No statistics, approval rates, immigration benefits, or PR/family pathways were invented."
+    },
+    {
+      "version": "v2.1",
+      "date": "10 Jun 2026",
+      "author": "Service Library",
+      "summary": "Audit + uplift: replaced auto-generated template FAQs and quiz questions with real Hungary counsellor Q&A; redistributed the quiz answer key (was ~73/75 on one option); removed the hardcoded approval rate (88%) and unsourced '74% benchmark'; converted time-sensitive values (residence-permit fee, subsistence funds, tuition, living costs, processing times) to {{VERIFY_LIVE}} placeholders. Corrected facts to official OIF guidance: the consulate application comprises the visa (single-entry Type D to collect the residence permit); enter Hungary within 3 months of issuance; OIF/Enter Hungary processing; work 30 hours/week in term and full-time up to 90 days/year outside term (same for Stipendium Hungaricum); permit valid 1–3 years; extensions only from inside Hungary; no family sponsorship on a study permit; study time does not count toward PR; post-study 9-month job-search/start-a-business permit. Removed cross-country residue (a German 'Sperrkonto' sample-doc note and a stray 'Vilnius'/Lithuania accommodation line); reframed proof of funds to bank statements/scholarship/sponsor (Hungary does not use a German-style blocked account); rebuilt resources to official OIF / EU Immigration Portal / Study in Hungary sources. No statistics were invented."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",
@@ -392,948 +378,361 @@
     },
     {
       "version": "v1.0",
-      "date": "10 Jun 2026",
+      "date": "6 Jun 2026",
       "author": "Service Library",
       "summary": "Initial Hungary student visa content."
     }
   ],
   "staffNotes": [
     {
+      "author": "Service Library",
+      "date": "16 Jun 2026",
+      "text": "Dynamic values are marked {{VERIFY_LIVE}} and MUST be populated from live official sources / CRM before client use: subsistence-funds amount (unofficial working estimate only, not an OIF figure: some secondary sources cite roughly HUF 200,000/month ≈ €500, living costs ~€640/month — never quote to clients as an OIF requirement; verify), residence-permit fee (varies by route — consular vs in-person vs Enter Hungary — and for extensions; never quote a fixed figure to clients; verify on oif.gov.hu), tuition, living costs, processing times, doc counts, post-study permit terms, and any approval/file-count figures. Never publish invented statistics."
+    },
+    {
       "author": "Documentation team",
-      "date": "6 Jun 2026",
-      "text": "Proof-of-funds and admission timing matter—do not promise intake without confirming HUF benchmark equivalent."
+      "date": "16 Jun 2026",
+      "text": "CONTAMINATION WARNING: clean any cross-country residue. Hungary does NOT use a German Sperrkonto/blocked account; do not import German concepts. Earlier drafts contained a stray 'Vilnius' (Lithuania) accommodation line and a 'Sperrkonto' sample-doc note — both removed. KEY HUNGARY FACTS: one consulate application comprises the visa → D visa to collect the residence permit; enter within 3 months of issuance; OIF/Enter Hungary; work 30 h/week in term + 90 days/year full-time outside term (same for Stipendium Hungaricum); no family sponsorship on a study permit; study time does not count toward PR; post-study job-search/business permit (duration per current OIF rules)."
     }
   ],
   "resources": [
     {
-      "title": "Hungary immigration portal",
-      "url": "https://oif.gov.hu/",
-      "description": "Official requirements"
+      "title": "OIF — residence of the student/pupil (official)",
+      "url": "https://oif.gov.hu/factsheets/residence-of-the-student-pupil",
+      "description": "National Directorate-General for Aliens Policing: study permit, D visa, work limits"
+    },
+    {
+      "title": "OIF — for higher education institutions (official)",
+      "url": "https://oif.gov.hu/factsheets/for-higher-education-institutions",
+      "description": "Permit validity, 3-month entry rule, 30-hours/week work rule"
+    },
+    {
+      "title": "OIF — job-search / business residence permit (official)",
+      "url": "https://oif.gov.hu/factsheets/residence-permit-for-the-purpose-of-seeking-a-job-or-starting-a-business",
+      "description": "Post-study job-search/business residence permit (duration per current OIF rules)"
+    },
+    {
+      "title": "EU Immigration Portal — Student in Hungary",
+      "url": "https://home-affairs.ec.europa.eu/policies/migration-and-asylum/eu-immigration-portal/student-hungary_en",
+      "description": "Official fees and requirements"
+    },
+    {
+      "title": "Study in Hungary (official)",
+      "url": "https://studyinhungary.hu/",
+      "description": "Programmes, Stipendium Hungaricum, living and working in Hungary"
     }
   ],
   "quiz": [
     {
-      "question": "Indian students generally need:",
+      "level": 1,
+      "question": "Which authority processes the Hungary study residence permit?",
       "options": [
-        "Only passport",
-        "admission documentation + admission + proof of funds",
-        "Job offer",
-        "EU citizenship"
+        "OIF (National Directorate-General for Aliens Policing)",
+        "The Ausländerbehörde",
+        "Migri",
+        "CRMD"
+      ],
+      "correctIndex": 0,
+      "explanation": "OIF (Országos Idegenrendészeti Főigazgatóság) processes study permits."
+    },
+    {
+      "level": 1,
+      "question": "How is the application lodged?",
+      "options": [
+        "Two separate visa + permit applications",
+        "At the Hungarian consulate — it comprises the visa",
+        "Online only after arrival",
+        "Via a German Sperrkonto"
       ],
       "correctIndex": 1,
-      "explanation": "Proof of funds HUF benchmark/year mandatory for student visa.",
-      "level": 1
+      "explanation": "The consulate application comprises the visa; a D visa is then issued."
     },
     {
       "level": 1,
-      "question": "For Hungary – Student Residence Permit (National D Visa), which statement about Description is correct?",
+      "question": "What is the Type D visa for?",
       "options": [
-        "National visa (Type D) for study at a recognised Hungarian university. After entry, apply for temporary residence permit at Migration Department.",
-        "University admission letter · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "Typically €576/month (12 months = HUF benchmark) or equivalent. Verify current amount on oif.gov.hu before quoting.",
-        "Hungarian Embassy/Consulate in India · VFS Global Hungary · Migration Department (oif.gov.hu) after arrival"
+        "Permanent residence",
+        "Tourism only",
+        "To enter Hungary and collect the residence-permit card",
+        "Working full-time"
       ],
-      "correctIndex": 0,
-      "explanation": "National visa (Type D) for study at a recognised Hungarian university. After entry, apply for temporary residence permit at Migration Department."
+      "correctIndex": 2,
+      "explanation": "The national Type D visa lets the holder enter Hungary and collect the residence-permit card; verify current validity/entry conditions with OIF."
     },
     {
       "level": 1,
-      "question": "For Hungary – Student Residence Permit (National D Visa), which statement about Key authority is correct?",
+      "question": "How many hours/week may a student work in term?",
       "options": [
-        "Hungarian Embassy/Consulate in India · VFS Global Hungary · Migration Department (oif.gov.hu) after arrival",
-        "National visa (Type D) for study at a recognised Hungarian university. After entry, apply for temporary residence permit at Migration Department.",
-        "University admission letter · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "Typically €576/month (12 months = HUF benchmark) or equivalent. Verify current amount on oif.gov.hu before quoting."
+        "No work allowed",
+        "Unlimited",
+        "140 days/year",
+        "Up to 30 hours/week"
       ],
-      "correctIndex": 0,
-      "explanation": "Hungarian Embassy/Consulate in India · VFS Global Hungary · Migration Department (oif.gov.hu) after arrival"
+      "correctIndex": 3,
+      "explanation": "Up to 30 hours/week in term (official OIF rule)."
     },
     {
       "level": 1,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is true regarding Eligible applicants?",
+      "question": "After arrival, students register/finalise via:",
       "options": [
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting.",
-        "Hungarian Embassy · OIF after arrival"
+        "The Enter Hungary platform",
+        "The Ausländerbehörde",
+        "A German Sperrkonto",
+        "Campus France"
       ],
       "correctIndex": 0,
-      "explanation": "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
+      "explanation": "Enter Hungary is the official platform for post-arrival steps."
     },
     {
       "level": 1,
-      "question": "A counselor explaining Hungary – Student Residence Permit (National D Visa) should state correctly about Proof of funds:",
+      "question": "Does Hungary use a German-style blocked account?",
       "options": [
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "Hungarian Embassy · OIF after arrival"
+        "Yes, €992/month",
+        "No — Hungary uses bank statements / scholarship / sponsor proof",
+        "Yes, for all Indians",
+        "Only in Budapest"
       ],
-      "correctIndex": 0,
-      "explanation": "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting. — verify current rules."
+      "correctIndex": 1,
+      "explanation": "Hungary does not operate a German Sperrkonto/blocked account."
     },
     {
       "level": 1,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is true regarding After approval?",
+      "question": "The student must enter Hungary within how long of issuance?",
       "options": [
-        "Enter Hungary; register address; apply for residence permit within visa validity.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
+        "2 years",
+        "1 week",
+        "3 months (or the permit becomes invalid)",
+        "No deadline"
       ],
-      "correctIndex": 0,
-      "explanation": "Enter Hungary; register address; apply for residence permit within visa validity."
+      "correctIndex": 2,
+      "explanation": "Entering within 3 months is required or the permit lapses."
     },
     {
       "level": 1,
-      "question": "A counselor explaining Hungary – Student Residence Permit (National D Visa) should state correctly about Admission from recognised Hungary institution:",
+      "question": "The residence permit for studies is valid for:",
       "options": [
-        "Admission from recognised Hungary institution is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
+        "Always exactly 90 days",
+        "10 years",
+        "Permanently",
+        "At least 1 year, up to a maximum of 3 years"
       ],
-      "correctIndex": 0,
-      "explanation": "Admission from recognised Hungary institution"
-    },
-    {
-      "level": 1,
-      "question": "For Hungary – Student Residence Permit (National D Visa), which statement about Proof of funds for study period is correct?",
-      "options": [
-        "Proof of funds for study period is often required or assessed for this service. Note: Verify current amount on official portal",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Verify current amount on official portal"
-    },
-    {
-      "level": 1,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is true regarding Health insurance (travel + statutory)?",
-      "options": [
-        "Health insurance (travel + statutory) is often required or assessed for this service.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Health insurance (travel + statutory)"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Hungary – Student Residence Permit (National D Visa) should state correctly about Motivation letter and CV:",
-      "options": [
-        "Motivation letter and CV is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Motivation letter and CV"
-    },
-    {
-      "level": 1,
-      "question": "For Hungary – Student Residence Permit (National D Visa), which statement about Language proficiency (as required) is correct?",
-      "options": [
-        "Language proficiency (as required) is a core requirement for this service. Note: English or local language per program",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "English or local language per program"
-    },
-    {
-      "level": 1,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is true regarding Valid passport?",
-      "options": [
-        "Valid passport is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Valid passport"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Hungary – Student Residence Permit (National D Visa) should state correctly about Processing time:",
-      "options": [
-        "Processing time: 6–12w — After complete file complete",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "After complete file complete"
-    },
-    {
-      "level": 1,
-      "question": "For Hungary – Student Residence Permit (National D Visa), which statement about Government fee is correct?",
-      "options": [
-        "Government fee: €75 — + proof of funds required living funds",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ proof of funds required living funds"
-    },
-    {
-      "level": 1,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is true regarding Our approval rate?",
-      "options": [
-        "Our approval rate: 88% — ~74% benchmark",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "~74% benchmark"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Hungary – Student Residence Permit (National D Visa) should state correctly about Required docs:",
-      "options": [
-        "Required docs: 15 — + proof of funds HUF benchmark",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ proof of funds HUF benchmark"
-    },
-    {
-      "level": 1,
-      "question": "For Hungary – Student Residence Permit (National D Visa), which statement about Consultancy fee is correct?",
-      "options": [
-        "Consultancy fee: See fee tab — + govt & third-party",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ govt & third-party"
-    },
-    {
-      "level": 1,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is true regarding service summary?",
-      "options": [
-        "Hungarian Embassy · OIF after arrival · D visa · University acceptance · Proof of funds",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Hungarian Embassy · OIF after arrival · D visa · University acceptance · Proof of funds"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Hungary – Student Residence Permit (National D Visa) should state correctly about Residence permit after arrival:",
-      "options": [
-        "After entry, apply for temporary residence permit at Hungarian Embassy within required deadline.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "After entry, apply for temporary residence permit at Hungarian Embassy within required deadline."
-    },
-    {
-      "level": 1,
-      "question": "For Hungary – Student Residence Permit (National D Visa), which statement about policy update is correct?",
-      "options": [
-        "Confirm requirements on oif.gov.hu before quoting.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Confirm requirements on oif.gov.hu before quoting."
-    },
-    {
-      "level": 1,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is true regarding Can we guarantee student visa approval?",
-      "options": [
-        "No. Embassy decides based on admission, funds, and credibility. Never promise approval.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Hungary – Student Residence Permit (National D Visa) should state correctly about What is proof of funds for Hungary:",
-      "options": [
-        "Typically HUF living funds per OIF guidelines months (HUF benchmark/year) living funds or equivalent. Verify current amount on oif.gov.hu before quoting.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Typically HUF living funds per OIF guidelines months (HUF benchmark/year) living funds or equivalent. Verify current amount on oif.gov.hu before quoting."
-    },
-    {
-      "level": 1,
-      "question": "For Hungary – Student Residence Permit (National D Visa), which statement about Proof of funds amount for 2026 is correct?",
-      "options": [
-        "Typically HUF living funds per OIF guidelines (HUF benchmark/year). Verify current amount on oif.gov.hu before quoting.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Typically HUF living funds per OIF guidelines (HUF benchmark/year). Verify current amount on oif.gov.hu before quoting."
-    },
-    {
-      "level": 1,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is true regarding Can spouse accompany?",
-      "options": [
-        "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Hungary – Student Residence Permit (National D Visa) should state correctly about English-taught programs need Hungarian:",
-      "options": [
-        "Depends on program—follow admission and embassy requirements.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Depends on program—follow admission and embassy requirements."
+      "correctIndex": 3,
+      "explanation": "Min 1 year (or programme length), max 3 years, extendable."
     },
     {
       "question": "After arrival student must:",
       "options": [
-        "Ignore registration",
         "Register address and apply residence permit",
+        "Ignore registration",
         "Work full-time immediately",
         "Leave in 1 week"
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "Address registration and Migration Department appointment required after arrival.",
       "level": 2
     },
     {
       "level": 2,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is true regarding Eligible applicants?",
+      "question": "Outside term, full-time student work is capped at:",
       "options": [
-        "University admission letter · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "National visa (Type D) for study at a recognised Hungarian university. After entry, apply for temporary residence permit at Migration Department.",
-        "Typically €576/month (12 months = HUF benchmark) or equivalent. Verify current amount on oif.gov.hu before quoting.",
-        "Hungarian Embassy/Consulate in India · VFS Global Hungary · Migration Department (oif.gov.hu) after arrival"
+        "Still 30 h/week",
+        "90 days (or 66 working days) per year",
+        "Unlimited all year",
+        "Banned"
       ],
-      "correctIndex": 0,
-      "explanation": "University admission letter · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
+      "correctIndex": 1,
+      "explanation": "Outside term: full-time up to 90 days/66 working days per year."
     },
     {
       "level": 2,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is true regarding After approval?",
+      "question": "Do Stipendium Hungaricum holders get extra work rights?",
       "options": [
-        "Enter Hungary; register address; apply for temporary residence permit at Migration Department within visa validity.",
-        "National visa (Type D) for study at a recognised Hungarian university. After entry, apply for temporary residence permit at Migration Department.",
-        "University admission letter · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "Typically €576/month (12 months = HUF benchmark) or equivalent. Verify current amount on oif.gov.hu before quoting."
+        "Yes, unlimited",
+        "Yes, 40 h/week",
+        "No — the same 30 h/week term limit applies",
+        "They cannot work"
       ],
-      "correctIndex": 0,
-      "explanation": "Enter Hungary; register address; apply for temporary residence permit at Migration Department within visa validity."
+      "correctIndex": 2,
+      "explanation": "The scholarship adds no extra work rights; the same limits apply."
     },
     {
       "level": 2,
-      "question": "In the Hungary – Student Residence Permit (National D Visa) process, what is the correct approach to client question: Can we guarantee student visa approval?",
+      "question": "Extensions of the study permit are made:",
       "options": [
-        "No. Embassy decides based on admission, funds, and credibility. Never promise approval.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
+        "From abroad only",
+        "Automatically",
+        "At a German office",
+        "From inside Hungary via Enter Hungary, 30+ days before expiry"
       ],
-      "correctIndex": 0,
-      "explanation": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
+      "correctIndex": 3,
+      "explanation": "Extensions are only from inside Hungary via Enter Hungary, before expiry."
     },
     {
       "level": 2,
-      "question": "For Hungary – Student Residence Permit (National D Visa), what should happen during client question: What is proof of funds for Hungary?",
+      "question": "How should study-based residence be treated for long-term/PR purposes?",
       "options": [
-        "Typically HUF living funds per OIF guidelines months (HUF benchmark/year) living funds or equivalent. Verify current amount on oif.gov.hu before quoting.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
+        "It may be treated differently from employment-based residence — verify current OIF rules",
+        "It always counts fully toward PR automatically",
+        "It is identical to a work permit",
+        "PR is guaranteed after study"
       ],
       "correctIndex": 0,
-      "explanation": "Typically HUF living funds per OIF guidelines months (HUF benchmark/year) living funds or equivalent. Verify current amount on oif.gov.hu before quoting."
+      "explanation": "Study-based residence may be treated differently from employment-based residence for long-term/PR purposes; verify current OIF rules rather than assuming."
     },
     {
       "level": 2,
-      "question": "Hungary – Student Residence Permit (National D Visa) workflow — best practice for client question: Proof of funds amount for 2026:",
+      "question": "Can a student sponsor family on the study permit?",
       "options": [
-        "Typically HUF living funds per OIF guidelines (HUF benchmark/year). Verify current amount on oif.gov.hu before quoting.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
+        "Yes, spouse and children freely",
+        "Generally no (limited exception: child born in Hungary)",
+        "Yes, parents only",
+        "Always"
       ],
-      "correctIndex": 0,
-      "explanation": "Typically HUF living funds per OIF guidelines (HUF benchmark/year). Verify current amount on oif.gov.hu before quoting."
+      "correctIndex": 1,
+      "explanation": "A study permit generally does not allow family sponsorship."
     },
     {
       "level": 2,
-      "question": "In the Hungary – Student Residence Permit (National D Visa) process, what is the correct approach to client question: Can spouse accompany?",
+      "question": "How should the OIF administrative fee be quoted?",
       "options": [
-        "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
+        "As the current OIF fee (verify live) — it differs by submission route",
+        "A single fixed €75 for everyone",
+        "Free for all students",
+        "The same as the German fee"
       ],
       "correctIndex": 0,
-      "explanation": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
+      "explanation": "The OIF administrative fee differs by route (consular / in-person / Enter Hungary) and changes; quote the current figure (verify live)."
     },
     {
       "level": 2,
-      "question": "For Hungary – Student Residence Permit (National D Visa), what should happen during client question: English-taught programs need Hungarian?",
+      "question": "English-taught programmes require:",
       "options": [
-        "Depends on program—follow admission and embassy requirements.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
+        "Hungarian B2",
+        "German",
+        "No evidence",
+        "English evidence (e.g. IELTS) — not Hungarian"
       ],
-      "correctIndex": 0,
-      "explanation": "Depends on program—follow admission and embassy requirements."
-    },
-    {
-      "level": 2,
-      "question": "Hungary – Student Residence Permit (National D Visa) workflow — best practice for client question: How long to convert to residence permit:",
-      "options": [
-        "Apply at Migration Department (oif.gov.hu) soon after arrival and university registration.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Apply at Migration Department (oif.gov.hu) soon after arrival and university registration."
-    },
-    {
-      "level": 2,
-      "question": "In the Hungary – Student Residence Permit (National D Visa) process, what is the correct approach to client question: Can I work on student visa?",
-      "options": [
-        "Limited working hours permitted—verify current rules for students in Hungary.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Limited working hours permitted—verify current rules for students in Hungary."
-    },
-    {
-      "level": 2,
-      "question": "For Hungary – Student Residence Permit (National D Visa), what should happen during client question: What after graduation?",
-      "options": [
-        "Discuss Graduate job-search temporary residence permit (verify on oif.gov.hu) separately.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Discuss Graduate job-search temporary residence permit (verify on oif.gov.hu) separately."
-    },
-    {
-      "level": 2,
-      "question": "Hungary – Student Residence Permit (National D Visa) workflow — best practice for client question: What is Description for this service:",
-      "options": [
-        "National visa (Type D) for study at a recognised Hungarian university. After entry, apply for temporary residence permit at Migration Department (oif.gov.hu).",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "National visa (Type D) for study at a recognised Hungarian university. After entry, apply for temporary residence permit at Migration Department (oif.gov.hu)."
-    },
-    {
-      "level": 2,
-      "question": "In the Hungary – Student Residence Permit (National D Visa) process, what is the correct approach to client question: What is Eligible applicants for this service?",
-      "options": [
-        "University admission letter · Proof of funds (HUF living funds per OIF guidelines) · Health insurance · Motivation letter · Valid passport · Language proficien…",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "University admission letter · Proof of funds (HUF living funds per OIF guidelines) · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
-    },
-    {
-      "level": 2,
-      "question": "For Hungary – Student Residence Permit (National D Visa), what should happen during client question: What is Proof of funds for this service?",
-      "options": [
-        "HUF living funds per OIF guidelines months (HUF benchmark/year) typically required unless scholarship or sponsor alternative applies.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "HUF living funds per OIF guidelines months (HUF benchmark/year) typically required unless scholarship or sponsor alternative applies."
-    },
-    {
-      "level": 2,
-      "question": "Hungary – Student Residence Permit (National D Visa) workflow — best practice for client question: Important note on Proof of funds:",
-      "options": [
-        "HUF living funds per OIF guidelines months (HUF benchmark/year) typically required unless scholarship or sponsor alternative applies.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "HUF living funds per OIF guidelines months (HUF benchmark/year) typically required unless scholarship or sponsor alternative applies."
-    },
-    {
-      "level": 2,
-      "question": "In the Hungary – Student Residence Permit (National D Visa) process, what is the correct approach to client question: What is Key authority for this service?",
-      "options": [
-        "Hungarian Embassy/Consulate in India · VFS Global Hungary · Migration Department (oif.gov.hu) after arrival",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Hungarian Embassy/Consulate in India · VFS Global Hungary · Migration Department (oif.gov.hu) after arrival"
-    },
-    {
-      "level": 2,
-      "question": "For Hungary – Student Residence Permit (National D Visa), what should happen during client question: What is After approval for this service?",
-      "options": [
-        "Enter Hungary; register address; apply for temporary residence permit at Migration Department (oif.gov.hu) within visa validity.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Enter Hungary; register address; apply for temporary residence permit at Migration Department (oif.gov.hu) within visa validity."
-    },
-    {
-      "level": 2,
-      "question": "Hungary – Student Residence Permit (National D Visa) workflow — best practice for client question: Is Admission from recognised Hungarian institution required:",
-      "options": [
-        "Admission from recognised Hungarian institution is typically required.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Admission from recognised Hungarian institution is typically required."
-    },
-    {
-      "level": 2,
-      "question": "In the Hungary – Student Residence Permit (National D Visa) process, what is the correct approach to client question: Is Proof of funds (HUF living funds per OIF guidelines) requir…?",
-      "options": [
-        "Apply early—processing takes weeks",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Apply early—processing takes weeks"
-    },
-    {
-      "level": 2,
-      "question": "For Hungary – Student Residence Permit (National D Visa), what should happen during client question: Is Proof of funds or financial proof required?",
-      "options": [
-        "HUF benchmark/year or equivalent with 3–6 month bank history",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "HUF benchmark/year or equivalent with 3–6 month bank history"
-    },
-    {
-      "level": 2,
-      "question": "Hungary – Student Residence Permit (National D Visa) workflow — best practice for client question: Is Health insurance (travel + statutory) required:",
-      "options": [
-        "Assess whether Health insurance (travel + statutory) is satisfied for this case.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Assess whether Health insurance (travel + statutory) is satisfied for this case."
-    },
-    {
-      "level": 2,
-      "question": "In the Hungary – Student Residence Permit (National D Visa) process, what is the correct approach to client question: Is Motivation letter and CV required?",
-      "options": [
-        "Motivation letter and CV is typically required.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Motivation letter and CV is typically required."
-    },
-    {
-      "level": 2,
-      "question": "For Hungary – Student Residence Permit (National D Visa), what should happen during client question: Is Language proficiency (as required) required?",
-      "options": [
-        "Hungarian or English per program",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Hungarian or English per program"
-    },
-    {
-      "level": 2,
-      "question": "Hungary – Student Residence Permit (National D Visa) workflow — best practice for client question: Is Valid passport required:",
-      "options": [
-        "Valid passport is typically required.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Valid passport is typically required."
-    },
-    {
-      "level": 2,
-      "question": "In the Hungary – Student Residence Permit (National D Visa) process, what is the correct approach to client question: What is the Processing time?",
-      "options": [
-        "6–12w — After complete file complete",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "6–12w — After complete file complete"
+      "correctIndex": 3,
+      "explanation": "English programmes need English evidence; Hungarian is not a permit requirement."
     },
     {
       "level": 3,
-      "question": "Hungary – Student Residence Permit (National D Visa) (National Visa): what is true regarding Eligible applicants?",
+      "question": "A client's file shows 'open a blocked account'. The issue?",
       "options": [
-        "University admission letter · Proof of funds (HUF living funds per OIF guidelines) · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "National visa (Type D) for study at a recognised Hungarian university. After entry, apply for temporary residence permit at Migration Department (oif.gov.hu).",
-        "HUF living funds per OIF guidelines months (HUF benchmark/year) typically required unless scholarship or sponsor alternative applies.",
-        "Hungarian Embassy/Consulate in India · VFS Global Hungary · Migration Department (oif.gov.hu) after arrival"
+        "Hungary does not use a German-style blocked account — show bank statements/sponsor proof",
+        "No issue",
+        "It is required",
+        "It speeds approval"
       ],
       "correctIndex": 0,
-      "explanation": "University admission letter · Proof of funds (HUF living funds per OIF guidelines) · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
+      "explanation": "Blocked-account wording is German residue; Hungary uses bank/sponsor proof."
     },
     {
       "level": 3,
-      "question": "A counselor explaining Hungary – Student Residence Permit (National D Visa) should state correctly about Proof of funds:",
+      "question": "A client plans to enter Hungary 4 months after the permit is issued. Risk?",
       "options": [
-        "Typically €576/month (12 months = HUF benchmark) or equivalent. Verify current amount on oif.gov.hu before quoting.",
-        "National visa (Type D) for study at a recognised Hungarian university. After entry, apply for temporary residence permit at Migration Department.",
-        "University admission letter · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "Hungarian Embassy/Consulate in India · VFS Global Hungary · Migration Department (oif.gov.hu) after arrival"
+        "No risk",
+        "The permit becomes invalid (must enter within 3 months)",
+        "Faster processing",
+        "More work hours"
       ],
-      "correctIndex": 0,
-      "explanation": "Typically €576/month (12 months = HUF benchmark) or equivalent. Verify current amount on oif.gov.hu before quoting. — verify current rules."
+      "correctIndex": 1,
+      "explanation": "Not entering within 3 months invalidates the permit."
     },
     {
       "level": 3,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is the compliance risk with Hungary – Student Residence Permit (National D Visa) (National Visa): what is t…?",
+      "question": "A client asks FLC to hold their proof-of-funds money. You:",
       "options": [
-        "University admission letter · Proof of funds (HUF living funds per OIF guidelines) · Health insurance · Motivation letter · Valid passport · Language proficien…",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
+        "Hold them",
+        "Route them through the firm",
+        "Refuse — the funds belong to the client and are never routed through the firm",
+        "Charge a fee"
       ],
-      "correctIndex": 0,
-      "explanation": "University admission letter · Proof of funds (HUF living funds per OIF guidelines) · Health insurance · Motivation letter · Valid passport · Language proficiency as required"
+      "correctIndex": 2,
+      "explanation": "Never receive or route client funds — a compliance breach."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Hungary – Student Residence Permit (National D Visa) — key issue with A counselor explaining Hungary – Student Residence Permit (National D Visa) sho…:",
+      "question": "A client wants a written guarantee of the permit. You:",
       "options": [
-        "Typically €576/month (12 months = HUF benchmark) or equivalent. Verify current amount on oif.gov.hu before quoting.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
+        "Provide it",
+        "Charge extra",
+        "Promise a date",
+        "Refuse and use approved non-guaranteeing language"
       ],
-      "correctIndex": 0,
-      "explanation": "Typically €576/month (12 months = HUF benchmark) or equivalent. Verify current amount on oif.gov.hu before quoting. — verify current rules."
+      "correctIndex": 3,
+      "explanation": "Never guarantee an outcome; the consulate/OIF decides."
     },
     {
       "level": 3,
-      "question": "For Hungary – Student Residence Permit (National D Visa), counselors must avoid this mistake related to Proof of funds insufficient:",
+      "question": "A student works 40 hours/week every week of term. Consequence?",
       "options": [
-        "Open blocked account or show HUF benchmark equivalent with 3–6 month bank history before embassy slot",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
+        "Over the 30 h/week term limit — can jeopardise the permit",
+        "Allowed",
+        "Encouraged",
+        "No effect"
       ],
       "correctIndex": 0,
-      "explanation": "Proof of funds below HUF living funds per OIF guidelines or inconsistent bank history."
+      "explanation": "Exceeding 30 h/week in term can jeopardise the permit."
     },
     {
       "level": 3,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is the compliance risk with Proof of funds insufficient (detail)?",
+      "question": "A client expects to sponsor their spouse on the study permit. Advise:",
       "options": [
-        "Proof of funds below HUF living funds per OIF guidelines or inconsistent bank history.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
+        "It is automatic",
+        "Generally not allowed on a study permit — a separate route is needed",
+        "Allowed after 6 months",
+        "Allowed for PhDs only"
       ],
-      "correctIndex": 0,
-      "explanation": "Open blocked account or show HUF benchmark equivalent with 3–6 month bank history before embassy slot"
+      "correctIndex": 1,
+      "explanation": "Study permits generally do not allow family sponsorship."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Hungary – Student Residence Permit (National D Visa) — key issue with Insufficient proof of funds:",
+      "question": "A counsellor wants to publish a firm approval rate vs an unnamed 'industry' figure. The issue?",
       "options": [
-        "Open proof of funds at approved bank for full required amount",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
+        "No issue",
+        "It is required",
+        "Unsourced/comparative claims risk misleading advertising and implying a guarantee",
+        "It lowers the fee"
       ],
-      "correctIndex": 0,
-      "explanation": "Amount below required monthly sum or not from recognised provider."
+      "correctIndex": 2,
+      "explanation": "Do not publish firm rates or comparative benchmarks as headline claims."
     },
     {
       "level": 3,
-      "question": "For Hungary – Student Residence Permit (National D Visa), counselors must avoid this mistake related to Insufficient proof of funds (detail):",
+      "question": "A client's cost sheet lists accommodation 'in Vilnius'. The issue?",
       "options": [
-        "Amount below required monthly sum or not from recognised provider.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
+        "No issue",
+        "Vilnius is in Hungary",
+        "It lowers the fee",
+        "Cross-country leftover — Vilnius is in Lithuania, not Hungary; fix it"
       ],
-      "correctIndex": 0,
-      "explanation": "Open proof of funds at approved bank for full required amount"
-    },
-    {
-      "level": 3,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is the compliance risk with Admission not from recognised institution?",
-      "options": [
-        "Verify institution on oif.gov.hu/ before collecting fees",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Private unrecognised college or institution not listed for international students."
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Hungary – Student Residence Permit (National D Visa) — key issue with Admission not from recognised institution (detail):",
-      "options": [
-        "Private unrecognised college or institution not listed for international students.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Verify institution on oif.gov.hu/ before collecting fees"
-    },
-    {
-      "level": 3,
-      "question": "For Hungary – Student Residence Permit (National D Visa), counselors must avoid this mistake related to Weak motivation letter:",
-      "options": [
-        "Course-specific motivation linking prior study to Hungarian program",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Generic letter not explaining study plan and Hungary choice."
-    },
-    {
-      "level": 3,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is the compliance risk with Weak motivation letter (detail)?",
-      "options": [
-        "Generic letter not explaining study plan and Hungary choice.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Course-specific motivation linking prior study to Hungarian program"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Hungary – Student Residence Permit (National D Visa) — key issue with Language proof missing:",
-      "options": [
-        "Obtain required IELTS/TOEFL or Hungarian certificate per admission",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Program requires Hungarian/English certificate not provided."
-    },
-    {
-      "level": 3,
-      "question": "For Hungary – Student Residence Permit (National D Visa), counselors must avoid this mistake related to Language proof missing (detail):",
-      "options": [
-        "Program requires Hungarian/English certificate not provided.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Obtain required IELTS/TOEFL or Hungarian certificate per admission"
-    },
-    {
-      "level": 3,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is the compliance risk with Prior refusals not addressed?",
-      "options": [
-        "Disclose and explain changed circumstances",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Schengen or Hungarian refusals hidden."
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Hungary – Student Residence Permit (National D Visa) — key issue with Prior refusals not addressed (detail):",
-      "options": [
-        "Schengen or Hungarian refusals hidden.",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Disclose and explain changed circumstances"
-    },
-    {
-      "level": 3,
-      "question": "For Hungary – Student Residence Permit (National D Visa), counselors must avoid this mistake related to counselor don't:",
-      "options": [
-        "Do not guarantee approval",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not guarantee approval"
-    },
-    {
-      "level": 3,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is the compliance risk with counselor don't?",
-      "options": [
-        "Do not book embassy without proof of funds",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not book embassy without proof of funds"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Hungary – Student Residence Permit (National D Visa) — key issue with counselor don't:",
-      "options": [
-        "Do not use unrecognised institutions",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not use unrecognised institutions"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Hungary – Student Residence Permit (National D Visa) — key issue with common mistake:",
-      "options": [
-        "Proof of funds documentation too late for intake",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Proof of funds documentation too late for intake"
-    },
-    {
-      "level": 3,
-      "question": "For Hungary – Student Residence Permit (National D Visa), counselors must avoid this mistake related to common mistake:",
-      "options": [
-        "Proof of funds short by even €1",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Proof of funds short by even €1"
-    },
-    {
-      "level": 3,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is the compliance risk with common mistake?",
-      "options": [
-        "Generic motivation letter",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Generic motivation letter"
-    },
-    {
-      "level": 3,
-      "question": "Hungary – Student Residence Permit (National D Visa): what is the compliance risk with compliance rule?",
-      "options": [
-        "Client service agreement and consent must be on file before submission",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Client service agreement and consent must be on file before submission"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Hungary – Student Residence Permit (National D Visa) — key issue with compliance rule:",
-      "options": [
-        "Never guarantee visa or immigration approval; use approved-language only",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
-    },
-    {
-      "level": 3,
-      "question": "For Hungary – Student Residence Permit (National D Visa), counselors must avoid this mistake related to compliance rule:",
-      "options": [
-        "Fee quotes must separate consultancy, government, and third-party costs",
-        "National visa (Type D) for study at a recognised Hungary university. After entry, apply for temporary residence permit.",
-        "University admission · Proof of funds · Health insurance · Motivation letter · Valid passport · Language proficiency as required",
-        "HUF living funds per OIF guidelines. Verify current amount on official portal before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
+      "correctIndex": 3,
+      "explanation": "A stray 'Vilnius' is contamination from another country's file."
     }
   ],
   "donts": {
     "dos": [
-      "Confirm proof of funds early",
-      "Verify institution on oif.gov.hu/",
-      "Open proof of funds for full required amount",
-      "Write course-specific motivation letter",
-      "Disclose prior refusals"
+      "Lodge the residence-permit-for-studies application at the Hungarian consulate (it comprises the visa)",
+      "Enter Hungary within 3 months of issuance and register via Enter Hungary",
+      "Show subsistence funds for the study period with bank history (verify the current OIF figure)",
+      "Keep work within 30 hours/week in term (full-time outside term up to 90 days/year)",
+      "Diarise the extension deadline (from inside Hungary, 30+ days before expiry)",
+      "Quote consultancy, government (OIF) and third-party costs separately"
     ],
     "donts": [
-      "Do not guarantee approval",
-      "Do not book embassy without proof of funds",
-      "Do not use unrecognised institutions",
-      "Do not hide Schengen refusals",
-      "Do not quote outdated proof of funds amount"
+      "Do not import a German-style blocked account (Sperrkonto) — Hungary uses bank statements/sponsor proof",
+      "Do not promise family accompaniment or a PR pathway from a study permit without verifying current OIF rules",
+      "Do not let the 3-month entry window lapse, or miss the Enter Hungary extension deadline",
+      "Do not promise approval, a fixed processing time, or a guaranteed post-study stay",
+      "Do not let a student exceed 30 hours/week of work in term"
     ],
     "mistakes": [
-      "Proof of funds documentation too late for intake",
-      "Proof of funds short by even €1",
-      "Generic motivation letter",
-      "Wrong health insurance type",
-      "Expired admission letter"
+      "Carrying over a German Sperrkonto / blocked-account requirement",
+      "Leftover figures or city names from another country's file (e.g. accommodation costs for the wrong city)",
+      "Letting the residence permit lapse by not entering Hungary within 3 months",
+      "Assuming Stipendium Hungaricum changes the work or immigration rules (it does not)"
     ]
   },
   "sampleDocs": [
@@ -1350,26 +749,26 @@
       "docKind": "academic"
     },
     {
-      "title": "Sample admission documentation (mock)",
+      "title": "Sample proof of subsistence (mock)",
       "description": "Proof of funds documentation (HUF benchmark/year equivalent) for India.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
       "title": "Sample proof of funds confirmation (mock)",
-      "description": "Sperrkonto required living funds+ — explain to clients.",
+      "description": "Proof of subsistence at the OIF guideline amount (bank statements/scholarship/sponsor) — explain to clients.",
       "mimeType": "application/pdf",
       "docKind": "financial"
     },
     {
-      "title": "Sample IELTS / IELTS/TOEFL certificate (mock)",
+      "title": "Sample IELTS / TOEFL certificate (mock)",
       "description": "Language proof for degree program.",
       "mimeType": "image/jpeg",
       "docKind": "language"
     },
     {
       "title": "Sample CV & motivation letter (mock)",
-      "description": "Hungarian embassy standard application packet.",
+      "description": "Hungarian consulate application packet (comprises the visa).",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
@@ -1383,51 +782,63 @@
   "navBucket": "visa",
   "workingRights": {
     "applicant": {
-      "summary": "Long-stay national student visa for Hungary allows limited part-time work (typically up to 20 hours/week or per local law) after residence permit is issued.",
+      "summary": "A residence permit for studies allows work up to 30 hours per week during the academic term, and full-time outside term for a maximum of 90 days (or 66 working days) per year. No separate work permit is needed within these limits. The same rules apply to Stipendium Hungaricum scholarship holders.",
       "details": [
-        "Verify exact hours with local immigration office after arrival.",
-        "Cannot rely on work income alone for residence renewal."
+        "Term-time: up to 30 hours/week (official OIF rule).",
+        "Outside term: full-time up to 90 days (or 66 working days) per year.",
+        "No separate work permit is required within these limits.",
+        "Stipendium Hungaricum holders follow the same limits; the scholarship adds no extra work rights.",
+        "Exceeding the limits can jeopardise the residence permit."
       ],
       "restrictions": [
-        "Work not allowed until residence permit issued in many cases"
+        "30 hours/week cap in term; full-time only outside term (max 90 days/year)",
+        "Within these limits no separate work permit is needed"
       ],
-      "sourceUrl": "https://imigrante.sef.pt/",
+      "sourceUrl": "https://oif.gov.hu/factsheets/residence-of-the-student-pupil",
       "lastVerified": "Jun 2026"
     },
     "spouse": {
-      "summary": "Spouse/partner may apply for family reunion; work rights depend on Hungary residence permit conditions.",
+      "summary": "Family accompaniment options are limited and subject to current OIF regulations; a student permit may not provide family-sponsorship rights in the way other permits do, and any family member would be assessed separately. Eligibility should always be verified with OIF before advising.",
       "details": [
-        "Often requires proof of accommodation, integration, and sufficient income of sponsor."
+        "Family accompaniment is limited and subject to current OIF regulations — verify eligibility before advising.",
+        "Family members need their own permit; assessed separately."
       ],
       "restrictions": [],
-      "sourceUrl": "https://imigrante.sef.pt/",
+      "sourceUrl": "https://oif.gov.hu/",
       "lastVerified": "Jun 2026"
     }
   },
   "fullCostBreakdown": {
     "title": "Full cost breakdown — Hungary – Student Residence Permit (National D Visa)",
     "currency": "EUR",
-    "lastVerified": "Jun 2026",
-    "disclaimer": "Indicative costs — verify on oif.gov.hu and embassy before quoting.",
-    "sourceUrl": "https://www.oif.gov.hu/",
+    "lastVerified": "16 Jun 2026",
+    "disclaimer": "Indicative costs for counsellor discussions only. Values marked {{VERIFY_LIVE}} are dynamic and MUST be verified on official sources (oif.gov.hu) before quoting. Proof-of-subsistence funds are the student's own/sponsored money, not a fee. Hungary does NOT operate a German-style blocked account. INR equivalents move with exchange rates.",
+    "sourceUrl": "https://oif.gov.hu/",
     "sections": [
       {
         "id": "fees",
         "label": "Government & visa fees",
         "items": [
           {
-            "label": "National D visa",
-            "range": "€60–120",
-            "unit": "per applicant",
+            "label": "Residence-permit administrative fee (at consulate)",
+            "amount": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Set by OIF; verify the current amount"
           },
           {
-            "label": "Residence permit",
-            "range": "€28–114",
-            "notes": "After arrival",
-            "currency": "EUR",
-            "applicable": true
+            "label": "Residence-permit fee (in Hungary)",
+            "amount": "{{VERIFY_LIVE}}",
+            "currency": "HUF",
+            "applicable": true,
+            "notes": "Differs for in-person vs Enter Hungary submission; verify"
+          },
+          {
+            "label": "Extension fee",
+            "amount": "{{VERIFY_LIVE}}",
+            "currency": "HUF",
+            "applicable": true,
+            "notes": "Set by OIF; verify"
           }
         ]
       },
@@ -1437,18 +848,19 @@
         "items": [
           {
             "label": "Undergraduate tuition",
-            "range": "€1,500–5,000",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per year",
-            "notes": "Public universities lower",
+            "notes": "Public universities lower Use the offer letter; varies by programme.",
             "currency": "EUR",
             "applicable": true
           },
           {
             "label": "Postgraduate tuition",
-            "range": "€2,000–8,000",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per year",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Use the offer letter; varies by programme."
           }
         ]
       },
@@ -1457,23 +869,28 @@
         "label": "Living costs",
         "items": [
           {
-            "label": "Living funds (embassy guideline)",
-            "range": "HUF benchmark",
-            "unit": "per year",
-            "notes": "HUF living funds per OIF guidelines",
-            "currency": "EUR"
+            "label": "Subsistence funds (OIF guideline)",
+            "range": "{{VERIFY_LIVE}}",
+            "unit": "per month/year",
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Per current OIF requirements; verify official guidance"
           },
           {
-            "label": "Accommodation (Vilnius)",
-            "range": "€250–500",
+            "label": "Accommodation (Budapest/other cities)",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Budapest higher; varies by city"
           },
           {
             "label": "Food & transport",
-            "range": "€200–350",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Verify current range"
           }
         ]
       },
@@ -1498,7 +915,7 @@
       {
         "label": "Indicative first year",
         "value": "€10,000–18,000",
-        "notes": "Tuition + living + visa fees."
+        "notes": "Cross-check the admission letter and the official oif.gov.hu pages before client commitment."
       }
     ]
   }

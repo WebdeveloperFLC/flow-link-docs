@@ -1,20 +1,20 @@
 {
-  "displayName": "Denmark – Residence Permit for Studies",
-  "shortDescription": "SIRI / Danish Agency · Residence permit · Admission · Funds for living",
-  "version": "v1.0",
+  "displayName": "Denmark – Residence Permit for Studies (SIRI)",
+  "shortDescription": "SIRI (Danish Agency) · Residence permit for studies · Admission + self-support · CPR after arrival",
+  "version": "v2.2",
   "versionStatus": "Live",
   "reviewStatus": "active",
-  "updatedLabel": "Updated 9 Jun 2026",
+  "updatedLabel": "Updated 16 Jun 2026",
   "learningLevel": "Intermediate",
   "learningMinutes": 22,
   "policyAlert": {
     "active": true,
-    "date": "9 Jun 2026",
-    "summary": "Confirm fees on nyidanmark.dk before quoting."
+    "date": "16 Jun 2026",
+    "summary": "Denmark issues a residence permit for studies via SIRI (not a classic visa); apply online through the SIRI case-order portal + biometrics. CRITICAL 2025 change: students on NON-state-approved programmes (EVA advisory-statement courses) applying on/after 2 May 2025 lose study-permit work, family-accompaniment and job-seeking rights — only state-approved/accredited programmes keep them. Self-support and fees are set/indexed annually ({{VERIFY_LIVE}}). Denmark does NOT use APS or a German blocked account. Verify all amounts on nyidanmark.dk (SIRI) before quoting."
   },
   "alert": {
-    "title": "Apply via SIRI case order",
-    "body": "Most applications are submitted online via SIRI case order portal with biometrics."
+    "title": "Apply via SIRI case order + register CPR after arrival",
+    "body": "Applications go online via the SIRI case-order portal with biometrics at a mission/VFS/SIRI. After arrival, register for a CPR number (and residence card). Residence permits may lapse after an extended absence from Denmark (commonly more than 6 months unless an exemption applies). Verify the current SIRI rules before advising. Note: Denmark does NOT require APS — do not import German requirements."
   },
   "tags": [
     {
@@ -22,25 +22,25 @@
       "variant": "success"
     },
     {
-      "label": "APS required",
+      "label": "State-approved programme critical",
       "variant": "warning"
     },
     {
-      "label": "6–12 weeks",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
-      "label": "Embassy appointment",
+      "label": "SIRI case-order portal",
       "variant": "neutral"
     }
   ],
   "chips": [
     {
-      "label": "6–12 weeks",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
-      "label": "€75 + proof of funds",
+      "label": "SIRI fee + self-support (verify)",
       "variant": "neutral"
     },
     {
@@ -48,33 +48,33 @@
       "variant": "success"
     },
     {
-      "label": "Denmark admission docs",
+      "label": "CPR after arrival",
       "variant": "warning"
     }
   ],
   "kpis": [
     {
       "label": "Processing time",
-      "value": "6–12w",
-      "sub": "After complete file + APS",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "SIRI processing varies (target ~1–2 months) — verify live",
       "tone": "primary"
     },
     {
       "label": "Government fee",
-      "value": "€75",
-      "sub": "+ proof of funds required living funds",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "SIRI study-permit fee + self-support proof — verify live",
       "tone": "warning"
     },
     {
-      "label": "Our approval rate",
-      "value": "88%",
-      "sub": "~74% benchmark",
-      "tone": "success"
+      "label": "Approval rate",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Pull from live CRM case data; not a prediction of any individual outcome",
+      "tone": "primary"
     },
     {
       "label": "Required docs",
-      "value": "15",
-      "sub": "+ APS & proof of funds",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Document count varies by profile — see live checklist",
       "tone": "violet"
     },
     {
@@ -87,308 +87,302 @@
   "about": [
     {
       "label": "Description",
-      "value": "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
+      "value": "Residence permit for studies for non-EU/EEA/Swiss nationals admitted to a higher-education programme in Denmark, processed by SIRI (the Danish Agency for International Recruitment and Integration). It is not a classic 'visa'; applications are made online via the SIRI case-order portal with biometrics."
     },
     {
       "label": "Eligible applicants",
-      "value": "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter"
+      "value": "Admission to a higher-education programme · Full-time study · Language ability matching the language of instruction (Danish or English) · Proof of self-support where required ({{VERIFY_LIVE}}) · Valid passport. CRITICAL: only state-approved/accredited programmes carry the usual work/family/job-seeking rights (post-2 May 2025 rule)."
     },
     {
-      "label": "Proof of funds",
-      "value": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
+      "label": "Self-support / funds",
+      "value": "Where required, document disposable funds of {{VERIFY_LIVE}} per month, for the study period up to a 12-month maximum. NOTE: if you have PAID TUITION covering room/board, you may not need to document self-support. Evidence: bank statement, scholarship or student loan. Verify the current amount on SIRI.",
       "warning": true
     },
     {
       "label": "Key authority",
-      "value": "Danish Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
+      "value": "SIRI – Danish Agency for International Recruitment and Integration (nyidanmark.dk) · Danish embassy/consulate or VFS for biometrics · the municipality (kommune) for the CPR number after arrival"
     },
     {
       "label": "After approval",
-      "value": "Enter Danishy; register address; apply for residence permit at Ausländerbehörde within visa validity."
+      "value": "Travel to Denmark on the residence permit, register for a CPR number and the residence card, and obtain the yellow health card. Residence permits may lapse after an extended absence from Denmark (commonly more than 6 months unless an exemption applies). Verify the current SIRI rules before advising. Renew before expiry; SIRI runs random enrolment checks. Any post-study job-seeking/establishment route depends on current SIRI rules and is not automatic — verify before advising."
     }
   ],
   "eligibility": [
     {
-      "criterion": "Admission from recognised Danish institution",
-      "met": true
-    },
-    {
-      "criterion": "admission documentation (India)",
-      "met": false,
-      "note": "Apply early—processing takes weeks"
-    },
-    {
-      "criterion": "Proof of funds or financial proof",
-      "met": false,
-      "note": "required living funds for 2026 or equivalent"
-    },
-    {
-      "criterion": "Health insurance (travel + statutory)",
-      "met": false
-    },
-    {
-      "criterion": "Motivation letter and CV",
-      "met": true
-    },
-    {
-      "criterion": "Language proficiency (as required)",
+      "criterion": "Admission to a higher-education programme in Denmark",
       "met": true,
-      "note": "Danish or English per program"
+      "note": "Full-time study; the institution issues the admission documents SIRI needs (often only after the first tuition instalment clears)."
+    },
+    {
+      "criterion": "State-approved / accredited programme (for work & job-seeking rights)",
+      "met": false,
+      "note": "CRITICAL post-2 May 2025 rule: non-state-approved (EVA advisory-statement) programmes lose study-permit work, family and job-seeking rights. Confirm the programme is state-approved before advising."
+    },
+    {
+      "criterion": "Proof of self-support where required",
+      "met": false,
+      "note": "Disposable funds of {{VERIFY_LIVE}} per month, to a 12-month max ({{VERIFY_LIVE}}); NOT required if paid tuition covers room/board. Bank statement, scholarship or student loan."
+    },
+    {
+      "criterion": "Language ability matching the programme",
+      "met": true,
+      "note": "Danish or English per the programme; provide the evidence the institution specifies (e.g. IELTS for English-taught programmes)."
     },
     {
       "criterion": "Valid passport",
-      "met": true
+      "met": true,
+      "note": "The permit cannot be issued for longer than the passport's validity; check the mission's current rule."
+    },
+    {
+      "criterion": "Health insurance for the entry/gap period",
+      "met": false,
+      "note": "Travel/incoming medical insurance may be needed for the period before CPR registration gives access to the public health system (yellow health card). Requirements can vary by situation and institution — verify the current expectation with SIRI and the institution."
+    },
+    {
+      "criterion": "SIRI application fee paid",
+      "met": false,
+      "note": "Study-permit fee set by SIRI and indexed annually ({{VERIFY_LIVE}}; the current SIRI application fee). Non-payment delays/voids the case."
     }
   ],
-  "redFlagsBanner": "After refusal, address embassy feedback before rebooking—proof of funds and APS cannot be rushed last minute.",
+  "redFlagsBanner": "After a refusal, address SIRI's stated reason before reapplying — admission, self-support and programme approval cannot be fixed last-minute.",
   "redFlags": [
     {
-      "title": "APS not completed",
-      "description": "Visa appointment booked without admission documentation.",
-      "fix": "Complete APS before embassy slot; track processing on APS website",
+      "title": "Importing German 'APS' into a Denmark file",
+      "description": "Denmark does NOT use APS (a Germany/China/Vietnam requirement). Telling a Denmark client they need APS is a cross-country contamination error.",
+      "fix": "Remove APS entirely; Denmark relies on the institution's admission + SIRI requirements",
+      "severity": "Critical"
+    },
+    {
+      "title": "Non-state-approved programme (post-2 May 2025 rights loss)",
+      "description": "Enrolling in a non-state-approved (EVA advisory-statement) programme: students applying on/after 2 May 2025 lose study-permit work, family-accompaniment and job-seeking rights — a major issue for many Indian/Nepalese applicants.",
+      "fix": "Confirm the programme is state-approved/accredited before advising; set expectations on work/stay-back rights",
+      "severity": "Critical"
+    },
+    {
+      "title": "Insufficient / wrong self-support proof",
+      "description": "Funds below the required monthly amount, or assuming self-support is always needed when paid tuition may exempt it.",
+      "fix": "Document the current per-month amount over the study period (max 12 months), or rely on the paid-tuition exemption where it applies",
       "severity": "Very common"
     },
     {
-      "title": "Insufficient proof of funds",
-      "description": "Amount below required monthly sum or not from recognised provider.",
-      "fix": "Open proof of funds at approved bank for full required amount",
-      "severity": "Very common"
+      "title": "Exceeding the work-hour limit",
+      "description": "Working more than the permitted hours (90 hours/month for higher-education students; full-time only in Jun–Aug). SIRI tracks tax records and can warn, fine or revoke.",
+      "fix": "Keep within 90 hours/month in term; keep records; only work full-time in June–August",
+      "severity": "High"
     },
     {
-      "title": "Admission not from recognised institution",
-      "description": "Private unrecognised college or expired Zulassung.",
-      "fix": "Verify Anabin/institution recognition before fees",
+      "title": "Permit lapse from being abroad >6 months",
+      "description": "A residence permit may lapse after an extended absence from Denmark (commonly more than 6 months unless an exemption applies — verify).",
+      "fix": "Advise clients not to stay outside Denmark beyond the limit; reapply from home country if lapsed",
       "severity": "Common"
     },
     {
-      "title": "Weak motivation letter",
-      "description": "Generic letter not explaining study plan and Danishy choice.",
-      "fix": "Course-specific motivation linking prior study to Danish program",
+      "title": "CPR / tuition sequencing missed",
+      "description": "Not paying the first tuition instalment (so the institution won't release SIRI documents) or not registering CPR after arrival.",
+      "fix": "Pay the first instalment to unlock documents; register CPR promptly after arrival for bank/health access",
       "severity": "Common"
     },
     {
-      "title": "Language proof missing",
-      "description": "Program requires Danish/English certificate not provided.",
-      "fix": "Obtain required TestDaF/IELTS/Goethe per admission",
-      "severity": "Common"
-    },
-    {
-      "title": "Prior refusals not addressed",
-      "description": "Schengen or Danish refusals hidden.",
-      "fix": "Disclose and explain changed circumstances",
+      "title": "Prior refusals or misrepresentation not addressed",
+      "description": "Hidden refusals, false documents, or enrolment with no genuine intention to study (a known SIRI concern).",
+      "fix": "Disclose every prior refusal and explain changed circumstances; never submit false documents or sham enrolment",
       "severity": "High"
     }
   ],
   "faqs": [
     {
-      "q": "Can we guarantee student visa approval?",
-      "a": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
+      "q": "Can we guarantee approval of the study residence permit?",
+      "a": "No. SIRI decides based on admission, programme approval, self-support, and credibility. A strong, honest file improves the chances but approval is never guaranteed — and we never promise one."
     },
     {
-      "q": "What is APS?",
-      "a": "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants."
+      "q": "Does Denmark require a German-style APS certificate?",
+      "a": "No. APS is a Germany (and China/Vietnam) requirement and does NOT apply to Denmark. SIRI relies on the institution's admission and the study-permit requirements. Do not import APS into a Denmark file."
     },
     {
-      "q": "Proof of funds amount for 2026?",
-      "a": "Typically required living funds (12 months × €992). Verify current amount before opening account."
+      "q": "Is it a visa or a residence permit?",
+      "a": "A residence permit for studies, processed by SIRI — not a classic student visa. Apply online via the SIRI case-order portal with biometrics (at a mission/VFS). After arrival, register for a CPR number and collect the residence card."
     },
     {
-      "q": "Can spouse accompany?",
-      "a": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
+      "q": "How much money must a student show (self-support)?",
+      "a": "Where required, disposable funds of {{VERIFY_LIVE}} per month, for the study period up to a 12-month maximum ({{VERIFY_LIVE}}; the 12-month maximum). IMPORTANT: if you have paid tuition covering room/board, you may NOT need to document self-support. Evidence: bank statement, scholarship or student loan. Verify the current amount."
     },
     {
-      "q": "English-taught programs need Danish?",
-      "a": "Depends on program—follow admission and embassy requirements."
+      "q": "Why does 'state-approved programme' matter so much?",
+      "a": "Since 2 May 2025, students on NON-state-approved programmes (those with an EVA advisory statement) do NOT get the study-permit work, family-accompaniment or job-seeking rights that state-approved-programme students get. This heavily affects some private/non-accredited courses popular with Indian/Nepalese applicants. Always confirm the programme is state-approved before advising on work or stay-back."
     },
     {
-      "q": "How long to convert to residence permit?",
-      "a": "Apply at Ausländerbehörde soon after arrival and registration."
+      "q": "Can the student work?",
+      "a": "State-approved higher-education students may work up to 90 hours per month (the rule changed from '20 hours/week' on 1 July 2024) and full-time in June, July and August. The work right comes with the study permit — no separate work permit. Non-state-approved programme students (post-2 May 2025) do not get this right. SIRI tracks hours via tax records; exceeding the limit can mean a warning, fine or revocation."
     },
     {
-      "q": "Can I work on student visa?",
-      "a": "Limited working hours permitted—verify current rules for students in Danishy."
+      "q": "What language is required?",
+      "a": "Danish or English, matching the programme's language of instruction. Many programmes are taught in English (provide the evidence the institution specifies, e.g. IELTS). Danish is not separately required for the permit but helps with daily life and many student jobs."
     },
     {
       "q": "What after graduation?",
-      "a": "Discuss 18-month job-seeker residence permit or Opportunity Card separately."
+      "a": "Post-study and stay-back options depend on current SIRI rules and the programme type. Eligible graduates of state-approved programmes MAY be able to apply for a job-seeking/establishment permit to look for qualified work, but this is conditional, not automatic, and non-state-approved-programme graduates may not qualify. Always verify the current rules and duration with SIRI before advising; do not present stay-back as guaranteed ({{VERIFY_LIVE}})."
     },
     {
-      "q": "What is Description for this service?",
-      "a": "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
+      "q": "What are the government fees?",
+      "a": "A SIRI study-permit application fee ({{VERIFY_LIVE}}; the current SIRI application fee) plus biometrics and any VFS service charge. Fees are set by SIRI and change — verify the current amount on nyidanmark.dk."
     },
     {
-      "q": "What is Eligible applicants for this service?",
-      "a": "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter"
+      "q": "How and when is the application made?",
+      "a": "Online via the SIRI case-order portal, with biometrics recorded at a Danish mission/VFS (or in Denmark). Apply as early as possible after admission; SIRI's target is roughly 1–2 months but it varies. The institution often releases the documents SIRI needs only after the first tuition instalment clears."
     },
     {
-      "q": "What is Proof of funds for this service?",
-      "a": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      "q": "What is the CPR number and why does it matter?",
+      "a": "The CPR (civil registration) number is issued after arrival via the municipality and is essential for a bank account, the yellow health card (public healthcare) and most services. Register promptly after arrival."
     },
     {
-      "q": "Important note on Proof of funds?",
-      "a": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      "q": "Can a refused application be appealed?",
+      "a": "A SIRI refusal can be appealed to the Immigration Appeals Board (or reapplied with a corrected file) within the stated deadline. Read the reason carefully (commonly self-support, programme approval, or documents) and fix the specific issue rather than re-lodging the same file."
     },
     {
-      "q": "What is Key authority for this service?",
-      "a": "Danish Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
+      "q": "Can a spouse or children accompany?",
+      "a": "In some cases, but only for state-approved-programme students, via a separate family application with proof of self-support for each family member ({{VERIFY_LIVE}} per family member per month) and housing. Most full-time students do not meet the requirements on a part-time wage. Contact SIRI early to confirm current conditions; do not present it as automatic."
     },
     {
-      "q": "What is After approval for this service?",
-      "a": "Enter Danishy; register address; apply for residence permit at Ausländerbehörde within visa validity."
+      "q": "What happens if the student leaves Denmark for a long period?",
+      "a": "A residence permit may lapse after an extended absence from Denmark (commonly more than 6 months unless an exemption applies — verify), which may require a fresh application from the home country. Verify current SIRI rules. Advise clients to plan travel around this limit."
     },
     {
-      "q": "Is Admission from recognised Danish institution required?",
-      "a": "Admission from recognised Danish institution is typically required."
+      "q": "Is there health insurance / healthcare cover?",
+      "a": "After CPR registration the student normally gets a yellow health card giving access to the public health system. Travel/incoming cover may be needed for the gap between arrival and CPR registration. Requirements can vary — students should verify the current expectation with SIRI and their institution rather than assume a fixed rule."
     },
     {
-      "q": "Is admission documentation (India) required?",
-      "a": "Apply early—processing takes weeks"
+      "q": "How is institution/programme recognition checked?",
+      "a": "Confirm the programme is a state-approved/accredited higher-education programme (this also governs work/stay-back rights). Non-state-approved programmes carry an EVA advisory statement and reduced rights. Verify status before any fee."
     },
     {
-      "q": "Is Proof of funds or financial proof required?",
-      "a": "required living funds for 2026 or equivalent"
+      "q": "How long does processing take?",
+      "a": "SIRI's target for complete applications is roughly 1–2 months but it varies by season and case quality. Quote the live estimate from SIRI rather than a fixed number, and apply early."
     },
     {
-      "q": "Is Health insurance (travel + statutory) required?",
-      "a": "Assess whether Health insurance (travel + statutory) is satisfied for this case."
-    },
-    {
-      "q": "Is Motivation letter and CV required?",
-      "a": "Motivation letter and CV is typically required."
-    },
-    {
-      "q": "Is Language proficiency (as required) required?",
-      "a": "Danish or English per program"
-    },
-    {
-      "q": "Is Valid passport required?",
-      "a": "Valid passport is typically required."
-    },
-    {
-      "q": "What is the Processing time?",
-      "a": "6–12w — After complete file + APS"
-    },
-    {
-      "q": "What is the Government fee?",
-      "a": "€75 — + proof of funds required living funds"
-    },
-    {
-      "q": "What is the Our approval rate?",
-      "a": "88% — ~74% benchmark"
-    },
-    {
-      "q": "What is the Required docs?",
-      "a": "15 — + APS & proof of funds"
-    },
-    {
-      "q": "What is the Consultancy fee?",
-      "a": "See fee tab — + govt & third-party"
-    },
-    {
-      "q": "What if the client has APS not completed?",
-      "a": "Complete APS before embassy slot; track processing on APS website"
-    },
-    {
-      "q": "Why is APS not completed a problem?",
-      "a": "Visa appointment booked without admission documentation."
-    },
-    {
-      "q": "What if the client has Insufficient proof of funds?",
-      "a": "Open proof of funds at approved bank for full required amount"
-    },
-    {
-      "q": "Why is Insufficient proof of funds a problem?",
-      "a": "Amount below required monthly sum or not from recognised provider."
+      "q": "What does FLC actually guarantee?",
+      "a": "Nothing about the outcome — SIRI decides. FLC prepares a strong, honest, well-documented file (admission, programme-approval check, self-support, language evidence) and never promises a permit, in writing or verbally."
     }
   ],
   "compliance": [
-    "Client service agreement and consent must be on file before submission",
-    "Never guarantee visa or immigration approval; use approved-language only",
-    "Fee quotes must separate consultancy, government, and third-party costs",
-    "Proof of funds funds belong to client—never commingle with firm accounts"
+    "Client service agreement and consent must be on file before submission.",
+    "Never guarantee a permit or approval; use approved, non-guaranteeing language only.",
+    "Fee quotes must separate consultancy, government (SIRI) and third-party (VFS/legalisation) costs.",
+    "Self-support funds belong to the client — never receive, hold or route them through firm accounts.",
+    "Never import another country's requirements (e.g. German APS, Sperrkonto, Anabin) into a Denmark file.",
+    "Always confirm whether the programme is state-approved — advising on work/family/stay-back rights for a non-approved programme misleads the client (post-2 May 2025 rule).",
+    "Do not publish a firm approval rate or an unsourced 'industry benchmark' as a headline figure; use live, sourced CRM data labelled as not predictive of any individual outcome.",
+    "Handle academic and financial documents under data-protection rules: store securely, share only with authorised parties, retain only as needed."
   ],
   "proTips": [
-    "Start APS 3–4 months before intended intake",
-    "Open proof of funds only after admission confirmed",
-    "Book embassy slot when file 90% ready",
-    "Motivation letter must match admission course",
-    "Verify health insurance accepted by embassy"
+    "Never tell a Denmark client they need APS — that is a Germany requirement; Denmark uses SIRI + the institution's admission.",
+    "Confirm the programme is STATE-APPROVED before advising on work/family/stay-back — non-approved (EVA) programmes lost those rights from 2 May 2025.",
+    "Self-support: use the current per-month figure over the study period (max 12 months) — but paid tuition covering room/board may exempt it; verify.",
+    "Work is 90 hours/month (since 1 Jul 2024), full-time only Jun–Aug; SIRI tracks hours via tax records.",
+    "Plan the sequence: pay the first tuition instalment to unlock SIRI documents, then CPR registration after arrival for bank/health access.",
+    "Extended absence from Denmark (commonly >6 months unless an exemption applies) may cause the permit to lapse — flag this and verify current SIRI rules."
   ],
   "postApproval": [
-    "Explain address registration (Anmeldung) within deadline",
-    "Guide on Ausländerbehörde appointment after arrival",
-    "Remind proof of funds monthly withdrawal rules",
-    "Discuss post-study job-seeker pathway"
+    "Register for a CPR number via the municipality after arrival (needed for bank, health card)",
+    "Collect the residence card and the yellow health card",
+    "Stay within 90 hours/month work in term (full-time only Jun–Aug); keep hour records",
+    "Avoid extended absences from Denmark (commonly >6 months may cause the permit to lapse unless an exemption applies — verify); renew before expiry"
   ],
   "performance": {
-    "ourRate": 0,
-    "industryRate": 0,
+    "ourRate": null,
+    "industryRate": null,
+    "note": "Approval rate and file counts must be populated live from CRM case data, not published as fixed figures. Do not display a comparative 'industry benchmark' unless independently sourced and cited.",
     "stats": [
       {
-        "label": "Files this year",
-        "value": "0"
+        "label": "Files this period",
+        "value": "{{VERIFY_LIVE}}"
       },
       {
         "label": "Approved",
-        "value": "0"
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Refused",
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "{{VERIFY_LIVE}}"
       }
     ]
   },
   "approvalFactors": [
     {
-      "label": "Our rate vs industry",
-      "ours": 88,
-      "benchmark": 74
+      "label": "State-approved programme confirmed",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "APS timing",
-      "ours": 85,
-      "benchmark": 68
+      "label": "Self-support documented (or tuition-paid exemption)",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "Financial docs",
-      "ours": 87,
-      "benchmark": 72
+      "label": "Admission + language evidence in order",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
       "label": "First-submit completeness",
-      "ours": 92,
-      "benchmark": 76
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     }
   ],
   "timeline": [
     {
       "weeks": "1–2",
-      "title": "Counseling, admission review, APS initiation"
+      "title": "Counselling, programme-approval check, admission + first tuition instalment"
     },
     {
-      "weeks": "2–8",
-      "title": "APS processing, proof of funds, documents"
+      "weeks": "2–4",
+      "title": "Self-support evidence, documents, SIRI case-order portal + biometrics"
     },
     {
-      "weeks": "8–10",
-      "title": "Embassy appointment & submission"
+      "weeks": "{{VERIFY_LIVE}}",
+      "title": "SIRI processing (target ~1–2 months — verify live)"
     },
     {
-      "weeks": "6–12",
-      "title": "Embassy processing"
+      "weeks": "on arrival",
+      "title": "CPR registration; residence + yellow health card"
     }
   ],
   "relatedServices": [
     {
-      "label": "Danishy – Job Seeker Visa",
+      "label": "Denmark – Job-seeking / Establishment Card (post-study)",
       "libraryId": ""
     },
     {
-      "label": "Danishy – Opportunity Card",
+      "label": "Denmark – Work Permit (Positive List / Pay Limit)",
       "libraryId": ""
     },
     {
-      "label": "Danishy – Visitor Visa",
+      "label": "Denmark – Accompanying Family (study)",
       "libraryId": ""
     }
   ],
   "changelog": [
+    {
+      "version": "v2.2",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Version alignment: bumped to v2.2 to standardise the study/visa service-library on a single version across all countries. No content changes in this entry — all factual content, {{VERIFY_LIVE}} placeholders, compliance/contamination warnings and prior corrections are unchanged from v2.1."
+    },
+    {
+      "version": "v2.1",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Future-proofing pass: removed hardcoded DKK self-support figures (7,426 / 89,112) and the DKK 3,060 SIRI fee from all client-facing content (about, eligibility, FAQs, staff notes, cost breakdown, sample docs and quiz), leaving the {{VERIFY_LIVE}} placeholders and 'verify on Nyidanmark/SIRI' wording so figures cannot go stale; rewrote the two numeric quiz questions to non-numeric 'current SIRI amount/fee (verify live)' answers; tightened post-study language so a job-seeking/establishment permit reads as conditional on current SIRI rules and never automatic; added nuance to health-insurance guidance (travel/incoming cover may be needed before CPR; varies — verify); qualified the 6-month absence rule to 'commonly >6 months unless an exemption applies — verify'; rewrote sample-document descriptions to be client-facing (what the document shows / why / how to use it) rather than internal compliance notes; cleaned a residual find-replace artifact in the historical changelog. Preserved all keys, {{VERIFY_LIVE}} placeholders, APS/Germany contamination warnings, the state-approved vs non-state-approved (post-2 May 2025) guidance, and work-rights content. No statistics, approval rates or immigration benefits were invented."
+    },
+    {
+      "version": "v2.0",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Major decontamination + rebuild: removed Germany cross-contamination (APS, Sperrkonto/€992 blocked account, Anabin, Ausländerbehörde, 'Denmark' find-replace artifacts, Federal Foreign Office, TestDaF/Goethe, Canada €235/€85 fees, 'Type D visa' framing) that had been copied into this Denmark file. Reframed as the SIRI residence permit for studies; added correct self-support (DKK 7,426/month at 2026 level, 12-month cap, paid-tuition exemption), SIRI fee (DKK 3,060 at 2026 level), the 90-hours/month work rule (changed from 20 h/week on 1 Jul 2024, full-time Jun–Aug), CPR registration, yellow health card, and the 6-month-abroad lapse rule. Added the CRITICAL post-2 May 2025 rule that non-state-approved (EVA) programmes lose work/family/job-seeking rights. Replaced template FAQs and quiz with real Denmark content; rebuilt resources to official SIRI/nyidanmark.dk sources; removed the hardcoded approval rate and 'industry benchmark'; converted time-sensitive values to {{VERIFY_LIVE}} placeholders. No statistics were invented."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",
@@ -405,966 +399,359 @@
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
-      "summary": "Initial Danishy student visa counselor content with 2026 proof of funds amount."
+      "summary": "Initial Denmark student visa counselor content with 2026 proof of funds amount."
     }
   ],
   "staffNotes": [
     {
+      "author": "Service Library",
+      "date": "16 Jun 2026",
+      "text": "Dynamic values are marked {{VERIFY_LIVE}} and MUST be populated from live official sources / CRM before client use: SIRI self-support amount and 12-month cap, SIRI fee, tuition, living costs, processing times, doc counts, post-study permit duration, and any approval/file-count figures. Never publish invented statistics."
+    },
+    {
       "author": "Documentation team",
-      "date": "6 Jun 2026",
-      "text": "APS backlog is real—do not promise winter intake without APS timeline confirmation."
+      "date": "16 Jun 2026",
+      "text": "CONTAMINATION WARNING: this service was previously copied from the Germany file. Denmark does NOT use APS, a German Sperrkonto (€992), Anabin, or 'Ausländerbehörde'. Denmark uses: SIRI residence permit for studies, self-support (DKK), CPR number, yellow health card. KEY 2025 RULE: non-state-approved (EVA) programmes applying on/after 2 May 2025 lose work/family/job-seeking rights. Work = 90 hours/month (since 1 Jul 2024). Permit lapses if abroad >6 months. Never reintroduce German terms."
     }
   ],
   "resources": [
     {
-      "title": "Denmark official immigration portal",
-      "url": "https://www.nyidanmark.dk/",
-      "description": "Verify current fees, forms, and document lists before counseling."
+      "title": "New to Denmark (SIRI) — study residence permit (official)",
+      "url": "https://www.nyidanmark.dk/en-GB/You-want-to-apply/Study",
+      "description": "SIRI requirements, self-support amount, fees and the case-order portal"
     },
     {
-      "title": "Make it in Danishy — Student visa",
-      "url": "https://www.make-it-in-denmark.com/en/visa-desp/studying/education-visa",
-      "description": "Study visa requirements"
+      "title": "SIRI — self-support amounts (official)",
+      "url": "https://www.nyidanmark.dk/en-GB/Words-and-concepts/SIRI/Self-support---SIRI",
+      "description": "Current monthly self-support figure and when it is required"
     },
     {
-      "title": "APS India",
-      "url": "https://www.aps-india.de/",
-      "description": "Academic verification for Indian applicants"
+      "title": "SIRI — student work rules / illegal work (official)",
+      "url": "https://www.nyidanmark.dk/en-GB/Words-and-concepts/SIRI/Warning---students-illegal-work",
+      "description": "90 hours/month rule, summer full-time, warnings and revocation"
     },
     {
-      "title": "Federal Foreign Office — Visa",
-      "url": "https://www.www.nyidanmark.dk/en/visa-service",
-      "description": "National visa overview"
+      "title": "Study in Denmark (official portal)",
+      "url": "https://studyindenmark.dk/",
+      "description": "Programmes, admission (optagelse.dk), and living in Denmark"
     },
     {
-      "title": "Anabin — Institution database",
-      "url": "https://anabin.kmk.org/",
-      "description": "Verify institution recognition"
+      "title": "borger.dk / lifeindenmark.dk — CPR and arrival",
+      "url": "https://lifeindenmark.borger.dk/",
+      "description": "CPR registration, yellow health card and arrival steps"
     }
   ],
   "quiz": [
     {
-      "question": "Indian students generally need:",
+      "level": 1,
+      "question": "Which agency processes the Denmark study residence permit?",
       "options": [
-        "Only passport",
-        "admission documentation + admission + proof of funds",
-        "Job offer",
-        "EU citizenship"
+        "SIRI (Danish Agency for International Recruitment and Integration)",
+        "The Ausländerbehörde",
+        "CRMD",
+        "UKVI"
+      ],
+      "correctIndex": 0,
+      "explanation": "SIRI processes study residence permits in Denmark."
+    },
+    {
+      "level": 1,
+      "question": "Does Denmark require a German-style APS certificate?",
+      "options": [
+        "Yes, for all Indians",
+        "No — APS is a Germany requirement, not Danish",
+        "Yes, for master's only",
+        "Only in Copenhagen"
       ],
       "correctIndex": 1,
-      "explanation": "APS mandatory for India.",
-      "level": 1
+      "explanation": "APS does not apply to Denmark; SIRI uses the institution's admission."
     },
     {
-      "question": "Proof of funds 2026 amount approx:",
+      "level": 1,
+      "question": "What monthly self-support amount must a student show (where required)?",
       "options": [
-        "€5,000",
-        "required living funds",
-        "€50,000",
-        "€500"
+        "€992/month",
+        "DKK 235/month",
+        "The current SIRI self-support amount (verify live)",
+        "No requirement"
+      ],
+      "correctIndex": 2,
+      "explanation": "the current SIRI self-support amount, to a 12-month max (€992 is the German figure)."
+    },
+    {
+      "level": 1,
+      "question": "When may self-support documentation NOT be required?",
+      "options": [
+        "Never",
+        "Always required",
+        "Only for PhDs",
+        "When paid tuition covers room/board"
+      ],
+      "correctIndex": 3,
+      "explanation": "Paid tuition covering room/board can exempt the self-support requirement."
+    },
+    {
+      "level": 1,
+      "question": "How many hours/month may a state-approved student work?",
+      "options": [
+        "90 hours/month (full-time Jun–Aug)",
+        "140 days/year",
+        "Unlimited",
+        "No work allowed"
+      ],
+      "correctIndex": 0,
+      "explanation": "Since 1 Jul 2024 the limit is 90 hours/month; full-time only in summer."
+    },
+    {
+      "level": 1,
+      "question": "Applications are submitted via:",
+      "options": [
+        "A paper form at the airport",
+        "The SIRI case-order portal (online + biometrics)",
+        "Anabin",
+        "VisaOnWeb"
       ],
       "correctIndex": 1,
-      "explanation": "12 × €992 monthly requirement.",
-      "level": 1
+      "explanation": "Denmark uses the SIRI case-order portal with biometrics."
     },
     {
-      "question": "National visa fee approx:",
+      "level": 1,
+      "question": "After arrival, students must register for a:",
       "options": [
-        "€500",
-        "€75",
-        "€2,000",
-        "Free"
+        "Pink Slip",
+        "Meldezettel",
+        "CPR number",
+        "Yellow Slip"
+      ],
+      "correctIndex": 2,
+      "explanation": "The CPR number is needed for bank, health card and services."
+    },
+    {
+      "level": 1,
+      "question": "A residence permit may lapse after an extended absence from Denmark of more than:",
+      "options": [
+        "1 week",
+        "2 years",
+        "No limit",
+        "6 months"
+      ],
+      "correctIndex": 3,
+      "explanation": "An extended absence (commonly more than 6 months unless an exemption applies) may cause the permit to lapse — verify current SIRI rules."
+    },
+    {
+      "level": 2,
+      "question": "Why does 'state-approved programme' matter (post-2 May 2025)?",
+      "options": [
+        "Non-approved (EVA) programmes lose work/family/job-seeking rights",
+        "It changes the fee only",
+        "It speeds processing",
+        "No effect"
+      ],
+      "correctIndex": 0,
+      "explanation": "Since 2 May 2025 non-state-approved programmes lose those rights."
+    },
+    {
+      "level": 2,
+      "question": "The student work limit changed on 1 July 2024 from:",
+      "options": [
+        "90 to 20",
+        "20 hours/week to 90 hours/month",
+        "Unlimited to 20",
+        "No change"
       ],
       "correctIndex": 1,
-      "explanation": "Embassy national visa fee.",
-      "level": 1
+      "explanation": "From 1 Jul 2024 it is 90 hours/month (older cards say 20 h/week)."
     },
     {
-      "question": "After arrival student must:",
+      "level": 2,
+      "question": "Full-time work is allowed only in:",
       "options": [
-        "Ignore registration",
-        "Register address and apply residence permit",
-        "Work full-time immediately",
-        "Leave in 1 week"
+        "December",
+        "Exam weeks",
+        "June, July and August",
+        "Any month"
+      ],
+      "correctIndex": 2,
+      "explanation": "Full-time student work is allowed only in Jun–Aug."
+    },
+    {
+      "level": 2,
+      "question": "The SIRI study-permit fee is best described as:",
+      "options": [
+        "Set by SIRI and indexed annually (verify the current amount)",
+        "Free",
+        "A fixed lifetime amount",
+        "Paid to the university"
+      ],
+      "correctIndex": 0,
+      "explanation": "The SIRI study-permit fee is set by SIRI and indexed annually; quote the current figure (verify live)."
+    },
+    {
+      "level": 2,
+      "question": "SIRI monitors student work via:",
+      "options": [
+        "Tax records",
+        "Social media",
+        "Random calls",
+        "Airport logs"
+      ],
+      "correctIndex": 0,
+      "explanation": "SIRI tracks tax records; over-working can mean a warning, fine or revocation."
+    },
+    {
+      "level": 2,
+      "question": "Accompanying family is possible mainly for:",
+      "options": [
+        "All students automatically",
+        "State-approved-programme students (separate application + funds)",
+        "No students",
+        "Only PhDs in summer"
       ],
       "correctIndex": 1,
-      "explanation": "Anmeldung and Ausländerbehörde required.",
-      "level": 1
+      "explanation": "Family accompaniment is for state-approved programmes, via a separate application."
     },
     {
-      "question": "Counselors must never:",
+      "level": 2,
+      "question": "The institution often releases SIRI documents only after:",
       "options": [
-        "Track APS",
-        "Guarantee visa approval",
-        "Verify admission",
-        "Check proof of funds"
+        "Graduation",
+        "The CPR is issued",
+        "The first tuition instalment clears",
+        "A Schengen visa"
+      ],
+      "correctIndex": 2,
+      "explanation": "Many universities release SIRI documents after the first instalment."
+    },
+    {
+      "level": 2,
+      "question": "English-taught programmes require:",
+      "options": [
+        "Danish B2",
+        "German",
+        "No evidence",
+        "English evidence (e.g. IELTS) — not Danish"
+      ],
+      "correctIndex": 3,
+      "explanation": "English programmes need English evidence; Danish is not a permit requirement."
+    },
+    {
+      "level": 3,
+      "question": "A counsellor tells a Denmark client they need APS. The issue?",
+      "options": [
+        "APS does not apply to Denmark — it is a Germany requirement (contamination)",
+        "No issue",
+        "APS is faster",
+        "Lower fee"
+      ],
+      "correctIndex": 0,
+      "explanation": "Importing APS into a Denmark file is a factual error."
+    },
+    {
+      "level": 3,
+      "question": "A client enrolls in a non-state-approved (EVA) programme and asks about working. Advise:",
+      "options": [
+        "Work 20 h/week freely",
+        "Post-2 May 2025, that programme has no study-permit work rights — confirm approval status first",
+        "Work full-time",
+        "No limits"
       ],
       "correctIndex": 1,
-      "explanation": "No guarantees.",
-      "level": 1
-    },
-    {
-      "level": 1,
-      "question": "For Danishy – Student Visa (National Visa), which statement about Description is correct?",
-      "options": [
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
-        "Danish Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-      ],
-      "correctIndex": 0,
-      "explanation": "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
-    },
-    {
-      "level": 1,
-      "question": "Danishy – Student Visa (National Visa): what is true regarding Eligible applicants?",
-      "options": [
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
-        "Danish Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-      ],
-      "correctIndex": 0,
-      "explanation": "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Danishy – Student Visa (National Visa) should state correctly about Proof of funds:",
-      "options": [
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "Danish Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-      ],
-      "correctIndex": 0,
-      "explanation": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies. — verify current rules."
-    },
-    {
-      "level": 1,
-      "question": "For Danishy – Student Visa (National Visa), which statement about Key authority is correct?",
-      "options": [
-        "Danish Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Danish Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-    },
-    {
-      "level": 1,
-      "question": "Danishy – Student Visa (National Visa): what is true regarding After approval?",
-      "options": [
-        "Enter Danishy; register address; apply for residence permit at Ausländerbehörde within visa validity.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Enter Danishy; register address; apply for residence permit at Ausländerbehörde within visa validity."
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Danishy – Student Visa (National Visa) should state correctly about Admission from recognised Danish institution:",
-      "options": [
-        "Admission from recognised Danish institution is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Admission from recognised Danish institution"
-    },
-    {
-      "level": 1,
-      "question": "For Danishy – Student Visa (National Visa), which statement about admission documentation (India) is correct?",
-      "options": [
-        "admission documentation (India) is often required or assessed for this service. Note: Apply early—processing takes weeks",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Apply early—processing takes weeks"
-    },
-    {
-      "level": 1,
-      "question": "Danishy – Student Visa (National Visa): what is true regarding Proof of funds or financial proof?",
-      "options": [
-        "Proof of funds or financial proof is often required or assessed for this service. Note: required living funds for 2026 or equivalent",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "required living funds for 2026 or equivalent"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Danishy – Student Visa (National Visa) should state correctly about Health insurance (travel + statutory):",
-      "options": [
-        "Health insurance (travel + statutory) is often required or assessed for this service.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Health insurance (travel + statutory)"
-    },
-    {
-      "level": 1,
-      "question": "For Danishy – Student Visa (National Visa), which statement about Motivation letter and CV is correct?",
-      "options": [
-        "Motivation letter and CV is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Motivation letter and CV"
-    },
-    {
-      "level": 1,
-      "question": "Danishy – Student Visa (National Visa): what is true regarding Language proficiency (as required)?",
-      "options": [
-        "Language proficiency (as required) is a core requirement for this service. Note: Danish or English per program",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Danish or English per program"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Danishy – Student Visa (National Visa) should state correctly about Valid passport:",
-      "options": [
-        "Valid passport is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Valid passport"
-    },
-    {
-      "level": 1,
-      "question": "For Danishy – Student Visa (National Visa), which statement about Processing time is correct?",
-      "options": [
-        "Processing time: 6–12w — After complete file + APS",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "After complete file + APS"
-    },
-    {
-      "level": 1,
-      "question": "Danishy – Student Visa (National Visa): what is true regarding Government fee?",
-      "options": [
-        "Government fee: €75 — + proof of funds required living funds",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ proof of funds required living funds"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Danishy – Student Visa (National Visa) should state correctly about Our approval rate:",
-      "options": [
-        "Our approval rate: 88% — ~74% benchmark",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "~74% benchmark"
-    },
-    {
-      "level": 1,
-      "question": "For Danishy – Student Visa (National Visa), which statement about Required docs is correct?",
-      "options": [
-        "Required docs: 15 — + APS & proof of funds",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ APS & proof of funds"
-    },
-    {
-      "level": 1,
-      "question": "Danishy – Student Visa (National Visa): what is true regarding Consultancy fee?",
-      "options": [
-        "Consultancy fee: See fee tab — + govt & third-party",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ govt & third-party"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Danishy – Student Visa (National Visa) should state correctly about service summary:",
-      "options": [
-        "Danish Embassy · National D visa · Admission + proof of funds · Denmark admission docs",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Danish Embassy · National D visa · Admission + proof of funds · Denmark admission docs"
-    },
-    {
-      "level": 1,
-      "question": "For Danishy – Student Visa (National Visa), which statement about Denmark admission requirements is correct?",
-      "options": [
-        "Indian students generally need admission documentation before visa appointment. Verify current APS processing time before promising intake dates.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Indian students generally need admission documentation before visa appointment. Verify current APS processing time before promising intake dates."
-    },
-    {
-      "level": 1,
-      "question": "Danishy – Student Visa (National Visa): what is true regarding policy update?",
-      "options": [
-        "Confirm current national visa fee (€75 approx) and proof of funds amount (required living funds for 2026) on www.nyidanmark.dk and www.nyidanmark.dk before quoting.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Confirm current national visa fee (€75 approx) and proof of funds amount (required living funds for 2026) on www.nyidanmark.dk and www.nyidanmark.dk before quoting."
-    },
-    {
-      "level": 2,
-      "question": "In the Danishy – Student Visa (National Visa) process, what is the correct approach to client question: Can we guarantee student visa approval?",
-      "options": [
-        "No. Embassy decides based on admission, funds, and credibility. Never promise approval.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
-    },
-    {
-      "level": 2,
-      "question": "For Danishy – Student Visa (National Visa), what should happen during client question: What is APS?",
-      "options": [
-        "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants."
-    },
-    {
-      "level": 2,
-      "question": "Danishy – Student Visa (National Visa) workflow — best practice for client question: Proof of funds amount for 2026:",
-      "options": [
-        "Typically required living funds (12 months × €992). Verify current amount before opening account.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Typically required living funds (12 months × €992). Verify current amount before opening account."
-    },
-    {
-      "level": 2,
-      "question": "In the Danishy – Student Visa (National Visa) process, what is the correct approach to client question: Can spouse accompany?",
-      "options": [
-        "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
-    },
-    {
-      "level": 2,
-      "question": "For Danishy – Student Visa (National Visa), what should happen during client question: English-taught programs need Danish?",
-      "options": [
-        "Depends on program—follow admission and embassy requirements.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Depends on program—follow admission and embassy requirements."
-    },
-    {
-      "level": 2,
-      "question": "Danishy – Student Visa (National Visa) workflow — best practice for client question: How long to convert to residence permit:",
-      "options": [
-        "Apply at Ausländerbehörde soon after arrival and registration.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Apply at Ausländerbehörde soon after arrival and registration."
-    },
-    {
-      "level": 2,
-      "question": "In the Danishy – Student Visa (National Visa) process, what is the correct approach to client question: Can I work on student visa?",
-      "options": [
-        "Limited working hours permitted—verify current rules for students in Danishy.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Limited working hours permitted—verify current rules for students in Danishy."
-    },
-    {
-      "level": 2,
-      "question": "For Danishy – Student Visa (National Visa), what should happen during client question: What after graduation?",
-      "options": [
-        "Discuss 18-month job-seeker residence permit or Opportunity Card separately.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Discuss 18-month job-seeker residence permit or Opportunity Card separately."
-    },
-    {
-      "level": 2,
-      "question": "Danishy – Student Visa (National Visa) workflow — best practice for timeline (1–2):",
-      "options": [
-        "Counseling, admission review, APS initiation",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "1–2: Counseling, admission review, APS initiation"
-    },
-    {
-      "level": 2,
-      "question": "In the Danishy – Student Visa (National Visa) process, what is the correct approach to timeline (2–8)?",
-      "options": [
-        "APS processing, proof of funds, documents",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "2–8: APS processing, proof of funds, documents"
-    },
-    {
-      "level": 2,
-      "question": "For Danishy – Student Visa (National Visa), what should happen during timeline (8–10)?",
-      "options": [
-        "Embassy appointment & submission",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "8–10: Embassy appointment & submission"
-    },
-    {
-      "level": 2,
-      "question": "Danishy – Student Visa (National Visa) workflow — best practice for timeline (6–12):",
-      "options": [
-        "Embassy processing",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "6–12: Embassy processing"
-    },
-    {
-      "level": 2,
-      "question": "In the Danishy – Student Visa (National Visa) process, what is the correct approach to counselor tip?",
-      "options": [
-        "Start APS 3–4 months before intended intake",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Start APS 3–4 months before intended intake"
-    },
-    {
-      "level": 2,
-      "question": "For Danishy – Student Visa (National Visa), what should happen during counselor tip?",
-      "options": [
-        "Open proof of funds only after admission confirmed",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Open proof of funds only after admission confirmed"
-    },
-    {
-      "level": 2,
-      "question": "Danishy – Student Visa (National Visa) workflow — best practice for counselor tip:",
-      "options": [
-        "Book embassy slot when file 90% ready",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Book embassy slot when file 90% ready"
-    },
-    {
-      "level": 2,
-      "question": "Danishy – Student Visa (National Visa) workflow — best practice for post-approval step:",
-      "options": [
-        "Explain address registration (Anmeldung) within deadline",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Explain address registration (Anmeldung) within deadline"
-    },
-    {
-      "level": 2,
-      "question": "In the Danishy – Student Visa (National Visa) process, what is the correct approach to post-approval step?",
-      "options": [
-        "Guide on Ausländerbehörde appointment after arrival",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Guide on Ausländerbehörde appointment after arrival"
-    },
-    {
-      "level": 2,
-      "question": "For Danishy – Student Visa (National Visa), what should happen during post-approval step?",
-      "options": [
-        "Remind proof of funds monthly withdrawal rules",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Remind proof of funds monthly withdrawal rules"
-    },
-    {
-      "level": 2,
-      "question": "In the Danishy – Student Visa (National Visa) process, what is the correct approach to Sample passport bio page (mock)?",
-      "options": [
-        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
-    },
-    {
-      "level": 2,
-      "question": "For Danishy – Student Visa (National Visa), what should happen during Sample university admission letter (mock)?",
-      "options": [
-        "Denmark university Zulassung for national visa.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Denmark university Zulassung for national visa."
-    },
-    {
-      "level": 2,
-      "question": "Danishy – Student Visa (National Visa) workflow — best practice for Sample admission documentation (mock):",
-      "options": [
-        "Academic Evaluation Centre certificate for India.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Academic Evaluation Centre certificate for India."
-    },
-    {
-      "level": 2,
-      "question": "In the Danishy – Student Visa (National Visa) process, what is the correct approach to Sample proof of funds confirmation (mock)?",
-      "options": [
-        "Sperrkonto required living funds+ — explain to clients.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Sperrkonto required living funds+ — explain to clients."
-    },
-    {
-      "level": 2,
-      "question": "For Danishy – Student Visa (National Visa), what should happen during Sample IELTS / TestDaF certificate (mock)?",
-      "options": [
-        "Language proof for degree program.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Language proof for degree program."
-    },
-    {
-      "level": 2,
-      "question": "Danishy – Student Visa (National Visa) workflow — best practice for Sample CV & motivation letter (mock):",
-      "options": [
-        "Danish embassy standard application packet.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Danish embassy standard application packet."
-    },
-    {
-      "level": 2,
-      "question": "In the Danishy – Student Visa (National Visa) process, what is the correct approach to Sample travel health insurance (mock)?",
-      "options": [
-        "Coverage from arrival until enrollment.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Coverage from arrival until enrollment."
+      "explanation": "Non-state-approved programmes lost work/family/job-seeking rights from 2 May 2025."
     },
     {
       "level": 3,
-      "question": "Danishy – Student Visa (National Visa): what is the compliance risk with APS not completed?",
+      "question": "A client shows €992/month as self-support. The error?",
       "options": [
-        "Complete APS before embassy slot; track processing on APS website",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "No error",
+        "Too high",
+        "The current SIRI self-support amount (verify live)",
+        "Not required"
       ],
-      "correctIndex": 0,
-      "explanation": "Visa appointment booked without admission documentation."
+      "correctIndex": 2,
+      "explanation": "€992 is the German blocked-account figure; Denmark uses the current SIRI self-support amount."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Danishy – Student Visa (National Visa) — key issue with APS not completed (detail):",
+      "question": "A client asks FLC to hold their self-support funds. You:",
       "options": [
-        "Visa appointment booked without admission documentation.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "Hold them",
+        "Route them through the firm",
+        "Charge a fee",
+        "Refuse — the funds belong to the client and are never routed through the firm"
       ],
-      "correctIndex": 0,
-      "explanation": "Complete APS before embassy slot; track processing on APS website"
+      "correctIndex": 3,
+      "explanation": "Never receive or route client funds — a compliance breach."
     },
     {
       "level": 3,
-      "question": "For Danishy – Student Visa (National Visa), counselors must avoid this mistake related to Insufficient proof of funds:",
+      "question": "A client wants a written guarantee of the permit. You:",
       "options": [
-        "Open proof of funds at approved bank for full required amount",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "Refuse and use approved non-guaranteeing language",
+        "Provide it",
+        "Charge extra",
+        "Promise a date"
       ],
       "correctIndex": 0,
-      "explanation": "Amount below required monthly sum or not from recognised provider."
+      "explanation": "Never guarantee an outcome; SIRI decides."
     },
     {
       "level": 3,
-      "question": "Danishy – Student Visa (National Visa): what is the compliance risk with Insufficient proof of funds (detail)?",
+      "question": "A student plans to spend 8 months at home during studies. Risk?",
       "options": [
-        "Amount below required monthly sum or not from recognised provider.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "No risk",
+        "The permit lapses (>6 months outside Denmark)",
+        "Faster renewal",
+        "More work hours"
       ],
-      "correctIndex": 0,
-      "explanation": "Open proof of funds at approved bank for full required amount"
+      "correctIndex": 1,
+      "explanation": "Being outside Denmark >6 months causes the permit to lapse."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Danishy – Student Visa (National Visa) — key issue with Admission not from recognised institution:",
+      "question": "A student works 120 hours in October. Consequence?",
       "options": [
-        "Verify Anabin/institution recognition before fees",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "Allowed",
+        "Encouraged",
+        "Over the 90-hour/month cap — warning, fine or revocation risk",
+        "No effect"
       ],
-      "correctIndex": 0,
-      "explanation": "Private unrecognised college or expired Zulassung."
+      "correctIndex": 2,
+      "explanation": "Exceeding 90 hours/month in term risks SIRI enforcement."
     },
     {
       "level": 3,
-      "question": "For Danishy – Student Visa (National Visa), counselors must avoid this mistake related to Admission not from recognised institution (detail):",
+      "question": "A counsellor wants to publish a firm approval rate vs an unnamed 'industry' figure. The issue?",
       "options": [
-        "Private unrecognised college or expired Zulassung.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "No issue",
+        "It is required",
+        "It lowers the fee",
+        "Unsourced/comparative claims risk misleading advertising and implying a guarantee"
       ],
-      "correctIndex": 0,
-      "explanation": "Verify Anabin/institution recognition before fees"
-    },
-    {
-      "level": 3,
-      "question": "Danishy – Student Visa (National Visa): what is the compliance risk with Weak motivation letter?",
-      "options": [
-        "Course-specific motivation linking prior study to Danish program",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Generic letter not explaining study plan and Danishy choice."
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Danishy – Student Visa (National Visa) — key issue with Weak motivation letter (detail):",
-      "options": [
-        "Generic letter not explaining study plan and Danishy choice.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Course-specific motivation linking prior study to Danish program"
-    },
-    {
-      "level": 3,
-      "question": "For Danishy – Student Visa (National Visa), counselors must avoid this mistake related to Language proof missing:",
-      "options": [
-        "Obtain required TestDaF/IELTS/Goethe per admission",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Program requires Danish/English certificate not provided."
-    },
-    {
-      "level": 3,
-      "question": "Danishy – Student Visa (National Visa): what is the compliance risk with Language proof missing (detail)?",
-      "options": [
-        "Program requires Danish/English certificate not provided.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Obtain required TestDaF/IELTS/Goethe per admission"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Danishy – Student Visa (National Visa) — key issue with Prior refusals not addressed:",
-      "options": [
-        "Disclose and explain changed circumstances",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Schengen or Danish refusals hidden."
-    },
-    {
-      "level": 3,
-      "question": "For Danishy – Student Visa (National Visa), counselors must avoid this mistake related to Prior refusals not addressed (detail):",
-      "options": [
-        "Schengen or Danish refusals hidden.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Disclose and explain changed circumstances"
-    },
-    {
-      "level": 3,
-      "question": "Danishy – Student Visa (National Visa): what is the compliance risk with counselor don't?",
-      "options": [
-        "Do not guarantee approval",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not guarantee approval"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Danishy – Student Visa (National Visa) — key issue with counselor don't:",
-      "options": [
-        "Do not book embassy without APS",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not book embassy without APS"
-    },
-    {
-      "level": 3,
-      "question": "For Danishy – Student Visa (National Visa), counselors must avoid this mistake related to counselor don't:",
-      "options": [
-        "Do not use unrecognised institutions",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not use unrecognised institutions"
-    },
-    {
-      "level": 3,
-      "question": "For Danishy – Student Visa (National Visa), counselors must avoid this mistake related to common mistake:",
-      "options": [
-        "APS applied too late for intake",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: APS applied too late for intake"
-    },
-    {
-      "level": 3,
-      "question": "Danishy – Student Visa (National Visa): what is the compliance risk with common mistake?",
-      "options": [
-        "Proof of funds short by even €1",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Proof of funds short by even €1"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Danishy – Student Visa (National Visa) — key issue with common mistake:",
-      "options": [
-        "Generic motivation letter",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Generic motivation letter"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Danishy – Student Visa (National Visa) — key issue with compliance rule:",
-      "options": [
-        "Client service agreement and consent must be on file before submission",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Client service agreement and consent must be on file before submission"
-    },
-    {
-      "level": 3,
-      "question": "For Danishy – Student Visa (National Visa), counselors must avoid this mistake related to compliance rule:",
-      "options": [
-        "Never guarantee visa or immigration approval; use approved-language only",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
-    },
-    {
-      "level": 3,
-      "question": "Danishy – Student Visa (National Visa): what is the compliance risk with compliance rule?",
-      "options": [
-        "Fee quotes must separate consultancy, government, and third-party costs",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
-    },
-    {
-      "level": 3,
-      "question": "For Danishy – Student Visa (National Visa), counselors must avoid this mistake related to refusal handling:",
-      "options": [
-        "After refusal, address embassy feedback before rebooking—proof of funds and APS cannot be rushed last minute.",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "After refusal, address embassy feedback before rebooking—proof of funds and APS cannot be rushed last minute."
-    },
-    {
-      "level": 3,
-      "question": "Danishy – Student Visa (National Visa): what is the compliance risk with Our rate vs industry?",
-      "options": [
-        "Our target: 88% vs benchmark 74%",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Our rate vs industry"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Danishy – Student Visa (National Visa) — key issue with APS timing:",
-      "options": [
-        "Our target: 85% vs benchmark 68%",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "APS timing"
-    },
-    {
-      "level": 3,
-      "question": "For Danishy – Student Visa (National Visa), counselors must avoid this mistake related to Financial docs:",
-      "options": [
-        "Our target: 87% vs benchmark 72%",
-        "National visa (Type D) for study at a recognised Danish university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Financial docs"
+      "correctIndex": 3,
+      "explanation": "Do not publish firm rates or comparative benchmarks as headline claims."
     }
   ],
   "donts": {
     "dos": [
-      "Start APS early",
-      "Verify institution on Anabin",
-      "Open proof of funds for full required amount",
-      "Write course-specific motivation letter",
-      "Disclose prior refusals"
+      "Confirm the programme is state-approved/accredited before any fee",
+      "Document the current SIRI self-support amount over the study period (or rely on the paid-tuition exemption)",
+      "Apply online via the SIRI case-order portal with biometrics; register CPR after arrival",
+      "Keep within 90 hours/month work in term (full-time only Jun–Aug)",
+      "Disclose and address any prior refusal in writing",
+      "Quote consultancy, government (SIRI) and third-party (VFS) costs separately"
     ],
     "donts": [
-      "Do not guarantee approval",
-      "Do not book embassy without APS",
-      "Do not use unrecognised institutions",
-      "Do not hide Schengen refusals",
-      "Do not quote outdated proof of funds amount"
+      "Do not tell a Denmark client they need APS (that is a Germany requirement)",
+      "Do not use German concepts (Sperrkonto €992, Anabin, Ausländerbehörde) — Denmark uses SIRI/CPR",
+      "Do not assume work/family/stay-back rights on a non-state-approved programme",
+      "Do not promise approval, a fixed processing time, or a guaranteed post-study stay",
+      "Do not let a student work beyond 90 hours/month in term"
     ],
     "mistakes": [
-      "APS applied too late for intake",
-      "Proof of funds short by even €1",
-      "Generic motivation letter",
-      "Wrong health insurance type",
-      "Expired admission letter"
+      "Importing APS / blocked-account-€992 / Anabin requirements from a Germany file",
+      "Missing the state-approved vs non-approved (EVA) distinction and its rights impact",
+      "Assuming self-support is always required (paid tuition may exempt it)",
+      "Letting the permit lapse via >6 months outside Denmark"
     ]
   },
   "sampleDocs": [
@@ -1376,31 +763,31 @@
     },
     {
       "title": "Sample university admission letter (mock)",
-      "description": "Denmark university Zulassung for national visa.",
+      "description": "Admission letter from a state-approved Danish higher-education programme.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
-      "title": "Sample admission documentation (mock)",
-      "description": "Academic Evaluation Centre certificate for India.",
+      "title": "Sample self-support evidence (mock)",
+      "description": "Shows the self-support evidence SIRI accepts (bank statement, scholarship or student-loan letter) demonstrating the student can cover living costs; use it to guide clients on acceptable proof and formatting.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
       "title": "Sample proof of funds confirmation (mock)",
-      "description": "Sperrkonto required living funds+ — explain to clients.",
+      "description": "Shows acceptable self-support proof at the current SIRI monthly amount (verify live); use it to explain to clients what funds evidence looks like and how it is presented.",
       "mimeType": "application/pdf",
       "docKind": "financial"
     },
     {
-      "title": "Sample IELTS / TestDaF certificate (mock)",
+      "title": "Sample IELTS / TOEFL certificate (mock)",
       "description": "Language proof for degree program.",
       "mimeType": "image/jpeg",
       "docKind": "language"
     },
     {
       "title": "Sample CV & motivation letter (mock)",
-      "description": "Danish embassy standard application packet.",
+      "description": "SIRI case-order application packet.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
@@ -1414,21 +801,26 @@
   "navBucket": "visa",
   "workingRights": {
     "applicant": {
-      "summary": "Long-stay national student visa for Denmark allows limited part-time work (typically up to 20 hours/week or per local law) after residence permit is issued.",
+      "summary": "State-approved higher-education students may work up to 90 hours per month (changed from '20 hours/week' on 1 July 2024) and full-time in June, July and August. The work right comes with the study permit — no separate work permit. Students on NON-state-approved programmes (post-2 May 2025) do not receive this right.",
       "details": [
-        "Verify exact hours with local immigration office after arrival.",
-        "Cannot rely on work income alone for residence renewal."
+        "90 hours/month during the academic year; full-time only in June, July and August.",
+        "Master's-for-working-professionals programmes have a different allowance (112.5 hours/month).",
+        "The work right is tied to the study permit and the employer/hours appear on the residence card.",
+        "SIRI tracks hours via tax records; exceeding the limit can mean a warning (valid 2 years), a fine, or revocation.",
+        "Non-state-approved (EVA advisory-statement) programme students applying on/after 2 May 2025 do not get this right."
       ],
       "restrictions": [
-        "Work not allowed until residence permit issued in many cases"
+        "90 hours/month cap in term (full-time only Jun–Aug)",
+        "Only for state-approved/accredited programmes (post-2 May 2025 rule)"
       ],
-      "sourceUrl": "https://www.nyidanmark.dk/",
+      "sourceUrl": "https://www.nyidanmark.dk/en-GB/You-want-to-apply/Study",
       "lastVerified": "Jun 2026"
     },
     "spouse": {
-      "summary": "Spouse/partner may apply for family reunion; work rights depend on Denmark residence permit conditions.",
+      "summary": "Accompanying family is only possible for state-approved-programme students, via a separate application with proof of self-support per family member and housing; a dependant's work access is tied to their permit. Most full-time students do not meet the requirements. Verify current SIRI rules.",
       "details": [
-        "Often requires proof of accommodation, integration, and sufficient income of sponsor."
+        "Separate application; proof of self-support ({{VERIFY_LIVE}} per family member/month) and housing.",
+        "Not available for non-state-approved-programme students (post-2 May 2025)."
       ],
       "restrictions": [],
       "sourceUrl": "https://www.nyidanmark.dk/",
@@ -1438,34 +830,34 @@
   "fullCostBreakdown": {
     "title": "Full cost breakdown — Denmark – Residence Permit for Studies",
     "currency": "DKK",
-    "lastVerified": "Jun 2026",
-    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
-    "sourceUrl": "https://www.nyidanmark.dk/",
+    "lastVerified": "16 Jun 2026",
+    "disclaimer": "Indicative costs for counsellor discussions only. Values marked {{VERIFY_LIVE}} are dynamic and MUST be verified on official sources (SIRI / nyidanmark.dk) before quoting. Self-support funds are the student's own money, not a fee. Denmark does NOT use APS or a German-style blocked account. INR equivalents move with exchange rates.",
+    "sourceUrl": "https://www.nyidanmark.dk/en-GB/You-want-to-apply/Study",
     "sections": [
       {
         "id": "fees",
         "label": "Government & visa fees",
         "items": [
           {
-            "label": "Study permit application",
-            "amount": 235,
-            "unit": "per applicant",
+            "label": "SIRI study-permit application fee",
+            "amount": "{{VERIFY_LIVE}}",
             "currency": "DKK",
-            "applicable": true
+            "applicable": true,
+            "notes": "the current SIRI application fee; indexed annually. Verify."
           },
           {
-            "label": "Biometrics",
-            "amount": 85,
-            "unit": "per applicant",
+            "label": "Biometrics / VFS service charge",
+            "range": "{{VERIFY_LIVE}}",
             "currency": "DKK",
-            "applicable": true
+            "applicable": true,
+            "notes": "At mission/VFS; verify current charge"
           },
           {
-            "label": "Medical exam (if required)",
-            "range": "INR 5,000–8,000",
-            "notes": "Panel physician",
+            "label": "Document legalisation / translation",
+            "range": "{{VERIFY_LIVE}}",
             "currency": "DKK",
-            "applicable": true
+            "applicable": true,
+            "notes": "Where required"
           }
         ]
       },
@@ -1474,26 +866,26 @@
         "label": "Tuition & education costs",
         "items": [
           {
-            "label": "Tuition (undergraduate, indicative)",
-            "range": "Mid-range for destination",
-            "notes": "Use offer letter amount",
+            "label": "Tuition (non-EU, per year)",
+            "range": "{{VERIFY_LIVE}}",
             "currency": "DKK",
-            "applicable": true
+            "applicable": true,
+            "notes": "Commonly ~DKK 45,000–120,000/yr depending on programme; use the offer letter"
           },
           {
-            "label": "Tuition deposit already paid",
-            "range": "Per LOA/CAS",
-            "notes": "Deduct from total funds",
+            "label": "Tuition deposit (first instalment)",
+            "range": "{{VERIFY_LIVE}}",
             "currency": "DKK",
-            "applicable": true
+            "applicable": true,
+            "notes": "Often needed to unlock SIRI documents; deduct from funds"
           },
           {
             "label": "Books & materials",
-            "range": "500–1,500",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per year",
-            "notes": "Program dependent",
             "currency": "DKK",
-            "applicable": true
+            "applicable": true,
+            "notes": "Programme dependent"
           }
         ]
       },
@@ -1502,22 +894,28 @@
         "label": "Living costs",
         "items": [
           {
-            "label": "Living funds (embassy guideline)",
-            "range": "€9,000–12,000",
-            "unit": "per year",
-            "currency": "DKK"
+            "label": "Self-support amount (SIRI)",
+            "amount": "{{VERIFY_LIVE}}",
+            "unit": "per month",
+            "currency": "DKK",
+            "applicable": true,
+            "notes": "the current SIRI self-support amount (max 12 months); verify"
           },
           {
             "label": "Accommodation",
-            "range": "€350–900",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "DKK"
+            "currency": "DKK",
+            "applicable": true,
+            "notes": "Copenhagen higher; varies by city"
           },
           {
-            "label": "Food & transport",
-            "range": "€250–450",
+            "label": "Living costs",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "DKK"
+            "currency": "DKK",
+            "applicable": true,
+            "notes": "Food, transport, insurance; verify"
           }
         ]
       },
@@ -1532,21 +930,22 @@
           },
           {
             "label": "Flight / travel",
-            "range": "₹40,000–1,20,000",
+            "range": "Varies",
             "notes": "Season and route"
           },
           {
-            "label": "Document translation / notary",
-            "range": "₹2,000–15,000"
+            "label": "Document translation / legalisation",
+            "range": "Varies",
+            "notes": "Where required"
           },
           {
-            "label": "Courier & VFS premium services",
-            "range": "Optional"
+            "label": "Health insurance (gap before CPR)",
+            "range": "Varies",
+            "notes": "Travel/incoming cover until CPR/yellow card"
           },
           {
             "label": "Forex / transfer charges",
-            "range": "Bank dependent",
-            "notes": "GIC, blocked account, tuition transfers"
+            "range": "Bank dependent"
           }
         ]
       }
@@ -1555,7 +954,7 @@
       {
         "label": "Indicative first-year budget (excl. tuition band)",
         "value": "Counselor to calculate from sections above",
-        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+        "notes": "Cross-check the admission letter and the official SIRI / nyidanmark.dk pages before client commitment."
       }
     ]
   }

@@ -1,20 +1,20 @@
 {
-  "displayName": "Austria – Student Residence Permit",
-  "shortDescription": "Austrian Embassy · D visa + residence · Admission · Proof of means",
-  "version": "v1.0",
+  "displayName": "Austria – Student Residence Permit (Aufenthaltsbewilligung – Studierender)",
+  "shortDescription": "Austrian mission + MA 35/BH · Residence Permit – Student · Admission + proof of means · ÖGK insurance",
+  "version": "v2.2",
   "versionStatus": "Live",
   "reviewStatus": "active",
-  "updatedLabel": "Updated 9 Jun 2026",
+  "updatedLabel": "Updated 16 Jun 2026",
   "learningLevel": "Intermediate",
   "learningMinutes": 22,
   "policyAlert": {
     "active": true,
-    "date": "9 Jun 2026",
-    "summary": "Confirm requirements on migration.gv.at before quoting."
+    "date": "16 Jun 2026",
+    "summary": "Austria issues a Residence Permit – Student (Aufenthaltsbewilligung – Studierender), NOT a classic student visa; a Visa D may be issued first to travel/sit entrance exams. Financial-means thresholds are ASVG-linked and revised annually ({{VERIFY_LIVE}} — under-24 vs 24+ differ), and fees are set by the authority. Austria does NOT use APS (that is a Germany requirement). Verify all amounts on migration.gv.at / oead.at / the Austrian mission before quoting; treat figures as live values."
   },
   "alert": {
-    "title": "Register within 3 days",
-    "body": "Students must register residence with local authority within three working days of arrival."
+    "title": "Register your address within 3 working days",
+    "body": "After arrival, students must register their residence (Meldezettel) with the local registration office within three working days. Collect the residence permit within the Visa D validity, and keep ÖGK student insurance and enrolment current. Note: Austria does NOT require APS — do not import German requirements."
   },
   "tags": [
     {
@@ -22,59 +22,59 @@
       "variant": "success"
     },
     {
-      "label": "APS required",
+      "label": "Proof of means critical",
       "variant": "warning"
     },
     {
-      "label": "6–12 weeks",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
-      "label": "Embassy appointment",
+      "label": "Mission + MA 35/BH",
       "variant": "neutral"
     }
   ],
   "chips": [
     {
-      "label": "6–12 weeks",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
-      "label": "€75 + proof of funds",
+      "label": "Fees + proof of means (verify)",
       "variant": "neutral"
     },
     {
-      "label": "Admission letter",
+      "label": "Admission (Zulassungsbescheid)",
       "variant": "success"
     },
     {
-      "label": "Austria admission docs",
+      "label": "ÖGK student insurance",
       "variant": "warning"
     }
   ],
   "kpis": [
     {
       "label": "Processing time",
-      "value": "6–12w",
-      "sub": "After complete file + APS",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Processing varies by mission/authority — verify live",
       "tone": "primary"
     },
     {
       "label": "Government fee",
-      "value": "€75",
-      "sub": "+ proof of funds required living funds",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Residence permit + any Visa D fee + proof of means — verify live",
       "tone": "warning"
     },
     {
-      "label": "Our approval rate",
-      "value": "88%",
-      "sub": "~74% benchmark",
-      "tone": "success"
+      "label": "Approval rate",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Pull from live CRM case data; not a prediction of any individual outcome",
+      "tone": "primary"
     },
     {
       "label": "Required docs",
-      "value": "15",
-      "sub": "+ APS & proof of funds",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Document count varies by profile — see live checklist",
       "tone": "violet"
     },
     {
@@ -87,308 +87,340 @@
   "about": [
     {
       "label": "Description",
-      "value": "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
+      "value": "Residence Permit – Student (Aufenthaltsbewilligung – Studierender) for non-EU/EEA nationals admitted to a recognised Austrian higher education institution. Austria does not issue a classic student visa; a Visa D may be issued first to enter and sit entrance exams, after which the residence permit is collected in Austria."
     },
     {
       "label": "Eligible applicants",
-      "value": "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter"
+      "value": "Admission/Zulassungsbescheid (degree 'ordentliche' study, or non-degree 'außerordentliche' study of ≥40 ECTS not solely for language) · Proof of financial means ({{VERIFY_LIVE}}, age-dependent) · Health insurance covering all risks (ÖGK student self-insurance after entry) · Adequate accommodation · Valid passport · Clean criminal record certificate"
     },
     {
-      "label": "Proof of funds",
-      "value": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
+      "label": "Financial means",
+      "value": "Age-linked ASVG thresholds for 2026 ({{VERIFY_LIVE}}): under-24 vs 24-and-over differ; proof for 12 months. If rent exceeds the ASVG room-and-board value ({{VERIFY_LIVE}}/month) you must show additional funds. Acceptable: savings, blocked account, scholarship, or a Haftungserklärung (declaration of guarantee) from an EU resident. Verify the current thresholds.",
       "warning": true
     },
     {
       "label": "Key authority",
-      "value": "Austrian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
+      "value": "Austrian embassy/consulate (application + any Visa D) · MA 35 (Vienna) or the Bezirkshauptmannschaft (other provinces) as the residence authority · ÖGK for student insurance"
     },
     {
       "label": "After approval",
-      "value": "Enter Austriany; register address; apply for residence permit at Ausländerbehörde within visa validity."
+      "value": "After the residence authority accepts the application, the applicant has 3 months to apply for the Visa D to enter Austria and 6 months to collect the Residence Permit – Student in Austria. On arrival: register your address (Meldezettel) within 3 working days, take out ÖGK student self-insurance, and collect/activate the permit. Renew annually before expiry (you may remain lawfully while a timely renewal is processed); submit the continuing-enrolment confirmation (Fortsetzungsbestätigung) and meet academic progress (≥16 ECTS/year)."
     }
   ],
   "eligibility": [
     {
-      "criterion": "Admission from recognised Austrian institution",
-      "met": true
-    },
-    {
-      "criterion": "admission documentation (India)",
-      "met": false,
-      "note": "Apply early—processing takes weeks"
-    },
-    {
-      "criterion": "Proof of funds or financial proof",
-      "met": false,
-      "note": "required living funds for 2026 or equivalent"
-    },
-    {
-      "criterion": "Health insurance (travel + statutory)",
-      "met": false
-    },
-    {
-      "criterion": "Motivation letter and CV",
-      "met": true
-    },
-    {
-      "criterion": "Language proficiency (as required)",
+      "criterion": "Admission from a recognised Austrian institution (Zulassungsbescheid)",
       "met": true,
-      "note": "Austrian or English per program"
+      "note": "Degree (ordentliches) study at a university/Fachhochschule/accredited private university, or non-degree (außerordentliches) study of ≥40 ECTS not solely for language. Confirm the institution is recognised before any fee."
+    },
+    {
+      "criterion": "Qualification recognised for admission (Zulassungsbescheid / ENIC-NARIC Austria)",
+      "met": false,
+      "note": "Recognition is decided by the admitting institution (supported by ENIC-NARIC Austria where needed). Austria does NOT use Germany's Anabin. Where not directly equivalent, a Vorstudienlehrgang or Ergänzungsprüfung may be required."
+    },
+    {
+      "criterion": "Proof of financial means (age-linked, 12 months)",
+      "met": false,
+      "note": "ASVG-linked 2026 thresholds ({{VERIFY_LIVE}}): under-24 lower, 24+ higher; plus extra if rent exceeds the room-and-board value ({{VERIFY_LIVE}}/month). Show consistent funds/savings, not a one-off deposit."
+    },
+    {
+      "criterion": "Health insurance covering all risks",
+      "met": false,
+      "note": "Travel/incoming cover for the application/entry period, then ÖGK student self-insurance (Studierendenselbstversicherung) after entry ({{VERIFY_LIVE}}/month) or an accepted private plan."
+    },
+    {
+      "criterion": "Adequate accommodation in Austria",
+      "met": false,
+      "note": "A rental contract, dorm confirmation or equivalent; the address is also needed for the Meldezettel registration."
+    },
+    {
+      "criterion": "Criminal record certificate",
+      "met": false,
+      "note": "Police clearance from the country of residence (and sometimes country of origin), apostilled/legalised and translated as required."
     },
     {
       "criterion": "Valid passport",
-      "met": true
+      "met": true,
+      "note": "Valid for the intended stay; check the mission's validity rule."
+    },
+    {
+      "criterion": "Academic progress capacity (renewal)",
+      "met": true,
+      "note": "Renewal requires ≥16 ECTS per academic year plus a continuing-enrolment confirmation (Fortsetzungsbestätigung). A first year below the threshold may draw a warning; a second consecutive year can lead to non-renewal. Counsel on this from the start and document medical/family/course reasons."
     }
   ],
-  "redFlagsBanner": "After refusal, address embassy feedback before rebooking—proof of funds and APS cannot be rushed last minute.",
+  "redFlagsBanner": "After a refusal, address the authority's stated reason before reapplying — proof of means, accommodation and admission cannot be fixed last-minute.",
   "redFlags": [
     {
-      "title": "APS not completed",
-      "description": "Visa appointment booked without admission documentation.",
-      "fix": "Complete APS before embassy slot; track processing on APS website",
+      "title": "Importing German 'APS' into an Austria file",
+      "description": "Austria does NOT use APS (that is a Germany/China/Vietnam requirement). Telling an Austria client they need APS is a factual error from cross-country contamination.",
+      "fix": "Remove APS entirely; Austria relies on the Zulassungsbescheid (admission) and proof of means",
+      "severity": "Critical"
+    },
+    {
+      "title": "Insufficient / inconsistent proof of means",
+      "description": "Funds below the age-linked ASVG threshold, a one-off large deposit, or rent above the room-and-board value without extra funds.",
+      "fix": "Show 12 months of consistent funds/savings meeting the correct age threshold; add funds where rent exceeds the room-and-board value",
       "severity": "Very common"
     },
     {
-      "title": "Insufficient proof of funds",
-      "description": "Amount below required monthly sum or not from recognised provider.",
-      "fix": "Open proof of funds at approved bank for full required amount",
-      "severity": "Very common"
+      "title": "Wrong pathway (Visa D vs residence permit vs Schengen)",
+      "description": "Treating a Schengen-free 90-day entry or a Visa D as a study permit; a tourist stay does not convert into a student permit.",
+      "fix": "Apply for the Residence Permit – Student before entry; use Visa D only to travel/sit entrance exams; exchanges under 6 months use Visa D",
+      "severity": "High"
     },
     {
-      "title": "Admission not from recognised institution",
-      "description": "Private unrecognised college or expired Zulassung.",
-      "fix": "Verify Anabin/institution recognition before fees",
+      "title": "Admission not from a recognised institution / expired Zulassung",
+      "description": "Unrecognised provider or a lapsed admission.",
+      "fix": "Confirm the institution is recognised and the Zulassungsbescheid is valid for the intake before any fee",
       "severity": "Common"
     },
     {
-      "title": "Weak motivation letter",
-      "description": "Generic letter not explaining study plan and Austriany choice.",
-      "fix": "Course-specific motivation linking prior study to Austrian program",
-      "severity": "Common"
+      "title": "Academic progress below 16 ECTS — renewal at risk",
+      "description": "Falling below 16 ECTS/year can trigger a renewal review and, on a second year, non-renewal.",
+      "fix": "Counsel on ECTS progress from day one; document medical/family/course reasons for any shortfall proactively",
+      "severity": "High"
     },
     {
-      "title": "Language proof missing",
-      "description": "Program requires Austrian/English certificate not provided.",
-      "fix": "Obtain required TestDaF/IELTS/Goethe per admission",
-      "severity": "Common"
+      "title": "Address not registered within 3 working days",
+      "description": "Missing the Meldezettel deadline after arrival.",
+      "fix": "Plan accommodation before arrival; register within 3 working days; this is also needed for insurance and the permit",
+      "severity": "Medium"
     },
     {
-      "title": "Prior refusals not addressed",
-      "description": "Schengen or Austrian refusals hidden.",
-      "fix": "Disclose and explain changed circumstances",
+      "title": "Prior refusals or misrepresentation not addressed",
+      "description": "Hidden Schengen/Austrian refusals or false documents.",
+      "fix": "Disclose every prior refusal and explain changed circumstances; never conceal history or submit fabricated documents",
+      "severity": "High"
+    },
+    {
+      "title": "Quoting a flat 20 h/week work limit to a bachelor student",
+      "description": "Bachelor students may work only up to 10 h/week (20 h is for master's/PhD or post-bachelor). Advising 20 h to an undergraduate can cause a permit-condition breach.",
+      "fix": "State the tiered limit (10 h bachelor / 20 h master's-PhD) and that the employer must obtain the Beschäftigungsbewilligung before any work",
+      "severity": "Critical"
+    },
+    {
+      "title": "Assuming work is automatic / no employer permit",
+      "description": "Treating the student's right to work as built-in. In Austria the employer must obtain a Beschäftigungsbewilligung from the AMS before work begins, even for marginal employment.",
+      "fix": "Confirm the employer has applied for and received the Beschäftigungsbewilligung before the student starts work",
       "severity": "High"
     }
   ],
   "faqs": [
     {
-      "q": "Can we guarantee student visa approval?",
-      "a": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
+      "q": "Can we guarantee approval of the residence permit?",
+      "a": "No. The Austrian mission and residence authority (MA 35 / Bezirkshauptmannschaft) decide based on admission, proof of means, insurance, accommodation and credibility. A strong, honest file improves the chances but approval is never guaranteed — and we never promise one."
     },
     {
-      "q": "What is APS?",
-      "a": "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants."
+      "q": "Does Austria require an APS certificate?",
+      "a": "No. APS is a Germany (and China/Vietnam) requirement and does NOT apply to Austria. Austria relies on the admission decision (Zulassungsbescheid) from a recognised institution plus proof of means and insurance. Do not import APS into an Austria file."
     },
     {
-      "q": "Proof of funds amount for 2026?",
-      "a": "Typically required living funds (12 months × €992). Verify current amount before opening account."
+      "q": "Is it a student visa or a residence permit?",
+      "a": "A Residence Permit – Student (Aufenthaltsbewilligung – Studierender). Austria does not issue a classic long-stay student visa; non-EU/EEA students apply for the residence permit before entering. A Visa D may be issued first to travel and sit entrance exams, after which the permit is collected in Austria. Exchanges under 6 months use a Visa D instead."
     },
     {
-      "q": "Can spouse accompany?",
-      "a": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
+      "q": "How much money must a student show?",
+      "a": "Age-linked ASVG thresholds (2026, {{VERIFY_LIVE}}): students under 24 show a lower monthly amount; students 24 and over show a higher amount; both proven for 12 months in an account accessible from Austria. If monthly rent exceeds the ASVG room-and-board value ({{VERIFY_LIVE}}), additional funds are required. Show a consistent pattern, not a one-off deposit. Verify the current figures — revised annually."
     },
     {
-      "q": "English-taught programs need Austrian?",
-      "a": "Depends on program—follow admission and embassy requirements."
+      "q": "What health insurance is required?",
+      "a": "Insurance covering all risks and valid in Austria. Most students use travel/incoming cover for the application/entry period, then take out ÖGK student self-insurance (Studierendenselbstversicherung) after entry and enrolment ({{VERIFY_LIVE}}/month), or an accepted private plan (e.g. providers recognised by MA 35)."
     },
     {
-      "q": "How long to convert to residence permit?",
-      "a": "Apply at Ausländerbehörde soon after arrival and registration."
+      "q": "Can the student work?",
+      "a": "Yes, but it is tiered and not automatic. Bachelor students (before completing the first degree stage) may work up to 10 hours/week; master's/PhD students (or after completing the bachelor's stage) up to 20 hours/week. The EMPLOYER must obtain an employment permit (Beschäftigungsbewilligung) from the AMS BEFORE work starts — even for marginal employment. Work income cannot replace the proof-of-means requirement. Verify the current rule, as conditions can change."
     },
     {
-      "q": "Can I work on student visa?",
-      "a": "Limited working hours permitted—verify current rules for students in Austriany."
+      "q": "Is German required for the initial permit?",
+      "a": "No. There is no German-language requirement for the initial Residence Permit – Student, though the program itself sets its admission language (German or English) and German helps with daily life, work and later steps."
     },
     {
       "q": "What after graduation?",
-      "a": "Discuss 18-month job-seeker residence permit or Opportunity Card separately."
+      "a": "Eligible graduates of an Austrian programme may apply for a residence permit to seek qualified employment (a job-search period, commonly up to 12 months after graduation), and on finding a qualifying role may move to the Red-White-Red Card (Rot-Weiß-Rot-Karte) — a separate work-and-residence permit with its own salary and qualification criteria. These are distinct steps, not automatic. Verify the current job-search duration and Red-White-Red Card thresholds before advising."
     },
     {
-      "q": "What is Description for this service?",
-      "a": "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
+      "q": "What are the government fees?",
+      "a": "The Residence Permit – Student carries an authority fee ({{VERIFY_LIVE}}; official sources describe a split of application + personalisation + police-data/fingerprinting, while some 2026 sources cite a single unified amount — sources conflict, so verify), and a Visa D (where issued) carries a separate consular fee ({{VERIFY_LIVE}}). Fee structures and amounts are set by the authority and change — verify the current amounts on the mission's site and migration.gv.at."
     },
     {
-      "q": "What is Eligible applicants for this service?",
-      "a": "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter"
+      "q": "What is the academic-progress (ECTS) rule?",
+      "a": "Renewal generally requires at least 16 ECTS per academic year plus a continuing-enrolment confirmation (Fortsetzungsbestätigung). Falling short can trigger a review and, on a second consecutive year, non-renewal. Counsel students on this from the start; document any medical/family/course reasons proactively."
     },
     {
-      "q": "What is Proof of funds for this service?",
-      "a": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      "q": "When and where is the application made?",
+      "a": "Before entry, at the competent Austrian embassy/consulate; the residence authority is MA 35 in Vienna or the Bezirkshauptmannschaft in other provinces. Start 4–5 months before the semester — appointments, document legalisation/apostille and authority review all take time."
     },
     {
-      "q": "Important note on Proof of funds?",
-      "a": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      "q": "What is the 3-day registration rule?",
+      "a": "After arriving, you must register your address (Meldezettel) with the local registration office within three working days. This registration is also needed to finalise insurance and the residence permit, so line up accommodation before arrival."
     },
     {
-      "q": "What is Key authority for this service?",
-      "a": "Austrian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
+      "q": "What financial-means alternatives are accepted?",
+      "a": "Savings/bank statements over 12 months, a blocked account, a scholarship confirmation, or a Haftungserklärung (declaration of guarantee) from a person resident in the EU. A one-off large deposit without history is a refusal risk — show a consistent pattern."
     },
     {
-      "q": "What is After approval for this service?",
-      "a": "Enter Austriany; register address; apply for residence permit at Ausländerbehörde within visa validity."
+      "q": "Can a refused application be appealed?",
+      "a": "Yes. A refusal can be challenged by a complaint (Beschwerde) to the Federal Administrative Court (Bundesverwaltungsgericht, BVwG), lodged via the deciding authority within the stated deadline, or the client can reapply with a corrected, stronger file. Read the reason carefully (commonly proof of means, accommodation, insurance, or admission validity) and fix the specific issue rather than re-lodging the same file."
     },
     {
-      "q": "Is Admission from recognised Austrian institution required?",
-      "a": "Admission from recognised Austrian institution is typically required."
+      "q": "Can a spouse or children join?",
+      "a": "Family reunion for students is restricted: the Residence Permit – Student is a temporary residence title, so bringing a spouse/children requires separate, higher proof of means and adequate accommodation, and is assessed case-by-case — it does not carry the same family-reunification rights as a skilled-worker permit. A dependant's work access depends on the permit granted. Verify the current family-reunification rules with MA 35 / the Bezirkshauptmannschaft; do not assume entitlement."
     },
     {
-      "q": "Is admission documentation (India) required?",
-      "a": "Apply early—processing takes weeks"
+      "q": "Is there a preparatory route if my qualification is not directly equivalent?",
+      "a": "Yes. Where the prior qualification is not directly equivalent for Austrian admission, the university may require a supplementary examination (Ergänzungsprüfung) and/or attendance at a University Preparation Programme (Vorstudienlehrgang). The applicant may enter on a Visa D to sit an entrance examination, then receive the residence permit on admission. Note: Austria does not use Germany's 'Studienkolleg' — the Austrian route is the Vorstudienlehrgang / Ergänzungsprüfung."
     },
     {
-      "q": "Is Proof of funds or financial proof required?",
-      "a": "required living funds for 2026 or equivalent"
+      "q": "How long does processing take?",
+      "a": "It varies by mission and authority (often several weeks to a few months). Always quote the live estimate from the mission/migration.gv.at rather than a fixed number, and start early because appointment slots can be scarce."
     },
     {
-      "q": "Is Health insurance (travel + statutory) required?",
-      "a": "Assess whether Health insurance (travel + statutory) is satisfied for this case."
+      "q": "What does FLC actually guarantee?",
+      "a": "Nothing about the outcome — the Austrian authorities decide. FLC prepares a strong, honest, well-documented file (admission, proof of means, insurance, accommodation) and never promises a permit, in writing or verbally."
     },
     {
-      "q": "Is Motivation letter and CV required?",
-      "a": "Motivation letter and CV is typically required."
+      "q": "How is a foreign qualification recognised for Austrian admission?",
+      "a": "Recognition is assessed by the Austrian institution itself (each university/Fachhochschule decides admission), supported where needed by ENIC-NARIC Austria for credential evaluation. Austria does NOT use Germany's Anabin database. Confirm the institution's admission decision (Zulassungsbescheid) before any fee; where the qualification is not directly equivalent, a Vorstudienlehrgang or Ergänzungsprüfung may be required."
     },
     {
-      "q": "Is Language proficiency (as required) required?",
-      "a": "Austrian or English per program"
+      "q": "What is the difference between a university, a Fachhochschule and a private university?",
+      "a": "Public universities (Universität) offer research-oriented degrees, often with low/no tuition for some groups and a per-semester fee for non-EU students; Fachhochschulen (universities of applied sciences) are practice-oriented with their own application portals and intake timing; accredited private universities set their own (usually higher) fees. All can issue a recognised Zulassungsbescheid. Match the pathway and tuition expectation to the institution type."
     },
     {
-      "q": "Is Valid passport required?",
-      "a": "Valid passport is typically required."
+      "q": "What happens if a renewal is refused?",
+      "a": "If the residence authority refuses a renewal (commonly for falling below 16 ECTS/year, lapsed insurance, or insufficient means), the student can lodge a complaint (Beschwerde) to the BVwG within the deadline. A first year of insufficient progress may draw a warning; a second consecutive year can lead to non-renewal. Document medical, family or course-structure reasons proactively and apply for renewal before expiry."
     },
     {
-      "q": "What is the Processing time?",
-      "a": "6–12w — After complete file + APS"
+      "q": "When must a renewal be filed?",
+      "a": "Apply for renewal before the current permit expires (start well ahead, e.g. ~3 months before). If a complete renewal is filed in time, the student may generally remain lawfully in Austria while it is processed, even if the current permit lapses during processing. Late or incomplete filings risk a status gap."
     },
     {
-      "q": "What is the Government fee?",
-      "a": "€75 — + proof of funds required living funds"
-    },
-    {
-      "q": "What is the Our approval rate?",
-      "a": "88% — ~74% benchmark"
-    },
-    {
-      "q": "What is the Required docs?",
-      "a": "15 — + APS & proof of funds"
-    },
-    {
-      "q": "What is the Consultancy fee?",
-      "a": "See fee tab — + govt & third-party"
-    },
-    {
-      "q": "What if the client has APS not completed?",
-      "a": "Complete APS before embassy slot; track processing on APS website"
-    },
-    {
-      "q": "Why is APS not completed a problem?",
-      "a": "Visa appointment booked without admission documentation."
-    },
-    {
-      "q": "What if the client has Insufficient proof of funds?",
-      "a": "Open proof of funds at approved bank for full required amount"
-    },
-    {
-      "q": "Why is Insufficient proof of funds a problem?",
-      "a": "Amount below required monthly sum or not from recognised provider."
+      "q": "Does the student apply for the work permit, and when can work start?",
+      "a": "No — the EMPLOYER applies for the Beschäftigungsbewilligung at the AMS, and the student may not start work until it is granted. This applies even to marginal (geringfügige) employment. Processing is typically a few weeks; the permit is specific to that job and employer, so a new employer needs a new permit."
     }
   ],
   "compliance": [
-    "Client service agreement and consent must be on file before submission",
-    "Never guarantee visa or immigration approval; use approved-language only",
-    "Fee quotes must separate consultancy, government, and third-party costs",
-    "Proof of funds funds belong to client—never commingle with firm accounts"
+    "Client service agreement and consent must be on file before submission.",
+    "Never guarantee a permit or approval; use approved, non-guaranteeing language only.",
+    "Fee quotes must separate consultancy, government and third-party costs.",
+    "Proof-of-means funds belong to the client — never receive, hold or route them through firm accounts.",
+    "Never import another country's requirements (e.g. German APS, blocked account, Anabin) into an Austria file.",
+    "Do not publish a firm approval rate or an unsourced 'industry benchmark' as a headline figure; use live, sourced CRM data labelled as not predictive of any individual outcome.",
+    "Handle academic, financial and criminal-record documents under data-protection rules: store securely, share only with authorised parties, retain only as needed.",
+    "Disclose all prior refusals; misrepresentation can lead to refusal and entry bans."
   ],
   "proTips": [
-    "Start APS 3–4 months before intended intake",
-    "Open proof of funds only after admission confirmed",
-    "Book embassy slot when file 90% ready",
-    "Motivation letter must match admission course",
-    "Verify health insurance accepted by embassy"
+    "Never tell an Austria client they need APS — that is a Germany requirement; Austria relies on the Zulassungsbescheid and proof of means.",
+    "State work hours correctly: bachelor up to 10 h/week, master's/PhD up to 20 h/week — and the EMPLOYER must obtain the Beschäftigungsbewilligung before work starts (even marginal jobs).",
+    "Use the correct age-linked ASVG means threshold (under-24 vs 24+) and add funds where rent exceeds the room-and-board value; verify the live figures.",
+    "Plan accommodation before arrival — the Meldezettel must be filed within 3 working days and it gates insurance and the permit.",
+    "Counsel on the 16-ECTS/year progress rule from day one; renewal can be refused if the student falls behind.",
+    "Recognition is via the institution / ENIC-NARIC Austria (NOT Anabin); where not equivalent, route through a Vorstudienlehrgang / Ergänzungsprüfung.",
+    "Remember the deadlines after approval: 3 months to apply for the Visa D, 6 months to collect the residence permit in Austria."
   ],
   "postApproval": [
-    "Explain address registration (Anmeldung) within deadline",
-    "Guide on Ausländerbehörde appointment after arrival",
-    "Remind proof of funds monthly withdrawal rules",
-    "Discuss post-study job-seeker pathway"
+    "Register address (Meldezettel) within 3 working days of arrival",
+    "Take out ÖGK student self-insurance after entry and enrolment",
+    "Collect/activate the Residence Permit – Student within the Visa D validity",
+    "Track the 16-ECTS/year progress rule and submit the continuing-enrolment confirmation before renewal"
   ],
   "performance": {
-    "ourRate": 0,
-    "industryRate": 0,
+    "ourRate": null,
+    "industryRate": null,
+    "note": "Approval rate and file counts must be populated live from CRM case data, not published as fixed figures. Do not display a comparative 'industry benchmark' unless independently sourced and cited.",
     "stats": [
       {
-        "label": "Files this year",
-        "value": "0"
+        "label": "Files this period",
+        "value": "{{VERIFY_LIVE}}"
       },
       {
         "label": "Approved",
-        "value": "0"
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Refused",
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "{{VERIFY_LIVE}}"
       }
     ]
   },
   "approvalFactors": [
     {
-      "label": "Our rate vs industry",
-      "ours": 88,
-      "benchmark": 74
+      "label": "Correct age-bracket proof of means",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "APS timing",
-      "ours": 85,
-      "benchmark": 68
+      "label": "Recognised admission (Zulassungsbescheid)",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "Financial docs",
-      "ours": 87,
-      "benchmark": 72
+      "label": "Insurance + accommodation in order",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
       "label": "First-submit completeness",
-      "ours": 92,
-      "benchmark": 76
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     }
   ],
   "timeline": [
     {
       "weeks": "1–2",
-      "title": "Counseling, admission review, APS initiation"
+      "title": "Counselling, admission (Zulassungsbescheid) review, fee agreement"
     },
     {
-      "weeks": "2–8",
-      "title": "APS processing, proof of funds, documents"
+      "weeks": "2–4",
+      "title": "Proof of means, insurance, accommodation, criminal record + apostille/translation"
     },
     {
-      "weeks": "8–10",
-      "title": "Embassy appointment & submission"
+      "weeks": "{{VERIFY_LIVE}}",
+      "title": "Mission appointment + residence-authority review (varies — verify live)"
     },
     {
-      "weeks": "6–12",
-      "title": "Embassy processing"
+      "weeks": "on arrival",
+      "title": "Meldezettel within 3 days; ÖGK insurance; collect/activate permit"
     }
   ],
   "relatedServices": [
     {
-      "label": "Austriany – Job Seeker Visa",
+      "label": "Austria – Red-White-Red Card (post-study work)",
       "libraryId": ""
     },
     {
-      "label": "Austriany – Opportunity Card",
+      "label": "Austria – Visa D (entrance exam / short stay)",
       "libraryId": ""
     },
     {
-      "label": "Austriany – Visitor Visa",
+      "label": "Austria – Family Reunification",
       "libraryId": ""
     }
   ],
   "changelog": [
+    {
+      "version": "v2.2",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Version alignment: bumped to v2.2 to standardise the study/visa service-library on a single version across all countries. No content changes in this entry — all factual content, {{VERIFY_LIVE}} placeholders, compliance/contamination warnings and prior corrections are unchanged from v2.1."
+    },
+    {
+      "version": "v2.1",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Audit remediation: corrected the work-rights rule to the tiered limit (bachelor 10 h/week, master's/PhD 20 h/week) and made explicit that the EMPLOYER must obtain the Beschäftigungsbewilligung from the AMS before any work (even marginal); fixed a misspelling of 'Zulassungsbescheid'; added the post-approval deadlines (3 months for Visa D, 6 months to collect); expanded family-reunion (restricted/temporary), post-study (12-month job search → Red-White-Red Card), appeal (Beschwerde to BVwG), renewal-refusal and renewal-timing guidance; added qualification-recognition (institution/ENIC-NARIC Austria, not Anabin), Vorstudienlehrgang/Ergänzungsprüfung, and university/FH/private distinctions; removed residual APS reference and broken wording from sample documents; placeholdered the hardcoded fee note (sources conflict). No statistics, approval rates, processing times, percentages or benchmarks were invented."
+    },
+    {
+      "version": "v2.0",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Major decontamination + rebuild: removed Germany cross-contamination (APS, Sperrkonto/€992 blocked account, Anabin, Ausländerbehörde, 'Austriany' find-replace artifacts, Canada €235/€85 fee structure) that had been copied into this Austria file. Reframed as the Residence Permit – Student (Aufenthaltsbewilligung – Studierender) with Visa D nuance; added correct age-linked ASVG proof-of-means structure, ÖGK student insurance, 20h/week work, 16-ECTS/year renewal rule, 3-working-day Meldezettel, MA 35/Bezirkshauptmannschaft authority, and Haftungserklärung alternative. Replaced template FAQs and quiz with real Austria-specific content; rebuilt resources to official Austrian sources; removed the hardcoded approval rate and 'industry benchmark'; converted all time-sensitive values to {{VERIFY_LIVE}} placeholders. No statistics were invented."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",
@@ -410,961 +442,378 @@
   ],
   "staffNotes": [
     {
+      "author": "Service Library",
+      "date": "16 Jun 2026",
+      "text": "Dynamic values are marked {{VERIFY_LIVE}} and MUST be populated from live official sources / CRM before client use: proof-of-means thresholds (age-linked), room-and-board value, fees (residence permit + Visa D), ÖGK premium, tuition, processing times, doc counts, and any approval/file-count figures. Never publish invented statistics."
+    },
+    {
       "author": "Documentation team",
-      "date": "6 Jun 2026",
-      "text": "APS backlog is real—do not promise winter intake without APS timeline confirmation."
+      "date": "16 Jun 2026",
+      "text": "CONTAMINATION WARNING: this service was previously copied from the Germany file. Austria does NOT use APS, a German-style blocked account (€992/Sperrkonto), Anabin, or 'Ausländerbehörde'. Austria uses the Zulassungsbescheid, age-linked ASVG proof of means, ÖGK insurance, and MA 35 / Bezirkshauptmannschaft. Never reintroduce German terms."
     }
   ],
   "resources": [
     {
-      "title": "Austria official immigration portal",
-      "url": "https://www.migration.gv.at/",
-      "description": "Verify current fees, forms, and document lists before counseling."
+      "title": "migration.gv.at — Students (official)",
+      "url": "https://www.migration.gv.at/en/types-of-immigration/permanent-immigration/students/",
+      "description": "Federal migration portal: Residence Permit – Student requirements, fees and process"
     },
     {
-      "title": "Make it in Austriany — Student visa",
-      "url": "https://www.make-it-in-austria.com/en/visa-desp/studying/education-visa",
-      "description": "Study visa requirements"
+      "title": "OeAD — Entry & residence for students (official)",
+      "url": "https://oead.at/en/to-austria/entry-and-residence",
+      "description": "Austria's agency for education/internationalisation: proof of means, insurance, permit types"
     },
     {
-      "title": "APS India",
-      "url": "https://www.aps-india.de/",
-      "description": "Academic verification for Indian applicants"
+      "title": "BMEIA — Studying in Austria (Foreign Ministry)",
+      "url": "https://www.bmeia.gv.at/en/",
+      "description": "Embassy/consulate appointments, Visa D, document requirements"
     },
     {
-      "title": "Federal Foreign Office — Visa",
-      "url": "https://www.www.migration.gv.at/en/visa-service",
-      "description": "National visa overview"
+      "title": "oesterreich.gv.at — Residence permit conditions",
+      "url": "https://www.oesterreich.gv.at/en/themen/menschen_aus_anderen_staaten/aufenthalt.html",
+      "description": "General conditions, ASVG means thresholds, room-and-board value"
     },
     {
-      "title": "Anabin — Institution database",
-      "url": "https://anabin.kmk.org/",
-      "description": "Verify institution recognition"
+      "title": "ÖGK — Student self-insurance",
+      "url": "https://www.gesundheitskasse.at/",
+      "description": "Studierendenselbstversicherung enrolment and current premium"
     }
   ],
   "quiz": [
     {
-      "question": "Indian students generally need:",
+      "level": 1,
+      "question": "What does a non-EU student need to study long-term in Austria?",
       "options": [
-        "Only passport",
-        "admission documentation + admission + proof of funds",
-        "Job offer",
-        "EU citizenship"
+        "A Residence Permit – Student (Aufenthaltsbewilligung – Studierender)",
+        "An APS certificate",
+        "A German blocked account",
+        "A Schengen tourist visa"
+      ],
+      "correctIndex": 0,
+      "explanation": "Austria issues a Residence Permit – Student, not a classic student visa; APS/blocked account are Germany concepts."
+    },
+    {
+      "level": 1,
+      "question": "Does Austria require an APS certificate?",
+      "options": [
+        "Yes, for all Indians",
+        "No — APS is a Germany requirement, not Austrian",
+        "Yes, for master's only",
+        "Only for Vienna"
       ],
       "correctIndex": 1,
-      "explanation": "APS mandatory for India.",
-      "level": 1
+      "explanation": "APS does not apply to Austria; it relies on the Zulassungsbescheid and proof of means."
     },
     {
-      "question": "Proof of funds 2026 amount approx:",
+      "level": 1,
+      "question": "Austrian student proof-of-means thresholds are based on:",
       "options": [
-        "€5,000",
-        "required living funds",
-        "€50,000",
-        "€500"
+        "A flat €11,904 blocked account",
+        "The visa fee",
+        "Age-linked ASVG reference rates (under-24 vs 24+)",
+        "Tuition only"
+      ],
+      "correctIndex": 2,
+      "explanation": "Means thresholds are ASVG-linked and differ by age; they are not the German blocked-account figure."
+    },
+    {
+      "level": 1,
+      "question": "Which authority is the residence authority in Vienna?",
+      "options": [
+        "The Ausländerbehörde",
+        "Anabin",
+        "The Federal Foreign Office",
+        "MA 35"
+      ],
+      "correctIndex": 3,
+      "explanation": "MA 35 (Vienna) or the Bezirkshauptmannschaft elsewhere; 'Ausländerbehörde'/Anabin are German."
+    },
+    {
+      "level": 1,
+      "question": "Student health insurance after entry is typically:",
+      "options": [
+        "ÖGK student self-insurance (Studierendenselbstversicherung)",
+        "A German public plan",
+        "No insurance",
+        "A blocked account"
+      ],
+      "correctIndex": 0,
+      "explanation": "ÖGK student self-insurance is the standard after entry and enrolment."
+    },
+    {
+      "level": 1,
+      "question": "How many hours per week may students work under the Residence Permit – Student?",
+      "options": [
+        "A flat 20 h/week for everyone",
+        "Bachelor up to 10 h/week; master's/PhD up to 20 h/week",
+        "140 days per year",
+        "Unlimited"
       ],
       "correctIndex": 1,
-      "explanation": "12 × €992 monthly requirement.",
-      "level": 1
+      "explanation": "Work is tiered: 10 h/week for bachelor students, 20 h/week for master's/PhD (or post-bachelor stage)."
     },
     {
-      "question": "National visa fee approx:",
+      "level": 1,
+      "question": "After arrival, address registration (Meldezettel) must be done within:",
       "options": [
-        "€500",
-        "€75",
-        "€2,000",
-        "Free"
+        "30 days",
+        "90 days",
+        "3 working days",
+        "No requirement"
+      ],
+      "correctIndex": 2,
+      "explanation": "The Meldezettel must be filed within 3 working days of arrival."
+    },
+    {
+      "level": 1,
+      "question": "Admission to an Austrian institution is evidenced by the:",
+      "options": [
+        "APS certificate",
+        "CAS",
+        "I-20",
+        "Zulassungsbescheid"
+      ],
+      "correctIndex": 3,
+      "explanation": "The Zulassungsbescheid is the Austrian admission decision."
+    },
+    {
+      "level": 2,
+      "question": "If monthly rent exceeds the ASVG room-and-board value, the student must:",
+      "options": [
+        "Prove additional funds above the threshold",
+        "Do nothing",
+        "Pay a higher visa fee",
+        "Switch cities"
+      ],
+      "correctIndex": 0,
+      "explanation": "Funds above the threshold are required where rent exceeds the room-and-board value."
+    },
+    {
+      "level": 2,
+      "question": "Renewal of the student permit generally requires academic progress of at least:",
+      "options": [
+        "60 ECTS per year",
+        "16 ECTS per year",
+        "No requirement",
+        "240 ECTS"
       ],
       "correctIndex": 1,
-      "explanation": "Embassy national visa fee.",
-      "level": 1
+      "explanation": "Below 16 ECTS/year triggers a review and can lead to non-renewal."
     },
     {
-      "question": "After arrival student must:",
+      "level": 2,
+      "question": "A Visa D in the Austrian student pathway is mainly used to:",
       "options": [
-        "Ignore registration",
-        "Register address and apply residence permit",
-        "Work full-time immediately",
-        "Leave in 1 week"
+        "Work full-time",
+        "Replace the residence permit",
+        "Travel to Austria and sit entrance exams before collecting the permit",
+        "Skip insurance"
+      ],
+      "correctIndex": 2,
+      "explanation": "Visa D lets the student enter/sit exams; the residence permit is then collected in Austria."
+    },
+    {
+      "level": 2,
+      "question": "Which is an accepted proof-of-means alternative?",
+      "options": [
+        "A German Sperrkonto only",
+        "APS certificate",
+        "A tourist visa",
+        "A Haftungserklärung (declaration of guarantee) from an EU resident"
+      ],
+      "correctIndex": 3,
+      "explanation": "Savings, blocked account, scholarship, or a Haftungserklärung are accepted."
+    },
+    {
+      "level": 2,
+      "question": "Exchange programs under 6 months generally use:",
+      "options": [
+        "A Visa D (national visa)",
+        "The Residence Permit – Student",
+        "No documentation",
+        "APS"
+      ],
+      "correctIndex": 0,
+      "explanation": "Sub-6-month exchanges use a Visa D rather than the residence permit."
+    },
+    {
+      "level": 2,
+      "question": "Work income in Austria:",
+      "options": [
+        "Fully satisfies proof of means",
+        "Cannot replace the proof-of-means requirement",
+        "Is not allowed",
+        "Doubles the threshold"
       ],
       "correctIndex": 1,
-      "explanation": "Anmeldung and Ausländerbehörde required.",
-      "level": 1
+      "explanation": "Work income does not satisfy the proof-of-means test."
     },
     {
-      "question": "Counselors must never:",
+      "level": 2,
+      "question": "Is German required for the initial student residence permit?",
       "options": [
-        "Track APS",
-        "Guarantee visa approval",
-        "Verify admission",
-        "Check proof of funds"
+        "Yes, B2 always",
+        "Yes, C1 always",
+        "No — but the program sets its admission language",
+        "Only for FH"
+      ],
+      "correctIndex": 2,
+      "explanation": "No German requirement for the initial permit; the program sets the admission language."
+    },
+    {
+      "level": 2,
+      "question": "The means threshold differs between:",
+      "options": [
+        "Bachelor and master only",
+        "Vienna and Graz",
+        "Public and private",
+        "Students under 24 and students 24 and over"
+      ],
+      "correctIndex": 3,
+      "explanation": "ASVG thresholds are age-linked: under-24 vs 24-and-over."
+    },
+    {
+      "level": 3,
+      "question": "A counsellor tells an Austria client they must complete APS. The issue?",
+      "options": [
+        "APS does not apply to Austria — it is a Germany requirement (contamination)",
+        "No issue",
+        "APS is faster",
+        "Lower fee"
+      ],
+      "correctIndex": 0,
+      "explanation": "Importing APS into an Austria file is a factual error."
+    },
+    {
+      "level": 3,
+      "question": "A 25-year-old client is quoted the under-24 means figure. The error?",
+      "options": [
+        "No error",
+        "Wrong age bracket — 24+ must show the higher ASVG amount",
+        "Too high",
+        "Means not required"
       ],
       "correctIndex": 1,
-      "explanation": "No guarantees.",
-      "level": 1
-    },
-    {
-      "level": 1,
-      "question": "For Austriany – Student Visa (National Visa), which statement about Description is correct?",
-      "options": [
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
-        "Austrian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-      ],
-      "correctIndex": 0,
-      "explanation": "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
-    },
-    {
-      "level": 1,
-      "question": "Austriany – Student Visa (National Visa): what is true regarding Eligible applicants?",
-      "options": [
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
-        "Austrian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-      ],
-      "correctIndex": 0,
-      "explanation": "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Austriany – Student Visa (National Visa) should state correctly about Proof of funds:",
-      "options": [
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "Austrian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-      ],
-      "correctIndex": 0,
-      "explanation": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies. — verify current rules."
-    },
-    {
-      "level": 1,
-      "question": "For Austriany – Student Visa (National Visa), which statement about Key authority is correct?",
-      "options": [
-        "Austrian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Austrian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-    },
-    {
-      "level": 1,
-      "question": "Austriany – Student Visa (National Visa): what is true regarding After approval?",
-      "options": [
-        "Enter Austriany; register address; apply for residence permit at Ausländerbehörde within visa validity.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Enter Austriany; register address; apply for residence permit at Ausländerbehörde within visa validity."
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Austriany – Student Visa (National Visa) should state correctly about Admission from recognised Austrian institution:",
-      "options": [
-        "Admission from recognised Austrian institution is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Admission from recognised Austrian institution"
-    },
-    {
-      "level": 1,
-      "question": "For Austriany – Student Visa (National Visa), which statement about admission documentation (India) is correct?",
-      "options": [
-        "admission documentation (India) is often required or assessed for this service. Note: Apply early—processing takes weeks",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Apply early—processing takes weeks"
-    },
-    {
-      "level": 1,
-      "question": "Austriany – Student Visa (National Visa): what is true regarding Proof of funds or financial proof?",
-      "options": [
-        "Proof of funds or financial proof is often required or assessed for this service. Note: required living funds for 2026 or equivalent",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "required living funds for 2026 or equivalent"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Austriany – Student Visa (National Visa) should state correctly about Health insurance (travel + statutory):",
-      "options": [
-        "Health insurance (travel + statutory) is often required or assessed for this service.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Health insurance (travel + statutory)"
-    },
-    {
-      "level": 1,
-      "question": "For Austriany – Student Visa (National Visa), which statement about Motivation letter and CV is correct?",
-      "options": [
-        "Motivation letter and CV is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Motivation letter and CV"
-    },
-    {
-      "level": 1,
-      "question": "Austriany – Student Visa (National Visa): what is true regarding Language proficiency (as required)?",
-      "options": [
-        "Language proficiency (as required) is a core requirement for this service. Note: Austrian or English per program",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Austrian or English per program"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Austriany – Student Visa (National Visa) should state correctly about Valid passport:",
-      "options": [
-        "Valid passport is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Valid passport"
-    },
-    {
-      "level": 1,
-      "question": "For Austriany – Student Visa (National Visa), which statement about Processing time is correct?",
-      "options": [
-        "Processing time: 6–12w — After complete file + APS",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "After complete file + APS"
-    },
-    {
-      "level": 1,
-      "question": "Austriany – Student Visa (National Visa): what is true regarding Government fee?",
-      "options": [
-        "Government fee: €75 — + proof of funds required living funds",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ proof of funds required living funds"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Austriany – Student Visa (National Visa) should state correctly about Our approval rate:",
-      "options": [
-        "Our approval rate: 88% — ~74% benchmark",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "~74% benchmark"
-    },
-    {
-      "level": 1,
-      "question": "For Austriany – Student Visa (National Visa), which statement about Required docs is correct?",
-      "options": [
-        "Required docs: 15 — + APS & proof of funds",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ APS & proof of funds"
-    },
-    {
-      "level": 1,
-      "question": "Austriany – Student Visa (National Visa): what is true regarding Consultancy fee?",
-      "options": [
-        "Consultancy fee: See fee tab — + govt & third-party",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ govt & third-party"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Austriany – Student Visa (National Visa) should state correctly about service summary:",
-      "options": [
-        "Austrian Embassy · National D visa · Admission + proof of funds · Austria admission docs",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Austrian Embassy · National D visa · Admission + proof of funds · Austria admission docs"
-    },
-    {
-      "level": 1,
-      "question": "For Austriany – Student Visa (National Visa), which statement about Austria admission requirements is correct?",
-      "options": [
-        "Indian students generally need admission documentation before visa appointment. Verify current APS processing time before promising intake dates.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Indian students generally need admission documentation before visa appointment. Verify current APS processing time before promising intake dates."
-    },
-    {
-      "level": 1,
-      "question": "Austriany – Student Visa (National Visa): what is true regarding policy update?",
-      "options": [
-        "Confirm current national visa fee (€75 approx) and proof of funds amount (required living funds for 2026) on www.migration.gv.at and www.migration.gv.at before quoting.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Confirm current national visa fee (€75 approx) and proof of funds amount (required living funds for 2026) on www.migration.gv.at and www.migration.gv.at before quoting."
-    },
-    {
-      "level": 2,
-      "question": "In the Austriany – Student Visa (National Visa) process, what is the correct approach to client question: Can we guarantee student visa approval?",
-      "options": [
-        "No. Embassy decides based on admission, funds, and credibility. Never promise approval.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
-    },
-    {
-      "level": 2,
-      "question": "For Austriany – Student Visa (National Visa), what should happen during client question: What is APS?",
-      "options": [
-        "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants."
-    },
-    {
-      "level": 2,
-      "question": "Austriany – Student Visa (National Visa) workflow — best practice for client question: Proof of funds amount for 2026:",
-      "options": [
-        "Typically required living funds (12 months × €992). Verify current amount before opening account.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Typically required living funds (12 months × €992). Verify current amount before opening account."
-    },
-    {
-      "level": 2,
-      "question": "In the Austriany – Student Visa (National Visa) process, what is the correct approach to client question: Can spouse accompany?",
-      "options": [
-        "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
-    },
-    {
-      "level": 2,
-      "question": "For Austriany – Student Visa (National Visa), what should happen during client question: English-taught programs need Austrian?",
-      "options": [
-        "Depends on program—follow admission and embassy requirements.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Depends on program—follow admission and embassy requirements."
-    },
-    {
-      "level": 2,
-      "question": "Austriany – Student Visa (National Visa) workflow — best practice for client question: How long to convert to residence permit:",
-      "options": [
-        "Apply at Ausländerbehörde soon after arrival and registration.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Apply at Ausländerbehörde soon after arrival and registration."
-    },
-    {
-      "level": 2,
-      "question": "In the Austriany – Student Visa (National Visa) process, what is the correct approach to client question: Can I work on student visa?",
-      "options": [
-        "Limited working hours permitted—verify current rules for students in Austriany.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Limited working hours permitted—verify current rules for students in Austriany."
-    },
-    {
-      "level": 2,
-      "question": "For Austriany – Student Visa (National Visa), what should happen during client question: What after graduation?",
-      "options": [
-        "Discuss 18-month job-seeker residence permit or Opportunity Card separately.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Discuss 18-month job-seeker residence permit or Opportunity Card separately."
-    },
-    {
-      "level": 2,
-      "question": "Austriany – Student Visa (National Visa) workflow — best practice for timeline (1–2):",
-      "options": [
-        "Counseling, admission review, APS initiation",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "1–2: Counseling, admission review, APS initiation"
-    },
-    {
-      "level": 2,
-      "question": "In the Austriany – Student Visa (National Visa) process, what is the correct approach to timeline (2–8)?",
-      "options": [
-        "APS processing, proof of funds, documents",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "2–8: APS processing, proof of funds, documents"
-    },
-    {
-      "level": 2,
-      "question": "For Austriany – Student Visa (National Visa), what should happen during timeline (8–10)?",
-      "options": [
-        "Embassy appointment & submission",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "8–10: Embassy appointment & submission"
-    },
-    {
-      "level": 2,
-      "question": "Austriany – Student Visa (National Visa) workflow — best practice for timeline (6–12):",
-      "options": [
-        "Embassy processing",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "6–12: Embassy processing"
-    },
-    {
-      "level": 2,
-      "question": "In the Austriany – Student Visa (National Visa) process, what is the correct approach to counselor tip?",
-      "options": [
-        "Start APS 3–4 months before intended intake",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Start APS 3–4 months before intended intake"
-    },
-    {
-      "level": 2,
-      "question": "For Austriany – Student Visa (National Visa), what should happen during counselor tip?",
-      "options": [
-        "Open proof of funds only after admission confirmed",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Open proof of funds only after admission confirmed"
-    },
-    {
-      "level": 2,
-      "question": "Austriany – Student Visa (National Visa) workflow — best practice for counselor tip:",
-      "options": [
-        "Book embassy slot when file 90% ready",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Book embassy slot when file 90% ready"
-    },
-    {
-      "level": 2,
-      "question": "Austriany – Student Visa (National Visa) workflow — best practice for post-approval step:",
-      "options": [
-        "Explain address registration (Anmeldung) within deadline",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Explain address registration (Anmeldung) within deadline"
-    },
-    {
-      "level": 2,
-      "question": "In the Austriany – Student Visa (National Visa) process, what is the correct approach to post-approval step?",
-      "options": [
-        "Guide on Ausländerbehörde appointment after arrival",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Guide on Ausländerbehörde appointment after arrival"
-    },
-    {
-      "level": 2,
-      "question": "For Austriany – Student Visa (National Visa), what should happen during post-approval step?",
-      "options": [
-        "Remind proof of funds monthly withdrawal rules",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Remind proof of funds monthly withdrawal rules"
-    },
-    {
-      "level": 2,
-      "question": "In the Austriany – Student Visa (National Visa) process, what is the correct approach to Sample passport bio page (mock)?",
-      "options": [
-        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
-    },
-    {
-      "level": 2,
-      "question": "For Austriany – Student Visa (National Visa), what should happen during Sample university admission letter (mock)?",
-      "options": [
-        "Austria university Zulassung for national visa.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Austria university Zulassung for national visa."
-    },
-    {
-      "level": 2,
-      "question": "Austriany – Student Visa (National Visa) workflow — best practice for Sample admission documentation (mock):",
-      "options": [
-        "Academic Evaluation Centre certificate for India.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Academic Evaluation Centre certificate for India."
-    },
-    {
-      "level": 2,
-      "question": "In the Austriany – Student Visa (National Visa) process, what is the correct approach to Sample proof of funds confirmation (mock)?",
-      "options": [
-        "Sperrkonto required living funds+ — explain to clients.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Sperrkonto required living funds+ — explain to clients."
-    },
-    {
-      "level": 2,
-      "question": "For Austriany – Student Visa (National Visa), what should happen during Sample IELTS / TestDaF certificate (mock)?",
-      "options": [
-        "Language proof for degree program.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Language proof for degree program."
-    },
-    {
-      "level": 2,
-      "question": "Austriany – Student Visa (National Visa) workflow — best practice for Sample CV & motivation letter (mock):",
-      "options": [
-        "Austrian embassy standard application packet.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Austrian embassy standard application packet."
-    },
-    {
-      "level": 2,
-      "question": "In the Austriany – Student Visa (National Visa) process, what is the correct approach to Sample travel health insurance (mock)?",
-      "options": [
-        "Coverage from arrival until enrollment.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Coverage from arrival until enrollment."
+      "explanation": "Means thresholds are age-linked; a 24+ applicant needs the higher figure."
     },
     {
       "level": 3,
-      "question": "Austriany – Student Visa (National Visa): what is the compliance risk with APS not completed?",
+      "question": "A bank statement shows one large deposit days before applying. Best action?",
       "options": [
-        "Complete APS before embassy slot; track processing on APS website",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "Lodge now",
+        "Hide it",
+        "Show 12 months of consistent funds and document the source",
+        "Convert to cash"
       ],
-      "correctIndex": 0,
-      "explanation": "Visa appointment booked without admission documentation."
+      "correctIndex": 2,
+      "explanation": "Consistent 12-month funds beat a one-off deposit; source must be documented."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Austriany – Student Visa (National Visa) — key issue with APS not completed (detail):",
+      "question": "A client asks FLC to hold their proof-of-means funds. You:",
       "options": [
-        "Visa appointment booked without admission documentation.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "Hold them",
+        "Route them through the firm",
+        "Charge a fee",
+        "Refuse — the funds belong to the client and are never routed through the firm"
       ],
-      "correctIndex": 0,
-      "explanation": "Complete APS before embassy slot; track processing on APS website"
+      "correctIndex": 3,
+      "explanation": "Never receive or route client funds — a compliance breach."
     },
     {
       "level": 3,
-      "question": "For Austriany – Student Visa (National Visa), counselors must avoid this mistake related to Insufficient proof of funds:",
+      "question": "A client wants a written guarantee of the permit. You:",
       "options": [
-        "Open proof of funds at approved bank for full required amount",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "Refuse and use approved non-guaranteeing language",
+        "Provide it",
+        "Charge extra",
+        "Promise a date"
       ],
       "correctIndex": 0,
-      "explanation": "Amount below required monthly sum or not from recognised provider."
+      "explanation": "Never guarantee an outcome; the authorities decide."
     },
     {
       "level": 3,
-      "question": "Austriany – Student Visa (National Visa): what is the compliance risk with Insufficient proof of funds (detail)?",
+      "question": "A student is at 9 ECTS after year one. The risk at renewal?",
       "options": [
-        "Amount below required monthly sum or not from recognised provider.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "No risk",
+        "A renewal review for falling below 16 ECTS; non-renewal risk on a second year",
+        "Automatic renewal",
+        "Lower fee"
       ],
-      "correctIndex": 0,
-      "explanation": "Open proof of funds at approved bank for full required amount"
+      "correctIndex": 1,
+      "explanation": "Below 16 ECTS/year triggers review and can lead to non-renewal."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Austriany – Student Visa (National Visa) — key issue with Admission not from recognised institution:",
+      "question": "A client omits a prior Schengen refusal on the form. The risk?",
       "options": [
-        "Verify Anabin/institution recognition before fees",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "None",
+        "Faster approval",
+        "Misrepresentation — refusal and possible entry ban",
+        "Lower fee"
       ],
-      "correctIndex": 0,
-      "explanation": "Private unrecognised college or expired Zulassung."
+      "correctIndex": 2,
+      "explanation": "Concealing a refusal risks a misrepresentation finding."
     },
     {
       "level": 3,
-      "question": "For Austriany – Student Visa (National Visa), counselors must avoid this mistake related to Admission not from recognised institution (detail):",
+      "question": "A counsellor wants to publish a firm approval rate vs an unnamed 'industry' figure. The issue?",
       "options": [
-        "Private unrecognised college or expired Zulassung.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "No issue",
+        "It is required",
+        "It lowers the fee",
+        "Unsourced/comparative claims risk misleading advertising and implying a guarantee"
+      ],
+      "correctIndex": 3,
+      "explanation": "Do not publish firm rates or comparative benchmarks as headline claims."
+    },
+    {
+      "level": 2,
+      "question": "Who applies for the student's employment permit (Beschäftigungsbewilligung) and when?",
+      "options": [
+        "The employer, at the AMS, before the student starts work",
+        "The student, after starting work",
+        "No permit is needed",
+        "The university"
       ],
       "correctIndex": 0,
-      "explanation": "Verify Anabin/institution recognition before fees"
+      "explanation": "The employer must obtain the Beschäftigungsbewilligung from the AMS before work begins — even for marginal employment."
     },
     {
       "level": 3,
-      "question": "Austriany – Student Visa (National Visa): what is the compliance risk with Weak motivation letter?",
+      "question": "A counsellor tells a bachelor student they may work 20 h/week. The issue?",
       "options": [
-        "Course-specific motivation linking prior study to Austrian program",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "No issue",
+        "Wrong — bachelor students are capped at 10 h/week (20 h is master's/PhD)",
+        "Too low",
+        "Work is unlimited"
       ],
-      "correctIndex": 0,
-      "explanation": "Generic letter not explaining study plan and Austriany choice."
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Austriany – Student Visa (National Visa) — key issue with Weak motivation letter (detail):",
-      "options": [
-        "Generic letter not explaining study plan and Austriany choice.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Course-specific motivation linking prior study to Austrian program"
-    },
-    {
-      "level": 3,
-      "question": "For Austriany – Student Visa (National Visa), counselors must avoid this mistake related to Language proof missing:",
-      "options": [
-        "Obtain required TestDaF/IELTS/Goethe per admission",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Program requires Austrian/English certificate not provided."
-    },
-    {
-      "level": 3,
-      "question": "Austriany – Student Visa (National Visa): what is the compliance risk with Language proof missing (detail)?",
-      "options": [
-        "Program requires Austrian/English certificate not provided.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Obtain required TestDaF/IELTS/Goethe per admission"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Austriany – Student Visa (National Visa) — key issue with Prior refusals not addressed:",
-      "options": [
-        "Disclose and explain changed circumstances",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Schengen or Austrian refusals hidden."
-    },
-    {
-      "level": 3,
-      "question": "For Austriany – Student Visa (National Visa), counselors must avoid this mistake related to Prior refusals not addressed (detail):",
-      "options": [
-        "Schengen or Austrian refusals hidden.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Disclose and explain changed circumstances"
-    },
-    {
-      "level": 3,
-      "question": "Austriany – Student Visa (National Visa): what is the compliance risk with counselor don't?",
-      "options": [
-        "Do not guarantee approval",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not guarantee approval"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Austriany – Student Visa (National Visa) — key issue with counselor don't:",
-      "options": [
-        "Do not book embassy without APS",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not book embassy without APS"
-    },
-    {
-      "level": 3,
-      "question": "For Austriany – Student Visa (National Visa), counselors must avoid this mistake related to counselor don't:",
-      "options": [
-        "Do not use unrecognised institutions",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not use unrecognised institutions"
-    },
-    {
-      "level": 3,
-      "question": "For Austriany – Student Visa (National Visa), counselors must avoid this mistake related to common mistake:",
-      "options": [
-        "APS applied too late for intake",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: APS applied too late for intake"
-    },
-    {
-      "level": 3,
-      "question": "Austriany – Student Visa (National Visa): what is the compliance risk with common mistake?",
-      "options": [
-        "Proof of funds short by even €1",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Proof of funds short by even €1"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Austriany – Student Visa (National Visa) — key issue with common mistake:",
-      "options": [
-        "Generic motivation letter",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Generic motivation letter"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Austriany – Student Visa (National Visa) — key issue with compliance rule:",
-      "options": [
-        "Client service agreement and consent must be on file before submission",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Client service agreement and consent must be on file before submission"
-    },
-    {
-      "level": 3,
-      "question": "For Austriany – Student Visa (National Visa), counselors must avoid this mistake related to compliance rule:",
-      "options": [
-        "Never guarantee visa or immigration approval; use approved-language only",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
-    },
-    {
-      "level": 3,
-      "question": "Austriany – Student Visa (National Visa): what is the compliance risk with compliance rule?",
-      "options": [
-        "Fee quotes must separate consultancy, government, and third-party costs",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
-    },
-    {
-      "level": 3,
-      "question": "For Austriany – Student Visa (National Visa), counselors must avoid this mistake related to refusal handling:",
-      "options": [
-        "After refusal, address embassy feedback before rebooking—proof of funds and APS cannot be rushed last minute.",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "After refusal, address embassy feedback before rebooking—proof of funds and APS cannot be rushed last minute."
-    },
-    {
-      "level": 3,
-      "question": "Austriany – Student Visa (National Visa): what is the compliance risk with Our rate vs industry?",
-      "options": [
-        "Our target: 88% vs benchmark 74%",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Our rate vs industry"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Austriany – Student Visa (National Visa) — key issue with APS timing:",
-      "options": [
-        "Our target: 85% vs benchmark 68%",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "APS timing"
-    },
-    {
-      "level": 3,
-      "question": "For Austriany – Student Visa (National Visa), counselors must avoid this mistake related to Financial docs:",
-      "options": [
-        "Our target: 87% vs benchmark 72%",
-        "National visa (Type D) for study at a recognised Austrian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Financial docs"
+      "correctIndex": 1,
+      "explanation": "Quoting a flat 20 h/week to an undergraduate is a permit-condition error."
     }
   ],
   "donts": {
     "dos": [
-      "Start APS early",
-      "Verify institution on Anabin",
-      "Open proof of funds for full required amount",
-      "Write course-specific motivation letter",
-      "Disclose prior refusals"
+      "Confirm the institution is recognised and the Zulassungsbescheid is valid before any fee",
+      "Use the correct age-linked ASVG proof-of-means figure and prove 12 months",
+      "Arrange ÖGK student self-insurance (or accepted private cover) and accommodation",
+      "Disclose and address any prior Schengen/Austrian refusal in writing",
+      "Quote consultancy, government and third-party costs on separate lines",
+      "Counsel on the 16-ECTS/year renewal rule and the 3-day registration"
     ],
     "donts": [
-      "Do not guarantee approval",
-      "Do not book embassy without APS",
-      "Do not use unrecognised institutions",
-      "Do not hide Schengen refusals",
-      "Do not quote outdated proof of funds amount"
+      "Do not tell an Austria client they need APS (that is a Germany requirement)",
+      "Do not use German concepts (Sperrkonto €992, Anabin, Ausländerbehörde) — Austria differs",
+      "Do not present a one-off large deposit as proof of means",
+      "Do not promise approval, a fixed processing time, or a guaranteed post-study stay",
+      "Do not treat a Schengen-free 90-day entry or a Visa D as a study permit"
     ],
     "mistakes": [
-      "APS applied too late for intake",
-      "Proof of funds short by even €1",
-      "Generic motivation letter",
-      "Wrong health insurance type",
-      "Expired admission letter"
+      "Importing APS / blocked-account / Anabin requirements from a Germany file",
+      "Quoting the wrong age-bracket means threshold",
+      "Missing the 16-ECTS/year progress rule at renewal",
+      "Missing the 3-working-day Meldezettel registration"
     ]
   },
   "sampleDocs": [
@@ -1381,19 +830,19 @@
       "docKind": "academic"
     },
     {
-      "title": "Sample admission documentation (mock)",
-      "description": "Academic Evaluation Centre certificate for India.",
+      "title": "Sample admission decision (Zulassungsbescheid, mock)",
+      "description": "Official admission decision from the Austrian institution — the basis for the residence permit (Austria does not use APS).",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
       "title": "Sample proof of funds confirmation (mock)",
-      "description": "Sperrkonto required living funds+ — explain to clients.",
+      "description": "Proof of means (age-linked ASVG threshold) over 12 months — explain accepted forms (savings, blocked account, scholarship, Haftungserklärung).",
       "mimeType": "application/pdf",
       "docKind": "financial"
     },
     {
-      "title": "Sample IELTS / TestDaF certificate (mock)",
+      "title": "Sample IELTS / ÖSD (German) certificate (mock)",
       "description": "Language proof for degree program.",
       "mimeType": "image/jpeg",
       "docKind": "language"
@@ -1414,21 +863,27 @@
   "navBucket": "visa",
   "workingRights": {
     "applicant": {
-      "summary": "Long-stay national student visa for Austria allows limited part-time work (typically up to 20 hours/week or per local law) after residence permit is issued.",
+      "summary": "Work is tiered and not automatic: bachelor students (before completing the first degree/diploma stage) may work up to 10 hours/week; students who have completed the bachelor's/first diploma stage and master's and PhD students may work up to 20 hours/week. The EMPLOYER must obtain an employment permit (Beschäftigungsbewilligung) from the AMS BEFORE the student starts — this applies even to marginal (geringfügige) employment. Work income cannot replace the proof-of-means requirement.",
       "details": [
-        "Verify exact hours with local immigration office after arrival.",
-        "Cannot rely on work income alone for residence renewal."
+        "Bachelor (pre-completion): up to 10 hours/week. Master's/PhD or post-bachelor stage: up to 20 hours/week.",
+        "The employer applies for the Beschäftigungsbewilligung at the AMS (typically ~4–6 weeks); the permit is job- and employer-specific. The student does not apply for it.",
+        "Up to the relevant cap there is no labour-market test; ABOVE the cap the AMS may run a labour-market test (Ersatzkraftverfahren) which can be refused.",
+        "Full-time work is possible during semester breaks, but the employer still needs the permit.",
+        "Work income does not satisfy the proof-of-means test for the permit or renewal; the study purpose must not be jeopardised."
       ],
       "restrictions": [
-        "Work not allowed until residence permit issued in many cases"
+        "Bachelor: 10 hours/week; Master's/PhD: 20 hours/week",
+        "Employer-applied Beschäftigungsbewilligung required before any work begins (even marginal employment)",
+        "Exceeding the cap triggers a possible AMS labour-market test"
       ],
-      "sourceUrl": "https://www.bmeia.gv.at/",
+      "sourceUrl": "https://www.migration.gv.at/en/types-of-immigration/permanent-immigration/students/",
       "lastVerified": "Jun 2026"
     },
     "spouse": {
-      "summary": "Spouse/partner may apply for family reunion; work rights depend on Austria residence permit conditions.",
+      "summary": "Family reunion for students is limited: the Residence Permit – Student is a temporary residence title, and bringing dependants requires separate proof of means and accommodation. A dependant's work access depends on the permit granted. Verify the current family-reunification rules with MA 35 / the Bezirkshauptmannschaft — do not assume same-as-skilled-worker access.",
       "details": [
-        "Often requires proof of accommodation, integration, and sufficient income of sponsor."
+        "Requires separate, higher proof of means and adequate accommodation for the family.",
+        "Student permits do not carry the same family-reunification rights as skilled-worker permits; treat as conditional and case-by-case."
       ],
       "restrictions": [],
       "sourceUrl": "https://www.bmeia.gv.at/",
@@ -1438,34 +893,34 @@
   "fullCostBreakdown": {
     "title": "Full cost breakdown — Austria – Student Residence Permit",
     "currency": "EUR",
-    "lastVerified": "Jun 2026",
-    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
-    "sourceUrl": "https://www.bmeia.gv.at/",
+    "lastVerified": "16 Jun 2026",
+    "disclaimer": "Indicative costs for counsellor discussions only. Values marked {{VERIFY_LIVE}} are dynamic and MUST be verified on official sources (migration.gv.at / oead.at / the Austrian mission) before quoting. Proof-of-means funds are the student's own money, not a fee. Austria does NOT use APS or a German-style blocked account. INR equivalents move with exchange rates.",
+    "sourceUrl": "https://www.migration.gv.at/en/types-of-immigration/permanent-immigration/students/",
     "sections": [
       {
         "id": "fees",
         "label": "Government & visa fees",
         "items": [
           {
-            "label": "Study permit application",
-            "amount": 235,
-            "unit": "per applicant",
+            "label": "Residence Permit – Student (authority fee)",
+            "amount": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Official sources describe a split (application + personalisation + police-data/fingerprinting); some 2026 sources cite a single unified amount — sources conflict. Verify current amount."
           },
           {
-            "label": "Biometrics",
-            "amount": 85,
-            "unit": "per applicant",
+            "label": "Visa D (where issued, consular fee)",
+            "amount": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "For travel/entrance exams; separate from the residence permit. Verify."
           },
           {
-            "label": "Medical exam (if required)",
-            "range": "INR 5,000–8,000",
-            "notes": "Panel physician",
+            "label": "Document legalisation / apostille / translation",
+            "range": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Per document; varies by country"
           }
         ]
       },
@@ -1474,26 +929,27 @@
         "label": "Tuition & education costs",
         "items": [
           {
-            "label": "Tuition (undergraduate, indicative)",
-            "range": "Mid-range for destination",
-            "notes": "Use offer letter amount",
+            "label": "Public university tuition (non-EU)",
+            "range": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Commonly ~€726.72/semester at public universities for non-EU students; Fachhochschulen/private differ. Verify."
           },
           {
-            "label": "Tuition deposit already paid",
-            "range": "Per LOA/CAS",
-            "notes": "Deduct from total funds",
+            "label": "ÖH student union fee",
+            "range": "{{VERIFY_LIVE}}",
+            "unit": "per semester",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Small mandatory student-union contribution"
           },
           {
             "label": "Books & materials",
-            "range": "500–1,500",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per year",
-            "notes": "Program dependent",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Program dependent"
           }
         ]
       },
@@ -1502,22 +958,28 @@
         "label": "Living costs",
         "items": [
           {
-            "label": "Living funds (embassy guideline)",
-            "range": "€9,000–12,000",
+            "label": "Proof-of-means funds (age-linked, ASVG)",
+            "amount": "{{VERIFY_LIVE}}",
             "unit": "per year",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Under-24 vs 24+ differ; 12-month proof. Verify current thresholds."
           },
           {
             "label": "Accommodation",
-            "range": "€350–900",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Vienna higher; smaller cities lower"
           },
           {
-            "label": "Food & transport",
-            "range": "€250–450",
+            "label": "ÖGK student health insurance",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Student self-insurance after entry; verify premium"
           }
         ]
       },
@@ -1532,21 +994,22 @@
           },
           {
             "label": "Flight / travel",
-            "range": "₹40,000–1,20,000",
+            "range": "Varies",
             "notes": "Season and route"
           },
           {
-            "label": "Document translation / notary",
-            "range": "₹2,000–15,000"
+            "label": "Document translation / notarisation",
+            "range": "Varies",
+            "notes": "Certified translation where required"
           },
           {
-            "label": "Courier & VFS premium services",
-            "range": "Optional"
+            "label": "Criminal record certificate + apostille",
+            "range": "Varies",
+            "notes": "Police clearance, legalised/translated"
           },
           {
             "label": "Forex / transfer charges",
-            "range": "Bank dependent",
-            "notes": "GIC, blocked account, tuition transfers"
+            "range": "Bank dependent"
           }
         ]
       }
@@ -1555,7 +1018,7 @@
       {
         "label": "Indicative first-year budget (excl. tuition band)",
         "value": "Counselor to calculate from sections above",
-        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+        "notes": "Cross-check the Zulassungsbescheid and the official migration.gv.at / mission fee pages before client commitment."
       }
     ]
   }

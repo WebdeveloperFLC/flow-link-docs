@@ -1,20 +1,20 @@
 {
   "displayName": "Australia – Student Visa (Subclass 500)",
-  "shortDescription": "Dept of Home Affairs · Subclass 500 · CoE required · GS requirement",
-  "version": "v2.0",
+  "shortDescription": "Dept of Home Affairs · Subclass 500 · CoE required · Genuine Student (GS) requirement",
+  "version": "v2.2",
   "versionStatus": "Live",
   "reviewStatus": "active",
-  "updatedLabel": "Updated 6 Jun 2026",
+  "updatedLabel": "Updated 16 Jun 2026",
   "learningLevel": "Intermediate",
   "learningMinutes": 20,
   "policyAlert": {
     "active": true,
-    "date": "6 Jun 2026",
-    "summary": "Confirm current Subclass 500 visa fee (AUD $2,000 approx) and GS requirements on homeaffairs.gov.au before quoting."
+    "date": "16 Jun 2026",
+    "summary": "Subclass 500 visa charge is from AUD $2,000 (since 1 Jul 2025) and the living-cost figure is AUD $29,710/yr for a single applicant — both indexed periodically. Offshore applications are prioritised under Ministerial Direction No. 111. Verify all fees, financial-capacity amounts and processing times on homeaffairs.gov.au before quoting; treat these as live CRM/official values."
   },
   "alert": {
     "title": "Genuine Student (GS) requirement",
-    "body": "Officers assess genuine intent to study. Weak GS statement and course mismatch are leading refusal factors for Indian applicants."
+    "body": "The GS requirement replaced the GTE test (for applications lodged on/after 23 Mar 2024). It is assessed through targeted questions inside the ImmiAccount application form (150-word limit per answer) plus supporting evidence — Home Affairs prefers applicants answer the form questions rather than attach a separate statement, and gives more weight to evidence-backed answers. Future PR intentions do NOT count against the applicant under GS. A generic or unevidenced response, or a course that doesn't fit the applicant's background, is a leading refusal trigger — especially for higher evidence-level (EL3) cohorts such as India, Nepal, Bangladesh and Bhutan."
   },
   "tags": [
     {
@@ -26,7 +26,7 @@
       "variant": "warning"
     },
     {
-      "label": "4–8 weeks",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
@@ -36,12 +36,12 @@
   ],
   "chips": [
     {
-      "label": "4–8 weeks processing",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
-      "label": "AUD $2,000 approx",
-      "variant": "neutral"
+      "label": "Visa charge from AUD $2,000 (verify)",
+      "variant": "warning"
     },
     {
       "label": "CoE mandatory",
@@ -55,20 +55,20 @@
   "kpis": [
     {
       "label": "Processing time",
-      "value": "4–8w",
-      "sub": "Varies by sector",
+      "value": "Varies",
+      "sub": "By sector, country & EL; MD 111 priority — verify live tool (dynamic)",
       "tone": "primary"
     },
     {
       "label": "Government fee",
-      "value": "AUD $2,000",
-      "sub": "Verify on homeaffairs.gov.au",
+      "value": "from AUD $2,000",
+      "sub": "Per applicant since 1 Jul 2025 — verify (dynamic)",
       "tone": "warning"
     },
     {
       "label": "Our approval rate",
-      "value": "86%",
-      "sub": "~73% industry benchmark",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Pull from live CRM case data; not a prediction of any individual outcome",
       "tone": "success"
     },
     {
@@ -91,11 +91,11 @@
     },
     {
       "label": "Eligible applicants",
-      "value": "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements"
+      "value": "Valid CoE from a CRICOS-registered provider · Genuine Student (GS) requirement · Financial capacity (12 months' living costs + tuition + travel) · English proficiency for the course level · OSHC for the full visa period · Health and character requirements"
     },
     {
       "label": "Financial evidence",
-      "value": "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting.",
+      "value": "Show access to 12 months' living costs (AUD $29,710 for a single applicant, since 10 May 2024) PLUS 12 months' tuition (course fee for the first year) PLUS travel, OR meet the annual-income alternative (parent/partner income, official tax evidence). Funds must be genuinely available; verify the current amounts on homeaffairs.gov.au.",
       "warning": true
     },
     {
@@ -104,7 +104,7 @@
     },
     {
       "label": "After approval",
-      "value": "Maintain enrolment, OSHC, and visa conditions. Work limits apply during study period."
+      "value": "Maintain enrolment and satisfactory course progress, keep OSHC for the whole stay, notify the provider of your address within 7 days of arrival, and comply with work limits (48 hours per fortnight in study periods). A Subclass 485 Temporary Graduate visa may follow eligible study."
     }
   ],
   "eligibility": [
@@ -116,17 +116,17 @@
     {
       "criterion": "Genuine Student (GS) requirement",
       "met": true,
-      "note": "Study rationale and home ties"
+      "note": "Answered via targeted ImmiAccount form questions (150-word limit each) with supporting evidence; a separate statement is not preferred. Cover ties, course/provider rationale and course benefit. Future PR intent does not count against the applicant."
     },
     {
       "criterion": "Financial capacity",
       "met": true,
-      "note": "Per Home Affairs amounts"
+      "note": "12 months' living costs (AUD $29,710 single) + first-year tuition + travel, or the annual-income alternative; funds must be genuinely available and source-documented."
     },
     {
       "criterion": "English proficiency",
       "met": true,
-      "note": "IELTS/PTE per course level"
+      "note": "IELTS/PTE/TOEFL/OET per provider and course level; packaged ELICOS may apply; check the provider's and Home Affairs' thresholds."
     },
     {
       "criterion": "OSHC for study duration",
@@ -170,137 +170,101 @@
     },
     {
       "title": "Prior refusals not addressed",
-      "description": "Hidden Australia or other refusals.",
-      "fix": "Disclose and explain changed circumstances",
-      "severity": "High"
+      "description": "Hidden Australian or other-country refusals, or any false statement. Non-disclosure risks refusal under PIC 4020 and a potential 3-year exclusion.",
+      "fix": "Disclose every prior refusal and explain changed circumstances; never conceal history (PIC 4020 risk)",
+      "severity": "Critical"
     },
     {
       "title": "English scores below requirement",
       "description": "Test expired or below course minimum.",
       "fix": "Retake and obtain valid scores before apply",
       "severity": "Medium"
+    },
+    {
+      "title": "Course/credential mismatch or unexplained 'step-down'",
+      "description": "Choosing a course below or unrelated to the applicant's existing qualifications without a clear rationale — a core GS failure point.",
+      "fix": "Justify the course choice and career logic explicitly in the GS statement; align level and field to the applicant's history",
+      "severity": "Very common"
+    },
+    {
+      "title": "Funds not genuinely available / unexplained large deposit",
+      "description": "Amount is present but unseasoned or its source is undocumented (recent lump sum), failing the genuine-access test.",
+      "fix": "Show 3+ months' history, document the source (sale, loan sanction, savings, sponsor income), and evidence genuine access",
+      "severity": "Very common"
     }
   ],
   "faqs": [
     {
       "q": "Can we guarantee Subclass 500 approval?",
-      "a": "No. Home Affairs assesses GS, funds, and eligibility. Strong files improve chances but approval is never guaranteed."
+      "a": "No. The Department of Home Affairs assesses the Genuine Student requirement, financial capacity, English, health and character. A strong, honest file improves the chances but a grant is never guaranteed — and we never promise one."
     },
     {
       "q": "What is GS requirement?",
-      "a": "Officers assess whether applicant is genuine student with credible study plan and intent to comply with visa conditions."
+      "a": "The Genuine Student (GS) requirement (which replaced GTE for applications lodged on/after 23 Mar 2024) tests whether the applicant genuinely intends to study. It is assessed through targeted questions inside the ImmiAccount application form — each answer capped at 150 words — plus supporting evidence. Home Affairs prefers applicants answer the form questions rather than attach a separate GS statement, and gives more weight to evidence-backed answers. Importantly, intending to seek PR later does NOT count against the applicant. A generic or unevidenced response is a leading refusal cause."
     },
     {
       "q": "How much funds to show?",
-      "a": "Verify current living cost amounts on homeaffairs.gov.au plus tuition and travel. Include credible source evidence."
+      "a": "Show 12 months' living costs — AUD $29,710 for a single applicant (since 10 May 2024) — PLUS the first 12 months' tuition PLUS travel, with more for any accompanying family. An income alternative exists (parent/partner annual income evidenced by official tax documents). Funds must be genuinely available and source-documented. Verify the current figures on homeaffairs.gov.au."
     },
     {
       "q": "Can spouse join?",
-      "a": "Partner may apply for subsequent entrant or separate visa depending on circumstances—assess case-by-case."
+      "a": "Yes. A partner can be included in the application or apply later as a subsequent entrant; they must be a genuine spouse/de facto partner and the relationship must be evidenced. Each adult family member attracts an additional visa charge. A partner's work rights flow from the student's stage of study. Assess case-by-case."
     },
     {
       "q": "Can student work?",
-      "a": "Limited work hours during study—verify current conditions on Home Affairs website."
+      "a": "Yes — up to 48 hours per fortnight during study periods and unlimited hours during scheduled course breaks. Work cannot start before the course begins, and the student must maintain enrolment, attendance, course progress and OSHC. Verify the current condition on homeaffairs.gov.au, as work rules change."
     },
     {
       "q": "When to apply?",
-      "a": "After CoE issued; allow processing time before course start."
+      "a": "After the CoE is issued, and with enough lead time before the course start for processing, biometrics (if required), health checks and any outstanding evidence. Check the live processing-time tool and the provider accepted start dates; offshore files are prioritised under Ministerial Direction No. 111."
     },
     {
       "q": "Is health exam mandatory?",
-      "a": "Depends on profile and country—follow Home Affairs health requirements."
+      "a": "Often. A health examination by a panel physician is required depending on country of residence, intended study (e.g. healthcare/teaching), and length of stay. Book early — it can delay the grant. Follow the exact instructions generated in ImmiAccount."
     },
     {
       "q": "What after graduation?",
-      "a": "Discuss Subclass 485 Temporary Graduate visa eligibility separately."
+      "a": "Eligible graduates may apply for a Subclass 485 Temporary Graduate visa to gain post-study work experience. Note the 485 charge rose substantially in 2026 — verify the current fee and eligibility (including any field/qualification and age limits) on homeaffairs.gov.au before advising."
     },
     {
-      "q": "What is Description for this service?",
-      "a": "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount application."
+      "q": "How much is the Subclass 500 visa application charge?",
+      "a": "From AUD $2,000 per applicant since 1 July 2025 (up from $1,600), payable in ImmiAccount at lodgement and non-refundable even if refused. A partner aged 18+ and dependent children attract additional charges. Lower charges apply to eligible Pacific Island and Timor-Leste applicants. Always confirm the current charge on homeaffairs.gov.au before quoting."
     },
     {
-      "q": "What is Eligible applicants for this service?",
-      "a": "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements"
+      "q": "What is OSHC and is it mandatory?",
+      "a": "Overseas Student Health Cover is mandatory for the entire visa period and must be arranged before the visa is granted. Cost varies by provider and duration (roughly AUD $500–$800/yr for a single student — verify with the provider). The policy start/end dates must cover the full visa, not just the course."
     },
     {
-      "q": "What is Financial evidence for this service?",
-      "a": "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+      "q": "What is Ministerial Direction No. 111 and why does it matter?",
+      "a": "MD 111 sets the priority order in which Home Affairs processes offshore student visa applications, linked to providers' enrolment allocations. It can materially affect processing speed, so the provider and the applicant's place in the allocation matter. Always quote the live processing-time guidance rather than a fixed number."
     },
     {
-      "q": "Important note on Financial evidence?",
-      "a": "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+      "q": "What English level is required?",
+      "a": "There is no single number — it depends on the course and provider, who set the accepted tests (IELTS, PTE Academic, TOEFL iBT, OET, etc.) and minimum scores. Packaged ELICOS can lower the direct-entry threshold. Confirm both the provider's and Home Affairs' requirements, and check the test validity date."
     },
     {
-      "q": "What is Key authority for this service?",
-      "a": "Department of Home Affairs (Australia)"
+      "q": "What does the financial 'genuine access' test mean?",
+      "a": "It is not enough to show a balance — the funds must be genuinely available to the applicant or sponsor. A large unexplained deposit just before lodging is a common refusal trigger. Show several months of history and document the source (savings, sale, sanctioned education loan, or evidenced sponsor income)."
     },
     {
-      "q": "What is After approval for this service?",
-      "a": "Maintain enrolment, OSHC, and visa conditions. Work limits apply during study period."
+      "q": "Can a refused Subclass 500 be appealed?",
+      "a": "Onshore refusals may have AAT/ART merits review rights; offshore refusals generally do not and require a corrected fresh application with a new CoE. Read the refusal grounds carefully (commonly GS, financial capacity, or PIC 4020) and fix the specific issue before reapplying. Never re-lodge the same weak file."
     },
     {
-      "q": "Is CoE from CRICOS provider required?",
-      "a": "Must match intended course"
+      "q": "Does field of study or institution affect the application?",
+      "a": "Yes. The provider must be CRICOS-registered, and the evidence level (EL) applied to the applicant's country and provider affects how much documentation is scrutinised. India, Nepal, Bangladesh and Bhutan are at the higher EL3 setting, so build a thorough GS statement and financial pack."
     },
     {
-      "q": "Is Genuine Student (GS) requirement required?",
-      "a": "Study rationale and home ties"
+      "q": "When should the application be lodged relative to course start?",
+      "a": "After the CoE is issued and with enough lead time for processing, biometrics (if required), health checks and any English/financial evidence. Allow several weeks to a few months; check the live processing-time tool and the provider's accepted start dates."
     },
     {
-      "q": "Is Financial capacity required?",
-      "a": "Per Home Affairs amounts"
+      "q": "What relationship/financial evidence is strongest for a sponsor?",
+      "a": "Where parents fund the study: their bank statements with history, official income/tax documents, a sponsorship/affidavit of support, and relationship proof. For loans: a sanction letter from a recognised lender covering tuition and living. The source matters as much as the amount."
     },
     {
-      "q": "Is English proficiency required?",
-      "a": "IELTS/PTE per course level"
-    },
-    {
-      "q": "Is OSHC for study duration required?",
-      "a": "Mandatory health cover"
-    },
-    {
-      "q": "Is Health exam (if required) required?",
-      "a": "Assess whether Health exam (if required) is satisfied for this case."
-    },
-    {
-      "q": "Is Police certificates (if required) required?",
-      "a": "Assess whether Police certificates (if required) is satisfied for this case."
-    },
-    {
-      "q": "What is the Processing time?",
-      "a": "4–8w — Varies by sector"
-    },
-    {
-      "q": "What is the Government fee?",
-      "a": "AUD $2,000 — Verify on homeaffairs.gov.au"
-    },
-    {
-      "q": "What is the Our approval rate?",
-      "a": "86% — ~73% industry benchmark"
-    },
-    {
-      "q": "What is the Required docs?",
-      "a": "14 — + OSHC & funds"
-    },
-    {
-      "q": "What is the Consultancy fee?",
-      "a": "See fee tab — + govt & OSHC"
-    },
-    {
-      "q": "What if the client has Weak Genuine Student statement?",
-      "a": "Course-specific GS linking prior study/work to Australia program"
-    },
-    {
-      "q": "Why is Weak Genuine Student statement a problem?",
-      "a": "Generic GS, course mismatch with background, unclear career plan."
-    },
-    {
-      "q": "What if the client has Insufficient financial evidence?",
-      "a": "12-month funds per guidelines; sponsor ITR; loan evidence"
-    },
-    {
-      "q": "Why is Insufficient financial evidence a problem?",
-      "a": "Unseasoned funds or amount below Home Affairs threshold."
+      "q": "What does FLC actually guarantee?",
+      "a": "Nothing about the outcome — the Department of Home Affairs decides. FLC prepares a strong, honest, well-documented file with a credible GS statement and verified funds, and never promises a grant, in writing or verbally."
     }
   ],
   "compliance": [
@@ -314,7 +278,11 @@
     "Draft GS before document collection",
     "Purchase OSHC for exact visa period",
     "Season funds early with ITR",
-    "Cross-check CoE against passport name"
+    "Cross-check CoE against passport name",
+    "Write the GS statement per client — name the course, provider, career outcome and home ties; never reuse a template.",
+    "Confirm the CRICOS registration of the provider AND course before any deposit.",
+    "Document genuine access to funds (3+ months history + source); a last-minute lump sum is a leading refusal trigger.",
+    "Treat the AUD $2,000 charge, AUD $29,710 living figure and processing times as live values — verify on homeaffairs.gov.au and pull from current CRM data."
   ],
   "postApproval": [
     "Send visa grant notification and conditions",
@@ -323,47 +291,48 @@
     "Discuss 485 pathway timeline if relevant"
   ],
   "performance": {
-    "ourRate": 86,
-    "industryRate": 73,
+    "ourRate": null,
+    "industryRate": null,
     "stats": [
       {
         "label": "Files this year",
-        "value": "192"
+        "value": "{{VERIFY_LIVE}}"
       },
       {
         "label": "Approved",
-        "value": "165"
+        "value": "{{VERIFY_LIVE}}"
       },
       {
         "label": "Refused",
-        "value": "19"
+        "value": "{{VERIFY_LIVE}}"
       },
       {
         "label": "Withdrawn",
-        "value": "8"
+        "value": "{{VERIFY_LIVE}}"
       }
-    ]
+    ],
+    "note": "Approval rate and file counts are indicative and should be pulled live from CRM case data, not published as fixed figures. Verify before release."
   },
   "approvalFactors": [
     {
       "label": "Our rate vs industry",
-      "ours": 86,
-      "benchmark": 73
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
       "label": "GS quality",
-      "ours": 84,
-      "benchmark": 68
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
       "label": "Financial docs",
-      "ours": 82,
-      "benchmark": 70
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
       "label": "First-submit completeness",
-      "ours": 91,
-      "benchmark": 74
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     }
   ],
   "timeline": [
@@ -380,8 +349,8 @@
       "title": "ImmiAccount submission & biometrics"
     },
     {
-      "weeks": "4–8",
-      "title": "Home Affairs processing"
+      "weeks": "Varies",
+      "title": "Home Affairs processing — varies by sector/country/EL (MD 111); quote the live tool"
     }
   ],
   "relatedServices": [
@@ -399,6 +368,24 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.2",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Consistency fix + version alignment: removed invented statistics that remained from earlier passes — set performance.ourRate/industryRate to null, converted hardcoded file counts (192/165/19/8) and the approvalFactors ours/benchmark pairs to {{VERIFY_LIVE}}/null, and replaced the hardcoded approval-rate KPI (86%) with {{VERIFY_LIVE}}. Brings Australia in line with the rest of the service-library (no published approval rates or unsourced benchmarks). No other content changed; all factual content and prior corrections are unchanged."
+    },
+    {
+      "version": "v2.2",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Publication-readiness fixes: removed the fixed 4–8 week processing claim (now 'varies — verify live tool', consistent with MD 111 and the file's own warnings); aligned Genuine Student content to the official model (answered via 150-word ImmiAccount form questions with evidence, separate statement not preferred, future PR intent does not count against the applicant); corrected the GS resource URL to /genuine-student-requirement; made the financial-increase date precise (10 May 2024); and flagged the approval rate, file counts and benchmark factors as live CRM values rather than fixed published figures."
+    },
+    {
+      "version": "v2.1",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Gold-standard content pass: replaced auto-generated template FAQs and quiz questions with real counsellor Q&A; corrected the Subclass 500 charge to from AUD $2,000 (since 1 Jul 2025) and the living-cost figure to AUD $29,710 (single, since 10 May 2024); added Genuine Student detail, Ministerial Direction No. 111, EL3 cohort note, PIC 4020 and genuine-access guidance; removed wrong-domain leftovers (GIC/blocked account/CAS) from the cost breakdown; flagged fees, living costs, processing times and approval rate as values that should be dynamic/CRM-sourced; varied the quiz answer key across positions. Also replaced residual GTE terminology and the GTE resource link with the current Genuine Student (GS) references."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",
@@ -421,7 +408,7 @@
   "staffNotes": [
     {
       "author": "Documentation team",
-      "date": "6 Jun 2026",
+      "date": "16 Jun 2026",
       "text": "GS statement must be original—template GS is top QA rejection internally."
     }
   ],
@@ -432,9 +419,9 @@
       "description": "Official requirements"
     },
     {
-      "title": "Home Affairs — Genuine Student requirement",
-      "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500/genuine-temporary-entrant",
-      "description": "GS assessment criteria"
+      "title": "Home Affairs — Genuine Student (GS) requirement",
+      "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500/genuine-student-requirement",
+      "description": "Official guidance on the Genuine Student requirement (replaced GTE); verify current GS questions and evidence expectations"
     },
     {
       "title": "CRICOS register",
@@ -456,12 +443,12 @@
     {
       "question": "Mandatory enrolment document?",
       "options": [
-        "LOA only",
         "CoE from CRICOS provider",
+        "LOA only",
         "LMIA",
         "Job offer"
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "CoE required for Subclass 500.",
       "level": 1
     },
@@ -481,11 +468,11 @@
       "question": "OSHC is:",
       "options": [
         "Optional travel insurance",
-        "Mandatory Overseas Student Health Cover",
         "University tuition",
+        "Mandatory Overseas Student Health Cover",
         "Embassy fee"
       ],
-      "correctIndex": 1,
+      "correctIndex": 2,
       "explanation": "Required health cover for students.",
       "level": 1
     },
@@ -493,865 +480,313 @@
       "question": "Top refusal factor often:",
       "options": [
         "Wrong photo",
-        "Weak GS / course rationale",
         "Passport brand",
-        "Airline"
+        "Airline",
+        "Weak GS / course rationale"
       ],
-      "correctIndex": 1,
+      "correctIndex": 3,
       "explanation": "GS and credibility key.",
       "level": 1
     },
     {
       "question": "Counselors must never:",
       "options": [
-        "Verify CRICOS",
         "Guarantee visa approval",
+        "Verify CRICOS",
         "Check OSHC",
         "Review CoE"
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "No guarantees permitted.",
       "level": 1
     },
     {
       "level": 1,
-      "question": "For Australia – Student Visa (Subclass 500), which statement about Description is correct?",
+      "question": "Which visa lets international students study full-time in Australia?",
       "options": [
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting.",
-        "Department of Home Affairs (Australia)"
+        "Subclass 485",
+        "Subclass 500 (Student visa)",
+        "Subclass 600",
+        "Subclass 820"
       ],
-      "correctIndex": 0,
-      "explanation": "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount application."
+      "correctIndex": 1,
+      "explanation": "The Subclass 500 is the primary student visa."
     },
     {
       "level": 1,
-      "question": "Australia – Student Visa (Subclass 500): what is true regarding Eligible applicants?",
+      "question": "What document confirms enrolment for a Subclass 500 application?",
       "options": [
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting.",
-        "Department of Home Affairs (Australia)"
+        "A CAS",
+        "An I-20",
+        "Confirmation of Enrolment (CoE) from a CRICOS provider",
+        "A PAL"
       ],
-      "correctIndex": 0,
-      "explanation": "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements"
+      "correctIndex": 2,
+      "explanation": "Australia uses a CoE from a CRICOS-registered provider (CAS=UK, I-20=US, PAL=Canada)."
     },
     {
       "level": 1,
-      "question": "A counselor explaining Australia – Student Visa (Subclass 500) should state correctly about Financial evidence:",
+      "question": "The Genuine Student (GS) requirement replaced which former test?",
       "options": [
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Department of Home Affairs (Australia)"
+        "The IELTS test",
+        "The OSHC rule",
+        "The CRICOS check",
+        "The Genuine Temporary Entrant (GTE) test"
       ],
-      "correctIndex": 0,
-      "explanation": "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting. — verify current rules."
+      "correctIndex": 3,
+      "explanation": "GS replaced GTE as the genuineness test."
     },
     {
       "level": 1,
-      "question": "For Australia – Student Visa (Subclass 500), which statement about Key authority is correct?",
+      "question": "From 1 July 2025, the Subclass 500 visa charge is from:",
       "options": [
-        "Department of Home Affairs (Australia)",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "AUD $2,000",
+        "AUD $710",
+        "AUD $150",
+        "No fee"
       ],
       "correctIndex": 0,
-      "explanation": "Department of Home Affairs (Australia)"
+      "explanation": "The base charge rose to from AUD $2,000 on 1 Jul 2025."
     },
     {
       "level": 1,
-      "question": "Australia – Student Visa (Subclass 500): what is true regarding After approval?",
+      "question": "The single-applicant living-cost figure (since 10 May 2024) is about:",
       "options": [
-        "Maintain enrolment, OSHC, and visa conditions. Work limits apply during study period.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "AUD $10,000 per year",
+        "AUD $29,710 per year",
+        "AUD $24,505 per year",
+        "No requirement"
       ],
-      "correctIndex": 0,
-      "explanation": "Maintain enrolment, OSHC, and visa conditions. Work limits apply during study period."
+      "correctIndex": 1,
+      "explanation": "The living-cost figure rose to AUD $29,710 for a single applicant."
     },
     {
       "level": 1,
-      "question": "A counselor explaining Australia – Student Visa (Subclass 500) should state correctly about CoE from CRICOS provider:",
+      "question": "Subclass 500 students may work how many hours during study periods?",
       "options": [
-        "CoE from CRICOS provider is a core requirement for this service. Note: Must match intended course",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "Unlimited",
+        "20 hours per week",
+        "Up to 48 hours per fortnight",
+        "None"
       ],
-      "correctIndex": 0,
-      "explanation": "Must match intended course"
+      "correctIndex": 2,
+      "explanation": "The cap is 48 hours per fortnight in study periods; unlimited in scheduled breaks."
     },
     {
       "level": 1,
-      "question": "For Australia – Student Visa (Subclass 500), which statement about Genuine Student (GS) requirement is correct?",
+      "question": "Health cover required for the full visa period is called:",
       "options": [
-        "Genuine Student (GS) requirement is a core requirement for this service. Note: Study rationale and home ties",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "OHIP",
+        "NHS cover",
+        "Medicare",
+        "OSHC (Overseas Student Health Cover)"
       ],
-      "correctIndex": 0,
-      "explanation": "Study rationale and home ties"
+      "correctIndex": 3,
+      "explanation": "OSHC is mandatory for the whole visa period."
     },
     {
       "level": 1,
-      "question": "Australia – Student Visa (Subclass 500): what is true regarding Financial capacity?",
+      "question": "Where is the Subclass 500 application lodged?",
       "options": [
-        "Financial capacity is a core requirement for this service. Note: Per Home Affairs amounts",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "Online via ImmiAccount",
+        "By post only",
+        "At the airport",
+        "Through the university only"
       ],
       "correctIndex": 0,
-      "explanation": "Per Home Affairs amounts"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Australia – Student Visa (Subclass 500) should state correctly about English proficiency:",
-      "options": [
-        "English proficiency is a core requirement for this service. Note: IELTS/PTE per course level",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "IELTS/PTE per course level"
-    },
-    {
-      "level": 1,
-      "question": "For Australia – Student Visa (Subclass 500), which statement about OSHC for study duration is correct?",
-      "options": [
-        "OSHC for study duration is often required or assessed for this service. Note: Mandatory health cover",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Mandatory health cover"
-    },
-    {
-      "level": 1,
-      "question": "Australia – Student Visa (Subclass 500): what is true regarding Health exam (if required)?",
-      "options": [
-        "Health exam (if required) is often required or assessed for this service.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Health exam (if required)"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Australia – Student Visa (Subclass 500) should state correctly about Police certificates (if required):",
-      "options": [
-        "Police certificates (if required) is often required or assessed for this service.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Police certificates (if required)"
-    },
-    {
-      "level": 1,
-      "question": "For Australia – Student Visa (Subclass 500), which statement about Processing time is correct?",
-      "options": [
-        "Processing time: 4–8w — Varies by sector",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Varies by sector"
-    },
-    {
-      "level": 1,
-      "question": "Australia – Student Visa (Subclass 500): what is true regarding Government fee?",
-      "options": [
-        "Government fee: AUD $2,000 — Verify on homeaffairs.gov.au",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Verify on homeaffairs.gov.au"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Australia – Student Visa (Subclass 500) should state correctly about Our approval rate:",
-      "options": [
-        "Our approval rate: 86% — ~73% industry benchmark",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "~73% industry benchmark"
-    },
-    {
-      "level": 1,
-      "question": "For Australia – Student Visa (Subclass 500), which statement about Required docs is correct?",
-      "options": [
-        "Required docs: 14 — + OSHC & funds",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ OSHC & funds"
-    },
-    {
-      "level": 1,
-      "question": "Australia – Student Visa (Subclass 500): what is true regarding Consultancy fee?",
-      "options": [
-        "Consultancy fee: See fee tab — + govt & OSHC",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ govt & OSHC"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Australia – Student Visa (Subclass 500) should state correctly about service summary:",
-      "options": [
-        "Dept of Home Affairs · Subclass 500 · CoE required · GS requirement",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Dept of Home Affairs · Subclass 500 · CoE required · GS requirement"
-    },
-    {
-      "level": 1,
-      "question": "Australia – Student Visa (Subclass 500): what is true regarding policy update?",
-      "options": [
-        "Confirm current Subclass 500 visa fee (AUD $2,000 approx) and GS requirements on homeaffairs.gov.au before quoting.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Confirm current Subclass 500 visa fee (AUD $2,000 approx) and GS requirements on homeaffairs.gov.au before quoting."
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Australia – Student Visa (Subclass 500) should state correctly about Can we guarantee Subclass 500 approval:",
-      "options": [
-        "No. Home Affairs assesses GS, funds, and eligibility. Strong files improve chances but approval is never guaranteed.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "No. Home Affairs assesses GS, funds, and eligibility. Strong files improve chances but approval is never guaranteed."
+      "explanation": "Applications are lodged online in ImmiAccount."
     },
     {
       "level": 2,
-      "question": "In the Australia – Student Visa (Subclass 500) process, what is the correct approach to client question: Can we guarantee Subclass 500 approval?",
+      "question": "What does the financial 'genuine access' test require?",
       "options": [
-        "No. Home Affairs assesses GS, funds, and eligibility. Strong files improve chances but approval is never guaranteed.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "Only a current balance screenshot",
+        "Funds genuinely available and source-documented, not just a balance",
+        "Cash on arrival",
+        "Nothing"
       ],
-      "correctIndex": 0,
-      "explanation": "No. Home Affairs assesses GS, funds, and eligibility. Strong files improve chances but approval is never guaranteed."
+      "correctIndex": 1,
+      "explanation": "Funds must be genuinely available with a documented source; lump sums are scrutinised."
     },
     {
       "level": 2,
-      "question": "For Australia – Student Visa (Subclass 500), what should happen during client question: What is GS requirement?",
+      "question": "Which direction governs the priority order for offshore student processing?",
       "options": [
-        "Officers assess whether applicant is genuine student with credible study plan and intent to comply with visa conditions.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "PIC 4020",
+        "Subclass 485",
+        "Ministerial Direction No. 111",
+        "CRICOS Act"
       ],
-      "correctIndex": 0,
-      "explanation": "Officers assess whether applicant is genuine student with credible study plan and intent to comply with visa conditions."
+      "correctIndex": 2,
+      "explanation": "MD 111 sets offshore processing priority tied to provider allocations."
     },
     {
       "level": 2,
-      "question": "Australia – Student Visa (Subclass 500) workflow — best practice for client question: How much funds to show:",
+      "question": "Non-disclosure of a prior refusal can trigger refusal under:",
       "options": [
-        "Verify current living cost amounts on homeaffairs.gov.au plus tuition and travel. Include credible source evidence.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "Condition 8105",
+        "The 48-hour rule",
+        "OSHC rules",
+        "PIC 4020 (and a potential 3-year exclusion)"
       ],
-      "correctIndex": 0,
-      "explanation": "Verify current living cost amounts on homeaffairs.gov.au plus tuition and travel. Include credible source evidence."
+      "correctIndex": 3,
+      "explanation": "PIC 4020 covers false or misleading information; exclusion can follow."
     },
     {
       "level": 2,
-      "question": "In the Australia – Student Visa (Subclass 500) process, what is the correct approach to client question: Can spouse join?",
+      "question": "India, Nepal, Bangladesh and Bhutan are currently at which evidence level?",
       "options": [
-        "Partner may apply for subsequent entrant or separate visa depending on circumstances—assess case-by-case.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "EL3 (higher scrutiny)",
+        "EL1",
+        "No evidence level",
+        "Exempt"
       ],
       "correctIndex": 0,
-      "explanation": "Partner may apply for subsequent entrant or separate visa depending on circumstances—assess case-by-case."
+      "explanation": "These countries are set at EL3, so documentation is scrutinised more."
     },
     {
       "level": 2,
-      "question": "For Australia – Student Visa (Subclass 500), what should happen during client question: Can student work?",
+      "question": "The annual-income alternative to savings must be evidenced by:",
       "options": [
-        "Limited work hours during study—verify current conditions on Home Affairs website.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "A verbal declaration",
+        "Official government/tax documentation of parent or partner income",
+        "A photo of cash",
+        "A social media post"
       ],
-      "correctIndex": 0,
-      "explanation": "Limited work hours during study—verify current conditions on Home Affairs website."
+      "correctIndex": 1,
+      "explanation": "The income alternative requires official tax evidence of the sponsor's income."
     },
     {
       "level": 2,
-      "question": "Australia – Student Visa (Subclass 500) workflow — best practice for client question: When to apply:",
+      "question": "School-aged dependent children add an annual schooling cost of about:",
       "options": [
-        "After CoE issued; allow processing time before course start.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "AUD $500 per child",
+        "Nothing",
+        "AUD $13,502 per child",
+        "AUD $1,000 per child"
       ],
-      "correctIndex": 0,
-      "explanation": "After CoE issued; allow processing time before course start."
+      "correctIndex": 2,
+      "explanation": "Official schooling cost is AUD $13,502 per child per year (additional to living costs)."
     },
     {
       "level": 2,
-      "question": "In the Australia – Student Visa (Subclass 500) process, what is the correct approach to client question: Is health exam mandatory?",
+      "question": "When can a Subclass 500 holder begin working?",
       "options": [
-        "Depends on profile and country—follow Home Affairs health requirements.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "On arrival",
+        "After the CoE",
+        "Anytime",
+        "Only on/after the course start date"
       ],
-      "correctIndex": 0,
-      "explanation": "Depends on profile and country—follow Home Affairs health requirements."
+      "correctIndex": 3,
+      "explanation": "Work cannot begin before the course starts."
     },
     {
       "level": 2,
-      "question": "For Australia – Student Visa (Subclass 500), what should happen during client question: What after graduation?",
+      "question": "OSHC dates must cover:",
       "options": [
-        "Discuss Subclass 485 Temporary Graduate visa eligibility separately.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "The full visa period, not just the course",
+        "Only the first month",
+        "Only exam periods",
+        "No fixed period"
       ],
       "correctIndex": 0,
-      "explanation": "Discuss Subclass 485 Temporary Graduate visa eligibility separately."
-    },
-    {
-      "level": 2,
-      "question": "Australia – Student Visa (Subclass 500) workflow — best practice for timeline (1–2):",
-      "options": [
-        "Counseling, CoE review, fee agreement",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "1–2: Counseling, CoE review, fee agreement"
-    },
-    {
-      "level": 2,
-      "question": "In the Australia – Student Visa (Subclass 500) process, what is the correct approach to timeline (2–4)?",
-      "options": [
-        "GS, funds, OSHC, documents",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "2–4: GS, funds, OSHC, documents"
-    },
-    {
-      "level": 2,
-      "question": "For Australia – Student Visa (Subclass 500), what should happen during timeline (4–5)?",
-      "options": [
-        "ImmiAccount submission & biometrics",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "4–5: ImmiAccount submission & biometrics"
-    },
-    {
-      "level": 2,
-      "question": "Australia – Student Visa (Subclass 500) workflow — best practice for timeline (4–8):",
-      "options": [
-        "Home Affairs processing",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "4–8: Home Affairs processing"
-    },
-    {
-      "level": 2,
-      "question": "In the Australia – Student Visa (Subclass 500) process, what is the correct approach to counselor tip?",
-      "options": [
-        "Verify CRICOS before CoE payment",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Verify CRICOS before CoE payment"
-    },
-    {
-      "level": 2,
-      "question": "For Australia – Student Visa (Subclass 500), what should happen during counselor tip?",
-      "options": [
-        "Draft GS before document collection",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Draft GS before document collection"
-    },
-    {
-      "level": 2,
-      "question": "Australia – Student Visa (Subclass 500) workflow — best practice for counselor tip:",
-      "options": [
-        "Purchase OSHC for exact visa period",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Purchase OSHC for exact visa period"
-    },
-    {
-      "level": 2,
-      "question": "Australia – Student Visa (Subclass 500) workflow — best practice for post-approval step:",
-      "options": [
-        "Send visa grant notification and conditions",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Send visa grant notification and conditions"
-    },
-    {
-      "level": 2,
-      "question": "In the Australia – Student Visa (Subclass 500) process, what is the correct approach to post-approval step?",
-      "options": [
-        "Remind OSHC maintenance and enrolment deadlines",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Remind OSHC maintenance and enrolment deadlines"
-    },
-    {
-      "level": 2,
-      "question": "For Australia – Student Visa (Subclass 500), what should happen during post-approval step?",
-      "options": [
-        "Explain work hour limits",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Explain work hour limits"
-    },
-    {
-      "level": 2,
-      "question": "In the Australia – Student Visa (Subclass 500) process, what is the correct approach to Sample passport bio page (mock)?",
-      "options": [
-        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
-    },
-    {
-      "level": 2,
-      "question": "For Australia – Student Visa (Subclass 500), what should happen during Sample CoE (mock)?",
-      "options": [
-        "Confirmation of Enrolment from CRICOS provider.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Confirmation of Enrolment from CRICOS provider."
-    },
-    {
-      "level": 2,
-      "question": "Australia – Student Visa (Subclass 500) workflow — best practice for Sample OSHC policy (mock):",
-      "options": [
-        "Overseas Student Health Cover certificate.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Overseas Student Health Cover certificate."
-    },
-    {
-      "level": 2,
-      "question": "In the Australia – Student Visa (Subclass 500) process, what is the correct approach to Sample GTE statement (mock)?",
-      "options": [
-        "Genuine Temporary Entrant written statement structure.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Genuine Temporary Entrant written statement structure."
-    },
-    {
-      "level": 2,
-      "question": "For Australia – Student Visa (Subclass 500), what should happen during Sample IELTS / PTE TRF (mock)?",
-      "options": [
-        "English scores for subclass 500.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "English scores for subclass 500."
-    },
-    {
-      "level": 2,
-      "question": "Australia – Student Visa (Subclass 500) workflow — best practice for Sample financial capacity proof (mock):",
-      "options": [
-        "Funds for tuition + travel + 12 months living.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Funds for tuition + travel + 12 months living."
-    },
-    {
-      "level": 2,
-      "question": "In the Australia – Student Visa (Subclass 500) process, what is the correct approach to Sample academic transcripts (mock)?",
-      "options": [
-        "Qualification history for GTE alignment.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Qualification history for GTE alignment."
+      "explanation": "OSHC must cover the entire visa period and be in place before grant."
     },
     {
       "level": 3,
-      "question": "Australia – Student Visa (Subclass 500): what is the compliance risk with Weak Genuine Student statement?",
+      "question": "A 32-year-old MBA holder applies for a 1-year diploma in a new field. Main risk?",
       "options": [
-        "Course-specific GS linking prior study/work to Australia program",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "No risk",
+        "A GS/course-mismatch concern — justify the choice and career logic",
+        "Only a fee issue",
+        "OSHC only"
       ],
-      "correctIndex": 0,
-      "explanation": "Generic GS, course mismatch with background, unclear career plan."
+      "correctIndex": 1,
+      "explanation": "Step-down or field-change without rationale is a core GS failure."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Australia – Student Visa (Subclass 500) — key issue with Weak Genuine Student statement (detail):",
+      "question": "A bank statement shows a large deposit 4 days before lodging, no history. Best action?",
       "options": [
-        "Generic GS, course mismatch with background, unclear career plan.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "Lodge now",
+        "Hide it",
+        "Document the source and show seasoning before lodging",
+        "Convert to cash"
       ],
-      "correctIndex": 0,
-      "explanation": "Course-specific GS linking prior study/work to Australia program"
+      "correctIndex": 2,
+      "explanation": "Genuine-access test: source and seasoning matter, not just the amount."
     },
     {
       "level": 3,
-      "question": "For Australia – Student Visa (Subclass 500), counselors must avoid this mistake related to Insufficient financial evidence:",
+      "question": "An offshore Subclass 500 is refused. Typical recourse?",
       "options": [
-        "12-month funds per guidelines; sponsor ITR; loan evidence",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "Automatic AAT appeal",
+        "Re-entry at the airport",
+        "Nothing",
+        "A corrected fresh application with a new CoE (offshore generally has no merits review)"
       ],
-      "correctIndex": 0,
-      "explanation": "Unseasoned funds or amount below Home Affairs threshold."
+      "correctIndex": 3,
+      "explanation": "Offshore refusals usually require a corrected re-application; onshore may have ART review."
     },
     {
       "level": 3,
-      "question": "Australia – Student Visa (Subclass 500): what is the compliance risk with Insufficient financial evidence (detail)?",
+      "question": "A client asks for a written guarantee of the visa. You:",
       "options": [
-        "Unseasoned funds or amount below Home Affairs threshold.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "Refuse and use approved non-guaranteeing language",
+        "Provide it",
+        "Charge extra",
+        "Promise a date"
       ],
       "correctIndex": 0,
-      "explanation": "12-month funds per guidelines; sponsor ITR; loan evidence"
+      "explanation": "Never guarantee an outcome; Home Affairs decides."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Australia – Student Visa (Subclass 500) — key issue with CoE / provider issues:",
+      "question": "A counsellor quotes the old AUD $710 charge. The issue?",
       "options": [
-        "Verify CRICOS register before CoE fee",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "Too high",
+        "Outdated — it is from AUD $2,000 since 1 Jul 2025; verify live",
+        "No issue",
+        "Fees aren't quoted"
       ],
-      "correctIndex": 0,
-      "explanation": "Non-CRICOS provider or course start passed."
+      "correctIndex": 1,
+      "explanation": "The charge rose to from AUD $2,000; always verify on homeaffairs.gov.au."
     },
     {
       "level": 3,
-      "question": "For Australia – Student Visa (Subclass 500), counselors must avoid this mistake related to CoE / provider issues (detail):",
+      "question": "A client omits a prior UK student-visa refusal on the form. The risk?",
       "options": [
-        "Non-CRICOS provider or course start passed.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "None",
+        "Faster processing",
+        "PIC 4020 misrepresentation — refusal and a potential 3-year exclusion",
+        "Lower fee"
       ],
-      "correctIndex": 0,
-      "explanation": "Verify CRICOS register before CoE fee"
+      "correctIndex": 2,
+      "explanation": "Undisclosed refusals risk PIC 4020 consequences."
     },
     {
       "level": 3,
-      "question": "Australia – Student Visa (Subclass 500): what is the compliance risk with OSHC gaps?",
+      "question": "The single strongest lever on a borderline GS file is:",
       "options": [
-        "Purchase OSHC covering full visa period",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "A bigger bank balance",
+        "More photos",
+        "A new passport",
+        "A specific, coherent GS statement with course-career logic and home ties"
       ],
-      "correctIndex": 0,
-      "explanation": "Missing or incorrect OSHC period."
+      "correctIndex": 3,
+      "explanation": "A genuine, specific GS narrative is the key lever."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Australia – Student Visa (Subclass 500) — key issue with OSHC gaps (detail):",
+      "question": "A student wants to work 60 hours in a fortnight during term. Advise:",
       "options": [
-        "Missing or incorrect OSHC period.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+        "Not allowed — the cap is 48 hours per fortnight in study periods",
+        "Allowed",
+        "Allowed if on campus",
+        "Allowed once"
       ],
       "correctIndex": 0,
-      "explanation": "Purchase OSHC covering full visa period"
-    },
-    {
-      "level": 3,
-      "question": "For Australia – Student Visa (Subclass 500), counselors must avoid this mistake related to Prior refusals not addressed:",
-      "options": [
-        "Disclose and explain changed circumstances",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Hidden Australia or other refusals."
-    },
-    {
-      "level": 3,
-      "question": "Australia – Student Visa (Subclass 500): what is the compliance risk with Prior refusals not addressed (detail)?",
-      "options": [
-        "Hidden Australia or other refusals.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Disclose and explain changed circumstances"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Australia – Student Visa (Subclass 500) — key issue with English scores below requirement:",
-      "options": [
-        "Retake and obtain valid scores before apply",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Test expired or below course minimum."
-    },
-    {
-      "level": 3,
-      "question": "For Australia – Student Visa (Subclass 500), counselors must avoid this mistake related to English scores below requirement (detail):",
-      "options": [
-        "Test expired or below course minimum.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Retake and obtain valid scores before apply"
-    },
-    {
-      "level": 3,
-      "question": "Australia – Student Visa (Subclass 500): what is the compliance risk with counselor don't?",
-      "options": [
-        "Do not guarantee approval",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not guarantee approval"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Australia – Student Visa (Subclass 500) — key issue with counselor don't:",
-      "options": [
-        "Do not use template GS",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not use template GS"
-    },
-    {
-      "level": 3,
-      "question": "For Australia – Student Visa (Subclass 500), counselors must avoid this mistake related to counselor don't:",
-      "options": [
-        "Do not apply with expired CoE",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not apply with expired CoE"
-    },
-    {
-      "level": 3,
-      "question": "For Australia – Student Visa (Subclass 500), counselors must avoid this mistake related to common mistake:",
-      "options": [
-        "Generic GS not matching course",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Generic GS not matching course"
-    },
-    {
-      "level": 3,
-      "question": "Australia – Student Visa (Subclass 500): what is the compliance risk with common mistake?",
-      "options": [
-        "OSHC period too short",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: OSHC period too short"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Australia – Student Visa (Subclass 500) — key issue with common mistake:",
-      "options": [
-        "Funds below threshold",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Funds below threshold"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Australia – Student Visa (Subclass 500) — key issue with compliance rule:",
-      "options": [
-        "Client service agreement and consent must be on file before submission",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Client service agreement and consent must be on file before submission"
-    },
-    {
-      "level": 3,
-      "question": "For Australia – Student Visa (Subclass 500), counselors must avoid this mistake related to compliance rule:",
-      "options": [
-        "Never guarantee visa approval",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Never guarantee visa approval"
-    },
-    {
-      "level": 3,
-      "question": "Australia – Student Visa (Subclass 500): what is the compliance risk with compliance rule?",
-      "options": [
-        "Fee quotes must separate consultancy, visa, OSHC, and medical costs",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Fee quotes must separate consultancy, visa, OSHC, and medical costs"
-    },
-    {
-      "level": 3,
-      "question": "For Australia – Student Visa (Subclass 500), counselors must avoid this mistake related to refusal handling:",
-      "options": [
-        "After refusal, analyse refusal letter and strengthen GS statement and financial evidence before reapplication with new CoE.",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "After refusal, analyse refusal letter and strengthen GS statement and financial evidence before reapplication with new CoE."
-    },
-    {
-      "level": 3,
-      "question": "Australia – Student Visa (Subclass 500): what is the compliance risk with Our rate vs industry?",
-      "options": [
-        "Our target: 86% vs benchmark 73%",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Our rate vs industry"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Australia – Student Visa (Subclass 500) — key issue with GS quality:",
-      "options": [
-        "Our target: 84% vs benchmark 68%",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "GS quality"
-    },
-    {
-      "level": 3,
-      "question": "For Australia – Student Visa (Subclass 500), counselors must avoid this mistake related to Financial docs:",
-      "options": [
-        "Our target: 82% vs benchmark 70%",
-        "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount a…",
-        "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements",
-        "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
-      ],
-      "correctIndex": 0,
-      "explanation": "Financial docs"
+      "explanation": "Exceeding 48 hours per fortnight in study periods can risk the visa."
     }
   ],
   "donts": {
@@ -1360,21 +795,27 @@
       "Write original course-specific GS",
       "Purchase correct OSHC period",
       "Show funds per Home Affairs amounts",
-      "Disclose prior refusals"
+      "Disclose prior refusals",
+      "Match the course level/field to the applicant's background and state the rationale in the GS",
+      "Verify CRICOS registration and OSHC dates before lodging"
     ],
     "donts": [
       "Do not guarantee approval",
       "Do not use template GS",
       "Do not apply with expired CoE",
       "Do not hide refusals",
-      "Do not quote outdated fees"
+      "Do not quote outdated fees",
+      "Do not promise a grant or a fixed processing time — MD 111 priority varies",
+      "Do not lodge unseasoned or unexplained funds — the genuine-access test will fail"
     ],
     "mistakes": [
       "Generic GS not matching course",
       "OSHC period too short",
       "Funds below threshold",
       "Course unrelated to background without explanation",
-      "Blurry financial documents"
+      "Blurry financial documents",
+      "Quoting the old AUD $710 / $1,600 charge — it is from AUD $2,000 since 1 Jul 2025",
+      "Reusing a templated GS statement across clients (a core refusal cause)"
     ]
   },
   "sampleDocs": [
@@ -1397,8 +838,8 @@
       "docKind": "insurance"
     },
     {
-      "title": "Sample GTE statement (mock)",
-      "description": "Genuine Temporary Entrant written statement structure.",
+      "title": "Sample Genuine Student (GS) statement (mock)",
+      "description": "Genuine Student (GS) written statement structure — course-career logic and home ties.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
@@ -1416,7 +857,7 @@
     },
     {
       "title": "Sample academic transcripts (mock)",
-      "description": "Qualification history for GTE alignment.",
+      "description": "Qualification history for Genuine Student (GS) course alignment.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     }
@@ -1424,17 +865,21 @@
   "navBucket": "visa",
   "workingRights": {
     "applicant": {
-      "summary": "Subclass 500 students may work 48 hours per fortnight during study period and unlimited hours during breaks (verify current condition).",
+      "summary": "Subclass 500 students may work up to 48 hours per fortnight during study periods and unlimited hours during scheduled course breaks. Work cannot start before the course begins.",
       "details": [
-        "Work cannot start before course begins.",
-        "Must maintain enrolment and OSHC."
+        "48 hours per fortnight is the cap during study periods (a fortnight is any 14-day period); unlimited during scheduled breaks.",
+        "Must maintain enrolment, attendance, course progress and OSHC.",
+        "Some courses (e.g. certain research/aged-care roles) have specific exceptions — verify the live condition."
       ],
-      "restrictions": [],
+      "restrictions": [
+        "Work must not begin before the course start date",
+        "Breaching the 48-hour cap can risk the visa"
+      ],
       "sourceUrl": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500",
       "lastVerified": "Jun 2026"
     },
     "spouse": {
-      "summary": "Student dependant partners (subclass 500 subsequent entrant) can usually work up to 48 hours per fortnight; rules change — verify.",
+      "summary": "A student's partner included on the visa generally has work rights aligned to the student's study stage; for postgraduate/coursework-by-research the partner may have unrestricted work — verify the current condition on homeaffairs.gov.au.",
       "details": [],
       "restrictions": [],
       "sourceUrl": "https://immi.homeaffairs.gov.au/",
@@ -1444,25 +889,36 @@
   "fullCostBreakdown": {
     "title": "Full cost breakdown — Australia – Student Visa (Subclass 500)",
     "currency": "AUD",
-    "lastVerified": "Jun 2026",
-    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
-    "sourceUrl": "https://immi.homeaffairs.gov.au/",
+    "lastVerified": "16 Jun 2026",
+    "disclaimer": "Indicative costs for counsellor discussions only. The visa charge and living-cost figure are from official Home Affairs sources and should be re-verified on homeaffairs.gov.au before quoting — they are indexed periodically. INR equivalents move with exchange rates.",
+    "sourceUrl": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500",
     "sections": [
       {
         "id": "fees",
         "label": "Government & visa fees",
         "items": [
           {
-            "label": "Subclass 500 base",
-            "amount": 710,
+            "label": "Subclass 500 visa application charge (primary)",
+            "amount": 2000,
+            "unit": "from, per applicant",
             "currency": "AUD",
-            "applicable": true
+            "applicable": true,
+            "notes": "From 1 Jul 2025 (was $1,600). Non-refundable. Partner 18+ also pays; child under 18 less. Verify on homeaffairs.gov.au."
           },
           {
-            "label": "Health exam",
-            "range": "Varies",
+            "label": "Biometrics (if required)",
+            "amount": 45,
+            "unit": "per person",
             "currency": "AUD",
-            "applicable": true
+            "applicable": true,
+            "notes": "Some nationalities only; collected at an AVAC"
+          },
+          {
+            "label": "Health examination (panel physician)",
+            "range": "300–500",
+            "currency": "AUD",
+            "applicable": true,
+            "notes": "Paid to the physician, not Home Affairs; varies by country"
           }
         ]
       },
@@ -1479,8 +935,8 @@
           },
           {
             "label": "Tuition deposit already paid",
-            "range": "Per LOA/CAS",
-            "notes": "Deduct from total funds",
+            "range": "Per CoE / Offer of Place",
+            "notes": "Use the CoE tuition amount; deduct any prepaid amount from required funds",
             "currency": "AUD",
             "applicable": true
           },
@@ -1499,16 +955,20 @@
         "label": "Living costs",
         "items": [
           {
-            "label": "Living costs (Home Affairs)",
+            "label": "Living costs (Home Affairs, single applicant)",
             "amount": 29710,
             "unit": "per year",
-            "currency": "AUD"
+            "currency": "AUD",
+            "applicable": true,
+            "notes": "Since May 2024 (was $24,505). Add for partner/children. Verify current figure."
           },
           {
             "label": "OSHC",
-            "range": "500–700",
+            "range": "500–800",
             "unit": "per year",
-            "currency": "AUD"
+            "currency": "AUD",
+            "applicable": true,
+            "notes": "Mandatory for the full visa period; varies by provider"
           }
         ]
       },
@@ -1523,21 +983,22 @@
           },
           {
             "label": "Flight / travel",
-            "range": "₹40,000–1,20,000",
+            "range": "Varies",
             "notes": "Season and route"
           },
           {
-            "label": "Document translation / notary",
-            "range": "₹2,000–15,000"
+            "label": "Document translation / notarisation",
+            "range": "Varies",
+            "notes": "Certified translation where required"
           },
           {
-            "label": "Courier & VFS premium services",
-            "range": "Optional"
+            "label": "English test (if needed)",
+            "range": "Varies",
+            "notes": "IELTS/PTE/TOEFL/OET provider fee"
           },
           {
             "label": "Forex / transfer charges",
-            "range": "Bank dependent",
-            "notes": "GIC, blocked account, tuition transfers"
+            "range": "Bank dependent"
           }
         ]
       }
@@ -1546,7 +1007,7 @@
       {
         "label": "Indicative first-year budget (excl. tuition band)",
         "value": "Counselor to calculate from sections above",
-        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+        "notes": "Always cross-check the CoE / Offer of Place and official Home Affairs fee pages before client commitment."
       }
     ]
   }

@@ -1,20 +1,20 @@
 {
-  "displayName": "France – Student Visa (VLS-TS)",
-  "shortDescription": "Campus France · VLS-TS long-stay · Proof of resources · French Embassy India",
-  "version": "v1.0",
+  "displayName": "France – Student Visa (VLS-TS Étudiant)",
+  "shortDescription": "Campus France (Études en France) · VLS-TS long-stay · Proof of resources · OFII/ANEF validation after arrival",
+  "version": "v2.2",
   "versionStatus": "Live",
   "reviewStatus": "active",
-  "updatedLabel": "Updated 9 Jun 2026",
+  "updatedLabel": "Updated 16 Jun 2026",
   "learningLevel": "Intermediate",
   "learningMinutes": 22,
   "policyAlert": {
     "active": true,
-    "date": "9 Jun 2026",
-    "summary": "Confirm VLS-TS fees and Campus France requirements on france-visas.gouv.fr before quoting."
+    "date": "16 Jun 2026",
+    "summary": "France issues the VLS-TS Étudiant (Visa Long Séjour valant Titre de Séjour) — a long-stay visa that FUNCTIONS as a residence permit once validated. Indian students must complete the Campus France 'Études en France' (EEF) procedure BEFORE the visa appointment. After arrival, validate the visa online via the ANEF/OFII platform within 3 months. France does NOT use the German 'APS' academic pre-check; note that in France 'APS' means a DIFFERENT thing — the post-study job-search permit (now RECE). Proof of resources, fees and work-hour rules are set/indexed and verified live ({{VERIFY_LIVE}}). Verify all amounts on france-visas.gouv.fr and campusfrance.org before quoting."
   },
   "alert": {
-    "title": "Campus France is mandatory",
-    "body": "Indian students must complete Campus France procedure before visa appointment. Verify current steps on campusfrance.org."
+    "title": "Campus France (Études en France) first; validate VLS-TS within 3 months",
+    "body": "For Indian students the Campus France 'Études en France' procedure is mandatory before the consulate/VFS visa appointment. The VLS-TS Étudiant must be validated online via the ANEF/OFII platform within 3 months of arrival to remain lawful and to act as a residence permit. Note: do NOT import the German 'APS' academic pre-verification — France does not use it (in France 'APS' is the post-study job-search permit, a separate matter)."
   },
   "tags": [
     {
@@ -22,25 +22,25 @@
       "variant": "success"
     },
     {
-      "label": "APS required",
+      "label": "Campus France (EEF) mandatory",
       "variant": "warning"
     },
     {
-      "label": "6–12 weeks",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
-      "label": "Embassy appointment",
+      "label": "OFII/ANEF validation",
       "variant": "neutral"
     }
   ],
   "chips": [
     {
-      "label": "6–12 weeks",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
-      "label": "€75 + proof of funds",
+      "label": "Visa fee + proof of resources (verify)",
       "variant": "neutral"
     },
     {
@@ -48,33 +48,33 @@
       "variant": "success"
     },
     {
-      "label": "France admission docs",
+      "label": "OFII validation in 3 months",
       "variant": "warning"
     }
   ],
   "kpis": [
     {
       "label": "Processing time",
-      "value": "6–12w",
-      "sub": "After complete file + APS",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "After Campus France + complete file — verify live",
       "tone": "primary"
     },
     {
       "label": "Government fee",
-      "value": "€75",
-      "sub": "+ proof of funds required living funds",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "VLS-TS visa fee + OFII/ANEF validation tax — verify live",
       "tone": "warning"
     },
     {
-      "label": "Our approval rate",
-      "value": "88%",
-      "sub": "~74% benchmark",
-      "tone": "success"
+      "label": "Approval rate",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Pull from live CRM case data; not a prediction of any individual outcome",
+      "tone": "primary"
     },
     {
       "label": "Required docs",
-      "value": "15",
-      "sub": "+ APS & proof of funds",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Document count varies by profile — see live checklist",
       "tone": "violet"
     },
     {
@@ -87,308 +87,302 @@
   "about": [
     {
       "label": "Description",
-      "value": "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
+      "value": "The VLS-TS Étudiant (Visa de Long Séjour valant Titre de Séjour) is the long-stay student visa for non-EU/EEA/Swiss nationals studying in France for more than 90 days. Once validated after arrival it functions as a residence permit (titre de séjour), so no separate carte de séjour is needed initially. It is issued for 4 months to 1 year depending on the programme."
     },
     {
       "label": "Eligible applicants",
-      "value": "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter"
+      "value": "Admission to a recognised French institution for a programme over 3 months · Proof of sufficient resources ({{VERIFY_LIVE}}) · Health insurance · Valid passport (a passport issued more than 10 years ago is not accepted). Indian students must complete the Campus France 'Études en France' (EEF) procedure first. EU/EEA/Swiss citizens need no visa."
     },
     {
-      "label": "Proof of funds",
-      "value": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
+      "label": "Proof of resources",
+      "value": "France's official minimum is {{VERIFY_LIVE}} per month (the government floor; consulates may expect more, especially for Paris, to avoid an 'insufficient funds' refusal). Evidence: bank statements, a dedicated student funds account, a scholarship award letter, sponsor documentation, or other financial guarantees accepted by the consulate. Verify the current figure on france-visas.gouv.fr.",
       "warning": true
     },
     {
       "label": "Key authority",
-      "value": "French Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
+      "value": "Campus France / Études en France (campusfrance.org) for the academic procedure · French consulate / VFS for the visa · OFII – Office Français de l'Immigration et de l'Intégration (via the ANEF platform) for post-arrival validation · the préfecture for later renewal (carte de séjour)"
     },
     {
       "label": "After approval",
-      "value": "Enter Frenchy; register address; apply for residence permit at Ausländerbehörde within visa validity."
+      "value": "Travel on the VLS-TS; validate it online via the ANEF/OFII platform within 3 months of arrival (pay the validation tax, {{VERIFY_LIVE}}). Once validated it is the residence permit for its validity (4 months–1 year). To continue studying, apply at the préfecture for a multi-year carte de séjour pluriannuelle étudiant before it expires. Graduates may qualify for a post-study residence permit for job search or business creation, subject to current French immigration regulations (verify before advising)."
     }
   ],
   "eligibility": [
     {
-      "criterion": "Admission from recognised French institution",
-      "met": true
-    },
-    {
-      "criterion": "admission documentation (India)",
-      "met": false,
-      "note": "Apply early—processing takes weeks"
-    },
-    {
-      "criterion": "Proof of funds or financial proof",
-      "met": false,
-      "note": "required living funds for 2026 or equivalent"
-    },
-    {
-      "criterion": "Health insurance (travel + statutory)",
-      "met": false
-    },
-    {
-      "criterion": "Motivation letter and CV",
-      "met": true
-    },
-    {
-      "criterion": "Language proficiency (as required)",
+      "criterion": "Admission to a recognised French institution (>3 months)",
       "met": true,
-      "note": "French or English per program"
+      "note": "Acceptance for a programme longer than 90 days; for Indian students this is processed through Campus France 'Études en France'."
+    },
+    {
+      "criterion": "Campus France 'Études en France' (EEF) procedure completed",
+      "met": false,
+      "note": "Mandatory for Indian students BEFORE the visa appointment: create the EEF account, upload documents, pay the Campus France fee, attend the interview. Skipping it leads to refusal."
+    },
+    {
+      "criterion": "Proof of sufficient resources",
+      "met": false,
+      "note": "France's official minimum is {{VERIFY_LIVE}}/month (consulates may want more for Paris). Bank statements, a dedicated student funds account, scholarship evidence, sponsor documentation, or other financial guarantees accepted by the consulate. The student's own/sponsored funds."
+    },
+    {
+      "criterion": "Health insurance",
+      "met": false,
+      "note": "Valid health cover for entry; eligible students may register with the French public health insurance system after arrival, subject to current rules. Confirm the current expectation."
+    },
+    {
+      "criterion": "Accommodation proof",
+      "met": false,
+      "note": "Accommodation evidence that satisfies current visa requirements (e.g. a tenancy/host attestation or sufficient booking); short hotel bookings alone may not always be sufficient."
     },
     {
       "criterion": "Valid passport",
-      "met": true
+      "met": true,
+      "note": "Passports must satisfy current France-Visas and Schengen travel-document requirements; a passport issued more than 10 years ago may not be accepted even if it remains unexpired, and the visa cannot exceed passport validity."
+    },
+    {
+      "criterion": "Language ability matching the programme",
+      "met": true,
+      "note": "French or English depending on the programme; provide the evidence the institution specifies (e.g. IELTS/TOEFL for English-taught, DELF/DALF/TCF for French-taught)."
     }
   ],
-  "redFlagsBanner": "After refusal, address embassy feedback before rebooking—proof of funds and APS cannot be rushed last minute.",
+  "redFlagsBanner": "After a refusal, address the consulate's stated reason before rebooking — proof of resources, Campus France steps and accommodation cannot be fixed last-minute.",
   "redFlags": [
     {
-      "title": "APS not completed",
-      "description": "Visa appointment booked without admission documentation.",
-      "fix": "Complete APS before embassy slot; track processing on APS website",
+      "title": "Importing the German 'APS' academic pre-check into a France file",
+      "description": "Germany's APS (academic-credential pre-verification) does NOT apply to France. CAUTION: in France 'APS' is a DIFFERENT thing entirely — the post-study job-search permit (now RECE). Telling a France applicant they need a German-style APS to study is a cross-country contamination error.",
+      "fix": "Remove the German APS concept; France uses Campus France 'Études en France' + the consulate. Keep the French APS/RECE only as the post-study permit",
+      "severity": "Critical"
+    },
+    {
+      "title": "Skipping or mishandling Campus France (Études en France)",
+      "description": "Indian students who do not complete the EEF procedure before the visa appointment are refused; incomplete EEF accounts or missed interviews are common causes.",
+      "fix": "Start Campus France 3–4 months before intake; complete the account, documents, fee and interview before booking the visa",
+      "severity": "Critical"
+    },
+    {
+      "title": "Forgetting OFII/ANEF validation within 3 months",
+      "description": "Failing to validate the VLS-TS online within 3 months of arrival makes the stay irregular and complicates renewal.",
+      "fix": "Validate via the ANEF/OFII platform within 3 months, confirm the French address, and pay the validation tax",
+      "severity": "High"
+    },
+    {
+      "title": "Insufficient / wrong proof of resources",
+      "description": "Funds below the official monthly minimum, or only the bare minimum where the consulate expects more (especially Paris), causing an 'insufficient funds' refusal.",
+      "fix": "Show at least the official monthly minimum (more for Paris) in the student's own/sponsored funds with consistent history",
       "severity": "Very common"
     },
     {
-      "title": "Insufficient proof of funds",
-      "description": "Amount below required monthly sum or not from recognised provider.",
-      "fix": "Open proof of funds at approved bank for full required amount",
-      "severity": "Very common"
-    },
-    {
-      "title": "Admission not from recognised institution",
-      "description": "Private unrecognised college or expired Zulassung.",
-      "fix": "Verify Anabin/institution recognition before fees",
+      "title": "Passport not meeting France-Visas/Schengen requirements",
+      "description": "A passport that does not meet current France-Visas/Schengen travel-document requirements — for example one issued more than 10 years ago — may not be accepted even if unexpired.",
+      "fix": "Check the passport meets current France-Visas/Schengen requirements; renew it if issued more than 10 years ago",
       "severity": "Common"
     },
     {
-      "title": "Weak motivation letter",
-      "description": "Generic letter not explaining study plan and Frenchy choice.",
-      "fix": "Course-specific motivation linking prior study to French program",
+      "title": "Assuming the VLS-TS gives unlimited Schengen travel or family rights",
+      "description": "The long-stay visa allows Schengen movement up to 90 days within its validity, not unlimited; a student visa includes no automatic family rights.",
+      "fix": "Set expectations: Schengen travel is limited; family members apply separately under their own rules",
       "severity": "Common"
     },
     {
-      "title": "Language proof missing",
-      "description": "Program requires French/English certificate not provided.",
-      "fix": "Obtain required TestDaF/IELTS/Goethe per admission",
-      "severity": "Common"
-    },
-    {
-      "title": "Prior refusals not addressed",
-      "description": "Schengen or French refusals hidden.",
-      "fix": "Disclose and explain changed circumstances",
+      "title": "Prior refusals or misrepresentation not addressed",
+      "description": "Hidden refusals, false documents, or lack of genuine study intent (a 'Reason 4' abusive-stay concern).",
+      "fix": "Disclose every prior refusal and explain changed circumstances; never submit false documents or sham enrolment",
       "severity": "High"
     }
   ],
   "faqs": [
     {
-      "q": "Can we guarantee student visa approval?",
-      "a": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
+      "q": "Can we guarantee approval of the student visa?",
+      "a": "No. The consulate decides based on the Campus France procedure, proof of resources, and credibility. A strong, honest file improves the chances but approval is never guaranteed — and we never promise one."
     },
     {
-      "q": "What is APS?",
-      "a": "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants."
+      "q": "Does France require a German-style APS academic certificate?",
+      "a": "No. Germany's APS (academic-credential pre-verification) does NOT apply to France. IMPORTANT: in France 'APS' means something completely different — the Autorisation Provisoire de Séjour, a POST-STUDY job-search permit (now RECE). For studying, France uses the Campus France 'Études en France' procedure, not a German APS."
     },
     {
-      "q": "Proof of funds amount for 2026?",
-      "a": "Typically required living funds (12 months × €992). Verify current amount before opening account."
+      "q": "Is the VLS-TS a visa or a residence permit?",
+      "a": "Both, in sequence: it is a long-stay visa that, once validated online via ANEF/OFII within 3 months of arrival, FUNCTIONS as a residence permit (titre de séjour) for its validity (4 months–1 year). No separate carte de séjour is needed initially."
     },
     {
-      "q": "Can spouse accompany?",
-      "a": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
+      "q": "How much money must a student show (proof of resources)?",
+      "a": "France's official minimum is {{VERIFY_LIVE}} per month (the government floor). Consulates may expect more, especially for Paris, to avoid an 'insufficient funds' refusal. Evidence: bank statements, a dedicated student funds account, a scholarship award letter, sponsor documentation, or other financial guarantees accepted by the consulate. Verify the current figure on france-visas.gouv.fr."
     },
     {
-      "q": "English-taught programs need French?",
-      "a": "Depends on program—follow admission and embassy requirements."
+      "q": "What is the Campus France 'Études en France' procedure?",
+      "a": "For Indian students it is the mandatory first step: create an Études en France (EEF) account, upload academic documents, pay the Campus France fee, and attend an interview, BEFORE the consulate/VFS visa appointment. Start it 3–4 months before the intake; skipping it leads to refusal."
     },
     {
-      "q": "How long to convert to residence permit?",
-      "a": "Apply at Ausländerbehörde soon after arrival and registration."
+      "q": "What is OFII/ANEF validation?",
+      "a": "After arrival the VLS-TS must be validated online via the ANEF/OFII platform within 3 months: create an account, confirm the French address, pay the validation tax ({{VERIFY_LIVE}}). Without validation the stay becomes irregular and renewal is complicated."
     },
     {
-      "q": "Can I work on student visa?",
-      "a": "Limited working hours permitted—verify current rules for students in Frenchy."
+      "q": "Can the student work?",
+      "a": "Yes — a validated VLS-TS Étudiant generally permits limited employment during studies, currently up to 964 hours per year (roughly 20 hours per week), automatically and with no separate work permit. Treat the figure as time-sensitive and verify current rules. Note: the temporary VLS-T does NOT grant work rights."
     },
     {
-      "q": "What after graduation?",
-      "a": "Discuss 18-month job-seeker residence permit or Opportunity Card separately."
+      "q": "What are the post-study options after graduation?",
+      "a": "Graduates may qualify for a post-study residence permit for job search or business creation, subject to current French immigration regulations. Eligibility, duration and conditions vary and should always be verified through official sources before advising — do not assume a fixed validity period or any automatic/bilateral entitlement. (This French post-study route is unrelated to Germany's academic 'APS' pre-check.)"
     },
     {
-      "q": "What is Description for this service?",
-      "a": "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
+      "q": "What are the government fees?",
+      "a": "A VLS-TS visa fee ({{VERIFY_LIVE}}; the student fee is commonly lower than other long-stay categories), the OFII/ANEF validation tax ({{VERIFY_LIVE}}), the Campus France procedure fee, plus the CVEC student-life contribution at enrolment and any VFS charge. Fees change — verify current amounts on france-visas.gouv.fr and campusfrance.org."
     },
     {
-      "q": "What is Eligible applicants for this service?",
-      "a": "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter"
+      "q": "How and when is the application made?",
+      "a": "Indian students complete Campus France 'Études en France' first, then apply for the VLS-TS via the consulate/VFS (france-visas.gouv.fr). Begin 3–4 months before the intake; during the May–July peak, VFS appointment waits can stretch significantly. Quote the live processing estimate rather than a fixed number."
     },
     {
-      "q": "What is Proof of funds for this service?",
-      "a": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      "q": "What language is required?",
+      "a": "French or English depending on the programme. English-taught programmes need English evidence (e.g. IELTS/TOEFL); French-taught programmes typically need DELF/DALF/TCF. French is not separately required for the visa where the programme is in English but helps with daily life and work."
     },
     {
-      "q": "Important note on Proof of funds?",
-      "a": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      "q": "How is renewal handled?",
+      "a": "To continue studying beyond the VLS-TS, apply at the local préfecture for a multi-year carte de séjour pluriannuelle étudiant, typically 2 months before the VLS-TS expires, with proof of enrolment, resources and accommodation."
     },
     {
-      "q": "What is Key authority for this service?",
-      "a": "French Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
+      "q": "Can a refused application be appealed?",
+      "a": "Yes — a refusal must state its reasons and can be appealed (administrative/CRARUF recourse) within the stated deadline, or corrected and re-lodged. Read the reason carefully (commonly funds, Campus France gaps, or genuine-study concerns) and fix the specific issue."
     },
     {
-      "q": "What is After approval for this service?",
-      "a": "Enter Frenchy; register address; apply for residence permit at Ausländerbehörde within visa validity."
+      "q": "Can a spouse or children accompany?",
+      "a": "A student visa includes no automatic family rights. Family members apply separately under their own rules (e.g. accompanying-family or family-reunification routes) with their own resources and conditions. Verify the current rules before advising; do not present it as automatic."
     },
     {
-      "q": "Is Admission from recognised French institution required?",
-      "a": "Admission from recognised French institution is typically required."
+      "q": "Does the VLS-TS allow Schengen travel?",
+      "a": "A validated long-stay visa allows movement within the Schengen area for up to 90 days within its validity — useful for short trips, but not unlimited travel. Confirm the current rule before advising."
     },
     {
-      "q": "Is admission documentation (India) required?",
-      "a": "Apply early—processing takes weeks"
+      "q": "What is the CVEC?",
+      "a": "The Contribution Vie Étudiante et de Campus (student-life tax, commonly around {{VERIFY_LIVE}}) is paid at enrolment; including the CVEC receipt in the visa dossier signals finalised enrolment and is recommended."
     },
     {
-      "q": "Is Proof of funds or financial proof required?",
-      "a": "required living funds for 2026 or equivalent"
+      "q": "How long does processing take?",
+      "a": "It varies by season and case quality; Campus France adds an academic step first, and VFS appointment waits peak in May–July. Quote the live france-visas.gouv.fr estimate rather than a fixed number, and apply early."
     },
     {
-      "q": "Is Health insurance (travel + statutory) required?",
-      "a": "Assess whether Health insurance (travel + statutory) is satisfied for this case."
-    },
-    {
-      "q": "Is Motivation letter and CV required?",
-      "a": "Motivation letter and CV is typically required."
-    },
-    {
-      "q": "Is Language proficiency (as required) required?",
-      "a": "French or English per program"
-    },
-    {
-      "q": "Is Valid passport required?",
-      "a": "Valid passport is typically required."
-    },
-    {
-      "q": "What is the Processing time?",
-      "a": "6–12w — After complete file + APS"
-    },
-    {
-      "q": "What is the Government fee?",
-      "a": "€75 — + proof of funds required living funds"
-    },
-    {
-      "q": "What is the Our approval rate?",
-      "a": "88% — ~74% benchmark"
-    },
-    {
-      "q": "What is the Required docs?",
-      "a": "15 — + APS & proof of funds"
-    },
-    {
-      "q": "What is the Consultancy fee?",
-      "a": "See fee tab — + govt & third-party"
-    },
-    {
-      "q": "What if the client has APS not completed?",
-      "a": "Complete APS before embassy slot; track processing on APS website"
-    },
-    {
-      "q": "Why is APS not completed a problem?",
-      "a": "Visa appointment booked without admission documentation."
-    },
-    {
-      "q": "What if the client has Insufficient proof of funds?",
-      "a": "Open proof of funds at approved bank for full required amount"
-    },
-    {
-      "q": "Why is Insufficient proof of funds a problem?",
-      "a": "Amount below required monthly sum or not from recognised provider."
+      "q": "What does FLC actually guarantee?",
+      "a": "Nothing about the outcome — the consulate decides. FLC prepares a strong, honest, well-documented file (Campus France, proof of resources, accommodation, insurance) and never promises a visa, in writing or verbally."
     }
   ],
   "compliance": [
-    "Client service agreement and consent must be on file before submission",
-    "Never guarantee visa or immigration approval; use approved-language only",
-    "Fee quotes must separate consultancy, government, and third-party costs",
-    "Proof of funds funds belong to client—never commingle with firm accounts"
+    "Client service agreement and consent must be on file before submission.",
+    "Never guarantee a visa or approval; use approved, non-guaranteeing language only.",
+    "Fee quotes must separate consultancy, government (visa/OFII/CVEC/Campus France) and third-party (VFS) costs.",
+    "Proof-of-resources funds belong to the client — never receive, hold or route them through firm accounts.",
+    "Never import another country's requirements (e.g. German academic APS, Sperrkonto, Anabin) into a France file; do not confuse Germany's APS with France's post-study APS/RECE.",
+    "Always complete the Campus France 'Études en France' procedure for Indian students before the visa appointment.",
+    "Do not publish a firm approval rate or an unsourced 'industry benchmark' as a headline figure; use live, sourced CRM data labelled as not predictive of any individual outcome.",
+    "Handle academic, financial and insurance documents under data-protection rules: store securely, share only with authorised parties, retain only as needed."
   ],
   "proTips": [
-    "Start APS 3–4 months before intended intake",
-    "Open proof of funds only after admission confirmed",
-    "Book embassy slot when file 90% ready",
-    "Motivation letter must match admission course",
-    "Verify health insurance accepted by embassy"
+    "Do not import Germany's academic 'APS' into a France file — France uses Campus France 'Études en France'. (In France 'APS' is the post-study job-search permit, a separate matter.)",
+    "Start Campus France (EEF) 3–4 months before intake; the visa appointment comes AFTER the EEF procedure.",
+    "Validate the VLS-TS via ANEF/OFII within 3 months of arrival — missing this makes the stay irregular.",
+    "Show at least France's official monthly minimum (more for Paris) in the student's own/sponsored funds; treat the figure as live.",
+    "Check the passport was issued within the last 10 years — an older passport is refused even if in date.",
+    "Work is currently up to 964 hours/year (~20 h/week), automatic with VLS-TS — verify current rules; the temporary VLS-T grants no work rights."
   ],
   "postApproval": [
-    "Explain address registration (Anmeldung) within deadline",
-    "Guide on Ausländerbehörde appointment after arrival",
-    "Remind proof of funds monthly withdrawal rules",
-    "Discuss post-study job-seeker pathway"
+    "Validate the VLS-TS online via ANEF/OFII within 3 months of arrival (pay the validation tax)",
+    "Register with CPAM/student social security where eligible; arrange housing (CAF aid may apply)",
+    "Keep work within the current annual limit (currently 964 hours/year — verify)",
+    "Apply at the préfecture for the carte de séjour pluriannuelle étudiant before the VLS-TS expires"
   ],
   "performance": {
-    "ourRate": 0,
-    "industryRate": 0,
+    "ourRate": null,
+    "industryRate": null,
+    "note": "Approval rate and file counts must be populated live from CRM case data, not published as fixed figures. Do not display a comparative 'industry benchmark' unless independently sourced and cited.",
     "stats": [
       {
-        "label": "Files this year",
-        "value": "0"
+        "label": "Files this period",
+        "value": "{{VERIFY_LIVE}}"
       },
       {
         "label": "Approved",
-        "value": "0"
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Refused",
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "{{VERIFY_LIVE}}"
       }
     ]
   },
   "approvalFactors": [
     {
-      "label": "Our rate vs industry",
-      "ours": 88,
-      "benchmark": 74
+      "label": "Campus France (EEF) completed cleanly",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "APS timing",
-      "ours": 85,
-      "benchmark": 68
+      "label": "Proof of resources (official minimum, more for Paris)",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "Financial docs",
-      "ours": 87,
-      "benchmark": 72
+      "label": "Accommodation + insurance in order",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
       "label": "First-submit completeness",
-      "ours": 92,
-      "benchmark": 76
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     }
   ],
   "timeline": [
     {
       "weeks": "1–2",
-      "title": "Counseling, admission review, APS initiation"
+      "title": "Counselling, institution recognition, admission"
     },
     {
-      "weeks": "2–8",
-      "title": "APS processing, proof of funds, documents"
+      "weeks": "2–6",
+      "title": "Campus France 'Études en France' (account, documents, fee, interview)"
     },
     {
-      "weeks": "8–10",
-      "title": "Embassy appointment & submission"
+      "weeks": "{{VERIFY_LIVE}}",
+      "title": "VLS-TS application via consulate/VFS + decision (varies — verify live)"
     },
     {
-      "weeks": "6–12",
-      "title": "Embassy processing"
+      "weeks": "on arrival",
+      "title": "OFII/ANEF validation within 3 months; CPAM/housing"
     }
   ],
   "relatedServices": [
     {
-      "label": "Frenchy – Job Seeker Visa",
+      "label": "France – Post-Study Residence Permit (job search / business creation)",
       "libraryId": ""
     },
     {
-      "label": "Frenchy – Opportunity Card",
+      "label": "France – Talent Passport / Salarié Work Permit",
       "libraryId": ""
     },
     {
-      "label": "Frenchy – Visitor Visa",
+      "label": "France – Visitor (Long-Stay) Visa",
       "libraryId": ""
     }
   ],
   "changelog": [
+    {
+      "version": "v2.2",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Version alignment: bumped to v2.2 to standardise the study/visa service-library on a single version across all countries. No content changes in this entry — all factual content, {{VERIFY_LIVE}} placeholders, compliance/contamination warnings and prior corrections are unchanged from v2.1."
+    },
+    {
+      "version": "v2.1",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Future-proofing + compliance pass: rewrote post-study (APS/RECE) wording across about, FAQs, related services, staff notes and quiz to cautious, non-definitive language ('a post-study residence permit for job search or business creation, subject to current French immigration regulations; verify eligibility, duration and conditions') — removed fixed 12-month validity and India bilateral-duration assertions while keeping the German-APS-vs-French-APS contamination warning; removed blocked-account implications from proof-of-resources evidence (now bank statements / dedicated student funds account / scholarship / sponsor documentation / consulate-accepted guarantees), keeping only the 'France does not operate a German-style blocked account' warning and clearly-German distractors; replaced age-based CPAM wording with 'eligible students may register with the French public health insurance system after arrival, subject to current rules'; softened accommodation guidance ('short hotel bookings alone may not always be sufficient'); qualified work rights ('currently up to 964 hours annually — verify'); added regulatory context to the passport rule (must meet current France-Visas/Schengen requirements; over-10-years may not be accepted even if unexpired); rewrote the Campus France sample-document description to be client-facing; cleaned a residual find-replace artifact in the historical changelog. Preserved all keys, {{VERIFY_LIVE}} placeholders, Campus France/ANEF/OFII/VLS-TS workflow, Schengen warnings, compliance language, and APS contamination warnings. No statistics, approval rates or immigration benefits were invented."
+    },
+    {
+      "version": "v2.0",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Major decontamination + rebuild: removed Germany cross-contamination (German academic APS, Sperrkonto/€992 blocked account, Anabin, Ausländerbehörde, find-replace artifacts, Federal Foreign Office, TestDaF/Goethe, Canada €235/€85 fees, 'Type D visa' framing, German Opportunity Card/Job Seeker) that had been copied into this France file. Reframed as the VLS-TS Étudiant (Campus France 'Études en France' first; OFII/ANEF validation within 3 months; functions as a residence permit; renewal at the préfecture); added correct proof-of-resources structure (official monthly minimum, placeholder), 964-hours/year work rule (automatic with VLS-TS; temporary VLS-T grants none), passport-over-10-years rule, and CVEC. CRITICAL APS handling: removed the German academic-APS meaning but correctly represented the SEPARATE French APS (Autorisation Provisoire de Séjour, now RECE) as the post-study job-search permit (~12 months; India bilateral) — these are different and must not be conflated. Replaced template FAQs and quiz with real France content; rebuilt resources to official France-Visas/Campus France/ANEF sources; removed the hardcoded approval rate and 'industry benchmark'; converted time-sensitive values to {{VERIFY_LIVE}} placeholders. No statistics were invented."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",
@@ -405,966 +399,359 @@
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
-      "summary": "Initial Frenchy student visa counselor content with 2026 proof of funds amount."
+      "summary": "Initial France student visa counselor content with 2026 proof of funds amount."
     }
   ],
   "staffNotes": [
     {
+      "author": "Service Library",
+      "date": "16 Jun 2026",
+      "text": "Dynamic values are marked {{VERIFY_LIVE}} and MUST be populated from live official sources / CRM before client use: proof-of-resources minimum (official ~€615/month at 2026 level — verify), VLS-TS visa fee, OFII/ANEF validation tax, Campus France fee, CVEC amount, SMIC, processing times, doc counts, post-study (APS/RECE) terms, and any approval/file-count figures. Never publish invented statistics."
+    },
+    {
       "author": "Documentation team",
-      "date": "6 Jun 2026",
-      "text": "APS backlog is real—do not promise winter intake without APS timeline confirmation."
+      "date": "16 Jun 2026",
+      "text": "CONTAMINATION WARNING: this service was previously copied from the Germany file. France does NOT use the German academic 'APS' (Akademische Prüfstelle), a German Sperrkonto (€992), Anabin, or 'Ausländerbehörde'. France uses: Campus France 'Études en France', the VLS-TS Étudiant, OFII/ANEF validation within 3 months, the préfecture for renewal. CRITICAL APS TRAP: in France 'APS' (Autorisation Provisoire de Séjour) historically refers to the POST-STUDY job-search permit — a completely different thing from Germany's academic 'APS' pre-check. Treat post-study terminology, duration and conditions as time-sensitive and verify on official sources; do not assume a fixed validity or bilateral entitlement. Work = currently up to 964 hours/year (verify). Never reintroduce German terms."
     }
   ],
   "resources": [
     {
-      "title": "France official immigration portal",
+      "title": "France-Visas — official visa portal",
       "url": "https://france-visas.gouv.fr/",
-      "description": "Verify current fees, forms, and document lists before counseling."
+      "description": "VLS-TS requirements, fees, document checklist and application"
     },
     {
-      "title": "Make it in Frenchy — Student visa",
-      "url": "https://www.make-it-in-france.com/en/visa-desp/studying/education-visa",
-      "description": "Study visa requirements"
+      "title": "Campus France — Études en France",
+      "url": "https://www.campusfrance.org/en",
+      "description": "Mandatory academic procedure for Indian students; programmes and steps"
     },
     {
-      "title": "APS India",
-      "url": "https://www.aps-india.de/",
-      "description": "Academic verification for Indian applicants"
+      "title": "ANEF / OFII — administration étrangers en France",
+      "url": "https://administration-etrangers-en-france.interieur.gouv.fr/",
+      "description": "Online VLS-TS validation after arrival and residence procedures"
     },
     {
-      "title": "Federal Foreign Office — Visa",
-      "url": "https://www.france-visas.gouv.fr/en/visa-service",
-      "description": "National visa overview"
+      "title": "Campus France — post-study permit (APS/RECE)",
+      "url": "https://www.campusfrance.org/en/temporary-resident-permit-aps",
+      "description": "French post-study job-search permit (Autorisation Provisoire de Séjour / RECE)"
     },
     {
-      "title": "Anabin — Institution database",
-      "url": "https://anabin.kmk.org/",
-      "description": "Verify institution recognition"
+      "title": "Service-Public — student residence permit (titre de séjour)",
+      "url": "https://www.service-public.fr/particuliers/vosdroits/N110",
+      "description": "Renewal at the préfecture (carte de séjour pluriannuelle étudiant)"
     }
   ],
   "quiz": [
     {
-      "question": "Indian students generally need:",
+      "level": 1,
+      "question": "What is the main French long-stay student visa?",
       "options": [
-        "Only passport",
-        "admission documentation + admission + proof of funds",
-        "Job offer",
-        "EU citizenship"
+        "The VLS-TS Étudiant",
+        "The German APS",
+        "The Pink Slip",
+        "The Blue Card"
+      ],
+      "correctIndex": 0,
+      "explanation": "VLS-TS Étudiant = Visa Long Séjour valant Titre de Séjour."
+    },
+    {
+      "level": 1,
+      "question": "Does France require Germany's academic 'APS' to study?",
+      "options": [
+        "Yes, for all Indians",
+        "No — that is a Germany requirement, not French",
+        "Yes, for master's only",
+        "Only for Paris"
       ],
       "correctIndex": 1,
-      "explanation": "APS mandatory for India.",
-      "level": 1
+      "explanation": "France uses Campus France 'Études en France', not the German academic APS."
     },
     {
-      "question": "Proof of funds 2026 amount approx:",
+      "level": 1,
+      "question": "What must Indian students complete BEFORE the visa appointment?",
       "options": [
-        "€5,000",
-        "required living funds",
-        "€50,000",
-        "€500"
+        "A German Sperrkonto",
+        "An Anabin check",
+        "Campus France 'Études en France' (EEF)",
+        "An OFII card"
+      ],
+      "correctIndex": 2,
+      "explanation": "The EEF procedure is mandatory before the consulate appointment."
+    },
+    {
+      "level": 1,
+      "question": "After arrival, the VLS-TS must be validated within:",
+      "options": [
+        "1 week",
+        "2 years",
+        "No deadline",
+        "3 months (via ANEF/OFII)"
+      ],
+      "correctIndex": 3,
+      "explanation": "Validate online via ANEF/OFII within 3 months of arrival."
+    },
+    {
+      "level": 1,
+      "question": "Once validated, the VLS-TS functions as:",
+      "options": [
+        "A residence permit (titre de séjour)",
+        "A tourist visa only",
+        "A work permit only",
+        "Nothing"
+      ],
+      "correctIndex": 0,
+      "explanation": "A validated VLS-TS is the residence permit for its validity."
+    },
+    {
+      "level": 1,
+      "question": "How many hours per year may a VLS-TS student work?",
+      "options": [
+        "No work allowed",
+        "964 hours/year (~20 h/week)",
+        "Unlimited",
+        "140 days/year"
       ],
       "correctIndex": 1,
-      "explanation": "12 × €992 monthly requirement.",
-      "level": 1
+      "explanation": "A validated VLS-TS currently grants up to 964 hours/year of work automatically; treat the figure as time-sensitive and verify."
     },
     {
-      "question": "National visa fee approx:",
+      "level": 1,
+      "question": "France's proof-of-resources minimum is best treated as:",
       "options": [
-        "€500",
-        "€75",
-        "€2,000",
-        "Free"
+        "€992/month fixed",
+        "No requirement",
+        "The official monthly minimum — verify live (consulates may want more)",
+        "€235 once"
+      ],
+      "correctIndex": 2,
+      "explanation": "France sets an official monthly minimum (verify); €992 is the German figure."
+    },
+    {
+      "level": 1,
+      "question": "To continue studying after the VLS-TS, a student applies at the:",
+      "options": [
+        "Ausländerbehörde",
+        "CRMD",
+        "Migri",
+        "Préfecture (carte de séjour pluriannuelle)"
+      ],
+      "correctIndex": 3,
+      "explanation": "Renewal is at the préfecture for a multi-year student card."
+    },
+    {
+      "level": 2,
+      "question": "In France, the term 'APS' refers to:",
+      "options": [
+        "The POST-STUDY job-search permit (now RECE)",
+        "An academic pre-check to study",
+        "A German-style blocked account",
+        "A language test"
+      ],
+      "correctIndex": 0,
+      "explanation": "French APS = Autorisation Provisoire de Séjour, a post-study permit (now RECE)."
+    },
+    {
+      "level": 2,
+      "question": "The French post-study permit (job search / business creation) duration is best treated as:",
+      "options": [
+        "Time-sensitive — verify current official rules",
+        "Exactly 12 months always",
+        "Exactly 5 years",
+        "Never available"
+      ],
+      "correctIndex": 0,
+      "explanation": "Post-study permit duration and conditions change; verify official sources rather than quoting a fixed period."
+    },
+    {
+      "level": 2,
+      "question": "Which visa does NOT grant work rights?",
+      "options": [
+        "The validated VLS-TS",
+        "The carte de séjour étudiant",
+        "The temporary VLS-T",
+        "None"
+      ],
+      "correctIndex": 2,
+      "explanation": "The temporary VLS-T grants no work rights; the VLS-TS does."
+    },
+    {
+      "level": 2,
+      "question": "A passport issued more than 10 years ago:",
+      "options": [
+        "Always fine",
+        "Only an issue for Paris",
+        "Accepted with a fee",
+        "May not be accepted even if unexpired (must meet current France-Visas/Schengen rules)"
+      ],
+      "correctIndex": 3,
+      "explanation": "Passports must meet current France-Visas/Schengen requirements; one issued more than 10 years ago may not be accepted even if unexpired."
+    },
+    {
+      "level": 2,
+      "question": "The OFII/ANEF validation involves:",
+      "options": [
+        "Confirming address + paying the validation tax online",
+        "A German Sperrkonto",
+        "An Anabin upload",
+        "Nothing"
+      ],
+      "correctIndex": 0,
+      "explanation": "Validation confirms the address and pays the tax via ANEF/OFII."
+    },
+    {
+      "level": 2,
+      "question": "The CVEC is:",
+      "options": [
+        "A visa refusal code",
+        "The student-life contribution paid at enrolment",
+        "A work permit",
+        "A German-style blocked account"
       ],
       "correctIndex": 1,
-      "explanation": "Embassy national visa fee.",
-      "level": 1
+      "explanation": "CVEC = Contribution Vie Étudiante et de Campus, paid at enrolment."
     },
     {
-      "question": "After arrival student must:",
+      "level": 2,
+      "question": "English-taught programmes require:",
       "options": [
-        "Ignore registration",
-        "Register address and apply residence permit",
-        "Work full-time immediately",
-        "Leave in 1 week"
+        "French B2 always",
+        "German",
+        "English evidence (e.g. IELTS) — French-taught need DELF/DALF",
+        "No evidence"
+      ],
+      "correctIndex": 2,
+      "explanation": "Language evidence matches the programme's language of instruction."
+    },
+    {
+      "level": 2,
+      "question": "A validated long-stay VLS-TS allows Schengen travel:",
+      "options": [
+        "Unlimited anywhere",
+        "Never",
+        "Only to Germany",
+        "Up to 90 days within its validity (not unlimited)"
+      ],
+      "correctIndex": 3,
+      "explanation": "It allows up to 90 days of Schengen movement within validity."
+    },
+    {
+      "level": 3,
+      "question": "A counsellor tells a France client they need a German-style APS to study. The issue?",
+      "options": [
+        "Wrong — that German academic APS does not apply to France (contamination)",
+        "No issue",
+        "APS is faster",
+        "Lower fee"
+      ],
+      "correctIndex": 0,
+      "explanation": "Germany's academic APS is not a French requirement; France uses Campus France."
+    },
+    {
+      "level": 3,
+      "question": "A client confuses Germany's APS with France's APS. Clarify:",
+      "options": [
+        "They are the same",
+        "France's APS is a POST-STUDY job-search permit (RECE), not an academic pre-check",
+        "Neither exists",
+        "Both are German-style blocked accounts"
       ],
       "correctIndex": 1,
-      "explanation": "Anmeldung and Ausländerbehörde required.",
-      "level": 1
+      "explanation": "French APS/RECE is a post-study permit; German APS is an academic pre-check."
     },
     {
-      "question": "Counselors must never:",
+      "level": 3,
+      "question": "A client shows €992/month as proof of resources. The error?",
       "options": [
-        "Track APS",
-        "Guarantee visa approval",
-        "Verify admission",
-        "Check proof of funds"
+        "No error",
+        "Too high",
+        "Wrong figure — France uses its own official minimum (verify); €992 is German",
+        "Not required"
+      ],
+      "correctIndex": 2,
+      "explanation": "€992 is the German blocked-account figure; France uses its own minimum."
+    },
+    {
+      "level": 3,
+      "question": "A client skips OFII validation after arrival. Consequence?",
+      "options": [
+        "No effect",
+        "Faster renewal",
+        "More work hours",
+        "The stay becomes irregular and renewal is complicated"
+      ],
+      "correctIndex": 3,
+      "explanation": "Failing to validate within 3 months makes the stay irregular."
+    },
+    {
+      "level": 3,
+      "question": "A client asks FLC to hold their proof-of-resources funds. You:",
+      "options": [
+        "Refuse — the funds belong to the client and are never routed through the firm",
+        "Hold them",
+        "Route them through the firm",
+        "Charge a fee"
+      ],
+      "correctIndex": 0,
+      "explanation": "Never receive or route client funds — a compliance breach."
+    },
+    {
+      "level": 3,
+      "question": "A client wants a written guarantee of the visa. You:",
+      "options": [
+        "Provide it",
+        "Refuse and use approved non-guaranteeing language",
+        "Charge extra",
+        "Promise a date"
       ],
       "correctIndex": 1,
-      "explanation": "No guarantees.",
-      "level": 1
-    },
-    {
-      "level": 1,
-      "question": "For Frenchy – Student Visa (National Visa), which statement about Description is correct?",
-      "options": [
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
-        "French Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-      ],
-      "correctIndex": 0,
-      "explanation": "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
-    },
-    {
-      "level": 1,
-      "question": "Frenchy – Student Visa (National Visa): what is true regarding Eligible applicants?",
-      "options": [
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
-        "French Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-      ],
-      "correctIndex": 0,
-      "explanation": "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Frenchy – Student Visa (National Visa) should state correctly about Proof of funds:",
-      "options": [
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "French Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-      ],
-      "correctIndex": 0,
-      "explanation": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies. — verify current rules."
-    },
-    {
-      "level": 1,
-      "question": "For Frenchy – Student Visa (National Visa), which statement about Key authority is correct?",
-      "options": [
-        "French Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "French Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-    },
-    {
-      "level": 1,
-      "question": "Frenchy – Student Visa (National Visa): what is true regarding After approval?",
-      "options": [
-        "Enter Frenchy; register address; apply for residence permit at Ausländerbehörde within visa validity.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Enter Frenchy; register address; apply for residence permit at Ausländerbehörde within visa validity."
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Frenchy – Student Visa (National Visa) should state correctly about Admission from recognised French institution:",
-      "options": [
-        "Admission from recognised French institution is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Admission from recognised French institution"
-    },
-    {
-      "level": 1,
-      "question": "For Frenchy – Student Visa (National Visa), which statement about admission documentation (India) is correct?",
-      "options": [
-        "admission documentation (India) is often required or assessed for this service. Note: Apply early—processing takes weeks",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Apply early—processing takes weeks"
-    },
-    {
-      "level": 1,
-      "question": "Frenchy – Student Visa (National Visa): what is true regarding Proof of funds or financial proof?",
-      "options": [
-        "Proof of funds or financial proof is often required or assessed for this service. Note: required living funds for 2026 or equivalent",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "required living funds for 2026 or equivalent"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Frenchy – Student Visa (National Visa) should state correctly about Health insurance (travel + statutory):",
-      "options": [
-        "Health insurance (travel + statutory) is often required or assessed for this service.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Health insurance (travel + statutory)"
-    },
-    {
-      "level": 1,
-      "question": "For Frenchy – Student Visa (National Visa), which statement about Motivation letter and CV is correct?",
-      "options": [
-        "Motivation letter and CV is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Motivation letter and CV"
-    },
-    {
-      "level": 1,
-      "question": "Frenchy – Student Visa (National Visa): what is true regarding Language proficiency (as required)?",
-      "options": [
-        "Language proficiency (as required) is a core requirement for this service. Note: French or English per program",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "French or English per program"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Frenchy – Student Visa (National Visa) should state correctly about Valid passport:",
-      "options": [
-        "Valid passport is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Valid passport"
-    },
-    {
-      "level": 1,
-      "question": "For Frenchy – Student Visa (National Visa), which statement about Processing time is correct?",
-      "options": [
-        "Processing time: 6–12w — After complete file + APS",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "After complete file + APS"
-    },
-    {
-      "level": 1,
-      "question": "Frenchy – Student Visa (National Visa): what is true regarding Government fee?",
-      "options": [
-        "Government fee: €75 — + proof of funds required living funds",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ proof of funds required living funds"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Frenchy – Student Visa (National Visa) should state correctly about Our approval rate:",
-      "options": [
-        "Our approval rate: 88% — ~74% benchmark",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "~74% benchmark"
-    },
-    {
-      "level": 1,
-      "question": "For Frenchy – Student Visa (National Visa), which statement about Required docs is correct?",
-      "options": [
-        "Required docs: 15 — + APS & proof of funds",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ APS & proof of funds"
-    },
-    {
-      "level": 1,
-      "question": "Frenchy – Student Visa (National Visa): what is true regarding Consultancy fee?",
-      "options": [
-        "Consultancy fee: See fee tab — + govt & third-party",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ govt & third-party"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Frenchy – Student Visa (National Visa) should state correctly about service summary:",
-      "options": [
-        "French Embassy · National D visa · Admission + proof of funds · France admission docs",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "French Embassy · National D visa · Admission + proof of funds · France admission docs"
-    },
-    {
-      "level": 1,
-      "question": "For Frenchy – Student Visa (National Visa), which statement about France admission requirements is correct?",
-      "options": [
-        "Indian students generally need admission documentation before visa appointment. Verify current APS processing time before promising intake dates.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Indian students generally need admission documentation before visa appointment. Verify current APS processing time before promising intake dates."
-    },
-    {
-      "level": 1,
-      "question": "Frenchy – Student Visa (National Visa): what is true regarding policy update?",
-      "options": [
-        "Confirm current national visa fee (€75 approx) and proof of funds amount (required living funds for 2026) on france-visas.gouv.fr and france-visas.gouv.fr before quoting.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Confirm current national visa fee (€75 approx) and proof of funds amount (required living funds for 2026) on france-visas.gouv.fr and france-visas.gouv.fr before quoting."
-    },
-    {
-      "level": 2,
-      "question": "In the Frenchy – Student Visa (National Visa) process, what is the correct approach to client question: Can we guarantee student visa approval?",
-      "options": [
-        "No. Embassy decides based on admission, funds, and credibility. Never promise approval.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
-    },
-    {
-      "level": 2,
-      "question": "For Frenchy – Student Visa (National Visa), what should happen during client question: What is APS?",
-      "options": [
-        "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants."
-    },
-    {
-      "level": 2,
-      "question": "Frenchy – Student Visa (National Visa) workflow — best practice for client question: Proof of funds amount for 2026:",
-      "options": [
-        "Typically required living funds (12 months × €992). Verify current amount before opening account.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Typically required living funds (12 months × €992). Verify current amount before opening account."
-    },
-    {
-      "level": 2,
-      "question": "In the Frenchy – Student Visa (National Visa) process, what is the correct approach to client question: Can spouse accompany?",
-      "options": [
-        "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
-    },
-    {
-      "level": 2,
-      "question": "For Frenchy – Student Visa (National Visa), what should happen during client question: English-taught programs need French?",
-      "options": [
-        "Depends on program—follow admission and embassy requirements.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Depends on program—follow admission and embassy requirements."
-    },
-    {
-      "level": 2,
-      "question": "Frenchy – Student Visa (National Visa) workflow — best practice for client question: How long to convert to residence permit:",
-      "options": [
-        "Apply at Ausländerbehörde soon after arrival and registration.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Apply at Ausländerbehörde soon after arrival and registration."
-    },
-    {
-      "level": 2,
-      "question": "In the Frenchy – Student Visa (National Visa) process, what is the correct approach to client question: Can I work on student visa?",
-      "options": [
-        "Limited working hours permitted—verify current rules for students in Frenchy.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Limited working hours permitted—verify current rules for students in Frenchy."
-    },
-    {
-      "level": 2,
-      "question": "For Frenchy – Student Visa (National Visa), what should happen during client question: What after graduation?",
-      "options": [
-        "Discuss 18-month job-seeker residence permit or Opportunity Card separately.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Discuss 18-month job-seeker residence permit or Opportunity Card separately."
-    },
-    {
-      "level": 2,
-      "question": "Frenchy – Student Visa (National Visa) workflow — best practice for timeline (1–2):",
-      "options": [
-        "Counseling, admission review, APS initiation",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "1–2: Counseling, admission review, APS initiation"
-    },
-    {
-      "level": 2,
-      "question": "In the Frenchy – Student Visa (National Visa) process, what is the correct approach to timeline (2–8)?",
-      "options": [
-        "APS processing, proof of funds, documents",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "2–8: APS processing, proof of funds, documents"
-    },
-    {
-      "level": 2,
-      "question": "For Frenchy – Student Visa (National Visa), what should happen during timeline (8–10)?",
-      "options": [
-        "Embassy appointment & submission",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "8–10: Embassy appointment & submission"
-    },
-    {
-      "level": 2,
-      "question": "Frenchy – Student Visa (National Visa) workflow — best practice for timeline (6–12):",
-      "options": [
-        "Embassy processing",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "6–12: Embassy processing"
-    },
-    {
-      "level": 2,
-      "question": "In the Frenchy – Student Visa (National Visa) process, what is the correct approach to counselor tip?",
-      "options": [
-        "Start APS 3–4 months before intended intake",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Start APS 3–4 months before intended intake"
-    },
-    {
-      "level": 2,
-      "question": "For Frenchy – Student Visa (National Visa), what should happen during counselor tip?",
-      "options": [
-        "Open proof of funds only after admission confirmed",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Open proof of funds only after admission confirmed"
-    },
-    {
-      "level": 2,
-      "question": "Frenchy – Student Visa (National Visa) workflow — best practice for counselor tip:",
-      "options": [
-        "Book embassy slot when file 90% ready",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Book embassy slot when file 90% ready"
-    },
-    {
-      "level": 2,
-      "question": "Frenchy – Student Visa (National Visa) workflow — best practice for post-approval step:",
-      "options": [
-        "Explain address registration (Anmeldung) within deadline",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Explain address registration (Anmeldung) within deadline"
-    },
-    {
-      "level": 2,
-      "question": "In the Frenchy – Student Visa (National Visa) process, what is the correct approach to post-approval step?",
-      "options": [
-        "Guide on Ausländerbehörde appointment after arrival",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Guide on Ausländerbehörde appointment after arrival"
-    },
-    {
-      "level": 2,
-      "question": "For Frenchy – Student Visa (National Visa), what should happen during post-approval step?",
-      "options": [
-        "Remind proof of funds monthly withdrawal rules",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Remind proof of funds monthly withdrawal rules"
-    },
-    {
-      "level": 2,
-      "question": "In the Frenchy – Student Visa (National Visa) process, what is the correct approach to Sample passport bio page (mock)?",
-      "options": [
-        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
-    },
-    {
-      "level": 2,
-      "question": "For Frenchy – Student Visa (National Visa), what should happen during Sample university admission letter (mock)?",
-      "options": [
-        "France university Zulassung for national visa.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "France university Zulassung for national visa."
-    },
-    {
-      "level": 2,
-      "question": "Frenchy – Student Visa (National Visa) workflow — best practice for Sample admission documentation (mock):",
-      "options": [
-        "Academic Evaluation Centre certificate for India.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Academic Evaluation Centre certificate for India."
-    },
-    {
-      "level": 2,
-      "question": "In the Frenchy – Student Visa (National Visa) process, what is the correct approach to Sample proof of funds confirmation (mock)?",
-      "options": [
-        "Sperrkonto required living funds+ — explain to clients.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Sperrkonto required living funds+ — explain to clients."
-    },
-    {
-      "level": 2,
-      "question": "For Frenchy – Student Visa (National Visa), what should happen during Sample IELTS / TestDaF certificate (mock)?",
-      "options": [
-        "Language proof for degree program.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Language proof for degree program."
-    },
-    {
-      "level": 2,
-      "question": "Frenchy – Student Visa (National Visa) workflow — best practice for Sample CV & motivation letter (mock):",
-      "options": [
-        "French embassy standard application packet.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "French embassy standard application packet."
-    },
-    {
-      "level": 2,
-      "question": "In the Frenchy – Student Visa (National Visa) process, what is the correct approach to Sample travel health insurance (mock)?",
-      "options": [
-        "Coverage from arrival until enrollment.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Coverage from arrival until enrollment."
+      "explanation": "Never guarantee an outcome; the consulate decides."
     },
     {
       "level": 3,
-      "question": "Frenchy – Student Visa (National Visa): what is the compliance risk with APS not completed?",
+      "question": "A student books only a 1-week hotel as accommodation proof. Risk?",
       "options": [
-        "Complete APS before embassy slot; track processing on APS website",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "No risk",
+        "Speeds approval",
+        "Usually insufficient — consulates want weeks or a host attestation",
+        "Lowers the fee"
       ],
-      "correctIndex": 0,
-      "explanation": "Visa appointment booked without admission documentation."
+      "correctIndex": 2,
+      "explanation": "Short hotel bookings alone may not always be sufficient; provide accommodation evidence that meets current requirements."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Frenchy – Student Visa (National Visa) — key issue with APS not completed (detail):",
+      "question": "A counsellor wants to publish a firm approval rate vs an unnamed 'industry' figure. The issue?",
       "options": [
-        "Visa appointment booked without admission documentation.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "No issue",
+        "It is required",
+        "It lowers the fee",
+        "Unsourced/comparative claims risk misleading advertising and implying a guarantee"
       ],
-      "correctIndex": 0,
-      "explanation": "Complete APS before embassy slot; track processing on APS website"
-    },
-    {
-      "level": 3,
-      "question": "For Frenchy – Student Visa (National Visa), counselors must avoid this mistake related to Insufficient proof of funds:",
-      "options": [
-        "Open proof of funds at approved bank for full required amount",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Amount below required monthly sum or not from recognised provider."
-    },
-    {
-      "level": 3,
-      "question": "Frenchy – Student Visa (National Visa): what is the compliance risk with Insufficient proof of funds (detail)?",
-      "options": [
-        "Amount below required monthly sum or not from recognised provider.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Open proof of funds at approved bank for full required amount"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Frenchy – Student Visa (National Visa) — key issue with Admission not from recognised institution:",
-      "options": [
-        "Verify Anabin/institution recognition before fees",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Private unrecognised college or expired Zulassung."
-    },
-    {
-      "level": 3,
-      "question": "For Frenchy – Student Visa (National Visa), counselors must avoid this mistake related to Admission not from recognised institution (detail):",
-      "options": [
-        "Private unrecognised college or expired Zulassung.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Verify Anabin/institution recognition before fees"
-    },
-    {
-      "level": 3,
-      "question": "Frenchy – Student Visa (National Visa): what is the compliance risk with Weak motivation letter?",
-      "options": [
-        "Course-specific motivation linking prior study to French program",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Generic letter not explaining study plan and Frenchy choice."
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Frenchy – Student Visa (National Visa) — key issue with Weak motivation letter (detail):",
-      "options": [
-        "Generic letter not explaining study plan and Frenchy choice.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Course-specific motivation linking prior study to French program"
-    },
-    {
-      "level": 3,
-      "question": "For Frenchy – Student Visa (National Visa), counselors must avoid this mistake related to Language proof missing:",
-      "options": [
-        "Obtain required TestDaF/IELTS/Goethe per admission",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Program requires French/English certificate not provided."
-    },
-    {
-      "level": 3,
-      "question": "Frenchy – Student Visa (National Visa): what is the compliance risk with Language proof missing (detail)?",
-      "options": [
-        "Program requires French/English certificate not provided.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Obtain required TestDaF/IELTS/Goethe per admission"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Frenchy – Student Visa (National Visa) — key issue with Prior refusals not addressed:",
-      "options": [
-        "Disclose and explain changed circumstances",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Schengen or French refusals hidden."
-    },
-    {
-      "level": 3,
-      "question": "For Frenchy – Student Visa (National Visa), counselors must avoid this mistake related to Prior refusals not addressed (detail):",
-      "options": [
-        "Schengen or French refusals hidden.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Disclose and explain changed circumstances"
-    },
-    {
-      "level": 3,
-      "question": "Frenchy – Student Visa (National Visa): what is the compliance risk with counselor don't?",
-      "options": [
-        "Do not guarantee approval",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not guarantee approval"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Frenchy – Student Visa (National Visa) — key issue with counselor don't:",
-      "options": [
-        "Do not book embassy without APS",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not book embassy without APS"
-    },
-    {
-      "level": 3,
-      "question": "For Frenchy – Student Visa (National Visa), counselors must avoid this mistake related to counselor don't:",
-      "options": [
-        "Do not use unrecognised institutions",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not use unrecognised institutions"
-    },
-    {
-      "level": 3,
-      "question": "For Frenchy – Student Visa (National Visa), counselors must avoid this mistake related to common mistake:",
-      "options": [
-        "APS applied too late for intake",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: APS applied too late for intake"
-    },
-    {
-      "level": 3,
-      "question": "Frenchy – Student Visa (National Visa): what is the compliance risk with common mistake?",
-      "options": [
-        "Proof of funds short by even €1",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Proof of funds short by even €1"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Frenchy – Student Visa (National Visa) — key issue with common mistake:",
-      "options": [
-        "Generic motivation letter",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Generic motivation letter"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Frenchy – Student Visa (National Visa) — key issue with compliance rule:",
-      "options": [
-        "Client service agreement and consent must be on file before submission",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Client service agreement and consent must be on file before submission"
-    },
-    {
-      "level": 3,
-      "question": "For Frenchy – Student Visa (National Visa), counselors must avoid this mistake related to compliance rule:",
-      "options": [
-        "Never guarantee visa or immigration approval; use approved-language only",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
-    },
-    {
-      "level": 3,
-      "question": "Frenchy – Student Visa (National Visa): what is the compliance risk with compliance rule?",
-      "options": [
-        "Fee quotes must separate consultancy, government, and third-party costs",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
-    },
-    {
-      "level": 3,
-      "question": "For Frenchy – Student Visa (National Visa), counselors must avoid this mistake related to refusal handling:",
-      "options": [
-        "After refusal, address embassy feedback before rebooking—proof of funds and APS cannot be rushed last minute.",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "After refusal, address embassy feedback before rebooking—proof of funds and APS cannot be rushed last minute."
-    },
-    {
-      "level": 3,
-      "question": "Frenchy – Student Visa (National Visa): what is the compliance risk with Our rate vs industry?",
-      "options": [
-        "Our target: 88% vs benchmark 74%",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Our rate vs industry"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Frenchy – Student Visa (National Visa) — key issue with APS timing:",
-      "options": [
-        "Our target: 85% vs benchmark 68%",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "APS timing"
-    },
-    {
-      "level": 3,
-      "question": "For Frenchy – Student Visa (National Visa), counselors must avoid this mistake related to Financial docs:",
-      "options": [
-        "Our target: 87% vs benchmark 72%",
-        "National visa (Type D) for study at a recognised French university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Financial docs"
+      "correctIndex": 3,
+      "explanation": "Do not publish firm rates or comparative benchmarks as headline claims."
     }
   ],
   "donts": {
     "dos": [
-      "Start APS early",
-      "Verify institution on Anabin",
-      "Open proof of funds for full required amount",
-      "Write course-specific motivation letter",
-      "Disclose prior refusals"
+      "Complete Campus France 'Études en France' before booking the visa appointment",
+      "Validate the VLS-TS via ANEF/OFII within 3 months of arrival",
+      "Show at least the official monthly resources minimum (more for Paris) in the student's own/sponsored funds",
+      "Check the passport was issued within the last 10 years",
+      "Keep work within the current annual limit (currently 964 hours/year — verify)",
+      "Quote consultancy, government (visa/OFII/CVEC) and third-party (VFS) costs separately"
     ],
     "donts": [
-      "Do not guarantee approval",
-      "Do not book embassy without APS",
-      "Do not use unrecognised institutions",
-      "Do not hide Schengen refusals",
-      "Do not quote outdated proof of funds amount"
+      "Do not tell a France applicant they need Germany's academic 'APS' to study",
+      "Do not use German concepts (Sperrkonto €992, Anabin, Ausländerbehörde) — France uses Campus France/OFII",
+      "Do not skip OFII/ANEF validation or the Campus France procedure",
+      "Do not promise approval, a fixed processing time, or a guaranteed post-study stay",
+      "Do not let a student exceed the current annual work limit (currently 964 hours/year)"
     ],
     "mistakes": [
-      "APS applied too late for intake",
-      "Proof of funds short by even €1",
-      "Generic motivation letter",
-      "Wrong health insurance type",
-      "Expired admission letter"
+      "Confusing Germany's academic APS with France's post-study APS/RECE permit",
+      "Importing blocked-account-€992 / Anabin / Ausländerbehörde from a Germany file",
+      "Forgetting OFII validation within 3 months of arrival",
+      "Submitting a passport issued more than 10 years ago"
     ]
   },
   "sampleDocs": [
@@ -1376,31 +763,31 @@
     },
     {
       "title": "Sample university admission letter (mock)",
-      "description": "France university Zulassung for national visa.",
+      "description": "Acceptance letter from a recognised French institution (via Campus France).",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
-      "title": "Sample admission documentation (mock)",
-      "description": "Academic Evaluation Centre certificate for India.",
+      "title": "Sample Campus France / proof-of-resources (mock)",
+      "description": "Shows the Campus France 'Études en France' confirmation that evidences the completed academic procedure; use it to verify the client has cleared the mandatory Campus France step before the visa appointment.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
       "title": "Sample proof of funds confirmation (mock)",
-      "description": "Sperrkonto required living funds+ — explain to clients.",
+      "description": "Proof of resources at France's official monthly minimum (verify live) — explain to clients.",
       "mimeType": "application/pdf",
       "docKind": "financial"
     },
     {
-      "title": "Sample IELTS / TestDaF certificate (mock)",
+      "title": "Sample IELTS / TOEFL or DELF/DALF certificate (mock)",
       "description": "Language proof for degree program.",
       "mimeType": "image/jpeg",
       "docKind": "language"
     },
     {
       "title": "Sample CV & motivation letter (mock)",
-      "description": "French embassy standard application packet.",
+      "description": "France-Visas / Campus France application packet.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
@@ -1414,21 +801,25 @@
   "navBucket": "visa",
   "workingRights": {
     "applicant": {
-      "summary": "Long-stay national student visa for France allows limited part-time work (typically up to 20 hours/week or per local law) after residence permit is issued.",
+      "summary": "A validated VLS-TS Étudiant generally permits limited employment, currently up to 964 hours per year (roughly 20 hours per week), automatically, with no separate work permit. The temporary VLS-T does NOT grant work rights.",
       "details": [
-        "Verify exact hours with local immigration office after arrival.",
-        "Cannot rely on work income alone for residence renewal."
+        "The limit is currently 964 hours per year (roughly 20 hours per week); treat it as time-sensitive and verify.",
+        "The right is automatic once the VLS-TS is validated — no employer work-permit step.",
+        "The temporary 'VLS-T' student visa carries no work rights.",
+        "The French minimum wage (SMIC) is set/indexed annually ({{VERIFY_LIVE}}); do not quote a fixed rate."
       ],
       "restrictions": [
-        "Work not allowed until residence permit issued in many cases"
+        "current annual cap (currently 964 hours/year — verify)",
+        "Only on a validated VLS-TS (not the temporary VLS-T)"
       ],
-      "sourceUrl": "https://france-visas.gouv.fr/",
+      "sourceUrl": "https://www.campusfrance.org/en",
       "lastVerified": "Jun 2026"
     },
     "spouse": {
-      "summary": "Spouse/partner may apply for family reunion; work rights depend on France residence permit conditions.",
+      "summary": "A student visa includes no automatic family rights. Family members apply separately under their own rules with their own resources and conditions; assessed case-by-case and not automatic. Verify current French rules.",
       "details": [
-        "Often requires proof of accommodation, integration, and sufficient income of sponsor."
+        "Separate application under accompanying-family/family-reunification rules.",
+        "Own proof of resources and conditions; not automatic."
       ],
       "restrictions": [],
       "sourceUrl": "https://france-visas.gouv.fr/",
@@ -1438,8 +829,8 @@
   "fullCostBreakdown": {
     "title": "Full cost breakdown — France – Student Visa (VLS-TS)",
     "currency": "EUR",
-    "lastVerified": "Jun 2026",
-    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
+    "lastVerified": "16 Jun 2026",
+    "disclaimer": "Indicative costs for counsellor discussions only. Values marked {{VERIFY_LIVE}} are dynamic and MUST be verified on official sources (france-visas.gouv.fr / campusfrance.org) before quoting. Proof-of-resources funds are the student's own/sponsored money, not a fee. France does NOT use a German-style blocked account. INR equivalents move with exchange rates.",
     "sourceUrl": "https://france-visas.gouv.fr/",
     "sections": [
       {
@@ -1447,25 +838,39 @@
         "label": "Government & visa fees",
         "items": [
           {
-            "label": "Study permit application",
-            "amount": 235,
-            "unit": "per applicant",
+            "label": "VLS-TS visa fee",
+            "amount": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Student fee commonly lower than other long-stay categories; verify"
           },
           {
-            "label": "Biometrics",
-            "amount": 85,
-            "unit": "per applicant",
+            "label": "OFII/ANEF validation tax",
+            "amount": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Paid online when validating the visa after arrival; verify"
           },
           {
-            "label": "Medical exam (if required)",
-            "range": "INR 5,000–8,000",
-            "notes": "Panel physician",
+            "label": "Campus France (Études en France) fee",
+            "amount": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Set by the local Campus France office; verify"
+          },
+          {
+            "label": "CVEC student-life contribution",
+            "amount": "{{VERIFY_LIVE}}",
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Paid at enrolment; verify current amount"
+          },
+          {
+            "label": "VFS service charge",
+            "range": "{{VERIFY_LIVE}}",
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Separate from the visa fee; verify"
           }
         ]
       },
@@ -1474,26 +879,26 @@
         "label": "Tuition & education costs",
         "items": [
           {
-            "label": "Tuition (undergraduate, indicative)",
-            "range": "Mid-range for destination",
-            "notes": "Use offer letter amount",
+            "label": "Tuition (public university, non-EU differential)",
+            "range": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Differential rates at public universities; private/Grande École higher; use the offer letter"
           },
           {
-            "label": "Tuition deposit already paid",
-            "range": "Per LOA/CAS",
-            "notes": "Deduct from total funds",
+            "label": "Tuition deposit",
+            "range": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Where required by the institution"
           },
           {
             "label": "Books & materials",
-            "range": "500–1,500",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per year",
-            "notes": "Program dependent",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Programme dependent"
           }
         ]
       },
@@ -1502,22 +907,28 @@
         "label": "Living costs",
         "items": [
           {
-            "label": "Living funds (embassy guideline)",
-            "range": "€9,000–12,000",
-            "unit": "per year",
-            "currency": "EUR"
+            "label": "Proof-of-resources minimum",
+            "amount": "{{VERIFY_LIVE}}",
+            "unit": "per month",
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "France's official monthly minimum; more expected for Paris; verify"
           },
           {
             "label": "Accommodation",
-            "range": "€350–900",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Paris much higher; CAF housing aid (APL/ALS) may help after arrival"
           },
           {
-            "label": "Food & transport",
-            "range": "€250–450",
+            "label": "Living costs",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Food, transport, insurance; verify"
           }
         ]
       },
@@ -1532,21 +943,22 @@
           },
           {
             "label": "Flight / travel",
-            "range": "₹40,000–1,20,000",
+            "range": "Varies",
             "notes": "Season and route"
           },
           {
-            "label": "Document translation / notary",
-            "range": "₹2,000–15,000"
+            "label": "Document translation / legalisation",
+            "range": "Varies",
+            "notes": "Where required"
           },
           {
-            "label": "Courier & VFS premium services",
-            "range": "Optional"
+            "label": "Health insurance (entry; CPAM after arrival)",
+            "range": "Varies",
+            "notes": "Eligible students may register with the French public health insurance system after arrival, subject to current rules"
           },
           {
             "label": "Forex / transfer charges",
-            "range": "Bank dependent",
-            "notes": "GIC, blocked account, tuition transfers"
+            "range": "Bank dependent"
           }
         ]
       }
@@ -1555,7 +967,7 @@
       {
         "label": "Indicative first-year budget (excl. tuition band)",
         "value": "Counselor to calculate from sections above",
-        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+        "notes": "Cross-check the admission letter and official france-visas.gouv.fr / campusfrance.org pages before client commitment."
       }
     ]
   }

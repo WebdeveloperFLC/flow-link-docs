@@ -1,20 +1,20 @@
 {
   "displayName": "Belgium – Student Visa (Long Stay / Type D)",
-  "shortDescription": "Belgian Embassy · Type D visa · Admission · Municipality registration after arrival",
-  "version": "v1.0",
+  "shortDescription": "Belgian mission (VisaOnWeb) + commune · Type D long-stay visa · Admission + proof of means · A-card after arrival",
+  "version": "v2.2",
   "versionStatus": "Live",
   "reviewStatus": "active",
-  "updatedLabel": "Updated 9 Jun 2026",
+  "updatedLabel": "Updated 16 Jun 2026",
   "learningLevel": "Intermediate",
   "learningMinutes": 22,
   "policyAlert": {
     "active": true,
-    "date": "9 Jun 2026",
-    "summary": "Confirm requirements on diplomatie.belgium.be before quoting."
+    "date": "16 Jun 2026",
+    "summary": "Belgium issues a Type D long-stay visa (Authorisation for Provisional Sojourn) for study; after arrival the student registers at the commune within 8 days and receives a residence card (A-card), renewed yearly. Proof of means is set by law and indexed annually ({{VERIFY_LIVE}}; €1,062/month net for 2026-2027). Note: 'APS' in Belgium means Autorisation de Séjour Provisoire (the provisional residence authorisation) — it does NOT mean Germany's Academic Evaluation Centre, which does not apply here. Verify all amounts and fees on diplomatie.belgium.be / dofi.ibz.be before quoting; treat figures as live values."
   },
   "alert": {
-    "title": "Commune registration",
-    "body": "Register at local commune within 8 days of arrival to obtain residence card."
+    "title": "Register at the commune within 8 days",
+    "body": "After arrival, register at the local commune (maison communale / gemeentehuis) within 8 working days to obtain the residence card (A-card). Apply for the visa via VisaOnWeb (up to 6 months before, at least 15 days before travel). Note: Germany's Academic Evaluation Centre 'APS' does NOT apply to Belgium — do not import it."
   },
   "tags": [
     {
@@ -22,25 +22,25 @@
       "variant": "success"
     },
     {
-      "label": "APS required",
+      "label": "Proof of means critical",
       "variant": "warning"
     },
     {
-      "label": "6–12 weeks",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
-      "label": "Embassy appointment",
+      "label": "Mission (VisaOnWeb) + commune",
       "variant": "neutral"
     }
   ],
   "chips": [
     {
-      "label": "6–12 weeks",
+      "label": "Processing varies — verify live",
       "variant": "neutral"
     },
     {
-      "label": "€75 + proof of funds",
+      "label": "Visa fee + proof of means (verify)",
       "variant": "neutral"
     },
     {
@@ -48,33 +48,33 @@
       "variant": "success"
     },
     {
-      "label": "Belgium admission docs",
+      "label": "Commune registration (8 days)",
       "variant": "warning"
     }
   ],
   "kpis": [
     {
       "label": "Processing time",
-      "value": "6–12w",
-      "sub": "After complete file + APS",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Processing varies by mission/file quality — verify live",
       "tone": "primary"
     },
     {
       "label": "Government fee",
-      "value": "€75",
-      "sub": "+ proof of funds required living funds",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "D visa handling fee + Immigration Office contribution + proof of means — verify live",
       "tone": "warning"
     },
     {
-      "label": "Our approval rate",
-      "value": "88%",
-      "sub": "~74% benchmark",
-      "tone": "success"
+      "label": "Approval rate",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Pull from live CRM case data; not a prediction of any individual outcome",
+      "tone": "primary"
     },
     {
       "label": "Required docs",
-      "value": "15",
-      "sub": "+ APS & proof of funds",
+      "value": "{{VERIFY_LIVE}}",
+      "sub": "Document count varies by profile — see live checklist",
       "tone": "violet"
     },
     {
@@ -87,308 +87,314 @@
   "about": [
     {
       "label": "Description",
-      "value": "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
+      "value": "Type D long-stay visa (Authorisation for Provisional Sojourn) for non-EU/EEA/Swiss nationals enrolled full-time at a recognised Belgian higher-education institution for a program longer than 90 days. After entry, the student registers at the commune and receives a residence card (A-card), renewed annually for the duration of studies."
     },
     {
       "label": "Eligible applicants",
-      "value": "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter"
+      "value": "Final admission/enrolment at a recognised Belgian institution (provisional registration is not accepted for degree students) · Proof of sufficient means of subsistence ({{VERIFY_LIVE}}) · Health insurance · Medical certificate · Clean criminal record (applicants over 21) · Supporting letter on choice of studies · Language/diploma documents as required"
     },
     {
-      "label": "Proof of funds",
-      "value": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
+      "label": "Proof of means",
+      "value": "Set by Belgian law and indexed annually ({{VERIFY_LIVE}}; €1,062 net/month for 2026-2027, ~€12,744/year). Accepted forms: a blocked account via the institution, a bank guarantee via an approved provider (e.g. Studely), a scholarship certificate, or an Annex 32 (sponsor's formal commitment). Verify the current amount.",
       "warning": true
     },
     {
       "label": "Key authority",
-      "value": "Belgian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
+      "value": "Belgian embassy/consulate (visa via VisaOnWeb) · Immigration Office (Office des Étrangers / Dienst Vreemdelingenzaken, IBZ) for the decision · local commune (maison communale / gemeentehuis) for the A-card after arrival"
     },
     {
       "label": "After approval",
-      "value": "Enter Belgiany; register address; apply for residence permit at Ausländerbehörde within visa validity."
+      "value": "Enter Belgium on the Type D visa, register at the commune within 8 working days, and receive the residence card (A-card). Take out Belgian health insurance (mutuelle / ziekenfonds) after enrolment. Renew the A-card annually before expiry. Eligible graduates may apply for a 12-month 'search year' residence permit to seek work or start a business."
     }
   ],
   "eligibility": [
     {
-      "criterion": "Admission from recognised Belgian institution",
-      "met": true
-    },
-    {
-      "criterion": "admission documentation (India)",
-      "met": false,
-      "note": "Apply early—processing takes weeks"
-    },
-    {
-      "criterion": "Proof of funds or financial proof",
-      "met": false,
-      "note": "required living funds for 2026 or equivalent"
-    },
-    {
-      "criterion": "Health insurance (travel + statutory)",
-      "met": false
-    },
-    {
-      "criterion": "Motivation letter and CV",
-      "met": true
-    },
-    {
-      "criterion": "Language proficiency (as required)",
+      "criterion": "Final admission/enrolment at a recognised Belgian institution",
       "met": true,
-      "note": "Belgian or English per program"
+      "note": "Official admission letter confirming final (not merely provisional) acceptance into a full-time program; preparatory years attached to a degree are covered. Confirm recognition before any fee."
+    },
+    {
+      "criterion": "Proof of sufficient means of subsistence",
+      "met": false,
+      "note": "Indexed legal amount ({{VERIFY_LIVE}}; €1,062 net/month for 2026-2027). Accepted: blocked account via the institution, bank guarantee via an approved provider, scholarship certificate, or Annex 32 sponsor commitment."
+    },
+    {
+      "criterion": "Health insurance",
+      "met": false,
+      "note": "Mandatory; travel/incoming cover for the entry period then a Belgian mutuelle/ziekenfonds after enrolment. Required for both the visa and the A-card."
+    },
+    {
+      "criterion": "Medical certificate",
+      "met": false,
+      "note": "Medical certificate from an approved physician confirming the applicant is free of conditions specified by the Immigration Office."
+    },
+    {
+      "criterion": "Clean criminal record (applicants over 21)",
+      "met": false,
+      "note": "Police clearance for applicants over 21, legalised (apostille/consular) and translated into Dutch/French/German/English as required."
+    },
+    {
+      "criterion": "Supporting letter on choice of studies",
+      "met": true,
+      "note": "A credible statement linking prior study/career to the chosen Belgian program; weak or generic statements undermine the file."
     },
     {
       "criterion": "Valid passport",
-      "met": true
+      "met": true,
+      "note": "Valid at least 3 months beyond the intended stay, with blank pages; check the mission's exact rule."
     }
   ],
-  "redFlagsBanner": "After refusal, address embassy feedback before rebooking—proof of funds and APS cannot be rushed last minute.",
+  "redFlagsBanner": "After a refusal, address the Immigration Office's stated reason before reapplying — proof of means, admission and the medical/criminal-record documents cannot be fixed last-minute.",
   "redFlags": [
     {
-      "title": "APS not completed",
-      "description": "Visa appointment booked without admission documentation.",
-      "fix": "Complete APS before embassy slot; track processing on APS website",
+      "title": "Confusing Belgian 'APS' with Germany's APS",
+      "description": "In Belgium, APS = Autorisation de Séjour Provisoire (the provisional residence authorisation). Germany's Academic Evaluation Centre 'APS' does NOT apply to Belgium. Telling a Belgium client they need German-style academic APS verification is a contamination error.",
+      "fix": "Remove any German 'APS = academic verification' content; Belgium relies on the institution's admission letter and proof of means",
+      "severity": "Critical"
+    },
+    {
+      "title": "Insufficient / wrong-form proof of means",
+      "description": "Funds below the indexed legal amount, or proof not in an accepted form (blocked account, approved bank guarantee, scholarship, or Annex 32).",
+      "fix": "Use an accepted proof at the current indexed amount; the blocked-account/approved-provider route is preferred for self-supporting students",
       "severity": "Very common"
     },
     {
-      "title": "Insufficient proof of funds",
-      "description": "Amount below required monthly sum or not from recognised provider.",
-      "fix": "Open proof of funds at approved bank for full required amount",
-      "severity": "Very common"
-    },
-    {
-      "title": "Admission not from recognised institution",
-      "description": "Private unrecognised college or expired Zulassung.",
-      "fix": "Verify Anabin/institution recognition before fees",
-      "severity": "Common"
-    },
-    {
-      "title": "Weak motivation letter",
-      "description": "Generic letter not explaining study plan and Belgiany choice.",
-      "fix": "Course-specific motivation linking prior study to Belgian program",
-      "severity": "Common"
-    },
-    {
-      "title": "Language proof missing",
-      "description": "Program requires Belgian/English certificate not provided.",
-      "fix": "Obtain required TestDaF/IELTS/Goethe per admission",
-      "severity": "Common"
-    },
-    {
-      "title": "Prior refusals not addressed",
-      "description": "Schengen or Belgian refusals hidden.",
-      "fix": "Disclose and explain changed circumstances",
+      "title": "Provisional (not final) admission submitted",
+      "description": "Degree applicants submit a provisional registration certificate, which is not accepted.",
+      "fix": "Obtain the final admission/enrolment letter before lodging; confirm the institution is recognised",
       "severity": "High"
+    },
+    {
+      "title": "Annex 32 sponsor not properly executed",
+      "description": "Sponsor commitment (Annex 32) not signed before the right authority or the sponsor not financially capable, leading to refusal.",
+      "fix": "Have the Annex 32 signed in person at the commune (sponsor in Belgium) or the embassy (sponsor abroad); document the sponsor's means",
+      "severity": "Common"
+    },
+    {
+      "title": "Missing medical certificate or criminal-record (over 21)",
+      "description": "The medical certificate or the police clearance (applicants over 21) is missing or not legalised/translated.",
+      "fix": "Obtain the medical certificate from an approved physician and a legalised, translated police clearance early",
+      "severity": "Common"
+    },
+    {
+      "title": "Commune registration missed (8 days)",
+      "description": "Not registering at the commune within 8 working days of arrival, delaying or jeopardising the A-card.",
+      "fix": "Plan accommodation before arrival and register within 8 working days; the A-card enables the bank account, work permit and insurance",
+      "severity": "Medium"
+    },
+    {
+      "title": "Prior refusals or misrepresentation not addressed",
+      "description": "Hidden Schengen/Belgian refusals, false diplomas, or enrolment with no intention to study (a known abuse the Immigration Office screens for).",
+      "fix": "Disclose every prior refusal and explain changed circumstances; never submit false documents or sham enrolment",
+      "severity": "High"
+    },
+    {
+      "title": "Contribution fee (redevance/bijdrage) unpaid → inadmissible",
+      "description": "The Immigration Office contribution fee, where required, must be paid for the application to be admissible. If unpaid, the application is declared inadmissible and is not processed.",
+      "fix": "Confirm whether the contribution fee applies and pay it before/with lodging; keep proof of payment",
+      "severity": "High"
+    },
+    {
+      "title": "Working beyond 20 h/week in term on a 'limited' card",
+      "description": "A residence card marked 'labour market limited' caps term-time work at 20 hours/week; exceeding it (only holidays are unlimited) breaches the card's conditions.",
+      "fix": "Track term vs official-holiday periods; keep term-time work within 20 h/week and the applicable authorisation",
+      "severity": "Common"
     }
   ],
   "faqs": [
     {
-      "q": "Can we guarantee student visa approval?",
-      "a": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
+      "q": "Can we guarantee approval of the student visa?",
+      "a": "No. The Belgian Immigration Office (via the embassy) decides based on admission, proof of means, insurance, the medical and criminal-record documents, and credibility. A strong, honest file improves the chances but approval is never guaranteed — and we never promise one."
     },
     {
-      "q": "What is APS?",
-      "a": "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants."
+      "q": "Does Belgium require a German-style APS academic certificate?",
+      "a": "No. Germany's Academic Evaluation Centre ('APS') does NOT apply to Belgium. Beware a terminology trap: in Belgium 'APS' means Autorisation de Séjour Provisoire (the provisional residence authorisation / Type D), not academic document verification. Belgium relies on the institution's final admission letter plus proof of means. (Note: applicants from a few countries such as China have a separate academic-screening requirement — but that is not the German APS and is country-specific.)"
     },
     {
-      "q": "Proof of funds amount for 2026?",
-      "a": "Typically required living funds (12 months × €992). Verify current amount before opening account."
+      "q": "Is it a visa or a residence permit?",
+      "a": "Both, in sequence. A Type D long-stay visa (Authorisation for Provisional Sojourn) is issued to enter Belgium; after arrival the student registers at the commune within 8 working days and receives a residence card (A-card), valid one academic year and renewed annually for the duration of studies."
     },
     {
-      "q": "Can spouse accompany?",
-      "a": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
+      "q": "How much money must a student show?",
+      "a": "The legal 'means of subsistence' amount, indexed annually ({{VERIFY_LIVE}}; €1,062 net/month for 2026-2027, about €12,744 for the year). Prove it via a blocked account through the institution, a bank guarantee via an approved provider (e.g. Studely), a scholarship certificate, or an Annex 32 sponsor commitment. Verify the current figure — it increased from €835 and is indexed."
     },
     {
-      "q": "English-taught programs need Belgian?",
-      "a": "Depends on program—follow admission and embassy requirements."
+      "q": "What is an Annex 32?",
+      "a": "A formal commitment of financial support (prise en charge / verbintenis tot tenlasteneming) signed by a sponsor who undertakes to cover the student's living, study, healthcare and repatriation costs. The sponsor signs at the commune (if resident in Belgium) or the Belgian embassy (if abroad); the Immigration Office assesses the sponsor's financial capacity. Note a self-supporting student cannot act as guarantor for their own spouse-student."
     },
     {
-      "q": "How long to convert to residence permit?",
-      "a": "Apply at Ausländerbehörde soon after arrival and registration."
+      "q": "Can the student work?",
+      "a": "Yes. A residence card marked 'labour market limited' (arbeidsmarkt beperkt) allows up to 20 hours per week during term and unlimited work during official holiday periods, provided it does not interfere with studies. A student employment contract and the applicable work authorisation (currently the type C work permit / regional authorisation) are needed first, plus a valid residence card and registration number. Work income cannot replace the proof-of-means requirement. Verify the current authorisation procedure for the relevant Region, as it can change."
     },
     {
-      "q": "Can I work on student visa?",
-      "a": "Limited working hours permitted—verify current rules for students in Belgiany."
+      "q": "What language is required?",
+      "a": "It depends on the program and community (Flemish/Dutch, French, or German-speaking). Many programs are taught in English; others require Dutch or French. Provide the language/diploma evidence the institution specifies — there is no separate federal language test for the visa itself."
     },
     {
       "q": "What after graduation?",
-      "a": "Discuss 18-month job-seeker residence permit or Opportunity Card separately."
+      "a": "Eligible graduates may apply for a 'search year' (zoekjaar / année de recherche) residence permit to look for qualified work or start a business (commonly up to 12 months — {{VERIFY_LIVE}}). On finding a job, the student moves to a single permit (combined residence and work permit). These are separate steps with their own criteria — verify the current duration and conditions before advising."
     },
     {
-      "q": "What is Description for this service?",
-      "a": "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
+      "q": "What are the government fees?",
+      "a": "Typically a D-visa handling fee ({{VERIFY_LIVE}}; ~€180 as of early 2026) PLUS the Immigration Office contribution fee (redevance / bijdrage, varies by procedure) PLUS the commune residence-card production fee (~€20 base plus any local tax). Amounts are set/adjusted by the authorities and change — verify the current figures on diplomatie.belgium.be / dofi.ibz.be."
     },
     {
-      "q": "What is Eligible applicants for this service?",
-      "a": "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter"
+      "q": "How and when is the application made?",
+      "a": "Online via VisaOnWeb, then documents submitted at the competent Belgian post (often via TLScontact/VFS). Apply up to 6 months before departure and at least 15 calendar days before the intended travel; start early because document legalisation and slots take time."
     },
     {
-      "q": "What is Proof of funds for this service?",
-      "a": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      "q": "What is the 8-day commune registration?",
+      "a": "Within 8 working days of arriving, the student must report to the local commune (maison communale / gemeentehuis) to be entered in the foreigners' register and obtain the residence card (A-card). This registration also enables opening a bank account, the work permit and health insurance — so line up accommodation before arrival."
     },
     {
-      "q": "Important note on Proof of funds?",
-      "a": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      "q": "How does the blocked-account / bank-guarantee proof work?",
+      "a": "The student (or institution) deposits 12 × the monthly amount (12 × €1,062 for 2026-2027) into a blocked account opened by the institution, or via an approved financial provider's bank-guarantee product. After arrival, the funds are released to the student in monthly installments. This is the preferred proof for self-supporting students."
     },
     {
-      "q": "What is Key authority for this service?",
-      "a": "Belgian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
+      "q": "Can a refused visa be appealed?",
+      "a": "Yes. A refusal can be challenged before the Council for Alien Law Litigation (Conseil du Contentieux des Étrangers / Raad voor Vreemdelingenbetwistingen, CCE/RvV) within the legal deadline ({{VERIFY_LIVE}}; short — typically a matter of weeks from notification), or the client can reapply with a corrected, stronger file. Read the reason carefully (commonly proof of means, admission validity, missing contribution fee, or document/credibility issues) and fix the specific issue rather than re-lodging the same file."
     },
     {
-      "q": "What is After approval for this service?",
-      "a": "Enter Belgiany; register address; apply for residence permit at Ausländerbehörde within visa validity."
+      "q": "Can a spouse or children join?",
+      "a": "Family reunion for students is limited: the student residence is temporary, so dependants require separate proof of means and accommodation and it is assessed case-by-case — a self-supporting student generally cannot act as guarantor for a spouse who also wants to study. Verify the current family-reunification rules; do not assume entitlement."
     },
     {
-      "q": "Is Admission from recognised Belgian institution required?",
-      "a": "Admission from recognised Belgian institution is typically required."
+      "q": "Is health insurance mandatory?",
+      "a": "Yes. Insurance is required to enrol and for the residence permit. Use travel/incoming cover for the entry period, then register with a Belgian health fund (mutuelle / ziekenfonds) of your choice after enrolment. Some countries have agreements with Belgium that affect cover — check the applicant's situation."
     },
     {
-      "q": "Is admission documentation (India) required?",
-      "a": "Apply early—processing takes weeks"
+      "q": "Which community/institution recognition applies?",
+      "a": "Higher education is organised by the communities (Flemish, French, German-speaking), each with recognised universities and universities of applied sciences (hogescholen / hautes écoles). Confirm the institution and program are recognised by the relevant community before any fee; recognition queries go to the community's NARIC, not a German database."
     },
     {
-      "q": "Is Proof of funds or financial proof required?",
-      "a": "required living funds for 2026 or equivalent"
+      "q": "How long does processing take?",
+      "a": "Belgium publishes a legal decision period for student visa applications (statutory target {{VERIFY_LIVE}}; the published legal time has been 90 days) but the actual time varies by mission, file quality and season. Always quote the live estimate from the mission/Immigration Office rather than a fixed number, and apply early."
     },
     {
-      "q": "Is Health insurance (travel + statutory) required?",
-      "a": "Assess whether Health insurance (travel + statutory) is satisfied for this case."
-    },
-    {
-      "q": "Is Motivation letter and CV required?",
-      "a": "Motivation letter and CV is typically required."
-    },
-    {
-      "q": "Is Language proficiency (as required) required?",
-      "a": "Belgian or English per program"
-    },
-    {
-      "q": "Is Valid passport required?",
-      "a": "Valid passport is typically required."
-    },
-    {
-      "q": "What is the Processing time?",
-      "a": "6–12w — After complete file + APS"
-    },
-    {
-      "q": "What is the Government fee?",
-      "a": "€75 — + proof of funds required living funds"
-    },
-    {
-      "q": "What is the Our approval rate?",
-      "a": "88% — ~74% benchmark"
-    },
-    {
-      "q": "What is the Required docs?",
-      "a": "15 — + APS & proof of funds"
-    },
-    {
-      "q": "What is the Consultancy fee?",
-      "a": "See fee tab — + govt & third-party"
-    },
-    {
-      "q": "What if the client has APS not completed?",
-      "a": "Complete APS before embassy slot; track processing on APS website"
-    },
-    {
-      "q": "Why is APS not completed a problem?",
-      "a": "Visa appointment booked without admission documentation."
-    },
-    {
-      "q": "What if the client has Insufficient proof of funds?",
-      "a": "Open proof of funds at approved bank for full required amount"
-    },
-    {
-      "q": "Why is Insufficient proof of funds a problem?",
-      "a": "Amount below required monthly sum or not from recognised provider."
+      "q": "What does FLC actually guarantee?",
+      "a": "Nothing about the outcome — the Belgian authorities decide. FLC prepares a strong, honest, well-documented file (final admission, proof of means, insurance, medical and criminal-record documents) and never promises a visa, in writing or verbally."
     }
   ],
   "compliance": [
-    "Client service agreement and consent must be on file before submission",
-    "Never guarantee visa or immigration approval; use approved-language only",
-    "Fee quotes must separate consultancy, government, and third-party costs",
-    "Proof of funds funds belong to client—never commingle with firm accounts"
+    "Client service agreement and consent must be on file before submission.",
+    "Never guarantee a visa or approval; use approved, non-guaranteeing language only.",
+    "Fee quotes must separate consultancy, government (visa + contribution + commune) and third-party costs.",
+    "Proof-of-means funds belong to the client — never receive, hold or route them through firm accounts; use the institution's blocked account or an approved provider.",
+    "Never import another country's requirements (e.g. German academic APS, Sperrkonto, Anabin) into a Belgium file.",
+    "Do not publish a firm approval rate or an unsourced 'industry benchmark' as a headline figure; use live, sourced CRM data labelled as not predictive of any individual outcome.",
+    "Handle academic, financial, medical and criminal-record documents under data-protection rules: store securely, share only with authorised parties, retain only as needed.",
+    "Disclose all prior refusals and never submit false diplomas or sham enrolment; misrepresentation can lead to refusal and bans."
   ],
   "proTips": [
-    "Start APS 3–4 months before intended intake",
-    "Open proof of funds only after admission confirmed",
-    "Book embassy slot when file 90% ready",
-    "Motivation letter must match admission course",
-    "Verify health insurance accepted by embassy"
+    "Never import Germany's academic 'APS' into a Belgium file — and watch the terminology trap: Belgian 'APS' means the provisional residence authorisation, not academic verification.",
+    "Use the current indexed means amount (€1,062/month for 2026-2027) and the blocked-account or approved bank-guarantee route (e.g. Studely) for self-supporting students; verify the live figure.",
+    "Submit FINAL admission (not provisional) for degree students; confirm the institution is recognised by the relevant community.",
+    "Plan accommodation before arrival — the commune registration must happen within 8 working days and gates the A-card, bank account, work permit and insurance.",
+    "Get the Annex 32 signed before the correct authority (commune if sponsor in Belgium, embassy if abroad) and document the sponsor's means.",
+    "Quote the full fee stack: D-visa handling fee + Immigration Office contribution (redevance/bijdrage) + commune card fee — all dynamic, verify live."
   ],
   "postApproval": [
-    "Explain address registration (Anmeldung) within deadline",
-    "Guide on Ausländerbehörde appointment after arrival",
-    "Remind proof of funds monthly withdrawal rules",
-    "Discuss post-study job-seeker pathway"
+    "Register at the commune within 8 working days of arrival to obtain the A-card",
+    "Take out Belgian health insurance (mutuelle / ziekenfonds) after enrolment",
+    "Open a bank account; arrange work authorisation (type C) before any term-time work",
+    "Renew the A-card annually before expiry; keep enrolment and means current"
   ],
   "performance": {
-    "ourRate": 0,
-    "industryRate": 0,
+    "ourRate": null,
+    "industryRate": null,
+    "note": "Approval rate and file counts must be populated live from CRM case data, not published as fixed figures. Do not display a comparative 'industry benchmark' unless independently sourced and cited.",
     "stats": [
       {
-        "label": "Files this year",
-        "value": "0"
+        "label": "Files this period",
+        "value": "{{VERIFY_LIVE}}"
       },
       {
         "label": "Approved",
-        "value": "0"
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Refused",
+        "value": "{{VERIFY_LIVE}}"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "{{VERIFY_LIVE}}"
       }
     ]
   },
   "approvalFactors": [
     {
-      "label": "Our rate vs industry",
-      "ours": 88,
-      "benchmark": 74
+      "label": "Accepted proof of means at indexed amount",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "APS timing",
-      "ours": 85,
-      "benchmark": 68
+      "label": "Final (not provisional) admission",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
-      "label": "Financial docs",
-      "ours": 87,
-      "benchmark": 72
+      "label": "Medical + criminal-record documents in order",
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     },
     {
       "label": "First-submit completeness",
-      "ours": 92,
-      "benchmark": 76
+      "ours": "{{VERIFY_LIVE}}",
+      "benchmark": null
     }
   ],
   "timeline": [
     {
       "weeks": "1–2",
-      "title": "Counseling, admission review, APS initiation"
+      "title": "Counselling, final admission review, fee agreement"
     },
     {
-      "weeks": "2–8",
-      "title": "APS processing, proof of funds, documents"
+      "weeks": "2–4",
+      "title": "Proof of means (blocked account/guarantee/Annex 32), insurance, medical, police clearance + legalisation"
     },
     {
-      "weeks": "8–10",
-      "title": "Embassy appointment & submission"
+      "weeks": "{{VERIFY_LIVE}}",
+      "title": "VisaOnWeb submission + Immigration Office decision (varies — verify live)"
     },
     {
-      "weeks": "6–12",
-      "title": "Embassy processing"
+      "weeks": "on arrival",
+      "title": "Commune registration within 8 days; A-card; health fund enrolment"
     }
   ],
   "relatedServices": [
     {
-      "label": "Belgiany – Job Seeker Visa",
+      "label": "Belgium – Search Year (post-study job search)",
       "libraryId": ""
     },
     {
-      "label": "Belgiany – Opportunity Card",
+      "label": "Belgium – Single Permit (work + residence)",
       "libraryId": ""
     },
     {
-      "label": "Belgiany – Visitor Visa",
+      "label": "Belgium – Family Reunification",
       "libraryId": ""
     }
   ],
   "changelog": [
+    {
+      "version": "v2.2",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Version alignment: bumped to v2.2 to standardise the study/visa service-library on a single version across all countries. No content changes in this entry — all factual content, {{VERIFY_LIVE}} placeholders, compliance/contamination warnings and prior corrections are unchanged from v2.1."
+    },
+    {
+      "version": "v2.1",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Audit pass: future-proofed work rights around the residence-card labour-market endorsement ('limited' = 20 h/week term, unlimited in official holidays) and noted that work authorisation is regional and can change; placeholdered the search-year duration, appeal deadline and statutory processing period; added red flags for an unpaid contribution fee (inadmissibility) and exceeding the term-time work cap; added matching quiz questions; cleaned a residual find-replace artifact from the historical v1.0 changelog entry. No statistics, approval rates, benchmarks or processing times were invented."
+    },
+    {
+      "version": "v2.0",
+      "date": "16 Jun 2026",
+      "author": "Service Library",
+      "summary": "Major decontamination + rebuild: removed Germany cross-contamination (academic APS, Sperrkonto/€992 blocked account, Anabin, Ausländerbehörde, 'Belgium' find-replace artifacts, TestDaF/Goethe, Canada €235/€85 fee structure, German 18-month/Opportunity-Card post-study) that had been copied into this Belgium file. Reframed as the Type D long-stay visa (Authorisation for Provisional Sojourn) + A-card; added the correct indexed proof-of-means (€1,062/month for 2026-2027), accepted proof forms (blocked account / approved bank guarantee / scholarship / Annex 32), 20h/week term work + type C permit, 8-working-day commune registration, 12-month search-year post-study, VisaOnWeb application, Immigration Office (IBZ) authority, and the CCE/RvV appeal route. Flagged the Belgian 'APS' terminology trap (provisional residence, not academic verification). Replaced template FAQs and quiz with real Belgium-specific content; rebuilt resources to official Belgian sources; removed the hardcoded approval rate and 'industry benchmark'; converted time-sensitive values to {{VERIFY_LIVE}} placeholders. No statistics were invented."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",
@@ -405,966 +411,383 @@
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
-      "summary": "Initial Belgiany student visa counselor content with 2026 proof of funds amount."
+      "summary": "Initial Belgium student visa counselor content with 2026 proof of funds amount."
     }
   ],
   "staffNotes": [
     {
+      "author": "Service Library",
+      "date": "16 Jun 2026",
+      "text": "Dynamic values are marked {{VERIFY_LIVE}} and MUST be populated from live official sources / CRM before client use: proof-of-means amount (indexed), visa handling fee, Immigration Office contribution, commune card fee, tuition, insurance, processing times, doc counts, and any approval/file-count figures. Never publish invented statistics."
+    },
+    {
       "author": "Documentation team",
-      "date": "6 Jun 2026",
-      "text": "APS backlog is real—do not promise winter intake without APS timeline confirmation."
+      "date": "16 Jun 2026",
+      "text": "CONTAMINATION WARNING: this service was previously copied from the Germany file. Belgium does NOT use Germany's academic APS, a German Sperrkonto (€992), Anabin, or 'Ausländerbehörde'. TERMINOLOGY TRAP: Belgian 'APS' = Autorisation de Séjour Provisoire (provisional residence), NOT academic verification. Belgium uses: Type D visa, €1,062/month indexed means, blocked account/Annex 32, commune registration (8 days), A-card, Immigration Office (IBZ). Never reintroduce German terms."
     }
   ],
   "resources": [
     {
-      "title": "Belgium official immigration portal",
-      "url": "https://diplomatie.belgium.be/",
-      "description": "Verify current fees, forms, and document lists before counseling."
+      "title": "Belgian Immigration Office (IBZ / dofi) — studies",
+      "url": "https://dofi.ibz.be/en/themes/ressortissants-dun-pays-tiers/etudes",
+      "description": "Official: means of subsistence, Annex 32, residence procedure for students"
     },
     {
-      "title": "Make it in Belgiany — Student visa",
-      "url": "https://www.make-it-in-belgium.com/en/visa-desp/studying/education-visa",
-      "description": "Study visa requirements"
+      "title": "FPS Foreign Affairs — student visa (diplomatie.belgium.be)",
+      "url": "https://diplomatie.belgium.be/en",
+      "description": "Type D student visa, VisaOnWeb, document requirements and fees"
     },
     {
-      "title": "APS India",
-      "url": "https://www.aps-india.de/",
-      "description": "Academic verification for Indian applicants"
+      "title": "Study in Flanders — visa requirements",
+      "url": "https://www.studyinflanders.be/practical-information/visa-requirements",
+      "description": "Proof of solvency, blocked account/bank guarantee, practical steps (Flemish Community)"
     },
     {
-      "title": "Federal Foreign Office — Visa",
-      "url": "https://www.diplomatie.belgium.be/en/visa-service",
-      "description": "National visa overview"
+      "title": "Study in Belgium (French Community) — Wallonie-Bruxelles",
+      "url": "https://www.studyinbelgium.be/en",
+      "description": "Recognised institutions and admission in the French Community"
     },
     {
-      "title": "Anabin — Institution database",
-      "url": "https://anabin.kmk.org/",
-      "description": "Verify institution recognition"
+      "title": "VisaOnWeb — Belgian online visa application",
+      "url": "https://visaonweb.diplomatie.be/",
+      "description": "Online long-stay (Type D) visa application portal"
     }
   ],
   "quiz": [
     {
-      "question": "Indian students generally need:",
+      "level": 1,
+      "question": "What visa lets a non-EU student study long-term in Belgium?",
       "options": [
-        "Only passport",
-        "admission documentation + admission + proof of funds",
-        "Job offer",
-        "EU citizenship"
+        "A Type D long-stay visa (Authorisation for Provisional Sojourn)",
+        "A German APS certificate",
+        "A Schengen Type C visa only",
+        "An Opportunity Card"
+      ],
+      "correctIndex": 0,
+      "explanation": "Belgium issues a Type D long-stay visa; the A-card follows after arrival."
+    },
+    {
+      "level": 1,
+      "question": "Does Germany's academic 'APS' apply to Belgium?",
+      "options": [
+        "Yes, for all Indians",
+        "No — that is a Germany requirement; Belgian 'APS' means provisional residence",
+        "Yes, for master's only",
+        "Only in Flanders"
       ],
       "correctIndex": 1,
-      "explanation": "APS mandatory for India.",
-      "level": 1
+      "explanation": "German academic APS does not apply; in Belgium APS = Autorisation de Séjour Provisoire."
     },
     {
-      "question": "Proof of funds 2026 amount approx:",
+      "level": 1,
+      "question": "What is the 2026-2027 monthly proof-of-means amount?",
       "options": [
-        "€5,000",
-        "required living funds",
-        "€50,000",
-        "€500"
+        "€992/month",
+        "€500/month",
+        "€1,062 net/month",
+        "No requirement"
+      ],
+      "correctIndex": 2,
+      "explanation": "The indexed legal amount is €1,062 net/month for 2026-2027 (€992 is the German figure)."
+    },
+    {
+      "level": 1,
+      "question": "After arrival, a student must register at the commune within:",
+      "options": [
+        "3 days",
+        "30 days",
+        "90 days",
+        "8 working days"
+      ],
+      "correctIndex": 3,
+      "explanation": "Commune registration within 8 working days yields the A-card."
+    },
+    {
+      "level": 1,
+      "question": "How many hours per week may a student work during term?",
+      "options": [
+        "Up to 20 hours/week",
+        "140 days/year",
+        "Unlimited",
+        "No work allowed"
+      ],
+      "correctIndex": 0,
+      "explanation": "Up to 20 hours/week during term; full-time during official holidays."
+    },
+    {
+      "level": 1,
+      "question": "Which document is a sponsor's formal financial commitment in Belgium?",
+      "options": [
+        "Sperrkonto",
+        "Annex 32",
+        "Anabin",
+        "I-20"
       ],
       "correctIndex": 1,
-      "explanation": "12 × €992 monthly requirement.",
-      "level": 1
+      "explanation": "The Annex 32 is the sponsor's commitment (prise en charge / tenlasteneming)."
     },
     {
-      "question": "National visa fee approx:",
+      "level": 1,
+      "question": "The residence card issued in Belgium is the:",
       "options": [
-        "€500",
-        "€75",
-        "€2,000",
-        "Free"
+        "Aufenthaltstitel",
+        "BRP",
+        "A-card",
+        "Green card"
+      ],
+      "correctIndex": 2,
+      "explanation": "Non-EU students receive an A-card after commune registration."
+    },
+    {
+      "level": 1,
+      "question": "Where is the long-stay visa applied for?",
+      "options": [
+        "At the airport",
+        "At the commune only",
+        "At the university only",
+        "Online via VisaOnWeb, then the Belgian post"
+      ],
+      "correctIndex": 3,
+      "explanation": "Applications start on VisaOnWeb and are submitted at the competent post."
+    },
+    {
+      "level": 2,
+      "question": "What forms of proof of means are accepted?",
+      "options": [
+        "Blocked account, approved bank guarantee, scholarship, or Annex 32",
+        "Only cash",
+        "A German Sperrkonto",
+        "APS certificate"
+      ],
+      "correctIndex": 0,
+      "explanation": "Belgium accepts a blocked account, approved guarantee, scholarship, or Annex 32."
+    },
+    {
+      "level": 2,
+      "question": "For degree students, which admission is accepted?",
+      "options": [
+        "Provisional registration",
+        "Final admission (provisional registration is not accepted)",
+        "Any enquiry email",
+        "A brochure"
       ],
       "correctIndex": 1,
-      "explanation": "Embassy national visa fee.",
-      "level": 1
+      "explanation": "Degree applicants need final admission, not a provisional certificate."
     },
     {
-      "question": "After arrival student must:",
+      "level": 2,
+      "question": "During official holidays, the 20-hour work cap:",
       "options": [
-        "Ignore registration",
-        "Register address and apply residence permit",
-        "Work full-time immediately",
-        "Leave in 1 week"
+        "Still applies",
+        "Drops to 10 hours",
+        "Does not apply — full-time work is allowed",
+        "Means no work"
+      ],
+      "correctIndex": 2,
+      "explanation": "The 20-hour cap is term-time only; full-time is allowed in official holidays."
+    },
+    {
+      "level": 2,
+      "question": "The blocked-account proof requires depositing:",
+      "options": [
+        "One month only",
+        "Nothing upfront",
+        "€992",
+        "12 × the monthly amount (12 × €1,062 for 2026-2027)"
+      ],
+      "correctIndex": 3,
+      "explanation": "Twelve times the monthly amount is deposited and released monthly after arrival."
+    },
+    {
+      "level": 2,
+      "question": "After graduation, an eligible student may apply for:",
+      "options": [
+        "A 12-month 'search year' residence permit",
+        "Immediate citizenship",
+        "A second visa fee",
+        "Nothing"
+      ],
+      "correctIndex": 0,
+      "explanation": "A 12-month search-year permit precedes a single (work) permit."
+    },
+    {
+      "level": 2,
+      "question": "Belgian higher education is organised by:",
+      "options": [
+        "A single federal ministry",
+        "The communities (Flemish, French, German-speaking)",
+        "The German KMK",
+        "The embassy"
       ],
       "correctIndex": 1,
-      "explanation": "Anmeldung and Ausländerbehörde required.",
-      "level": 1
+      "explanation": "Recognition is via the communities, not a German database."
     },
     {
-      "question": "Counselors must never:",
+      "level": 2,
+      "question": "A self-supporting student may act as guarantor for a spouse-student:",
       "options": [
-        "Track APS",
-        "Guarantee visa approval",
-        "Verify admission",
-        "Check proof of funds"
+        "Yes, always",
+        "Yes, after one year",
+        "No — they cannot stand as guarantor for a spouse intending to study",
+        "Only in Brussels"
+      ],
+      "correctIndex": 2,
+      "explanation": "A self-supporting student cannot guarantee a spouse who also intends to study."
+    },
+    {
+      "level": 2,
+      "question": "Which work permit type applies to term-time student work?",
+      "options": [
+        "A German Beschäftigungsbewilligung",
+        "None ever",
+        "A Blue Card",
+        "A type C / student work authorisation"
+      ],
+      "correctIndex": 3,
+      "explanation": "Term-time student work uses a type C / student work authorisation."
+    },
+    {
+      "level": 3,
+      "question": "A counsellor tells a Belgium client they need Germany's academic APS. The issue?",
+      "options": [
+        "German academic APS does not apply to Belgium (contamination); Belgian 'APS' is provisional residence",
+        "No issue",
+        "APS is faster",
+        "Lower fee"
+      ],
+      "correctIndex": 0,
+      "explanation": "Importing German academic APS into a Belgium file is a contamination error."
+    },
+    {
+      "level": 3,
+      "question": "A client shows €992/month as proof of means. The error?",
+      "options": [
+        "No error",
+        "Wrong figure — Belgium's 2026-2027 amount is €1,062/month (€992 is German)",
+        "Too high",
+        "Means not required"
       ],
       "correctIndex": 1,
-      "explanation": "No guarantees.",
-      "level": 1
-    },
-    {
-      "level": 1,
-      "question": "For Belgiany – Student Visa (National Visa), which statement about Description is correct?",
-      "options": [
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
-        "Belgian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-      ],
-      "correctIndex": 0,
-      "explanation": "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
-    },
-    {
-      "level": 1,
-      "question": "Belgiany – Student Visa (National Visa): what is true regarding Eligible applicants?",
-      "options": [
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
-        "Belgian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-      ],
-      "correctIndex": 0,
-      "explanation": "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Belgiany – Student Visa (National Visa) should state correctly about Proof of funds:",
-      "options": [
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "Belgian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-      ],
-      "correctIndex": 0,
-      "explanation": "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies. — verify current rules."
-    },
-    {
-      "level": 1,
-      "question": "For Belgiany – Student Visa (National Visa), which statement about Key authority is correct?",
-      "options": [
-        "Belgian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Belgian Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
-    },
-    {
-      "level": 1,
-      "question": "Belgiany – Student Visa (National Visa): what is true regarding After approval?",
-      "options": [
-        "Enter Belgiany; register address; apply for residence permit at Ausländerbehörde within visa validity.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Enter Belgiany; register address; apply for residence permit at Ausländerbehörde within visa validity."
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Belgiany – Student Visa (National Visa) should state correctly about Admission from recognised Belgian institution:",
-      "options": [
-        "Admission from recognised Belgian institution is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Admission from recognised Belgian institution"
-    },
-    {
-      "level": 1,
-      "question": "For Belgiany – Student Visa (National Visa), which statement about admission documentation (India) is correct?",
-      "options": [
-        "admission documentation (India) is often required or assessed for this service. Note: Apply early—processing takes weeks",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Apply early—processing takes weeks"
-    },
-    {
-      "level": 1,
-      "question": "Belgiany – Student Visa (National Visa): what is true regarding Proof of funds or financial proof?",
-      "options": [
-        "Proof of funds or financial proof is often required or assessed for this service. Note: required living funds for 2026 or equivalent",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "required living funds for 2026 or equivalent"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Belgiany – Student Visa (National Visa) should state correctly about Health insurance (travel + statutory):",
-      "options": [
-        "Health insurance (travel + statutory) is often required or assessed for this service.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Health insurance (travel + statutory)"
-    },
-    {
-      "level": 1,
-      "question": "For Belgiany – Student Visa (National Visa), which statement about Motivation letter and CV is correct?",
-      "options": [
-        "Motivation letter and CV is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Motivation letter and CV"
-    },
-    {
-      "level": 1,
-      "question": "Belgiany – Student Visa (National Visa): what is true regarding Language proficiency (as required)?",
-      "options": [
-        "Language proficiency (as required) is a core requirement for this service. Note: Belgian or English per program",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Belgian or English per program"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Belgiany – Student Visa (National Visa) should state correctly about Valid passport:",
-      "options": [
-        "Valid passport is a core requirement for this service.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Valid passport"
-    },
-    {
-      "level": 1,
-      "question": "For Belgiany – Student Visa (National Visa), which statement about Processing time is correct?",
-      "options": [
-        "Processing time: 6–12w — After complete file + APS",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "After complete file + APS"
-    },
-    {
-      "level": 1,
-      "question": "Belgiany – Student Visa (National Visa): what is true regarding Government fee?",
-      "options": [
-        "Government fee: €75 — + proof of funds required living funds",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ proof of funds required living funds"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Belgiany – Student Visa (National Visa) should state correctly about Our approval rate:",
-      "options": [
-        "Our approval rate: 88% — ~74% benchmark",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "~74% benchmark"
-    },
-    {
-      "level": 1,
-      "question": "For Belgiany – Student Visa (National Visa), which statement about Required docs is correct?",
-      "options": [
-        "Required docs: 15 — + APS & proof of funds",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ APS & proof of funds"
-    },
-    {
-      "level": 1,
-      "question": "Belgiany – Student Visa (National Visa): what is true regarding Consultancy fee?",
-      "options": [
-        "Consultancy fee: See fee tab — + govt & third-party",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "+ govt & third-party"
-    },
-    {
-      "level": 1,
-      "question": "A counselor explaining Belgiany – Student Visa (National Visa) should state correctly about service summary:",
-      "options": [
-        "Belgian Embassy · National D visa · Admission + proof of funds · Belgium admission docs",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Belgian Embassy · National D visa · Admission + proof of funds · Belgium admission docs"
-    },
-    {
-      "level": 1,
-      "question": "For Belgiany – Student Visa (National Visa), which statement about Belgium admission requirements is correct?",
-      "options": [
-        "Indian students generally need admission documentation before visa appointment. Verify current APS processing time before promising intake dates.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Indian students generally need admission documentation before visa appointment. Verify current APS processing time before promising intake dates."
-    },
-    {
-      "level": 1,
-      "question": "Belgiany – Student Visa (National Visa): what is true regarding policy update?",
-      "options": [
-        "Confirm current national visa fee (€75 approx) and proof of funds amount (required living funds for 2026) on diplomatie.belgium.be and diplomatie.belgium.be before quoting.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Confirm current national visa fee (€75 approx) and proof of funds amount (required living funds for 2026) on diplomatie.belgium.be and diplomatie.belgium.be before quoting."
-    },
-    {
-      "level": 2,
-      "question": "In the Belgiany – Student Visa (National Visa) process, what is the correct approach to client question: Can we guarantee student visa approval?",
-      "options": [
-        "No. Embassy decides based on admission, funds, and credibility. Never promise approval.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
-    },
-    {
-      "level": 2,
-      "question": "For Belgiany – Student Visa (National Visa), what should happen during client question: What is APS?",
-      "options": [
-        "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants."
-    },
-    {
-      "level": 2,
-      "question": "Belgiany – Student Visa (National Visa) workflow — best practice for client question: Proof of funds amount for 2026:",
-      "options": [
-        "Typically required living funds (12 months × €992). Verify current amount before opening account.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Typically required living funds (12 months × €992). Verify current amount before opening account."
-    },
-    {
-      "level": 2,
-      "question": "In the Belgiany – Student Visa (National Visa) process, what is the correct approach to client question: Can spouse accompany?",
-      "options": [
-        "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
-    },
-    {
-      "level": 2,
-      "question": "For Belgiany – Student Visa (National Visa), what should happen during client question: English-taught programs need Belgian?",
-      "options": [
-        "Depends on program—follow admission and embassy requirements.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Depends on program—follow admission and embassy requirements."
-    },
-    {
-      "level": 2,
-      "question": "Belgiany – Student Visa (National Visa) workflow — best practice for client question: How long to convert to residence permit:",
-      "options": [
-        "Apply at Ausländerbehörde soon after arrival and registration.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Apply at Ausländerbehörde soon after arrival and registration."
-    },
-    {
-      "level": 2,
-      "question": "In the Belgiany – Student Visa (National Visa) process, what is the correct approach to client question: Can I work on student visa?",
-      "options": [
-        "Limited working hours permitted—verify current rules for students in Belgiany.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Limited working hours permitted—verify current rules for students in Belgiany."
-    },
-    {
-      "level": 2,
-      "question": "For Belgiany – Student Visa (National Visa), what should happen during client question: What after graduation?",
-      "options": [
-        "Discuss 18-month job-seeker residence permit or Opportunity Card separately.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Discuss 18-month job-seeker residence permit or Opportunity Card separately."
-    },
-    {
-      "level": 2,
-      "question": "Belgiany – Student Visa (National Visa) workflow — best practice for timeline (1–2):",
-      "options": [
-        "Counseling, admission review, APS initiation",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "1–2: Counseling, admission review, APS initiation"
-    },
-    {
-      "level": 2,
-      "question": "In the Belgiany – Student Visa (National Visa) process, what is the correct approach to timeline (2–8)?",
-      "options": [
-        "APS processing, proof of funds, documents",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "2–8: APS processing, proof of funds, documents"
-    },
-    {
-      "level": 2,
-      "question": "For Belgiany – Student Visa (National Visa), what should happen during timeline (8–10)?",
-      "options": [
-        "Embassy appointment & submission",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "8–10: Embassy appointment & submission"
-    },
-    {
-      "level": 2,
-      "question": "Belgiany – Student Visa (National Visa) workflow — best practice for timeline (6–12):",
-      "options": [
-        "Embassy processing",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "6–12: Embassy processing"
-    },
-    {
-      "level": 2,
-      "question": "In the Belgiany – Student Visa (National Visa) process, what is the correct approach to counselor tip?",
-      "options": [
-        "Start APS 3–4 months before intended intake",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Start APS 3–4 months before intended intake"
-    },
-    {
-      "level": 2,
-      "question": "For Belgiany – Student Visa (National Visa), what should happen during counselor tip?",
-      "options": [
-        "Open proof of funds only after admission confirmed",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Open proof of funds only after admission confirmed"
-    },
-    {
-      "level": 2,
-      "question": "Belgiany – Student Visa (National Visa) workflow — best practice for counselor tip:",
-      "options": [
-        "Book embassy slot when file 90% ready",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Book embassy slot when file 90% ready"
-    },
-    {
-      "level": 2,
-      "question": "Belgiany – Student Visa (National Visa) workflow — best practice for post-approval step:",
-      "options": [
-        "Explain address registration (Anmeldung) within deadline",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Explain address registration (Anmeldung) within deadline"
-    },
-    {
-      "level": 2,
-      "question": "In the Belgiany – Student Visa (National Visa) process, what is the correct approach to post-approval step?",
-      "options": [
-        "Guide on Ausländerbehörde appointment after arrival",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Guide on Ausländerbehörde appointment after arrival"
-    },
-    {
-      "level": 2,
-      "question": "For Belgiany – Student Visa (National Visa), what should happen during post-approval step?",
-      "options": [
-        "Remind proof of funds monthly withdrawal rules",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Remind proof of funds monthly withdrawal rules"
-    },
-    {
-      "level": 2,
-      "question": "In the Belgiany – Student Visa (National Visa) process, what is the correct approach to Sample passport bio page (mock)?",
-      "options": [
-        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
-    },
-    {
-      "level": 2,
-      "question": "For Belgiany – Student Visa (National Visa), what should happen during Sample university admission letter (mock)?",
-      "options": [
-        "Belgium university Zulassung for national visa.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Belgium university Zulassung for national visa."
-    },
-    {
-      "level": 2,
-      "question": "Belgiany – Student Visa (National Visa) workflow — best practice for Sample admission documentation (mock):",
-      "options": [
-        "Academic Evaluation Centre certificate for India.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Academic Evaluation Centre certificate for India."
-    },
-    {
-      "level": 2,
-      "question": "In the Belgiany – Student Visa (National Visa) process, what is the correct approach to Sample proof of funds confirmation (mock)?",
-      "options": [
-        "Sperrkonto required living funds+ — explain to clients.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Sperrkonto required living funds+ — explain to clients."
-    },
-    {
-      "level": 2,
-      "question": "For Belgiany – Student Visa (National Visa), what should happen during Sample IELTS / TestDaF certificate (mock)?",
-      "options": [
-        "Language proof for degree program.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Language proof for degree program."
-    },
-    {
-      "level": 2,
-      "question": "Belgiany – Student Visa (National Visa) workflow — best practice for Sample CV & motivation letter (mock):",
-      "options": [
-        "Belgian embassy standard application packet.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Belgian embassy standard application packet."
-    },
-    {
-      "level": 2,
-      "question": "In the Belgiany – Student Visa (National Visa) process, what is the correct approach to Sample travel health insurance (mock)?",
-      "options": [
-        "Coverage from arrival until enrollment.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Coverage from arrival until enrollment."
+      "explanation": "€992 is the German blocked-account figure; Belgium uses €1,062/month."
     },
     {
       "level": 3,
-      "question": "Belgiany – Student Visa (National Visa): what is the compliance risk with APS not completed?",
+      "question": "A degree applicant submits a provisional registration. Best action?",
       "options": [
-        "Complete APS before embassy slot; track processing on APS website",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "Lodge anyway",
+        "Hide it",
+        "Obtain the final admission letter before lodging",
+        "Use a brochure"
       ],
-      "correctIndex": 0,
-      "explanation": "Visa appointment booked without admission documentation."
+      "correctIndex": 2,
+      "explanation": "Provisional registration is not accepted for degree students."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Belgiany – Student Visa (National Visa) — key issue with APS not completed (detail):",
+      "question": "A client asks FLC to hold their proof-of-means funds. You:",
       "options": [
-        "Visa appointment booked without admission documentation.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "Hold them",
+        "Route them through the firm",
+        "Charge a fee",
+        "Refuse — use the institution's blocked account or an approved provider; never route client funds"
       ],
-      "correctIndex": 0,
-      "explanation": "Complete APS before embassy slot; track processing on APS website"
+      "correctIndex": 3,
+      "explanation": "Never receive or route client funds; use the institution/approved provider."
     },
     {
       "level": 3,
-      "question": "For Belgiany – Student Visa (National Visa), counselors must avoid this mistake related to Insufficient proof of funds:",
+      "question": "A client wants a written guarantee of the visa. You:",
       "options": [
-        "Open proof of funds at approved bank for full required amount",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "Refuse and use approved non-guaranteeing language",
+        "Provide it",
+        "Charge extra",
+        "Promise a date"
       ],
       "correctIndex": 0,
-      "explanation": "Amount below required monthly sum or not from recognised provider."
+      "explanation": "Never guarantee an outcome; the authorities decide."
     },
     {
       "level": 3,
-      "question": "Belgiany – Student Visa (National Visa): what is the compliance risk with Insufficient proof of funds (detail)?",
+      "question": "A client omits a prior Schengen refusal on the form. The risk?",
       "options": [
-        "Amount below required monthly sum or not from recognised provider.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "None",
+        "Misrepresentation — refusal and possible entry ban",
+        "Faster approval",
+        "Lower fee"
       ],
-      "correctIndex": 0,
-      "explanation": "Open proof of funds at approved bank for full required amount"
+      "correctIndex": 1,
+      "explanation": "Concealing a refusal risks a misrepresentation finding."
     },
     {
       "level": 3,
-      "question": "Officer or QA perspective on Belgiany – Student Visa (National Visa) — key issue with Admission not from recognised institution:",
+      "question": "A refused Belgian student visa is challenged before:",
       "options": [
-        "Verify Anabin/institution recognition before fees",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "A German court",
+        "The university senate",
+        "The Council for Alien Law Litigation (CCE/RvV), within the deadline",
+        "No appeal exists"
       ],
-      "correctIndex": 0,
-      "explanation": "Private unrecognised college or expired Zulassung."
+      "correctIndex": 2,
+      "explanation": "Refusals are challenged before the CCE/RvV or by a corrected re-application."
     },
     {
       "level": 3,
-      "question": "For Belgiany – Student Visa (National Visa), counselors must avoid this mistake related to Admission not from recognised institution (detail):",
+      "question": "A counsellor wants to publish a firm approval rate vs an unnamed 'industry' figure. The issue?",
       "options": [
-        "Private unrecognised college or expired Zulassung.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "No issue",
+        "It is required",
+        "It lowers the fee",
+        "Unsourced/comparative claims risk misleading advertising and implying a guarantee"
+      ],
+      "correctIndex": 3,
+      "explanation": "Do not publish firm rates or comparative benchmarks as headline claims."
+    },
+    {
+      "level": 2,
+      "question": "What on the residence card determines a student's work hours?",
+      "options": [
+        "The labour-market endorsement ('limited' = 20 h/week term, unlimited in holidays)",
+        "The visa sticker colour",
+        "The passport type",
+        "Nothing — work is unrestricted"
       ],
       "correctIndex": 0,
-      "explanation": "Verify Anabin/institution recognition before fees"
+      "explanation": "A 'labour market limited' endorsement means 20 h/week in term and unlimited in official holidays."
     },
     {
       "level": 3,
-      "question": "Belgiany – Student Visa (National Visa): what is the compliance risk with Weak motivation letter?",
+      "question": "An application is lodged without paying the required contribution fee. Result?",
       "options": [
-        "Course-specific motivation linking prior study to Belgian program",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+        "It is processed normally",
+        "It is declared inadmissible and not processed",
+        "A discount applies",
+        "Faster processing"
       ],
-      "correctIndex": 0,
-      "explanation": "Generic letter not explaining study plan and Belgiany choice."
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Belgiany – Student Visa (National Visa) — key issue with Weak motivation letter (detail):",
-      "options": [
-        "Generic letter not explaining study plan and Belgiany choice.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Course-specific motivation linking prior study to Belgian program"
-    },
-    {
-      "level": 3,
-      "question": "For Belgiany – Student Visa (National Visa), counselors must avoid this mistake related to Language proof missing:",
-      "options": [
-        "Obtain required TestDaF/IELTS/Goethe per admission",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Program requires Belgian/English certificate not provided."
-    },
-    {
-      "level": 3,
-      "question": "Belgiany – Student Visa (National Visa): what is the compliance risk with Language proof missing (detail)?",
-      "options": [
-        "Program requires Belgian/English certificate not provided.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Obtain required TestDaF/IELTS/Goethe per admission"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Belgiany – Student Visa (National Visa) — key issue with Prior refusals not addressed:",
-      "options": [
-        "Disclose and explain changed circumstances",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Schengen or Belgian refusals hidden."
-    },
-    {
-      "level": 3,
-      "question": "For Belgiany – Student Visa (National Visa), counselors must avoid this mistake related to Prior refusals not addressed (detail):",
-      "options": [
-        "Schengen or Belgian refusals hidden.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Disclose and explain changed circumstances"
-    },
-    {
-      "level": 3,
-      "question": "Belgiany – Student Visa (National Visa): what is the compliance risk with counselor don't?",
-      "options": [
-        "Do not guarantee approval",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not guarantee approval"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Belgiany – Student Visa (National Visa) — key issue with counselor don't:",
-      "options": [
-        "Do not book embassy without APS",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not book embassy without APS"
-    },
-    {
-      "level": 3,
-      "question": "For Belgiany – Student Visa (National Visa), counselors must avoid this mistake related to counselor don't:",
-      "options": [
-        "Do not use unrecognised institutions",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Do not use unrecognised institutions"
-    },
-    {
-      "level": 3,
-      "question": "For Belgiany – Student Visa (National Visa), counselors must avoid this mistake related to common mistake:",
-      "options": [
-        "APS applied too late for intake",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: APS applied too late for intake"
-    },
-    {
-      "level": 3,
-      "question": "Belgiany – Student Visa (National Visa): what is the compliance risk with common mistake?",
-      "options": [
-        "Proof of funds short by even €1",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Proof of funds short by even €1"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Belgiany – Student Visa (National Visa) — key issue with common mistake:",
-      "options": [
-        "Generic motivation letter",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Avoid: Generic motivation letter"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Belgiany – Student Visa (National Visa) — key issue with compliance rule:",
-      "options": [
-        "Client service agreement and consent must be on file before submission",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Client service agreement and consent must be on file before submission"
-    },
-    {
-      "level": 3,
-      "question": "For Belgiany – Student Visa (National Visa), counselors must avoid this mistake related to compliance rule:",
-      "options": [
-        "Never guarantee visa or immigration approval; use approved-language only",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
-    },
-    {
-      "level": 3,
-      "question": "Belgiany – Student Visa (National Visa): what is the compliance risk with compliance rule?",
-      "options": [
-        "Fee quotes must separate consultancy, government, and third-party costs",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
-    },
-    {
-      "level": 3,
-      "question": "For Belgiany – Student Visa (National Visa), counselors must avoid this mistake related to refusal handling:",
-      "options": [
-        "After refusal, address embassy feedback before rebooking—proof of funds and APS cannot be rushed last minute.",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "After refusal, address embassy feedback before rebooking—proof of funds and APS cannot be rushed last minute."
-    },
-    {
-      "level": 3,
-      "question": "Belgiany – Student Visa (National Visa): what is the compliance risk with Our rate vs industry?",
-      "options": [
-        "Our target: 88% vs benchmark 74%",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Our rate vs industry"
-    },
-    {
-      "level": 3,
-      "question": "Officer or QA perspective on Belgiany – Student Visa (National Visa) — key issue with APS timing:",
-      "options": [
-        "Our target: 85% vs benchmark 68%",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "APS timing"
-    },
-    {
-      "level": 3,
-      "question": "For Belgiany – Student Visa (National Visa), counselors must avoid this mistake related to Financial docs:",
-      "options": [
-        "Our target: 87% vs benchmark 72%",
-        "National visa (Type D) for study at a recognised Belgian university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
-        "University admission (Zulassung) or conditional admission · Proof of funds or scholarship · admission documentation (India) · Health insurance · Motivation letter",
-        "required living funds for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
-      ],
-      "correctIndex": 0,
-      "explanation": "Financial docs"
+      "correctIndex": 1,
+      "explanation": "If the required contribution fee is unpaid, the Immigration Office declares the application inadmissible."
     }
   ],
   "donts": {
     "dos": [
-      "Start APS early",
-      "Verify institution on Anabin",
-      "Open proof of funds for full required amount",
-      "Write course-specific motivation letter",
-      "Disclose prior refusals"
+      "Confirm final admission from a recognised Belgian institution before any fee",
+      "Use an accepted proof of means at the current indexed amount (blocked account / approved guarantee / scholarship / Annex 32)",
+      "Arrange health insurance and accommodation; plan the 8-day commune registration",
+      "Obtain the medical certificate and (over 21) a legalised, translated police clearance early",
+      "Disclose and address any prior Schengen/Belgian refusal in writing",
+      "Quote consultancy, government and third-party costs on separate lines"
     ],
     "donts": [
-      "Do not guarantee approval",
-      "Do not book embassy without APS",
-      "Do not use unrecognised institutions",
-      "Do not hide Schengen refusals",
-      "Do not quote outdated proof of funds amount"
+      "Do not import Germany's academic 'APS' — it does not apply to Belgium",
+      "Do not use German concepts (Sperrkonto €992, Anabin, Ausländerbehörde) — Belgium differs",
+      "Do not submit provisional admission for degree students",
+      "Do not promise approval, a fixed processing time, or a guaranteed post-study stay",
+      "Do not present an unaccepted or underfunded proof of means"
     ],
     "mistakes": [
-      "APS applied too late for intake",
-      "Proof of funds short by even €1",
-      "Generic motivation letter",
-      "Wrong health insurance type",
-      "Expired admission letter"
+      "Importing APS / blocked-account-€992 / Anabin requirements from a Germany file",
+      "Confusing Belgian 'APS' (provisional residence) with German academic APS",
+      "Submitting provisional rather than final admission",
+      "Missing the 8-working-day commune registration"
     ]
   },
   "sampleDocs": [
@@ -1376,24 +799,24 @@
     },
     {
       "title": "Sample university admission letter (mock)",
-      "description": "Belgium university Zulassung for national visa.",
+      "description": "Final admission/enrolment letter from a recognised Belgian institution.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
       "title": "Sample admission documentation (mock)",
-      "description": "Academic Evaluation Centre certificate for India.",
+      "description": "Proof of means (blocked account / bank guarantee / Annex 32) — Belgium does not use German APS.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
       "title": "Sample proof of funds confirmation (mock)",
-      "description": "Sperrkonto required living funds+ — explain to clients.",
+      "description": "Proof of means at the indexed amount (€1,062/month for 2026-2027) — explain to clients.",
       "mimeType": "application/pdf",
       "docKind": "financial"
     },
     {
-      "title": "Sample IELTS / TestDaF certificate (mock)",
+      "title": "Sample IELTS / language certificate certificate (mock)",
       "description": "Language proof for degree program.",
       "mimeType": "image/jpeg",
       "docKind": "language"
@@ -1414,21 +837,25 @@
   "navBucket": "visa",
   "workingRights": {
     "applicant": {
-      "summary": "Long-stay national student visa for Belgium allows limited part-time work (typically up to 20 hours/week or per local law) after residence permit is issued.",
+      "summary": "Work rights flow from the residence card's labour-market endorsement. A card marked 'labour market limited' (arbeidsmarkt beperkt) allows up to 20 hours per week during term and unlimited work during official holiday periods, provided the work stays compatible with studies. Work authorisation (currently the type C work permit / regional work authorisation) and a valid residence card with a registration number are needed before starting. Work income cannot replace the proof-of-means requirement.",
       "details": [
-        "Verify exact hours with local immigration office after arrival.",
-        "Cannot rely on work income alone for residence renewal."
+        "Up to 20 hours/week during the academic term; no 20-hour cap during official holiday periods.",
+        "The residence card shows the labour-market access on the back (e.g. 'labour market limited'); a student employment contract and the applicable work authorisation are required.",
+        "Work authorisation is handled at regional level (the instrument and portal can change — verify the current procedure for the relevant Region).",
+        "Work must remain compatible with and ancillary to studies; the study purpose must not be jeopardised.",
+        "Work income does not satisfy the proof-of-means test for the visa or renewal."
       ],
       "restrictions": [
-        "Work not allowed until residence permit issued in many cases"
+        "20 hours/week limit during term (unlimited only in official holiday periods)",
+        "Valid residence card + applicable work authorisation required before starting"
       ],
-      "sourceUrl": "https://dofi.ibz.be/",
+      "sourceUrl": "https://dofi.ibz.be/en/themes/ressortissants-dun-pays-tiers/etudes",
       "lastVerified": "Jun 2026"
     },
     "spouse": {
-      "summary": "Spouse/partner may apply for family reunion; work rights depend on Belgium residence permit conditions.",
+      "summary": "Family reunion for students is limited and the student residence is temporary; a dependant's labour-market access depends on the residence document granted. A self-supporting student generally cannot act as guarantor for a spouse who also intends to study. Verify current rules with the Immigration Office / commune.",
       "details": [
-        "Often requires proof of accommodation, integration, and sufficient income of sponsor."
+        "Requires separate proof of means and accommodation; assessed case-by-case."
       ],
       "restrictions": [],
       "sourceUrl": "https://dofi.ibz.be/",
@@ -1438,34 +865,34 @@
   "fullCostBreakdown": {
     "title": "Full cost breakdown — Belgium – Student Visa (Long Stay / Type D)",
     "currency": "EUR",
-    "lastVerified": "Jun 2026",
-    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
-    "sourceUrl": "https://dofi.ibz.be/",
+    "lastVerified": "16 Jun 2026",
+    "disclaimer": "Indicative costs for counsellor discussions only. Values marked {{VERIFY_LIVE}} are dynamic and MUST be verified on official sources (diplomatie.belgium.be / dofi.ibz.be / the commune) before quoting. Proof-of-means funds are the student's own money, not a fee. Belgium does NOT use Germany's academic APS or a German-style €992 blocked account. INR equivalents move with exchange rates.",
+    "sourceUrl": "https://dofi.ibz.be/en/themes/ressortissants-dun-pays-tiers/etudes",
     "sections": [
       {
         "id": "fees",
         "label": "Government & visa fees",
         "items": [
           {
-            "label": "Study permit application",
-            "amount": 235,
-            "unit": "per applicant",
+            "label": "D-visa handling fee",
+            "amount": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Commonly ~€180 (early 2026); paid to the diplomatic post/service provider. Verify."
           },
           {
-            "label": "Biometrics",
-            "amount": 85,
-            "unit": "per applicant",
+            "label": "Immigration Office contribution (redevance / bijdrage)",
+            "amount": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Varies by procedure; adjusted yearly. Non-payment can make the application inadmissible. Verify."
           },
           {
-            "label": "Medical exam (if required)",
-            "range": "INR 5,000–8,000",
-            "notes": "Panel physician",
+            "label": "Commune residence-card (A-card) production",
+            "amount": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "~€20 base + local tax; charged by the commune. Verify."
           }
         ]
       },
@@ -1474,26 +901,27 @@
         "label": "Tuition & education costs",
         "items": [
           {
-            "label": "Tuition (undergraduate, indicative)",
-            "range": "Mid-range for destination",
-            "notes": "Use offer letter amount",
+            "label": "Tuition (varies by institution/community)",
+            "range": "{{VERIFY_LIVE}}",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Non-EU tuition varies widely by institution and community; use the admission letter amount"
           },
           {
-            "label": "Tuition deposit already paid",
-            "range": "Per LOA/CAS",
-            "notes": "Deduct from total funds",
+            "label": "Registration / enrolment costs",
+            "range": "{{VERIFY_LIVE}}",
+            "unit": "per year",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Per institution"
           },
           {
             "label": "Books & materials",
-            "range": "500–1,500",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per year",
-            "notes": "Program dependent",
             "currency": "EUR",
-            "applicable": true
+            "applicable": true,
+            "notes": "Program dependent"
           }
         ]
       },
@@ -1502,22 +930,28 @@
         "label": "Living costs",
         "items": [
           {
-            "label": "Living funds (embassy guideline)",
-            "range": "€9,000–12,000",
-            "unit": "per year",
-            "currency": "EUR"
+            "label": "Proof-of-means amount (indexed)",
+            "amount": "{{VERIFY_LIVE}}",
+            "unit": "per month",
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "€1,062/month net for 2026-2027 (×12 ≈ €12,744). Verify current figure."
           },
           {
             "label": "Accommodation",
-            "range": "€350–900",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Brussels/Leuven higher; varies by city"
           },
           {
-            "label": "Food & transport",
-            "range": "€250–450",
+            "label": "Health insurance (mutuelle / ziekenfonds)",
+            "range": "{{VERIFY_LIVE}}",
             "unit": "per month",
-            "currency": "EUR"
+            "currency": "EUR",
+            "applicable": true,
+            "notes": "Belgian health fund after enrolment; verify premium"
           }
         ]
       },
@@ -1532,21 +966,22 @@
           },
           {
             "label": "Flight / travel",
-            "range": "₹40,000–1,20,000",
+            "range": "Varies",
             "notes": "Season and route"
           },
           {
-            "label": "Document translation / notary",
-            "range": "₹2,000–15,000"
+            "label": "Document legalisation / apostille / sworn translation",
+            "range": "Varies",
+            "notes": "Into NL/FR/DE/EN as required"
           },
           {
-            "label": "Courier & VFS premium services",
-            "range": "Optional"
+            "label": "Medical certificate + police clearance",
+            "range": "Varies",
+            "notes": "Approved physician; legalised police clearance (over 21)"
           },
           {
             "label": "Forex / transfer charges",
-            "range": "Bank dependent",
-            "notes": "GIC, blocked account, tuition transfers"
+            "range": "Bank dependent"
           }
         ]
       }
@@ -1555,7 +990,7 @@
       {
         "label": "Indicative first-year budget (excl. tuition band)",
         "value": "Counselor to calculate from sections above",
-        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+        "notes": "Cross-check the admission letter and the official diplomatie.belgium.be / dofi.ibz.be fee pages before client commitment."
       }
     ]
   }
