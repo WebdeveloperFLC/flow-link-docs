@@ -1,0 +1,3140 @@
+{
+  "generatedAt": "2026-06-17T02:00:48.346Z",
+  "source": "content/service-library/canada-*.json (repo JSON — DB tables not queried)",
+  "sectionChecklist": [
+    "Overview (about, kpis, performance)",
+    "Eligibility",
+    "Red flags",
+    "FAQs",
+    "Compliance",
+    "Pro tips / counsellor guidance",
+    "Post-approval",
+    "Do's & don'ts",
+    "Process (timeline / process_flow)",
+    "Resources (official links)",
+    "Sample documents",
+    "Quiz",
+    "Fees (feeBreakdown / consultancyBreakdown)",
+    "Cost breakdown (fullCostBreakdown)",
+    "Working rights (applicant & spouse)",
+    "Verification dates",
+    "Changelog / staff notes",
+    "Submission checklist (DB)",
+    "Visa forms (DB)",
+    "Checklist PDFs (DB)"
+  ],
+  "services": [
+    {
+      "serviceName": "Canada – Student Visa (Study Permit — Outside Canada)",
+      "serviceId": "c35e6051-f40f-47bf-9cac-0a386c47a336",
+      "slug": "canada-student-visa",
+      "file": "canada-student-visa.json",
+      "fileExists": true,
+      "priority": 1,
+      "priorityLabel": "Priority 1",
+      "businessLabel": "Study Permit (outside Canada)",
+      "completionScore": 92,
+      "contentQualityScore": 48,
+      "businessImportanceScore": 100,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Application streams for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on Application streams?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "What is Application streams for this service?",
+        "Important note on Application streams?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 6,
+      "proTipsCount": 5,
+      "resourcesCount": 6,
+      "sampleDocumentsCount": 9,
+      "processFlowStatus": "Complete — 5 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 4 Jun 2026",
+      "lastUpdatedDate": "Updated 4 Jun 2026",
+      "riskLevel": "High",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 6,
+        "kpis": 5,
+        "resources": 6,
+        "sampleDocs": 9,
+        "timeline": 5,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – Visitor Visa (TRV)",
+      "serviceId": "b2000001-0001-4000-8000-000000000011",
+      "slug": "canada-visitor-visa",
+      "file": "canada-visitor-visa.json",
+      "fileExists": true,
+      "priority": 1,
+      "priorityLabel": "Priority 1",
+      "businessLabel": "Visitor Visa (TRV)",
+      "completionScore": 92,
+      "contentQualityScore": 42,
+      "businessImportanceScore": 95,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Single vs multiple entry for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is Single vs multiple entry for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on Single vs multiple entry?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "Important note on Single vs multiple entry?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "What is Single vs multiple entry for this service?",
+        "Important note on Single vs multiple entry?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 6,
+      "proTipsCount": 5,
+      "resourcesCount": 5,
+      "sampleDocumentsCount": 6,
+      "processFlowStatus": "Complete — 5 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 6 Jun 2026",
+      "riskLevel": "High",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 6,
+        "kpis": 5,
+        "resources": 5,
+        "sampleDocs": 6,
+        "timeline": 5,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – Spouse / Partner Sponsorship",
+      "serviceId": "b2000001-0001-4000-8000-000000000012",
+      "slug": "canada-spouse-visa",
+      "file": "canada-spouse-visa.json",
+      "fileExists": true,
+      "priority": 1,
+      "priorityLabel": "Priority 1",
+      "businessLabel": "Spouse / Partner Sponsorship",
+      "completionScore": 92,
+      "contentQualityScore": 44,
+      "businessImportanceScore": 88,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Inland vs outland for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on Inland vs outland?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "What is Inland vs outland for this service?",
+        "Important note on Inland vs outland?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 6,
+      "proTipsCount": 5,
+      "resourcesCount": 5,
+      "sampleDocumentsCount": 6,
+      "processFlowStatus": "Complete — 5 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 6 Jun 2026",
+      "riskLevel": "High",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 6,
+        "kpis": 5,
+        "resources": 5,
+        "sampleDocs": 6,
+        "timeline": 5,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – Post-Graduation Work Permit (PGWP)",
+      "serviceId": "b2000001-0001-4000-8000-000000000014",
+      "slug": "canada-pgwp",
+      "file": "canada-pgwp.json",
+      "fileExists": true,
+      "priority": 1,
+      "priorityLabel": "Priority 1",
+      "businessLabel": "Post-Graduation Work Permit",
+      "completionScore": 92,
+      "contentQualityScore": 48,
+      "businessImportanceScore": 84,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Duration rules for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on Duration rules?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "What is Duration rules for this service?",
+        "Important note on Duration rules?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 6,
+      "proTipsCount": 5,
+      "resourcesCount": 5,
+      "sampleDocumentsCount": 5,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 6 Jun 2026",
+      "riskLevel": "High",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 6,
+        "kpis": 5,
+        "resources": 5,
+        "sampleDocs": 5,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – Express Entry (Permanent Residence)",
+      "serviceId": "b2000001-0001-4000-8000-000000000013",
+      "slug": "canada-express-entry-pr",
+      "file": "canada-express-entry-pr.json",
+      "fileExists": true,
+      "priority": 1,
+      "priorityLabel": "Priority 1",
+      "businessLabel": "Express Entry PR",
+      "completionScore": 92,
+      "contentQualityScore": 44,
+      "businessImportanceScore": 81,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on ITA not guaranteed?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "Important note on ITA not guaranteed?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 6,
+      "proTipsCount": 5,
+      "resourcesCount": 5,
+      "sampleDocumentsCount": 7,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 6 Jun 2026",
+      "riskLevel": "High",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 6,
+        "kpis": 5,
+        "resources": 5,
+        "sampleDocs": 7,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – Work Permit (LMIA & LMIA-Exempt)",
+      "serviceId": "b2000001-0001-4000-8000-000000000015",
+      "slug": "canada-work-permit",
+      "file": "canada-work-permit.json",
+      "fileExists": true,
+      "priority": 1,
+      "priorityLabel": "Priority 1",
+      "businessLabel": "Work Permit (LMIA / exempt)",
+      "completionScore": 92,
+      "contentQualityScore": 58,
+      "businessImportanceScore": 80,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on LMIA process?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "Important note on LMIA process?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 6,
+      "proTipsCount": 5,
+      "resourcesCount": 5,
+      "sampleDocumentsCount": 5,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 6 Jun 2026",
+      "riskLevel": "High",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 6,
+        "kpis": 5,
+        "resources": 5,
+        "sampleDocs": 5,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – Study Permit Extension",
+      "serviceId": "b2000001-0001-4000-8000-000000000018",
+      "slug": "canada-study-permit-extension",
+      "file": "canada-study-permit-extension.json",
+      "fileExists": true,
+      "priority": 2,
+      "priorityLabel": "Priority 2",
+      "businessLabel": "Study Permit Extension",
+      "completionScore": 92,
+      "contentQualityScore": 54,
+      "businessImportanceScore": 70,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on Maintained status?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "Important note on Maintained status?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 7,
+      "proTipsCount": 6,
+      "resourcesCount": 6,
+      "sampleDocumentsCount": 8,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 6 Jun 2026",
+      "riskLevel": "Medium",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 7,
+        "kpis": 5,
+        "resources": 6,
+        "sampleDocs": 8,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – Super Visa (Parents & Grandparents)",
+      "serviceId": "b2000001-0001-4000-8000-000000000016",
+      "slug": "canada-super-visa",
+      "file": "canada-super-visa.json",
+      "fileExists": true,
+      "priority": 2,
+      "priorityLabel": "Priority 2",
+      "businessLabel": "Super Visa (parents/grandparents)",
+      "completionScore": 92,
+      "contentQualityScore": 46,
+      "businessImportanceScore": 63,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on Insurance requirement?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "Important note on Insurance requirement?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "Important note on Insurance requirement?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 6,
+      "proTipsCount": 5,
+      "resourcesCount": 5,
+      "sampleDocumentsCount": 5,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 6 Jun 2026",
+      "riskLevel": "Medium",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 6,
+        "kpis": 5,
+        "resources": 5,
+        "sampleDocs": 5,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – Spouse / Dependent Open Work Permit",
+      "serviceId": "b2000001-0001-4000-8000-00000000001b",
+      "slug": "canada-spouse-dependent-owp",
+      "file": "canada-spouse-dependent-owp.json",
+      "fileExists": true,
+      "priority": 2,
+      "priorityLabel": "Priority 2",
+      "businessLabel": "Spouse OWP (dependent)",
+      "completionScore": 92,
+      "contentQualityScore": 52,
+      "businessImportanceScore": 59,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on Rule sensitivity?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "Important note on Rule sensitivity?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 7,
+      "proTipsCount": 6,
+      "resourcesCount": 6,
+      "sampleDocumentsCount": 8,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 6 Jun 2026",
+      "riskLevel": "Medium",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 7,
+        "kpis": 5,
+        "resources": 6,
+        "sampleDocs": 8,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – OINP (Ontario Provincial Nominee)",
+      "serviceId": "b2000001-0001-4000-8000-00000000001c",
+      "slug": "canada-oinp",
+      "file": "canada-oinp.json",
+      "fileExists": true,
+      "priority": 2,
+      "priorityLabel": "Priority 2",
+      "businessLabel": "Ontario PNP (OINP)",
+      "completionScore": 92,
+      "contentQualityScore": 44,
+      "businessImportanceScore": 59,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on ITA not guaranteed?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "Important note on ITA not guaranteed?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 6,
+      "proTipsCount": 5,
+      "resourcesCount": 5,
+      "sampleDocumentsCount": 7,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 10 Jun 2026",
+      "riskLevel": "Medium",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 6,
+        "kpis": 5,
+        "resources": 5,
+        "sampleDocs": 7,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – Provincial Nominee Program (PNP)",
+      "serviceId": "b2000001-0001-4000-8000-00000000001d",
+      "slug": "canada-pnp-program",
+      "file": "canada-pnp-program.json",
+      "fileExists": true,
+      "priority": 2,
+      "priorityLabel": "Priority 2",
+      "businessLabel": "Provincial Nominee Program (general)",
+      "completionScore": 92,
+      "contentQualityScore": 44,
+      "businessImportanceScore": 56,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on ITA not guaranteed?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "Important note on ITA not guaranteed?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 6,
+      "proTipsCount": 5,
+      "resourcesCount": 5,
+      "sampleDocumentsCount": 7,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 10 Jun 2026",
+      "riskLevel": "Medium",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 6,
+        "kpis": 5,
+        "resources": 5,
+        "sampleDocs": 7,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – Spouse / Dependent Status Extension",
+      "serviceId": "b2000001-0001-4000-8000-00000000001f",
+      "slug": "canada-spouse-dependent-extension",
+      "file": "canada-spouse-dependent-extension.json",
+      "fileExists": true,
+      "priority": 2,
+      "priorityLabel": "Priority 2",
+      "businessLabel": "Spouse Permit Extension",
+      "completionScore": 92,
+      "contentQualityScore": 52,
+      "businessImportanceScore": 55,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on Rule sensitivity?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "Important note on Rule sensitivity?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 7,
+      "proTipsCount": 6,
+      "resourcesCount": 6,
+      "sampleDocumentsCount": 8,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 10 Jun 2026",
+      "riskLevel": "Medium",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 7,
+        "kpis": 5,
+        "resources": 6,
+        "sampleDocs": 8,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – Temporary Resident to PR Pathway",
+      "serviceId": "b2000001-0001-4000-8000-00000000001e",
+      "slug": "canada-tr-to-pr",
+      "file": "canada-tr-to-pr.json",
+      "fileExists": true,
+      "priority": 2,
+      "priorityLabel": "Priority 2",
+      "businessLabel": "TR to PR Pathway",
+      "completionScore": 92,
+      "contentQualityScore": 44,
+      "businessImportanceScore": 53,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on ITA not guaranteed?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "Important note on ITA not guaranteed?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 6,
+      "proTipsCount": 5,
+      "resourcesCount": 5,
+      "sampleDocumentsCount": 7,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 10 Jun 2026",
+      "riskLevel": "Medium",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 6,
+        "kpis": 5,
+        "resources": 5,
+        "sampleDocs": 7,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – Spouse / Dependent Visitor Visa",
+      "serviceId": "b2000001-0001-4000-8000-000000000020",
+      "slug": "canada-spouse-dependent-visitor",
+      "file": "canada-spouse-dependent-visitor.json",
+      "fileExists": true,
+      "priority": 2,
+      "priorityLabel": "Priority 2",
+      "businessLabel": "Spouse Visitor Record",
+      "completionScore": 92,
+      "contentQualityScore": 52,
+      "businessImportanceScore": 50,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on Rule sensitivity?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "Important note on Rule sensitivity?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 7,
+      "proTipsCount": 6,
+      "resourcesCount": 6,
+      "sampleDocumentsCount": 8,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 10 Jun 2026",
+      "riskLevel": "Medium",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 7,
+        "kpis": 5,
+        "resources": 6,
+        "sampleDocs": 8,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – BOWP (Bridging Open Work Permit)",
+      "serviceId": "b2000001-0001-4000-8000-000000000017",
+      "slug": "canada-bowp",
+      "file": "canada-bowp.json",
+      "fileExists": true,
+      "priority": 3,
+      "priorityLabel": "Priority 3",
+      "businessLabel": "Bridging Open Work Permit",
+      "completionScore": 92,
+      "contentQualityScore": 52,
+      "businessImportanceScore": 43,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on Eligible PR classes?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "Important note on Eligible PR classes?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 7,
+      "proTipsCount": 6,
+      "resourcesCount": 6,
+      "sampleDocumentsCount": 8,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 6 Jun 2026",
+      "riskLevel": "Medium",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 7,
+        "kpis": 5,
+        "resources": 6,
+        "sampleDocs": 8,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – Visitor Record (In-Canada Extension)",
+      "serviceId": "b2000001-0001-4000-8000-000000000019",
+      "slug": "canada-visitor-record",
+      "file": "canada-visitor-record.json",
+      "fileExists": true,
+      "priority": 3,
+      "priorityLabel": "Priority 3",
+      "businessLabel": "Visitor Record Extension",
+      "completionScore": 92,
+      "contentQualityScore": 54,
+      "businessImportanceScore": 39,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on Important limitation?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is After approval for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Our approval rate?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "Important note on Important limitation?",
+        "What is Key authority for this service?",
+        "What is After approval for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Our approval rate?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 7,
+      "proTipsCount": 6,
+      "resourcesCount": 6,
+      "sampleDocumentsCount": 8,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 6 Jun 2026",
+      "riskLevel": "Medium",
+      "workCategory": "major_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 7,
+        "kpis": 5,
+        "resources": 6,
+        "sampleDocs": 8,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    },
+    {
+      "serviceName": "Canada – CAIPS / GCMS Notes Request",
+      "serviceId": "b2000001-0001-4000-8000-00000000001a",
+      "slug": "canada-caips-notes",
+      "file": "canada-caips-notes.json",
+      "fileExists": true,
+      "priority": 3,
+      "priorityLabel": "Priority 3",
+      "businessLabel": "CAIPS / GCMS Notes",
+      "completionScore": 92,
+      "contentQualityScore": 60,
+      "businessImportanceScore": 33,
+      "missingSections": [
+        "Submission checklist (DB)",
+        "Visa forms (DB)",
+        "Checklist PDFs (DB)"
+      ],
+      "emptySections": [],
+      "placeholderContent": [
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Description for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Eligible applicants for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "Important note on Service scope?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "Important note on Service scope?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is Key authority for this service?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Processing time?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Government fee?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Required docs?"
+        },
+        {
+          "type": "generic_template_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        },
+        {
+          "type": "missing_country_specific_faq",
+          "field": "faqs",
+          "text": "What is the Consultancy fee?"
+        }
+      ],
+      "genericTemplateFaqs": [
+        "What is Description for this service?",
+        "What is Eligible applicants for this service?",
+        "Important note on Service scope?",
+        "What is Key authority for this service?",
+        "What is the Processing time?",
+        "What is the Government fee?",
+        "What is the Required docs?",
+        "What is the Consultancy fee?"
+      ],
+      "faqCount": 30,
+      "redFlagsCount": 7,
+      "proTipsCount": 6,
+      "resourcesCount": 6,
+      "sampleDocumentsCount": 8,
+      "processFlowStatus": "Complete — 4 timeline steps in metadata",
+      "feeInformationStatus": "Partial — KPI fee values only; no itemised feeBreakdown",
+      "costBreakdownStatus": "Complete — 4 sections (verified: Jun 2026)",
+      "verificationInformationStatus": "Complete — costs: Jun 2026; applicant rights: Jun 2026; spouse rights: Jun 2026; policy alert: 6 Jun 2026",
+      "lastUpdatedDate": "Updated 6 Jun 2026",
+      "riskLevel": "Medium",
+      "workCategory": "minor_updates",
+      "counsellorGuidanceGaps": [
+        "Template FAQs need Canada-specific rewrite"
+      ],
+      "counts": {
+        "faqs": 30,
+        "quiz": 75,
+        "redFlags": 7,
+        "kpis": 5,
+        "resources": 6,
+        "sampleDocs": 8,
+        "timeline": 4,
+        "processFlow": 0,
+        "feeItems": 0,
+        "submissionChecklist": 0,
+        "visaForms": 0,
+        "checklistFiles": 0
+      },
+      "dbGapsNote": [
+        "submission checklist (0/10)",
+        "visa forms",
+        "checklist PDFs"
+      ]
+    }
+  ],
+  "crossCanadaDuplicateFaqs": [
+    {
+      "question": "what is description for this service?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)",
+        "Canada – Spouse / Partner Sponsorship",
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – Post-Graduation Work Permit (PGWP)",
+        "Canada – Work Permit (LMIA & LMIA-Exempt)",
+        "Canada – Super Visa (Parents & Grandparents)",
+        "Canada – BOWP (Bridging Open Work Permit)",
+        "Canada – Study Permit Extension",
+        "Canada – Visitor Record (In-Canada Extension)",
+        "Canada – CAIPS / GCMS Notes Request",
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": true
+    },
+    {
+      "question": "what is eligible applicants for this service?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)",
+        "Canada – Spouse / Partner Sponsorship",
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – Post-Graduation Work Permit (PGWP)",
+        "Canada – Work Permit (LMIA & LMIA-Exempt)",
+        "Canada – Super Visa (Parents & Grandparents)",
+        "Canada – BOWP (Bridging Open Work Permit)",
+        "Canada – Study Permit Extension",
+        "Canada – Visitor Record (In-Canada Extension)",
+        "Canada – CAIPS / GCMS Notes Request",
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": true
+    },
+    {
+      "question": "what is key authority for this service?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)",
+        "Canada – Spouse / Partner Sponsorship",
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – Post-Graduation Work Permit (PGWP)",
+        "Canada – Work Permit (LMIA & LMIA-Exempt)",
+        "Canada – Super Visa (Parents & Grandparents)",
+        "Canada – BOWP (Bridging Open Work Permit)",
+        "Canada – Study Permit Extension",
+        "Canada – Visitor Record (In-Canada Extension)",
+        "Canada – CAIPS / GCMS Notes Request",
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": true
+    },
+    {
+      "question": "what is the processing time?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)",
+        "Canada – Spouse / Partner Sponsorship",
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – Post-Graduation Work Permit (PGWP)",
+        "Canada – Work Permit (LMIA & LMIA-Exempt)",
+        "Canada – Super Visa (Parents & Grandparents)",
+        "Canada – BOWP (Bridging Open Work Permit)",
+        "Canada – Study Permit Extension",
+        "Canada – Visitor Record (In-Canada Extension)",
+        "Canada – CAIPS / GCMS Notes Request",
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": true
+    },
+    {
+      "question": "what is the government fee?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)",
+        "Canada – Spouse / Partner Sponsorship",
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – Post-Graduation Work Permit (PGWP)",
+        "Canada – Work Permit (LMIA & LMIA-Exempt)",
+        "Canada – Super Visa (Parents & Grandparents)",
+        "Canada – BOWP (Bridging Open Work Permit)",
+        "Canada – Study Permit Extension",
+        "Canada – Visitor Record (In-Canada Extension)",
+        "Canada – CAIPS / GCMS Notes Request",
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": true
+    },
+    {
+      "question": "what is the required docs?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)",
+        "Canada – Spouse / Partner Sponsorship",
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – Post-Graduation Work Permit (PGWP)",
+        "Canada – Work Permit (LMIA & LMIA-Exempt)",
+        "Canada – Super Visa (Parents & Grandparents)",
+        "Canada – BOWP (Bridging Open Work Permit)",
+        "Canada – Study Permit Extension",
+        "Canada – Visitor Record (In-Canada Extension)",
+        "Canada – CAIPS / GCMS Notes Request",
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": true
+    },
+    {
+      "question": "what is the consultancy fee?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)",
+        "Canada – Spouse / Partner Sponsorship",
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – Post-Graduation Work Permit (PGWP)",
+        "Canada – Work Permit (LMIA & LMIA-Exempt)",
+        "Canada – Super Visa (Parents & Grandparents)",
+        "Canada – BOWP (Bridging Open Work Permit)",
+        "Canada – Study Permit Extension",
+        "Canada – Visitor Record (In-Canada Extension)",
+        "Canada – CAIPS / GCMS Notes Request",
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": true
+    },
+    {
+      "question": "what is after approval for this service?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)",
+        "Canada – Spouse / Partner Sponsorship",
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – Post-Graduation Work Permit (PGWP)",
+        "Canada – Work Permit (LMIA & LMIA-Exempt)",
+        "Canada – Super Visa (Parents & Grandparents)",
+        "Canada – BOWP (Bridging Open Work Permit)",
+        "Canada – Study Permit Extension",
+        "Canada – Visitor Record (In-Canada Extension)",
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": true
+    },
+    {
+      "question": "what is the our approval rate?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)",
+        "Canada – Spouse / Partner Sponsorship",
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – Post-Graduation Work Permit (PGWP)",
+        "Canada – Work Permit (LMIA & LMIA-Exempt)",
+        "Canada – Super Visa (Parents & Grandparents)",
+        "Canada – BOWP (Bridging Open Work Permit)",
+        "Canada – Study Permit Extension",
+        "Canada – Visitor Record (In-Canada Extension)",
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": true
+    },
+    {
+      "question": "is biometrics completed required?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)",
+        "Canada – Spouse / Partner Sponsorship",
+        "Canada – Work Permit (LMIA & LMIA-Exempt)",
+        "Canada – Super Visa (Parents & Grandparents)"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "can we guarantee ita or pr?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "what crs score needed?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "how to improve crs?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "what is pnp?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "processing after ita?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "can spouse be included?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "proof of funds when?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "what if ita declined?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "what is ita not guaranteed for this service?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "important note on ita not guaranteed?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": true
+    },
+    {
+      "question": "is eligible program (fsw/cec/fst) required?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is language test (clb minimum per program) required?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is eca for foreign credentials (fsw) required?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is crs score competitive for recent draws required?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is work experience documented (noc/teer) required?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is proof of funds (fsw/ fst if applicable) required?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is medical and police completed after ita required?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "what if the client has crs below recent draw cutoffs?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "why is crs below recent draw cutoffs a problem?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "what if the client has wrong noc/teer code?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "why is wrong noc/teer code a problem?",
+      "services": [
+        "Canada – Express Entry (Permanent Residence)",
+        "Canada – OINP (Ontario Provincial Nominee)",
+        "Canada – Provincial Nominee Program (PNP)",
+        "Canada – Temporary Resident to PR Pathway"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is medical exam (if required) required?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)",
+        "Canada – Work Permit (LMIA & LMIA-Exempt)"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "can every spouse of a student get an open work permit?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "can every spouse of a worker get an open work permit?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is a marriage certificate enough?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "can common-law partners apply?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "can dependent children get open work permits?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "should the application be filed together with the principal applicant?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "how long will the owp be valid?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "can the applicant work while waiting?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "what if there was a previous spouse owp refusal?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "does approval lead to pr?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "what is rule sensitivity for this service?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "important note on rule sensitivity?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": true
+    },
+    {
+      "question": "is principal applicant has valid qualifying status in canada or approved pathway required?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is applicant is spouse, common-law partner, or qualifying dependant under ircc rules required?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is relationship is genuine and well documented required?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is principal worker occupation, employer, or permit category qualifies where required required?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is principal student program and institution qualify where required required?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is applicant passport valid for requested permit period required?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is applicant has no inadmissibility, misrepresentation, or undisclosed refusal issue required?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is funds or family support evidence available for settlement and stay required?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is medical exam or biometrics completed if required required?",
+      "services": [
+        "Canada – Spouse / Dependent Open Work Permit",
+        "Canada – Spouse / Dependent Status Extension",
+        "Canada – Spouse / Dependent Visitor Visa"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "when should biometrics be done?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "what if the client has insufficient or unseasoned funds?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "why is insufficient or unseasoned funds a problem?",
+      "services": [
+        "Canada – Student Visa (Study Permit — Outside Canada)",
+        "Canada – Visitor Visa (TRV)"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is medical exam completed required?",
+      "services": [
+        "Canada – Spouse / Partner Sponsorship",
+        "Canada – Super Visa (Parents & Grandparents)"
+      ],
+      "isGeneric": false
+    },
+    {
+      "question": "is client is physically in canada required?",
+      "services": [
+        "Canada – Study Permit Extension",
+        "Canada – Visitor Record (In-Canada Extension)"
+      ],
+      "isGeneric": false
+    }
+  ],
+  "summary": {
+    "totalCanadaServices": 17,
+    "productionReady": 0,
+    "minorUpdates": 1,
+    "majorUpdates": 16,
+    "completeRebuild": 0,
+    "withGenericTemplateFaqs": 17,
+    "criticalRisk": 0,
+    "highRisk": 6
+  }
+}
