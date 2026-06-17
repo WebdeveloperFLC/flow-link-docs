@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { GraduationCap, Receipt, UserCircle, ExternalLink, Loader2 } from "lucide-react";
 import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
+import { formatBudgetRange } from "@/lib/currencyMaster";
 import { listClientPrograms } from "@/lib/clientPrograms";
 import type { ActiveServiceContext } from "@/lib/clientActiveServiceContext";
 
@@ -17,6 +18,10 @@ type ClientSnapshot = {
   email?: string | null;
   passport_number?: string | null;
   budget?: number | null;
+  has_budget?: string | null;
+  budget_currency?: string | null;
+  budget_min?: number | null;
+  budget_max?: number | null;
   intake?: string | null;
   english_overall?: string | null;
   english_test?: string | null;
@@ -45,6 +50,23 @@ function fmtMoney(amount: number, currency = "INR") {
   } catch {
     return `${currency} ${amount.toLocaleString()}`;
   }
+}
+
+function resolveOverviewBudget(client: ClientSnapshot): string | null {
+  const hasJourney =
+    client.has_budget === "yes" && (client.budget_min != null || client.budget_max != null);
+  if (hasJourney) {
+    const label = formatBudgetRange(
+      client.budget_min ?? null,
+      client.budget_max ?? null,
+      client.budget_currency || "INR",
+    );
+    return label === "—" ? null : label;
+  }
+  if (client.budget != null) {
+    return fmtMoney(client.budget, client.budget_currency || "INR");
+  }
+  return null;
 }
 
 export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props) {
@@ -141,6 +163,8 @@ export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props
     return Math.min(100, Math.round((collected / totalFee) * 100));
   }, [totalFee, collected]);
 
+  const budgetLabel = useMemo(() => resolveOverviewBudget(client), [client]);
+
   if (loading) {
     return (
       <div className="flc-premium-card p-8 flex items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -180,7 +204,7 @@ export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props
           />
           <Field label="IELTS / English" value={english} />
           <Field label="Intended intake" value={client.intake} />
-          <Field label="Budget" value={client.budget != null ? fmtMoney(client.budget, currency) : null} />
+          <Field label="Budget" value={budgetLabel} />
         </div>
       </div>
 

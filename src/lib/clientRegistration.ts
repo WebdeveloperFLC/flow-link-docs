@@ -125,6 +125,8 @@ export interface ClientRow {
   budget_min?: number | null;
   budget_max?: number | null;
   lead_source?: string | null;
+  /** Legacy scalar budget (Overview); populated from journey range on conversion. */
+  budget?: number | null;
 }
 
 export type ClientDraft = Partial<Omit<ClientRow, "id" | "registration_number" | "application_id">>;
@@ -136,6 +138,8 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     ? [{ level: lead.last_education ?? undefined }]
     : [];
   const interested = lead.interested_countries ?? [];
+  const budgetMin = lead.budget_min ?? null;
+  const budgetMax = lead.budget_max ?? null;
   return {
     source_lead_id: lead.id,
     first_name: lead.first_name,
@@ -168,8 +172,12 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     start_timeline: lead.start_timeline ?? null,
     has_budget: lead.has_budget ?? null,
     budget_currency: lead.budget_currency ?? "INR",
-    budget_min: lead.budget_min ?? null,
-    budget_max: lead.budget_max ?? null,
+    budget_min: budgetMin,
+    budget_max: budgetMax,
+    budget:
+      lead.has_budget === "yes" && (budgetMin != null || budgetMax != null)
+        ? (budgetMax ?? budgetMin)
+        : null,
     lead_source: lead.lead_source ?? null,
   };
 }
