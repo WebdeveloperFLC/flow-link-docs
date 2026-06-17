@@ -21,6 +21,7 @@ type ClientSnapshot = {
   english_overall?: string | null;
   english_test?: string | null;
   assigned_counselor_id?: string | null;
+  owner_id?: string | null;
   country?: string;
   application_type?: string;
 };
@@ -69,12 +70,13 @@ export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props
       try {
         const tasks: Promise<void>[] = [];
 
-        if (client.assigned_counselor_id) {
+        if (client.assigned_counselor_id || client.owner_id) {
+          const uid = client.assigned_counselor_id ?? client.owner_id!;
           tasks.push(
             supabase
               .from("profiles")
               .select("full_name, email")
-              .eq("id", client.assigned_counselor_id)
+              .eq("id", uid)
               .maybeSingle()
               .then(({ data }) => {
                 if (!cancelled && data) {
@@ -132,7 +134,7 @@ export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props
     return () => {
       cancelled = true;
     };
-  }, [client.id, client.assigned_counselor_id]);
+  }, [client.id, client.assigned_counselor_id, client.owner_id]);
 
   const paymentPct = useMemo(() => {
     if (!totalFee || totalFee <= 0) return 0;
@@ -191,7 +193,7 @@ export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props
           <div className="p-5 space-y-4">
             <Field label="Service" value={serviceLabel} />
             <Field label="Selected programme" value={programLabel} />
-            <Field label="Counselor" value={counselorName ?? "Unassigned"} />
+            <Field label="Primary user" value={counselorName ?? "Unassigned"} />
             {onOpenTab && (
               <div className="flex gap-2 pt-1">
                 <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => onOpenTab("profile")}>

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,7 +15,15 @@ function servicesSummary(l: Lead): string {
   return parts.join(" · ") || "—";
 }
 
-export const LeadsTable = ({ leads, showCampaign = false }: { leads: Lead[]; showCampaign?: boolean }) => {
+export const LeadsTable = ({
+  leads,
+  showCampaign = false,
+  ownerNames = {},
+}: {
+  leads: Lead[];
+  showCampaign?: boolean;
+  ownerNames?: Record<string, string>;
+}) => {
   const nav = useNavigate();
   if (!leads.length) {
     return <div className="p-12 text-center text-muted-foreground text-sm">No leads found.</div>;
@@ -28,6 +37,7 @@ export const LeadsTable = ({ leads, showCampaign = false }: { leads: Lead[]; sho
           <TableHead>Temp</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Services</TableHead>
+          <TableHead>Primary User</TableHead>
           <TableHead>Branch / Dept</TableHead>
           {showCampaign && <TableHead>Campaign</TableHead>}
           <TableHead>Created</TableHead>
@@ -44,6 +54,11 @@ export const LeadsTable = ({ leads, showCampaign = false }: { leads: Lead[]; sho
             <TableCell><LeadTemperatureBadge value={l.lead_temperature} /></TableCell>
             <TableCell><LeadStatusBadge value={l.status} /></TableCell>
             <TableCell className="text-xs">{servicesSummary(l)}</TableCell>
+            <TableCell className="text-xs">
+              {l.assigned_counselor_id
+                ? ownerNames[l.assigned_counselor_id] ?? "…"
+                : "—"}
+            </TableCell>
             <TableCell className="text-xs">
               <div>{l.branch || "—"}</div>
               <div className="text-muted-foreground">{l.department || "—"}</div>

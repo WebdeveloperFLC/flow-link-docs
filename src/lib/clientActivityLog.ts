@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { resolvePrimaryUserName } from "@/lib/leadAssignment";
 
 export interface ClientActivityLogRow {
   id: string;
@@ -129,6 +130,7 @@ export async function copyLeadHistoryToClientActivity(
     lead_temperature: string;
     notes: string | null;
     converted_at: string | null;
+    assigned_counselor_id: string | null;
   };
 
   const name = [l.first_name, l.last_name].filter(Boolean).join(" ");
@@ -143,6 +145,19 @@ export async function copyLeadHistoryToClientActivity(
     metadata: { lead_number: l.lead_number, lead_temperature: l.lead_temperature },
     actorId,
   });
+
+  if (l.assigned_counselor_id) {
+    const ownerName = await resolvePrimaryUserName(l.assigned_counselor_id);
+    await appendClientActivityLog({
+      clientId,
+      leadId,
+      action: "lead.primary_user_assigned",
+      summary: "Primary user assigned",
+      newValue: ownerName ?? l.assigned_counselor_id,
+      metadata: { assigned_counselor_id: l.assigned_counselor_id },
+      actorId,
+    });
+  }
 
   if (l.updated_at && l.updated_at !== l.created_at) {
     await appendClientActivityLog({

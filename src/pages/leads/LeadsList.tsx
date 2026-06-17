@@ -8,17 +8,25 @@ import { Card } from "@/components/ui/card";
 import { Plus, Search } from "lucide-react";
 import { LeadsTable } from "@/components/leads/LeadsTable";
 import { fetchLeads, type Lead } from "@/lib/leads";
+import { fetchProfileNames } from "@/lib/leadAssignment";
 
 const LeadsList = () => {
   const nav = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [ownerNames, setOwnerNames] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
     fetchLeads({ temperatures: ["warm", "hot"], coldPool: false, search: search || undefined })
-      .then(setLeads).finally(() => setLoading(false));
+      .then(async (rows) => {
+        setLeads(rows);
+        const ids = rows.map((l) => l.assigned_counselor_id).filter(Boolean) as string[];
+        const map = await fetchProfileNames(ids);
+        setOwnerNames(Object.fromEntries(map));
+      })
+      .finally(() => setLoading(false));
   }, [search]);
 
   return (
@@ -38,7 +46,7 @@ const LeadsList = () => {
           <Input placeholder="Search name, email, phone, lead #..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Card>
-          {loading ? <div className="p-12 text-center text-muted-foreground text-sm">Loading…</div> : <LeadsTable leads={leads} />}
+          {loading ? <div className="p-12 text-center text-muted-foreground text-sm">Loading…</div> : <LeadsTable leads={leads} ownerNames={ownerNames} />}
         </Card>
       </div>
     </AppLayout>

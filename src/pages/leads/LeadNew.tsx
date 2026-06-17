@@ -36,12 +36,20 @@ import { ContextBackBar } from "@/components/navigation/ContextBackBar";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
 import { convertLeadToClient } from "@/lib/convertLeadToClient";
 import type { Lead } from "@/lib/leads";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  fetchEligiblePrimaryUsers,
+  logLeadPrimaryUserChange,
+  mergePrimaryUserOptions,
+  type PrimaryUserOption,
+} from "@/lib/leadAssignment";
 
 const VISA_LOCK_TEMPLATE = (reason: string) =>
   `Visa not pursued at this stage. Reason: ${reason || "(please specify)"}\n\nFollow-up: Re-engage when visa interest is expressed.\n\n`;
 
 const LeadNew = () => {
   const nav = useNavigate();
+  const { user } = useAuth();
   const [sp] = useSearchParams();
   const editId = sp.get("id") ?? sp.get("lead_id");
   const slCountry = sp.get("country");
@@ -71,6 +79,10 @@ const LeadNew = () => {
 
   const [branches, setBranches] = useState<Branch[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [eligiblePrimaryUsers, setEligiblePrimaryUsers] = useState<PrimaryUserOption[]>([]);
+  const [loadingPrimaryUsers, setLoadingPrimaryUsers] = useState(false);
+  const lastAssignedCounselorRef = useRef<string | null>(null);
+  const defaultedPrimaryUserRef = useRef(false);
   const lead_sources = useMasterLabels("lead_sources" as never);
   const qualificationLevels = useMasterItems("qualification_levels");
   const notesRef = useRef<HTMLTextAreaElement>(null);
@@ -79,6 +91,34 @@ const LeadNew = () => {
     fetchBranches().then(setBranches);
     fetchDepartments().then(setDepartments);
   }, []);
+
+  useEffect(() => {
+    if (editId || !user?.id || defaultedPrimaryUserRef.current) return;
+    setField("assigned_counselor_id", user.id);
+    lastAssignedCounselorRef.current = user.id;
+    defaultedPrimaryUserRef.current = true;
+  }, [editId, user?.id]);
+
+  useEffect(() => {
+    const branch = (f.branch as string) || "";
+    const department = (f.department as string) || "";
+    if (!branch || !department) {
+      setEligiblePrimaryUsers([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingPrimaryUsers(true);
+    fetchEligiblePrimaryUsers({ branchName: branch, departmentName: department })
+      .then((rows) => {
+        if (!cancelled) setEligiblePrimaryUsers(rows);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingPrimaryUsers(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [f.branch, f.department]);
 
   useEffect(() => {
     if (editId || leadId) return;
@@ -116,8 +156,10 @@ const LeadNew = () => {
       has_budget: l.has_budget, budget_currency: l.budget_currency,
       budget_min: l.budget_min, budget_max: l.budget_max,
       lead_temperature: l.lead_temperature, branch: l.branch, department: l.department,
+      assigned_counselor_id: l.assigned_counselor_id,
       cold_pool_campaign: l.cold_pool_campaign,
     });
+    lastAssignedCounselorRef.current = l.assigned_counselor_id ?? null;
     setServices({
       coaching_services: l.coaching_services ?? [],
       visa_services: l.visa_services ?? [],
@@ -168,6 +210,17 @@ const LeadNew = () => {
     setSaving(true);
     try {
       const saved = await upsertLeadAutosave(leadId, buildDraft());
+      const prevAssigned = lastAssignedCounselorRef.current;
+      const nextAssigned = (saved.assigned_counselor_id as string | null | undefined) ?? null;
+      if (saved.id && prevAssigned !== nextAssigned) {
+        await logLeadPrimaryUserChange({
+          leadId: saved.id,
+          clientId: saved.converted_to_client_id ?? null,
+          previousUserId: prevAssigned,
+          newUserId: nextAssigned,
+        }).catch(() => {});
+        lastAssignedCounselorRef.current = nextAssigned;
+      }
       if (!leadId) {
         setLeadId(saved.id);
         setLeadNumber(saved.lead_number);
@@ -283,6 +336,29 @@ const LeadNew = () => {
   useEffect(() => {
     if (suggestedDept && !f.department) setField("department", suggestedDept);
   }, [suggestedDept]); // eslint-disable-line
+
+  const primaryUserOptions = useMemo(() => {
+    const selectedId = (f.assigned_counselor_id as string) || null;
+    const selectedName =
+      eligiblePrimaryUsers.find((o) => o.id === selectedId)?.name ??
+      (selectedId === user?.id ? "You" : undefined);
+    return mergePrimaryUserOptions(eligiblePrimaryUsers, selectedId, selectedName);
+  }, [eligiblePrimaryUsers, f.assigned_counselor_id, user?.id]);
+
+  const onPrimaryUserChange = (v: string) => {
+    setField("assigned_counselor_id", v || null);
+    setTimeout(autosave, 0);
+  };
+
+  const onBranchChange = (v: string) => {
+    setField("branch", v);
+    setTimeout(autosave, 0);
+  };
+
+  const onDepartmentChange = (v: string) => {
+    setField("department", v);
+    setTimeout(autosave, 0);
+  };
 
   const onToggleVisaLock = (checked: boolean) => {
     setVisaLocked(checked);
@@ -557,16 +633,41 @@ const LeadNew = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
                       <Label>Branch</Label>
-                      <Select value={(f.branch as string) || ""} onValueChange={(v) => { setField("branch", v); setTimeout(autosave, 0); }}>
+                      <Select value={(f.branch as string) || ""} onValueChange={onBranchChange}>
                         <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                         <SelectContent>{branches.map((b) => <SelectItem key={b.id} value={b.name}>{b.name}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1.5">
                       <Label>Department {suggestedDept && f.department !== suggestedDept && <span className="text-xs text-muted-foreground">(suggested: {suggestedDept})</span>}</Label>
-                      <Select value={(f.department as string) || ""} onValueChange={(v) => { setField("department", v); setTimeout(autosave, 0); }}>
+                      <Select value={(f.department as string) || ""} onValueChange={onDepartmentChange}>
                         <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                         <SelectContent>{departments.map((d) => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Primary User</Label>
+                      <Select
+                        value={(f.assigned_counselor_id as string) || ""}
+                        onValueChange={onPrimaryUserChange}
+                        disabled={loadingPrimaryUsers && !primaryUserOptions.length}
+                      >
+                        <SelectTrigger><SelectValue placeholder={loadingPrimaryUsers ? "Loading…" : "Select"} /></SelectTrigger>
+                        <SelectContent>
+                          {primaryUserOptions.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {(!(f.branch as string) || !(f.department as string)) && (
+                        <p className="text-xs text-muted-foreground">Select branch and department to filter eligible users.</p>
+                      )}
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Lead Source</Label>
+                      <Select value={(f.lead_source as string) || ""} onValueChange={(v) => { setField("lead_source", v); setTimeout(autosave, 0); }}>
+                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>{lead_sources.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1.5">
@@ -577,13 +678,6 @@ const LeadNew = () => {
                           <SelectItem value="warm">Warm</SelectItem>
                           <SelectItem value="hot">Hot</SelectItem>
                         </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Lead Source</Label>
-                      <Select value={(f.lead_source as string) || ""} onValueChange={(v) => { setField("lead_source", v); setTimeout(autosave, 0); }}>
-                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                        <SelectContent>{lead_sources.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                   </div>

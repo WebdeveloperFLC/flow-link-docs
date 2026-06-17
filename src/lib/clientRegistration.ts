@@ -156,6 +156,8 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     interested_countries: interested,
     branch: lead.branch ?? null,
     department: lead.department ?? null,
+    assigned_counselor_id: lead.assigned_counselor_id ?? null,
+    owner_id: lead.assigned_counselor_id ?? null,
     coaching_services: lead.coaching_services ?? [],
     visa_services: lead.visa_services ?? [],
     admission_services: lead.admission_services ?? [],

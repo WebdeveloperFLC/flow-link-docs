@@ -160,10 +160,20 @@ const LeadDetail = () => {
 
             <Card className="p-6 space-y-4">
               <h3 className="font-semibold">Assignment</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Row label="Branch" value={lead.branch} />
                 <Row label="Department" value={lead.department} />
-                <Row label="Source" value={lead.lead_source} />
+                <LeadOwnerCard
+                  compact
+                  leadId={lead.id}
+                  assignedCounselorId={lead.assigned_counselor_id ?? null}
+                  branch={lead.branch}
+                  department={lead.department}
+                  convertedClientId={lead.converted_to_client_id}
+                  onChanged={() => fetchLead(lead.id).then((l) => l && setLead(l))}
+                />
+                <Row label="Lead Source" value={lead.lead_source} />
+                <Row label="Temperature" value={lead.lead_temperature} />
               </div>
             </Card>
           </>
@@ -178,12 +188,6 @@ const LeadDetail = () => {
             </div>
           </Card>
         )}
-
-        <LeadOwnerCard
-          leadId={lead.id}
-          assignedCounselorId={lead.assigned_counselor_id ?? null}
-          onChanged={() => fetchLead(lead.id).then((l) => l && setLead(l))}
-        />
 
         <Card className="p-6 space-y-2">
           <h3 className="font-semibold">Notes</h3>

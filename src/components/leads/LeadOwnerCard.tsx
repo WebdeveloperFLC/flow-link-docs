@@ -1,42 +1,78 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { UserCheck } from "lucide-react";
-
-interface Opt { id: string; name: string; }
+import {
+  fetchEligiblePrimaryUsers,
+  logLeadPrimaryUserChange,
+  mergePrimaryUserOptions,
+  resolvePrimaryUserName,
+  type PrimaryUserOption,
+} from "@/lib/leadAssignment";
 
 /**
- * Shows the lead's primary user (assigned counselor) and lets an admin or the
- * current owner re-assign / transfer it to another team member.
- * Writes to leads.assigned_counselor_id.
+ * Primary user (lead owner) — assigned_counselor_id.
+ * Filtered by branch + department; logs assignment changes to activity.
  */
 export const LeadOwnerCard = ({
   leadId,
   assignedCounselorId,
+  branch,
+  department,
+  convertedClientId,
   onChanged,
+  compact = false,
 }: {
   leadId: string;
   assignedCounselorId: string | null;
+  branch?: string | null;
+  department?: string | null;
+  convertedClientId?: string | null;
   onChanged: () => void;
+  compact?: boolean;
 }) => {
   const { isAdmin, user } = useAuth();
-  const [people, setPeople] = useState<Opt[]>([]);
+  const [eligible, setEligible] = useState<PrimaryUserOption[]>([]);
+  const [currentName, setCurrentName] = useState<string | null>(null);
   const [value, setValue] = useState<string>(assignedCounselorId ?? "");
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => { setValue(assignedCounselorId ?? ""); }, [assignedCounselorId]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.from("profiles").select("id, full_name, email").order("full_name");
-      setPeople(((data ?? []) as any[]).map((p) => ({ id: p.id, name: p.full_name ?? p.email ?? p.id })));
-    })();
-  }, []);
+    setValue(assignedCounselorId ?? "");
+  }, [assignedCounselorId]);
 
-  const currentName = people.find((p) => p.id === assignedCounselorId)?.name ?? null;
-  // Only admin or the current owner may transfer.
+  useEffect(() => {
+    resolvePrimaryUserName(assignedCounselorId).then(setCurrentName);
+  }, [assignedCounselorId]);
+
+  useEffect(() => {
+    if (!branch?.trim() || !department?.trim()) {
+      setEligible([]);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    fetchEligiblePrimaryUsers({ branchName: branch, departmentName: department })
+      .then((rows) => {
+        if (!cancelled) setEligible(rows);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [branch, department]);
+
+  const options = useMemo(
+    () => mergePrimaryUserOptions(eligible, assignedCounselorId, currentName),
+    [eligible, assignedCounselorId, currentName],
+  );
+
   const canChange = isAdmin || (!!user && assignedCounselorId === user.id) || !assignedCounselorId;
 
   const save = async () => {
@@ -47,7 +83,14 @@ export const LeadOwnerCard = ({
         .update({ assigned_counselor_id: value || null })
         .eq("id", leadId);
       if (error) throw error;
-      toast.success(value ? "Lead assigned" : "Lead unassigned");
+      await logLeadPrimaryUserChange({
+        leadId,
+        clientId: convertedClientId ?? null,
+        previousUserId: assignedCounselorId,
+        newUserId: value || null,
+        previousName: currentName,
+      });
+      toast.success(value ? "Primary user updated" : "Lead unassigned");
       onChanged();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to update");
@@ -55,6 +98,36 @@ export const LeadOwnerCard = ({
       setBusy(false);
     }
   };
+
+  if (compact) {
+    return (
+      <div className="space-y-1.5">
+        <div className="text-xs text-muted-foreground uppercase tracking-wide">Primary User</div>
+        {canChange ? (
+          <div className="flex items-center gap-2">
+            <Select value={value} onValueChange={setValue} disabled={loading && !options.length}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder={loading ? "Loading…" : currentName ?? "Unassigned"} />
+              </SelectTrigger>
+              <SelectContent>
+                {options.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button size="sm" disabled={busy || value === (assignedCounselorId ?? "")} onClick={save}>
+              {busy ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        ) : (
+          <div className="text-sm">{currentName ?? <span className="text-muted-foreground">Unassigned</span>}</div>
+        )}
+        {(!branch || !department) && (
+          <p className="text-xs text-muted-foreground">Set branch and department on the lead to filter eligible users.</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-lg border p-4 space-y-3">
@@ -73,20 +146,25 @@ export const LeadOwnerCard = ({
 
       {canChange ? (
         <div className="flex items-center gap-2">
-          <select
-            className="flex-1 border rounded-md h-9 px-2 bg-background text-sm"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-          >
-            <option value="">— Unassigned —</option>
-            {people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
+          <Select value={value} onValueChange={setValue} disabled={loading && !options.length}>
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder={loading ? "Loading…" : "Select primary user"} />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((p) => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button size="sm" disabled={busy || value === (assignedCounselorId ?? "")} onClick={save}>
-            {busy ? "Saving…" : (assignedCounselorId ? "Transfer" : "Assign")}
+            {busy ? "Saving…" : assignedCounselorId ? "Transfer" : "Assign"}
           </Button>
         </div>
       ) : (
         <p className="text-xs text-muted-foreground">Only an admin or the current owner can transfer this lead.</p>
+      )}
+      {(!branch || !department) && (
+        <p className="text-xs text-muted-foreground">Set branch and department to filter eligible users.</p>
       )}
     </div>
   );

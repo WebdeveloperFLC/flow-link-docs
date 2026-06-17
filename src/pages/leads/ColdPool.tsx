@@ -8,11 +8,13 @@ import { Card } from "@/components/ui/card";
 import { Plus, Search, Upload } from "lucide-react";
 import { LeadsTable } from "@/components/leads/LeadsTable";
 import { fetchLeads, type Lead } from "@/lib/leads";
+import { fetchProfileNames } from "@/lib/leadAssignment";
 import { ImportColdLeadsDialog } from "@/components/leads/ImportColdLeadsDialog";
 
 const ColdPool = () => {
   const nav = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [ownerNames, setOwnerNames] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [importOpen, setImportOpen] = useState(false);
@@ -21,7 +23,13 @@ const ColdPool = () => {
   useEffect(() => {
     setLoading(true);
     fetchLeads({ coldPool: true, search: search || undefined })
-      .then(setLeads).finally(() => setLoading(false));
+      .then(async (rows) => {
+        setLeads(rows);
+        const ids = rows.map((l) => l.assigned_counselor_id).filter(Boolean) as string[];
+        const map = await fetchProfileNames(ids);
+        setOwnerNames(Object.fromEntries(map));
+      })
+      .finally(() => setLoading(false));
   }, [search, refreshTick]);
 
   return (
@@ -46,7 +54,7 @@ const ColdPool = () => {
           <Input placeholder="Search…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Card>
-          {loading ? <div className="p-12 text-center text-muted-foreground text-sm">Loading…</div> : <LeadsTable leads={leads} showCampaign />}
+          {loading ? <div className="p-12 text-center text-muted-foreground text-sm">Loading…</div> : <LeadsTable leads={leads} showCampaign ownerNames={ownerNames} />}
         </Card>
       </div>
       <ImportColdLeadsDialog open={importOpen} onOpenChange={setImportOpen} onImported={() => setRefreshTick((n) => n + 1)} />
