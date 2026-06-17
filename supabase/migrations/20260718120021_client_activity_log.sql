@@ -314,5 +314,5 @@ SELECT
 FROM public.client_tasks t
 WHERE NOT EXISTS (
   SELECT 1 FROM public.client_activity_log cal
-  WHERE cal.source_table = 'client_tasks' AND cal.source_id = t.id
+  WHERE cal.source_table = 'client_tasks' AND cal.source_id = t.id AND cal.client_id = t.client_id
 );
