@@ -1,3 +1,9 @@
+-- Canada Spouse / Partner Sponsorship academy_metadata v2.1
+-- Source: content/service-library/canada-spouse-visa.json
+
+UPDATE public.service_library
+SET
+  academy_metadata = $metadata$
 {
   "displayName": "Canada – Spouse / Partner Sponsorship",
   "shortDescription": "IRCC family sponsorship · Inland & outland · PR pathway for spouses & partners",
@@ -1068,3 +1074,6 @@
     ]
   }
 }
+$metadata$::jsonb,
+  updated_at = now()
+WHERE id = 'b2000001-0001-4000-8000-000000000012';
