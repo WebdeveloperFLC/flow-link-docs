@@ -1,15 +1,15 @@
 {
   "displayName": "Canada – Student Visa (Study Permit — Outside Canada)",
   "shortDescription": "IRCC study permit · SDS & Non-SDS pathways · DLI required",
-  "version": "v2.0",
+  "version": "v2.1",
   "versionStatus": "Live",
   "reviewStatus": "active",
-  "updatedLabel": "Updated 4 Jun 2026",
+  "updatedLabel": "Updated 17 Jun 2026",
   "learningLevel": "Intermediate",
   "learningMinutes": 20,
   "policyAlert": {
     "active": true,
-    "date": "4 Jun 2026",
+    "date": "17 Jun 2026",
     "summary": "Confirm current IRCC study permit fee and biometrics fee on canada.ca before sharing quotes with clients."
   },
   "alert": {
@@ -87,221 +87,265 @@
   "about": [
     {
       "label": "Description",
-      "value": "Study permit allowing international students to study at a Designated Learning Institution (DLI) in Canada. This service is for applicants applying from outside Canada before travel; application is typically online via IRCC portal, and biometrics and medical may apply."
+      "value": "A Canada study permit authorizes international students to study full-time at a Designated Learning Institution (DLI). This service covers first-time applicants applying from outside Canada before travel—typically online through an IRCC secure account—with biometrics, medical, PAL/TAL, or Quebec CAQ where applicable."
     },
     {
-      "label": "Eligible applicants",
-      "value": "Valid LOA from DLI · Proof of funds · Clean immigration history · Genuine student intent"
+      "label": "Who should use this pathway",
+      "value": "Students with a valid LOA from a Canadian DLI who will apply from their country of residence (not already in Canada as a visitor seeking status change). Counselors assess SDS vs Non-SDS, funds, academics, and genuine student intent before submission."
     },
     {
       "label": "Application streams",
-      "value": "SDS (where eligible): faster processing with GIC and language scores. Non-SDS: standard study permit pathway.",
+      "value": "Student Direct Stream (SDS): for residents of eligible countries who meet upfront language, GIC, tuition payment, and medical requirements—generally faster processing. Non-SDS: standard study permit for all other eligible applicants; requires strong funds history and complete documentation.",
       "warning": true
     },
     {
       "label": "Key authority",
-      "value": "Immigration, Refugees and Citizenship Canada (IRCC)"
+      "value": "Immigration, Refugees and Citizenship Canada (IRCC). Applications are assessed by the visa office responsible for the applicant's country of residence. CBSA issues the physical study permit at the port of entry."
     },
     {
       "label": "After approval",
-      "value": "Client receives POE letter / permit details; explain study conditions, work limits, and DLI enrollment obligations."
+      "value": "Client receives a port of entry (POE) letter of introduction and, if required, a temporary resident visa (TRV) vignette. The study permit is printed at entry. Counselor must brief the client on enrollment deadlines, permit conditions, work limits, address updates, and PGWP planning."
     }
   ],
   "eligibility": [
     {
-      "criterion": "Letter of acceptance (LOA) from DLI",
+      "criterion": "Letter of acceptance (LOA) from a DLI",
       "met": true,
-      "note": "LOA must be valid and program start date realistic"
+      "note": "Purpose: proves admission to a real program. Importance: core eligibility—officer will not approve without it. Common mistakes: expired LOA, wrong DLI number, start date already passed. Best practice: verify DLI on canada.ca; match LOA program, dates, and tuition to the application and SOP."
     },
     {
-      "criterion": "Proof of financial support (tuition + living)",
+      "criterion": "Valid passport (6+ months beyond intended stay recommended)",
       "met": true,
-      "note": "SDS: GIC + tuition payment proof where required"
+      "note": "Purpose: identity and travel document for permit length. Importance: permit cannot exceed passport validity. Common mistakes: soon-to-expire passport, name mismatch with LOA. Best practice: renew passport before applying if validity is short."
     },
     {
-      "criterion": "Language proficiency (SDS)",
-      "met": false,
-      "note": "IELTS/TOEFL/PTE per SDS country list"
-    },
-    {
-      "criterion": "Biometrics completed",
-      "met": false,
-      "note": "Book within 30 days of BIL if required"
-    },
-    {
-      "criterion": "Medical exam (if required)",
-      "met": false,
-      "note": "Based on residence history and IRCC instructions"
-    },
-    {
-      "criterion": "No criminal / immigration misrepresentation",
-      "met": true
-    },
-    {
-      "criterion": "Genuine student / ties to home country",
+      "criterion": "Proof of financial support (tuition + living costs)",
       "met": true,
-      "note": "SOP and career plan must align"
+      "note": "Purpose: shows the student can pay for study and living without unauthorized work. Importance: top refusal factor after genuineness. Common mistakes: recent unexplained deposits, only savings with no income trail. Best practice: 4–6 months statements, tuition receipts, GIC for SDS; document source of every large credit."
+    },
+    {
+      "criterion": "Parent or sponsor financial documents (if sponsored)",
+      "met": false,
+      "note": "Purpose: links sponsor capacity to student funds. Importance: officers match deposits to sponsor income. Common mistakes: sponsor ITR missing, no relationship proof, funds in sponsor account with no affidavit. Best practice: ITR 2–3 years, employment letter, bank statements, affidavit, and clear explanation of why sponsor pays."
+    },
+    {
+      "criterion": "Language proficiency evidence (SDS or DLI requirement)",
+      "met": false,
+      "note": "Purpose: shows ability to succeed in program and meets SDS stream rules. Importance: mandatory for SDS; many DLIs require IELTS/TOEFL/PTE even on Non-SDS. Common mistakes: expired test, wrong module (GT vs Academic), score below SDS threshold. Best practice: confirm DLI minimum and SDS country list before booking test."
+    },
+    {
+      "criterion": "Study plan / statement of purpose (SOP)",
+      "met": false,
+      "note": "Purpose: explains why Canada, why this course, why now, and career plan. Importance: central to genuine student assessment. Common mistakes: generic template, course unrelated to past study/work, no gap explanation. Best practice: customized SOP linking academics, work history, and post-study intent; address any refusals or gaps directly."
+    },
+    {
+      "criterion": "Academic transcripts, degrees, and resume",
+      "met": true,
+      "note": "Purpose: establishes education background and progression. Importance: supports course fit and credibility. Common mistakes: missing backlogs explanation, inconsistent dates vs forms. Best practice: certified copies, backlog/credential explanation letter where needed."
+    },
+    {
+      "criterion": "Provincial Attestation Letter (PAL/TAL) if required",
+      "met": false,
+      "note": "Purpose: provincial allocation for many post-secondary study permits. Importance: application may be incomplete without it unless exempt. Common mistakes: applying before DLI issues PAL, wrong province. Best practice: confirm with DLI whether PAL/TAL is issued and upload before submission."
+    },
+    {
+      "criterion": "Quebec Acceptance Certificate (CAQ) for Quebec studies",
+      "met": false,
+      "note": "Purpose: Quebec approval before IRCC can finalize permit. Importance: mandatory for most Quebec programs. Common mistakes: submitting to IRCC before CAQ approval. Best practice: obtain CAQ first, then complete IRCC study permit application."
+    },
+    {
+      "criterion": "Biometrics completed after BIL",
+      "met": false,
+      "note": "Purpose: identity verification. Importance: file may stall if BIL expires. Common mistakes: missing 30-day window, no VAC appointment proof. Best practice: book VAC immediately after BIL; keep receipt and upload confirmation."
+    },
+    {
+      "criterion": "Immigration medical exam (if required)",
+      "met": false,
+      "note": "Purpose: admissibility screening. Importance: required for SDS upfront medical and for many residence histories. Common mistakes: non-panel physician, expired eMedical. Best practice: use IRCC panel physician; upload IMM 1017B/upfront sheet as instructed."
+    },
+    {
+      "criterion": "Genuine student intent and home-country ties",
+      "met": true,
+      "note": "Purpose: officer must believe applicant will leave Canada when authorized stay ends (dual intent allowed but plan must be credible). Importance: refusal if study appears pretext for migration. Common mistakes: weak ties, employment gap unexplained. Best practice: document family, property, job offer potential, or career return plan in India/home country."
     }
   ],
-  "redFlagsBanner": "If refused, do not reapply with the same weak documents. Address the specific refusal reason in writing before a new submission.",
+  "redFlagsBanner": "Stop and strengthen the file before submission if any red flag below applies. After a refusal, never re-lodge the same package—address the officer's stated reason with new evidence in writing.",
   "redFlags": [
     {
-      "title": "Insufficient or unseasoned funds",
-      "description": "Large recent deposits, funds not aligned with sponsor income, or missing 4–6 month bank history.",
-      "fix": "Season funds early; use GIC for SDS; sponsor ITR + employment letters",
+      "title": "Unexplained large recent deposits",
+      "description": "Sudden credits in the last 3–6 months with no ITR, sale deed, loan sanction, or gift deed to support them. Officers treat this as borrowed or temporary funds.",
+      "fix": "Document source with affidavits, ITR, and transaction trail; season funds early; use SDS GIC where eligible",
       "severity": "Very common"
     },
     {
-      "title": "Weak or generic SOP",
-      "description": "Template SOP, course mismatch with past education, or unclear return intent.",
-      "fix": "Course-specific SOP; link prior study/work to Canada program; clear post-study plan",
+      "title": "Weak source of funds",
+      "description": "Sponsor income cannot logically support tuition plus living costs, or only fixed deposits with no banking history.",
+      "fix": "Match funds to sponsor ITR and employment; show liquid and accessible money; avoid unexplained third-party transfers",
+      "severity": "Very common"
+    },
+    {
+      "title": "Course or program mismatch",
+      "description": "Proposed program does not follow from prior education or work (e.g., unrelated field jump, lower qualification without reason).",
+      "fix": "Rewrite SOP to justify progression; consider pathway program or aligned specialization",
       "severity": "Common"
     },
     {
-      "title": "Wrong stream (SDS vs Non-SDS)",
-      "description": "Applied SDS without meeting language/GIC/tuition requirements.",
-      "fix": "Re-check SDS eligibility by country of residence; switch stream and re-quote fees",
+      "title": "Significant unexplained study gap",
+      "description": "Multi-year gap after last qualification with no employment, training, or family responsibility explained.",
+      "fix": "Add gap explanation letter with payslips, business records, or skill certificates for the gap period",
       "severity": "Common"
     },
     {
-      "title": "LOA / DLI issues",
-      "description": "Expired LOA, non-DLI institution, or start date passed.",
-      "fix": "Verify DLI list on canada.ca; request updated LOA from institution",
+      "title": "Weak academic background for chosen program",
+      "description": "Low grades, many backlogs, or failed subjects without explanation for demanding program.",
+      "fix": "Address backlogs honestly; show remedial courses, work experience, or conditional admission terms",
+      "severity": "Common"
+    },
+    {
+      "title": "Multiple previous refusals without material change",
+      "description": "Canada or other-country refusals re-submitted with same finances, SOP, or course choice.",
+      "fix": "Disclose all refusals; attach cover letter addressing each reason; change course, funds, or stream where needed",
       "severity": "High"
     },
     {
-      "title": "Previous refusals not explained",
-      "description": "Canada or other country refusals not disclosed or addressed in cover letter.",
-      "fix": "Full disclosure + changed circumstances + stronger evidence package",
+      "title": "Generic or copied SOP",
+      "description": "Template language, wrong college name, or no personal career narrative.",
+      "fix": "Custom SOP per client: course modules, faculty, city choice, and realistic post-study plan",
       "severity": "High"
     },
     {
-      "title": "Medical or biometrics overdue",
-      "description": "BIL expired or medical not completed in time.",
-      "fix": "Track BIL deadline; book VAC slot immediately; upload confirmation",
+      "title": "Insufficient home-country ties",
+      "description": "Young applicant with no property, employment, family, or return pathway documented.",
+      "fix": "Document family dependency, business, assets, or career opportunities at home; avoid over-emphasizing PR intent in SOP",
+      "severity": "High"
+    },
+    {
+      "title": "Inconsistent employment or education history",
+      "description": "Dates on resume, IMM forms, and SOP do not match; undeclared jobs or education.",
+      "fix": "Cross-check all forms; use single master timeline; disclose all study and work periods",
       "severity": "Medium"
     }
   ],
   "faqs": [
     {
-      "q": "Can we switch from SDS to Non-SDS if SDS is paused?",
-      "a": "Yes, when the client is SDS-ineligible or SDS is unavailable. Rebuild the file per Non-SDS checklist and update fee quote (no GIC requirement unless otherwise applicable)."
+      "q": "Who can apply for a Canada Study Permit from outside Canada?",
+      "a": "A foreign national with a valid LOA from a DLI who meets financial, admissibility, and genuine-student requirements. They apply from their country of residence (or as IRCC instructs) before travel. They must be able to study full-time, pay tuition and living costs, and comply with temporary resident rules."
     },
     {
-      "q": "How much funds to show for Non-SDS?",
-      "a": "Tuition for first year plus living expenses per IRCC guidelines (amounts update—verify on canada.ca). Include credible source of funds and history."
+      "q": "What financial documents should a first-time applicant show?",
+      "a": "Typically: 4–6 months bank statements, tuition payment receipts or ability to pay first year, proof of living funds per IRCC guidelines, sponsor ITR and employment letters if parents pay, GIC certificate for SDS, and affidavits explaining large deposits. Every credit should be traceable to lawful income or assets."
     },
     {
-      "q": "When should biometrics be done?",
-      "a": "As soon as possible after Biometric Instruction Letter (BIL), typically within 30 days. Counselor should track VAC appointment confirmation."
+      "q": "Can parents sponsor a student's study permit application?",
+      "a": "Yes—most Indian students are sponsored by parents or close family. IRCC expects relationship proof, sponsor income evidence (ITR, salary slips), bank statements, and a clear statement of why the sponsor is paying. Funds should align with sponsor capacity, not just account balance."
     },
     {
-      "q": "Can spouse/children accompany?",
-      "a": "May require separate applications (visitor permit, OWP, study permit for children). Assess dependants case-by-case; extra funds and ties evidence needed."
+      "q": "How much money must a student demonstrate?",
+      "a": "At minimum: first-year tuition (per LOA) plus living expenses (IRCC publishes annual amounts—e.g. CAD 20,635+ for one person outside Quebec, updated periodically). SDS also requires GIC and upfront tuition payment per stream rules. Always verify current amounts on canada.ca before quoting."
     },
     {
-      "q": "What if LOA start date is near?",
-      "a": "Apply urgently; explain delay if any. If start date passed, obtain updated LOA before submission."
+      "q": "Are study gaps acceptable?",
+      "a": "Yes, if explained credibly. Gaps should be covered in the SOP and supporting documents (employment letters, business records, caregiving, health, or upskilling). Unexplained multi-year gaps without activity are a common refusal reason."
     },
     {
-      "q": "Is medical mandatory for everyone?",
-      "a": "No—depends on country of residence and stay duration. Follow IRCC medical instructions for the client's profile."
+      "q": "What are the most common refusal reasons for study permits?",
+      "a": "Insufficient or unseasoned funds, weak genuine-student/SOP, course mismatch, undisclosed prior refusals, missing PAL/CAQ, and poor document consistency. Counselors should pre-screen these before submission."
     },
     {
-      "q": "Can client work on study permit?",
-      "a": "Generally on-campus without separate permit; off-campus rules have hour limits—cite current IRCC rules at time of counseling."
+      "q": "Can a spouse accompany the student to Canada?",
+      "a": "Often yes, but the spouse needs their own application (visitor record or open work permit if eligible under current SOWP rules). Extra funds and relationship evidence are required. Assess SOWP eligibility by program level and duration before promising work rights."
     },
     {
-      "q": "What happens after study permit approval?",
-      "a": "Client receives introduction letter; permit issued at port of entry or as directed. Remind client to maintain full-time status and keep contact details updated with IRCC."
+      "q": "Can children accompany the student?",
+      "a": "Yes—minor children may need study permits or visitor records depending on age and schooling plans. Each dependant needs funds, medical, and biometrics as applicable. Family applications must be consistent on forms and finances."
     },
     {
-      "q": "What is Description for this service?",
-      "a": "Study permit allowing international students to study at a Designated Learning Institution (DLI) in Canada. This service is for applicants applying from outside Canada before travel; application is typically online via IRCC portal, and biometrics and medical may apply."
+      "q": "Is IELTS mandatory for a Canada study permit?",
+      "a": "Not for every Non-SDS file, but mandatory for SDS (minimum scores per IRCC). Most DLIs require English/French proof for admission. Counselors should confirm both DLI requirements and SDS thresholds before advising 'no IELTS.'"
     },
     {
-      "q": "What is Eligible applicants for this service?",
-      "a": "Valid LOA from DLI · Proof of funds · Clean immigration history · Genuine student intent"
+      "q": "Can a student work while studying in Canada?",
+      "a": "Eligible full-time students at participating DLIs may work on-campus anytime and off-campus up to 24 hours per week during regular academic sessions (full-time in scheduled breaks), if permit conditions allow. Co-op requires a separate co-op work permit. Verify current IRCC work rules at counseling."
     },
     {
-      "q": "What is Application streams for this service?",
-      "a": "SDS (where eligible): faster processing with GIC and language scores. Non-SDS: standard study permit pathway."
+      "q": "What happens after graduation?",
+      "a": "After completing an eligible program at a DLI, the graduate may apply for a Post-Graduation Work Permit (PGWP), then potentially permanent residence through Express Entry or PNP. PGWP length depends on program duration. Plan this pathway in counseling but do not guarantee PR."
     },
     {
-      "q": "Important note on Application streams?",
-      "a": "SDS (where eligible): faster processing with GIC and language scores. Non-SDS: standard study permit pathway."
+      "q": "Can a student apply after a previous refusal?",
+      "a": "Yes, with a stronger file. Disclose all prior refusals on IMM forms, attach a cover letter addressing each refusal reason, and show material change (new funds, course, improved SOP, or corrected documents). Re-submitting unchanged documents usually fails again."
     },
     {
-      "q": "What is Key authority for this service?",
-      "a": "Immigration, Refugees and Citizenship Canada (IRCC)"
+      "q": "How does IRCC evaluate funds and source of money?",
+      "a": "Officers look at sufficiency (tuition + living), accessibility, history (seasoning), and whether deposits match sponsor income or applicant earnings. Large recent transfers without documentation are heavily scrutinized."
     },
     {
-      "q": "What is After approval for this service?",
-      "a": "Client receives POE letter / permit details; explain study conditions, work limits, and DLI enrollment obligations."
+      "q": "What makes a strong study plan or SOP?",
+      "a": "Clear link between past education/work and chosen program; specific reasons for Canada and that DLI; realistic career outcome; explanation of gaps and refusals; temporary intent with credible home ties. It must read personal—not copied from the internet."
     },
     {
-      "q": "Is Letter of acceptance (LOA) from DLI required?",
-      "a": "LOA must be valid and program start date realistic"
+      "q": "Which documents matter most for approval?",
+      "a": "LOA from DLI, financial package (statements + sponsor ITR), SOP, academics, PAL/CAQ if required, language scores for SDS/DLI, and consistent IMM forms. Weak finances or generic SOP can undermine an otherwise complete file."
     },
     {
-      "q": "Is Proof of financial support (tuition + living) required?",
-      "a": "SDS: GIC + tuition payment proof where required"
+      "q": "SDS vs Non-SDS—which pathway should we use?",
+      "a": "Use SDS only if the applicant resides in an SDS-eligible country and meets language, GIC, tuition payment, and medical requirements. Otherwise use Non-SDS with strong seasoned funds and full documentation. Never label a file SDS without meeting every requirement."
     },
     {
-      "q": "Is Language proficiency (SDS) required?",
-      "a": "IELTS/TOEFL/PTE per SDS country list"
+      "q": "When must biometrics be completed?",
+      "a": "After receiving the Biometric Instruction Letter (BIL), usually within 30 days. Book the nearest VAC immediately. Missing the window can delay or jeopardize processing."
     },
     {
-      "q": "Is Biometrics completed required?",
-      "a": "Book within 30 days of BIL if required"
+      "q": "Is a medical exam required for every applicant?",
+      "a": "No. Required for SDS upfront medical, certain countries of residence, or long stays. Follow IRCC medical instructions in the applicant's document checklist—only panel physicians count."
     },
     {
-      "q": "Is Medical exam (if required) required?",
-      "a": "Based on residence history and IRCC instructions"
+      "q": "What if the LOA start date is approaching or has passed?",
+      "a": "Apply urgently with explanation. If the intake date has passed, obtain a deferral or new LOA from the DLI before submission. Stale LOAs raise credibility concerns."
     },
     {
-      "q": "Is No criminal / immigration misrepresentation required?",
-      "a": "No criminal / immigration misrepresentation is typically required."
+      "q": "What is a Provincial Attestation Letter (PAL) and when is it needed?",
+      "a": "A provincial document for many post-secondary study permit applicants showing allocation under intake caps. Exemptions exist (e.g. certain levels, family already in Canada). Confirm with DLI whether PAL/TAL is issued before lodging."
     },
     {
-      "q": "Is Genuine student / ties to home country required?",
-      "a": "SOP and career plan must align"
+      "q": "Does Quebec require a CAQ before IRCC can approve?",
+      "a": "Yes for most studies in Quebec. The student obtains CAQ from Quebec immigration first, then applies to IRCC for the study permit. Do not submit incomplete Quebec files."
     },
     {
-      "q": "What is the Processing time?",
-      "a": "8–12w — Varies by country & stream"
+      "q": "What government fees apply for a study permit from India?",
+      "a": "Study permit application fee CAD $150 plus biometrics CAD $85 for most applicants (verify on IRCC fee page). Medical, VAC premium services, and courier are additional. Quote separately from consultancy fees."
     },
     {
-      "q": "What is the Government fee?",
-      "a": "CAD $150 — + biometrics if applicable"
+      "q": "How long does IRCC processing usually take?",
+      "a": "Varies by country and stream—SDS is often faster where eligible; Non-SDS commonly several weeks to a few months. Check IRCC processing times tool for the visa office handling India/residence country. Published times are estimates, not guarantees before intake."
     },
     {
-      "q": "What is the Our approval rate?",
-      "a": "87% — ~72% industry benchmark"
+      "q": "What happens at the port of entry after approval?",
+      "a": "Client carries POE letter, LOA, funds proof, and approval documents. CBSA officer interviews and, if satisfied, prints the study permit. Client must check permit conditions (school, work, expiry) before leaving the counter."
     },
     {
-      "q": "What is the Required docs?",
-      "a": "14 — + conditional items"
+      "q": "Can dependants apply together with the principal student?",
+      "a": "Yes—family can be linked in planning, but each person needs correct forms, fees, biometrics, and financial support showing ability to support the whole family in Canada."
     },
     {
-      "q": "What is the Consultancy fee?",
-      "a": "See fee tab — + govt & third-party"
+      "q": "What if funds were recently deposited into the bank account?",
+      "a": "Explain every deposit with source documents (property sale, FD break, loan, gift deed). Without proof, officers may refuse for unseasoned funds. Advise clients to plan finances months before applying."
     },
     {
-      "q": "What if the client has Insufficient or unseasoned funds?",
-      "a": "Season funds early; use GIC for SDS; sponsor ITR + employment letters"
+      "q": "How should we address a prior Canada or other-country refusal?",
+      "a": "Full disclosure on forms, copy of refusal letter, and a written explanation of what changed (new course, stronger funds, corrected documents). Quality team should review all refusal cases before re-lodgement."
     },
     {
-      "q": "Why is Insufficient or unseasoned funds a problem?",
-      "a": "Large recent deposits, funds not aligned with sponsor income, or missing 4–6 month bank history."
+      "q": "Is a co-op or internship program allowed on a standard study permit?",
+      "a": "Academic programs with mandatory co-op need a co-op work permit in addition to the study permit. Confirm with DLI whether co-op is integral and apply for the correct permit."
     },
     {
-      "q": "What if the client has Weak or generic SOP?",
-      "a": "Course-specific SOP; link prior study/work to Canada program; clear post-study plan"
+      "q": "What conditions must the student maintain after arrival?",
+      "a": "Enroll at DLI, make academic progress, respect work limits on permit, notify IRCC of address changes, and not overstay. Dropping to part-time or changing schools without following IRCC rules can affect future PGWP and status."
     },
     {
-      "q": "Why is Weak or generic SOP a problem?",
-      "a": "Template SOP, course mismatch with past education, or unclear return intent."
+      "q": "When should consultancy fees be collected versus lodging the application?",
+      "a": "Follow office policy: typically agreement and initial fee at engagement, document milestone payments during file build, and balance before or at IRCC submission. Never promise approval in fee discussions."
     }
   ],
   "compliance": [
@@ -311,17 +355,21 @@
     "Fee quotes must separate consultancy, government, and third-party (GIC, medical, biometrics)"
   ],
   "proTips": [
-    "Verify DLI status on the official list before taking fees for submission",
-    "Book biometrics within days of BIL—delays are a top preventable refusal factor",
-    "For SDS, pre-validate language scores and GIC bank list",
-    "Use a submission checklist sign-off before uploading to IRCC portal",
-    "Save final PDF package in client binder for audit"
+    "Match the chosen course to previous studies or a logical career step—officers refuse illogical program jumps.",
+    "Explain every study gap in the SOP with supporting proof (job, business, training, or family responsibility).",
+    "Build a source-of-funds file: statements, ITR, salary slips, and a one-page funds narrative for the officer.",
+    "Submit tuition payment receipts or deposit proof when available—it strengthens genuine-student and financial cases.",
+    "Address previous refusals in a cover letter before submission—never hide them on IMM forms.",
+    "Write a customized SOP for each client; never reuse templates across students or colleges.",
+    "Cross-check names, dates, and course titles across LOA, SOP, resume, and IMM 1294 before upload.",
+    "Verify DLI status and PAL/CAQ requirements on official sites before collecting submission fees."
   ],
   "postApproval": [
-    "Send POE / permit summary and enrollment deadlines to client in writing",
-    "Remind client of study permit conditions and DLI enrollment date",
-    "Discuss PGWP eligibility timeline (program length and DLI matter)",
-    "Register client for pre-departure briefing if your office offers it"
+    "Email the client the POE letter summary, TRV details (if any), and DLI enrollment deadline in writing.",
+    "Brief the client on permit conditions: full-time study, work hour limits, and address update obligations.",
+    "Explain PGWP eligibility rules (program length, DLI, full-time status) and timeline for after graduation.",
+    "Schedule pre-departure briefing: documents to carry, CBSA interview expectations, and first-week enrollment steps.",
+    "Register follow-up for spouse/children applications if family is travelling later."
   ],
   "performance": {
     "ourRate": 87,
@@ -370,23 +418,23 @@
   "timeline": [
     {
       "weeks": "1–2",
-      "title": "Counseling, LOA review, fee agreement"
+      "title": "Counseling & admission check — confirm DLI/LOA, SDS vs Non-SDS, PAL/CAQ need, fee agreement, and issue personalized document checklist"
     },
     {
       "weeks": "2–4",
-      "title": "Document collection, SOP, financials"
+      "title": "File build — collect academics, SOP, sponsor ITR/statements, language scores, GIC/tuition proof; resolve study gaps and refusal history in writing"
     },
     {
       "weeks": "4–5",
-      "title": "Quality review & IRCC submission"
+      "title": "Quality review — internal checklist sign-off, complete IMM forms and family information, client approves final PDF package"
     },
     {
       "weeks": "5–6",
-      "title": "Biometrics / medical (if applicable)"
+      "title": "IRCC submission — pay fees online, lodge application, complete biometrics and upfront medical per BIL; respond to any ADR promptly"
     },
     {
-      "weeks": "8–12",
-      "title": "IRCC processing (stream-dependent)"
+      "weeks": "8–12+",
+      "title": "Decision & arrival — IRCC processing, POE letter/TRV issued, pre-departure briefing, travel, CBSA study permit printing, and DLI enrollment"
     }
   ],
   "relatedServices": [
@@ -405,10 +453,10 @@
   ],
   "changelog": [
     {
-      "version": "v2.0",
-      "date": "7 Jun 2026",
+      "version": "v2.1",
+      "date": "17 Jun 2026",
       "author": "Service Library",
-      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+      "summary": "Gold-standard content pass: replaced template FAQs, expanded eligibility document guidance, practical red flags, pro tips, timeline, and IRCC resources for first-time outside-Canada applicants."
     },
     {
       "version": "v2.0",
@@ -432,45 +480,45 @@
   "staffNotes": [
     {
       "author": "Documentation team",
-      "date": "4 Jun 2026",
-      "text": "Always confirm SDS eligibility on canada.ca for client's country of residence before promising 20-day processing. GIC bank must be on approved list."
+      "date": "17 Jun 2026",
+      "text": "SDS: confirm country of residence on IRCC SDS page before promising fast processing. GIC must be from an IRCC-listed bank. Non-SDS: prioritize seasoned funds narrative and sponsor ITR alignment."
     },
     {
       "author": "Quality",
-      "date": "1 Jun 2026",
-      "text": "Second review required for all files with prior Canada refusal."
+      "date": "17 Jun 2026",
+      "text": "Mandatory second review for any prior Canada/US/UK/Australia refusal. Cross-check IMM 1294 dates against resume and SOP before upload."
     }
   ],
   "resources": [
     {
-      "title": "IRCC — Study permit",
+      "title": "IRCC — Study permit (apply from outside Canada)",
       "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit.html",
-      "description": "Official requirements, how to apply, and after you apply"
+      "description": "Official eligibility, how to apply online, document checklist, and after-you-apply steps for first-time study permit applicants"
     },
     {
-      "title": "List of designated learning institutions (DLI)",
+      "title": "Designated Learning Institutions (DLI) list",
       "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/prepare/designated-learning-institutions-list.html",
-      "description": "Verify institution before LOA and fee collection"
+      "description": "Verify the college/university DLI number before accepting fees—only DLIs can support a study permit"
     },
     {
-      "title": "Student Direct Stream (SDS)",
+      "title": "Student Direct Stream (SDS) eligibility",
       "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/student-direct-stream.html",
-      "description": "Eligibility by country of residence"
+      "description": "Country list, language scores, GIC, tuition payment, and medical requirements for SDS study permits"
     },
     {
-      "title": "Biometrics",
-      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/campaigns/biometrics/facts.html",
-      "description": "When required and how to book after BIL"
+      "title": "IRCC study permit fees",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/fees.html",
+      "description": "Current study permit and biometrics fees—verify before every client quote"
     },
     {
-      "title": "IRCC processing times",
+      "title": "IRCC processing times (study permit)",
       "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html",
-      "description": "Current estimates by country and application type"
+      "description": "Select study permit and client's country of residence for realistic timeline counseling"
     },
     {
-      "title": "GIC — Participating financial institutions",
-      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/student-direct-stream/eligible-gic.html",
-      "description": "Approved banks for SDS GIC"
+      "title": "Work while studying & PGWP overview",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work.html",
+      "description": "On-campus/off-campus work rules during studies and link to post-graduation work permit information"
     }
   ],
   "quiz": [
@@ -1378,55 +1426,55 @@
   "sampleDocs": [
     {
       "title": "Sample passport bio page (mock)",
-      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "description": "Purpose: identity verification. Show full MRZ, no glare. Mistake: cropped edges. Best practice: scan colour copy matching LOA name exactly.",
       "mimeType": "image/jpeg",
       "docKind": "identity"
     },
     {
       "title": "Sample LOA / DLI letter (mock)",
-      "description": "Designated Learning Institution acceptance — program and dates.",
+      "description": "Purpose: proof of admission. Must show DLI number, program, tuition, and start date. Mistake: expired intake. Best practice: verify DLI on canada.ca before file build.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
       "title": "Sample GIC certificate (mock)",
-      "description": "SDS financial requirement — approved bank GIC.",
+      "description": "Purpose: SDS living-funds proof. Mistake: non-listed bank. Best practice: use IRCC eligible GIC institution only for SDS files.",
       "mimeType": "application/pdf",
       "docKind": "financial"
     },
     {
       "title": "Sample IELTS / PTE TRF (mock)",
-      "description": "Language scores for SDS / Non-SDS discussion.",
+      "description": "Purpose: language ability for SDS/DLI. Mistake: Academic vs GT wrong module. Best practice: confirm minimum scores for SDS and college admission.",
       "mimeType": "image/jpeg",
       "docKind": "language"
     },
     {
       "title": "Sample SOP specimen (mock)",
-      "description": "Structure for genuine student intent — course fit and career plan.",
+      "description": "Purpose: genuine student narrative. Mistake: generic template. Best practice: course-specific reasoning, gap explanation, and career link.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
       "title": "Sample academic transcripts (mock)",
-      "description": "Marksheets with backlogs explanation guidance.",
+      "description": "Purpose: education history. Mistake: hiding backlogs. Best practice: certified transcripts plus backlog explanation if applicable.",
       "mimeType": "application/pdf",
       "docKind": "academic"
     },
     {
       "title": "Sample sponsor affidavit (mock)",
-      "description": "Parent sponsor ITR-linked financial undertaking.",
+      "description": "Purpose: links parent funds to student. Mistake: no ITR attached. Best practice: affidavit + sponsor ITR + bank statements + relationship proof.",
       "mimeType": "application/pdf",
       "docKind": "financial"
     },
     {
       "title": "Sample bank statement (mock)",
-      "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
+      "description": "Purpose: liquidity and seasoning. Mistake: only 1-month statement. Best practice: 4–6 months with explanation for large credits.",
       "mimeType": "application/pdf",
       "docKind": "financial"
     },
     {
       "title": "Document checklist — outside Canada (specimen)",
-      "description": "Future Link branded study permit submission checklist (30 items). Print from HTML or open PDF.",
+      "description": "Future Link branded 30-item study permit checklist for outside-Canada applicants. Use for counselor sign-off before IRCC upload.",
       "mimeType": "application/pdf",
       "docKind": "checklist",
       "url": "/specimens/checklists/canada-student-visa.html"
@@ -1435,25 +1483,28 @@
   "navBucket": "visa",
   "donts": {
     "dos": [
-      "Confirm DLI and program details match LOA before submission",
-      "Use country-specific SDS checklist when eligible",
-      "Explain biometrics and medical steps with dates to client in writing",
-      "Keep seasoned funds evidence for Non-SDS cases",
-      "Attach logical SOP tied to career plan and home-country ties"
+      "Match course choice to prior education or credible career progression",
+      "Explain study gaps in SOP with supporting documents",
+      "Use seasoned funds with ITR-linked sponsor evidence",
+      "Submit tuition receipts and organized bank statements",
+      "Disclose and address all prior refusals in writing",
+      "Customize SOP and cross-check all forms for consistency",
+      "Verify DLI, PAL, and CAQ before IRCC submission"
     ],
     "donts": [
-      "Do not submit without signed client checklist and fee receipt where policy requires",
-      "Do not promise SDS timelines if client is Non-SDS",
-      "Do not use expired LOA or wrong tuition figures on forms",
-      "Do not hide previous refusals from other countries",
-      "Do not quote government fees without checking current IRCC fee page"
+      "Do not lodge SDS without every SDS requirement met",
+      "Do not promise approval timelines or PGWP/PR outcomes",
+      "Do not use expired LOA or wrong tuition on forms",
+      "Do not hide refusals or misrepresent employment history",
+      "Do not quote IRCC fees without checking the current fee page",
+      "Do not submit large unexplained deposits without source proof"
     ],
     "mistakes": [
-      "Recent large deposits without source explanation",
-      "Copy-paste SOP not matching course or prior academics",
-      "Missing sponsor income proof or weak employment letters",
-      "Uploading blurry scans or inconsistent names across documents",
-      "Missing BIL deadline for biometrics"
+      "Recent lump-sum deposits without gift deed or sale proof",
+      "Copy-paste SOP with wrong college or program name",
+      "Sponsor ITR income too low for claimed tuition and living costs",
+      "Inconsistent dates between resume, IMM forms, and SOP",
+      "Missing BIL deadline or PAL/CAQ before submission"
     ]
   },
   "workingRights": {
@@ -1496,11 +1547,12 @@
         "label": "Government & visa fees",
         "items": [
           {
-            "label": "Study permit application",
-            "amount": 235,
+            "label": "Study permit application fee",
+            "amount": 150,
             "unit": "per applicant",
             "currency": "CAD",
-            "applicable": true
+            "applicable": true,
+            "notes": "IRCC study permit fee — verify on fee page before quoting"
           },
           {
             "label": "Biometrics",
