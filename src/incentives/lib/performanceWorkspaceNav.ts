@@ -332,7 +332,8 @@ export const PERFORMANCE_WORKSPACE_SUB_LINKS: Record<PerformanceWorkspaceId, Wor
       icon: DollarSign,
       roles: ["admin", "administrator", "director", "viewer", "manager"],
     },
-    { to: "/incentives/fx-rates", label: "FX rates desk", icon: DollarSign, adminOnly: true },
+    { to: "/masters?section=__currencies", label: "Currency Master", icon: DollarSign, adminOnly: true },
+    { to: "/incentives/fx-rates", label: "Performance FX overrides", icon: DollarSign, adminOnly: true },
   ],
   administration: [
     { to: "/performance/configuration", label: "Configuration", icon: SettingsIcon, end: true, adminOnly: true },

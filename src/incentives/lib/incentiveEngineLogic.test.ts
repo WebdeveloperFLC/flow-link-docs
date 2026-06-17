@@ -14,8 +14,12 @@ import {
 import { buildFxSnapshot, effectiveRateToInr } from "@/lib/fxPolicy";
 
 describe("fxPolicy", () => {
-  it("applies fixed +2 buffer by default", () => {
-    expect(effectiveRateToInr({ currency: "CAD", base_rate_to_inr: 66 })).toBe(68);
+  it("returns base rate when buffer is not set", () => {
+    expect(effectiveRateToInr({ currency: "CAD", base_rate_to_inr: 66 })).toBe(66);
+  });
+
+  it("applies explicit fixed buffer", () => {
+    expect(effectiveRateToInr({ currency: "CAD", base_rate_to_inr: 66, buffer_fixed: 2 })).toBe(68);
   });
 
   it("builds snapshot with INR = 1", () => {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PerformanceLegacyDeskNav } from "@/components/performance/PerformanceLegacyDeskNav";
@@ -6,16 +7,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { DollarSign, Plus } from "lucide-react";
+import { DollarSign, ExternalLink, Plus } from "lucide-react";
 import { effectiveRateToInr } from "@/lib/fxPolicy";
-
-function currentPeriodKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
+import {
+  CURRENCY_MASTER_PATH,
+  currentPeriodKey,
+  fetchCurrencyMasterConfig,
+  GENERAL_FX_PURPOSE,
+} from "@/lib/currencyMaster";
 
 const RATE_PURPOSES = [
-  { value: "general", label: "General (all uses)" },
   { value: "billing", label: "Billing / invoices" },
   { value: "incentive_settlement", label: "Incentive settlement" },
   { value: "payout", label: "Counselor payout" },
@@ -50,20 +51,24 @@ export default function IncentiveFxRates() {
   const [rows, setRows] = useState<FxRow[]>([]);
   const [audit, setAudit] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [defaultBuffer, setDefaultBuffer] = useState(0);
   const [form, setForm] = useState({
     currency: "CAD",
     period_key: currentPeriodKey(),
     base_rate_to_inr: "66",
-    buffer_fixed: "2",
+    buffer_fixed: "0",
     rate_purpose: "incentive_settlement",
   });
 
   async function load() {
     setLoading(true);
+    const cfg = await fetchCurrencyMasterConfig();
+    setDefaultBuffer(cfg.default_buffer_fixed);
     const [fx, log] = await Promise.all([
       supabase
         .from("fx_rates")
         .select("id, currency, period_key, base_rate_to_inr, rate_to_inr, buffer_fixed, buffer_pct, source, rate_purpose")
+        .neq("rate_purpose", GENERAL_FX_PURPOSE)
         .order("period_key", { ascending: false })
         .limit(50),
       supabase
@@ -99,17 +104,22 @@ export default function IncentiveFxRates() {
       toast({ title: "Currency, period, and base rate required", variant: "destructive" });
       return;
     }
+    const bufferFixed = form.buffer_fixed.trim() !== "" ? Number(form.buffer_fixed) : 0;
+    if (!Number.isFinite(bufferFixed) || bufferFixed < 0) {
+      toast({ title: "Enter a valid buffer", variant: "destructive" });
+      return;
+    }
     const eff = effectiveRateToInr({
       currency: form.currency,
       base_rate_to_inr: base,
-      buffer_fixed: Number(form.buffer_fixed) || 2,
+      buffer_fixed: bufferFixed,
     });
     const { error } = await supabase.from("fx_rates").insert([
       {
         currency: form.currency.toUpperCase(),
         period_key: form.period_key.trim(),
         base_rate_to_inr: base,
-        buffer_fixed: Number(form.buffer_fixed) || 2,
+        buffer_fixed: bufferFixed,
         rate_to_inr: eff,
         source: "manual",
         rate_purpose: form.rate_purpose,
@@ -123,6 +133,8 @@ export default function IncentiveFxRates() {
     await load();
   }
 
+  const previewBuffer = form.buffer_fixed.trim() !== "" ? Number(form.buffer_fixed) : 0;
+
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
@@ -130,15 +142,35 @@ export default function IncentiveFxRates() {
         <div className="flex items-center gap-3">
           <DollarSign className="size-6 text-primary" />
           <div>
-            <h1 className="text-2xl font-semibold">FX Rates &amp; Buffer</h1>
+            <h1 className="text-2xl font-semibold">Performance FX overrides</h1>
             <p className="text-sm text-muted-foreground">
-              Effective rate = base + buffer (default +2). Set purpose so billing and incentive runs can use different rates.
+              Purpose-specific rates for billing, incentive settlement, and payouts. CRM general rates (lead budget,
+              invoices, reporting) are managed in{" "}
+              <Link to={CURRENCY_MASTER_PATH} className="text-primary hover:underline">
+                Currency Master
+              </Link>
+              .
             </p>
           </div>
         </div>
 
+        <Card className="p-4 flex flex-wrap items-center justify-between gap-3 bg-muted/30">
+          <div className="text-sm">
+            <span className="font-medium">General CRM rates</span>
+            <span className="text-muted-foreground">
+              {" "}
+              — base, buffer, and effective rates for all CRM modules live in Currency Master only.
+            </span>
+          </div>
+          <Button asChild size="sm" variant="outline">
+            <Link to={CURRENCY_MASTER_PATH}>
+              <ExternalLink className="size-4 mr-1" /> Open Currency Master
+            </Link>
+          </Button>
+        </Card>
+
         <Card className="p-5 space-y-3">
-          <h2 className="text-lg font-semibold">Add / update rate</h2>
+          <h2 className="text-lg font-semibold">Add / update override rate</h2>
           <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
             <div>
               <label className="text-xs text-muted-foreground">Currency</label>
@@ -175,18 +207,21 @@ export default function IncentiveFxRates() {
             {effectiveRateToInr({
               currency: form.currency,
               base_rate_to_inr: Number(form.base_rate_to_inr) || 0,
-              buffer_fixed: Number(form.buffer_fixed) || 2,
+              buffer_fixed: previewBuffer,
             })}{" "}
             INR per 1 {form.currency.toUpperCase()}
+            {defaultBuffer > 0 && (
+              <> · CRM default buffer in Currency Master: +{defaultBuffer}</>
+            )}
           </p>
         </Card>
 
         <Card className="p-5">
-          <h2 className="text-lg font-semibold mb-4">Current rates</h2>
+          <h2 className="text-lg font-semibold mb-4">Purpose-specific rates</h2>
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No FX rates configured yet.</p>
+            <p className="text-sm text-muted-foreground">No override rates configured yet.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -204,10 +239,10 @@ export default function IncentiveFxRates() {
                   {rows.map((r) => (
                     <tr key={r.id} className="border-b last:border-0">
                       <td className="py-2 pr-4">{r.period_key}</td>
-                      <td className="py-2 pr-4 text-muted-foreground">{r.rate_purpose ?? "general"}</td>
+                      <td className="py-2 pr-4 text-muted-foreground">{r.rate_purpose}</td>
                       <td className="py-2 pr-4">{r.currency}</td>
                       <td className="py-2 pr-4 text-right">{r.base_rate_to_inr ?? r.rate_to_inr}</td>
-                      <td className="py-2 pr-4 text-right">+{r.buffer_fixed ?? 2}</td>
+                      <td className="py-2 pr-4 text-right">+{r.buffer_fixed ?? 0}</td>
                       <td className="py-2 pr-4 text-right font-medium">
                         {effectiveRateToInr({
                           currency: r.currency,

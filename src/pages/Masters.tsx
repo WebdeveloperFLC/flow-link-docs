@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -59,8 +60,10 @@ const singularize = (label: string) => {
 
 const Masters = () => {
   const { isAdmin } = useAuth();
+  const [searchParams] = useSearchParams();
+  const sectionParam = searchParams.get("section");
   const [lists, setLists] = useState<MasterList[]>([]);
-  const [activeKey, setActiveKey] = useState<string>("");
+  const [activeKey, setActiveKey] = useState<string>(sectionParam ?? "");
   const [items, setItems] = useState<MasterItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<MasterItem | null>(null);
@@ -68,9 +71,13 @@ const Masters = () => {
 
   const loadLists = async () => {
     const { data } = await supabase.from("master_lists").select("*").order("label");
-    const ls = (data ?? []) as MasterList[];
+    const ls = ((data ?? []) as MasterList[]).filter((l) => l.key !== "currencies");
     setLists(ls);
-    if (!activeKey && ls.length) setActiveKey(ls[0].key);
+    if (!activeKey || activeKey === "currencies") {
+      setActiveKey("__currencies");
+    } else if (!activeKey.startsWith("__") && !ls.some((l) => l.key === activeKey) && ls.length) {
+      setActiveKey(ls[0].key);
+    }
   };
 
   const loadItems = async (key: string) => {
@@ -87,10 +94,16 @@ const Masters = () => {
   };
 
   useEffect(() => {
+    if (sectionParam && sectionParam !== activeKey) {
+      setActiveKey(sectionParam);
+    }
+  }, [sectionParam]);
+
+  useEffect(() => {
     loadLists();
   }, []);
   useEffect(() => {
-    if (activeKey) loadItems(activeKey);
+    if (activeKey && !isSpecial(activeKey)) loadItems(activeKey);
   }, [activeKey]);
 
   const activeList = lists.find((l) => l.key === activeKey);

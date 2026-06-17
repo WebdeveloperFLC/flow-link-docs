@@ -1,6 +1,6 @@
 /**
- * Centralized FX policy — base rate + buffer → effective rate (V1 sign-off: fixed +2 default).
- * Client billing and incentive settlement use the same effective rate in V1.
+ * Centralized FX policy — base rate + buffer → effective rate.
+ * Buffer defaults come from Currency Master (master_lists.metadata); rows may override per currency.
  */
 
 export type FxRateRow = {
@@ -11,8 +11,6 @@ export type FxRateRow = {
   buffer_pct?: number | null;
 };
 
-export const DEFAULT_BUFFER_FIXED = 2;
-
 /** Compute effective INR rate from base + buffer (fixed wins unless buffer_pct > 0). */
 export function effectiveRateToInr(row: FxRateRow): number {
   const cur = (row.currency || "INR").toUpperCase();
@@ -21,7 +19,8 @@ export function effectiveRateToInr(row: FxRateRow): number {
   if (base <= 0) return 0;
   const pct = Number(row.buffer_pct ?? 0);
   if (pct > 0) return roundFx(base * (1 + pct / 100));
-  return roundFx(base + Number(row.buffer_fixed ?? DEFAULT_BUFFER_FIXED));
+  const fixed = Number(row.buffer_fixed ?? 0);
+  return roundFx(base + fixed);
 }
 
 export function roundFx(n: number): number {

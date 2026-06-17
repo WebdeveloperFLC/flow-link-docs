@@ -30,7 +30,11 @@ export function useCommissionTrackingCmsData(period: string) {
           .limit(2000),
         supabase.from("upi_institutions").select("id,name,institution_type"),
         supabase.from("upi_commissions").select("institution_id,model_type").eq("is_active", true),
-        supabase.from("fx_rates").select("currency,rate_to_inr,period_key").eq("period_key", period.slice(0, 7)),
+        supabase
+          .from("fx_rates")
+          .select("currency,rate_to_inr,period_key")
+          .eq("period_key", period.slice(0, 7))
+          .eq("rate_purpose", "general"),
       ]);
 
       const rateMap = new Map<string, number>();

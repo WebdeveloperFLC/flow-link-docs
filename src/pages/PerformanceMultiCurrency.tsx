@@ -11,6 +11,7 @@ import { PerformanceCurrencyMixPanel } from "@/components/performance/Performanc
 import { PerformanceFxHistoryPanel } from "@/components/performance/PerformanceFxHistoryPanel";
 import { useMultiCurrencyCmsData } from "@/hooks/useMultiCurrencyCmsData";
 import { formatInr } from "@/lib/performanceHubTheme";
+import { CURRENCY_MASTER_PATH } from "@/lib/currencyMaster";
 import { DollarSign, Plus, Settings } from "lucide-react";
 
 export default function PerformanceMultiCurrency() {
@@ -33,13 +34,13 @@ export default function PerformanceMultiCurrency() {
           />
           <div className="flex flex-wrap gap-2">
             <Button asChild size="sm" variant="outline" className="gap-1">
-              <Link to="/incentives/fx-rates">
-                <Settings className="size-4" /> Rate source
+              <Link to={CURRENCY_MASTER_PATH}>
+                <Settings className="size-4" /> Currency Master
               </Link>
             </Button>
             <Button asChild size="sm" className="gap-1">
               <Link to="/incentives/fx-rates">
-                <Plus className="size-4" /> Override rate
+                <Plus className="size-4" /> Performance override
               </Link>
             </Button>
           </div>
@@ -54,8 +55,11 @@ export default function PerformanceMultiCurrency() {
           <Link to="/performance/profitability" className="hover:underline" style={{ color: "var(--blue)" }}>
             Profitability →
           </Link>
+          <Link to={CURRENCY_MASTER_PATH} className="hover:underline" style={{ color: "var(--blue)" }}>
+            Currency Master →
+          </Link>
           <Link to="/incentives/fx-rates" className="hover:underline" style={{ color: "var(--blue)" }}>
-            FX rates desk →
+            Performance FX overrides →
           </Link>
         </div>
 
@@ -101,8 +105,9 @@ export default function PerformanceMultiCurrency() {
           <div>
             <div className="font-semibold ph-heading">FX rate management</div>
             <div className="ph-muted text-xs mt-1">
-              Period rates, buffers and manual overrides are configured in the FX rates desk. This CMS view consolidates
-              configuration, invoice revenue mix and CAD history for finance oversight.
+              CRM base rates, buffers, and effective rates are configured in Currency Master. This CMS view consolidates
+              general rates, invoice revenue mix, and CAD history for finance oversight. Purpose-specific overrides
+              (billing, incentives, payouts) remain in Performance FX overrides.
             </div>
           </div>
         </div>

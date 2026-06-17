@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Banknote, Calculator, DollarSign, ScanLine, Settings2 } from "lucide-react";
+import { CURRENCY_MASTER_PATH } from "@/lib/currencyMaster";
 
 export function PerformanceFinanceQuickActions() {
   return (
@@ -21,9 +22,15 @@ export function PerformanceFinanceQuickActions() {
           </Link>
         </Button>
         <Button asChild variant="outline" className="justify-start">
+          <Link to={CURRENCY_MASTER_PATH}>
+            <DollarSign className="size-4 mr-2" />
+            Currency Master
+          </Link>
+        </Button>
+        <Button asChild variant="outline" className="justify-start">
           <Link to="/incentives/fx-rates">
             <DollarSign className="size-4 mr-2" />
-            FX rates
+            Performance FX overrides
           </Link>
         </Button>
         <Button asChild variant="outline" className="justify-start">

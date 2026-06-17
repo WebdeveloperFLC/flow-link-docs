@@ -9,6 +9,7 @@ import {
   type CurrencyMixSlice,
   type FxHistoryBar,
 } from "@/incentives/lib/multiCurrencyCmsLogic";
+import { GENERAL_FX_PURPOSE } from "@/lib/currencyMaster";
 import { periodBounds } from "@/incentives/lib/clientCommercialsLogic";
 
 export function useMultiCurrencyCmsData(period: string, branchId: string) {
@@ -32,7 +33,8 @@ export function useMultiCurrencyCmsData(period: string, branchId: string) {
       const [fxRes, invoiceRes] = await Promise.all([
         supabase
           .from("fx_rates")
-          .select("currency,period_key,base_rate_to_inr,rate_to_inr,buffer_fixed,buffer_pct,source")
+          .select("currency,period_key,base_rate_to_inr,rate_to_inr,buffer_fixed,buffer_pct,source,rate_purpose")
+          .eq("rate_purpose", GENERAL_FX_PURPOSE)
           .order("period_key", { ascending: false })
           .limit(120),
         invoiceQuery,

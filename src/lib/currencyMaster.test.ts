@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   budgetCurrencyOptions,
   buildBudgetEquivalents,
+  computeEffectiveRate,
   currencyCodeForCountry,
+  parseCurrencyMasterConfig,
+  resolveRowBuffer,
 } from "@/lib/currencyMaster";
 import type { MasterItem } from "@/lib/masters";
 
@@ -37,5 +40,24 @@ describe("currencyMaster", () => {
     expect(rows.some((r) => r.country === "India" && r.currency === "INR")).toBe(true);
     expect(rows.some((r) => r.currency === "CAD")).toBe(true);
     expect(rows.some((r) => r.currency === "GBP")).toBe(true);
+  });
+
+  it("parses buffer config from master_lists metadata", () => {
+    expect(parseCurrencyMasterConfig({ default_buffer_fixed: 2, default_buffer_pct: 0 })).toEqual({
+      default_buffer_fixed: 2,
+      default_buffer_pct: 0,
+    });
+    expect(parseCurrencyMasterConfig(null)).toEqual({ default_buffer_fixed: 0, default_buffer_pct: 0 });
+  });
+
+  it("computes effective rate from base + buffer", () => {
+    expect(computeEffectiveRate("CAD", 66, 2)).toBe(68);
+    expect(computeEffectiveRate("INR", 1, 99)).toBe(1);
+  });
+
+  it("resolves row buffer from row or org config", () => {
+    const config = { default_buffer_fixed: 2, default_buffer_pct: 0 };
+    expect(resolveRowBuffer({ currency: "CAD", buffer_fixed: 3 }, config)).toBe(3);
+    expect(resolveRowBuffer({ currency: "CAD" }, config)).toBe(2);
   });
 });

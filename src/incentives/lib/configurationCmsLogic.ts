@@ -51,8 +51,8 @@ export const CONFIGURATION_TILES: ConfigurationTile[] = [
   {
     id: "fx",
     title: "Currency & FX",
-    description: "Base currency, rate source, manual override window",
-    to: "/incentives/fx-rates",
+    description: "Base currency, rate source, buffer — Currency Master",
+    to: "/masters?section=__currencies",
     status: "configured",
   },
   {
