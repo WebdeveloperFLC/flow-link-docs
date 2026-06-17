@@ -1,3 +1,9 @@
+-- Germany Student Visa academy_metadata v2.2
+-- Source: content/service-library/germany-student-visa.json
+
+UPDATE public.service_library
+SET
+  academy_metadata = $metadata$
 {
   "displayName": "Germany – Student Visa (National Visa)",
   "shortDescription": "German mission · National (Type D) visa · Admission + funded blocked account · APS mandatory for Indian degree applicants",
@@ -1181,3 +1187,6 @@
     ]
   }
 }
+$metadata$::jsonb,
+  updated_at = now()
+WHERE id = 'b2000001-0001-4000-8000-000000000051';
