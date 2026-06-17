@@ -1,3 +1,10 @@
+-- Canada Student Visa academy_metadata v2.2
+-- Source: content/service-library/canada-student-visa.json
+-- Regenerate: node scripts/generate-visa-metadata-sql-split.mjs (visa-metadata-seed) or this inline generator
+
+UPDATE public.service_library
+SET
+  academy_metadata = $metadata$
 {
   "displayName": "Canada – Student Visa (Study Permit — Outside Canada)",
   "shortDescription": "IRCC study permit · Regular stream (SDS closed 8 Nov 2024) · DLI + PAL/CAQ required",
@@ -1647,3 +1654,6 @@
     ]
   }
 }
+$metadata$::jsonb,
+  updated_at = now()
+WHERE id = 'c35e6051-f40f-47bf-9cac-0a386c47a336';
