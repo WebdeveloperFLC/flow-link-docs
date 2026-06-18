@@ -1,11 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useLocationCascadeData, type LocationFieldsValue } from "@/lib/geoLocations";
 
@@ -32,38 +31,58 @@ function SearchablePicker({
   onChange: (v: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const selected = options.find((o) => o.value === value || o.label === value);
 
+  useEffect(() => {
+    if (!open) setSearch("");
+  }, [open]);
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={false}>
       <PopoverTrigger asChild>
         <Button
           type="button"
           variant="outline"
           role="combobox"
+          aria-expanded={open}
           disabled={disabled}
-          className={cn("w-full justify-between font-normal h-9", !selected && "text-muted-foreground")}
+          className={cn("w-full justify-between font-normal h-9", !selected && !value && "text-muted-foreground")}
         >
           <span className="truncate">{selected?.label ?? value ?? placeholder}</span>
           <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-[--radix-popover-trigger-width] max-h-[320px]" align="start">
-        <Command>
-          <CommandInput placeholder={`Search ${placeholder.toLowerCase()}…`} />
-          <CommandList>
+      <PopoverContent
+        className="p-0 w-[--radix-popover-trigger-width] z-[200]"
+        align="start"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <Command shouldFilter={true}>
+          <CommandInput
+            placeholder={`Search ${placeholder.toLowerCase()}…`}
+            value={search}
+            onValueChange={setSearch}
+          />
+          <CommandList className="max-h-[min(280px,50vh)]">
             <CommandEmpty>No match found.</CommandEmpty>
             <CommandGroup>
               {options.map((o) => (
                 <CommandItem
                   key={o.value}
                   value={o.label}
+                  keywords={[o.value, o.label]}
                   onSelect={() => {
                     onChange(o.value);
                     setOpen(false);
                   }}
                 >
-                  <Check className={cn("mr-2 h-4 w-4", (value === o.value || value === o.label) ? "opacity-100" : "opacity-0")} />
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4 shrink-0",
+                      value === o.value || value === o.label ? "opacity-100" : "opacity-0",
+                    )}
+                  />
                   {o.label}
                 </CommandItem>
               ))}
@@ -143,48 +162,23 @@ export function LocationCascadeFields({
       <div className="space-y-1">
         <Label className="text-xs">{stateLabel}</Label>
         {hasProvinces ? (
-          stateOptions.length > 12 ? (
-            <SearchablePicker
-              value={provinceCode || value.state_province || ""}
-              placeholder="Select state / province"
-              disabled={!country}
-              options={stateOptions}
-              onChange={(code) => {
-                const s = provincesForCountry(country).find(
-                  (x) => buildProvinceCode(country, x.isoCode) === code,
-                );
-                onChange({
-                  province_code: code,
-                  state_province: s?.name ?? code,
-                  city: "",
-                });
-                setTimeout(commit, 0);
-              }}
-            />
-          ) : (
-            <Select
-              value={provinceCode || value.state_province || ""}
-              onValueChange={(code) => {
-                const s = provincesForCountry(country).find(
-                  (x) => buildProvinceCode(country, x.isoCode) === code,
-                );
-                onChange({
-                  province_code: code,
-                  state_province: s?.name ?? code,
-                  city: "",
-                });
-                setTimeout(commit, 0);
-              }}
-              disabled={!country}
-            >
-              <SelectTrigger><SelectValue placeholder="Select state / province" /></SelectTrigger>
-              <SelectContent>
-                {stateOptions.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )
+          <SearchablePicker
+            value={provinceCode || value.state_province || ""}
+            placeholder="Select state / province"
+            disabled={!country}
+            options={stateOptions}
+            onChange={(code) => {
+              const s = provincesForCountry(country).find(
+                (x) => buildProvinceCode(country, x.isoCode) === code,
+              );
+              onChange({
+                province_code: code,
+                state_province: s?.name ?? code,
+                city: "",
+              });
+              setTimeout(commit, 0);
+            }}
+          />
         ) : (
           <Input
             value={value.state_province ?? ""}
@@ -211,7 +205,13 @@ export function LocationCascadeFields({
         ) : (
           <Input
             value={value.city ?? ""}
-            placeholder={country ? "Enter city" : "Select country first"}
+            placeholder={
+              country
+                ? hasProvinces && provinceCode
+                  ? "Enter city (not in list)"
+                  : "Enter city"
+                : "Select country first"
+            }
             disabled={!country}
             onChange={(e) => onChange({ city: e.target.value })}
             onBlur={commit}

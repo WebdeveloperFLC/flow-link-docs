@@ -13,6 +13,7 @@ import {
 } from "@/components/clients/registration/EducationExperienceFields";
 import { LanguageTestsFields } from "@/components/clients/registration/LanguageTestsFields";
 import type { LeadBackgroundState } from "@/lib/leadBackground";
+import { loadGeoModule } from "@/lib/geoLocations";
 import { EMPTY_LANGUAGE_TESTS, type BackgroundDetailTab } from "@/lib/languageTests";
 
 interface Props {
@@ -35,7 +36,10 @@ export function LeadBackgroundDetailsDialog({
   const [tab, setTab] = useState<BackgroundDetailTab>(initialTab);
 
   useEffect(() => {
-    if (open) setTab(initialTab);
+    if (open) {
+      setTab(initialTab);
+      loadGeoModule().catch(() => {});
+    }
   }, [open, initialTab]);
 
   return (

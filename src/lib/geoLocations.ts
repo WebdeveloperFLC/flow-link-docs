@@ -105,7 +105,18 @@ export function getCitiesForProvince(countryLabel: string, provinceCode?: string
   const countryIso = resolveCountryIso(countryLabel);
   const stateIso = resolveStateIso(countryLabel, provinceCode);
   if (!countryIso || !stateIso || !geoModule) return [];
-  return geoModule.City.getCitiesOfState(countryIso, stateIso) ?? [];
+
+  const byState = geoModule.City.getCitiesOfState(countryIso, stateIso) ?? [];
+  if (byState.length) return byState;
+
+  const countryCities = geoModule.City.getCitiesOfCountry(countryIso) ?? [];
+  const byStateCode = countryCities.filter((c) => c.stateCode === stateIso);
+  if (byStateCode.length) return byStateCode;
+
+  // Small countries (Nepal etc.) often have mismatched state codes — offer full country list.
+  if (countryCities.length > 0 && countryCities.length <= 150) return countryCities;
+
+  return [];
 }
 
 export function resolveState(
