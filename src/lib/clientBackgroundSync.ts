@@ -19,6 +19,7 @@ function educationRowFromEntry(clientId: string, entry: EducationEntry) {
     gpa_or_percentage: entry.percentage_cgpa ?? null,
     field_of_study: entry.specialization ?? null,
     country: entry.country ?? null,
+    city: entry.city ?? null,
     source_file_name: LEAD_CONVERSION_MARKER,
   };
 }

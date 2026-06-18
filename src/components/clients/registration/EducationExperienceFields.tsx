@@ -10,6 +10,7 @@ import {
   OTHER_TEST_SECTIONS,
   SectionalInputs,
 } from "@/lib/testSections";
+import { LocationCascadeFields } from "@/components/shared/LocationCascadeFields";
 import type { EducationEntry, ExperienceEntry } from "@/lib/clientRegistration";
 import { useMasterItems } from "@/lib/masters";
 import type { EnglishTestStatus } from "@/lib/leadBackground";
@@ -132,10 +133,16 @@ export const EducationExperienceFields = ({
                   <Label className="text-xs">Specialization</Label>
                   <Input value={e.specialization ?? ""} onChange={(ev) => patchEducation(i, { specialization: ev.target.value })} onBlur={commit} />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Country</Label>
-                  <Input value={e.country ?? ""} onChange={(ev) => patchEducation(i, { country: ev.target.value })} onBlur={commit} />
-                </div>
+                <LocationCascadeFields
+                  value={{
+                    country: e.country,
+                    state_province: e.state_province,
+                    province_code: e.province_code,
+                    city: e.city,
+                  }}
+                  onChange={(patch) => patchEducation(i, patch)}
+                  onCommit={commit}
+                />
               </div>
             </div>
           ))}
@@ -331,10 +338,16 @@ export const EducationExperienceFields = ({
                   <Label className="text-xs">Role / Title</Label>
                   <Input value={x.role ?? ""} onChange={(e) => patchExperience(i, { role: e.target.value })} onBlur={commit} />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Country</Label>
-                  <Input value={x.country ?? ""} onChange={(e) => patchExperience(i, { country: e.target.value })} onBlur={commit} />
-                </div>
+                <LocationCascadeFields
+                  value={{
+                    country: x.country,
+                    state_province: x.state_province,
+                    province_code: x.province_code,
+                    city: x.city,
+                  }}
+                  onChange={(patch) => patchExperience(i, patch)}
+                  onCommit={commit}
+                />
                 <div className="space-y-1">
                   <Label className="text-xs">Start Date</Label>
                   <Input type="date" value={x.start_date ?? ""} onChange={(e) => { patchExperience(i, { start_date: e.target.value || null }); setTimeout(commit, 0); }} />

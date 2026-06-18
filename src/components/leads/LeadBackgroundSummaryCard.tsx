@@ -84,13 +84,13 @@ export function LeadBackgroundSummaryCard({ value, onChange, onCommit }: Props) 
                 {(value.education_history ?? []).filter((e) => e.level || e.institution).map((e, i) => (
                   <div key={i}>
                     <span className="font-medium text-foreground">Education {i + 1}:</span>{" "}
-                    {[e.level, e.institution, e.year].filter(Boolean).join(" · ") || "—"}
+                    {[e.level, e.institution, e.city, e.state_province, e.country, e.year].filter(Boolean).join(" · ") || "—"}
                   </div>
                 ))}
                 {(value.work_experience ?? []).filter((e) => e.company || e.role).map((e, i) => (
                   <div key={i}>
                     <span className="font-medium text-foreground">Job {i + 1}:</span>{" "}
-                    {[e.role, e.company].filter(Boolean).join(" at ") || "—"}
+                    {[e.role, e.company, e.city, e.state_province, e.country].filter(Boolean).join(" · ") || "—"}
                   </div>
                 ))}
               </div>

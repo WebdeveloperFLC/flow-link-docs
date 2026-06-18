@@ -9,7 +9,9 @@ export type MasterListKey =
   | "relationships"
   | "qualification_levels"
   | "client_statuses"
-  | "letter_kinds";
+  | "letter_kinds"
+  | "location_provinces"
+  | "location_cities";
 
 export interface MasterItem {
   id: string;

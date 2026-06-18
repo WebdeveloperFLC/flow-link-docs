@@ -28,6 +28,9 @@ export interface EducationEntry {
   year?: string | null;
   percentage_cgpa?: string;
   country?: string;
+  state_province?: string;
+  province_code?: string;
+  city?: string;
   specialization?: string;
 }
 
@@ -38,6 +41,9 @@ export interface ExperienceEntry {
   end_date?: string | null;
   currently_working?: boolean;
   country?: string;
+  state_province?: string;
+  province_code?: string;
+  city?: string;
   description?: string;
 }
 
