@@ -87,7 +87,9 @@ export function LeadFollowupLogPanel({
     : upcomingAtLocal.trim()
       ? formatFollowupDue(fromDatetimeLocalValue(upcomingAtLocal))
       : "—";
-  const upcomingChannelLabel = followupChannelLabel(openEntry?.channel ?? upcomingChannel || null);
+  const upcomingChannelLabel = followupChannelLabel(
+    openEntry?.channel ?? (upcomingChannel || null),
+  );
   const upcomingPlanNote = openEntry?.note ?? upcomingNote.trim();
 
   const onComplete = async () => {
