@@ -1224,8 +1224,8 @@ const ClientDetail = () => {
               clientId={client.id}
               canEdit={canUpload}
               refreshKey={profileRefreshKey}
-              blocks={["funding", "source"]}
-              title="Funding, timeline & source"
+              blocks={["funding"]}
+              title="Funding & timeline"
             />
           </TabsContent>
 

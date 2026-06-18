@@ -90,6 +90,7 @@ export function ClientJourneyProfileSection({
   const save = async () => {
     setSaving(true);
     try {
+      const includeSource = blocks.includes("source");
       const payload = { ...data };
       const beforeSnapshot = { ...data };
       const { data: existing } = await supabase
@@ -97,34 +98,39 @@ export function ClientJourneyProfileSection({
         .select("client_id")
         .eq("client_id", clientId)
         .maybeSingle();
+      const profilePayload = includeSource
+        ? payload
+        : (({ lead_source: _omit, ...rest }) => rest)(payload as JourneyProfile);
       if (existing) {
-        const { error } = await supabase.from("client_profile").update(payload as never).eq("client_id", clientId);
+        const { error } = await supabase
+          .from("client_profile")
+          .update(profilePayload as never)
+          .eq("client_id", clientId);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("client_profile")
-          .insert({ client_id: clientId, ...payload } as never);
+          .insert({ client_id: clientId, ...profilePayload } as never);
         if (error) throw error;
       }
-      await supabase
-        .from("clients")
-        .update({
-          sponsor: data.sponsor,
-          sponsor_other: data.sponsor_other,
-          start_timeline: data.start_timeline,
-          has_budget: data.has_budget,
-          budget_currency: data.budget_currency,
-          budget_min: data.budget_min,
-          budget_max: data.budget_max,
-          interested_countries: data.interested_countries,
-          lead_source: data.lead_source,
-          counselor_notes: data.counselor_notes,
-        } as never)
-        .eq("id", clientId);
+      const clientPatch: Record<string, unknown> = {
+        sponsor: data.sponsor,
+        sponsor_other: data.sponsor_other,
+        start_timeline: data.start_timeline,
+        has_budget: data.has_budget,
+        budget_currency: data.budget_currency,
+        budget_min: data.budget_min,
+        budget_max: data.budget_max,
+        interested_countries: data.interested_countries,
+        counselor_notes: data.counselor_notes,
+      };
+      if (includeSource) clientPatch.lead_source = data.lead_source;
+      await supabase.from("clients").update(clientPatch as never).eq("id", clientId);
+      const diffKeys = includeSource ? Object.keys(EMPTY) : Object.keys(EMPTY).filter((k) => k !== "lead_source");
       const changes = diffRecordFields(
         beforeSnapshot as Record<string, unknown>,
         payload as Record<string, unknown>,
-        Object.keys(EMPTY),
+        diffKeys,
       );
       if (changes.length) {
         const { previousValue, newValue } = formatFieldChanges(changes);
@@ -157,9 +163,11 @@ export function ClientJourneyProfileSection({
     title ??
     (blocks.length === 1 && blocks[0] === "countries"
       ? "Interested countries"
-      : blocks.includes("funding") && !blocks.includes("countries")
-        ? "Funding, timeline & source"
-        : "Funding, timeline & source");
+      : blocks.includes("funding") && !blocks.includes("source")
+        ? "Funding & timeline"
+        : blocks.includes("funding")
+          ? "Funding, timeline & source"
+          : "Funding, timeline & source");
 
   return (
     <Card className="p-4 sm:p-6 space-y-4">

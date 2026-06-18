@@ -1,6 +1,24 @@
 import { supabase } from "@/integrations/supabase/client";
 import { appendClientActivityLog } from "@/lib/clientActivityLog";
 
+function formatClientMetaWriteError(error: { message?: string; code?: string; details?: string }, field: string): Error {
+  const msg = error.message ?? "Update failed";
+  if (
+    /client_rating/i.test(msg) &&
+    (/schema cache|PGRST204|column.*does not exist|Could not find/i.test(msg) ||
+      error.code === "PGRST204" ||
+      error.code === "42703")
+  ) {
+    return new Error(
+      "Star rating is not available yet — publish pending migrations in Lovable (client_rating), then hard refresh.",
+    );
+  }
+  if (/42501|row-level security|permission denied/i.test(msg)) {
+    return new Error(`You do not have permission to update ${field}.`);
+  }
+  return new Error(msg);
+}
+
 export async function updateClientLeadSource(
   clientId: string,
   leadSource: string | null,
@@ -41,11 +59,18 @@ export async function updateClientRating(
   opts?: { previousRating?: number | null },
 ): Promise<void> {
   const value = rating != null && rating >= 1 && rating <= 5 ? rating : null;
-  const { error } = await supabase
-    .from("clients")
-    .update({ client_rating: value } as never)
-    .eq("id", clientId);
-  if (error) throw error;
+  const { error: rpcError } = await supabase.rpc("update_client_rating" as never, {
+    _client_id: clientId,
+    _rating: value,
+  } as never);
+  if (rpcError) {
+    const { error: directError } = await supabase
+      .from("clients")
+      .update({ client_rating: value } as never)
+      .eq("id", clientId);
+    const error = directError ?? rpcError;
+    throw formatClientMetaWriteError(error, "client rating");
+  }
 
   await appendClientActivityLog({
     clientId,
