@@ -249,12 +249,25 @@ export interface LanguageTestDetailView {
   sections: ScoreChip[];
 }
 
+export interface EducationDetailView {
+  title: string;
+  details: string[];
+  location?: string;
+}
+
+export interface ExperienceDetailView {
+  title: string;
+  dates?: string;
+  location?: string;
+  description?: string;
+}
+
 export interface BackgroundDetailView {
   english: EnglishTestDetailView[];
   academic: AcademicTestDetailView[];
   language: LanguageTestDetailView[];
-  education: string[];
-  experience: string[];
+  education: EducationDetailView[];
+  experience: ExperienceDetailView[];
 }
 
 function sectionChips(
@@ -403,12 +416,10 @@ export function buildBackgroundDetailView(bg: LeadBackgroundState): BackgroundDe
     language,
     education: (bg.education_history ?? [])
       .filter(educationEntryHasData)
-      .map(formatEducationEntrySummary)
-      .filter(Boolean),
+      .map(buildEducationDetailView),
     experience: (bg.work_experience ?? [])
       .filter(experienceEntryHasData)
-      .map(formatExperienceEntrySummary)
-      .filter(Boolean),
+      .map(buildExperienceDetailView),
   };
 }
 
@@ -495,18 +506,15 @@ export interface BackgroundDetailSections {
 }
 
 export function buildBackgroundDetailSections(bg: LeadBackgroundState): BackgroundDetailSections {
+  const view = buildBackgroundDetailView(bg);
   return {
     english: listEnglishTestDetails(bg),
     academic: listAcademicTestDetails(bg),
     language: listLanguageTestDetails(bg),
-    education: (bg.education_history ?? [])
-      .filter(educationEntryHasData)
-      .map(formatEducationEntrySummary)
-      .filter(Boolean),
-    experience: (bg.work_experience ?? [])
-      .filter(experienceEntryHasData)
-      .map(formatExperienceEntrySummary)
-      .filter(Boolean),
+    education: view.education.map((e) => [e.title, ...e.details, e.location].filter(Boolean).join(" · ")),
+    experience: view.experience.map((e) =>
+      [e.title, e.dates, e.location, e.description].filter(Boolean).join(" · "),
+    ),
   };
 }
 
@@ -533,10 +541,50 @@ export const summarizeTests = summarizeEnglishTests;
 
 export { summarizeLanguageTests };
 
+export function formatPassingYearDisplay(year?: string | null): string | undefined {
+  if (!year?.trim()) return undefined;
+  const v = year.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v.slice(0, 4);
+  if (/^\d{4}$/.test(v)) return v;
+  const digits = v.replace(/\D/g, "");
+  return digits.length >= 4 ? digits.slice(0, 4) : v;
+}
+
+export function formatEducationLocation(e: EducationEntry): string | undefined {
+  const parts = [e.city, e.state_province, e.country].filter(Boolean);
+  return parts.length ? parts.join(", ") : undefined;
+}
+
+export function buildEducationDetailView(e: EducationEntry): EducationDetailView {
+  const details: string[] = [];
+  if (e.institution) details.push(e.institution);
+  if (e.specialization) details.push(e.specialization);
+  const year = formatPassingYearDisplay(e.year);
+  if (year) details.push(`Passed ${year}`);
+  if (e.percentage_cgpa?.trim()) {
+    const score = e.percentage_cgpa.trim();
+    details.push(/\d/.test(score) && !score.includes("%") ? `${score}% / CGPA` : score);
+  }
+  return {
+    title: e.level || "Qualification",
+    details,
+    location: formatEducationLocation(e),
+  };
+}
+
+export function buildExperienceDetailView(e: ExperienceEntry): ExperienceDetailView {
+  const dates = [e.start_date, e.currently_working ? "Present" : e.end_date].filter(Boolean).join(" – ");
+  return {
+    title: [e.role, e.company].filter(Boolean).join(" · ") || "Experience",
+    dates: dates || undefined,
+    location: formatEducationLocation(e),
+    description: e.description?.trim() || undefined,
+  };
+}
+
 export function formatEducationEntrySummary(e: EducationEntry): string {
-  return [e.level, e.institution, e.specialization, e.city, e.state_province, e.country, e.year, e.percentage_cgpa]
-    .filter(Boolean)
-    .join(" · ");
+  const view = buildEducationDetailView(e);
+  return [view.title, ...view.details, view.location].filter(Boolean).join(" · ");
 }
 
 export function formatExperienceEntrySummary(e: ExperienceEntry): string {

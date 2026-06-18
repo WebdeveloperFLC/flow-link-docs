@@ -36,7 +36,10 @@ function SearchablePicker({
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const selected = options.find((o) => o.value === value || o.label === value);
+  const selected = options.find(
+    (o) => o.value === value || o.label === value || o.label.toLowerCase() === value.toLowerCase(),
+  );
+  const display = selected?.label ?? (value && !options.some((o) => o.value === value) ? value : "");
 
   useEffect(() => {
     if (!open) setSearch("");
@@ -53,7 +56,7 @@ function SearchablePicker({
           disabled={disabled}
           className={cn("w-full justify-between font-normal h-9", !selected && !value && "text-muted-foreground")}
         >
-          <span className="truncate">{selected?.label ?? value ?? placeholder}</span>
+          <span className="truncate">{display || placeholder}</span>
           <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
         </Button>
       </PopoverTrigger>
@@ -132,10 +135,17 @@ export function LocationCascadeFields({
     [country, provincesForCountry],
   );
   const cityOptions = useMemo(() => cities, [cities]);
-  const displayCity = useMemo(
-    () => resolveCityLabel(value.city, cityOptions),
-    [value.city, cityOptions],
+  const savedCity = value.city?.trim() ?? "";
+  const cityInOptions = useMemo(
+    () =>
+      cityOptions.some(
+        (c) =>
+          c.label.toLowerCase() === savedCity.toLowerCase() ||
+          c.value.toLowerCase() === savedCity.toLowerCase(),
+      ),
+    [cityOptions, savedCity],
   );
+  const useCityPicker = cityOptions.length > 0 && (!savedCity || cityInOptions);
   const commit = () => onCommit?.();
 
   if (!ready) {
@@ -193,11 +203,11 @@ export function LocationCascadeFields({
       </div>
       <div className="space-y-1">
         <Label className="text-xs">{cityLabel}</Label>
-        {hasProvinces && cityOptions.length > 0 ? (
+        {useCityPicker ? (
           <SearchablePicker
-            value={displayCity}
+            value={resolveCityLabel(value.city, cityOptions)}
             placeholder="Select city"
-            disabled={!provinceCode}
+            disabled={!provinceCode && hasProvinces}
             options={cityOptions}
             onChange={(v) => {
               onChange({ city: v });

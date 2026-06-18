@@ -26,6 +26,13 @@ const ENGLISH_TESTS = ["IELTS", "PTE", "TOEFL", "CELPIP", "Duolingo"];
 const OTHER_TESTS = ["GRE", "GMAT", "SAT"];
 const ENGLISH_STATUSES: EnglishTestStatus[] = ["not_taken", "scheduled", "taken", "waived"];
 
+function normalizePassingYearInput(year?: string | null): string {
+  if (!year?.trim()) return "";
+  const v = year.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v.slice(0, 4);
+  return v.replace(/\D/g, "").slice(0, 4);
+}
+
 export interface EducationExperienceValue {
   education_history: EducationEntry[];
   english_test: string | null;
@@ -133,16 +140,28 @@ export const EducationExperienceFields = ({
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Year of Passing</Label>
-                  <Input type="date" value={e.year ?? ""} onChange={(ev) => patchEducation(i, { year: ev.target.value || null })} onBlur={commit} />
+                  <Input
+                    type="number"
+                    min={1950}
+                    max={2100}
+                    placeholder="e.g. 2024"
+                    value={normalizePassingYearInput(e.year)}
+                    onChange={(ev) =>
+                      patchEducation(i, { year: ev.target.value ? String(ev.target.value) : null })
+                    }
+                    onBlur={commit}
+                  />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Percentage / CGPA</Label>
                   <Input value={e.percentage_cgpa ?? ""} onChange={(ev) => patchEducation(i, { percentage_cgpa: ev.target.value })} onBlur={commit} />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 md:col-span-2">
                   <Label className="text-xs">Specialization</Label>
                   <Input value={e.specialization ?? ""} onChange={(ev) => patchEducation(i, { specialization: ev.target.value })} onBlur={commit} />
                 </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 border-t pt-3">
                 <LocationCascadeFields
                   value={{
                     country: e.country,
@@ -351,6 +370,16 @@ export const EducationExperienceFields = ({
                   <Label className="text-xs">Role / Title</Label>
                   <Input value={x.role ?? ""} onChange={(e) => patchExperience(i, { role: e.target.value })} onBlur={commit} />
                 </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Start Date</Label>
+                  <Input type="date" value={x.start_date ?? ""} onChange={(e) => { patchExperience(i, { start_date: e.target.value || null }); setTimeout(commit, 0); }} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">End Date</Label>
+                  <Input type="date" value={x.end_date ?? ""} disabled={!!x.currently_working} onChange={(e) => { patchExperience(i, { end_date: e.target.value || null }); setTimeout(commit, 0); }} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 border-t pt-3">
                 <LocationCascadeFields
                   value={{
                     country: x.country,
@@ -361,14 +390,8 @@ export const EducationExperienceFields = ({
                   onChange={(patch) => patchExperience(i, patch)}
                   onCommit={commit}
                 />
-                <div className="space-y-1">
-                  <Label className="text-xs">Start Date</Label>
-                  <Input type="date" value={x.start_date ?? ""} onChange={(e) => { patchExperience(i, { start_date: e.target.value || null }); setTimeout(commit, 0); }} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">End Date</Label>
-                  <Input type="date" value={x.end_date ?? ""} disabled={!!x.currently_working} onChange={(e) => { patchExperience(i, { end_date: e.target.value || null }); setTimeout(commit, 0); }} />
-                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
                 <label className="flex items-end gap-2 text-xs pb-2">
                   <Checkbox
                     checked={!!x.currently_working}

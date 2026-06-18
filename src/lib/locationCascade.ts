@@ -72,6 +72,18 @@ export function isMasterBackedCountry(country: string, masterCountries: Set<stri
   return masterCountries.has(country);
 }
 
+/** Demo master seeds only include a few provinces — use full geo lists for education/experience. */
+export function shouldPreferGeoProvinces(
+  country: string,
+  masterProvinceCount: number,
+  geoProvinceCount: number,
+): boolean {
+  if (country === "India") return false;
+  if (masterProvinceCount === 0) return geoProvinceCount > 0;
+  if (geoProvinceCount === 0) return false;
+  return masterProvinceCount < Math.min(geoProvinceCount, 5);
+}
+
 export function provincesForCountryFromMasters(
   provinces: MasterItem[],
   country: string,
@@ -171,21 +183,43 @@ export function useLocationCascadeData(_countryLabel?: string) {
 
   const provincesForCountry = useCallback(
     (country: string): ProvinceOption[] => {
-      if (isMasterBacked(country)) {
-        return provincesForCountryFromMasters(provinces, country);
+      const masterList = isMasterBacked(country)
+        ? provincesForCountryFromMasters(provinces, country)
+        : [];
+      const geoList =
+        geoReady && country
+          ? getStatesForCountryLabel(country).map((s) => ({
+              code: geoBuildProvinceCode(country, s.isoCode),
+              label: s.name,
+            }))
+          : [];
+      if (
+        shouldPreferGeoProvinces(country, masterList.length, geoList.length)
+      ) {
+        return geoList;
       }
-      if (!geoReady) return [];
-      return getStatesForCountryLabel(country).map((s) => ({
-        code: geoBuildProvinceCode(country, s.isoCode),
-        label: s.name,
-      }));
+      if (masterList.length) return masterList;
+      return geoList;
+    },
+    [provinces, geoReady, isMasterBacked],
+  );
+
+  const useGeoForCountry = useCallback(
+    (country: string): boolean => {
+      if (!country) return false;
+      const masterList = isMasterBacked(country)
+        ? provincesForCountryFromMasters(provinces, country)
+        : [];
+      const geoList = geoReady ? getStatesForCountryLabel(country) : [];
+      return shouldPreferGeoProvinces(country, masterList.length, geoList.length);
     },
     [provinces, geoReady, isMasterBacked],
   );
 
   const citiesForProvince = useCallback(
     (country: string, provinceCode: string): CityOption[] => {
-      if (isMasterBacked(country)) {
+      const preferGeo = useGeoForCountry(country);
+      if (isMasterBacked(country) && !preferGeo) {
         return citiesForProvinceFromMasters(cities, provinceCode);
       }
       if (!geoReady) return [];
@@ -194,12 +228,13 @@ export function useLocationCascadeData(_countryLabel?: string) {
         label: c.name,
       }));
     },
-    [cities, geoReady, isMasterBacked],
+    [cities, geoReady, isMasterBacked, useGeoForCountry],
   );
 
   const resolveProvince = useCallback(
     (country: string, stateProvince?: string, provinceCode?: string): ProvinceOption | undefined => {
-      if (isMasterBacked(country)) {
+      const preferGeo = useGeoForCountry(country);
+      if (isMasterBacked(country) && !preferGeo) {
         return resolveProvinceFromMasters(provinces, country, stateProvince, provinceCode);
       }
       if (!geoReady) return undefined;
@@ -210,7 +245,7 @@ export function useLocationCascadeData(_countryLabel?: string) {
         label: state.name,
       };
     },
-    [provinces, geoReady, isMasterBacked],
+    [provinces, geoReady, isMasterBacked, useGeoForCountry],
   );
 
   const hasProvincesForCountry = useCallback(

@@ -137,17 +137,26 @@ function DetailContent({ view }: { view: BackgroundDetailView }) {
       </SectionBlock>
 
       <SectionBlock title="Education" count={view.education.length}>
-        {view.education.map((line, i) => (
-          <div key={i} className="rounded-lg border bg-background px-3 py-2 text-sm">
-            {line}
+        {view.education.map((entry, i) => (
+          <div key={i} className="rounded-lg border bg-background p-3 space-y-1">
+            <div className="text-sm font-semibold">{entry.title}</div>
+            {entry.details.map((line) => (
+              <p key={line} className="text-sm text-muted-foreground">{line}</p>
+            ))}
+            {entry.location && (
+              <p className="text-xs text-muted-foreground pt-1">{entry.location}</p>
+            )}
           </div>
         ))}
       </SectionBlock>
 
       <SectionBlock title="Experience" count={view.experience.length}>
-        {view.experience.map((line, i) => (
-          <div key={i} className="rounded-lg border bg-background px-3 py-2 text-sm">
-            {line}
+        {view.experience.map((entry, i) => (
+          <div key={i} className="rounded-lg border bg-background p-3 space-y-1">
+            <div className="text-sm font-semibold">{entry.title}</div>
+            {entry.dates && <p className="text-xs text-muted-foreground">{entry.dates}</p>}
+            {entry.location && <p className="text-xs text-muted-foreground">{entry.location}</p>}
+            {entry.description && <p className="text-sm text-muted-foreground">{entry.description}</p>}
           </div>
         ))}
       </SectionBlock>

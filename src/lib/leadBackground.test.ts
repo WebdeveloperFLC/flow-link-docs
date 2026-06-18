@@ -63,10 +63,15 @@ describe("leadBackground summaries", () => {
       level: "graduate",
       institution: "Delhi University",
       city: "Delhi",
+      state_province: "Delhi",
       country: "India",
+      year: "2024",
+      percentage_cgpa: "65",
     });
     expect(text).toContain("Delhi University");
-    expect(text).toContain("Delhi");
+    expect(text).toContain("Delhi, Delhi, India");
+    expect(text).toContain("Passed 2024");
+    expect(text).toContain("65%");
   });
 
   it("lists every English test from __by_test__ with sectional scores", () => {

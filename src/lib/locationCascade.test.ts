@@ -7,6 +7,7 @@ import {
   provincesForCountryFromMasters,
   resolveCityLabel,
   resolveProvinceFromMasters,
+  shouldPreferGeoProvinces,
 } from "@/lib/locationCascade";
 
 const INDIAN_PROVINCES: MasterItem[] = [
@@ -114,5 +115,12 @@ describe("locationCascade", () => {
     const india = provincesForCountryFromMasters(INDIAN_PROVINCES, "India");
     expect(india.length).toBe(3);
     expect(provincesForCountryFromMasters(INDIAN_PROVINCES, "Canada")).toEqual([]);
+  });
+
+  it("prefers geo when master seed is sparse (Australia demo has 1 province, geo has many)", () => {
+    expect(shouldPreferGeoProvinces("India", 36, 36)).toBe(false);
+    expect(shouldPreferGeoProvinces("Australia", 1, 8)).toBe(true);
+    expect(shouldPreferGeoProvinces("Canada", 2, 13)).toBe(true);
+    expect(shouldPreferGeoProvinces("Nepal", 0, 7)).toBe(true);
   });
 });
