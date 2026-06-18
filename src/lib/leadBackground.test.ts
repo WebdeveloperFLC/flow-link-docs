@@ -59,6 +59,19 @@ describe("leadBackground summaries", () => {
     expect(hasBackgroundData(state)).toBe(true);
   });
 
+  it("hydrates education from client scalars when JSON history is empty", () => {
+    const state = leadToBackgroundState({
+      last_education: "graduate",
+      institution_name: "Delhi University",
+      year_of_passing: "2024-06-30",
+      percentage_cgpa: "72",
+      education_history: [],
+    } as never);
+    expect(state.education_history[0]?.institution).toBe("Delhi University");
+    expect(state.education_history[0]?.year).toBe("2024");
+    expect(hasBackgroundData(state)).toBe(true);
+  });
+
   it("formats education entry with institution and location", () => {
     const text = formatEducationEntrySummary({
       level: "graduate",

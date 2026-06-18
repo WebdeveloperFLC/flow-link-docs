@@ -90,6 +90,24 @@ function mergeLastEducationIntoHistory(
   return next;
 }
 
+/** Rebuild first education row from legacy client scalars when JSON history is empty. */
+function educationHistoryFromClientScalars(lead: Partial<Lead>): EducationEntry[] {
+  const level = lead.last_education?.trim();
+  const institution = (lead as { institution_name?: string | null }).institution_name?.trim();
+  const yearRaw = (lead as { year_of_passing?: string | null }).year_of_passing;
+  const year = yearRaw != null ? formatPassingYearDisplay(String(yearRaw)) : undefined;
+  const percentage = (lead as { percentage_cgpa?: string | null }).percentage_cgpa?.trim();
+  if (!level && !institution && !year && !percentage) return [];
+  return [
+    {
+      level: level || undefined,
+      institution: institution || undefined,
+      year: year ?? null,
+      percentage_cgpa: percentage || undefined,
+    },
+  ];
+}
+
 function hydrateEnglishFromSections(
   lead: Partial<Lead>,
 ): Pick<
@@ -136,10 +154,11 @@ export function leadToBackgroundState(lead: Partial<Lead>): LeadBackgroundState 
     normalizeLanguageTests(lead.language_tests),
     lead.other_tests,
   );
-  const education_history = mergeLastEducationIntoHistory(
-    parseJsonArray<EducationEntry>(lead.education_history),
-    lead.last_education,
-  );
+  let education_history = parseJsonArray<EducationEntry>(lead.education_history);
+  if (!education_history.some(educationEntryHasData)) {
+    education_history = educationHistoryFromClientScalars(lead);
+  }
+  education_history = mergeLastEducationIntoHistory(education_history, lead.last_education);
   const english = hydrateEnglishFromSections(lead);
   return {
     education_history,
