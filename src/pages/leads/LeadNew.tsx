@@ -20,12 +20,14 @@ import { PhoneInputRow } from "@/components/leads/PhoneInputRow";
 import { LeadJourneyFieldsBlock } from "@/components/leads/LeadJourneyFields";
 import {
   upsertLeadAutosave,
+  createLead,
   fetchLead,
   fetchBranches,
   fetchDepartments,
   findDuplicateLeads,
   suggestDepartmentFromServices,
   type LeadDraft,
+  type LeadTemperature,
   type Branch,
   type Department,
 } from "@/lib/leads";
@@ -51,12 +53,11 @@ import {
   type PrimaryUserOption,
 } from "@/lib/leadAssignment";
 import {
-  LEAD_FOLLOWUP_CHANNELS,
   fromDatetimeLocalValue,
   toDatetimeLocalValue,
 } from "@/lib/leadFollowup";
 import { syncLeadFollowupLog } from "@/lib/leadFollowupLog";
-import { LeadFollowupLogPanel } from "@/components/leads/LeadFollowupLogPanel";
+import { LeadFollowupSection } from "@/components/leads/LeadFollowupSection";
 
 const VISA_LOCK_TEMPLATE = (reason: string) =>
   `Visa not pursued at this stage. Reason: ${reason || "(please specify)"}\n\nFollow-up: Re-engage when visa interest is expressed.\n\n`;
@@ -95,6 +96,7 @@ const LeadNew = () => {
   const [followupChannel, setFollowupChannel] = useState("");
   const [followupNote, setFollowupNote] = useState("");
   const [followupLogVersion, setFollowupLogVersion] = useState(0);
+  const [savingFollowup, setSavingFollowup] = useState(false);
 
   const [branches, setBranches] = useState<Branch[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -290,6 +292,7 @@ const LeadNew = () => {
         setFollowupLogVersion((v) => v + 1);
       } catch (e) {
         console.warn("[lead followup sync]", e);
+        toast.error(formatSupabaseError(e, "Follow-up log sync failed — publish pending migrations in Lovable"));
       }
       return saved.id;
     } catch (e: unknown) {
@@ -304,6 +307,68 @@ const LeadNew = () => {
   };
 
   autosaveFnRef.current = autosave;
+
+  const ensureLeadIdForFollowup = async (): Promise<string | null> => {
+    if (leadIdRef.current) return leadIdRef.current;
+    const fn = (f.first_name as string)?.trim();
+    const ln = (f.last_name as string)?.trim();
+    if (!fn || !ln) {
+      toast.error("Enter first and last name once — then follow-up saves on its own");
+      return null;
+    }
+    const isCold = mode === "cold";
+    try {
+      const saved = await createLead({
+        first_name: fn,
+        last_name: ln,
+        middle_name: (f.middle_name as string) || null,
+        lead_type: isCold ? "cold" : ((f.lead_temperature as string) === "hot" ? "hot" : "warm"),
+        lead_temperature: (isCold ? "cold" : ((f.lead_temperature as string) || "warm")) as LeadTemperature,
+        is_cold_pool: isCold,
+        email: (f.email as string) || null,
+        phone: (f.phone as string) || null,
+      });
+      leadIdRef.current = saved.id;
+      setLeadId(saved.id);
+      setLeadNumber(saved.lead_number);
+      return saved.id;
+    } catch (e) {
+      toast.error(formatSupabaseError(e, "Could not create lead draft"));
+      return null;
+    }
+  };
+
+  const saveFollowupOnly = useCallback(async (): Promise<boolean> => {
+    if (!followupAtLocal.trim()) {
+      toast.error("Set a follow-up date first");
+      return false;
+    }
+    setSavingFollowup(true);
+    try {
+      const id = await ensureLeadIdForFollowup();
+      if (!id) return false;
+      await syncLeadFollowupLog(id, {
+        scheduledAt: fromDatetimeLocalValue(followupAtLocal),
+        channel: followupChannel || null,
+        note: followupNote.trim() || null,
+      });
+      setFollowupLogVersion((v) => v + 1);
+      toast.success("Follow-up saved");
+      return true;
+    } catch (e) {
+      toast.error(formatSupabaseError(e, "Could not save follow-up"));
+      return false;
+    } finally {
+      setSavingFollowup(false);
+    }
+  }, [followupAtLocal, followupChannel, followupNote, mode, f.first_name, f.last_name, f.middle_name, f.lead_temperature, f.email, f.phone]);
+
+  const onFollowupCompleted = useCallback(() => {
+    setFollowupAtLocal("");
+    setFollowupChannel("");
+    setFollowupNote("");
+    setFollowupLogVersion((v) => v + 1);
+  }, []);
 
   const scheduleAutosave = () => {
     if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
@@ -769,60 +834,19 @@ const LeadNew = () => {
 
                 <Card className="p-4 sm:p-6 space-y-4">
                   <h3 className="font-semibold">7. Follow-up</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Schedule the next touchpoint for the assigned primary user. Carried over when you register as client.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="space-y-1.5">
-                      <Label>Next follow-up</Label>
-                      <Input
-                        type="datetime-local"
-                        value={followupAtLocal}
-                        onChange={(e) => {
-                          setFollowupAtLocal(e.target.value);
-                          setTimeout(scheduleAutosave, 0);
-                        }}
-                        onBlur={scheduleAutosave}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Channel</Label>
-                      <Select
-                        value={followupChannel || "__none__"}
-                        onValueChange={(v) => {
-                          setFollowupChannel(v === "__none__" ? "" : v);
-                          setTimeout(scheduleAutosave, 0);
-                        }}
-                      >
-                        <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__none__">— Not set —</SelectItem>
-                          {LEAD_FOLLOWUP_CHANNELS.map((c) => (
-                            <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1.5 md:col-span-2 lg:col-span-1">
-                      <Label>Follow-up note</Label>
-                      <Input
-                        value={followupNote}
-                        onChange={(e) => setFollowupNote(e.target.value)}
-                        onBlur={scheduleAutosave}
-                        placeholder="e.g. Send fee quote, call back after IELTS"
-                      />
-                    </div>
-                  </div>
-                  <LeadFollowupLogPanel
+                  <LeadFollowupSection
                     leadId={leadId}
-                    hasOpenFollowup={!!followupAtLocal.trim()}
-                    refreshToken={followupLogVersion}
-                    onCompleted={() => {
-                      setFollowupAtLocal("");
-                      setFollowupChannel("");
-                      setFollowupNote("");
-                      setFollowupLogVersion((v) => v + 1);
-                    }}
+                    followupAtLocal={followupAtLocal}
+                    followupChannel={followupChannel}
+                    followupNote={followupNote}
+                    onFollowupAtChange={setFollowupAtLocal}
+                    onFollowupChannelChange={setFollowupChannel}
+                    onFollowupNoteChange={setFollowupNote}
+                    onSaveFollowup={saveFollowupOnly}
+                    savingFollowup={savingFollowup}
+                    followupLogVersion={followupLogVersion}
+                    onFollowupCompleted={onFollowupCompleted}
+                    description="Schedule the next touchpoint for the assigned primary user. Save here — no need to save the whole form. Carried over when you register as client."
                   />
                 </Card>
               </>
@@ -853,60 +877,20 @@ const LeadNew = () => {
             {isCold && (
               <Card className="p-4 sm:p-6 space-y-4">
                 <h3 className="font-semibold">Follow-up</h3>
-                <p className="text-xs text-muted-foreground">
-                  Optional — schedule when to call this cold lead again.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="space-y-1.5">
-                    <Label>Next follow-up</Label>
-                    <Input
-                      type="datetime-local"
-                      value={followupAtLocal}
-                      onChange={(e) => {
-                        setFollowupAtLocal(e.target.value);
-                        setTimeout(scheduleAutosave, 0);
-                      }}
-                      onBlur={scheduleAutosave}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Channel</Label>
-                    <Select
-                      value={followupChannel || "__none__"}
-                      onValueChange={(v) => {
-                        setFollowupChannel(v === "__none__" ? "" : v);
-                        setTimeout(scheduleAutosave, 0);
-                      }}
-                    >
-                      <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__">— Not set —</SelectItem>
-                        {LEAD_FOLLOWUP_CHANNELS.map((c) => (
-                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5 md:col-span-2 lg:col-span-1">
-                    <Label>Follow-up note</Label>
-                    <Input
-                      value={followupNote}
-                      onChange={(e) => setFollowupNote(e.target.value)}
-                      onBlur={scheduleAutosave}
-                      placeholder="Brief reminder for next call"
-                    />
-                  </div>
-                </div>
-                <LeadFollowupLogPanel
+                <LeadFollowupSection
                   leadId={leadId}
-                  hasOpenFollowup={!!followupAtLocal.trim()}
-                  refreshToken={followupLogVersion}
-                  onCompleted={() => {
-                    setFollowupAtLocal("");
-                    setFollowupChannel("");
-                    setFollowupNote("");
-                    setFollowupLogVersion((v) => v + 1);
-                  }}
+                  followupAtLocal={followupAtLocal}
+                  followupChannel={followupChannel}
+                  followupNote={followupNote}
+                  onFollowupAtChange={setFollowupAtLocal}
+                  onFollowupChannelChange={setFollowupChannel}
+                  onFollowupNoteChange={setFollowupNote}
+                  onSaveFollowup={saveFollowupOnly}
+                  savingFollowup={savingFollowup}
+                  followupLogVersion={followupLogVersion}
+                  onFollowupCompleted={onFollowupCompleted}
+                  notePlaceholder="Brief reminder for next call"
+                  description="Optional — schedule when to call this cold lead again. Save here without saving the whole form."
                 />
               </Card>
             )}

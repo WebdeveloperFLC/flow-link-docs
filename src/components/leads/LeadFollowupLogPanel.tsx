@@ -22,6 +22,8 @@ type Props = {
   leadId: string | null;
   hasOpenFollowup: boolean;
   onCompleted?: () => void;
+  onSaveFollowup?: () => Promise<boolean>;
+  saving?: boolean;
   compact?: boolean;
   refreshToken?: number;
 };
@@ -30,6 +32,8 @@ export function LeadFollowupLogPanel({
   leadId,
   hasOpenFollowup,
   onCompleted,
+  onSaveFollowup,
+  saving = false,
   compact,
   refreshToken = 0,
 }: Props) {
@@ -59,13 +63,22 @@ export function LeadFollowupLogPanel({
 
   const openEntry = entries.find((e) => e.status === "scheduled");
   const history = entries.filter((e) => e.status === "completed");
+  const canComplete = hasOpenFollowup || !!openEntry;
 
   const onComplete = async () => {
-    if (!leadId) return;
+    if (!leadId) {
+      toast.error("Save the follow-up first (Save follow-up button above)");
+      return;
+    }
     setCompleting(true);
     try {
+      if (onSaveFollowup) {
+        const saved = await onSaveFollowup();
+        if (!saved) return;
+        await refresh();
+      }
       await completeLeadFollowup(leadId, completionNote);
-      toast.success("Follow-up marked complete — schedule the next one below");
+      toast.success("Follow-up marked complete — schedule the next one above");
       setCompletionNote("");
       await refresh();
       onCompleted?.();
@@ -76,17 +89,17 @@ export function LeadFollowupLogPanel({
     }
   };
 
-  if (!leadId) {
+  if (!leadId && !hasOpenFollowup) {
     return (
-      <p className="text-xs text-muted-foreground">
-        Save the lead first to start a follow-up history.
+      <p className="text-xs text-muted-foreground border-t mt-4 pt-4">
+        Set a date and click Save follow-up to start history (first + last name required once).
       </p>
     );
   }
 
   return (
     <div className={cn("space-y-4", compact ? "pt-2" : "pt-1 border-t mt-4")}>
-      {(hasOpenFollowup || openEntry) && (
+      {canComplete && (
         <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-3">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="text-sm font-medium flex items-center gap-2">
@@ -94,35 +107,42 @@ export function LeadFollowupLogPanel({
               {openEntry && followupDueState(openEntry.scheduled_at) === "overdue" && (
                 <Badge variant="destructive" className="text-[10px]">Overdue</Badge>
               )}
+              {!openEntry && hasOpenFollowup && (
+                <Badge variant="outline" className="text-[10px]">Unsaved changes — save first</Badge>
+              )}
             </div>
             <Button
               type="button"
               size="sm"
               variant="secondary"
-              disabled={completing || !openEntry}
+              disabled={completing || saving || !canComplete}
               onClick={() => void onComplete()}
             >
               <CheckCircle2 className="size-3.5 mr-1" />
               {completing ? "Saving…" : "Mark complete"}
             </Button>
           </div>
-          {openEntry && (
+          {openEntry ? (
             <p className="text-xs text-muted-foreground">
               {formatFollowupDue(openEntry.scheduled_at)} · {followupChannelLabel(openEntry.channel)}
               {openEntry.note ? ` — ${openEntry.note}` : ""}
             </p>
-          )}
+          ) : hasOpenFollowup ? (
+            <p className="text-xs text-muted-foreground">
+              Click Save follow-up above, then add your outcome note and mark complete.
+            </p>
+          ) : null}
           <div className="space-y-1.5">
-            <Label className="text-xs">Outcome note (optional)</Label>
+            <Label className="text-xs">Outcome note (saved when you mark complete)</Label>
             <Input
               value={completionNote}
               onChange={(e) => setCompletionNote(e.target.value)}
-              placeholder="e.g. Sent webinar link, asked to call back next week"
+              placeholder="e.g. Details shared, asked to call back next week"
               className="h-8 text-sm"
             />
           </div>
           <p className="text-[11px] text-muted-foreground">
-            Completing moves this to history below and clears the date fields so you can schedule the next follow-up.
+            Mark complete moves this to history and clears the date fields so you can schedule the next follow-up.
           </p>
         </div>
       )}
@@ -138,9 +158,9 @@ export function LeadFollowupLogPanel({
         {loading && history.length === 0 && (
           <p className="text-xs text-muted-foreground">Loading…</p>
         )}
-        {!loading && history.length === 0 && !openEntry && (
+        {!loading && history.length === 0 && !openEntry && !hasOpenFollowup && (
           <p className="text-xs text-muted-foreground">
-            No follow-ups logged yet. Set a date above to schedule the first one.
+            No follow-ups logged yet. Set a date above and click Save follow-up.
           </p>
         )}
         {history.length > 0 && (
