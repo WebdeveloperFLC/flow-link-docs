@@ -7,8 +7,6 @@ import { toast } from "sonner";
 import { CheckCircle2, History } from "lucide-react";
 import {
   completeLeadFollowup,
-  followupDatabaseHint,
-  FOLLOWUP_LOG_PUBLISH_HINT,
   listLeadFollowupLog,
   probeLeadFollowupLogAvailable,
   type LeadFollowupLogEntry,
@@ -96,19 +94,14 @@ export function LeadFollowupLogPanel({
       const { usedLegacy } = await completeLeadFollowup(leadId, completionNote);
       toast.success(
         usedLegacy
-          ? "Follow-up cleared (outcome saved to lead notes). Publish migrations 20260718120035–36 in Lovable for full history."
+          ? "Follow-up marked complete — outcome saved to lead notes"
           : "Follow-up marked complete — schedule the next one above",
       );
       setCompletionNote("");
       await refresh();
       onCompleted?.();
     } catch (e) {
-      const hint = followupDatabaseHint(e);
-      toast.error(
-        hint
-          ? `${formatSupabaseError(e, "Could not complete follow-up")} ${hint}`
-          : formatSupabaseError(e, "Could not complete follow-up"),
-      );
+      toast.error(formatSupabaseError(e, "Could not complete follow-up"));
     } finally {
       setCompleting(false);
     }
@@ -124,12 +117,6 @@ export function LeadFollowupLogPanel({
 
   return (
     <div className={cn("space-y-4", compact ? "pt-2" : "pt-1 border-t mt-4")}>
-      {logAvailable === false && (
-        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-950 dark:text-amber-100">
-          Follow-up history is not enabled on this database yet. Mark complete still clears the date
-          and saves your outcome to lead notes. {FOLLOWUP_LOG_PUBLISH_HINT}
-        </div>
-      )}
       {canComplete && (
         <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-3">
           <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -191,7 +178,9 @@ export function LeadFollowupLogPanel({
         )}
         {!loading && history.length === 0 && !openEntry && !hasOpenFollowup && (
           <p className="text-xs text-muted-foreground">
-            No follow-ups logged yet. Set a date above and click Save follow-up.
+            {logAvailable === false
+              ? "No follow-ups in history yet. Completed ones appear in Notes below."
+              : "No follow-ups logged yet. Set a date above and click Save follow-up."}
           </p>
         )}
         {history.length > 0 && (
