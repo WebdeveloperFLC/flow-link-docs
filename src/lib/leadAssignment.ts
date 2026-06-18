@@ -136,3 +136,19 @@ export function mergePrimaryUserOptions(
   if (eligible.some((o) => o.id === selectedId)) return eligible;
   return [{ id: selectedId, name: selectedName ?? "Current assignee" }, ...eligible];
 }
+
+/** Keep logged-in user as "You" even when branch/dept filter excludes them. */
+export function mergePrimaryUserOptionsWithSelf(
+  eligible: PrimaryUserOption[],
+  selectedId: string | null | undefined,
+  currentUserId: string | null | undefined,
+  selectedName?: string | null,
+): PrimaryUserOption[] {
+  let options = mergePrimaryUserOptions(eligible, selectedId, selectedName);
+  if (currentUserId && !options.some((o) => o.id === currentUserId)) {
+    options = [{ id: currentUserId, name: "You" }, ...options];
+  } else if (currentUserId) {
+    options = options.map((o) => (o.id === currentUserId ? { ...o, name: "You" } : o));
+  }
+  return options;
+}

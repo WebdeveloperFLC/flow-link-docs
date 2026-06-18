@@ -207,6 +207,7 @@ const ClientDetail = () => {
   const [sections, setSections] = useState<CaseSection[]>([]);
   const [addSectionOpen, setAddSectionOpen] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
+  const [accessRefreshKey, setAccessRefreshKey] = useState(0);
   const [handoffOpen, setHandoffOpen] = useState(false);
   const [remarkOpen, setRemarkOpen] = useState(false);
   const [trashedDocs, setTrashedDocs] = useState<Doc[]>([]);
@@ -1266,6 +1267,7 @@ const ClientDetail = () => {
           <TabsContent value="team" className="mt-0 space-y-6">
             <div className="grid lg:grid-cols-2 gap-6">
               <ClientAccessCard
+                key={accessRefreshKey}
                 clientId={client.id}
                 ownerId={client.owner_id ?? null}
                 createdBy={client.created_by ?? null}
@@ -1642,6 +1644,7 @@ const ClientDetail = () => {
           onOpenChange={setAccessOpen}
           clientId={client.id}
           clientName={client.full_name}
+          onChanged={() => setAccessRefreshKey((k) => k + 1)}
         />
       )}
       {client && (

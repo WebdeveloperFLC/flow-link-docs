@@ -23,8 +23,14 @@ interface Profile { id: string; full_name: string | null; email: string | null; 
 interface Team { id: string; name: string }
 
 export function ClientAccessDialog({
-  open, onOpenChange, clientId, clientName,
-}: { open: boolean; onOpenChange: (o: boolean) => void; clientId: string; clientName: string }) {
+  open, onOpenChange, clientId, clientName, onChanged,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  clientId: string;
+  clientName: string;
+  onChanged?: () => void;
+}) {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
@@ -36,21 +42,51 @@ export function ClientAccessDialog({
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
-    const [{ data: ua }, { data: ta }, { data: profs }, { data: tms }] = await Promise.all([
-      supabase.from("client_access").select("id,user_id,permission,profiles:profiles!client_access_user_id_fkey(full_name,email)").eq("client_id", clientId).not("user_id", "is", null),
-      supabase.from("client_access").select("id,team_id,permission,teams:teams!client_access_team_id_fkey(name)").eq("client_id", clientId).not("team_id", "is", null),
-      // Use SECURITY DEFINER RPCs so the picker shows all assignable staff/teams
-      // regardless of the caller's client-scoped visibility. Client RLS is untouched.
+    const [uaRes, taRes, profsRes, tmsRes] = await Promise.all([
+      supabase.from("client_access").select("id,user_id,permission").eq("client_id", clientId).not("user_id", "is", null),
+      supabase.from("client_access").select("id,team_id,permission").eq("client_id", clientId).not("team_id", "is", null),
       supabase.rpc("list_assignable_staff"),
       supabase.rpc("list_assignable_teams"),
     ]);
-    setUsers((ua ?? []).map((r: any) => ({ id: r.id, user_id: r.user_id, permission: r.permission, profile: r.profiles })));
-    setTeams((ta ?? []).map((r: any) => ({ id: r.id, team_id: r.team_id, permission: r.permission, team: r.teams })));
-    setAllProfiles(((profs ?? []) as any[]).map((p) => ({ id: p.id, full_name: p.full_name, email: p.email, status: "active" })));
-    setAllTeams((tms ?? []) as Team[]);
+    if (uaRes.error) {
+      console.warn("[ClientAccessDialog] client_access load failed", uaRes.error.message);
+      toast.error(uaRes.error.message);
+    }
+    if (taRes.error) {
+      console.warn("[ClientAccessDialog] team access load failed", taRes.error.message);
+    }
+
+    const profMap = new Map<string, Profile>();
+    ((profsRes.data ?? []) as Profile[]).forEach((p) => profMap.set(p.id, p));
+
+    setUsers(
+      ((uaRes.data ?? []) as Array<{ id: string; user_id: string; permission: Perm }>).map((r) => ({
+        id: r.id,
+        user_id: r.user_id,
+        permission: r.permission,
+        profile: profMap.get(r.user_id) ?? null,
+      })),
+    );
+
+    const teamNameMap = new Map<string, string>();
+    ((tmsRes.data ?? []) as Team[]).forEach((t) => teamNameMap.set(t.id, t.name));
+    setTeams(
+      ((taRes.data ?? []) as Array<{ id: string; team_id: string; permission: Perm }>).map((r) => ({
+        id: r.id,
+        team_id: r.team_id,
+        permission: r.permission,
+        team: { name: teamNameMap.get(r.team_id) ?? r.team_id },
+      })),
+    );
+    setAllProfiles(((profsRes.data ?? []) as Profile[]).map((p) => ({ ...p, status: "active" })));
+    setAllTeams((tmsRes.data ?? []) as Team[]);
   };
 
-  useEffect(() => { if (open && clientId) load(); }, [open, clientId]);
+  useEffect(() => { if (open && clientId) void load(); }, [open, clientId]);
+
+  const notifyChanged = () => {
+    onChanged?.();
+  };
 
   const grantUser = async () => {
     if (!newUserId) return;
@@ -67,8 +103,6 @@ export function ClientAccessDialog({
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     await logActivity("client.access_granted", "client", clientId, { user_id: newUserId, permission: newUserPerm });
-    // In-app bell notification for the newly-granted user.
-    // Skipped on plain permission upgrades (existing row) to avoid spam.
     if (!existing) {
       try {
         const { data: au } = await supabase.auth.getUser();
@@ -76,12 +110,8 @@ export function ClientAccessDialog({
         let actorName = "A team member";
         if (actorId) {
           const { data: p } = await supabase.from("profiles").select("full_name,email").eq("id", actorId).maybeSingle();
-          actorName = (p as any)?.full_name ?? (p as any)?.email ?? actorName;
+          actorName = (p as { full_name?: string; email?: string } | null)?.full_name ?? (p as { email?: string } | null)?.email ?? actorName;
         }
-        console.info("[notif-debug] producer_called", {
-          category: "client_access_granted",
-          clientId, targetUserId: newUserId, permission: newUserPerm, actorId,
-        });
         await notifyUsers({
           userIds: [newUserId],
           category: "client_access_granted",
@@ -95,12 +125,14 @@ export function ClientAccessDialog({
           metadata: { permission: newUserPerm, actor_id: actorId, actor_name: actorName, client_name: clientName },
         });
       } catch (e) {
-        console.warn("[notif-debug] filtered_out_reason", { reason: "access_grant_notify_throw", error: (e as any)?.message });
+        console.warn("[ClientAccessDialog] access grant notify failed", e);
       }
     }
     toast.success("Access granted");
-    setNewUserId(""); setNewUserPerm("view");
-    load();
+    setNewUserId("");
+    setNewUserPerm("view");
+    await load();
+    notifyChanged();
   };
 
   const grantTeam = async () => {
@@ -125,14 +157,10 @@ export function ClientAccessDialog({
         let actorName = "A team member";
         if (actorId) {
           const { data: p } = await supabase.from("profiles").select("full_name,email").eq("id", actorId).maybeSingle();
-          actorName = (p as any)?.full_name ?? (p as any)?.email ?? actorName;
+          actorName = (p as { full_name?: string; email?: string } | null)?.full_name ?? (p as { email?: string } | null)?.email ?? actorName;
         }
         const { data: members } = await supabase.from("team_members").select("user_id").eq("team_id", newTeamId);
-        const targets = (members ?? []).map((m: any) => m.user_id).filter(Boolean);
-        console.info("[notif-debug] producer_called", {
-          category: "client_access_granted",
-          clientId, teamId: newTeamId, members: targets, actorId,
-        });
+        const targets = (members ?? []).map((m: { user_id: string }) => m.user_id).filter(Boolean);
         if (targets.length) {
           await notifyUsers({
             userIds: targets,
@@ -148,19 +176,22 @@ export function ClientAccessDialog({
           });
         }
       } catch (e) {
-        console.warn("[notif-debug] filtered_out_reason", { reason: "team_access_grant_notify_throw", error: (e as any)?.message });
+        console.warn("[ClientAccessDialog] team access grant notify failed", e);
       }
     }
     toast.success("Team access granted");
-    setNewTeamId(""); setNewTeamPerm("view");
-    load();
+    setNewTeamId("");
+    setNewTeamPerm("view");
+    await load();
+    notifyChanged();
   };
 
   const updatePerm = async (id: string, perm: Perm, kind: "user" | "team", subjectId: string) => {
     const { error } = await supabase.from("client_access").update({ permission: perm }).eq("id", id);
     if (error) { toast.error(error.message); return; }
     await logActivity("client.access_changed", "client", clientId, { [`${kind}_id`]: subjectId, permission: perm });
-    load();
+    await load();
+    notifyChanged();
   };
 
   const remove = async (id: string, kind: "user" | "team", subjectId: string) => {
@@ -168,7 +199,8 @@ export function ClientAccessDialog({
     if (error) { toast.error(error.message); return; }
     await logActivity("client.access_revoked", "client", clientId, { [`${kind}_id`]: subjectId });
     toast.success("Access revoked");
-    load();
+    await load();
+    notifyChanged();
   };
 
   const availableProfiles = allProfiles.filter((p) => !users.some((u) => u.user_id === p.id));
@@ -210,44 +242,36 @@ export function ClientAccessDialog({
             </div>
             <div className="border rounded-md divide-y">
               {users.length === 0 && <div className="px-3 py-6 text-center text-sm text-muted-foreground">No individual user access</div>}
-              {users.map((u) => (
-                <div key={u.id} className="flex items-center gap-2 px-3 py-2">
-                  {(() => {
-                    // Hydrate display name/email/avatar from the RPC-loaded
-                    // staff list when the embedded profile join is hidden by
-                    // RLS (non-admin viewers cannot embed other profiles).
-                    const hydrated = allProfiles.find((p) => p.id === u.user_id);
-                    const fullName = u.profile?.full_name ?? hydrated?.full_name ?? null;
-                    const email = u.profile?.email ?? hydrated?.email ?? null;
-                    const display = fullName ?? email ?? "Unknown user";
-                    const initials = (fullName ?? email ?? "?")
-                      .split(/\s+/)
-                      .map((s) => s[0])
-                      .filter(Boolean)
-                      .slice(0, 2)
-                      .join("")
-                      .toUpperCase();
-                    return (
-                      <>
-                        <div className="size-7 rounded-full bg-muted text-[11px] font-medium flex items-center justify-center text-muted-foreground shrink-0">
-                          {initials}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm truncate">{display}</div>
-                          {email && <div className="text-xs text-muted-foreground truncate">{email}</div>}
-                        </div>
-                      </>
-                    );
-                  })()}
-                  <Select value={u.permission} onValueChange={(v) => updatePerm(u.id, v as Perm, "user", u.user_id)}>
-                    <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
-                    <SelectContent>{PERM_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-                  </Select>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => remove(u.id, "user", u.user_id)}>
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-              ))}
+              {users.map((u) => {
+                const fullName = u.profile?.full_name ?? null;
+                const email = u.profile?.email ?? null;
+                const display = fullName ?? email ?? "Unknown user";
+                const initials = (fullName ?? email ?? "?")
+                  .split(/\s+/)
+                  .map((s) => s[0])
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .join("")
+                  .toUpperCase();
+                return (
+                  <div key={u.id} className="flex items-center gap-2 px-3 py-2">
+                    <div className="size-7 rounded-full bg-muted text-[11px] font-medium flex items-center justify-center text-muted-foreground shrink-0">
+                      {initials}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm truncate">{display}</div>
+                      {email && <div className="text-xs text-muted-foreground truncate">{email}</div>}
+                    </div>
+                    <Select value={u.permission} onValueChange={(v) => updatePerm(u.id, v as Perm, "user", u.user_id)}>
+                      <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
+                      <SelectContent>{PERM_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => remove(u.id, "user", u.user_id)}>
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
           </TabsContent>
 

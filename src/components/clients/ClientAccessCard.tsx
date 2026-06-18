@@ -62,6 +62,7 @@ export function ClientAccessCard({
     name: string;
     prevPerm: Perm;
   }>(null);
+  const [staffPool, setStaffPool] = useState<Profile[]>([]);
 
   const effectiveOwnerId = ownerId ?? createdBy;
   const isPrimary = !!user && (user.id === ownerId || (!ownerId && user.id === createdBy));
@@ -105,13 +106,10 @@ export function ClientAccessCard({
     uaRows.forEach((r) => ids.add(r.user_id));
     teamMemberMap.forEach((arr) => arr.forEach((id) => ids.add(id)));
     const profMap = new Map<string, Profile>();
+    const { data: staff } = await supabase.rpc("list_assignable_staff");
+    setStaffPool(((staff ?? []) as Profile[]).map((p) => ({ id: p.id, full_name: p.full_name, email: p.email })));
     if (ids.size) {
-      // Hydrate profiles via the SECURITY DEFINER staff resolver so EVERY
-      // viewer with client access (not just admins) sees full names/emails.
-      // Falls back to direct profiles query for any ids the resolver doesn't
-      // return (e.g. self-readable profile, non-staff edge cases).
-      const { data: staff } = await supabase.rpc("list_assignable_staff");
-      ((staff ?? []) as any[]).forEach((p) => {
+      ((staff ?? []) as Array<{ id: string; full_name: string | null; email: string | null }>).forEach((p) => {
         if (ids.has(p.id)) profMap.set(p.id, { id: p.id, full_name: p.full_name, email: p.email });
       });
       const missing = Array.from(ids).filter((id) => !profMap.has(id));
@@ -134,13 +132,16 @@ export function ClientAccessCard({
     setLoading(false);
   }, [clientId, effectiveOwnerId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
-  // Build candidates for transfer: current additional users + default team members.
+  // Build candidates for transfer: granted users + default team + all staff for admins.
   const transferCandidates: Profile[] = (() => {
     const map = new Map<string, Profile>();
     for (const u of users) if (u.profile) map.set(u.user_id, u.profile);
     for (const d of defaults) if (d.profile) map.set(d.member_id, d.profile);
+    if (isAdmin) {
+      for (const p of staffPool) map.set(p.id, p);
+    }
     if (effectiveOwnerId) map.delete(effectiveOwnerId);
     return Array.from(map.values());
   })();

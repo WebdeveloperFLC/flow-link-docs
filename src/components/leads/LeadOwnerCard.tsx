@@ -8,7 +8,7 @@ import { UserCheck } from "lucide-react";
 import {
   fetchEligiblePrimaryUsers,
   logLeadPrimaryUserChange,
-  mergePrimaryUserOptions,
+  mergePrimaryUserOptionsWithSelf,
   resolvePrimaryUserName,
   type PrimaryUserOption,
 } from "@/lib/leadAssignment";
@@ -69,8 +69,8 @@ export const LeadOwnerCard = ({
   }, [branch, department]);
 
   const options = useMemo(
-    () => mergePrimaryUserOptions(eligible, assignedCounselorId, currentName),
-    [eligible, assignedCounselorId, currentName],
+    () => mergePrimaryUserOptionsWithSelf(eligible, value || null, user?.id ?? null, currentName),
+    [eligible, value, user?.id, currentName],
   );
 
   const canChange = isAdmin || (!!user && assignedCounselorId === user.id) || !assignedCounselorId;

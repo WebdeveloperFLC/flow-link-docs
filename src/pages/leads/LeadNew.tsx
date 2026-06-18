@@ -41,7 +41,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   fetchEligiblePrimaryUsers,
   logLeadPrimaryUserChange,
-  mergePrimaryUserOptions,
+  mergePrimaryUserOptionsWithSelf,
   type PrimaryUserOption,
 } from "@/lib/leadAssignment";
 
@@ -138,14 +138,9 @@ const LeadNew = () => {
             }),
       }));
     }
-    if (slLibraryId || slServiceLabel) {
-      const line = [
-        slServiceLabel ? `Service Library: ${slServiceLabel}` : null,
-        slLibraryId ? `library_id=${slLibraryId}` : null,
-      ]
-        .filter(Boolean)
-        .join(" · ");
-      setNotes((n) => (n ? `${n}\n${line}` : line));
+    if (slServiceLabel) {
+      const line = `Service Library: ${slServiceLabel}`;
+      setNotes((n) => (n && n.includes(line) ? n : n ? `${n}\n${line}` : line));
     }
   }, [slCountry, slVisaService, slServiceLabel, slLibraryId, slCat, editId, leadId]);
 
@@ -216,7 +211,17 @@ const LeadNew = () => {
       const fn = (f.first_name as string)?.trim();
       const ln = (f.last_name as string)?.trim();
       if (!fn || !ln) return null;
-      if (mode !== "cold") {
+      const draft = buildDraft();
+      if (mode === "cold") {
+        const email = (f.email as string)?.trim();
+        const phone = (f.phone as string)?.trim();
+        if (!email && !phone) return null;
+      } else {
+        const validation = leadWarmHotSchema.safeParse({
+          ...draft,
+          travel_services: services.travel_services,
+        });
+        if (!validation.success) return null;
         const dups = await findDuplicateLeads({
           email: (f.email as string) ?? null,
           phone: (f.phone as string) ?? null,
@@ -244,7 +249,6 @@ const LeadNew = () => {
       if (!leadId) {
         setLeadId(saved.id);
         setLeadNumber(saved.lead_number);
-        toast.success(`Lead created: ${saved.lead_number}`);
       }
       return saved.id;
     } catch (e: unknown) {
@@ -370,10 +374,8 @@ const LeadNew = () => {
 
   const primaryUserOptions = useMemo(() => {
     const selectedId = (f.assigned_counselor_id as string) || null;
-    const selectedName =
-      eligiblePrimaryUsers.find((o) => o.id === selectedId)?.name ??
-      (selectedId === user?.id ? "You" : undefined);
-    return mergePrimaryUserOptions(eligiblePrimaryUsers, selectedId, selectedName);
+    const selectedName = eligiblePrimaryUsers.find((o) => o.id === selectedId)?.name;
+    return mergePrimaryUserOptionsWithSelf(eligiblePrimaryUsers, selectedId, user?.id ?? null, selectedName);
   }, [eligiblePrimaryUsers, f.assigned_counselor_id, user?.id]);
 
   const onPrimaryUserChange = (v: string) => {
@@ -428,6 +430,17 @@ const LeadNew = () => {
   };
 
   const isCold = mode === "cold";
+
+  const draftForValidation = buildDraft();
+  const canRegisterAsClient =
+    !convertedClientId &&
+    !converting &&
+    !saving &&
+    !!(f.first_name as string)?.trim() &&
+    !!(f.last_name as string)?.trim() &&
+    (isCold
+      ? !!((f.email as string)?.trim() || (f.phone as string)?.trim())
+      : leadWarmHotSchema.safeParse({ ...draftForValidation, travel_services: services.travel_services }).success);
 
   const personalFields = (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -536,32 +549,10 @@ const LeadNew = () => {
                 Cancel
               </Button>
             )}
-            {convertedClientId ? (
+            {convertedClientId && (
               <Button variant="outline" onClick={() => nav(`/clients/${convertedClientId}`)}>
                 View Client
               </Button>
-            ) : (
-              <>
-                <Button
-                  variant="secondary"
-                  onClick={convertAndNavigate}
-                  disabled={
-                    converting ||
-                    saving ||
-                    !(f.first_name as string)?.trim() ||
-                    !(f.last_name as string)?.trim()
-                  }
-                  title={
-                    !(f.first_name as string)?.trim() || !(f.last_name as string)?.trim()
-                      ? "Enter first and last name first"
-                      : "Create client and open profile"
-                  }
-                >
-                  <UserCheck className="size-4 mr-1" />
-                  Register as Client
-                </Button>
-                <Button onClick={validateAndSubmit}>Save &amp; View</Button>
-              </>
             )}
           </div>
         }
@@ -749,6 +740,36 @@ const LeadNew = () => {
                 placeholder="Counsellor notes, follow-up plan, special considerations…"
               />
             </Card>
+
+            {!convertedClientId && (
+              <Card className="p-4 sm:p-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 border-primary/20 bg-muted/20">
+                <p className="text-sm text-muted-foreground sm:mr-auto sm:max-w-md">
+                  {isCold
+                    ? "Save the lead when contact details are complete. Register as Client when they show interest."
+                    : "Complete all required fields, then save or register as client."}
+                </p>
+                <div className="flex flex-wrap gap-2 justify-end">
+                  <Button
+                    variant="secondary"
+                    onClick={convertAndNavigate}
+                    disabled={!canRegisterAsClient}
+                    title={
+                      canRegisterAsClient
+                        ? "Create client and open profile"
+                        : isCold
+                          ? "Enter name plus email or phone first"
+                          : "Complete all required warm/hot fields first"
+                    }
+                  >
+                    <UserCheck className="size-4 mr-1" />
+                    Register as Client
+                  </Button>
+                  <Button onClick={validateAndSubmit} disabled={saving || converting}>
+                    Save &amp; View
+                  </Button>
+                </div>
+              </Card>
+            )}
         </>
       </div>
     </AppLayout>
