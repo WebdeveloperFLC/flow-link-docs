@@ -15,10 +15,11 @@ import { Plus } from "lucide-react";
 
 interface Preset { id: string; label: string; category: string; }
 
-export function AddRemarkDialog({ open, onOpenChange, clientId, queueItemId, callSessionId, onSaved }: {
+export function AddRemarkDialog({ open, onOpenChange, clientId, leadId, queueItemId, callSessionId, onSaved }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  clientId: string;
+  clientId?: string;
+  leadId?: string;
   queueItemId?: string | null;
   callSessionId?: string | null;
   onSaved?: () => void;
@@ -58,13 +59,15 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, queueItemId, cal
 
   const submit = async () => {
     if (!user) return;
+    if (!clientId && !leadId) { toast.error("Missing lead or client"); return; }
     if (!remark.trim() && !presetId) { toast.error("Pick a preset or write a remark"); return; }
     setBusy(true);
     try {
       const presetLabel = presets.find((p) => p.id === presetId)?.label;
       const finalRemark = [presetLabel, remark.trim()].filter(Boolean).join(" — ");
       const { error } = await supabase.from("lead_remarks").insert({
-        client_id: clientId,
+        client_id: clientId ?? null,
+        lead_id: leadId ?? null,
         queue_item_id: queueItemId ?? null,
         call_session_id: callSessionId ?? null,
         author_id: user.id,
@@ -74,18 +77,20 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, queueItemId, cal
         next_callback_at: callbackAt || null,
       });
       if (error) throw error;
-      await appendTimeline({
-        clientId, eventType: "remark",
-        summary: finalRemark.slice(0, 140),
-        metadata: { outcome, leadStatus, callbackAt, presetId },
-      });
-      await appendClientActivityLog({
-        clientId,
-        action: "note_added",
-        summary: "Remark added",
-        newValue: finalRemark,
-        metadata: { outcome, leadStatus, callbackAt },
-      });
+      if (clientId) {
+        await appendTimeline({
+          clientId, eventType: "remark",
+          summary: finalRemark.slice(0, 140),
+          metadata: { outcome, leadStatus, callbackAt, presetId },
+        });
+        await appendClientActivityLog({
+          clientId,
+          action: "note_added",
+          summary: "Remark added",
+          newValue: finalRemark,
+          metadata: { outcome, leadStatus, callbackAt },
+        });
+      }
       if (queueItemId) {
         const patch: Record<string, unknown> = {};
         if (leadStatus) patch.lead_status = leadStatus;

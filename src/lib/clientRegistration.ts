@@ -230,6 +230,7 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     percentage_cgpa: e0?.percentage_cgpa ?? null,
     education_history,
     english_test: bg.english_test ?? null,
+    english_test_status: bg.english_test_status ?? null,
     english_overall: bg.english_overall ?? null,
     english_test_date: bg.english_test_date ?? null,
     english_test_expiry: bg.english_test_expiry ?? null,

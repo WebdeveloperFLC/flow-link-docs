@@ -74,7 +74,7 @@ export async function parseCsv(file: File): Promise<PreviewRow[]> {
   const dupSet = new Set<string>();
   if (phones.length || emails.length) {
     const { data: existing } = await supabase
-      .from("clients").select("phone,email")
+      .from("leads").select("phone,email")
       .or([
         phones.length ? `phone.in.(${phones.map((p) => `"${p}"`).join(",")})` : "",
         emails.length ? `email.in.(${emails.map((e) => `"${e}"`).join(",")})` : "",

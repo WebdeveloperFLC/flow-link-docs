@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import {
   prefillFromLead,
   upsertClientRegistration,
+  assignClientRegistrationNumber,
   type ClientDraft,
   type ClientRow,
 } from "@/lib/clientRegistration";
@@ -151,9 +152,28 @@ export async function convertLeadToClient(
   opts: ConvertLeadOptions = {},
 ): Promise<ConvertLeadResult> {
   if (lead.converted_to_client_id) {
+    const { data: linked } = await supabase
+      .from("clients")
+      .select("id, registration_number")
+      .eq("id", lead.converted_to_client_id)
+      .maybeSingle();
     return {
       clientId: lead.converted_to_client_id,
-      registrationNumber: null,
+      registrationNumber: linked?.registration_number ?? null,
+      invoiceLinesCreated: 0,
+      alreadyConverted: true,
+    };
+  }
+
+  const { data: existingBySource } = await supabase
+    .from("clients")
+    .select("id, registration_number")
+    .eq("source_lead_id", lead.id)
+    .maybeSingle();
+  if (existingBySource) {
+    return {
+      clientId: existingBySource.id,
+      registrationNumber: existingBySource.registration_number ?? null,
       invoiceLinesCreated: 0,
       alreadyConverted: true,
     };
@@ -171,21 +191,40 @@ export async function convertLeadToClient(
     throw e;
   }
 
-  await ensureClientProfileSynced(saved.id).catch((e) =>
-    console.warn("[convertLeadToClient] profile sync failed", e),
-  );
+  const syncWarnings: string[] = [];
+  try {
+    await ensureClientProfileSynced(saved.id);
+  } catch (e) {
+    syncWarnings.push("profile sync");
+    console.warn("[convertLeadToClient] profile sync failed", e);
+  }
 
-  await syncClientBackgroundAfterConversion(saved.id).catch((e) =>
-    console.warn("[convertLeadToClient] background sync failed", e),
-  );
+  try {
+    await syncClientBackgroundAfterConversion(saved.id);
+  } catch (e) {
+    syncWarnings.push("background sync");
+    console.warn("[convertLeadToClient] background sync failed", e);
+  }
 
-  await runServiceEnrollment(saved.id, lead, opts);
+  if (syncWarnings.length) {
+    toast.message(`Client created — ${syncWarnings.join(" and ")} failed; open the profile to verify.`);
+  }
+
+  let registered = saved;
+  try {
+    registered = await assignClientRegistrationNumber(saved.id);
+  } catch (e) {
+    console.warn("[convertLeadToClient] registration number assignment failed", e);
+    toast.message("Client created — registration number could not be assigned automatically");
+  }
+
+  await runServiceEnrollment(registered.id, lead, opts);
 
   let invoiceLinesCreated = 0;
   try {
     const catalogue = await fetchAllServiceCatalogue();
     invoiceLinesCreated = await autoDraftInvoiceForServices(
-      saved.id,
+      registered.id,
       serviceSelectionFromLead(lead),
       catalogue,
     );
@@ -194,16 +233,16 @@ export async function convertLeadToClient(
     toast.message("Client created — draft invoice could not be generated automatically");
   }
 
-  await notifyLeadConverted(saved.id, lead);
+  await notifyLeadConverted(registered.id, lead);
 
-  await copyLeadHistoryToClientActivity(lead.id, saved.id).catch((e) =>
+  await copyLeadHistoryToClientActivity(lead.id, registered.id).catch((e) =>
     console.warn("[convertLeadToClient] activity log copy failed", e),
   );
   await appendClientActivityLog({
-    clientId: saved.id,
+    clientId: registered.id,
     action: "client_created",
     summary: "Client created from lead",
-    newValue: saved.application_id ?? saved.id,
+    newValue: registered.application_id ?? registered.id,
     metadata: {
       source_lead_id: lead.id,
       source_lead_number: lead.lead_number,
@@ -215,18 +254,18 @@ export async function convertLeadToClient(
     const channel = followupChannelLabel(lead.followup_channel);
     const title = lead.followup_note?.trim() || `Follow up (${channel})`;
     await createTask({
-      clientId: saved.id,
+      clientId: registered.id,
       title,
       description: lead.followup_note?.trim() || null,
       kind: "reminder",
       dueAt: lead.next_followup_at,
-      assignedTo: lead.assigned_counselor_id ?? saved.assigned_counselor_id ?? null,
+      assignedTo: lead.assigned_counselor_id ?? registered.assigned_counselor_id ?? null,
     }).catch((e) => console.warn("[convertLeadToClient] follow-up task failed", e));
   }
 
   return {
-    clientId: saved.id,
-    registrationNumber: saved.registration_number ?? null,
+    clientId: registered.id,
+    registrationNumber: registered.registration_number ?? null,
     invoiceLinesCreated,
     alreadyConverted: false,
   };

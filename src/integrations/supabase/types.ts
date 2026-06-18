@@ -3867,10 +3867,11 @@ export type Database = {
         Row: {
           assigned_agent_id: string | null
           campaign_id: string | null
-          client_id: string
+          client_id: string | null
           created_at: string
           id: string
           last_called_at: string | null
+          lead_id: string | null
           lead_status: string | null
           next_call_at: string | null
           notes: string | null
@@ -3883,10 +3884,11 @@ export type Database = {
         Insert: {
           assigned_agent_id?: string | null
           campaign_id?: string | null
-          client_id: string
+          client_id?: string | null
           created_at?: string
           id?: string
           last_called_at?: string | null
+          lead_id?: string | null
           lead_status?: string | null
           next_call_at?: string | null
           notes?: string | null
@@ -3899,10 +3901,11 @@ export type Database = {
         Update: {
           assigned_agent_id?: string | null
           campaign_id?: string | null
-          client_id?: string
+          client_id?: string | null
           created_at?: string
           id?: string
           last_called_at?: string | null
+          lead_id?: string | null
           lead_status?: string | null
           next_call_at?: string | null
           notes?: string | null
@@ -3961,6 +3964,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "call_queue_items_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -11852,9 +11862,10 @@ export type Database = {
         Row: {
           author_id: string
           call_session_id: string | null
-          client_id: string
+          client_id: string | null
           created_at: string
           id: string
+          lead_id: string | null
           lead_status: string | null
           next_callback_at: string | null
           outcome: string | null
@@ -11864,9 +11875,10 @@ export type Database = {
         Insert: {
           author_id: string
           call_session_id?: string | null
-          client_id: string
+          client_id?: string | null
           created_at?: string
           id?: string
+          lead_id?: string | null
           lead_status?: string | null
           next_callback_at?: string | null
           outcome?: string | null
@@ -11876,9 +11888,10 @@ export type Database = {
         Update: {
           author_id?: string
           call_session_id?: string | null
-          client_id?: string
+          client_id?: string | null
           created_at?: string
           id?: string
+          lead_id?: string | null
           lead_status?: string | null
           next_callback_at?: string | null
           outcome?: string | null
@@ -11926,6 +11939,13 @@ export type Database = {
             columns: ["queue_item_id"]
             isOneToOne: false
             referencedRelation: "call_queue_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_remarks_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
         ]

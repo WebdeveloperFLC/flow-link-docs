@@ -44,13 +44,13 @@ export function BulkDistributeDialog({ open, onOpenChange, onDone }: {
     setBusy(true);
     try {
       // Pick leads: most recent N, optionally only unassigned via call_queue_items.assigned_agent_id IS NULL
-      let q = supabase.from("clients").select("id, created_at").order("created_at", { ascending: false }).limit(limit);
+      let q = supabase.from("leads").select("id, created_at").order("created_at", { ascending: false }).limit(limit);
       const { data: leads, error } = await q;
       if (error) throw error;
       let leadIds = (leads ?? []).map((l) => l.id);
       if (pendingOnly && role === "telecaller") {
-        const { data: queued } = await supabase.from("call_queue_items").select("client_id").is("assigned_agent_id", null).in("client_id", leadIds);
-        const queuedSet = new Set((queued ?? []).map((q) => q.client_id));
+        const { data: queued } = await supabase.from("call_queue_items").select("lead_id").is("assigned_agent_id", null).in("lead_id", leadIds);
+        const queuedSet = new Set((queued ?? []).map((q) => q.lead_id).filter(Boolean));
         leadIds = leadIds.filter((id) => queuedSet.has(id));
       }
       if (leadIds.length === 0) { toast.error("No leads matched the filter"); setBusy(false); return; }

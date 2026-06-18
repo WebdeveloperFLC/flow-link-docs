@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge, leadStatusVariant } from "@/components/ui/status-badge";
 import { Phone, ChevronRight, Search, Clock, Forward } from "lucide-react";
-import { listMyQueue, snoozeItem, type QueueItemWithClient } from "@/lib/telecallerQueue";
+import { listMyQueue, queueContactFromItem, snoozeItem, type QueueItemWithClient } from "@/lib/telecallerQueue";
 import { applyContactMask } from "@/lib/masking";
 import { CallDrawer } from "./CallDrawer";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,25 +33,28 @@ export function MyQueueTab({ mask }: { mask: boolean }) {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return items.filter((i) =>
-      !q || i.client.full_name.toLowerCase().includes(q) || (i.client.country ?? "").toLowerCase().includes(q),
-    );
+    return items.filter((i) => {
+      if (!q) return true;
+      const c = queueContactFromItem(i);
+      return c.full_name.toLowerCase().includes(q) || c.country.toLowerCase().includes(q);
+    });
   }, [items, search]);
 
   const next = filtered[0] ?? null;
+  const nextContact = next ? queueContactFromItem(next) : null;
 
   return (
     <div className="space-y-4">
-      {next && (
+      {next && nextContact && (
         <Card className="p-4 border-primary/40">
           <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Next up</div>
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="min-w-0">
-              <div className="font-semibold text-lg">{next.client.full_name}</div>
+              <div className="font-semibold text-lg">{nextContact.full_name}</div>
               <div className="text-sm text-muted-foreground font-mono">
-                {applyContactMask({ phone: next.client.phone, email: next.client.email, mask }).phone}
+                {applyContactMask({ phone: nextContact.phone, email: nextContact.email, mask }).phone}
               </div>
-              <div className="text-xs text-muted-foreground">{next.client.country} · {next.client.application_type}</div>
+              <div className="text-xs text-muted-foreground">{nextContact.country} · {nextContact.application_type}</div>
               {next.notes && <div className="text-xs italic mt-1 text-muted-foreground">{next.notes.slice(0, 120)}</div>}
             </div>
             <div className="flex gap-2">
@@ -71,13 +74,14 @@ export function MyQueueTab({ mask }: { mask: boolean }) {
         <div className="divide-y">
           {filtered.length === 0 && <div className="p-8 text-center text-sm text-muted-foreground">No leads in queue.</div>}
           {filtered.slice(1).map((it) => {
-            const masked = applyContactMask({ phone: it.client.phone, email: it.client.email, mask });
+            const contact = queueContactFromItem(it);
+            const masked = applyContactMask({ phone: contact.phone, email: contact.email, mask });
             return (
               <div key={it.id} className="px-4 py-3 flex items-center justify-between gap-4 hover:bg-muted/30 cursor-pointer"
                    onClick={() => { setActive(it); setOpen(true); }}>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <div className="font-medium truncate">{it.client.full_name}</div>
+                    <div className="font-medium truncate">{contact.full_name}</div>
                     {it.lead_status && (
                       <StatusBadge variant={leadStatusVariant(it.lead_status)} className="text-xs border">
                         {it.lead_status}
@@ -86,7 +90,7 @@ export function MyQueueTab({ mask }: { mask: boolean }) {
                     {it.status === "callback" && <Badge variant="secondary" className="text-[10px]">Callback</Badge>}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    <span className="font-mono">{masked.phone}</span> · {it.client.country}
+                    <span className="font-mono">{masked.phone}</span> · {contact.country}
                     {it.next_call_at && ` · due ${new Date(it.next_call_at).toLocaleString()}`}
                   </div>
                 </div>
