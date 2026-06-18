@@ -32,7 +32,9 @@ import { ShareLinkDialog } from "@/components/documents/ShareLinkDialog";
 import { BINDER_GROUPS, groupForType } from "@/lib/binderGroups";
 import { AddDocTypeDialog, type ExtraItem } from "@/components/clients/AddDocTypeDialog";
 import { ClientProfileCard } from "@/components/clients/ClientProfileCard";
-import { ClientLocationPreferencesSection } from "@/components/clients/ClientLocationPreferencesSection";
+import { ClientServicesTabContent } from "@/components/clients/ClientServicesTabContent";
+import { ClientJourneyProfileSection } from "@/components/clients/ClientJourneyProfileSection";
+import { ClientActivityLogCard } from "@/components/clients/ClientActivityLogCard";
 import { ClientPaymentsCard } from "@/components/clients/ClientPaymentsCard";
 import { ClientPromotionsStrip } from "@/components/clients/ClientPromotionsStrip";
 import { LetterCard } from "@/components/letters/LetterCard";
@@ -1215,11 +1217,22 @@ const ClientDetail = () => {
               onSyncOdoo={onSyncOdoo}
               syncingOdoo={syncingOdoo}
               refreshKey={profileRefreshKey}
-              onProgramsChanged={() => setProfileRefreshKey((k) => k + 1)}
             />
-            <ClientLocationPreferencesSection
+            <ClientJourneyProfileSection
               clientId={client.id}
               canEdit={canUpload}
+              refreshKey={profileRefreshKey}
+              blocks={["funding", "source"]}
+              title="Funding, timeline & source"
+            />
+          </TabsContent>
+
+          <TabsContent value="client-services" className="mt-0 space-y-6">
+            <ClientServicesTabContent
+              clientId={client.id}
+              canEdit={canUpload}
+              refreshKey={profileRefreshKey}
+              onProgramsChanged={() => setProfileRefreshKey((k) => k + 1)}
               services={{
                 coaching_services: client.coaching_services ?? [],
                 visa_services: client.visa_services ?? [],
@@ -1324,6 +1337,10 @@ const ClientDetail = () => {
               isAdmin={isAdmin}
               onGenerated={load}
             />
+          </TabsContent>
+
+          <TabsContent value="activity-log" className="mt-0 space-y-6">
+            <ClientActivityLogCard clientId={client.id} />
           </TabsContent>
 
           <TabsContent value="documents" className="mt-0 space-y-6">

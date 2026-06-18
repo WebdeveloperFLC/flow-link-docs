@@ -20,8 +20,6 @@ import {
   Briefcase,
   Phone,
   Maximize2,
-  Layers,
-  ScrollText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { appendClientActivityLog, diffRecordFields, formatFieldChanges } from "@/lib/clientActivityLog";
@@ -34,10 +32,6 @@ import { dialCodeFor, COUNTRY_OPTIONS } from "@/lib/countryCodes";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { ClientServicesCard } from "@/components/clients/ClientServicesCard";
-import { ClientJourneyProfileSection } from "@/components/clients/ClientJourneyProfileSection";
-import { ClientProgramsCard } from "@/components/clients/ClientProgramsCard";
-import { ClientActivityLogCard } from "@/components/clients/ClientActivityLogCard";
 
 interface Props {
   clientId: string;
@@ -47,7 +41,6 @@ interface Props {
   onSyncOdoo?: () => Promise<void>;
   syncingOdoo?: boolean;
   refreshKey?: number;
-  onProgramsChanged?: () => void;
 }
 
 type FieldDef = { key: typeof PROFILE_FIELDS[number]; label: string; type?: "date" | "number" };
@@ -60,7 +53,7 @@ type GroupDef = {
   fields: FieldDef[];
 };
 
-type ProfileTab = "personal-details" | "client-services" | "education-employment" | "activity-log";
+type ProfileTab = "personal-details" | "education-employment";
 type PersonalSectionId = "identity" | "passport" | "contact" | "emergency";
 
 const PERSONAL_GROUP_IDS: PersonalSectionId[] = ["identity", "passport", "contact", "emergency"];
@@ -68,9 +61,7 @@ const EDUCATION_EMPLOYMENT_IDS = ["education", "employment"] as const;
 
 const PROFILE_TABS: { id: ProfileTab; label: string; icon: typeof User }[] = [
   { id: "personal-details", label: "Personal Details", icon: User },
-  { id: "client-services", label: "Client Services", icon: Layers },
   { id: "education-employment", label: "Education & Employment", icon: GraduationCap },
-  { id: "activity-log", label: "Activity Log", icon: ScrollText },
 ];
 
 const GROUPS: GroupDef[] = [
@@ -207,7 +198,6 @@ export const ClientProfileCard = ({
   onSyncOdoo,
   syncingOdoo,
   refreshKey,
-  onProgramsChanged,
 }: Props) => {
   const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
   const [profileFallback, setProfileFallback] = useState<Record<string, string>>({});
@@ -695,33 +685,6 @@ export const ClientProfileCard = ({
       );
     }
 
-    if (activeTab === "client-services") {
-      return (
-        <div className="space-y-6">
-          <ClientServicesCard clientId={clientId} canEdit={canEdit} />
-          <ClientJourneyProfileSection
-            clientId={clientId}
-            canEdit={canEdit}
-            refreshKey={refreshKey}
-            blocks={["countries"]}
-            title="Interested countries"
-          />
-          <ClientProgramsCard
-            clientId={clientId}
-            canEdit={canEdit}
-            onChanged={onProgramsChanged}
-          />
-          <ClientJourneyProfileSection
-            clientId={clientId}
-            canEdit={canEdit}
-            refreshKey={refreshKey}
-            blocks={["funding", "source"]}
-            title="Funding, timeline & source"
-          />
-        </div>
-      );
-    }
-
     if (activeTab === "education-employment") {
       return (
         <div className="space-y-8">
@@ -745,10 +708,6 @@ export const ClientProfileCard = ({
           </div>
         </div>
       );
-    }
-
-    if (activeTab === "activity-log") {
-      return <ClientActivityLogCard clientId={clientId} />;
     }
 
     return null;
