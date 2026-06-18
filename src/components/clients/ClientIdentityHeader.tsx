@@ -9,7 +9,6 @@ import {
   MessageCircle,
   MoreHorizontal,
   ShieldCheck,
-  Star,
   ArrowRightLeft,
   ListTodo,
   Flag,
@@ -29,7 +28,11 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CallClientButton } from "@/components/clients/CallClientButton";
 import { LeadTemperaturePicker } from "@/components/leads/LeadTemperaturePicker";
+import { LeadSourcePicker } from "@/components/leads/LeadSourcePicker";
+import { ClientStarRating } from "@/components/clients/ClientStarRating";
 import { updateClientLeadTemperature } from "@/lib/clientLeadTemperature";
+import { updateClientLeadSource, updateClientRating } from "@/lib/clientLeadMeta";
+import { useMasterLabels } from "@/lib/masters";
 import type { LeadTemperature } from "@/lib/leads";
 import { toast } from "sonner";
 import { AddTaskDialog } from "@/components/clients/AddTaskDialog";
@@ -51,6 +54,8 @@ export type ClientHeaderClient = {
   email?: string | null;
   phone?: string | null;
   lead_temperature?: string | null;
+  lead_source?: string | null;
+  client_rating?: number | null;
   lead_score?: number | null;
   source_lead_id?: string | null;
   owner_id?: string | null;
@@ -87,6 +92,8 @@ type Props = {
   onRefusalDocUploaded?: () => void;
   onOpenAssessment?: () => void;
   onTemperatureChange?: (temperature: LeadTemperature) => void;
+  onLeadSourceChange?: (source: string | null) => void;
+  onRatingChange?: (rating: number | null) => void;
 };
 
 function initials(name: string): string {
@@ -127,11 +134,16 @@ export function ClientIdentityHeader({
   onRefusalDocUploaded,
   onOpenAssessment,
   onTemperatureChange,
+  onLeadSourceChange,
+  onRatingChange,
 }: Props) {
   const refusalInputRef = useRef<HTMLInputElement>(null);
   const [uploadingRefusal, setUploadingRefusal] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
   const [savingTemperature, setSavingTemperature] = useState(false);
+  const [savingSource, setSavingSource] = useState(false);
+  const [savingRating, setSavingRating] = useState(false);
+  const leadSources = useMasterLabels("lead_sources" as never);
   const destination = serviceCtx.destinationCountry ?? client.country;
   const flag = destination ? countryFlagEmoji(destination) : "";
   const serviceLabel = serviceCtx.serviceLabel ?? client.application_type;
@@ -140,8 +152,7 @@ export function ClientIdentityHeader({
   const cleanPhone = (client.phone ?? "").replace(/\D/g, "");
   const canManageAccess =
     isAdmin || (!!userId && (client.owner_id === userId || client.created_by === userId));
-  const score = client.lead_score ?? 0;
-  const showScore = score > 0;
+  const metaDisabled = !canUpload || savingTemperature || savingSource || savingRating;
 
   const onTemperatureSelect = async (temperature: LeadTemperature) => {
     if (temperature === client.lead_temperature) return;
@@ -157,6 +168,37 @@ export function ClientIdentityHeader({
       toast.error(e instanceof Error ? e.message : "Could not update lead importance");
     } finally {
       setSavingTemperature(false);
+    }
+  };
+
+  const onLeadSourceSelect = async (source: string) => {
+    if (source === (client.lead_source ?? "")) return;
+    setSavingSource(true);
+    try {
+      await updateClientLeadSource(client.id, source, {
+        sourceLeadId: client.source_lead_id,
+        previousSource: client.lead_source,
+      });
+      onLeadSourceChange?.(source);
+      toast.success(`Lead source set to ${source}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update lead source");
+    } finally {
+      setSavingSource(false);
+    }
+  };
+
+  const onRatingSelect = async (rating: number) => {
+    if (rating === client.client_rating) return;
+    setSavingRating(true);
+    try {
+      await updateClientRating(client.id, rating, { previousRating: client.client_rating });
+      onRatingChange?.(rating);
+      toast.success(`Rating set to ${rating} star${rating === 1 ? "" : "s"}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update rating");
+    } finally {
+      setSavingRating(false);
     }
   };
 
@@ -201,15 +243,20 @@ export function ClientIdentityHeader({
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">{client.full_name}</h1>
                 <LeadTemperaturePicker
                   value={client.lead_temperature}
-                  disabled={!canUpload || savingTemperature}
+                  disabled={metaDisabled}
                   onChange={onTemperatureSelect}
                 />
-                {showScore && (
-                  <span className="inline-flex items-center gap-0.5 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
-                    <Star className="size-3 fill-amber-500 text-amber-500" />
-                    {score}
-                  </span>
-                )}
+                <LeadSourcePicker
+                  value={client.lead_source}
+                  options={leadSources}
+                  disabled={metaDisabled}
+                  onChange={onLeadSourceSelect}
+                />
+                <ClientStarRating
+                  value={client.client_rating}
+                  disabled={metaDisabled}
+                  onChange={onRatingSelect}
+                />
                 {caseClosed && caseOutcome && OUTCOME_BADGE[caseOutcome] && (
                   <span
                     className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide ${OUTCOME_BADGE[caseOutcome].className}`}

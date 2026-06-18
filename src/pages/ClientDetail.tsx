@@ -106,6 +106,8 @@ interface Client {
   email?: string | null;
   phone?: string | null;
   lead_temperature?: string | null;
+  lead_source?: string | null;
+  client_rating?: number | null;
   lead_score?: number | null;
   source_lead_id?: string | null;
   date_of_birth?: string | null;
@@ -1124,6 +1126,12 @@ const ClientDetail = () => {
         onOpenAssessment={() => setAssessmentOpen(true)}
         onTemperatureChange={(temperature) =>
           setClient((c) => (c ? { ...c, lead_temperature: temperature } : c))
+        }
+        onLeadSourceChange={(source) =>
+          setClient((c) => (c ? { ...c, lead_source: source } : c))
+        }
+        onRatingChange={(rating) =>
+          setClient((c) => (c ? { ...c, client_rating: rating } : c))
         }
       />
 

@@ -7734,6 +7734,7 @@ export type Database = {
           billing_entity: string | null
           branch: string | null
           budget: number | null
+          client_rating: number | null
           client_type: string | null
           closing_at: string | null
           closing_branch_id: string | null
@@ -7842,6 +7843,7 @@ export type Database = {
           billing_entity?: string | null
           branch?: string | null
           budget?: number | null
+          client_rating?: number | null
           client_type?: string | null
           closing_at?: string | null
           closing_branch_id?: string | null
@@ -7950,6 +7952,7 @@ export type Database = {
           billing_entity?: string | null
           branch?: string | null
           budget?: number | null
+          client_rating?: number | null
           client_type?: string | null
           closing_at?: string | null
           closing_branch_id?: string | null
@@ -20596,6 +20599,7 @@ export type Database = {
           billing_entity: string | null
           branch: string | null
           budget: number | null
+          client_rating: number | null
           client_type: string | null
           closing_at: string | null
           closing_branch_id: string | null
