@@ -11,12 +11,9 @@ import {
   Save,
   Sparkles,
   Upload,
-  Trash2,
-  Plus,
   User,
   CreditCard,
   MapPin,
-  GraduationCap,
   Briefcase,
   Phone,
   Maximize2,
@@ -53,16 +50,9 @@ type GroupDef = {
   fields: FieldDef[];
 };
 
-type ProfileTab = "personal-details" | "education-employment";
-type PersonalSectionId = "identity" | "passport" | "contact" | "emergency";
+type PersonalSectionId = "identity" | "passport" | "contact" | "emergency" | "employment";
 
-const PERSONAL_GROUP_IDS: PersonalSectionId[] = ["identity", "passport", "contact", "emergency"];
-const EDUCATION_EMPLOYMENT_IDS = ["education", "employment"] as const;
-
-const PROFILE_TABS: { id: ProfileTab; label: string; icon: typeof User }[] = [
-  { id: "personal-details", label: "Personal Details", icon: User },
-  { id: "education-employment", label: "Education & Employment", icon: GraduationCap },
-];
+const PERSONAL_GROUP_IDS: PersonalSectionId[] = ["identity", "passport", "contact", "emergency", "employment"];
 
 const GROUPS: GroupDef[] = [
   {
@@ -107,24 +97,6 @@ const GROUPS: GroupDef[] = [
     ],
   },
   {
-    id: "education",
-    title: "Education & language",
-    shortLabel: "Education",
-    icon: GraduationCap,
-    fields: [
-      { key: "highest_qualification", label: "Highest qualification" },
-      { key: "institution_name", label: "Institution" },
-      { key: "graduation_year", label: "Graduation year", type: "number" },
-      { key: "gpa_or_percentage", label: "GPA / %" },
-      { key: "ielts_overall", label: "IELTS overall", type: "number" },
-      { key: "ielts_listening", label: "IELTS L", type: "number" },
-      { key: "ielts_reading", label: "IELTS R", type: "number" },
-      { key: "ielts_writing", label: "IELTS W", type: "number" },
-      { key: "ielts_speaking", label: "IELTS S", type: "number" },
-      { key: "ielts_test_date", label: "IELTS test date", type: "date" },
-    ],
-  },
-  {
     id: "employment",
     title: "Employment & finance",
     shortLabel: "Employment",
@@ -151,13 +123,6 @@ const GROUPS: GroupDef[] = [
     ],
   },
 ];
-
-const EDUCATION_HISTORY_SECTION = {
-  id: "education-history" as const,
-  title: "Education history",
-  shortLabel: "Qualifications",
-  icon: GraduationCap,
-};
 
 function countFilled(fields: FieldDef[], valFor: (k: string) => string): { filled: number; total: number } {
   const total = fields.length;
@@ -208,8 +173,6 @@ export const ClientProfileCard = ({
   const [primaryPhoneEdit, setPrimaryPhoneEdit] = useState<string | null>(null);
   const [countryCode, setCountryCode] = useState<string>("");
   const [countryCodeEdit, setCountryCodeEdit] = useState<string | null>(null);
-  const [education, setEducation] = useState<Array<Record<string, unknown>>>([]);
-  const [activeTab, setActiveTab] = useState<ProfileTab>("personal-details");
   const [personalSection, setPersonalSection] = useState<PersonalSectionId>("identity");
   const [fullViewOpen, setFullViewOpen] = useState(false);
 
@@ -217,10 +180,9 @@ export const ClientProfileCard = ({
     setLoading(true);
     try {
       await ensureClientProfileSynced(clientId);
-      const [{ data }, { data: clientRow }, { data: edu }, { data: spouse }] = await Promise.all([
+      const [{ data }, { data: clientRow }, { data: spouse }] = await Promise.all([
         supabase.from("client_profile").select("*").eq("client_id", clientId).maybeSingle(),
         supabase.from("clients").select("*").eq("id", clientId).maybeSingle(),
-        supabase.from("client_education").select("*").eq("client_id", clientId).order("end_year", { ascending: false }),
         supabase
           .from("client_family_members")
           .select("first_name, last_name")
@@ -245,7 +207,6 @@ export const ClientProfileCard = ({
           "",
       );
       setCountryCodeEdit(null);
-      setEducation((edu as Array<Record<string, unknown>>) ?? []);
       setEdits({});
     } finally {
       setLoading(false);
@@ -385,35 +346,6 @@ export const ClientProfileCard = ({
     }
   };
 
-  const removeEducation = async (id: string) => {
-    const { error } = await supabase.from("client_education").delete().eq("id", id);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    setEducation((prev) => prev.filter((e) => e.id !== id));
-  };
-
-  const addEducation = async () => {
-    const { data, error } = await supabase
-      .from("client_education")
-      .insert({ client_id: clientId, degree: "", institution: "" } as never)
-      .select()
-      .single();
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    setEducation((prev) => [data as Record<string, unknown>, ...prev]);
-  };
-
-  const updateEducationField = async (id: string, field: string, value: string) => {
-    const v = value === "" ? null : field === "start_year" || field === "end_year" ? Number(value) : value;
-    setEducation((prev) => prev.map((e) => (e.id === id ? { ...e, [field]: v } : e)));
-    const { error } = await supabase.from("client_education").update({ [field]: v } as never).eq("id", id);
-    if (error) toast.error(error.message);
-  };
-
   const renderContactExtras = () => (
     <>
       <div className="space-y-1">
@@ -493,96 +425,6 @@ export const ClientProfileCard = ({
     </div>
   );
 
-  const renderEducationHistory = () => (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">Degrees and qualifications from documents or manual entry.</p>
-        {canEdit && (
-          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={addEducation}>
-            <Plus className="size-3.5 mr-1" /> Add
-          </Button>
-        )}
-      </div>
-      {education.length === 0 ? (
-        <div className="rounded-lg border border-dashed px-4 py-6 text-center text-xs text-muted-foreground">
-          No qualifications yet. Upload a resume or transcript, or add manually.
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {education.map((e) => (
-            <div key={String(e.id)} className="rounded-lg border bg-muted/20 p-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-2 relative">
-              <Input
-                className="h-8 text-sm bg-background"
-                placeholder="Degree"
-                value={String(e.degree ?? "")}
-                readOnly={!canEdit}
-                onChange={(ev) => updateEducationField(String(e.id), "degree", ev.target.value)}
-              />
-              <Input
-                className="h-8 text-sm bg-background"
-                placeholder="Field of study"
-                value={String(e.field_of_study ?? "")}
-                readOnly={!canEdit}
-                onChange={(ev) => updateEducationField(String(e.id), "field_of_study", ev.target.value)}
-              />
-              <Input
-                className="h-8 text-sm bg-background"
-                placeholder="Institution"
-                value={String(e.institution ?? "")}
-                readOnly={!canEdit}
-                onChange={(ev) => updateEducationField(String(e.id), "institution", ev.target.value)}
-              />
-              <div className="flex gap-2">
-                <Input
-                  className="h-8 text-sm bg-background"
-                  type="number"
-                  placeholder="Start"
-                  value={e.start_year ? String(e.start_year) : ""}
-                  readOnly={!canEdit}
-                  onChange={(ev) => updateEducationField(String(e.id), "start_year", ev.target.value)}
-                />
-                <Input
-                  className="h-8 text-sm bg-background"
-                  type="number"
-                  placeholder="End"
-                  value={e.end_year ? String(e.end_year) : ""}
-                  readOnly={!canEdit}
-                  onChange={(ev) => updateEducationField(String(e.id), "end_year", ev.target.value)}
-                />
-              </div>
-              <Input
-                className="h-8 text-sm sm:col-span-2 bg-background"
-                placeholder="GPA / %"
-                value={String(e.gpa_or_percentage ?? "")}
-                readOnly={!canEdit}
-                onChange={(ev) => updateEducationField(String(e.id), "gpa_or_percentage", ev.target.value)}
-              />
-              <Input
-                className="h-8 text-sm bg-background"
-                placeholder="Level"
-                value={String(e.level ?? "")}
-                readOnly={!canEdit}
-                onChange={(ev) => updateEducationField(String(e.id), "level", ev.target.value)}
-              />
-              <div className="flex items-center justify-between gap-2">
-                {e.source_file_name && (
-                  <div className="text-[10px] text-muted-foreground truncate" title={`From ${e.source_file_name}`}>
-                    ✨ {String(e.source_file_name)}
-                  </div>
-                )}
-                {canEdit && (
-                  <Button variant="ghost" size="icon" className="size-7 ml-auto" onClick={() => removeEducation(String(e.id))}>
-                    <Trash2 className="size-3.5 text-destructive" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
   const activeGroup = GROUPS.find((g) => g.id === personalSection);
 
   const renderPersonalSubNav = () => (
@@ -620,30 +462,6 @@ export const ClientProfileCard = ({
     </div>
   );
 
-  const renderSectionNav = () => (
-    <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
-      {PROFILE_TABS.map(({ id, label, icon: Icon }) => {
-        const active = activeTab === id;
-        return (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setActiveTab(id)}
-            className={cn(
-              "shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all border",
-              active
-                ? "bg-white text-primary border-white shadow-sm"
-                : "bg-white/10 text-primary-foreground border-white/20 hover:bg-white/20",
-            )}
-          >
-            <Icon className="size-3.5 shrink-0" />
-            <span>{label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-
   const renderGroupPanel = (g: GroupDef) => {
     const { filled, total, complete } = sectionProgress(g, valFor, primaryPhone, primaryPhoneEdit);
     const Icon = g.icon;
@@ -675,42 +493,13 @@ export const ClientProfileCard = ({
   };
 
   const renderActivePanel = () => {
-    if (activeTab === "personal-details") {
-      if (!activeGroup) return null;
-      return (
-        <div className="space-y-4">
-          {renderPersonalSubNav()}
-          {renderGroupPanel(activeGroup)}
-        </div>
-      );
-    }
-
-    if (activeTab === "education-employment") {
-      return (
-        <div className="space-y-8">
-          {EDUCATION_EMPLOYMENT_IDS.map((id) => {
-            const g = GROUPS.find((group) => group.id === id);
-            return g ? renderGroupPanel(g) : null;
-          })}
-          <div className="space-y-3 border-t pt-6">
-            <div>
-              <h3 className="text-sm font-semibold">{EDUCATION_HISTORY_SECTION.title}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {education.length > 0
-                  ? education
-                      .slice(0, 3)
-                      .map((e) => String(e.degree || e.institution || "Entry"))
-                      .join(" · ")
-                  : "No qualifications captured yet"}
-              </p>
-            </div>
-            {renderEducationHistory()}
-          </div>
-        </div>
-      );
-    }
-
-    return null;
+    if (!activeGroup) return null;
+    return (
+      <div className="space-y-4">
+        {renderPersonalSubNav()}
+        {renderGroupPanel(activeGroup)}
+      </div>
+    );
   };
 
   const renderFullViewSections = () => (
@@ -724,19 +513,6 @@ export const ClientProfileCard = ({
           </div>
         ) : null;
       })}
-      {EDUCATION_EMPLOYMENT_IDS.map((id) => {
-        const g = GROUPS.find((group) => group.id === id);
-        return g ? (
-          <div key={g.id} className="rounded-lg border bg-card p-4 space-y-3">
-            <div className="text-xs font-semibold uppercase tracking-wider text-primary">{g.title}</div>
-            {renderFieldsGrid(g)}
-          </div>
-        ) : null;
-      })}
-      <div className="rounded-lg border bg-card p-4 space-y-3">
-        <div className="text-xs font-semibold uppercase tracking-wider text-primary">Education history</div>
-        {renderEducationHistory()}
-      </div>
     </div>
   );
 
@@ -806,8 +582,6 @@ export const ClientProfileCard = ({
               )}
             </div>
           </div>
-
-          {!loading && renderSectionNav()}
         </div>
 
         <div className="px-4 sm:px-6 py-4 min-h-[280px]">

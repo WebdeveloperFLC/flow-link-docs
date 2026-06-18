@@ -41,6 +41,7 @@ import { LetterCard } from "@/components/letters/LetterCard";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { CasePeopleCard } from "@/components/clients/CasePeopleCard";
+import { ClientBackgroundProfileSection } from "@/components/clients/ClientBackgroundProfileSection";
 import { ClientFormsCard } from "@/components/clients/ClientFormsCard";
 import { SectionBuilderCard, type SectionDoc } from "@/components/clients/SectionBuilderCard";
 import { CustomBindersPanel } from "@/components/clients/CustomBindersPanel";
@@ -1222,6 +1223,18 @@ const ClientDetail = () => {
               syncingOdoo={syncingOdoo}
               refreshKey={profileRefreshKey}
             />
+            <ClientBackgroundProfileSection
+              clientId={client.id}
+              canEdit={canUpload}
+              refreshKey={profileRefreshKey}
+              onSaved={() => setProfileRefreshKey((k) => k + 1)}
+            />
+            <CasePeopleCard
+              clientId={client.id}
+              canEdit={canUpload}
+              isAdmin={isAdmin}
+              onChange={setPeople}
+            />
             <ClientJourneyProfileSection
               clientId={client.id}
               canEdit={canUpload}
@@ -1295,12 +1308,6 @@ const ClientDetail = () => {
           </TabsContent>
 
           <TabsContent value="team" className="mt-0 space-y-6">
-            <CasePeopleCard
-              clientId={client.id}
-              canEdit={canUpload}
-              isAdmin={isAdmin}
-              onChange={setPeople}
-            />
             <div className="grid lg:grid-cols-2 gap-6">
               <ClientAccessCard
                 key={accessRefreshKey}
