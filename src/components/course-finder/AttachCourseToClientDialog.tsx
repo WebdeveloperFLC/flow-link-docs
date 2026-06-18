@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Search, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { shortlistCourseForClient } from "@/lib/clientPrograms";
+import { CLIENT_FILE_NUMBER_LABEL, clientFileInline } from "@/lib/clientIdentifiers";
 
 type ClientRow = {
   id: string;
@@ -101,7 +102,7 @@ export function AttachCourseToClientDialog({
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search name, file no., email, phone…"
+              placeholder={`Search name, ${CLIENT_FILE_NUMBER_LABEL}, email, phone…`}
               className="pl-9"
             />
           </div>
@@ -125,7 +126,7 @@ export function AttachCourseToClientDialog({
                 >
                   <div className="font-medium text-sm">{c.full_name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {[c.application_id, c.email, c.phone, c.country].filter(Boolean).join(" · ") || "—"}
+                    {[clientFileInline(c.application_id), c.email, c.phone, c.country].filter((v) => v && v !== "—").join(" · ") || "—"}
                   </div>
                 </button>
               ))

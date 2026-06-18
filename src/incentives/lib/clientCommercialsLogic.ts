@@ -114,6 +114,7 @@ export function buildClientCommercialRow(input: {
   invoice: InvoiceCommercialInput;
   clientName: string;
   applicationId: string;
+  sourceLeadNumber?: string | null;
   walletDiscount: number;
   offerLabel: string | null;
   counselorName: string;
@@ -139,7 +140,7 @@ export function buildClientCommercialRow(input: {
     clientId: invoice.client_id,
     clientName: input.clientName,
     applicationId: input.applicationId,
-    leadLabel: input.applicationId || "—",
+    leadLabel: input.sourceLeadNumber?.trim() || "—",
     serviceLabel: extractServiceLabel(invoice.line_items),
     stage,
     stageLabel: commercialStageLabel(stage),

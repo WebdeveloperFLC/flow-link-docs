@@ -39,7 +39,7 @@ export function LeadSummaryStrip({ leadNumber, clientRegNumber, fields, notes, c
               {clientRegNumber && (
                 <>
                   <span>·</span>
-                  <span className="font-mono text-primary">Client {clientRegNumber}</span>
+                  <span className="font-mono text-primary">Reg {clientRegNumber}</span>
                 </>
               )}
             </div>

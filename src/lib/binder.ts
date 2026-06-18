@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { supabase } from "@/integrations/supabase/client";
+import { CLIENT_FILE_NUMBER_LABEL } from "@/lib/clientIdentifiers";
 import { appendAllPages } from "./combinePdfs";
 
 interface DocItem {
@@ -48,7 +49,7 @@ export async function generateBinder(input: BinderInput): Promise<Uint8Array> {
 
   const meta: [string, string][] = [
     ["Client Name", clientName],
-    ["Application ID", applicationId],
+    [CLIENT_FILE_NUMBER_LABEL, applicationId],
     ["Country", country],
     ["Application Type", applicationType],
     ["Workflow Template", templateName],

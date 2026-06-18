@@ -43,6 +43,7 @@ import type { CaseOutcome, ClientServiceCase } from "@/lib/clientServiceCase";
 import { OUTCOME_BADGE } from "@/lib/caseOutcomeStyles";
 import { attachRefusalDocument, uploadOutcomeDocument } from "@/lib/caseOutcome";
 import { CaseAttemptSwitcher } from "@/components/clients/CaseAttemptSwitcher";
+import { CLIENT_FILE_NUMBER_LABEL, clientFileInline } from "@/lib/clientIdentifiers";
 
 export type ClientHeaderClient = {
   id: string;
@@ -302,13 +303,13 @@ export function ClientIdentityHeader({
                 )}
               </div>
               <p className="text-sm text-muted-foreground mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-                <span className="font-mono text-primary/90" title="Client file number">
-                  {client.application_id}
+                <span className="font-mono text-primary/90" title={CLIENT_FILE_NUMBER_LABEL}>
+                  {clientFileInline(client.application_id)}
                 </span>
                 {client.registration_number && (
                   <>
                     <span>·</span>
-                    <span className="font-mono" title="Registration number">
+                    <span className="font-mono" title="Registration #">
                       Reg {client.registration_number}
                     </span>
                   </>
@@ -316,7 +317,7 @@ export function ClientIdentityHeader({
                 {client.source_lead_number && (
                   <>
                     <span>·</span>
-                    <span title="Source lead number">Lead {client.source_lead_number}</span>
+                    <span title="Source Lead #">Lead {client.source_lead_number}</span>
                   </>
                 )}
                 {destination && (

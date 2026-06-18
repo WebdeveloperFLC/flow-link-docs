@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegDataUrl } from "@/lib/extractFirstPageText";
 import { cn } from "@/lib/utils";
 import { logActivity } from "@/lib/activity";
+import { CLIENT_FILE_NUMBER_LABEL, clientFileInline } from "@/lib/clientIdentifiers";
 
 interface Signal {
   key: string;
@@ -219,7 +220,7 @@ const Verification = () => {
         {/* Left: pick client + doc */}
         <Card className="p-4 space-y-3 h-fit">
           <div className="text-sm font-semibold">1. Pick a client</div>
-          <Input placeholder="Search by name or ID..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder={`Search by name or ${CLIENT_FILE_NUMBER_LABEL}…`} value={search} onChange={(e) => setSearch(e.target.value)} />
           <div className="max-h-64 overflow-auto space-y-1 border rounded-md p-1">
             {filteredClients.map((c) => (
               <button
@@ -228,7 +229,7 @@ const Verification = () => {
                 className={cn("w-full text-left px-2 py-1.5 rounded text-sm hover:bg-accent transition", clientId === c.id && "bg-accent")}
               >
                 <div className="font-medium truncate">{c.full_name}</div>
-                <div className="text-xs text-muted-foreground">{c.application_id}</div>
+                <div className="text-xs text-muted-foreground">{clientFileInline(c.application_id)}</div>
               </button>
             ))}
             {filteredClients.length === 0 && <div className="text-xs text-muted-foreground p-3 text-center">No clients</div>}

@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { ClientCommercialRow } from "@/incentives/lib/clientCommercialsLogic";
+import { clientFileInline } from "@/lib/clientIdentifiers";
 import { cn } from "@/lib/utils";
 import { AlertTriangle, Check, Lock, X } from "lucide-react";
 
@@ -49,7 +50,9 @@ export function PerformanceClientCommercialDetail({ row, open, onOpenChange }: P
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-sm ph-muted">{row.applicationId || row.clientId.slice(0, 8)}</span>
+            <span className="font-mono text-sm ph-muted">
+              {row.applicationId ? clientFileInline(row.applicationId) : row.clientId.slice(0, 8)}
+            </span>
             <span>· {row.clientName}</span>
           </DialogTitle>
         </DialogHeader>

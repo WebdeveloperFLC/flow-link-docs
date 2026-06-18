@@ -9,6 +9,7 @@ import { useMasterLabels } from "@/lib/masters";
 import { PhoneInputRow } from "@/components/leads/PhoneInputRow";
 import { dialCodeFor } from "@/lib/countryCodes";
 import { logActivity } from "@/lib/activity";
+import { CLIENT_FILE_NUMBER_LABEL } from "@/lib/clientIdentifiers";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -110,7 +111,7 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
         await supabase.from("client_profile").insert({ client_id: row.id, gender });
       }
       await logActivity("client.created", "client", row.id, { application_id: row.application_id });
-      toast.success(`Created ${row.application_id}`);
+      toast.success(`${CLIENT_FILE_NUMBER_LABEL} ${row.application_id} created`);
       onOpenChange(false);
       setCountry(""); setAppType(""); setTemplateId(""); setGender(""); setPhoneCountryCode("+91"); setPhone("");
       onCreated();

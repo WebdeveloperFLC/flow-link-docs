@@ -50,7 +50,7 @@ export function useClientCommercialsData(period: string, branchId: string) {
       const branchIds = [...new Set(invRows.map((i) => i.branch_id).filter(Boolean))] as string[];
 
       const [clientsRes, walletRes, offersRes, profilesRes, branchesRes] = await Promise.all([
-        supabase.from("clients").select("id,full_name,application_id").in("id", clientIds),
+        supabase.from("clients").select("id,full_name,application_id,source_lead_number").in("id", clientIds),
         supabase
           .from("wallet_allocations")
           .select("invoice_id,amount,status")
@@ -68,10 +68,12 @@ export function useClientCommercialsData(period: string, branchId: string) {
       ]);
 
       const clientMap = new Map(
-        ((clientsRes.data ?? []) as { id: string; full_name: string; application_id: string }[]).map((c) => [
-          c.id,
-          c,
-        ]),
+        ((clientsRes.data ?? []) as {
+          id: string;
+          full_name: string;
+          application_id: string;
+          source_lead_number: string | null;
+        }[]).map((c) => [c.id, c]),
       );
       const offerMap = new Map(
         ((offersRes.data ?? []) as { id: string; title: string; promo_code: string | null }[]).map((o) => [
@@ -102,6 +104,7 @@ export function useClientCommercialsData(period: string, branchId: string) {
           invoice: inv,
           clientName: client?.full_name ?? "Client",
           applicationId: client?.application_id ?? "",
+          sourceLeadNumber: client?.source_lead_number ?? null,
           walletDiscount: walletByInvoice.get(inv.id) ?? 0,
           offerLabel: inv.applied_offer_id ? offerMap.get(inv.applied_offer_id) ?? null : null,
           counselorName: counselorId ? profileMap.get(counselorId) ?? "—" : "—",

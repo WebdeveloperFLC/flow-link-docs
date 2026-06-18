@@ -12,6 +12,7 @@ import { copyToClipboard } from "@/lib/serviceLibrary";
 import { buildServiceCode, buildServiceLibraryParams, appendServiceLibraryClientContext, buildClientDetailUrlFromServiceLibrary } from "@/lib/service-library/serviceCodes";
 import { rememberServiceLibraryReturn } from "@/components/navigation/ContextBackBar";
 import { enrollClientInServiceLibraryApplication } from "@/lib/service-library/enrollClientInService";
+import { CLIENT_FILE_NUMBER_LABEL, clientFileInline } from "@/lib/clientIdentifiers";
 
 type ClientRow = {
   id: string;
@@ -274,7 +275,7 @@ export function ServiceLibraryClientDialog({
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
               <Input
-                placeholder="Search client name, ID, email…"
+                placeholder={`Search client name, ${CLIENT_FILE_NUMBER_LABEL}, email…`}
                 className="pl-8"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
@@ -286,7 +287,7 @@ export function ServiceLibraryClientDialog({
               items={filteredClients.map((c) => ({
                 id: c.id,
                 title: c.full_name,
-                subtitle: [c.application_id, c.country, c.email].filter(Boolean).join(" · "),
+                subtitle: [clientFileInline(c.application_id), c.country, c.email].filter((v) => v && v !== "—").join(" · "),
               }))}
               picked={pickedClient}
               onPick={setPickedClient}

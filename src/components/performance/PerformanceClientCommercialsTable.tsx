@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import type { ClientCommercialRow } from "@/incentives/lib/clientCommercialsLogic";
+import { CLIENT_FILE_NUMBER_LABEL, clientFileInline } from "@/lib/clientIdentifiers";
 import { cn } from "@/lib/utils";
 import { ArrowRight, Lock } from "lucide-react";
 
@@ -61,7 +62,9 @@ export function PerformanceClientCommercialsTable({ rows, loading, onSelect }: P
                   onClick={() => onSelect(r)}
                 >
                   <td className="py-3 pr-3">
-                    <div className="font-mono text-xs ph-muted">{r.applicationId || r.clientId.slice(0, 8)}</div>
+                    <div className="font-mono text-xs ph-muted" title={CLIENT_FILE_NUMBER_LABEL}>
+                      {r.applicationId ? clientFileInline(r.applicationId) : r.clientId.slice(0, 8)}
+                    </div>
                     <div className="font-semibold ph-heading">{r.clientName}</div>
                     <div className="text-xs ph-muted">
                       {r.counselorName} · {r.branchName}

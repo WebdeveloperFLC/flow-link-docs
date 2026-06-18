@@ -23,6 +23,7 @@ import {
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { CLIENT_FILE_NUMBER_LABEL, clientFileInline } from "@/lib/clientIdentifiers";
 import { buildLocalPreviewUrl } from "@/lib/documentPreview";
 import { InlinePreviewDialog } from "@/components/documents/InlinePreviewDialog";
 
@@ -1170,7 +1171,7 @@ export const SmartUploadZone = ({
                               className="w-full text-left px-2 py-1.5 text-[11px] hover:bg-accent border-b last:border-0"
                             >
                               <div className="font-medium">{c.full_name}</div>
-                              <div className="text-muted-foreground text-[10px]">{c.application_id}</div>
+                              <div className="text-muted-foreground text-[10px]">{clientFileInline(c.application_id)}</div>
                             </button>
                           ))}
                         </div>

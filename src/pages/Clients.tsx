@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Search, ArrowUpRight, Globe2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CLIENT_FILE_NUMBER_LABEL } from "@/lib/clientIdentifiers";
 
 interface Client {
   id: string;
@@ -76,7 +77,7 @@ const Clients = () => {
       .range(from, to);
     if (q) {
       const term = q.replace(/[%,()]/g, " ").trim();
-      // OR across name, email, phone, application id
+      // OR across name, email, phone, client file #, registration #
       query = query.or(
         `full_name.ilike.%${term}%,email.ilike.%${term}%,phone.ilike.%${term}%,application_id.ilike.%${term}%,registration_number.ilike.%${term}%`
       );
@@ -134,7 +135,7 @@ const Clients = () => {
             <Input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search by name, email, phone, App ID…"
+              placeholder={`Search by name, email, phone, ${CLIENT_FILE_NUMBER_LABEL}…`}
               className="pl-9"
             />
           </div>
@@ -158,7 +159,7 @@ const Clients = () => {
         <Card className="overflow-hidden shadow-elev-sm">
           <div className="grid grid-cols-12 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">
             <div className="col-span-4">Client</div>
-            <div className="col-span-2">App ID</div>
+            <div className="col-span-2">{CLIENT_FILE_NUMBER_LABEL}</div>
             <div className="col-span-2">Country</div>
             <div className="col-span-3">Application Type</div>
             <div className="col-span-1 text-right">Open</div>

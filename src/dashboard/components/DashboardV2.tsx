@@ -50,6 +50,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
+import { clientFileInline } from "@/lib/clientIdentifiers";
 import {
   useDashboardExecutiveData,
   useDashboardModuleData,
@@ -638,7 +639,7 @@ export function DashboardV2() {
                         <div>
                           <div className="font-medium">{client.full_name}</div>
                           <div className="text-xs text-muted-foreground">
-                            {client.application_id} · {client.country} · {client.application_type}
+                            {clientFileInline(client.application_id)} · {client.country} · {client.application_type}
                           </div>
                         </div>
                         <ArrowUpRight className="size-4 text-muted-foreground" />
