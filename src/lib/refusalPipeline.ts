@@ -18,8 +18,6 @@ export async function moveClientToVisaRefusedStage(
     .from("clients")
     .update({
       current_stage_id: refusedStage.id,
-      internal_sub_status: "Reviewing refusal",
-      internal_sub_status_note: "Case outcome recorded as refused",
       status: "rejected",
       updated_at: new Date().toISOString(),
     })

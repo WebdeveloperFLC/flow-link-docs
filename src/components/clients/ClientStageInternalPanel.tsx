@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Workflow, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { subStatusesForStageKey } from "@/lib/stageSubStatuses";
 import { ClientRefusalWorkflowDialog } from "@/components/clients/ClientRefusalWorkflowDialog";
 import { appendClientActivityLog } from "@/lib/clientActivityLog";
+import { useMasterItems } from "@/lib/masters";
+import { resolveClientStatusLabel } from "@/lib/clientStatus";
 
 interface Pipeline {
   id: string;
@@ -31,7 +31,7 @@ type Props = {
   onReload?: () => void;
 };
 
-/** Pipeline assign (no pipeline) + internal sub-status panel under the journey bar. */
+/** Pipeline assign (no pipeline) + client status panel under the journey bar. */
 export function ClientStageInternalPanel({
   clientId,
   clientCountry,
@@ -40,33 +40,26 @@ export function ClientStageInternalPanel({
   hasPipeline,
   pipelineId,
   currentStageKey,
-  derivedCurrentStageId,
-  currentStageLabel,
   busy = false,
   onReload,
 }: Props) {
   const { canUpload } = useAuth();
+  const statusOptions = useMasterItems("client_statuses");
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
-  const [subStatus, setSubStatus] = useState("");
-  const [subStatusNote, setSubStatusNote] = useState("");
-  const [savedSubStatus, setSavedSubStatus] = useState("");
-  const [savedSubStatusNote, setSavedSubStatusNote] = useState("");
+  const [clientStatus, setClientStatus] = useState("in_progress");
+  const [savedStatus, setSavedStatus] = useState("in_progress");
   const [refusalOpen, setRefusalOpen] = useState(false);
   const [assignBusy, setAssignBusy] = useState(false);
 
   const loadClientMeta = async () => {
     const { data: clientRow } = await supabase
       .from("clients")
-      .select("internal_sub_status, internal_sub_status_note")
+      .select("status")
       .eq("id", clientId)
       .maybeSingle();
-    const row = clientRow as { internal_sub_status?: string | null; internal_sub_status_note?: string | null };
-    const st = row?.internal_sub_status ?? "";
-    const note = row?.internal_sub_status_note ?? "";
-    setSubStatus(st);
-    setSubStatusNote(note);
-    setSavedSubStatus(st);
-    setSavedSubStatusNote(note);
+    const st = (clientRow as { status?: string | null })?.status?.trim() || "in_progress";
+    setClientStatus(st);
+    setSavedStatus(st);
   };
 
   useEffect(() => {
@@ -92,13 +85,9 @@ export function ClientStageInternalPanel({
     return matching.length ? matching : pipelines;
   }, [pipelines, clientCountry, destinationCountry]);
 
-  const subStatusOptions = useMemo(
-    () => subStatusesForStageKey(currentStageKey ?? null),
-    [currentStageKey],
-  );
-
   const metaBusy = busy || assignBusy;
   const showRefusalActions = currentStageKey === "visa_refused" || currentStageKey === "decision_received";
+  const defaultStatusCode = statusOptions[0]?.code ?? "in_progress";
 
   const onAssignPipeline = async (pipelineIdVal: string) => {
     setAssignBusy(true);
@@ -120,8 +109,6 @@ export function ClientStageInternalPanel({
         .update({
           pipeline_id: pipelineIdVal,
           current_stage_id: first.id,
-          internal_sub_status: null,
-          internal_sub_status_note: null,
         })
         .eq("id", clientId);
       if (error) throw error;
@@ -141,33 +128,29 @@ export function ClientStageInternalPanel({
     }
   };
 
-  const onSaveSubStatus = async () => {
+  const onSaveStatus = async () => {
+    const next = clientStatus || defaultStatusCode;
+    if (!next) {
+      toast.error("Select a client status");
+      return;
+    }
     setAssignBusy(true);
     try {
-      const { error } = await supabase
-        .from("clients")
-        .update({
-          internal_sub_status: subStatus || null,
-          internal_sub_status_note: subStatusNote || null,
-        })
-        .eq("id", clientId);
+      const { error } = await supabase.from("clients").update({ status: next }).eq("id", clientId);
       if (error) throw error;
       await appendClientActivityLog({
         clientId,
-        action: "internal_sub_status_changed",
-        summary: "Internal sub-status updated",
-        previousValue: [savedSubStatus, savedSubStatusNote].filter(Boolean).join(" — ") || "—",
-        newValue: [subStatus, subStatusNote].filter(Boolean).join(" — ") || "—",
-        metadata: {
-          internal_sub_status: subStatus || null,
-          internal_sub_status_note: subStatusNote || null,
-        },
+        action: "client_status_changed",
+        summary: "Client status updated",
+        previousValue: resolveClientStatusLabel(savedStatus, statusOptions),
+        newValue: resolveClientStatusLabel(next, statusOptions),
+        metadata: { status: next },
       });
-      setSavedSubStatus(subStatus);
-      setSavedSubStatusNote(subStatusNote);
-      toast.success("Internal sub-status saved");
+      setSavedStatus(next);
+      setClientStatus(next);
+      toast.success("Client status saved");
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Failed to save sub-status");
+      toast.error(e instanceof Error ? e.message : "Failed to save client status");
     } finally {
       setAssignBusy(false);
     }
@@ -188,11 +171,12 @@ export function ClientStageInternalPanel({
           .from("clients")
           .update({
             current_stage_id: refusedStage.id,
-            internal_sub_status: "Reviewing refusal",
             status: "rejected",
           })
           .eq("id", clientId);
         if (error) throw error;
+        setClientStatus("rejected");
+        setSavedStatus("rejected");
         await appendClientActivityLog({
           clientId,
           action: "stage_changed",
@@ -245,35 +229,27 @@ export function ClientStageInternalPanel({
     <>
       <div className="px-4 sm:px-8 py-2 border-b bg-muted/10">
         <div className="rounded-md border bg-muted/20 p-3 space-y-2">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Internal sub-status
-          </div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Client status</div>
           <div className="flex flex-wrap gap-2">
-            <Select
-              value={subStatus || "__none__"}
-              onValueChange={(v) => setSubStatus(v === "__none__" ? "" : v)}
-              disabled={metaBusy}
-            >
+            <Select value={clientStatus || defaultStatusCode} onValueChange={setClientStatus} disabled={metaBusy}>
               <SelectTrigger className="w-[220px] h-8 text-xs">
-                <SelectValue placeholder="Sub-status…" />
+                <SelectValue placeholder="Select status…" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">— None —</SelectItem>
-                {subStatusOptions.map((opt) => (
-                  <SelectItem key={opt} value={opt}>
-                    {opt}
+                {statusOptions.length === 0 ? (
+                  <SelectItem value="in_progress" disabled>
+                    No statuses configured — add in Masters
                   </SelectItem>
-                ))}
+                ) : (
+                  statusOptions.map((opt) => (
+                    <SelectItem key={opt.code} value={opt.code}>
+                      {opt.label}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
-            <Input
-              className="h-8 text-xs flex-1 min-w-[180px]"
-              placeholder="Internal note (optional)"
-              value={subStatusNote}
-              onChange={(e) => setSubStatusNote(e.target.value)}
-              disabled={metaBusy}
-            />
-            <Button size="sm" variant="secondary" className="h-8" onClick={onSaveSubStatus} disabled={metaBusy}>
+            <Button size="sm" variant="secondary" className="h-8" onClick={onSaveStatus} disabled={metaBusy}>
               Save
             </Button>
             {!showRefusalActions && (

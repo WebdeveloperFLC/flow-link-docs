@@ -4,13 +4,25 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchPortalPipelineProgress, type PortalPipelineProgress } from "@/lib/portalPipelineProgress";
 import { PortalPipelineProgressBar, portalProgressPercent } from "@/components/portal/PortalPipelineProgressBar";
+import { fetchMasterItemsAll } from "@/lib/masters";
+import { portalClientStatusLabel } from "@/lib/clientStatus";
 
 export default function PortalApplication() {
   return <PortalLayout render={({ clientId }) => clientId ? <Inner clientId={clientId}/> : null} />;
 }
 
 function Inner({ clientId }: { clientId: string }) {
-  const [client, setClient] = useState<{ full_name: string|null; lead_stage: string|null; application_type: string|null; intake: string|null; interested_country: string|null; interested_course: string|null; owner_id: string|null }|null>(null);
+  const [client, setClient] = useState<{
+    full_name: string | null;
+    lead_stage: string | null;
+    status: string | null;
+    application_type: string | null;
+    intake: string | null;
+    interested_country: string | null;
+    interested_course: string | null;
+    owner_id: string | null;
+  } | null>(null);
+  const [portalStatusLabel, setPortalStatusLabel] = useState<string | null>(null);
   const [counselor, setCounselor] = useState<{ full_name: string|null; email: string|null }|null>(null);
   const [timeline, setTimeline] = useState<{ id: string; summary: string; event_type: string; created_at: string }[]>([]);
   const [pipelineProgress, setPipelineProgress] = useState<PortalPipelineProgress>({
@@ -24,8 +36,16 @@ function Inner({ clientId }: { clientId: string }) {
 
   useEffect(() => {
     (async () => {
-      const c = await supabase.from("clients").select("full_name,lead_stage,application_type,intake,interested_country,interested_course,owner_id").eq("id", clientId).maybeSingle();
+      const c = await supabase
+        .from("clients")
+        .select(
+          "full_name,lead_stage,status,application_type,intake,interested_country,interested_course,owner_id",
+        )
+        .eq("id", clientId)
+        .maybeSingle();
       setClient(c.data ?? null);
+      const statusItems = await fetchMasterItemsAll("client_statuses");
+      setPortalStatusLabel(portalClientStatusLabel(c.data?.status ?? null, statusItems));
       if (c.data?.owner_id) {
         const p = await supabase.from("profiles").select("full_name,email").eq("id", c.data.owner_id).maybeSingle();
         setCounselor(p.data ?? null);
@@ -46,6 +66,7 @@ function Inner({ clientId }: { clientId: string }) {
       </div>
       <Card className="p-5">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {portalStatusLabel && <Field label="Status" value={portalStatusLabel} />}
           <Field label="Service" value={client?.application_type}/>
           <Field label="Country" value={client?.interested_country}/>
           <Field label="Course" value={client?.interested_course}/>

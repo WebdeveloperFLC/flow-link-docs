@@ -85,6 +85,30 @@ export function useMasterLabels(key: MasterListKey): string[] {
   return useMasterItems(key).map((i) => i.label);
 }
 
+/** Admin / portal: all items for a list (including inactive). */
+export async function fetchMasterItemsAll(key: MasterListKey): Promise<MasterItem[]> {
+  const { data, error } = await supabase
+    .from("master_items")
+    .select("*")
+    .eq("list_key", key)
+    .order("sort_order", { ascending: true })
+    .order("label", { ascending: true });
+  if (error) {
+    console.error("[masters] fetch all failed", key, error);
+    return [];
+  }
+  return (data ?? []) as MasterItem[];
+}
+
+export async function setMasterItemMetadata(
+  item: MasterItem,
+  patch: Record<string, unknown>,
+): Promise<void> {
+  const metadata = { ...(item.metadata ?? {}), ...patch };
+  const { error } = await supabase.from("master_items").update({ metadata: metadata as never }).eq("id", item.id);
+  if (error) throw error;
+}
+
 export async function loadAllMasters() {
   await Promise.all([
     fetchList("countries"),

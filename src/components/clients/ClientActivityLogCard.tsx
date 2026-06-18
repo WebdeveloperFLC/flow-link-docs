@@ -41,6 +41,7 @@ const FILTER_GROUPS: Array<{ key: string; label: string; actions: string[] }> = 
       "stage_note_cleared",
       "stage_entered",
       "stage_changed",
+      "client_status_changed",
       "internal_sub_status_changed",
     ],
   },

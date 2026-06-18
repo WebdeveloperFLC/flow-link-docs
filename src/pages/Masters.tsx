@@ -13,7 +13,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Database, ArrowUp, ArrowDown, Building2, Users2, Workflow, BookOpen, Network, DollarSign } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { refreshMaster, type MasterListKey, type MasterItem } from "@/lib/masters";
+import { refreshMaster, setMasterItemMetadata, type MasterListKey, type MasterItem } from "@/lib/masters";
+import { clientStatusShowToClient } from "@/lib/clientStatus";
 import { logActivity } from "@/lib/activity";
 import { cn } from "@/lib/utils";
 import { BranchesSection } from "@/components/masters/BranchesSection";
@@ -51,12 +52,15 @@ const slugify = (s: string) =>
 
 const singularize = (label: string) => {
   const trimmed = label.trim();
+  if (/\bstatus$/i.test(trimmed)) return trimmed;
   if (/ies$/i.test(trimmed)) return trimmed.replace(/ies$/i, "y");
   if (/uses$/i.test(trimmed)) return trimmed.replace(/uses$/i, "us");
   if (/sses$/i.test(trimmed)) return trimmed.replace(/es$/i, "");
   if (/s$/i.test(trimmed)) return trimmed.replace(/s$/i, "");
   return trimmed;
 };
+
+const isClientStatusList = (key: string) => key === "client_statuses";
 
 const Masters = () => {
   const { isAdmin } = useAuth();
@@ -116,6 +120,18 @@ const Masters = () => {
     }
     await refreshMaster(activeKey as MasterListKey);
     loadItems(activeKey);
+  };
+
+  const onToggleShowToClient = async (it: MasterItem) => {
+    try {
+      const next = !clientStatusShowToClient(it);
+      await setMasterItemMetadata(it, { show_to_client: next });
+      await refreshMaster("client_statuses");
+      toast.success(next ? "Visible on client portal" : "Hidden from client portal");
+      loadItems(activeKey);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Update failed");
+    }
   };
 
   const onDelete = async (it: MasterItem) => {
@@ -236,11 +252,17 @@ const Masters = () => {
           )}
           {!isSpecial(activeKey) && (
             <Card className="overflow-hidden shadow-elev-sm">
-              <div className="grid grid-cols-12 px-4 py-2.5 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">
+              <div
+                className={cn(
+                  "grid px-4 py-2.5 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40",
+                  isClientStatusList(activeKey) ? "grid-cols-12" : "grid-cols-12",
+                )}
+              >
                 <div className="col-span-1">Order</div>
-                <div className="col-span-4">Label</div>
-                <div className="col-span-3">Code</div>
+                <div className={isClientStatusList(activeKey) ? "col-span-3" : "col-span-4"}>Label</div>
+                <div className={isClientStatusList(activeKey) ? "col-span-2" : "col-span-3"}>Code</div>
                 <div className="col-span-2">Active</div>
+                {isClientStatusList(activeKey) && <div className="col-span-2">Show client</div>}
                 <div className="col-span-2 text-right">Actions</div>
               </div>
               <div className="divide-y">
@@ -270,11 +292,29 @@ const Masters = () => {
                         <ArrowDown className="size-3" />
                       </Button>
                     </div>
-                    <div className="col-span-4 font-medium">{it.label}</div>
-                    <div className="col-span-3 font-mono text-xs text-muted-foreground">{it.code}</div>
+                    <div className={isClientStatusList(activeKey) ? "col-span-3 font-medium" : "col-span-4 font-medium"}>
+                      {it.label}
+                    </div>
+                    <div
+                      className={cn(
+                        "font-mono text-xs text-muted-foreground",
+                        isClientStatusList(activeKey) ? "col-span-2" : "col-span-3",
+                      )}
+                    >
+                      {it.code}
+                    </div>
                     <div className="col-span-2">
                       <Switch checked={it.is_active} onCheckedChange={() => onToggleActive(it)} />
                     </div>
+                    {isClientStatusList(activeKey) && (
+                      <div className="col-span-2">
+                        <Switch
+                          checked={clientStatusShowToClient(it)}
+                          disabled={!it.is_active}
+                          onCheckedChange={() => onToggleShowToClient(it)}
+                        />
+                      </div>
+                    )}
                     <div className="col-span-2 text-right flex justify-end gap-1">
                       <Button
                         size="icon"
@@ -341,6 +381,7 @@ function ItemEditorDialog({
   const [code, setCode] = useState("");
   const [codeTouched, setCodeTouched] = useState(false);
   const [metadata, setMetadata] = useState("{}");
+  const [showToClient, setShowToClient] = useState(true);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -349,6 +390,7 @@ function ItemEditorDialog({
       setCode(item?.code ?? "");
       setCodeTouched(!!item);
       setMetadata(JSON.stringify(item?.metadata ?? {}, null, 2));
+      setShowToClient(item ? clientStatusShowToClient(item) : true);
     }
   }, [open, item?.id]);
   // Depend on item?.id (stable identity) instead of the whole `item` object,
@@ -379,6 +421,9 @@ function ItemEditorDialog({
     } catch {
       toast.error("Metadata must be valid JSON");
       return;
+    }
+    if (listKey === "client_statuses") {
+      parsedMeta.show_to_client = showToClient;
     }
     setBusy(true);
     try {
@@ -461,6 +506,17 @@ function ItemEditorDialog({
               placeholder='{"icon": "flag-ca"}'
             />
           </div>
+          {listKey === "client_statuses" && (
+            <div className="flex items-center justify-between rounded-md border px-3 py-2">
+              <div>
+                <div className="text-sm font-medium">Show to client</div>
+                <p className="text-[11px] text-muted-foreground">
+                  When off, this status is hidden on the client portal and status notifications are suppressed.
+                </p>
+              </div>
+              <Switch checked={showToClient} onCheckedChange={setShowToClient} />
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { subStatusesForStageKey } from "@/lib/stageSubStatuses";
 import {
   deriveCurrentStageId,
   deriveCurrentStageIndex,
@@ -174,17 +173,7 @@ export function useClientStage(
     async (nextStageId: string | null) => {
       if (!nextStageId || nextStageId === current?.current_stage_id) return;
       const nextStage = stages.find((s) => s.id === nextStageId);
-      const { data: clientRow } = await supabase
-        .from("clients")
-        .select("internal_sub_status")
-        .eq("id", clientId)
-        .maybeSingle();
-      const subStatus = (clientRow as { internal_sub_status?: string | null })?.internal_sub_status ?? "";
       const patch: Record<string, unknown> = { current_stage_id: nextStageId };
-      if (nextStage && subStatus && !subStatusesForStageKey(nextStage.key).includes(subStatus)) {
-        patch.internal_sub_status = null;
-        patch.internal_sub_status_note = null;
-      }
       const prevStage = stages.find((s) => s.id === current?.current_stage_id);
       const { error } = await supabase.from("clients").update(patch).eq("id", clientId);
       if (error) throw error;

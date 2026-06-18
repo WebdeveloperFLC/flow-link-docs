@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchPortalPipelineProgress, type PortalPipelineProgress } from "@/lib/portalPipelineProgress";
 import { PortalPipelineProgressBar, portalProgressPercent } from "@/components/portal/PortalPipelineProgressBar";
+import { fetchMasterItemsAll } from "@/lib/masters";
+import { portalClientStatusLabel } from "@/lib/clientStatus";
 import { FileText, Tag, CreditCard, Upload, Calendar, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
@@ -28,7 +30,13 @@ function NoLink() {
 }
 
 function Inner({ clientId }: { clientId: string }) {
-  const [client, setClient] = useState<{ full_name: string|null; lead_stage: string|null; application_type: string|null }|null>(null);
+  const [client, setClient] = useState<{
+    full_name: string | null;
+    lead_stage: string | null;
+    status: string | null;
+    application_type: string | null;
+  } | null>(null);
+  const [portalStatusLabel, setPortalStatusLabel] = useState<string | null>(null);
   const [pipelineProgress, setPipelineProgress] = useState<PortalPipelineProgress>({
     pipelineId: null,
     pipelineName: null,
@@ -47,7 +55,7 @@ function Inner({ clientId }: { clientId: string }) {
   useEffect(() => {
     (async () => {
       const [c, f, o, t, w, tl, ao] = await Promise.all([
-        supabase.from("clients").select("full_name,lead_stage,application_type").eq("id", clientId).maybeSingle(),
+        supabase.from("clients").select("full_name,lead_stage,status,application_type").eq("id", clientId).maybeSingle(),
         supabase.from("client_files").select("status").eq("client_id", clientId),
         supabase.from("client_offers").select("id", { count: "exact", head: true }).eq("client_id", clientId).eq("status", "active"),
         supabase.from("client_tasks").select("id", { count: "exact", head: true }).eq("client_id", clientId).neq("status", "done"),
@@ -56,6 +64,8 @@ function Inner({ clientId }: { clientId: string }) {
         supabase.from("client_offers").select("id, offer:offers(title,description,discount_type,discount_value,valid_to)").eq("client_id", clientId).eq("status","active").limit(3),
       ]);
       setClient(c.data ?? null);
+      const statusItems = await fetchMasterItemsAll("client_statuses");
+      setPortalStatusLabel(portalClientStatusLabel(c.data?.status ?? null, statusItems));
       setFiles((f.data ?? []) as { status: string }[]);
       setOffers(o.count ?? 0);
       setTasks(t.count ?? 0);
@@ -78,7 +88,10 @@ function Inner({ clientId }: { clientId: string }) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Welcome, {client?.full_name ?? "Client"}</h1>
-          <p className="text-sm text-muted-foreground">{client?.application_type ?? ""}</p>
+          <p className="text-sm text-muted-foreground">
+            {client?.application_type ?? ""}
+            {portalStatusLabel ? ` · ${portalStatusLabel}` : ""}
+          </p>
         </div>
       </div>
 

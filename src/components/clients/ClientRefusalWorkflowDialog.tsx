@@ -30,7 +30,7 @@ export function ClientRefusalWorkflowDialog({
 }: Props) {
   const [busy, setBusy] = useState(false);
 
-  const moveToStage = async (stageKey: string, subStatus: string, note: string) => {
+  const moveToStage = async (stageKey: string, statusCode: string) => {
     setBusy(true);
     try {
       const { data: stage } = await supabase
@@ -45,9 +45,7 @@ export function ClientRefusalWorkflowDialog({
         .from("clients")
         .update({
           current_stage_id: stage.id,
-          internal_sub_status: subStatus,
-          internal_sub_status_note: note,
-          status: stageKey === "visa_refused" ? "rejected" : "in_progress",
+          status: statusCode,
           updated_at: new Date().toISOString(),
         })
         .eq("id", clientId);
@@ -68,7 +66,7 @@ export function ClientRefusalWorkflowDialog({
         <DialogHeader>
           <DialogTitle>Visa refusal — next steps</DialogTitle>
           <DialogDescription>
-            Choose how to proceed. This updates the pipeline stage and internal sub-status for your team.
+            Choose how to proceed. This updates the pipeline stage and client status.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-2 py-2">
@@ -76,13 +74,7 @@ export function ClientRefusalWorkflowDialog({
             variant="outline"
             className="justify-start h-auto py-3"
             disabled={busy}
-            onClick={() =>
-              moveToStage(
-                "visa_preparation",
-                "Resubmission planned",
-                "Refusal — preparing resubmission (same country)",
-              )
-            }
+            onClick={() => moveToStage("visa_preparation", "in_progress")}
           >
             <div className="text-left">
               <div className="font-medium">Resubmit — same country</div>
@@ -108,9 +100,7 @@ export function ClientRefusalWorkflowDialog({
             variant="destructive"
             className="justify-start h-auto py-3"
             disabled={busy}
-            onClick={() =>
-              moveToStage("visa_refused", "Case closed", "Refusal — case closed after review")
-            }
+            onClick={() => moveToStage("visa_refused", "rejected")}
           >
             <div className="text-left">
               <div className="font-medium">Close case</div>
