@@ -1,0 +1,54 @@
+---
+description: Lead form location cascade Definition of Done — masters-first SSOT, UAT, tests
+globs:
+  - src/components/shared/LocationCascadeFields.tsx
+  - src/components/clients/registration/EducationExperienceFields.tsx
+  - src/components/leads/LeadBackgroundDetailsDialog.tsx
+  - src/lib/locationCascade.ts
+  - src/lib/geoLocations.ts
+  - src/components/clients/ClientLocationPreferencesSection.tsx
+  - docs/guides/lead-form-location-spec.md
+alwaysApply: false
+---
+
+# Lead form location cascade — ship checklist
+
+Spec: [`docs/guides/lead-form-location-spec.md`](../docs/guides/lead-form-location-spec.md)
+
+## 1. Single source of truth
+
+- **Curated countries** (India, Canada, Australia, UK, US, …): `master_items` via [`src/lib/locationCascade.ts`](../src/lib/locationCascade.ts)
+- **All other countries**: geo fallback via [`src/lib/geoLocations.ts`](../src/lib/geoLocations.ts)
+- Do **not** add a third location system or switch SSOT mid-task
+- Lead form and `ClientLocationPreferencesSection` must use the **same** province codes for master-backed countries
+
+## 2. Province / city aliases
+
+- Geo → master province aliases: `IN-CT`→`IN-CG`, `IN-OR`→`IN-OD`, `IN-TG`→`IN-TS`, `IN-UT`→`IN-UK`
+- City aliases: `Gurgaon`→`Gurugram`, `Allahabad`→`Prayagraj`
+- Saved legacy geo codes must resolve on reload without user re-selection
+
+## 3. Tests (required)
+
+```bash
+npm run test -- src/lib/locationCascade.test.ts
+```
+
+Must cover: Maharashtra round-trip, Chhattisgarh alias, Gurugram city alias.
+
+## 4. Manual UAT paths
+
+1. Lead → New → Background details → Education: India → Maharashtra → Mumbai saves and reloads correctly
+2. Same dialog → Experience: India → Haryana → Gurugram in picker (not Gurgaon)
+3. Client profile → Student location preferences: India provinces/cities match lead form codes
+
+## 5. Deploy chain (mandatory closing message)
+
+After ship, report:
+
+- Commit hash on `main` and `feature/service-library-nav`
+- **Lovable Publish required:** yes (if UI changed)
+- **Migration approval required:** yes if `20260718120043_india_location_masters` not yet applied
+- UAT checklist with explicit pass/fail steps for owner
+
+Owner action: Lovable → Publish → hard refresh (Cmd+Shift+R).

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ICity, ICountry, IState } from "country-state-city";
 
 /** Map app country labels (master / legacy) → ISO alpha-2. */
@@ -149,53 +149,3 @@ export function useGeoLocationsReady(): boolean {
   return ready;
 }
 
-export interface LocationFieldsValue {
-  country?: string;
-  state_province?: string;
-  province_code?: string;
-  city?: string;
-}
-
-export function useLocationCascadeData(countryLabel?: string) {
-  const ready = useGeoLocationsReady();
-
-  const priorityCountries = useMemo(() => {
-    if (!ready) return { priority: [] as ICountry[], rest: [] as ICountry[] };
-    const countries = getAllGeoCountries();
-    const byName = new Map(countries.map((c) => [c.name, c]));
-    const priority = GEO_COUNTRY_PRIORITY.map((name) => byName.get(name)).filter(Boolean) as ICountry[];
-    const rest = countries.filter((c) => !GEO_COUNTRY_PRIORITY.includes(c.name)).sort((a, b) => a.name.localeCompare(b.name));
-    return { priority, rest };
-  }, [ready]);
-
-  const provincesForCountry = useCallback(
-    (country: string): IState[] => (ready ? getStatesForCountryLabel(country) : []),
-    [ready],
-  );
-
-  const citiesForProvince = useCallback(
-    (country: string, provinceCode: string) => (ready ? getCitiesForProvince(country, provinceCode) : []),
-    [ready],
-  );
-
-  const resolveProvince = useCallback(
-    (country: string, stateProvince?: string, provinceCode?: string) =>
-      ready ? resolveState(country, stateProvince, provinceCode) : undefined,
-    [ready],
-  );
-
-  const hasProvincesForCountry = useCallback(
-    (country: string) => ready && getStatesForCountryLabel(country).length > 0,
-    [ready],
-  );
-
-  return {
-    ready,
-    priorityCountries,
-    provincesForCountry,
-    citiesForProvince,
-    resolveProvince,
-    hasProvincesForCountry,
-    buildProvinceCode,
-  };
-}

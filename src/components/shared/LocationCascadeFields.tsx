@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import { useLocationCascadeData, type LocationFieldsValue } from "@/lib/geoLocations";
+import {
+  resolveCityLabel,
+  useLocationCascadeData,
+  type LocationFieldsValue,
+} from "@/lib/locationCascade";
 
 interface Props {
   value: LocationFieldsValue;
@@ -105,16 +109,15 @@ export function LocationCascadeFields({
   const country = value.country ?? "";
   const {
     ready,
-    priorityCountries,
+    countries,
     provincesForCountry,
     citiesForProvince,
     resolveProvince,
     hasProvincesForCountry,
-    buildProvinceCode,
   } = useLocationCascadeData(country);
 
   const province = resolveProvince(country, value.state_province, value.province_code);
-  const provinceCode = province ? buildProvinceCode(country, province.isoCode) : value.province_code ?? "";
+  const provinceCode = province?.code ?? value.province_code ?? "";
   const hasProvinces = !!country && hasProvincesForCountry(country);
   const cities = useMemo(
     () => (provinceCode ? citiesForProvince(country, provinceCode) : []),
@@ -123,14 +126,15 @@ export function LocationCascadeFields({
   const stateOptions = useMemo(
     () =>
       provincesForCountry(country).map((s) => ({
-        value: buildProvinceCode(country, s.isoCode),
-        label: s.name,
+        value: s.code,
+        label: s.label,
       })),
-    [country, provincesForCountry, buildProvinceCode],
+    [country, provincesForCountry],
   );
-  const cityOptions = useMemo(
-    () => cities.map((c) => ({ value: c.name, label: c.name })),
-    [cities],
+  const cityOptions = useMemo(() => cities, [cities]);
+  const displayCity = useMemo(
+    () => resolveCityLabel(value.city, cityOptions),
+    [value.city, cityOptions],
   );
   const commit = () => onCommit?.();
 
@@ -150,8 +154,8 @@ export function LocationCascadeFields({
           value={country}
           placeholder="Select country"
           options={[
-            ...priorityCountries.priority.map((c) => ({ value: c.name, label: c.name })),
-            ...priorityCountries.rest.map((c) => ({ value: c.name, label: c.name })),
+            ...countries.priority.map((c) => ({ value: c, label: c })),
+            ...countries.rest.map((c) => ({ value: c, label: c })),
           ]}
           onChange={(v) => {
             onChange({ country: v, state_province: "", province_code: "", city: "" });
@@ -168,12 +172,10 @@ export function LocationCascadeFields({
             disabled={!country}
             options={stateOptions}
             onChange={(code) => {
-              const s = provincesForCountry(country).find(
-                (x) => buildProvinceCode(country, x.isoCode) === code,
-              );
+              const s = provincesForCountry(country).find((x) => x.code === code);
               onChange({
                 province_code: code,
-                state_province: s?.name ?? code,
+                state_province: s?.label ?? code,
                 city: "",
               });
               setTimeout(commit, 0);
@@ -193,7 +195,7 @@ export function LocationCascadeFields({
         <Label className="text-xs">{cityLabel}</Label>
         {hasProvinces && cityOptions.length > 0 ? (
           <SearchablePicker
-            value={value.city ?? ""}
+            value={displayCity}
             placeholder="Select city"
             disabled={!provinceCode}
             options={cityOptions}
