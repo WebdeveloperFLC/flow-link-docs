@@ -27,6 +27,10 @@ describe("clientToProfilePatch", () => {
   it("includes spouse name from family member", () => {
     expect(clientToProfilePatch({}, "Jane Doe").spouse_name).toBe("Jane Doe");
   });
+
+  it("extracts graduation year from date-shaped year_of_passing", () => {
+    expect(clientToProfilePatch({ year_of_passing: "2024-06-30" }).graduation_year).toBe(2024);
+  });
 });
 
 describe("mergeProfileFillEmpty", () => {

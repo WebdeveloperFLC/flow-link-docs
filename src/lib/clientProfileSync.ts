@@ -33,7 +33,10 @@ export function clientToProfilePatch(
   if (client.phone_alternate) patch.phone_alt = client.phone_alternate;
   if (client.last_education) patch.highest_qualification = client.last_education;
   if (client.institution_name) patch.institution_name = client.institution_name;
-  if (client.year_of_passing != null) patch.graduation_year = client.year_of_passing;
+  if (client.year_of_passing != null) {
+    const y = String(client.year_of_passing).match(/\d{4}/);
+    patch.graduation_year = y ? Number(y[0]) : client.year_of_passing;
+  }
   if (client.percentage_cgpa) patch.gpa_or_percentage = client.percentage_cgpa;
 
   const englishTest = (client.english_test ?? "").toUpperCase();

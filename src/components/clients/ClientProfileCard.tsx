@@ -202,8 +202,8 @@ export const ClientProfileCard = ({
       setPrimaryPhone(clientRow?.phone ?? "");
       setPrimaryPhoneEdit(null);
       setCountryCode(
-        (clientRow as { country_code?: string; phone_country_code?: string } | null)?.country_code ??
-          (clientRow as { phone_country_code?: string } | null)?.phone_country_code ??
+        (clientRow as { phone_country_code?: string; country_code?: string } | null)?.phone_country_code ??
+          (clientRow as { country_code?: string } | null)?.country_code ??
           "",
       );
       setCountryCodeEdit(null);
@@ -302,7 +302,7 @@ export const ClientProfileCard = ({
         const cleaned = countryCodeEdit.replace(/\D/g, "") || null;
         const { error: ccErr } = await supabase
           .from("clients")
-          .update({ country_code: cleaned } as never)
+          .update({ country_code: cleaned, phone_country_code: cleaned } as never)
           .eq("id", clientId);
         if (ccErr) throw ccErr;
       }

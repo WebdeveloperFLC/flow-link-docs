@@ -38,6 +38,7 @@ export function ClientBackgroundProfileSection({
   const [bg, setBg] = useState<LeadBackgroundState>(EMPTY_LEAD_BACKGROUND);
   const bgRef = useRef(bg);
   bgRef.current = bg;
+  const savingRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -46,7 +47,7 @@ export function ClientBackgroundProfileSection({
     try {
       const client = await fetchClient(clientId);
       if (client) {
-        setBg(leadToBackgroundState(client));
+        setBg(leadToBackgroundState(client as Partial<Lead>));
       }
     } catch (e) {
       console.error("[ClientBackgroundProfileSection] load failed", e);
@@ -66,7 +67,8 @@ export function ClientBackgroundProfileSection({
   };
 
   const saveBackground = useCallback(async () => {
-    if (!canEdit || saving) return;
+    if (!canEdit || savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     try {
       const patch = backgroundStateToLeadDraft(bgRef.current);
@@ -78,14 +80,16 @@ export function ClientBackgroundProfileSection({
         summary: "Background details updated (tests, education, experience)",
       });
       toast.success("Background details saved");
+      await load();
       onSaved?.();
     } catch (e) {
       console.error("[ClientBackgroundProfileSection] save failed", e);
       toast.error(e instanceof Error ? e.message : "Failed to save background details");
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
-  }, [canEdit, clientId, onSaved, saving]);
+  }, [canEdit, clientId, load, onSaved]);
 
   const counts = countBackgroundItems(bg);
 
@@ -145,7 +149,6 @@ export function ClientBackgroundProfileSection({
                 <EducationExperienceFields
                   value={bg}
                   onChange={handleChange}
-                  onCommit={saveBackground}
                   compact
                   visibleSections={["english", "academic"]}
                 />
@@ -161,14 +164,12 @@ export function ClientBackgroundProfileSection({
                       },
                     })
                   }
-                  onCommit={saveBackground}
                 />
               </TabsContent>
               <TabsContent value="education" className="mt-4 focus-visible:outline-none">
                 <EducationExperienceFields
                   value={bg}
                   onChange={handleChange}
-                  onCommit={saveBackground}
                   compact
                   visibleSections={["education"]}
                 />
@@ -177,7 +178,6 @@ export function ClientBackgroundProfileSection({
                 <EducationExperienceFields
                   value={bg}
                   onChange={handleChange}
-                  onCommit={saveBackground}
                   compact
                   visibleSections={["experience"]}
                 />

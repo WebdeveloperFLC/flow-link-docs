@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Lead } from "@/lib/leads";
-import { leadToBackgroundState } from "@/lib/leadBackground";
+import { leadToBackgroundState, yearOfPassingForDb } from "@/lib/leadBackground";
 import { EMPTY_LANGUAGE_TESTS, type LanguageTestsValue } from "@/lib/languageTests";
 import { ensureClientProfileSynced } from "@/lib/clientProfileSync";
 import { runWithAuthRetry } from "@/lib/supabaseSafeInsert";
@@ -102,6 +102,7 @@ export interface ClientRow {
   year_of_passing?: string | null;
   percentage_cgpa?: string | null;
   english_test?: string | null;
+  english_test_status?: string | null;
   english_overall?: string | null;
   english_test_date?: string | null;
   english_test_expiry?: string | null;
@@ -190,7 +191,7 @@ async function writeClientRow(
   }
 
   throw new Error(
-    "Database schema is out of date (missing client columns). In Lovable → Publish, approve migration 20260718120044_client_language_tests_hotfix.sql (and 40–42 if pending), then hard refresh.",
+    "Database schema is out of date (missing client columns). In Lovable → Publish, approve migration 20260718120046_clients_background_hotfix.sql (and 40–45 if pending), then hard refresh.",
   );
 }
 
@@ -284,7 +285,7 @@ export async function upsertClientRegistration(
     const e0 = eh[0];
     if (e0.level !== undefined) body.last_education = e0.level ?? null;
     if (e0.institution !== undefined) body.institution_name = e0.institution ?? null;
-    if (e0.year !== undefined) body.year_of_passing = e0.year ?? null;
+    if (e0.year !== undefined) body.year_of_passing = yearOfPassingForDb(e0.year);
     if (e0.percentage_cgpa !== undefined) body.percentage_cgpa = e0.percentage_cgpa ?? null;
   }
   // clients table requires NOT NULL country and application_type at insert time.

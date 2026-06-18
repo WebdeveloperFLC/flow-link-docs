@@ -10,6 +10,7 @@ import {
   summarizeEducation,
   summarizeEnglishTests,
   summarizeExperience,
+  yearOfPassingForDb,
 } from "@/lib/leadBackground";
 
 describe("leadBackground summaries", () => {
@@ -147,5 +148,13 @@ describe("leadBackground summaries", () => {
     expect(sections.academic[0]).toContain("Verbal 55");
     expect(sections.academic[0]).toContain("Quant 66");
     expect(hasBackgroundData(bg)).toBe(true);
+  });
+});
+
+describe("yearOfPassingForDb", () => {
+  it("converts year string to mid-year date for clients column", () => {
+    expect(yearOfPassingForDb("2024")).toBe("2024-06-30");
+    expect(yearOfPassingForDb("2024-06-30")).toBe("2024-06-30");
+    expect(yearOfPassingForDb("")).toBeNull();
   });
 });

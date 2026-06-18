@@ -550,6 +550,12 @@ export function formatPassingYearDisplay(year?: string | null): string | undefin
   return digits.length >= 4 ? digits.slice(0, 4) : v;
 }
 
+/** clients.year_of_passing is a date column — store mid-year from a year string. */
+export function yearOfPassingForDb(year?: string | null): string | null {
+  const display = formatPassingYearDisplay(year);
+  return display && /^\d{4}$/.test(display) ? `${display}-06-30` : null;
+}
+
 export function formatEducationLocation(e: EducationEntry): string | undefined {
   const parts = [e.city, e.state_province, e.country].filter(Boolean);
   return parts.length ? parts.join(", ") : undefined;
