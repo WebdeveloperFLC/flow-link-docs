@@ -72,7 +72,7 @@ describe("leadBackground summaries", () => {
   it("lists every English test from __by_test__ with sectional scores", () => {
     const bg = leadToBackgroundState({
       english_test: "CELPIP",
-      english_test_status: "scheduled",
+      english_test_status: "taken",
       english_overall: "54",
       english_sections: {
         listening: "55",
@@ -81,12 +81,14 @@ describe("leadBackground summaries", () => {
         speaking: "55",
         __by_test__: {
           IELTS: {
+            status: "scheduled",
             overall: "7",
             test_date: "2026-06-17",
             test_expiry: "2027-06-18",
             sections: { listening: "7", reading: "8", writing: "4", speaking: "6" },
           },
           CELPIP: {
+            status: "taken",
             overall: "54",
             sections: { listening: "55", reading: "66", writing: "44", speaking: "55" },
           },
@@ -97,11 +99,10 @@ describe("leadBackground summaries", () => {
     const lines = listEnglishTestDetails(bg);
     expect(lines).toHaveLength(2);
     expect(lines[0]).toContain("IELTS");
-    expect(lines[0]).toContain("Overall 7");
-    expect(lines[0]).toContain("L 7");
+    expect(lines[0]).toContain("Scheduled");
     expect(lines[1]).toContain("CELPIP");
-    expect(lines[1]).toContain("Overall 54");
-    expect(lines[1]).toContain("Scheduled");
+    expect(lines[1]).toContain("Taken");
+    expect(lines[1]).not.toContain("Scheduled");
 
     const summary = summarizeEnglishTests(bg);
     expect(summary).toBe("IELTS 7, CELPIP 54");

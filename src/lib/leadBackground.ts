@@ -94,26 +94,39 @@ function hydrateEnglishFromSections(
   lead: Partial<Lead>,
 ): Pick<
   LeadBackgroundState,
-  "english_overall" | "english_test_date" | "english_test_expiry" | "english_sections"
+  "english_overall" | "english_test_date" | "english_test_expiry" | "english_sections" | "english_test_status"
 > {
   const sections = (lead.english_sections ?? {}) as Record<string, unknown>;
-  const byTest = hydrateScoresByTest({
+  let byTest = hydrateScoresByTest({
     english_test: lead.english_test,
     english_overall: lead.english_overall,
     english_test_date: lead.english_test_date,
     english_test_expiry: lead.english_test_expiry,
+    english_test_status: (lead.english_test_status as EnglishTestStatus | null | undefined) ?? null,
     english_sections: sections,
   });
   const active = scoresForTest(byTest, lead.english_test);
+  const test = lead.english_test;
+  if (test && test !== "None" && lead.english_test_status && !active.status) {
+    byTest = {
+      ...byTest,
+      [test]: { ...active, status: lead.english_test_status as EnglishTestStatus },
+    };
+  }
+  const activeEntry = scoresForTest(byTest, lead.english_test);
   const flatSections = sectionalScoresOnly(sections);
   const mergedSections: Record<string, unknown> = {
     ...flatSections,
     ...(Object.keys(byTest).length ? { [ENGLISH_SCORES_BY_TEST_KEY]: byTest } : {}),
   };
   return {
-    english_overall: lead.english_overall ?? active.overall ?? null,
-    english_test_date: lead.english_test_date ?? active.test_date ?? null,
-    english_test_expiry: lead.english_test_expiry ?? active.test_expiry ?? null,
+    english_test_status:
+      (lead.english_test_status as EnglishTestStatus | null | undefined) ??
+      (activeEntry.status as EnglishTestStatus | null | undefined) ??
+      null,
+    english_overall: lead.english_overall ?? activeEntry.overall ?? null,
+    english_test_date: lead.english_test_date ?? activeEntry.test_date ?? null,
+    english_test_expiry: lead.english_test_expiry ?? activeEntry.test_expiry ?? null,
     english_sections: mergedSections,
   };
 }
@@ -131,7 +144,6 @@ export function leadToBackgroundState(lead: Partial<Lead>): LeadBackgroundState 
   return {
     education_history,
     english_test: lead.english_test ?? null,
-    english_test_status: (lead.english_test_status as EnglishTestStatus | null | undefined) ?? null,
     ...english,
     other_tests: absorbed.other_tests,
     work_experience: parseJsonArray<ExperienceEntry>(lead.work_experience),
@@ -199,6 +211,7 @@ const SECTION_LABEL: Record<string, string> = {
 
 function englishTestEntryHasData(entry: EnglishTestScoreEntry | undefined): boolean {
   if (!entry) return false;
+  if (entry.status === "scheduled" || entry.status === "taken" || entry.status === "waived") return true;
   if (entry.overall?.trim()) return true;
   if (entry.test_date || entry.test_expiry) return true;
   return Object.values(entry.sections ?? {}).some((v) => v?.trim());
@@ -275,9 +288,12 @@ export function getEnglishTestsByType(bg: LeadBackgroundState): EnglishScoresByT
       bg.english_test_expiry ||
       Object.keys(sections).length > 0;
     if (hasActive) {
+      const prev = byTest[test] ?? {};
       byTest = {
         ...byTest,
         [test]: {
+          ...prev,
+          status: bg.english_test_status ?? prev.status ?? null,
           overall: bg.english_overall ?? null,
           test_date: bg.english_test_date ?? null,
           test_expiry: bg.english_test_expiry ?? null,
@@ -311,11 +327,11 @@ export function buildEnglishTestDetailView(
   bg: LeadBackgroundState,
 ): EnglishTestDetailView {
   const isActive = testName === bg.english_test;
+  const statusKey =
+    entry.status ?? (isActive ? bg.english_test_status : null);
   return {
     test: testName,
-    status: isActive && bg.english_test_status
-      ? ENGLISH_TEST_STATUS_LABELS[bg.english_test_status]
-      : undefined,
+    status: statusKey ? ENGLISH_TEST_STATUS_LABELS[statusKey as EnglishTestStatus] : undefined,
     overall: entry.overall?.trim() || undefined,
     testDate: entry.test_date ?? undefined,
     expiry: entry.test_expiry ?? undefined,

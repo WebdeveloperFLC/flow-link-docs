@@ -1,7 +1,10 @@
 /** Reserved key inside `english_sections` jsonb — stores scores per test type. */
 export const ENGLISH_SCORES_BY_TEST_KEY = "__by_test__";
 
+export type EnglishTestStatusValue = "not_taken" | "scheduled" | "taken" | "waived";
+
 export interface EnglishTestScoreEntry {
+  status?: EnglishTestStatusValue | null;
   overall?: string | null;
   test_date?: string | null;
   test_expiry?: string | null;
@@ -12,6 +15,7 @@ export type EnglishScoresByTest = Record<string, EnglishTestScoreEntry>;
 
 export interface EnglishScoreFields {
   english_test?: string | null;
+  english_test_status?: EnglishTestStatusValue | null;
   english_overall?: string | null;
   english_test_date?: string | null;
   english_test_expiry?: string | null;
@@ -53,6 +57,7 @@ export function hydrateScoresByTest(fields: EnglishScoreFields): EnglishScoresBy
 
   const sections = sectionalScoresOnly(fields.english_sections);
   const hasData =
+    fields.english_test_status ||
     fields.english_overall ||
     fields.english_test_date ||
     fields.english_test_expiry ||
@@ -61,6 +66,7 @@ export function hydrateScoresByTest(fields: EnglishScoreFields): EnglishScoresBy
 
   return {
     [test]: {
+      status: fields.english_test_status ?? null,
       overall: fields.english_overall ?? null,
       test_date: fields.english_test_date ?? null,
       test_expiry: fields.english_test_expiry ?? null,
@@ -89,9 +95,11 @@ export function encodeEnglishSections(
 function snapshotCurrentTest(fields: EnglishScoreFields, byTest: EnglishScoresByTest): EnglishScoresByTest {
   const current = fields.english_test;
   if (!current || current === "None") return byTest;
+  const prev = scoresForTest(byTest, current);
   return {
     ...byTest,
     [current]: {
+      status: fields.english_test_status ?? prev.status ?? null,
       overall: fields.english_overall ?? null,
       test_date: fields.english_test_date ?? null,
       test_expiry: fields.english_test_expiry ?? null,
@@ -100,7 +108,7 @@ function snapshotCurrentTest(fields: EnglishScoreFields, byTest: EnglishScoresBy
   };
 }
 
-/** Call when user picks a different English test type chip. */
+/** Call when user picks a different English test type. */
 export function buildEnglishTestSwitchPatch(
   fields: EnglishScoreFields,
   nextTest: string | null,
@@ -111,6 +119,7 @@ export function buildEnglishTestSwitchPatch(
   if (!nextTest || nextTest === "None") {
     return {
       english_test: nextTest,
+      english_test_status: null,
       english_overall: null,
       english_test_date: null,
       english_test_expiry: null,
@@ -121,10 +130,38 @@ export function buildEnglishTestSwitchPatch(
   const loaded = scoresForTest(byTest, nextTest);
   return {
     english_test: nextTest,
+    english_test_status: loaded.status ?? null,
     english_overall: loaded.overall ?? null,
     english_test_date: loaded.test_date ?? null,
     english_test_expiry: loaded.test_expiry ?? null,
     english_sections: encodeEnglishSections(byTest, nextTest),
+  };
+}
+
+/** Call when status changes for the active test. */
+export function buildEnglishStatusPatch(
+  fields: EnglishScoreFields,
+  status: EnglishTestStatusValue | null,
+): Partial<EnglishScoreFields> {
+  const test = fields.english_test;
+  let byTest = hydrateScoresByTest(fields);
+  byTest = snapshotCurrentTest(fields, byTest);
+
+  if (test && test !== "None") {
+    const prev = scoresForTest(byTest, test);
+    byTest[test] = {
+      ...prev,
+      status: status ?? null,
+      overall: fields.english_overall ?? null,
+      test_date: fields.english_test_date ?? null,
+      test_expiry: fields.english_test_expiry ?? null,
+      sections: sectionalScoresOnly(fields.english_sections),
+    };
+  }
+
+  return {
+    english_test_status: status,
+    english_sections: encodeEnglishSections(byTest, test),
   };
 }
 
@@ -156,7 +193,9 @@ export function buildEnglishScorePatch(
     byTest,
   );
 
+  const prev = scoresForTest(byTest, test);
   byTest[test] = {
+    status: fields.english_test_status ?? prev.status ?? null,
     overall: merged.english_overall ?? null,
     test_date: merged.english_test_date ?? null,
     test_expiry: merged.english_test_expiry ?? null,

@@ -17,11 +17,12 @@ import type { EnglishTestStatus } from "@/lib/leadBackground";
 import { ENGLISH_TEST_STATUS_LABELS } from "@/lib/leadBackground";
 import {
   buildEnglishScorePatch,
+  buildEnglishStatusPatch,
   buildEnglishTestSwitchPatch,
   sectionalScoresOnly,
 } from "@/lib/englishTestScores";
 
-const ENGLISH_TESTS = ["IELTS", "PTE", "TOEFL", "CELPIP", "Duolingo", "None"];
+const ENGLISH_TESTS = ["IELTS", "PTE", "TOEFL", "CELPIP", "Duolingo"];
 const OTHER_TESTS = ["GRE", "GMAT", "SAT"];
 const ENGLISH_STATUSES: EnglishTestStatus[] = ["not_taken", "scheduled", "taken", "waived"];
 
@@ -160,88 +161,86 @@ export const EducationExperienceFields = ({
 
       {show("english") && (
         <>
-          <div className={`space-y-2 ${show("education") ? "border-t pt-4" : ""}`}>
+          <div className={`space-y-3 ${show("education") ? "border-t pt-4" : ""}`}>
             <Label className="text-sm font-semibold">English Test</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-md">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-lg">
               <div className="space-y-1">
-                <Label className="text-xs">Status</Label>
+                <Label className="text-xs">Test type</Label>
                 <Select
-                  value={englishStatus ?? ""}
+                  value={englishTest || "__none__"}
                   onValueChange={(v) => {
-                    onChange({ english_test_status: (v || null) as EnglishTestStatus | null });
+                    const next = v === "__none__" ? null : v;
+                    const patch = buildEnglishTestSwitchPatch(value, next);
+                    onChange({
+                      english_test: patch.english_test ?? null,
+                      english_test_status: patch.english_test_status ?? null,
+                      english_overall: patch.english_overall ?? null,
+                      english_test_date: patch.english_test_date ?? null,
+                      english_test_expiry: patch.english_test_expiry ?? null,
+                      english_sections: patch.english_sections ?? {},
+                    });
                     setTimeout(commit, 0);
                   }}
                 >
-                  <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select test" /></SelectTrigger>
                   <SelectContent>
-                    {ENGLISH_STATUSES.map((s) => (
-                      <SelectItem key={s} value={s}>{ENGLISH_TEST_STATUS_LABELS[s]}</SelectItem>
+                    <SelectItem value="__none__">None</SelectItem>
+                    {ENGLISH_TESTS.map((t) => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+              {hasEnglishTest && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Status</Label>
+                  <Select
+                    value={englishStatus ?? ""}
+                    onValueChange={(v) => {
+                      const status = (v || null) as EnglishTestStatus | null;
+                      const patch = buildEnglishStatusPatch(value, status);
+                      onChange({
+                        english_test_status: patch.english_test_status ?? null,
+                        english_sections: patch.english_sections ?? value.english_sections,
+                      });
+                      setTimeout(commit, 0);
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+                    <SelectContent>
+                      {ENGLISH_STATUSES.map((s) => (
+                        <SelectItem key={s} value={s}>{ENGLISH_TEST_STATUS_LABELS[s]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
-            {!hideEnglishFields && (
-              <>
-                <div className="space-y-1 pt-1">
-                  <Label className="text-xs">Test type</Label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {ENGLISH_TESTS.map((t) => (
-                      <Button
-                        key={t}
-                        type="button"
-                        size="sm"
-                        variant={englishTest === t ? "default" : "outline"}
-                        onClick={() => {
-                          const next = t === englishTest ? null : t;
-                          const patch = buildEnglishTestSwitchPatch(value, next);
-                          const fullPatch: Partial<EducationExperienceValue> = {
-                            ...patch,
-                            english_test: patch.english_test ?? null,
-                            english_overall: patch.english_overall ?? null,
-                            english_test_date: patch.english_test_date ?? null,
-                            english_test_expiry: patch.english_test_expiry ?? null,
-                            english_sections: patch.english_sections ?? {},
-                          };
-                          if (next && next !== "None" && !englishStatus) {
-                            fullPatch.english_test_status = "taken";
-                          }
-                          onChange(fullPatch);
-                          setTimeout(commit, 0);
-                        }}
-                      >
-                        {t}
-                      </Button>
-                    ))}
+            {!hideEnglishFields && hasEnglishTest && (
+              <div className="space-y-3 pt-1">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Overall Score</Label>
+                    <Input value={value.english_overall ?? ""} onChange={(e) => patchEnglishScores({ english_overall: e.target.value })} onBlur={commit} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Test Date</Label>
+                    <Input type="date" value={value.english_test_date ?? ""} onChange={(e) => patchEnglishScores({ english_test_date: e.target.value || null })} onBlur={commit} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Expiry Date</Label>
+                    <Input type="date" value={value.english_test_expiry ?? ""} onChange={(e) => patchEnglishScores({ english_test_expiry: e.target.value || null })} onBlur={commit} />
                   </div>
                 </div>
-                {hasEnglishTest && (
-                  <div className="space-y-3 pt-2">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs">Overall Score</Label>
-                        <Input value={value.english_overall ?? ""} onChange={(e) => patchEnglishScores({ english_overall: e.target.value })} onBlur={commit} />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Test Date</Label>
-                        <Input type="date" value={value.english_test_date ?? ""} onChange={(e) => patchEnglishScores({ english_test_date: e.target.value || null })} onBlur={commit} />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Expiry Date</Label>
-                        <Input type="date" value={value.english_test_expiry ?? ""} onChange={(e) => patchEnglishScores({ english_test_expiry: e.target.value || null })} onBlur={commit} />
-                      </div>
-                    </div>
-                    {englishSecs.length > 0 && (
-                      <SectionalInputs
-                        sections={englishSecs}
-                        values={englishSectionValues}
-                        onChange={(next) => patchEnglishScores({ english_sections: next })}
-                        onBlur={commit}
-                      />
-                    )}
-                  </div>
+                {englishSecs.length > 0 && (
+                  <SectionalInputs
+                    sections={englishSecs}
+                    values={englishSectionValues}
+                    onChange={(next) => patchEnglishScores({ english_sections: next })}
+                    onBlur={commit}
+                  />
                 )}
-              </>
+              </div>
             )}
           </div>
 

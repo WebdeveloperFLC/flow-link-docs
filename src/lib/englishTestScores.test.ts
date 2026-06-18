@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildEnglishScorePatch,
+  buildEnglishStatusPatch,
   buildEnglishTestSwitchPatch,
   ENGLISH_SCORES_BY_TEST_KEY,
   parseScoresByTest,
@@ -81,6 +82,38 @@ describe("englishTestScores", () => {
     expect(byTest.IELTS?.overall).toBe("7");
     expect(byTest.CELPIP?.overall).toBe("9");
     expect(withCelpipScores.english_overall).toBe("9");
+  });
+
+  it("keeps per-test status when switching IELTS ↔ CELPIP", () => {
+    const withIelts = buildEnglishStatusPatch(
+      {
+        english_test: "IELTS",
+        english_test_status: "scheduled",
+        english_overall: "7",
+        english_sections: { listening: "7" },
+      },
+      "scheduled",
+    );
+
+    const ieltsState = { english_test: "IELTS", english_overall: "7", ...withIelts };
+
+    const switchedToCelpip = buildEnglishTestSwitchPatch(ieltsState, "CELPIP");
+    expect(switchedToCelpip.english_test_status).toBeNull();
+
+    const celpipState = { english_test: "CELPIP", ...switchedToCelpip };
+    const celpipScheduled = buildEnglishStatusPatch(celpipState, "scheduled");
+    expect(celpipScheduled.english_test_status).toBe("scheduled");
+
+    const backToIelts = buildEnglishTestSwitchPatch(
+      { english_test: "CELPIP", ...celpipScheduled },
+      "IELTS",
+    );
+    expect(backToIelts.english_test_status).toBe("scheduled");
+    expect(backToIelts.english_overall).toBe("7");
+
+    const byTest = parseScoresByTest(backToIelts.english_sections as Record<string, unknown>);
+    expect(byTest.IELTS?.status).toBe("scheduled");
+    expect(byTest.CELPIP?.status).toBe("scheduled");
   });
 
   it("hydrates legacy flat rows without __by_test__ cache", () => {
