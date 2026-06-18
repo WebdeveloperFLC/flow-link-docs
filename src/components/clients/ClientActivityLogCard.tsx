@@ -20,7 +20,13 @@ const FILTER_GROUPS: Array<{ key: string; label: string; actions: string[] }> = 
   {
     key: "lead",
     label: "Lead",
-    actions: ["lead_created", "lead_updated", "lead_converted"],
+    actions: [
+      "lead_created",
+      "lead_updated",
+      "lead_converted",
+      "lead_followup_scheduled",
+      "lead_followup_completed",
+    ],
   },
   {
     key: "profile",

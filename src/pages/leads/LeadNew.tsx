@@ -55,6 +55,8 @@ import {
   fromDatetimeLocalValue,
   toDatetimeLocalValue,
 } from "@/lib/leadFollowup";
+import { syncLeadFollowupLog } from "@/lib/leadFollowupLog";
+import { LeadFollowupLogPanel } from "@/components/leads/LeadFollowupLogPanel";
 
 const VISA_LOCK_TEMPLATE = (reason: string) =>
   `Visa not pursued at this stage. Reason: ${reason || "(please specify)"}\n\nFollow-up: Re-engage when visa interest is expressed.\n\n`;
@@ -92,6 +94,7 @@ const LeadNew = () => {
   const [followupAtLocal, setFollowupAtLocal] = useState("");
   const [followupChannel, setFollowupChannel] = useState("");
   const [followupNote, setFollowupNote] = useState("");
+  const [followupLogVersion, setFollowupLogVersion] = useState(0);
 
   const [branches, setBranches] = useState<Branch[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -277,6 +280,16 @@ const LeadNew = () => {
         leadIdRef.current = saved.id;
         setLeadId(saved.id);
         setLeadNumber(saved.lead_number);
+      }
+      try {
+        await syncLeadFollowupLog(saved.id, {
+          scheduledAt: fromDatetimeLocalValue(followupAtLocal),
+          channel: followupChannel || null,
+          note: followupNote.trim() || null,
+        });
+        setFollowupLogVersion((v) => v + 1);
+      } catch (e) {
+        console.warn("[lead followup sync]", e);
       }
       return saved.id;
     } catch (e: unknown) {
@@ -800,6 +813,17 @@ const LeadNew = () => {
                       />
                     </div>
                   </div>
+                  <LeadFollowupLogPanel
+                    leadId={leadId}
+                    hasOpenFollowup={!!followupAtLocal.trim()}
+                    refreshToken={followupLogVersion}
+                    onCompleted={() => {
+                      setFollowupAtLocal("");
+                      setFollowupChannel("");
+                      setFollowupNote("");
+                      setFollowupLogVersion((v) => v + 1);
+                    }}
+                  />
                 </Card>
               </>
             )}
@@ -873,6 +897,17 @@ const LeadNew = () => {
                     />
                   </div>
                 </div>
+                <LeadFollowupLogPanel
+                  leadId={leadId}
+                  hasOpenFollowup={!!followupAtLocal.trim()}
+                  refreshToken={followupLogVersion}
+                  onCompleted={() => {
+                    setFollowupAtLocal("");
+                    setFollowupChannel("");
+                    setFollowupNote("");
+                    setFollowupLogVersion((v) => v + 1);
+                  }}
+                />
               </Card>
             )}
 

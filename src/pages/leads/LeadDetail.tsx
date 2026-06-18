@@ -28,6 +28,7 @@ import {
   formatFollowupDue,
   followupDueState,
 } from "@/lib/leadFollowup";
+import { LeadFollowupLogPanel } from "@/components/leads/LeadFollowupLogPanel";
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="space-y-0.5">
@@ -65,6 +66,7 @@ const LeadDetail = () => {
   const [serviceMap, setServiceMap] = useState<Map<string, string>>(new Map());
   const [convertedClient, setConvertedClient] = useState<{ id: string; registration_number: string | null } | null>(null);
   const [converting, setConverting] = useState(false);
+  const [followupLogVersion, setFollowupLogVersion] = useState(0);
 
   const onRegisterAsClient = async () => {
     if (!lead) return;
@@ -253,6 +255,19 @@ const LeadDetail = () => {
                 <Row label="Channel" value={followupChannelLabel(lead.followup_channel)} />
                 <Row label="Note" value={lead.followup_note} />
               </div>
+              {lead.status !== "converted" && (
+                <LeadFollowupLogPanel
+                  leadId={lead.id}
+                  hasOpenFollowup={!!lead.next_followup_at}
+                  refreshToken={followupLogVersion}
+                  onCompleted={() => {
+                    fetchLead(lead.id).then((l) => {
+                      if (l) setLead(l);
+                      setFollowupLogVersion((v) => v + 1);
+                    });
+                  }}
+                />
+              )}
             </Card>
           </>
         )}
@@ -280,6 +295,19 @@ const LeadDetail = () => {
               <Row label="Channel" value={followupChannelLabel(lead.followup_channel)} />
               <Row label="Note" value={lead.followup_note} />
             </div>
+            {lead.status !== "converted" && (
+              <LeadFollowupLogPanel
+                leadId={lead.id}
+                hasOpenFollowup={!!lead.next_followup_at}
+                refreshToken={followupLogVersion}
+                onCompleted={() => {
+                  fetchLead(lead.id).then((l) => {
+                    if (l) setLead(l);
+                    setFollowupLogVersion((v) => v + 1);
+                  });
+                }}
+              />
+            )}
           </Card>
         )}
 

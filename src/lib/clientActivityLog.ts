@@ -89,11 +89,14 @@ export async function appendClientActivityLog(opts: {
   metadata?: Record<string, unknown>;
   leadId?: string | null;
   actorId?: string | null;
+  sourceTable?: string | null;
+  sourceId?: string | null;
+  createdAt?: string | null;
 }): Promise<void> {
   const { data: u } = await supabase.auth.getUser();
   const actorId = opts.actorId ?? u?.user?.id ?? null;
   const actorRole = await resolveActorRole(actorId);
-  const { error } = await supabase.from("client_activity_log" as never).insert({
+  const row: Record<string, unknown> = {
     client_id: opts.clientId,
     lead_id: opts.leadId ?? null,
     actor_id: actorId,
@@ -102,8 +105,12 @@ export async function appendClientActivityLog(opts: {
     summary: opts.summary ?? null,
     previous_value: opts.previousValue ?? null,
     new_value: opts.newValue ?? null,
-    metadata: (opts.metadata ?? {}) as never,
-  } as never);
+    metadata: opts.metadata ?? {},
+  };
+  if (opts.sourceTable) row.source_table = opts.sourceTable;
+  if (opts.sourceId) row.source_id = opts.sourceId;
+  if (opts.createdAt) row.created_at = opts.createdAt;
+  const { error } = await supabase.from("client_activity_log" as never).insert(row as never);
   if (error) console.warn("[clientActivityLog]", error.message);
 }
 
@@ -180,6 +187,9 @@ export async function copyLeadHistoryToClientActivity(
       actorId,
     });
   }
+
+  const { copyLeadFollowupLogToClientActivity } = await import("@/lib/leadFollowupLog");
+  await copyLeadFollowupLogToClientActivity(leadId, clientId);
 
   await appendClientActivityLog({
     clientId,
