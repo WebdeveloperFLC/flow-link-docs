@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Lead } from "@/lib/leads";
+import { leadToBackgroundState } from "@/lib/leadBackground";
 import { ensureClientProfileSynced } from "@/lib/clientProfileSync";
 import { runWithAuthRetry } from "@/lib/supabaseSafeInsert";
 
@@ -137,9 +138,14 @@ export type ClientDraft = Partial<Omit<ClientRow, "id" | "registration_number" |
 /** Prefill a client draft from a lead row. */
 export function prefillFromLead(lead: Lead): ClientDraft {
   const visaCode = (lead.visa_services && lead.visa_services[0]) || "";
-  const seededHistory: EducationEntry[] = lead.last_education
-    ? [{ level: lead.last_education ?? undefined }]
-    : [];
+  const bg = leadToBackgroundState(lead);
+  let education_history = [...(bg.education_history ?? [])];
+  if (!education_history.length && lead.last_education) {
+    education_history = [{ level: lead.last_education }];
+  } else if (lead.last_education && education_history[0] && !education_history[0].level) {
+    education_history[0] = { ...education_history[0], level: lead.last_education };
+  }
+  const e0 = education_history[0];
   const interested = lead.interested_countries ?? [];
   const budgetMin = lead.budget_min ?? null;
   const budgetMax = lead.budget_max ?? null;
@@ -157,9 +163,19 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     country_of_citizenship: lead.country_of_citizenship ?? null,
     country_of_residence: lead.country_of_residence ?? null,
     country: lead.country_of_residence ?? "India",
-    last_education: lead.last_education ?? null,
+    last_education: lead.last_education ?? e0?.level ?? null,
     last_education_other: lead.last_education_other ?? null,
-    education_history: seededHistory,
+    institution_name: e0?.institution ?? null,
+    year_of_passing: e0?.year ?? null,
+    percentage_cgpa: e0?.percentage_cgpa ?? null,
+    education_history,
+    english_test: bg.english_test ?? null,
+    english_overall: bg.english_overall ?? null,
+    english_test_date: bg.english_test_date ?? null,
+    english_test_expiry: bg.english_test_expiry ?? null,
+    english_sections: bg.english_sections ?? {},
+    other_tests: bg.other_tests ?? [],
+    work_experience: bg.work_experience ?? [],
     interested_countries: interested,
     branch: lead.branch ?? null,
     department: lead.department ?? null,

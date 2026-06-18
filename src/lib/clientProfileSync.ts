@@ -1,6 +1,20 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { ClientRow } from "@/lib/clientRegistration";
 
+function parseNumericScore(value?: string | null): number | null {
+  if (value == null || value === "") return null;
+  const n = Number(String(value).replace(/[^\d.]/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+
+function scoreFromOtherTests(
+  tests: ClientRow["other_tests"],
+  type: string,
+): number | null {
+  const row = tests?.find((t) => t.type?.toUpperCase() === type.toUpperCase());
+  return parseNumericScore(row?.score);
+}
+
 /** Map registration (`clients`) fields → profile tab (`client_profile`) columns. */
 export function clientToProfilePatch(
   client: Partial<ClientRow>,
@@ -20,13 +34,34 @@ export function clientToProfilePatch(
   if (client.institution_name) patch.institution_name = client.institution_name;
   if (client.year_of_passing != null) patch.graduation_year = client.year_of_passing;
   if (client.percentage_cgpa) patch.gpa_or_percentage = client.percentage_cgpa;
-  if (client.english_overall) patch.ielts_overall = client.english_overall;
-  if (client.english_test_date) patch.ielts_test_date = client.english_test_date;
+
+  const englishTest = (client.english_test ?? "").toUpperCase();
+  const overall = parseNumericScore(client.english_overall);
   const sections = client.english_sections;
-  if (sections?.listening) patch.ielts_listening = sections.listening;
-  if (sections?.reading) patch.ielts_reading = sections.reading;
-  if (sections?.writing) patch.ielts_writing = sections.writing;
-  if (sections?.speaking) patch.ielts_speaking = sections.speaking;
+  if (englishTest === "IELTS" || englishTest === "CELPIP") {
+    if (overall != null) patch.ielts_overall = overall;
+    if (client.english_test_date) patch.ielts_test_date = client.english_test_date;
+    if (sections?.listening) patch.ielts_listening = parseNumericScore(sections.listening);
+    if (sections?.reading) patch.ielts_reading = parseNumericScore(sections.reading);
+    if (sections?.writing) patch.ielts_writing = parseNumericScore(sections.writing);
+    if (sections?.speaking) patch.ielts_speaking = parseNumericScore(sections.speaking);
+  } else if (englishTest === "PTE" && overall != null) {
+    patch.pte_score = overall;
+  } else if (englishTest === "TOEFL" && overall != null) {
+    patch.toefl_score = overall;
+  } else if (englishTest === "DUOLINGO" && overall != null) {
+    patch.duolingo_score = overall;
+  }
+
+  const gre = scoreFromOtherTests(client.other_tests, "GRE");
+  if (gre != null) patch.gre_score = gre;
+  const gmat = scoreFromOtherTests(client.other_tests, "GMAT");
+  if (gmat != null) patch.gmat_score = gmat;
+
+  const firstJob = client.work_experience?.[0];
+  if (firstJob?.company) patch.employer_name = firstJob.company;
+  if (firstJob?.role) patch.job_title = firstJob.role;
+
   if (spouseName?.trim()) patch.spouse_name = spouseName.trim();
   if (client.sponsor) patch.sponsor = client.sponsor;
   if (client.sponsor_other) patch.sponsor_other = client.sponsor_other;

@@ -21,6 +21,7 @@ import { LeadJourneyFieldsBlock } from "@/components/leads/LeadJourneyFields";
 import {
   upsertLeadAutosave,
   createLead,
+  updateLead,
   fetchLead,
   fetchBranches,
   fetchDepartments,
@@ -58,6 +59,16 @@ import {
 } from "@/lib/leadFollowup";
 import { syncLeadFollowupLog } from "@/lib/leadFollowupLog";
 import { LeadFollowupSection } from "@/components/leads/LeadFollowupSection";
+import { LeadBackgroundSummaryCard } from "@/components/leads/LeadBackgroundSummaryCard";
+import { UpgradeColdLeadCard } from "@/components/leads/UpgradeColdLeadCard";
+import {
+  backgroundStateToLeadDraft,
+  EMPTY_LEAD_BACKGROUND,
+  leadToBackgroundState,
+  mergeBackgroundIntoEducationHistory,
+  syncLastEducationFromBackground,
+  type LeadBackgroundState,
+} from "@/lib/leadBackground";
 
 const VISA_LOCK_TEMPLATE = (reason: string) =>
   `Visa not pursued at this stage. Reason: ${reason || "(please specify)"}\n\nFollow-up: Re-engage when visa interest is expressed.\n\n`;
@@ -98,6 +109,8 @@ const LeadNew = () => {
   const [followupLogVersion, setFollowupLogVersion] = useState(0);
   const [followupSaved, setFollowupSaved] = useState(false);
   const [savingFollowup, setSavingFollowup] = useState(false);
+  const [background, setBackground] = useState<LeadBackgroundState>(EMPTY_LEAD_BACKGROUND);
+  const [upgradingCold, setUpgradingCold] = useState(false);
 
   const [branches, setBranches] = useState<Branch[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -206,6 +219,7 @@ const LeadNew = () => {
     if (l.converted_to_client_id) {
       setConvertedClientId(l.converted_to_client_id);
     }
+    setBackground(leadToBackgroundState(l));
   }, []);
 
   useEffect(() => {
@@ -217,8 +231,16 @@ const LeadNew = () => {
 
   const buildDraft = (): LeadDraft => {
     const isCold = mode === "cold";
+    const lastEd = (f.last_education as string) || null;
+    const mergedBackground = mergeBackgroundIntoEducationHistory(background, lastEd);
+    const educationSync = syncLastEducationFromBackground(
+      { ...background, education_history: mergedBackground },
+      lastEd,
+    );
     return {
       ...(f as object),
+      ...backgroundStateToLeadDraft({ ...background, education_history: mergedBackground }),
+      ...educationSync,
       lead_type: isCold ? "cold" : ((f.lead_temperature as string) === "hot" ? "hot" : "warm"),
       lead_temperature: isCold ? "cold" : (((f.lead_temperature as string) || "warm") as never),
       is_cold_pool: isCold,
@@ -579,6 +601,41 @@ const LeadNew = () => {
 
   const isCold = mode === "cold";
 
+  const commitBackgroundAutosave = () => {
+    scheduleAutosave();
+  };
+
+  const patchBackground = (patch: Partial<LeadBackgroundState>) => {
+    setBackground((prev) => {
+      const next = { ...prev, ...patch };
+      const level = next.education_history?.[0]?.level;
+      if (level) {
+        setField("last_education", level);
+      }
+      return next;
+    });
+  };
+
+  const handleUpgradeCold = async () => {
+    setUpgradingCold(true);
+    try {
+      setMode("warm_hot");
+      setField("lead_temperature", "warm");
+      if (leadIdRef.current) {
+        await updateLead(leadIdRef.current, {
+          lead_type: "warm",
+          lead_temperature: "warm",
+          is_cold_pool: false,
+        });
+      }
+      toast.success("Upgraded to warm lead — full form unlocked");
+    } catch (e) {
+      toast.error(formatSupabaseError(e, "Upgrade failed"));
+    } finally {
+      setUpgradingCold(false);
+    }
+  };
+
   const draftForValidation = buildDraft();
   const canRegisterAsClient =
     !convertedClientId &&
@@ -721,6 +778,10 @@ const LeadNew = () => {
               {leadId && <span className="text-xs text-muted-foreground">Mode locked after first save</span>}
             </div>
 
+            {isCold && (
+              <UpgradeColdLeadCard onUpgrade={handleUpgradeCold} upgrading={upgradingCold} />
+            )}
+
             <Card className="p-4 sm:p-6 space-y-4">
               <h3 className="font-semibold">1. Personal Information</h3>
               {personalFields}
@@ -751,7 +812,19 @@ const LeadNew = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
                       <Label>Last Education</Label>
-                      <Select value={(f.last_education as string) || ""} onValueChange={(v) => { setField("last_education", v); setTimeout(scheduleAutosave, 0); }}>
+                      <Select
+                        value={(f.last_education as string) || ""}
+                        onValueChange={(v) => {
+                          setField("last_education", v);
+                          setBackground((prev) => {
+                            const history = [...(prev.education_history ?? [])];
+                            if (history.length === 0) history.push({ level: v });
+                            else history[0] = { ...history[0], level: v };
+                            return { ...prev, education_history: history };
+                          });
+                          setTimeout(scheduleAutosave, 0);
+                        }}
+                      >
                         <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                         <SelectContent>{qualificationLevels.map((q) => <SelectItem key={q.code} value={q.code}>{q.label}</SelectItem>)}</SelectContent>
                       </Select>
@@ -764,6 +837,12 @@ const LeadNew = () => {
                     )}
                   </div>
                 </Card>
+
+                <LeadBackgroundSummaryCard
+                  value={background}
+                  onChange={patchBackground}
+                  onCommit={commitBackgroundAutosave}
+                />
 
                 <Card className="p-4 sm:p-6 space-y-4">
                   <h3 className="font-semibold">4. Funding &amp; Timeline</h3>

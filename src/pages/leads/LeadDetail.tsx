@@ -29,7 +29,9 @@ import {
   followupDueState,
 } from "@/lib/leadFollowup";
 import { LeadFollowupLogPanel } from "@/components/leads/LeadFollowupLogPanel";
+import { LeadBackgroundOverview } from "@/components/leads/LeadBackgroundOverview";
 import { syncLeadFollowupLog } from "@/lib/leadFollowupLog";
+import { leadToBackgroundState } from "@/lib/leadBackground";
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="space-y-0.5">
@@ -213,6 +215,8 @@ const LeadDetail = () => {
                 )}
               </div>
             </Card>
+
+            <LeadBackgroundOverview background={leadToBackgroundState(lead)} />
 
             <Card className="p-6 space-y-4">
               <h3 className="font-semibold">Funding &amp; Timeline</h3>

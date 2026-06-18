@@ -71,6 +71,7 @@ function resolveOverviewBudget(client: ClientSnapshot): string | null {
 
 export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props) {
   const [loading, setLoading] = useState(true);
+  const [profileDob, setProfileDob] = useState<string | null>(null);
   const [counselorName, setCounselorName] = useState<string | null>(null);
   const [programLabel, setProgramLabel] = useState<string>("Pending selection");
   const [totalFee, setTotalFee] = useState<number | null>(null);
@@ -84,6 +85,26 @@ export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props
     : client.english_test
       ? client.english_test
       : null;
+  const dateOfBirth = client.date_of_birth ?? profileDob;
+
+  useEffect(() => {
+    let cancelled = false;
+    if (client.date_of_birth) {
+      setProfileDob(null);
+      return;
+    }
+    supabase
+      .from("client_profile")
+      .select("date_of_birth")
+      .eq("client_id", client.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setProfileDob(data?.date_of_birth ?? null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [client.id, client.date_of_birth]);
 
   useEffect(() => {
     let cancelled = false;
@@ -187,7 +208,7 @@ export function ClientOverviewDashboard({ client, serviceCtx, onOpenTab }: Props
         </div>
         <div className="p-5 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-4">
           <Field label="Full name" value={client.full_name} />
-          <Field label="Date of birth" value={client.date_of_birth} />
+          <Field label="Date of birth" value={dateOfBirth} />
           <Field label="Phone" value={client.phone} />
           <Field label="Email" value={client.email} />
           <Field label="Passport no." value={client.passport_number} />

@@ -14,6 +14,7 @@ import { autoAssignPipelineForClient } from "@/lib/stagePipelines";
 import { completeClientServiceEnrollment } from "@/lib/service-library/completeClientServiceEnrollment";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
 import { ensureClientProfileSynced } from "@/lib/clientProfileSync";
+import { syncClientBackgroundAfterConversion } from "@/lib/clientBackgroundSync";
 import { copyLeadHistoryToClientActivity, appendClientActivityLog } from "@/lib/clientActivityLog";
 import { createTask } from "@/lib/clientTasks";
 import { followupChannelLabel } from "@/lib/leadFollowup";
@@ -172,6 +173,10 @@ export async function convertLeadToClient(
 
   await ensureClientProfileSynced(saved.id).catch((e) =>
     console.warn("[convertLeadToClient] profile sync failed", e),
+  );
+
+  await syncClientBackgroundAfterConversion(saved.id).catch((e) =>
+    console.warn("[convertLeadToClient] background sync failed", e),
   );
 
   await runServiceEnrollment(saved.id, lead, opts);

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { EducationEntry, ExperienceEntry } from "@/lib/clientRegistration";
 import { isExcludedCatalogueService } from "@/lib/service-library/excludedCatalogueServices";
 import { isPipelineBackedLibraryId } from "@/lib/service-library/pipelineBackedLibraryIds";
 import {
@@ -66,6 +67,16 @@ export interface Lead {
   next_followup_at?: string | null;
   followup_channel?: string | null;
   followup_note?: string | null;
+  followup_history?: unknown[];
+  education_history?: EducationEntry[];
+  english_test?: string | null;
+  english_test_status?: string | null;
+  english_overall?: string | null;
+  english_test_date?: string | null;
+  english_test_expiry?: string | null;
+  english_sections?: Record<string, string>;
+  other_tests?: Array<{ type: string; score?: string; date?: string; sections?: Record<string, string> }>;
+  work_experience?: ExperienceEntry[];
   priority?: string | null;
   source?: string | null;
   created_by?: string | null;
