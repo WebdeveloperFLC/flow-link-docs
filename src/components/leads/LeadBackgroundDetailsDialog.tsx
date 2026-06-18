@@ -14,6 +14,7 @@ import {
 import { LanguageTestsFields } from "@/components/clients/registration/LanguageTestsFields";
 import type { LeadBackgroundState } from "@/lib/leadBackground";
 import { loadGeoModule } from "@/lib/geoLocations";
+import { preventDialogDismissOnNestedOverlay } from "@/lib/dialogOverlayGuard";
 import { EMPTY_LANGUAGE_TESTS, type BackgroundDetailTab } from "@/lib/languageTests";
 
 interface Props {
@@ -34,6 +35,7 @@ export function LeadBackgroundDetailsDialog({
   initialTab = "english",
 }: Props) {
   const [tab, setTab] = useState<BackgroundDetailTab>(initialTab);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -42,13 +44,28 @@ export function LeadBackgroundDetailsDialog({
     }
   }, [open, initialTab]);
 
+  const handleDone = async () => {
+    setSaving(true);
+    try {
+      await onCommit();
+      onOpenChange(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-3xl max-h-[90vh] overflow-y-auto"
+        onPointerDownOutside={preventDialogDismissOnNestedOverlay}
+        onFocusOutside={preventDialogDismissOnNestedOverlay}
+        onInteractOutside={preventDialogDismissOnNestedOverlay}
+      >
         <DialogHeader>
           <DialogTitle>Background details</DialogTitle>
           <DialogDescription>
-            Optional tests, education, and experience. Nothing here is required to save the lead.
+            Optional tests, education, and experience. Changes apply when you click Done.
           </DialogDescription>
         </DialogHeader>
         <Tabs value={tab} onValueChange={(v) => setTab(v as BackgroundDetailTab)}>
@@ -58,16 +75,15 @@ export function LeadBackgroundDetailsDialog({
             <TabsTrigger value="education">Education</TabsTrigger>
             <TabsTrigger value="experience">Experience</TabsTrigger>
           </TabsList>
-          <TabsContent value="english" className="mt-4">
+          <TabsContent value="english" className="mt-4 focus-visible:outline-none">
             <EducationExperienceFields
               value={value}
               onChange={onChange}
-              onCommit={onCommit}
               compact
               visibleSections={["english", "academic"]}
             />
           </TabsContent>
-          <TabsContent value="language" className="mt-4">
+          <TabsContent value="language" className="mt-4 focus-visible:outline-none">
             <LanguageTestsFields
               value={value.language_tests ?? EMPTY_LANGUAGE_TESTS}
               onChange={(patch) =>
@@ -78,37 +94,28 @@ export function LeadBackgroundDetailsDialog({
                   },
                 })
               }
-              onCommit={onCommit}
             />
           </TabsContent>
-          <TabsContent value="education" className="mt-4">
+          <TabsContent value="education" className="mt-4 focus-visible:outline-none">
             <EducationExperienceFields
               value={value}
               onChange={onChange}
-              onCommit={onCommit}
               compact
               visibleSections={["education"]}
             />
           </TabsContent>
-          <TabsContent value="experience" className="mt-4">
+          <TabsContent value="experience" className="mt-4 focus-visible:outline-none">
             <EducationExperienceFields
               value={value}
               onChange={onChange}
-              onCommit={onCommit}
               compact
               visibleSections={["experience"]}
             />
           </TabsContent>
         </Tabs>
         <div className="flex justify-end pt-2">
-          <Button
-            type="button"
-            onClick={async () => {
-              await onCommit();
-              onOpenChange(false);
-            }}
-          >
-            Done
+          <Button type="button" onClick={handleDone} disabled={saving}>
+            {saving ? "Saving…" : "Done"}
           </Button>
         </div>
       </DialogContent>
