@@ -1155,6 +1155,8 @@ const ClientDetail = () => {
         serviceCase={serviceCase}
         serviceLabel={serviceCtx.serviceLabel}
         initialChoice={outcomeInitialChoice}
+        pipelineId={client.pipeline_id ?? null}
+        onSwitchCountry={onServiceSwitched}
         onComplete={onCaseOutcomeComplete}
       />
 

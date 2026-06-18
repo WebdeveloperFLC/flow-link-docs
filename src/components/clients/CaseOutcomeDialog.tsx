@@ -31,6 +31,8 @@ import {
   type ReapplyTransferOptions,
 } from "@/lib/caseReapplication";
 import { OUTCOME_PICKER } from "@/lib/caseOutcomeStyles";
+import { moveClientToVisaRefusedStage } from "@/lib/refusalPipeline";
+import { ClientRefusalWorkflowDialog } from "@/components/clients/ClientRefusalWorkflowDialog";
 
 type OutcomeChoice = "approved" | "refused" | "reapply" | null;
 
@@ -41,6 +43,8 @@ type Props = {
   serviceCase: ClientServiceCase | null;
   serviceLabel?: string | null;
   initialChoice?: OutcomeChoice;
+  pipelineId?: string | null;
+  onSwitchCountry?: () => void;
   onComplete: () => void;
 };
 
@@ -51,6 +55,8 @@ export function CaseOutcomeDialog({
   serviceCase,
   serviceLabel,
   initialChoice = null,
+  pipelineId,
+  onSwitchCountry,
   onComplete,
 }: Props) {
   const { user } = useAuth();
@@ -65,6 +71,7 @@ export function CaseOutcomeDialog({
   const [targetServiceId, setTargetServiceId] = useState<string>("");
   const [transferDocs, setTransferDocs] = useState<Array<{ id: string; label: string; documentType: string }>>([]);
   const [transfer, setTransfer] = useState<ReapplyTransferOptions | null>(null);
+  const [refusalWorkflowOpen, setRefusalWorkflowOpen] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -76,6 +83,7 @@ export function CaseOutcomeDialog({
       setTargetServiceId("");
       setTargetCountry("");
       setTransfer(null);
+      setRefusalWorkflowOpen(false);
       return;
     }
     if (initialChoice) {
@@ -192,9 +200,19 @@ export function CaseOutcomeDialog({
         refusalDocPending: !docId && refusalDeferred,
         note: !docId && refusalDeferred ? "Refusal letter to follow" : null,
       });
+      if (pipelineId) {
+        try {
+          await moveClientToVisaRefusedStage(clientId, pipelineId);
+        } catch (e) {
+          console.warn("[CaseOutcomeDialog] pipeline stage update failed", e);
+        }
+      }
       toast.success(docId ? "Case closed — refused" : "Case closed — refusal letter pending");
       onOpenChange(false);
       onComplete();
+      if (pipelineId) {
+        setRefusalWorkflowOpen(true);
+      }
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Failed to close case");
     } finally {
@@ -238,6 +256,7 @@ export function CaseOutcomeDialog({
   const caseAlreadyClosed = serviceCase?.status === "closed";
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -475,5 +494,16 @@ export function CaseOutcomeDialog({
         )}
       </DialogContent>
     </Dialog>
+    {pipelineId && (
+      <ClientRefusalWorkflowDialog
+        open={refusalWorkflowOpen}
+        onOpenChange={setRefusalWorkflowOpen}
+        clientId={clientId}
+        pipelineId={pipelineId}
+        onComplete={onComplete}
+        onSwitchCountry={onSwitchCountry}
+      />
+    )}
+    </>
   );
 }
