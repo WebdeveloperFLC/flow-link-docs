@@ -26,7 +26,7 @@ UPDATE public.clients c
  WHERE c.branch_id IS NULL
    AND c.branch IS NOT NULL
    AND btrim(c.branch) <> ''
-   AND lower(btrim(b.name)) = lower(btrim(b.branch));
+   AND lower(btrim(b.name)) = lower(btrim(c.branch));
 
 -- Keep branch text ↔ branch_id in sync on write
 CREATE OR REPLACE FUNCTION public.fn_sync_branch_id_from_text()
