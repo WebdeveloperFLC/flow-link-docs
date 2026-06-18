@@ -29,7 +29,13 @@ import {
   type Branch,
   type Department,
 } from "@/lib/leads";
-import { leadColdSchema, leadWarmHotSchema, GENDERS, MARITAL_STATUSES } from "@/lib/leadSchemas";
+import {
+  leadColdSchema,
+  leadWarmHotSchema,
+  formatLeadValidationError,
+  GENDERS,
+  MARITAL_STATUSES,
+} from "@/lib/leadSchemas";
 import { useMasterItems, useMasterLabels } from "@/lib/masters";
 import { dialCodeFor } from "@/lib/countryCodes";
 import { buildServiceLibraryUrl, buildClientDetailUrlFromServiceLibrary } from "@/lib/service-library/serviceCodes";
@@ -93,6 +99,10 @@ const LeadNew = () => {
   const [loadingPrimaryUsers, setLoadingPrimaryUsers] = useState(false);
   const lastAssignedCounselorRef = useRef<string | null>(null);
   const defaultedPrimaryUserRef = useRef(false);
+  const leadIdRef = useRef<string | null>(editId);
+  const autosaveInFlightRef = useRef(false);
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autosaveFnRef = useRef<() => Promise<string | null>>(async () => null);
   const lead_sources = useMasterLabels("lead_sources" as never);
   const qualificationLevels = useMasterItems("qualification_levels");
   const notesRef = useRef<HTMLTextAreaElement>(null);
@@ -221,7 +231,9 @@ const LeadNew = () => {
   };
 
   const autosave = async (): Promise<string | null> => {
-    if (!leadId) {
+    if (autosaveInFlightRef.current) return leadIdRef.current;
+    const currentLeadId = leadIdRef.current;
+    if (!currentLeadId) {
       const fn = (f.first_name as string)?.trim();
       const ln = (f.last_name as string)?.trim();
       if (!fn || !ln) return null;
@@ -246,9 +258,10 @@ const LeadNew = () => {
         }
       }
     }
+    autosaveInFlightRef.current = true;
     setSaving(true);
     try {
-      const saved = await upsertLeadAutosave(leadId, buildDraft());
+      const saved = await upsertLeadAutosave(currentLeadId, buildDraft());
       const prevAssigned = lastAssignedCounselorRef.current;
       const nextAssigned = (saved.assigned_counselor_id as string | null | undefined) ?? null;
       if (saved.id && prevAssigned !== nextAssigned) {
@@ -260,7 +273,8 @@ const LeadNew = () => {
         }).catch(() => {});
         lastAssignedCounselorRef.current = nextAssigned;
       }
-      if (!leadId) {
+      if (!currentLeadId) {
+        leadIdRef.current = saved.id;
         setLeadId(saved.id);
         setLeadNumber(saved.lead_number);
       }
@@ -271,9 +285,28 @@ const LeadNew = () => {
       toast.error(msg);
       return null;
     } finally {
+      autosaveInFlightRef.current = false;
       setSaving(false);
     }
   };
+
+  autosaveFnRef.current = autosave;
+
+  const scheduleAutosave = () => {
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    autosaveTimerRef.current = setTimeout(() => {
+      autosaveTimerRef.current = null;
+      void autosaveFnRef.current();
+    }, 400);
+  };
+
+  useEffect(() => {
+    leadIdRef.current = leadId;
+  }, [leadId]);
+
+  useEffect(() => () => {
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+  }, []);
 
   const mergeLeadFromForm = useCallback((lead: Lead): Lead => ({
     ...lead,
@@ -317,7 +350,7 @@ const LeadNew = () => {
       ? leadColdSchema.safeParse({ ...draft })
       : leadWarmHotSchema.safeParse({ ...draft, travel_services: services.travel_services });
     if (!validation.success) {
-      toast.error(validation.error.errors[0]?.message ?? "Complete required lead fields before converting");
+      toast.error(formatLeadValidationError(validation.error, "Complete required lead fields before converting"));
       return;
     }
 
@@ -397,17 +430,17 @@ const LeadNew = () => {
 
   const onPrimaryUserChange = (v: string) => {
     setField("assigned_counselor_id", v || null);
-    setTimeout(autosave, 0);
+    setTimeout(scheduleAutosave, 0);
   };
 
   const onBranchChange = (v: string) => {
     setField("branch", v);
-    setTimeout(autosave, 0);
+    setTimeout(scheduleAutosave, 0);
   };
 
   const onDepartmentChange = (v: string) => {
     setField("department", v);
-    setTimeout(autosave, 0);
+    setTimeout(scheduleAutosave, 0);
   };
 
   const onToggleVisaLock = (checked: boolean) => {
@@ -430,8 +463,7 @@ const LeadNew = () => {
       ? leadColdSchema.safeParse({ ...draft })
       : leadWarmHotSchema.safeParse({ ...draft, travel_services: services.travel_services });
     if (!payload.success) {
-      const first = payload.error.errors[0];
-      toast.error(first.message);
+      toast.error(formatLeadValidationError(payload.error, "Complete required lead fields"));
       return;
     }
     setSaving(true);
@@ -463,21 +495,21 @@ const LeadNew = () => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div className="space-y-1.5">
         <Label>First Name *</Label>
-        <Input value={(f.first_name as string) || ""} onChange={(e) => setField("first_name", e.target.value)} onBlur={autosave} />
+        <Input value={(f.first_name as string) || ""} onChange={(e) => setField("first_name", e.target.value)} onBlur={scheduleAutosave} />
       </div>
       <div className="space-y-1.5">
         <Label>Middle Name</Label>
-        <Input value={(f.middle_name as string) || ""} onChange={(e) => setField("middle_name", e.target.value)} onBlur={autosave} />
+        <Input value={(f.middle_name as string) || ""} onChange={(e) => setField("middle_name", e.target.value)} onBlur={scheduleAutosave} />
       </div>
       <div className="space-y-1.5">
         <Label>Last Name *</Label>
-        <Input value={(f.last_name as string) || ""} onChange={(e) => setField("last_name", e.target.value)} onBlur={autosave} />
+        <Input value={(f.last_name as string) || ""} onChange={(e) => setField("last_name", e.target.value)} onBlur={scheduleAutosave} />
       </div>
       {!isCold && (
         <>
           <div className="space-y-1.5">
             <Label>Gender *</Label>
-            <Select value={(f.gender as string) || ""} onValueChange={(v) => { setField("gender", v); setTimeout(autosave, 0); }}>
+            <Select value={(f.gender as string) || ""} onValueChange={(v) => { setField("gender", v); setTimeout(scheduleAutosave, 0); }}>
               <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 {GENDERS.map((g) => <SelectItem key={g} value={g} className="capitalize">{g.replace(/_/g, " ")}</SelectItem>)}
@@ -486,7 +518,7 @@ const LeadNew = () => {
           </div>
           <div className="space-y-1.5">
             <Label>Marital Status</Label>
-            <Select value={(f.marital_status as string) || ""} onValueChange={(v) => { setField("marital_status", v); setTimeout(autosave, 0); }}>
+            <Select value={(f.marital_status as string) || ""} onValueChange={(v) => { setField("marital_status", v); setTimeout(scheduleAutosave, 0); }}>
               <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
               <SelectContent>
                 {MARITAL_STATUSES.map((m) => <SelectItem key={m} value={m} className="capitalize">{m}</SelectItem>)}
@@ -498,7 +530,7 @@ const LeadNew = () => {
       )}
       <div className="space-y-1.5">
         <Label>Email {isCold ? "" : "*"}</Label>
-        <Input type="email" value={(f.email as string) || ""} onChange={(e) => setField("email", e.target.value)} onBlur={autosave} />
+        <Input type="email" value={(f.email as string) || ""} onChange={(e) => setField("email", e.target.value)} onBlur={scheduleAutosave} />
       </div>
       <PhoneInputRow
         className="md:col-span-2 lg:col-span-2"
@@ -506,9 +538,9 @@ const LeadNew = () => {
         required={!isCold}
         countryCode={(f.phone_country_code as string) || ""}
         phone={(f.phone as string) || ""}
-        onCountryCodeChange={(v) => { setField("phone_country_code", v); setTimeout(autosave, 0); }}
+        onCountryCodeChange={(v) => { setField("phone_country_code", v); setTimeout(scheduleAutosave, 0); }}
         onPhoneChange={(v) => setField("phone", v)}
-        onBlur={autosave}
+        onBlur={scheduleAutosave}
       />
     </div>
   );
@@ -527,7 +559,7 @@ const LeadNew = () => {
       {visaLocked && (
         <div className="space-y-1.5 ml-8">
           <Label>Reason *</Label>
-          <Input value={visaLockReason} onChange={(e) => setVisaLockReason(e.target.value)} onBlur={autosave} placeholder="e.g. Coaching only" />
+          <Input value={visaLockReason} onChange={(e) => setVisaLockReason(e.target.value)} onBlur={scheduleAutosave} placeholder="e.g. Coaching only" />
         </div>
       )}
     </div>
@@ -602,16 +634,16 @@ const LeadNew = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label>Country of Citizenship *</Label>
-                      <CountrySelect value={(f.country_of_citizenship as string) || ""} onChange={(v) => { setField("country_of_citizenship", v); setTimeout(autosave, 0); }} />
+                      <CountrySelect value={(f.country_of_citizenship as string) || ""} onChange={(v) => { setField("country_of_citizenship", v); setTimeout(scheduleAutosave, 0); }} />
                     </div>
                     <div className="space-y-1.5">
                       <Label>Country of Residence *</Label>
-                      <CountrySelect value={(f.country_of_residence as string) || ""} onChange={(v) => { setField("country_of_residence", v); setTimeout(autosave, 0); }} />
+                      <CountrySelect value={(f.country_of_residence as string) || ""} onChange={(v) => { setField("country_of_residence", v); setTimeout(scheduleAutosave, 0); }} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <Label>Countries of Interest *</Label>
-                    <RegionCountriesPicker value={interestedCountries} onChange={(v) => { setInterestedCountries(v); setTimeout(autosave, 0); }} />
+                    <RegionCountriesPicker value={interestedCountries} onChange={(v) => { setInterestedCountries(v); setTimeout(scheduleAutosave, 0); }} />
                   </div>
                 </Card>
 
@@ -620,7 +652,7 @@ const LeadNew = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
                       <Label>Last Education</Label>
-                      <Select value={(f.last_education as string) || ""} onValueChange={(v) => { setField("last_education", v); setTimeout(autosave, 0); }}>
+                      <Select value={(f.last_education as string) || ""} onValueChange={(v) => { setField("last_education", v); setTimeout(scheduleAutosave, 0); }}>
                         <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                         <SelectContent>{qualificationLevels.map((q) => <SelectItem key={q.code} value={q.code}>{q.label}</SelectItem>)}</SelectContent>
                       </Select>
@@ -628,7 +660,7 @@ const LeadNew = () => {
                     {String(f.last_education ?? "").toLowerCase() === "other" && (
                       <div className="space-y-1.5">
                         <Label>Specify</Label>
-                        <Input value={(f.last_education_other as string) || ""} onChange={(e) => setField("last_education_other", e.target.value)} onBlur={autosave} />
+                        <Input value={(f.last_education_other as string) || ""} onChange={(e) => setField("last_education_other", e.target.value)} onBlur={scheduleAutosave} />
                       </div>
                     )}
                   </div>
@@ -649,9 +681,9 @@ const LeadNew = () => {
                     }}
                     onChange={(patch) => {
                       setF((p) => ({ ...p, ...patch }));
-                      setTimeout(autosave, 0);
+                      setTimeout(scheduleAutosave, 0);
                     }}
-                    onBlur={autosave}
+                    onBlur={scheduleAutosave}
                   />
                 </Card>
 
@@ -659,7 +691,7 @@ const LeadNew = () => {
                   <h3 className="font-semibold">5. Services Required *</h3>
                   <ServiceTabs
                     value={services}
-                    onChange={(v) => { setServices(v); setTimeout(autosave, 0); }}
+                    onChange={(v) => { setServices(v); setTimeout(scheduleAutosave, 0); }}
                     visaLocked={visaLocked}
                     interestedCountries={interestedCountries}
                     layout="compact"
@@ -704,14 +736,14 @@ const LeadNew = () => {
                     </div>
                     <div className="space-y-1.5">
                       <Label>Lead Source</Label>
-                      <Select value={(f.lead_source as string) || ""} onValueChange={(v) => { setField("lead_source", v); setTimeout(autosave, 0); }}>
+                      <Select value={(f.lead_source as string) || ""} onValueChange={(v) => { setField("lead_source", v); setTimeout(scheduleAutosave, 0); }}>
                         <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                         <SelectContent>{lead_sources.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1.5">
                       <Label>Temperature</Label>
-                      <Select value={(f.lead_temperature as string) || "warm"} onValueChange={(v) => { setField("lead_temperature", v); setTimeout(autosave, 0); }}>
+                      <Select value={(f.lead_temperature as string) || "warm"} onValueChange={(v) => { setField("lead_temperature", v); setTimeout(scheduleAutosave, 0); }}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="warm">Warm</SelectItem>
@@ -735,9 +767,9 @@ const LeadNew = () => {
                         value={followupAtLocal}
                         onChange={(e) => {
                           setFollowupAtLocal(e.target.value);
-                          setTimeout(autosave, 0);
+                          setTimeout(scheduleAutosave, 0);
                         }}
-                        onBlur={autosave}
+                        onBlur={scheduleAutosave}
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -746,7 +778,7 @@ const LeadNew = () => {
                         value={followupChannel || "__none__"}
                         onValueChange={(v) => {
                           setFollowupChannel(v === "__none__" ? "" : v);
-                          setTimeout(autosave, 0);
+                          setTimeout(scheduleAutosave, 0);
                         }}
                       >
                         <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
@@ -763,7 +795,7 @@ const LeadNew = () => {
                       <Input
                         value={followupNote}
                         onChange={(e) => setFollowupNote(e.target.value)}
-                        onBlur={autosave}
+                        onBlur={scheduleAutosave}
                         placeholder="e.g. Send fee quote, call back after IELTS"
                       />
                     </div>
@@ -778,11 +810,11 @@ const LeadNew = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label>Campaign / List Name</Label>
-                    <Input value={(f.cold_pool_campaign as string) || ""} onChange={(e) => setField("cold_pool_campaign", e.target.value)} onBlur={autosave} />
+                    <Input value={(f.cold_pool_campaign as string) || ""} onChange={(e) => setField("cold_pool_campaign", e.target.value)} onBlur={scheduleAutosave} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Lead Source</Label>
-                    <Select value={(f.lead_source as string) || ""} onValueChange={(v) => { setField("lead_source", v); setTimeout(autosave, 0); }}>
+                    <Select value={(f.lead_source as string) || ""} onValueChange={(v) => { setField("lead_source", v); setTimeout(scheduleAutosave, 0); }}>
                       <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                       <SelectContent>{lead_sources.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                     </Select>
@@ -808,9 +840,9 @@ const LeadNew = () => {
                       value={followupAtLocal}
                       onChange={(e) => {
                         setFollowupAtLocal(e.target.value);
-                        setTimeout(autosave, 0);
+                        setTimeout(scheduleAutosave, 0);
                       }}
-                      onBlur={autosave}
+                      onBlur={scheduleAutosave}
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -819,7 +851,7 @@ const LeadNew = () => {
                       value={followupChannel || "__none__"}
                       onValueChange={(v) => {
                         setFollowupChannel(v === "__none__" ? "" : v);
-                        setTimeout(autosave, 0);
+                        setTimeout(scheduleAutosave, 0);
                       }}
                     >
                       <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
@@ -836,7 +868,7 @@ const LeadNew = () => {
                     <Input
                       value={followupNote}
                       onChange={(e) => setFollowupNote(e.target.value)}
-                      onBlur={autosave}
+                      onBlur={scheduleAutosave}
                       placeholder="Brief reminder for next call"
                     />
                   </div>
@@ -850,7 +882,7 @@ const LeadNew = () => {
                 ref={notesRef}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                onBlur={autosave}
+                onBlur={scheduleAutosave}
                 rows={6}
                 placeholder="Counsellor notes, follow-up plan, special considerations…"
               />
@@ -879,7 +911,17 @@ const LeadNew = () => {
                     <UserCheck className="size-4 mr-1" />
                     Register as Client
                   </Button>
-                  <Button onClick={validateAndSubmit} disabled={saving || converting}>
+                  <Button
+                    onClick={validateAndSubmit}
+                    disabled={saving || converting || !canRegisterAsClient}
+                    title={
+                      canRegisterAsClient
+                        ? "Save lead and open detail page"
+                        : isCold
+                          ? "Enter name plus email or phone first"
+                          : "Complete all required warm/hot fields first"
+                    }
+                  >
                     Save &amp; View
                   </Button>
                 </div>

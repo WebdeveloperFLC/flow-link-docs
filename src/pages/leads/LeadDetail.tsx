@@ -16,7 +16,7 @@ import { LeadOwnerCard } from "@/components/leads/LeadOwnerCard";
 import { WhatsAppInboxLink } from "@/components/whatsapp/WhatsAppInboxLink";
 import { leadPhoneToE164 } from "@/lib/whatsapp/phone";
 import { useMasterItems } from "@/lib/masters";
-import { leadWarmHotSchema } from "@/lib/leadSchemas";
+import { leadWarmHotSchema, formatLeadValidationError } from "@/lib/leadSchemas";
 import {
   hasBudgetLabel,
   sponsorLabel,
@@ -79,7 +79,7 @@ const LeadDetail = () => {
         travel_services: lead.travel_financial_services ?? [],
       });
       if (!validation.success) {
-        toast.error(validation.error.errors[0]?.message ?? "Complete required lead fields before converting");
+        toast.error(formatLeadValidationError(validation.error, "Complete required lead fields before converting"));
         return;
       }
     }
