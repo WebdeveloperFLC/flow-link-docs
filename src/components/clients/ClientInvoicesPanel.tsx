@@ -56,9 +56,11 @@ import {
   type TaxBasis,
 } from "@/lib/invoiceLinePricing";
 import {
+  allocationServiceUuidFromLineRef,
   distributeLumpSumAcrossLines,
   lineItemKeyFromIndex,
   paidByLineFromAllocations,
+  priorPaidForLine,
 } from "@/lib/invoicePaymentAllocation";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -1818,7 +1820,7 @@ function CollectPaymentDialog({
           const m = meta(li);
           const key = li?.service_id ? `svc:${li.service_id}` : `idx:${idx}:${slug(li?.service_name ?? "")}`;
           const total = Number(li?.total ?? Number(li?.amount ?? 0) * Number(li?.quantity ?? 1)) || 0;
-          const paid = paidByLineKey.get(key) ?? (li?.service_id ? (paidByServiceFallback.get(li.service_id) ?? 0) : 0);
+          const paid = priorPaidForLine(key, li?.service_id ?? null, paidByLineKey, paidByServiceFallback);
           out.push({
             key: `li-${idx}`,
             kind: "line_item",
@@ -2120,7 +2122,7 @@ function CollectPaymentDialog({
             payment_id: paymentId,
             invoice_id: invoice.id,
             line_item_key: a.line_item_key,
-            service_id: a.service_id,
+            service_id: allocationServiceUuidFromLineRef(a.service_id),
             installment_id: a.installment_id,
             amount_allocated: a.amount_allocated,
             amount_in_inr: convert(inPayCcy, payCcy, "INR"),
@@ -2902,8 +2904,12 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     });
     const allocationsSnapshot = allocRows.map((a, idx) => {
       const inst = a.installment_id ? instMap.get(a.installment_id) : null;
-      const svc = a.service_id ? svcMap.get(a.service_id) : null;
       const li = a.line_item_key ? lineByKey.get(a.line_item_key) : null;
+      const svc =
+        (a.service_id ? svcMap.get(a.service_id) : null) ??
+        (li?.service_id ? lookup.get(String(li.service_id)) : null) ??
+        (li?.service_code ? lookup.get(String(li.service_code)) : null) ??
+        null;
       const service_name = svc?.service_name || li?.service_name || "Service";
       const country = svc?.country_tag ?? null;
       const category = inst?.fee_category ?? svc?.sub_category ?? null;

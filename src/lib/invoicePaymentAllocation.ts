@@ -1,5 +1,26 @@
 /** Helpers for per-service payment tracking and lump-sum allocation on invoices. */
 
+import { CHECKOUT_DISCOUNT_META_ID } from "@/lib/invoiceLinePricing";
+import { isUuidServiceCode, parseStoredServiceCode } from "@/lib/service-library/resolveServiceLabel";
+
+/** Map invoice line service ref (uuid or `uuid::Country[::variant]`) to service_library.id for DB uuid columns. */
+export function allocationServiceUuidFromLineRef(
+  serviceRef: string | null | undefined,
+): string | null {
+  if (!serviceRef || serviceRef === CHECKOUT_DISCOUNT_META_ID) return null;
+  const { libraryId } = parseStoredServiceCode(serviceRef);
+  return isUuidServiceCode(libraryId) ? libraryId : null;
+}
+
+/** Keys to match prior allocations stored under composite line refs or library uuid. */
+export function serviceRefMatchKeys(serviceRef: string | null | undefined): string[] {
+  if (!serviceRef) return [];
+  const keys = [serviceRef];
+  const lib = allocationServiceUuidFromLineRef(serviceRef);
+  if (lib && lib !== serviceRef) keys.push(lib);
+  return keys;
+}
+
 export type InvoiceLineOutstanding = {
   key: string;
   line_item_key: string;
@@ -40,6 +61,22 @@ export function paidByLineFromAllocations(
     }
   }
   return { byLineKey, byServiceId };
+}
+
+export function priorPaidForLine(
+  lineItemKey: string,
+  serviceRef: string | null | undefined,
+  paidByLineKey: Map<string, number>,
+  paidByServiceFallback: Map<string, number>,
+): number {
+  const byKey = paidByLineKey.get(lineItemKey);
+  if (byKey != null) return byKey;
+  if (!serviceRef) return 0;
+  for (const k of serviceRefMatchKeys(serviceRef)) {
+    const v = paidByServiceFallback.get(k);
+    if (v != null) return v;
+  }
+  return 0;
 }
 
 /**

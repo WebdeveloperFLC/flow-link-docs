@@ -1,5 +1,41 @@
 import { describe, expect, it } from "vitest";
-import { distributeLumpSumAcrossLines } from "@/lib/invoicePaymentAllocation";
+import {
+  allocationServiceUuidFromLineRef,
+  distributeLumpSumAcrossLines,
+  priorPaidForLine,
+  serviceRefMatchKeys,
+} from "@/lib/invoicePaymentAllocation";
+import { CHECKOUT_DISCOUNT_META_ID } from "@/lib/invoiceLinePricing";
+
+const LIB = "c35e6051-f40f-47bf-9cac-0a386c47a336";
+const COMPOSITE = `${LIB}::Canada`;
+const VARIANT = `${LIB}::Canada::fresh-outside`;
+
+describe("allocationServiceUuidFromLineRef", () => {
+  it("extracts library uuid from composite visa service codes", () => {
+    expect(allocationServiceUuidFromLineRef(COMPOSITE)).toBe(LIB);
+    expect(allocationServiceUuidFromLineRef(VARIANT)).toBe(LIB);
+  });
+
+  it("passes through plain library uuid", () => {
+    expect(allocationServiceUuidFromLineRef(LIB)).toBe(LIB);
+  });
+
+  it("returns null for checkout discount meta and non-uuid legacy codes", () => {
+    expect(allocationServiceUuidFromLineRef(CHECKOUT_DISCOUNT_META_ID)).toBeNull();
+    expect(allocationServiceUuidFromLineRef("study_visa_canada")).toBeNull();
+    expect(allocationServiceUuidFromLineRef(null)).toBeNull();
+  });
+});
+
+describe("serviceRefMatchKeys / priorPaidForLine", () => {
+  it("matches prior allocations keyed by library uuid when line stores composite code", () => {
+    expect(serviceRefMatchKeys(COMPOSITE)).toEqual([COMPOSITE, LIB]);
+    const paidByLineKey = new Map<string, number>();
+    const paidByServiceFallback = new Map<string, number>([[LIB, 5000]]);
+    expect(priorPaidForLine(`svc:${COMPOSITE}`, COMPOSITE, paidByLineKey, paidByServiceFallback)).toBe(5000);
+  });
+});
 
 describe("distributeLumpSumAcrossLines", () => {
   it("splits proportionally and caps at outstanding", () => {
