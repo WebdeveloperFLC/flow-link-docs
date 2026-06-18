@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 interface Props {
   value: LeadBackgroundState;
   onChange: (patch: Partial<LeadBackgroundState>) => void;
-  onCommit: () => void;
+  onCommit: () => void | Promise<void>;
 }
 
 const Column = ({ label, summary }: { label: string; summary: string }) => (

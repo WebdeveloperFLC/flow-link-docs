@@ -53,8 +53,7 @@ export const EducationExperienceFields = ({
   const englishTest = value.english_test ?? "";
   const englishStatus = value.english_test_status ?? null;
   const hideEnglishFields = englishStatus === "waived" || englishStatus === "not_taken";
-  const showEnglishDates = englishStatus === "scheduled" || englishStatus === "taken";
-  const showEnglishScores = englishStatus === "taken";
+  const hasEnglishTest = !!englishTest && englishTest !== "None";
   const show = (section: EducationExperienceSection) => visibleSections.includes(section);
 
   const education = value.education_history ?? [];
@@ -179,7 +178,14 @@ export const EducationExperienceFields = ({
                         variant={englishTest === t ? "default" : "outline"}
                         onClick={() => {
                           const next = t === englishTest ? null : t;
-                          onChange({ english_test: next, english_sections: next ? value.english_sections : {} });
+                          const patch: Partial<EducationExperienceValue> = {
+                            english_test: next,
+                            english_sections: next ? value.english_sections : {},
+                          };
+                          if (next && next !== "None" && !englishStatus) {
+                            patch.english_test_status = "taken";
+                          }
+                          onChange(patch);
                           setTimeout(commit, 0);
                         }}
                       >
@@ -188,15 +194,13 @@ export const EducationExperienceFields = ({
                     ))}
                   </div>
                 </div>
-                {showEnglishDates && (englishTest && englishTest !== "None") && (
+                {hasEnglishTest && (
                   <div className="space-y-3 pt-2">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {showEnglishScores && (
-                        <div className="space-y-1">
-                          <Label className="text-xs">Overall Score</Label>
-                          <Input value={value.english_overall ?? ""} onChange={(e) => onChange({ english_overall: e.target.value })} onBlur={commit} />
-                        </div>
-                      )}
+                      <div className="space-y-1">
+                        <Label className="text-xs">Overall Score</Label>
+                        <Input value={value.english_overall ?? ""} onChange={(e) => onChange({ english_overall: e.target.value })} onBlur={commit} />
+                      </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Test Date</Label>
                         <Input type="date" value={value.english_test_date ?? ""} onChange={(e) => onChange({ english_test_date: e.target.value || null })} onBlur={commit} />
@@ -206,7 +210,7 @@ export const EducationExperienceFields = ({
                         <Input type="date" value={value.english_test_expiry ?? ""} onChange={(e) => onChange({ english_test_expiry: e.target.value || null })} onBlur={commit} />
                       </div>
                     </div>
-                    {showEnglishScores && englishSecs.length > 0 && (
+                    {englishSecs.length > 0 && (
                       <SectionalInputs
                         sections={englishSecs}
                         values={value.english_sections}

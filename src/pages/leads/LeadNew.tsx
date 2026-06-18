@@ -601,8 +601,36 @@ const LeadNew = () => {
 
   const isCold = mode === "cold";
 
-  const commitBackgroundAutosave = () => {
-    scheduleAutosave();
+  const commitBackgroundAutosave = async () => {
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+    const currentLeadId = leadIdRef.current;
+    if (currentLeadId) {
+      try {
+        setSaving(true);
+        await updateLead(currentLeadId, buildDraft());
+        toast.success("Background details saved");
+      } catch (e) {
+        toast.error(formatSupabaseError(e, "Could not save background details"));
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+    const id = await autosave();
+    if (id) {
+      toast.success("Background details saved");
+      return;
+    }
+    const fn = (f.first_name as string)?.trim();
+    const ln = (f.last_name as string)?.trim();
+    if (fn && ln) {
+      toast.message("Background kept on this form — complete required lead fields so it saves to the database");
+    } else {
+      toast.message("Enter first and last name — background is kept on this form until the lead saves");
+    }
   };
 
   const patchBackground = (patch: Partial<LeadBackgroundState>) => {

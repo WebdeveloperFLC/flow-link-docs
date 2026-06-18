@@ -20,7 +20,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   value: LeadBackgroundState;
   onChange: (patch: Partial<LeadBackgroundState>) => void;
-  onCommit: () => void;
+  onCommit: () => void | Promise<void>;
   initialTab?: BackgroundDetailTab;
 }
 
@@ -99,8 +99,8 @@ export function LeadBackgroundDetailsDialog({
         <div className="flex justify-end pt-2">
           <Button
             type="button"
-            onClick={() => {
-              onCommit();
+            onClick={async () => {
+              await onCommit();
               onOpenChange(false);
             }}
           >

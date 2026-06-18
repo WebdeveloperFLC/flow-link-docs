@@ -60,7 +60,7 @@ function LanguageBlock({
   const commit = () => onCommit?.();
   const b = block ?? {};
   const status = b.status ?? null;
-  const showDetails = status === "scheduled" || status === "taken";
+  const hideFields = status === "waived" || status === "not_taken";
   const exam = b.exam_type ?? "";
   const sectionKey = exam ? meta.sectionKey(exam) : "";
   const sections = OTHER_TEST_SECTIONS[sectionKey] ?? OTHER_TEST_SECTIONS.DELF ?? [];
@@ -107,61 +107,69 @@ function LanguageBlock({
         </div>
       </div>
 
-      {showDetails && (
+      {!hideFields && (
         <>
-          <div className="flex flex-wrap gap-1.5">
-            {meta.exams.map((t) => (
-              <Button
-                key={t}
-                type="button"
-                size="sm"
-                variant={exam === t ? "default" : "outline"}
-                onClick={() => {
-                  patch({ exam_type: t === exam ? null : t });
-                  setTimeout(commit, 0);
-                }}
-              >
-                {t}
-              </Button>
-            ))}
+          <div className="space-y-1">
+            <Label className="text-xs">Exam</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {meta.exams.map((t) => (
+                <Button
+                  key={t}
+                  type="button"
+                  size="sm"
+                  variant={exam === t ? "default" : "outline"}
+                  onClick={() => {
+                    const next = t === exam ? null : t;
+                    const p: Partial<LanguageTestBlock> = { exam_type: next };
+                    if (next && !status) p.status = "taken";
+                    patch(p);
+                    setTimeout(commit, 0);
+                  }}
+                >
+                  {t}
+                </Button>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {status === "taken" && (
-              <div className="space-y-1">
-                <Label className="text-xs">Overall score</Label>
-                <Input
-                  value={b.overall_score ?? ""}
-                  onChange={(e) => patch({ overall_score: e.target.value })}
+          {exam && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Overall score</Label>
+                  <Input
+                    value={b.overall_score ?? ""}
+                    onChange={(e) => patch({ overall_score: e.target.value })}
+                    onBlur={commit}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Test date</Label>
+                  <Input
+                    type="date"
+                    value={b.test_date ?? ""}
+                    onChange={(e) => patch({ test_date: e.target.value || null })}
+                    onBlur={commit}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Expiry date</Label>
+                  <Input
+                    type="date"
+                    value={b.expiry_date ?? ""}
+                    onChange={(e) => patch({ expiry_date: e.target.value || null })}
+                    onBlur={commit}
+                  />
+                </div>
+              </div>
+              {sections.length > 0 && (
+                <SectionalInputs
+                  sections={sections}
+                  values={b.sections}
+                  onChange={(next) => patch({ sections: next })}
                   onBlur={commit}
                 />
-              </div>
-            )}
-            <div className="space-y-1">
-              <Label className="text-xs">Test date</Label>
-              <Input
-                type="date"
-                value={b.test_date ?? ""}
-                onChange={(e) => patch({ test_date: e.target.value || null })}
-                onBlur={commit}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Expiry date</Label>
-              <Input
-                type="date"
-                value={b.expiry_date ?? ""}
-                onChange={(e) => patch({ expiry_date: e.target.value || null })}
-                onBlur={commit}
-              />
-            </div>
-          </div>
-          {status === "taken" && sections.length > 0 && (
-            <SectionalInputs
-              sections={sections}
-              values={b.sections}
-              onChange={(next) => patch({ sections: next })}
-              onBlur={commit}
-            />
+              )}
+            </>
           )}
         </>
       )}
