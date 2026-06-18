@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { normalizeCountryLabel } from "@/lib/geoLocations";
 import {
   resolveCityLabel,
   useLocationCascadeData,
@@ -23,12 +24,14 @@ interface Props {
 
 function SearchablePicker({
   value,
+  displayLabel,
   placeholder,
   options,
   disabled,
   onChange,
 }: {
   value: string;
+  displayLabel?: string;
   placeholder: string;
   options: { value: string; label: string }[];
   disabled?: boolean;
@@ -37,9 +40,16 @@ function SearchablePicker({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const selected = options.find(
-    (o) => o.value === value || o.label === value || o.label.toLowerCase() === value.toLowerCase(),
+    (o) =>
+      o.value === value ||
+      o.label === value ||
+      o.label.toLowerCase() === value.toLowerCase() ||
+      (displayLabel && o.label.toLowerCase() === displayLabel.toLowerCase()),
   );
-  const display = selected?.label ?? (value && !options.some((o) => o.value === value) ? value : "");
+  const display =
+    selected?.label ||
+    displayLabel?.trim() ||
+    (value && !options.some((o) => o.value === value) ? value : "");
 
   useEffect(() => {
     if (!open) setSearch("");
@@ -54,7 +64,7 @@ function SearchablePicker({
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className={cn("w-full justify-between font-normal h-9", !selected && !value && "text-muted-foreground")}
+          className={cn("w-full justify-between font-normal h-9", !display && "text-muted-foreground")}
         >
           <span className="truncate">{display || placeholder}</span>
           <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
@@ -87,7 +97,7 @@ function SearchablePicker({
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4 shrink-0",
-                      value === o.value || value === o.label ? "opacity-100" : "opacity-0",
+                      value === o.value || displayLabel === o.label ? "opacity-100" : "opacity-0",
                     )}
                   />
                   {o.label}
@@ -109,7 +119,7 @@ export function LocationCascadeFields({
   stateLabel = "State / Province",
   cityLabel = "City",
 }: Props) {
-  const country = value.country ?? "";
+  const country = normalizeCountryLabel(value.country ?? "");
   const {
     ready,
     countries,
@@ -120,12 +130,8 @@ export function LocationCascadeFields({
   } = useLocationCascadeData(country);
 
   const province = resolveProvince(country, value.state_province, value.province_code);
-  const provinceCode = province?.code ?? value.province_code ?? "";
+  const provinceCode = province?.code ?? "";
   const hasProvinces = !!country && hasProvincesForCountry(country);
-  const cities = useMemo(
-    () => (provinceCode ? citiesForProvince(country, provinceCode) : []),
-    [country, provinceCode, citiesForProvince],
-  );
   const stateOptions = useMemo(
     () =>
       provincesForCountry(country).map((s) => ({
@@ -134,7 +140,10 @@ export function LocationCascadeFields({
       })),
     [country, provincesForCountry],
   );
-  const cityOptions = useMemo(() => cities, [cities]);
+  const cityOptions = useMemo(
+    () => (provinceCode ? citiesForProvince(country, provinceCode) : []),
+    [country, provinceCode, citiesForProvince],
+  );
   const savedCity = value.city?.trim() ?? "";
   const cityInOptions = useMemo(
     () =>
@@ -162,6 +171,7 @@ export function LocationCascadeFields({
         <Label className="text-xs">{countryLabel}</Label>
         <SearchablePicker
           value={country}
+          displayLabel={value.country ?? ""}
           placeholder="Select country"
           options={[
             ...countries.priority.map((c) => ({ value: c, label: c })),
@@ -175,11 +185,13 @@ export function LocationCascadeFields({
       </div>
       <div className="space-y-1">
         <Label className="text-xs">{stateLabel}</Label>
-        {hasProvinces ? (
+        {!country ? (
+          <Input disabled placeholder="Select country first" />
+        ) : hasProvinces ? (
           <SearchablePicker
-            value={provinceCode || value.state_province || ""}
+            value={provinceCode}
+            displayLabel={province?.label ?? value.state_province ?? ""}
             placeholder="Select state / province"
-            disabled={!country}
             options={stateOptions}
             onChange={(code) => {
               const s = provincesForCountry(country).find((x) => x.code === code);
@@ -194,8 +206,7 @@ export function LocationCascadeFields({
         ) : (
           <Input
             value={value.state_province ?? ""}
-            placeholder={country ? "Enter state / province" : "Select country first"}
-            disabled={!country}
+            placeholder="Enter state / province"
             onChange={(e) => onChange({ state_province: e.target.value, province_code: "" })}
             onBlur={commit}
           />
@@ -203,11 +214,14 @@ export function LocationCascadeFields({
       </div>
       <div className="space-y-1">
         <Label className="text-xs">{cityLabel}</Label>
-        {useCityPicker ? (
+        {!country ? (
+          <Input disabled placeholder="Select country first" />
+        ) : useCityPicker ? (
           <SearchablePicker
-            value={resolveCityLabel(value.city, cityOptions)}
+            value={savedCity}
+            displayLabel={resolveCityLabel(value.city, cityOptions)}
             placeholder="Select city"
-            disabled={!provinceCode && hasProvinces}
+            disabled={hasProvinces && !provinceCode}
             options={cityOptions}
             onChange={(v) => {
               onChange({ city: v });
@@ -218,13 +232,13 @@ export function LocationCascadeFields({
           <Input
             value={value.city ?? ""}
             placeholder={
-              country
-                ? hasProvinces && provinceCode
-                  ? "Enter city (not in list)"
+              hasProvinces && !provinceCode
+                ? "Select state / province first"
+                : cityOptions.length === 0 && provinceCode
+                  ? "Enter city"
                   : "Enter city"
-                : "Select country first"
             }
-            disabled={!country}
+            disabled={hasProvinces && !provinceCode}
             onChange={(e) => onChange({ city: e.target.value })}
             onBlur={commit}
           />

@@ -5,9 +5,9 @@ import {
   useGeoLocationsReady,
   getStatesForCountryLabel,
   getCitiesForProvince,
-  resolveState,
   buildProvinceCode as geoBuildProvinceCode,
   getAllGeoCountries,
+  normalizeCountryLabel,
 } from "@/lib/geoLocations";
 
 export interface LocationFieldsValue {
@@ -72,16 +72,65 @@ export function isMasterBackedCountry(country: string, masterCountries: Set<stri
   return masterCountries.has(country);
 }
 
-/** Demo master seeds only include a few provinces — use full geo lists for education/experience. */
+/** UK geo data lists councils/cities as states — use the four nations only. */
+export const GEO_STATE_LABEL_ALLOWLIST: Record<string, string[]> = {
+  "United Kingdom": ["England", "Scotland", "Wales", "Northern Ireland"],
+};
+
+export function filterGeoProvinces(country: string, provinces: ProvinceOption[]): ProvinceOption[] {
+  const allow = GEO_STATE_LABEL_ALLOWLIST[country];
+  if (!allow?.length) return provinces;
+  const allowed = new Set(allow.map((l) => l.toLowerCase()));
+  const filtered = provinces.filter((p) => allowed.has(p.label.toLowerCase()));
+  return filtered.length ? filtered : provinces;
+}
+
+/** India = masters only. All others = geo when available (never sparse demo masters). */
 export function shouldPreferGeoProvinces(
   country: string,
   masterProvinceCount: number,
   geoProvinceCount: number,
 ): boolean {
   if (country === "India") return false;
-  if (masterProvinceCount === 0) return geoProvinceCount > 0;
   if (geoProvinceCount === 0) return false;
-  return masterProvinceCount < Math.min(geoProvinceCount, 5);
+  if (masterProvinceCount === 0) return true;
+  // Demo master seed has 1–2 entries; real geo admin divisions are authoritative.
+  return masterProvinceCount <= 2 && geoProvinceCount >= 3;
+}
+
+export function resolveProvincesForCountry(input: {
+  country: string;
+  masterProvinces: MasterItem[];
+  geoReady: boolean;
+  geoStatesForCountry: (country: string) => { isoCode: string; name: string }[];
+  buildProvinceCode: (country: string, isoCode: string) => string;
+}): ProvinceOption[] {
+  const country = normalizeCountryLabel(input.country);
+  if (!country) return [];
+
+  const masterList = isMasterBackedCountry(country, new Set(countriesWithMasterProvinces(input.masterProvinces)))
+    ? provincesForCountryFromMasters(input.masterProvinces, country)
+    : [];
+
+  if (country === "India") {
+    return masterList;
+  }
+
+  if (!input.geoReady) {
+    return [];
+  }
+
+  const rawGeo = input.geoStatesForCountry(country).map((s) => ({
+    code: input.buildProvinceCode(country, s.isoCode),
+    label: s.name,
+  }));
+  const geoList = filterGeoProvinces(country, rawGeo);
+
+  if (shouldPreferGeoProvinces(country, masterList.length, geoList.length)) {
+    return geoList;
+  }
+  if (geoList.length) return geoList;
+  return masterList;
 }
 
 export function provincesForCountryFromMasters(
@@ -182,86 +231,85 @@ export function useLocationCascadeData(_countryLabel?: string) {
   }, [provinces, geoReady]);
 
   const provincesForCountry = useCallback(
-    (country: string): ProvinceOption[] => {
-      const masterList = isMasterBacked(country)
-        ? provincesForCountryFromMasters(provinces, country)
-        : [];
-      const geoList =
-        geoReady && country
-          ? getStatesForCountryLabel(country).map((s) => ({
-              code: geoBuildProvinceCode(country, s.isoCode),
-              label: s.name,
-            }))
-          : [];
-      if (
-        shouldPreferGeoProvinces(country, masterList.length, geoList.length)
-      ) {
-        return geoList;
-      }
-      if (masterList.length) return masterList;
-      return geoList;
-    },
-    [provinces, geoReady, isMasterBacked],
+    (countryLabel: string): ProvinceOption[] =>
+      resolveProvincesForCountry({
+        country: countryLabel,
+        masterProvinces: provinces,
+        geoReady,
+        geoStatesForCountry: getStatesForCountryLabel,
+        buildProvinceCode: geoBuildProvinceCode,
+      }),
+    [provinces, geoReady],
   );
 
   const useGeoForCountry = useCallback(
-    (country: string): boolean => {
-      if (!country) return false;
-      const masterList = isMasterBacked(country)
-        ? provincesForCountryFromMasters(provinces, country)
-        : [];
-      const geoList = geoReady ? getStatesForCountryLabel(country) : [];
-      return shouldPreferGeoProvinces(country, masterList.length, geoList.length);
+    (countryLabel: string): boolean => {
+      const country = normalizeCountryLabel(countryLabel);
+      return !!country && country !== "India" && geoReady;
     },
-    [provinces, geoReady, isMasterBacked],
+    [geoReady],
   );
 
   const citiesForProvince = useCallback(
-    (country: string, provinceCode: string): CityOption[] => {
-      const preferGeo = useGeoForCountry(country);
-      if (isMasterBacked(country) && !preferGeo) {
+    (countryLabel: string, provinceCode: string): CityOption[] => {
+      const country = normalizeCountryLabel(countryLabel);
+      if (country === "India") {
         return citiesForProvinceFromMasters(cities, provinceCode);
       }
-      if (!geoReady) return [];
+      if (!geoReady || !provinceCode) return [];
       return getCitiesForProvince(country, provinceCode).map((c) => ({
         value: c.name,
         label: c.name,
       }));
     },
-    [cities, geoReady, isMasterBacked, useGeoForCountry],
+    [cities, geoReady],
   );
 
   const resolveProvince = useCallback(
-    (country: string, stateProvince?: string, provinceCode?: string): ProvinceOption | undefined => {
-      const preferGeo = useGeoForCountry(country);
-      if (isMasterBacked(country) && !preferGeo) {
-        return resolveProvinceFromMasters(provinces, country, stateProvince, provinceCode);
+    (countryLabel: string, stateProvince?: string, provinceCode?: string): ProvinceOption | undefined => {
+      const country = normalizeCountryLabel(countryLabel);
+      const list = resolveProvincesForCountry({
+        country,
+        masterProvinces: provinces,
+        geoReady,
+        geoStatesForCountry: getStatesForCountryLabel,
+        buildProvinceCode: geoBuildProvinceCode,
+      });
+      const normalized = normalizeMasterProvinceCode(provinceCode);
+      if (normalized) {
+        const byCode = list.find((p) => p.code === normalized);
+        if (byCode) return byCode;
       }
-      if (!geoReady) return undefined;
-      const state = resolveState(country, stateProvince, provinceCode);
-      if (!state) return undefined;
-      return {
-        code: geoBuildProvinceCode(country, state.isoCode),
-        label: state.name,
-      };
+      if (provinceCode?.trim()) {
+        const byRaw = list.find((p) => p.code === provinceCode.trim());
+        if (byRaw) return byRaw;
+      }
+      if (stateProvince?.trim()) {
+        const norm = stateProvince.trim().toLowerCase();
+        return list.find(
+          (p) => p.label.toLowerCase() === norm || p.code.toLowerCase() === norm,
+        );
+      }
+      return undefined;
     },
-    [provinces, geoReady, isMasterBacked, useGeoForCountry],
+    [provinces, geoReady],
   );
 
   const hasProvincesForCountry = useCallback(
-    (country: string) => provincesForCountry(country).length > 0,
+    (countryLabel: string) => provincesForCountry(countryLabel).length > 0,
     [provincesForCountry],
   );
 
   const buildProvinceCode = useCallback(
-    (country: string, codeOrIso: string) => {
-      if (isMasterBacked(country)) return codeOrIso;
+    (countryLabel: string, codeOrIso: string) => {
+      const country = normalizeCountryLabel(countryLabel);
+      if (country === "India") return codeOrIso;
       return geoBuildProvinceCode(country, codeOrIso);
     },
-    [isMasterBacked],
+    [],
   );
 
-  const ready = geoReady || provinces.length > 0;
+  const ready = geoReady;
 
   return {
     ready,

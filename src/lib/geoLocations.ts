@@ -4,6 +4,7 @@ import type { ICity, ICountry, IState } from "country-state-city";
 /** Map app country labels (master / legacy) → ISO alpha-2. */
 const COUNTRY_LABEL_TO_ISO: Record<string, string> = {
   "United States of America": "US",
+  USA: "US",
   UK: "GB",
   "U.K.": "GB",
   "Great Britain": "GB",
@@ -14,6 +15,20 @@ const COUNTRY_LABEL_TO_ISO: Record<string, string> = {
   "Czech Republic": "CZ",
   "Côte d'Ivoire": "CI",
 };
+
+/** Normalize display labels before geo lookup. */
+export function normalizeCountryLabel(country?: string | null): string {
+  if (!country?.trim()) return "";
+  const trimmed = country.trim();
+  const aliases: Record<string, string> = {
+    "United States of America": "United States",
+    USA: "United States",
+    UK: "United Kingdom",
+    "U.K.": "United Kingdom",
+    "Great Britain": "United Kingdom",
+  };
+  return aliases[trimmed] ?? trimmed;
+}
 
 export const GEO_COUNTRY_PRIORITY = [
   "India",
@@ -65,13 +80,14 @@ export async function loadGeoModule(): Promise<GeoModule> {
 }
 
 export function resolveCountryIso(countryLabel?: string | null): string | null {
-  if (!countryLabel?.trim() || !nameToIso || !geoModule) return null;
-  const direct = nameToIso.get(normalizeName(countryLabel));
+  const normalized = normalizeCountryLabel(countryLabel);
+  if (!normalized || !nameToIso || !geoModule) return null;
+  const direct = nameToIso.get(normalizeName(normalized));
   if (direct) return direct;
   const partial = geoModule.Country.getAllCountries().find(
     (c) =>
-      normalizeName(c.name) === normalizeName(countryLabel) ||
-      c.name.toLowerCase().includes(countryLabel.trim().toLowerCase()),
+      normalizeName(c.name) === normalizeName(normalized) ||
+      c.name.toLowerCase().includes(normalized.toLowerCase()),
   );
   return partial?.isoCode ?? null;
 }
@@ -81,7 +97,7 @@ export function getAllGeoCountries(): ICountry[] {
 }
 
 export function getStatesForCountryLabel(countryLabel: string): IState[] {
-  const iso = resolveCountryIso(countryLabel);
+  const iso = resolveCountryIso(normalizeCountryLabel(countryLabel));
   if (!iso || !geoModule) return [];
   return geoModule.State.getStatesOfCountry(iso) ?? [];
 }
@@ -102,8 +118,9 @@ export function buildProvinceCode(countryLabel: string, stateIso: string): strin
 }
 
 export function getCitiesForProvince(countryLabel: string, provinceCode?: string | null): ICity[] {
-  const countryIso = resolveCountryIso(countryLabel);
-  const stateIso = resolveStateIso(countryLabel, provinceCode);
+  const country = normalizeCountryLabel(countryLabel);
+  const countryIso = resolveCountryIso(country);
+  const stateIso = resolveStateIso(country, provinceCode);
   if (!countryIso || !stateIso || !geoModule) return [];
 
   const byState = geoModule.City.getCitiesOfState(countryIso, stateIso) ?? [];
@@ -113,9 +130,6 @@ export function getCitiesForProvince(countryLabel: string, provinceCode?: string
   const byStateCode = countryCities.filter((c) => c.stateCode === stateIso);
   if (byStateCode.length) return byStateCode;
 
-  // Small countries (Nepal etc.) often have mismatched state codes — offer full country list.
-  if (countryCities.length > 0 && countryCities.length <= 150) return countryCities;
-
   return [];
 }
 
@@ -124,8 +138,9 @@ export function resolveState(
   stateProvince?: string | null,
   provinceCode?: string | null,
 ): IState | undefined {
-  const states = getStatesForCountryLabel(countryLabel);
-  const stateIso = resolveStateIso(countryLabel, provinceCode);
+  const country = normalizeCountryLabel(countryLabel);
+  const states = getStatesForCountryLabel(country);
+  const stateIso = resolveStateIso(country, provinceCode);
   if (stateIso) {
     const byIso = states.find((s) => s.isoCode === stateIso);
     if (byIso) return byIso;

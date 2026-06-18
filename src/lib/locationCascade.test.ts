@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { MasterItem } from "@/lib/masters";
 import {
   citiesForProvinceFromMasters,
+  filterGeoProvinces,
   normalizeCityLabel,
   normalizeMasterProvinceCode,
   provincesForCountryFromMasters,
@@ -122,5 +123,17 @@ describe("locationCascade", () => {
     expect(shouldPreferGeoProvinces("Australia", 1, 8)).toBe(true);
     expect(shouldPreferGeoProvinces("Canada", 2, 13)).toBe(true);
     expect(shouldPreferGeoProvinces("Nepal", 0, 7)).toBe(true);
+    expect(shouldPreferGeoProvinces("United Kingdom", 1, 4)).toBe(true);
+  });
+
+  it("filters UK geo to four nations (not city councils)", () => {
+    const raw = [
+      { code: "GB-ENG", label: "England" },
+      { code: "GB-SCT", label: "Scotland" },
+      { code: "GB-ABD", label: "Aberdeen" },
+      { code: "GB-BNS", label: "Barnsley" },
+    ];
+    const filtered = filterGeoProvinces("United Kingdom", raw);
+    expect(filtered.map((p) => p.label)).toEqual(["England", "Scotland"]);
   });
 });
