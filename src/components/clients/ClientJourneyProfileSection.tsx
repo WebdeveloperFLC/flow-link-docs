@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { LeadJourneyFieldsBlock } from "@/components/leads/LeadJourneyFields";
-import { InterestedCountriesPicker } from "@/components/leads/InterestedCountriesPicker";
+import { RegionCountriesPicker } from "@/components/leads/RegionCountriesPicker";
 import { Textarea } from "@/components/ui/textarea";
 import { appendClientActivityLog, diffRecordFields, formatFieldChanges } from "@/lib/clientActivityLog";
+import { cn } from "@/lib/utils";
 
 type JourneyProfile = {
   sponsor: string | null;
@@ -167,9 +168,9 @@ export function ClientJourneyProfileSection({
         }}
         onChange={(patch) => setData((p) => ({ ...p, ...patch }))}
       />
-      <div className="space-y-1.5">
-        <Label>Interested countries</Label>
-        <InterestedCountriesPicker
+      <div className={cn("space-y-1.5", !canEdit && "pointer-events-none opacity-60")}>
+        <Label>Countries of Interest</Label>
+        <RegionCountriesPicker
           value={data.interested_countries}
           onChange={(v) => setData((p) => ({ ...p, interested_countries: v }))}
         />

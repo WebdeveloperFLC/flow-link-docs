@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronsUpDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,15 +25,55 @@ interface Props {
 
 export function PhoneCodeSelect({ value, onChange, className }: Props) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const commandRef = useRef<HTMLDivElement>(null);
+
   const current = useMemo(() => {
     const digits = (value || "").replace(/\D/g, "");
     if (!digits) return null;
     return ALL.find((o) => o.code === digits) || null;
   }, [value]);
+
+  useEffect(() => {
+    if (!open) {
+      setSearch("");
+      return;
+    }
+    requestAnimationFrame(() => {
+      const input = commandRef.current?.querySelector<HTMLInputElement>("[cmdk-input]");
+      input?.focus();
+      if (search) input?.setSelectionRange(search.length, search.length);
+    });
+  }, [open, search]);
+
+  const openWithSearch = (nextSearch: string) => {
+    setSearch(nextSearch);
+    setOpen(true);
+  };
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (open) return;
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setOpen(true);
+      return;
+    }
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      openWithSearch(e.key);
+    }
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" className={cn("w-full justify-between font-normal gap-1", className)}>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className={cn("w-full justify-between font-normal gap-1", className)}
+          onKeyDown={handleTriggerKeyDown}
+        >
           <span className="truncate flex items-center gap-1.5 min-w-0">
             {current ? (
               <>
@@ -51,8 +91,13 @@ export function PhoneCodeSelect({ value, onChange, className }: Props) {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-[280px] max-h-[360px]" align="start">
-        <Command filter={(val, search) => val.toLowerCase().includes(search.toLowerCase()) ? 1 : 0}>
-          <CommandInput placeholder="Search country, code, ISO…" />
+        <Command
+          ref={commandRef}
+          value={search}
+          onValueChange={setSearch}
+          filter={(val, q) => val.toLowerCase().includes(q.toLowerCase()) ? 1 : 0}
+        >
+          <CommandInput placeholder="Type to search — e.g. India, +91, IN…" autoFocus />
           <CommandList>
             <CommandEmpty>No match.</CommandEmpty>
             <CommandGroup heading="Suggested">

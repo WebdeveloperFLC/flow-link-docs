@@ -21,7 +21,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AttachCourseToClientDialog } from "@/components/course-finder/AttachCourseToClientDialog";
-import { listClientPrograms, type ClientProgramStatus } from "@/lib/clientPrograms";
+import { listClientPrograms, shortlistCourseForClient, type ClientProgramStatus } from "@/lib/clientPrograms";
 
 // ---------- Types ----------
 type Country = {
@@ -155,6 +155,24 @@ const CourseFinder = () => {
   useEffect(() => {
     refreshClientPrograms();
   }, [refreshClientPrograms]);
+
+  const handleAttachCourse = useCallback(
+    async (courseId: string, label: string) => {
+      if (!user) return;
+      if (clientIdParam) {
+        try {
+          await shortlistCourseForClient(clientIdParam, courseId);
+          toast.success(`Added to ${clientContext?.full_name ?? "client"} shortlist`);
+          await refreshClientPrograms();
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : "Could not add program");
+        }
+        return;
+      }
+      setAttachCourse({ id: courseId, label });
+    },
+    [user, clientIdParam, clientContext?.full_name, refreshClientPrograms],
+  );
 
   const enriched: Enriched[] = useMemo(() => {
     const uMap = new Map(universities.map((u) => [u.id, u] as const));
@@ -514,10 +532,10 @@ const CourseFinder = () => {
                   onAttachClient={
                     user
                       ? () =>
-                          setAttachCourse({
-                            id: e.id,
-                            label: `${e.university.name} — ${e.name}`,
-                          })
+                          void handleAttachCourse(
+                            e.id,
+                            `${e.university.name} — ${e.name}`,
+                          )
                       : undefined
                   }
                 />
@@ -537,10 +555,10 @@ const CourseFinder = () => {
               onAttachClient={
                 user
                   ? () =>
-                      setAttachCourse({
-                        id: detail.id,
-                        label: `${detail.university.name} — ${detail.name}`,
-                      })
+                      void handleAttachCourse(
+                        detail.id,
+                        `${detail.university.name} — ${detail.name}`,
+                      )
                   : undefined
               }
             />
