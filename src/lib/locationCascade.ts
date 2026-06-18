@@ -155,6 +155,46 @@ export function citiesForProvinceFromMasters(
     .map((c) => ({ value: c.label, label: c.label }));
 }
 
+/** Geo cities for a province, merged with master-only labels (India aliases). */
+export function resolveCitiesForProvince(input: {
+  country: string;
+  provinceCode: string;
+  masterCities: MasterItem[];
+  geoReady: boolean;
+  geoCitiesForProvince: (country: string, provinceCode: string) => { name: string }[];
+}): CityOption[] {
+  const country = normalizeCountryLabel(input.country);
+  if (!input.provinceCode?.trim()) return [];
+
+  const masterList =
+    country === "India"
+      ? citiesForProvinceFromMasters(input.masterCities, input.provinceCode)
+      : [];
+
+  if (!input.geoReady) {
+    return masterList;
+  }
+
+  const geoList = input.geoCitiesForProvince(country, input.provinceCode).map((c) => {
+    const label = normalizeCityLabel(c.name) || c.name;
+    return { value: label, label };
+  });
+
+  if (!geoList.length) {
+    return masterList;
+  }
+
+  const seen = new Set(geoList.map((c) => c.label.toLowerCase()));
+  for (const mc of masterList) {
+    if (!seen.has(mc.label.toLowerCase())) {
+      geoList.push(mc);
+      seen.add(mc.label.toLowerCase());
+    }
+  }
+
+  return geoList.sort((a, b) => a.label.localeCompare(b.label));
+}
+
 export function resolveProvinceFromMasters(
   provinces: MasterItem[],
   country: string,
@@ -251,17 +291,14 @@ export function useLocationCascadeData(_countryLabel?: string) {
   );
 
   const citiesForProvince = useCallback(
-    (countryLabel: string, provinceCode: string): CityOption[] => {
-      const country = normalizeCountryLabel(countryLabel);
-      if (country === "India") {
-        return citiesForProvinceFromMasters(cities, provinceCode);
-      }
-      if (!geoReady || !provinceCode) return [];
-      return getCitiesForProvince(country, provinceCode).map((c) => ({
-        value: c.name,
-        label: c.name,
-      }));
-    },
+    (countryLabel: string, provinceCode: string): CityOption[] =>
+      resolveCitiesForProvince({
+        country: countryLabel,
+        provinceCode,
+        masterCities: cities,
+        geoReady,
+        geoCitiesForProvince: getCitiesForProvince,
+      }),
     [cities, geoReady],
   );
 

@@ -6,6 +6,7 @@ import {
   normalizeCityLabel,
   normalizeMasterProvinceCode,
   provincesForCountryFromMasters,
+  resolveCitiesForProvince,
   resolveCityLabel,
   resolveProvinceFromMasters,
   shouldPreferGeoProvinces,
@@ -82,6 +83,32 @@ describe("locationCascade", () => {
 
   it("lists Mumbai for IN-MH province", () => {
     const cities = citiesForProvinceFromMasters(INDIAN_CITIES, "IN-MH");
+    expect(cities.map((c) => c.label)).toContain("Mumbai");
+  });
+
+  it("merges geo cities with master-only labels for India", () => {
+    const cities = resolveCitiesForProvince({
+      country: "India",
+      provinceCode: "IN-GJ",
+      masterCities: INDIAN_CITIES,
+      geoReady: true,
+      geoCitiesForProvince: () => [
+        { name: "Ahmedabad" },
+        { name: "Anand" },
+        { name: "Jamnagar" },
+      ],
+    });
+    expect(cities.map((c) => c.label)).toEqual(["Ahmedabad", "Anand", "Jamnagar"]);
+  });
+
+  it("falls back to master cities when geo is not ready", () => {
+    const cities = resolveCitiesForProvince({
+      country: "India",
+      provinceCode: "IN-MH",
+      masterCities: INDIAN_CITIES,
+      geoReady: false,
+      geoCitiesForProvince: () => [{ name: "Should not appear" }],
+    });
     expect(cities.map((c) => c.label)).toContain("Mumbai");
   });
 

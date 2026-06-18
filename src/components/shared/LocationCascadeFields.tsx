@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ function SearchablePicker({
   placeholder,
   options,
   disabled,
+  allowCustom,
   onChange,
 }: {
   value: string;
@@ -35,10 +36,12 @@ function SearchablePicker({
   placeholder: string;
   options: { value: string; label: string }[];
   disabled?: boolean;
+  allowCustom?: boolean;
   onChange: (v: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const trimmedSearch = search.trim();
   const selected = options.find(
     (o) =>
       o.value === value ||
@@ -50,10 +53,19 @@ function SearchablePicker({
     selected?.label ||
     displayLabel?.trim() ||
     (value && !options.some((o) => o.value === value) ? value : "");
+  const showCustom =
+    allowCustom &&
+    trimmedSearch.length > 0 &&
+    !options.some((o) => o.label.toLowerCase() === trimmedSearch.toLowerCase());
 
   useEffect(() => {
     if (!open) setSearch("");
   }, [open]);
+
+  const selectCustom = () => {
+    onChange(trimmedSearch);
+    setOpen(false);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={false}>
@@ -71,7 +83,7 @@ function SearchablePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="p-0 w-[--radix-popover-trigger-width] z-[200]"
+        className="p-0 w-[--radix-popover-trigger-width] z-[200] pointer-events-auto"
         align="start"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
@@ -80,9 +92,31 @@ function SearchablePicker({
             placeholder={`Search ${placeholder.toLowerCase()}…`}
             value={search}
             onValueChange={setSearch}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && showCustom) {
+                e.preventDefault();
+                selectCustom();
+              }
+            }}
           />
-          <CommandList className="max-h-[min(280px,50vh)]">
-            <CommandEmpty>No match found.</CommandEmpty>
+          <CommandList
+            className="max-h-[min(280px,50vh)] overscroll-contain"
+            onWheel={(e) => e.stopPropagation()}
+          >
+            <CommandEmpty>
+              {showCustom ? (
+                <button
+                  type="button"
+                  className="flex items-center gap-2 px-3 py-2 text-sm w-full hover:bg-accent text-left"
+                  onClick={selectCustom}
+                >
+                  <Plus className="h-3.5 w-3.5 shrink-0" />
+                  Use &ldquo;{trimmedSearch}&rdquo;
+                </button>
+              ) : (
+                "No match found."
+              )}
+            </CommandEmpty>
             <CommandGroup>
               {options.map((o) => (
                 <CommandItem
@@ -103,6 +137,12 @@ function SearchablePicker({
                   {o.label}
                 </CommandItem>
               ))}
+              {showCustom && (
+                <CommandItem value={`__custom__${trimmedSearch}`} onSelect={selectCustom}>
+                  <Plus className="mr-2 h-4 w-4 shrink-0" />
+                  Use &ldquo;{trimmedSearch}&rdquo;
+                </CommandItem>
+              )}
             </CommandGroup>
           </CommandList>
         </Command>
@@ -145,16 +185,7 @@ export function LocationCascadeFields({
     [country, provinceCode, citiesForProvince],
   );
   const savedCity = value.city?.trim() ?? "";
-  const cityInOptions = useMemo(
-    () =>
-      cityOptions.some(
-        (c) =>
-          c.label.toLowerCase() === savedCity.toLowerCase() ||
-          c.value.toLowerCase() === savedCity.toLowerCase(),
-      ),
-    [cityOptions, savedCity],
-  );
-  const useCityPicker = cityOptions.length > 0 && (!savedCity || cityInOptions);
+  const cityDisabled = hasProvinces && !provinceCode;
   const commit = () => onCommit?.();
 
   if (!ready) {
@@ -216,31 +247,18 @@ export function LocationCascadeFields({
         <Label className="text-xs">{cityLabel}</Label>
         {!country ? (
           <Input disabled placeholder="Select country first" />
-        ) : useCityPicker ? (
+        ) : (
           <SearchablePicker
             value={savedCity}
             displayLabel={resolveCityLabel(value.city, cityOptions)}
-            placeholder="Select city"
-            disabled={hasProvinces && !provinceCode}
+            placeholder="Select or type city"
+            disabled={cityDisabled}
+            allowCustom
             options={cityOptions}
             onChange={(v) => {
               onChange({ city: v });
               setTimeout(commit, 0);
             }}
-          />
-        ) : (
-          <Input
-            value={value.city ?? ""}
-            placeholder={
-              hasProvinces && !provinceCode
-                ? "Select state / province first"
-                : cityOptions.length === 0 && provinceCode
-                  ? "Enter city"
-                  : "Enter city"
-            }
-            disabled={hasProvinces && !provinceCode}
-            onChange={(e) => onChange({ city: e.target.value })}
-            onBlur={commit}
           />
         )}
       </div>
