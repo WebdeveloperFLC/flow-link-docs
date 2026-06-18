@@ -28,7 +28,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CallClientButton } from "@/components/clients/CallClientButton";
-import { LeadTemperatureBadge } from "@/components/leads/LeadBadges";
+import { LeadTemperaturePicker } from "@/components/leads/LeadTemperaturePicker";
+import { updateClientLeadTemperature } from "@/lib/clientLeadTemperature";
+import type { LeadTemperature } from "@/lib/leads";
+import { toast } from "sonner";
 import { AddTaskDialog } from "@/components/clients/AddTaskDialog";
 import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
 import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
@@ -36,7 +39,6 @@ import type { ActiveServiceContext } from "@/lib/clientActiveServiceContext";
 import type { CaseOutcome, ClientServiceCase } from "@/lib/clientServiceCase";
 import { OUTCOME_BADGE } from "@/lib/caseOutcomeStyles";
 import { attachRefusalDocument, uploadOutcomeDocument } from "@/lib/caseOutcome";
-import { toast } from "sonner";
 import { CaseAttemptSwitcher } from "@/components/clients/CaseAttemptSwitcher";
 
 export type ClientHeaderClient = {
@@ -50,6 +52,7 @@ export type ClientHeaderClient = {
   phone?: string | null;
   lead_temperature?: string | null;
   lead_score?: number | null;
+  source_lead_id?: string | null;
   owner_id?: string | null;
   created_by?: string | null;
   current_stage_id?: string | null;
@@ -83,6 +86,7 @@ type Props = {
   onReapply?: () => void;
   onRefusalDocUploaded?: () => void;
   onOpenAssessment?: () => void;
+  onTemperatureChange?: (temperature: LeadTemperature) => void;
 };
 
 function initials(name: string): string {
@@ -122,10 +126,12 @@ export function ClientIdentityHeader({
   onReapply,
   onRefusalDocUploaded,
   onOpenAssessment,
+  onTemperatureChange,
 }: Props) {
   const refusalInputRef = useRef<HTMLInputElement>(null);
   const [uploadingRefusal, setUploadingRefusal] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
+  const [savingTemperature, setSavingTemperature] = useState(false);
   const destination = serviceCtx.destinationCountry ?? client.country;
   const flag = destination ? countryFlagEmoji(destination) : "";
   const serviceLabel = serviceCtx.serviceLabel ?? client.application_type;
@@ -136,6 +142,23 @@ export function ClientIdentityHeader({
     isAdmin || (!!userId && (client.owner_id === userId || client.created_by === userId));
   const score = client.lead_score ?? 0;
   const showScore = score > 0;
+
+  const onTemperatureSelect = async (temperature: LeadTemperature) => {
+    if (temperature === client.lead_temperature) return;
+    setSavingTemperature(true);
+    try {
+      await updateClientLeadTemperature(client.id, temperature, {
+        sourceLeadId: client.source_lead_id,
+        previousTemperature: client.lead_temperature,
+      });
+      onTemperatureChange?.(temperature);
+      toast.success(`Lead importance set to ${temperature}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update lead importance");
+    } finally {
+      setSavingTemperature(false);
+    }
+  };
 
   const onRefusalFile = async (file: File) => {
     if (!caseId || !canUpload) return;
@@ -176,9 +199,11 @@ export function ClientIdentityHeader({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">{client.full_name}</h1>
-                {client.lead_temperature && (
-                  <LeadTemperatureBadge value={client.lead_temperature} />
-                )}
+                <LeadTemperaturePicker
+                  value={client.lead_temperature}
+                  disabled={!canUpload || savingTemperature}
+                  onChange={onTemperatureSelect}
+                />
                 {showScore && (
                   <span className="inline-flex items-center gap-0.5 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
                     <Star className="size-3 fill-amber-500 text-amber-500" />

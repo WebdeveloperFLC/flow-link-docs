@@ -125,6 +125,7 @@ export interface ClientRow {
   budget_min?: number | null;
   budget_max?: number | null;
   lead_source?: string | null;
+  lead_temperature?: string | null;
   /** Legacy scalar budget (Overview); populated from journey range on conversion. */
   budget?: number | null;
 }
@@ -180,6 +181,9 @@ export function prefillFromLead(lead: Lead): ClientDraft {
         ? (budgetMax ?? budgetMin)
         : null,
     lead_source: lead.lead_source ?? null,
+    lead_temperature:
+      lead.lead_temperature ??
+      (lead.is_cold_pool || lead.lead_type === "cold" ? "cold" : "warm"),
   };
 }
 

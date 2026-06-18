@@ -111,6 +111,7 @@ interface Client {
   phone?: string | null;
   lead_temperature?: string | null;
   lead_score?: number | null;
+  source_lead_id?: string | null;
   date_of_birth?: string | null;
   passport_number?: string | null;
   budget?: number | null;
@@ -1125,6 +1126,9 @@ const ClientDetail = () => {
         }}
         onRefusalDocUploaded={onCaseOutcomeComplete}
         onOpenAssessment={() => setAssessmentOpen(true)}
+        onTemperatureChange={(temperature) =>
+          setClient((c) => (c ? { ...c, lead_temperature: temperature } : c))
+        }
       />
 
       <EligibilityAssessmentDialog
@@ -1189,6 +1193,11 @@ const ClientDetail = () => {
               clientName={client.full_name}
               phone={client.phone ?? null}
               email={client.email ?? null}
+              sourceLeadId={client.source_lead_id}
+              currentTemperature={client.lead_temperature}
+              onTemperatureChanged={(temperature) =>
+                setClient((c) => (c ? { ...c, lead_temperature: temperature } : c))
+              }
             />
             <AiSummaryPanel clientId={client.id} />
           </TabsContent>

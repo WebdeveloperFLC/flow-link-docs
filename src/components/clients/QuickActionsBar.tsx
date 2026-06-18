@@ -7,20 +7,24 @@ import { HandoffDialog } from "./HandoffDialog";
 import { AddRemarkDialog } from "./AddRemarkDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { applyContactMask } from "@/lib/masking";
-import { supabase } from "@/integrations/supabase/client";
+import { updateClientLeadTemperature } from "@/lib/clientLeadTemperature";
+import type { LeadTemperature } from "@/lib/leads";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { VoiceRecorderButton } from "@/components/voice/VoiceRecorderButton";
 import { WhatsAppInboxLink } from "@/components/whatsapp/WhatsAppInboxLink";
 import { generateSummary } from "@/lib/aiSummaries";
 
-export function QuickActionsBar({ clientId, clientName, phone, email, onUpload, onEmail }: {
+export function QuickActionsBar({ clientId, clientName, phone, email, onUpload, onEmail, sourceLeadId, currentTemperature, onTemperatureChanged }: {
   clientId: string;
   clientName?: string;
   phone?: string | null;
   email?: string | null;
   onUpload?: () => void;
   onEmail?: () => void;
+  sourceLeadId?: string | null;
+  currentTemperature?: string | null;
+  onTemperatureChanged?: (temperature: LeadTemperature) => void;
 }) {
   const { hasRole } = useAuth();
   const isTelecaller = hasRole("telecaller") && !hasRole(["admin","counselor","documentation"]);
@@ -31,25 +35,17 @@ export function QuickActionsBar({ clientId, clientName, phone, email, onUpload, 
   const [remark, setRemark] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
 
-  const setLeadStatus = async (status: "hot" | "warm" | "cold") => {
-    const { data: queue } = await supabase
-      .from("call_queue_items")
-      .select("id")
-      .eq("client_id", clientId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (queue?.id) {
-      const { error } = await supabase.from("call_queue_items").update({ lead_status: status } as never).eq("id", queue.id);
-      if (error) { toast.error(error.message); return; }
+  const setLeadStatus = async (status: LeadTemperature) => {
+    try {
+      await updateClientLeadTemperature(clientId, status, {
+        sourceLeadId,
+        previousTemperature: currentTemperature,
+      });
+      onTemperatureChanged?.(status);
+      toast.success(`Marked ${status}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update lead importance");
     }
-    await supabase.from("client_timeline").insert({
-      client_id: clientId,
-      event_type: "note",
-      summary: `Lead marked ${status}`,
-      metadata: { lead_status: status } as never,
-    });
-    toast.success(`Marked ${status}`);
   };
 
   return (
