@@ -19,6 +19,7 @@ import { useServiceLabelMap } from "@/lib/service-library/useServiceLabelMap";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { ClientStatusBar } from "@/components/clients/ClientStatusBar";
 import {
   Select,
   SelectContent,
@@ -35,6 +36,8 @@ type Props = {
   visaOnly?: boolean;
   /** card = Stage & Setup pills; compact = header dropdown. */
   variant?: "card" | "compact";
+  caseClosed?: boolean;
+  showClientStatus?: boolean;
 };
 
 export function ClientServiceSwitcher({
@@ -43,6 +46,8 @@ export function ClientServiceSwitcher({
   onSwitched,
   visaOnly = false,
   variant = "card",
+  caseClosed,
+  showClientStatus = false,
 }: Props) {
   const [params, setParams] = useSearchParams();
   const [services, setServices] = useState<ClientServiceEntry[]>([]);
@@ -258,15 +263,20 @@ export function ClientServiceSwitcher({
   return (
     <div className="px-4 sm:px-8 pt-3 border-b bg-muted/20">
       <div className="rounded-xl border bg-card p-2 shadow-elev-sm">
-      <div className="px-2 pt-1 pb-2">
-        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {visaOnly ? "Visa application" : "Active application"}
+      <div className="px-2 pt-1 pb-2 flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {visaOnly ? "Visa application" : "Active application"}
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            {visaOnly
+              ? `${displayServices.length} visa service${displayServices.length === 1 ? "" : "s"} — select one to view stage progress`
+              : `${displayServices.length} services — select one to view its stage progress`}
+          </p>
         </div>
-        <p className="text-[11px] text-muted-foreground">
-          {visaOnly
-            ? `${displayServices.length} visa service${displayServices.length === 1 ? "" : "s"} — select one to view stage progress`
-            : `${displayServices.length} services — select one to view its stage progress`}
-        </p>
+        {showClientStatus && (
+          <ClientStatusBar clientId={clientId} caseClosed={caseClosed} compact />
+        )}
       </div>
       <div className="flex flex-wrap gap-1.5 px-1 pb-1">
         {displayServices.map((s) => {

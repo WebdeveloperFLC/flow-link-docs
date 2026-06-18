@@ -1166,6 +1166,8 @@ const ClientDetail = () => {
           clientCountry={client.country}
           onSwitched={onServiceSwitched}
           visaOnly
+          caseClosed={caseClosed}
+          showClientStatus={serviceCtx.pipelineApplicable}
         />
         {serviceCtx.pipelineApplicable && (
           <ClientStageStepper
