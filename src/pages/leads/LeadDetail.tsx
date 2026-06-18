@@ -284,6 +284,11 @@ const LeadDetail = () => {
                       setFollowupLogVersion((v) => v + 1);
                     });
                   }}
+                  onNotesMigrated={() => {
+                    fetchLead(lead.id).then((l) => {
+                      if (l) setLead(l);
+                    });
+                  }}
                 />
               )}
             </Card>
@@ -323,6 +328,11 @@ const LeadDetail = () => {
                   fetchLead(lead.id).then((l) => {
                     if (l) setLead(l);
                     setFollowupLogVersion((v) => v + 1);
+                  });
+                }}
+                onNotesMigrated={() => {
+                  fetchLead(lead.id).then((l) => {
+                    if (l) setLead(l);
                   });
                 }}
               />

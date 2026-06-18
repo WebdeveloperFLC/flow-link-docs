@@ -374,6 +374,10 @@ const LeadNew = () => {
     setFollowupLogVersion((v) => v + 1);
   }, []);
 
+  const onFollowupNotesMigrated = useCallback((cleanedNotes: string | null) => {
+    setNotes(cleanedNotes ?? "");
+  }, []);
+
   const onFollowupAtChange = useCallback((value: string) => {
     setFollowupAtLocal(value);
     setFollowupSaved(false);
@@ -863,6 +867,7 @@ const LeadNew = () => {
                     savingFollowup={savingFollowup}
                     followupLogVersion={followupLogVersion}
                     onFollowupCompleted={onFollowupCompleted}
+                    onNotesMigrated={onFollowupNotesMigrated}
                     followupSaved={followupSaved}
                     description="Schedule the next touchpoint for the assigned primary user. Save here — no need to save the whole form. Carried over when you register as client."
                   />
@@ -907,6 +912,7 @@ const LeadNew = () => {
                   savingFollowup={savingFollowup}
                   followupLogVersion={followupLogVersion}
                   onFollowupCompleted={onFollowupCompleted}
+                  onNotesMigrated={onFollowupNotesMigrated}
                   followupSaved={followupSaved}
                   notePlaceholder="Brief reminder for next call"
                   description="Optional — schedule when to call this cold lead again. Save here without saving the whole form."

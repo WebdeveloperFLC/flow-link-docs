@@ -8,6 +8,7 @@ import { CheckCircle2, History } from "lucide-react";
 import {
   completeLeadFollowup,
   listLeadFollowupLog,
+  migrateLegacyFollowupNotesIfNeeded,
   type LeadFollowupLogEntry,
 } from "@/lib/leadFollowupLog";
 import {
@@ -23,6 +24,8 @@ type Props = {
   leadId: string | null;
   hasOpenFollowup: boolean;
   onCompleted?: () => void;
+  /** Called when legacy follow-up lines are moved out of lead notes into history. */
+  onNotesMigrated?: (cleanedNotes: string | null) => void;
   onSaveFollowup?: () => Promise<boolean>;
   ensureSynced?: () => Promise<boolean>;
   saving?: boolean;
@@ -38,6 +41,7 @@ export function LeadFollowupLogPanel({
   leadId,
   hasOpenFollowup,
   onCompleted,
+  onNotesMigrated,
   onSaveFollowup,
   ensureSynced,
   saving = false,
@@ -60,13 +64,15 @@ export function LeadFollowupLogPanel({
     }
     setLoading(true);
     try {
+      const cleanedNotes = await migrateLegacyFollowupNotesIfNeeded(leadId);
+      if (cleanedNotes !== undefined) onNotesMigrated?.(cleanedNotes);
       setEntries(await listLeadFollowupLog(leadId));
     } catch (e) {
       console.warn("[LeadFollowupLogPanel]", e);
     } finally {
       setLoading(false);
     }
-  }, [leadId]);
+  }, [leadId, onNotesMigrated]);
 
   useEffect(() => {
     void refresh();
