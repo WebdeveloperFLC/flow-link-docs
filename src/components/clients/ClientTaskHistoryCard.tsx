@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { listTasks, subscribeTasks, type ClientTask } from "@/lib/clientTasks";
-import { supabase } from "@/integrations/supabase/client";
 import { ListTodo } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useProfileNameMap } from "@/hooks/useProfileNameMap";
 
 const STATUS_LABEL: Record<string, string> = {
   open: "Open",
@@ -24,7 +24,11 @@ function fmtDate(iso: string | null): string {
 
 export function ClientTaskHistoryCard({ clientId }: { clientId: string }) {
   const [tasks, setTasks] = useState<ClientTask[]>([]);
-  const [names, setNames] = useState<Record<string, string>>({});
+  const profileUserIds = useMemo(
+    () => tasks.flatMap((t) => [t.assigned_to, t.created_by, t.completed_by]),
+    [tasks],
+  );
+  const names = useProfileNameMap(profileUserIds);
 
   const refresh = () => listTasks(clientId).then(setTasks).catch(() => {});
   useEffect(() => {
@@ -34,25 +38,6 @@ export function ClientTaskHistoryCard({ clientId }: { clientId: string }) {
       off();
     };
   }, [clientId]);
-
-  useEffect(() => {
-    const ids = Array.from(
-      new Set(tasks.flatMap((t) => [t.assigned_to, t.created_by, t.completed_by]).filter(Boolean) as string[]),
-    ).filter((id) => !names[id]);
-    if (!ids.length) return;
-    supabase
-      .from("profiles")
-      .select("id,full_name,email")
-      .in("id", ids)
-      .then(({ data }) => {
-        if (!data) return;
-        setNames((prev) => {
-          const next = { ...prev };
-          for (const r of data) next[r.id] = r.full_name || r.email || r.id.slice(0, 6);
-          return next;
-        });
-      });
-  }, [tasks, names]);
 
   const sorted = useMemo(
     () => [...tasks].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),

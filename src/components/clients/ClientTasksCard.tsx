@@ -5,10 +5,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Clock, AlertTriangle, CheckCircle2, CalendarClock, Trash2 } from "lucide-react";
 import { listTasks, completeTask, subscribeTasks, deleteTask, bucketize, type ClientTask } from "@/lib/clientTasks";
 import { TaskDueCountdown } from "./TaskDueCountdown";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfileNameMap } from "@/hooks/useProfileNameMap";
 
 const PRIO_TONE: Record<string, string> = {
   urgent: "bg-destructive/15 text-destructive",
@@ -20,7 +20,11 @@ const PRIO_TONE: Record<string, string> = {
 export function ClientTasksCard({ clientId }: { clientId: string }) {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<ClientTask[]>([]);
-  const [names, setNames] = useState<Record<string, string>>({});
+  const profileUserIds = useMemo(
+    () => tasks.flatMap((t) => [t.assigned_to, t.created_by]),
+    [tasks],
+  );
+  const names = useProfileNameMap(profileUserIds);
 
   const refresh = () => listTasks(clientId).then(setTasks).catch(() => {});
   useEffect(() => {
@@ -31,19 +35,6 @@ export function ClientTasksCard({ clientId }: { clientId: string }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId]);
-
-  useEffect(() => {
-    const ids = Array.from(new Set(tasks.flatMap((t) => [t.assigned_to, t.created_by]).filter(Boolean) as string[])).filter((id) => !names[id]);
-    if (!ids.length) return;
-    supabase.from("profiles").select("id,full_name,email").in("id", ids).then(({ data }) => {
-      if (!data) return;
-      setNames((prev) => {
-        const next = { ...prev };
-        for (const r of data) next[r.id] = r.full_name || r.email || r.id.slice(0, 6);
-        return next;
-      });
-    });
-  }, [tasks, names]);
 
   const buckets = useMemo(() => bucketize(tasks), [tasks]);
 
