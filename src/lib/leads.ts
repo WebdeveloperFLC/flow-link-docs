@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { EducationEntry, ExperienceEntry } from "@/lib/clientRegistration";
+import { formatSupabaseError } from "@/lib/formatSupabaseError";
 import type { LanguageTestsValue } from "@/lib/languageTests";
 import { isExcludedCatalogueService } from "@/lib/service-library/excludedCatalogueServices";
 import { isPipelineBackedLibraryId } from "@/lib/service-library/pipelineBackedLibraryIds";
@@ -117,18 +118,45 @@ export function sanitizeLeadDraft(draft: LeadDraft): LeadDraft {
   return out;
 }
 
+/** patch_lead_draft fails when DB is missing columns its SQL references (e.g. followup_history). */
+function isLeadRpcSchemaError(error: unknown): boolean {
+  const msg = formatSupabaseError(error, "").toLowerCase();
+  return (
+    msg.includes("schema cache") ||
+    (msg.includes("does not exist") && msg.includes("column"))
+  );
+}
+
+async function patchLeadDirect(id: string, payload: LeadDraft): Promise<Lead> {
+  const body = { ...payload } as Record<string, unknown>;
+  delete body.followup_history;
+  const { data, error } = await supabase.from("leads").update(body as never).eq("id", id).select().single();
+  if (error) throw error;
+  return data as unknown as Lead;
+}
+
+async function createLeadDirect(payload: LeadDraft): Promise<Lead> {
+  const body = { ...payload } as Record<string, unknown>;
+  delete body.followup_history;
+  const { data, error } = await supabase.from("leads").insert([body as never]).select().single();
+  if (error) throw error;
+  return data as unknown as Lead;
+}
+
 export async function createLead(draft: LeadDraft): Promise<Lead> {
   const payload = sanitizeLeadDraft(draft);
   const { data, error } = await supabase.rpc("create_lead_draft", { _data: payload });
-  if (error) throw error;
-  return data as unknown as Lead;
+  if (!error) return data as unknown as Lead;
+  if (isLeadRpcSchemaError(error)) return createLeadDirect(payload);
+  throw error;
 }
 
 export async function updateLead(id: string, patch: LeadDraft): Promise<Lead> {
   const payload = sanitizeLeadDraft(patch);
   const { data, error } = await supabase.rpc("patch_lead_draft", { _id: id, _data: payload });
-  if (error) throw error;
-  return data as unknown as Lead;
+  if (!error) return data as unknown as Lead;
+  if (isLeadRpcSchemaError(error)) return patchLeadDirect(id, payload);
+  throw error;
 }
 
 export async function fetchLeads(opts: { temperatures?: LeadTemperature[]; coldPool?: boolean; search?: string; limit?: number } = {}): Promise<Lead[]> {
