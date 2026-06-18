@@ -20,6 +20,8 @@ import {
   Briefcase,
   Phone,
   Maximize2,
+  Layers,
+  ScrollText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { appendClientActivityLog, diffRecordFields, formatFieldChanges } from "@/lib/clientActivityLog";
@@ -32,6 +34,10 @@ import { dialCodeFor, COUNTRY_OPTIONS } from "@/lib/countryCodes";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { ClientServicesCard } from "@/components/clients/ClientServicesCard";
+import { ClientJourneyProfileSection } from "@/components/clients/ClientJourneyProfileSection";
+import { ClientProgramsCard } from "@/components/clients/ClientProgramsCard";
+import { ClientActivityLogCard } from "@/components/clients/ClientActivityLogCard";
 
 interface Props {
   clientId: string;
@@ -41,6 +47,7 @@ interface Props {
   onSyncOdoo?: () => Promise<void>;
   syncingOdoo?: boolean;
   refreshKey?: number;
+  onProgramsChanged?: () => void;
 }
 
 type FieldDef = { key: typeof PROFILE_FIELDS[number]; label: string; type?: "date" | "number" };
@@ -53,7 +60,18 @@ type GroupDef = {
   fields: FieldDef[];
 };
 
-type SectionId = GroupDef["id"] | "education-history";
+type ProfileTab = "personal-details" | "client-services" | "education-employment" | "activity-log";
+type PersonalSectionId = "identity" | "passport" | "contact" | "emergency";
+
+const PERSONAL_GROUP_IDS: PersonalSectionId[] = ["identity", "passport", "contact", "emergency"];
+const EDUCATION_EMPLOYMENT_IDS = ["education", "employment"] as const;
+
+const PROFILE_TABS: { id: ProfileTab; label: string; icon: typeof User }[] = [
+  { id: "personal-details", label: "Personal Details", icon: User },
+  { id: "client-services", label: "Client Services", icon: Layers },
+  { id: "education-employment", label: "Education & Employment", icon: GraduationCap },
+  { id: "activity-log", label: "Activity Log", icon: ScrollText },
+];
 
 const GROUPS: GroupDef[] = [
   {
@@ -146,7 +164,7 @@ const GROUPS: GroupDef[] = [
 const EDUCATION_HISTORY_SECTION = {
   id: "education-history" as const,
   title: "Education history",
-  shortLabel: "History",
+  shortLabel: "Qualifications",
   icon: GraduationCap,
 };
 
@@ -189,6 +207,7 @@ export const ClientProfileCard = ({
   onSyncOdoo,
   syncingOdoo,
   refreshKey,
+  onProgramsChanged,
 }: Props) => {
   const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
   const [profileFallback, setProfileFallback] = useState<Record<string, string>>({});
@@ -200,7 +219,8 @@ export const ClientProfileCard = ({
   const [countryCode, setCountryCode] = useState<string>("");
   const [countryCodeEdit, setCountryCodeEdit] = useState<string | null>(null);
   const [education, setEducation] = useState<Array<Record<string, unknown>>>([]);
-  const [activeSection, setActiveSection] = useState<SectionId>("identity");
+  const [activeTab, setActiveTab] = useState<ProfileTab>("personal-details");
+  const [personalSection, setPersonalSection] = useState<PersonalSectionId>("identity");
   const [fullViewOpen, setFullViewOpen] = useState(false);
 
   const load = async () => {
@@ -573,19 +593,52 @@ export const ClientProfileCard = ({
     </div>
   );
 
-  const activeGroup = GROUPS.find((g) => g.id === activeSection);
+  const activeGroup = GROUPS.find((g) => g.id === personalSection);
 
-  const renderSectionNav = () => (
-    <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
-      {GROUPS.map((g) => {
+  const renderPersonalSubNav = () => (
+    <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1 mb-4">
+      {PERSONAL_GROUP_IDS.map((id) => {
+        const g = GROUPS.find((group) => group.id === id)!;
         const Icon = g.icon;
-        const active = activeSection === g.id;
+        const active = personalSection === id;
         const { filled, total, complete } = sectionProgress(g, valFor, primaryPhone, primaryPhoneEdit);
         return (
           <button
             key={g.id}
             type="button"
-            onClick={() => setActiveSection(g.id)}
+            onClick={() => setPersonalSection(id)}
+            className={cn(
+              "shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all border",
+              active
+                ? "bg-primary/10 text-primary border-primary/20"
+                : "bg-muted/40 text-muted-foreground border-transparent hover:bg-muted",
+            )}
+          >
+            <Icon className="size-3.5 shrink-0" />
+            <span>{g.shortLabel}</span>
+            <span
+              className={cn(
+                "rounded-full px-1.5 py-0 text-[10px] font-semibold tabular-nums",
+                complete ? "bg-emerald-500/15 text-emerald-700" : "bg-muted text-muted-foreground",
+              )}
+            >
+              {filled}/{total}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const renderSectionNav = () => (
+    <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
+      {PROFILE_TABS.map(({ id, label, icon: Icon }) => {
+        const active = activeTab === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setActiveTab(id)}
             className={cn(
               "shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all border",
               active
@@ -594,79 +647,25 @@ export const ClientProfileCard = ({
             )}
           >
             <Icon className="size-3.5 shrink-0" />
-            <span>{g.shortLabel}</span>
-            <span
-              className={cn(
-                "rounded-full px-1.5 py-0 text-[10px] font-semibold tabular-nums",
-                active
-                  ? complete
-                    ? "bg-emerald-500/15 text-emerald-700"
-                    : "bg-primary/10 text-primary"
-                  : complete
-                    ? "bg-emerald-400/25 text-white"
-                    : "bg-white/15",
-              )}
-            >
-              {filled}/{total}
-            </span>
+            <span>{label}</span>
           </button>
         );
       })}
-      <button
-        type="button"
-        onClick={() => setActiveSection("education-history")}
-        className={cn(
-          "shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all border",
-          activeSection === "education-history"
-            ? "bg-white text-primary border-white shadow-sm"
-            : "bg-white/10 text-primary-foreground border-white/20 hover:bg-white/20",
-        )}
-      >
-        <GraduationCap className="size-3.5 shrink-0" />
-        <span>{EDUCATION_HISTORY_SECTION.shortLabel}</span>
-        <span
-          className={cn(
-            "rounded-full px-1.5 py-0 text-[10px] font-semibold tabular-nums",
-            activeSection === "education-history" ? "bg-primary/10 text-primary" : "bg-white/15",
-          )}
-        >
-          {education.length}
-        </span>
-      </button>
     </div>
   );
 
-  const renderActivePanel = () => {
-    if (activeSection === "education-history") {
-      return (
-        <div className="space-y-3">
-          <div>
-            <h3 className="text-sm font-semibold">{EDUCATION_HISTORY_SECTION.title}</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {education.length > 0
-                ? education
-                    .slice(0, 3)
-                    .map((e) => String(e.degree || e.institution || "Entry"))
-                    .join(" · ")
-                : "No qualifications captured yet"}
-            </p>
-          </div>
-          {renderEducationHistory()}
-        </div>
-      );
-    }
-    if (!activeGroup) return null;
-    const { filled, total, complete } = sectionProgress(activeGroup, valFor, primaryPhone, primaryPhoneEdit);
-    const Icon = activeGroup.icon;
+  const renderGroupPanel = (g: GroupDef) => {
+    const { filled, total, complete } = sectionProgress(g, valFor, primaryPhone, primaryPhoneEdit);
+    const Icon = g.icon;
     return (
-      <div className="space-y-4">
+      <div key={g.id} className="space-y-4">
         <div className="flex items-start gap-3">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <Icon className="size-4" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-sm font-semibold">{activeGroup.title}</h3>
+              <h3 className="text-sm font-semibold">{g.title}</h3>
               <Badge
                 variant="outline"
                 className={cn(
@@ -677,22 +676,104 @@ export const ClientProfileCard = ({
                 {filled}/{total} fields
               </Badge>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">{sectionSummary(activeGroup.fields, valFor, 4)}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{sectionSummary(g.fields, valFor, 4)}</p>
           </div>
         </div>
-        {renderFieldsGrid(activeGroup)}
+        {renderFieldsGrid(g)}
       </div>
     );
   };
 
+  const renderActivePanel = () => {
+    if (activeTab === "personal-details") {
+      if (!activeGroup) return null;
+      return (
+        <div className="space-y-4">
+          {renderPersonalSubNav()}
+          {renderGroupPanel(activeGroup)}
+        </div>
+      );
+    }
+
+    if (activeTab === "client-services") {
+      return (
+        <div className="space-y-6">
+          <ClientServicesCard clientId={clientId} canEdit={canEdit} />
+          <ClientJourneyProfileSection
+            clientId={clientId}
+            canEdit={canEdit}
+            refreshKey={refreshKey}
+            blocks={["countries"]}
+            title="Interested countries"
+          />
+          <ClientProgramsCard
+            clientId={clientId}
+            canEdit={canEdit}
+            onChanged={onProgramsChanged}
+          />
+          <ClientJourneyProfileSection
+            clientId={clientId}
+            canEdit={canEdit}
+            refreshKey={refreshKey}
+            blocks={["funding", "source"]}
+            title="Funding, timeline & source"
+          />
+        </div>
+      );
+    }
+
+    if (activeTab === "education-employment") {
+      return (
+        <div className="space-y-8">
+          {EDUCATION_EMPLOYMENT_IDS.map((id) => {
+            const g = GROUPS.find((group) => group.id === id);
+            return g ? renderGroupPanel(g) : null;
+          })}
+          <div className="space-y-3 border-t pt-6">
+            <div>
+              <h3 className="text-sm font-semibold">{EDUCATION_HISTORY_SECTION.title}</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {education.length > 0
+                  ? education
+                      .slice(0, 3)
+                      .map((e) => String(e.degree || e.institution || "Entry"))
+                      .join(" · ")
+                  : "No qualifications captured yet"}
+              </p>
+            </div>
+            {renderEducationHistory()}
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTab === "activity-log") {
+      return <ClientActivityLogCard clientId={clientId} />;
+    }
+
+    return null;
+  };
+
   const renderFullViewSections = () => (
     <div className="space-y-6 pb-8">
-      {GROUPS.map((g) => (
-        <div key={g.id} className="rounded-lg border bg-card p-4 space-y-3">
-          <div className="text-xs font-semibold uppercase tracking-wider text-primary">{g.title}</div>
-          {renderFieldsGrid(g)}
-        </div>
-      ))}
+      {PERSONAL_GROUP_IDS.map((id) => {
+        const g = GROUPS.find((group) => group.id === id);
+        return g ? (
+          <div key={g.id} className="rounded-lg border bg-card p-4 space-y-3">
+            <div className="text-xs font-semibold uppercase tracking-wider text-primary">{g.title}</div>
+            {renderFieldsGrid(g)}
+          </div>
+        ) : null;
+      })}
+      {EDUCATION_EMPLOYMENT_IDS.map((id) => {
+        const g = GROUPS.find((group) => group.id === id);
+        return g ? (
+          <div key={g.id} className="rounded-lg border bg-card p-4 space-y-3">
+            <div className="text-xs font-semibold uppercase tracking-wider text-primary">{g.title}</div>
+            {renderFieldsGrid(g)}
+          </div>
+        ) : null;
+      })}
       <div className="rounded-lg border bg-card p-4 space-y-3">
         <div className="text-xs font-semibold uppercase tracking-wider text-primary">Education history</div>
         {renderEducationHistory()}

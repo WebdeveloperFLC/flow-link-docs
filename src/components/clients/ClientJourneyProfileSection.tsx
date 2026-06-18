@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { appendClientActivityLog, diffRecordFields, formatFieldChanges } from "@/lib/clientActivityLog";
 import { cn } from "@/lib/utils";
 
+type JourneyBlock = "funding" | "countries" | "source" | "notes";
+
 type JourneyProfile = {
   sponsor: string | null;
   sponsor_other: string | null;
@@ -41,10 +43,14 @@ export function ClientJourneyProfileSection({
   clientId,
   canEdit,
   refreshKey = 0,
+  blocks = ["funding", "countries", "source", "notes"],
+  title,
 }: {
   clientId: string;
   canEdit: boolean;
   refreshKey?: number;
+  blocks?: JourneyBlock[];
+  title?: string;
 }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -146,10 +152,19 @@ export function ClientJourneyProfileSection({
     );
   }
 
+  const show = (block: JourneyBlock) => blocks.includes(block);
+  const heading =
+    title ??
+    (blocks.length === 1 && blocks[0] === "countries"
+      ? "Interested countries"
+      : blocks.includes("funding") && !blocks.includes("countries")
+        ? "Funding, timeline & source"
+        : "Funding, timeline & source");
+
   return (
     <Card className="p-4 sm:p-6 space-y-4">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="font-semibold">Funding, timeline &amp; source</h3>
+        <h3 className="font-semibold">{heading}</h3>
         {canEdit && (
           <Button size="sm" onClick={save} disabled={saving}>
             {saving ? <Loader2 className="size-4 animate-spin mr-1" /> : <Save className="size-4 mr-1" />}
@@ -157,46 +172,54 @@ export function ClientJourneyProfileSection({
           </Button>
         )}
       </div>
-      <LeadJourneyFieldsBlock
-        interestedCountries={data.interested_countries}
-        value={{
-          sponsor: data.sponsor,
-          sponsor_other: data.sponsor_other,
-          start_timeline: data.start_timeline,
-          has_budget: data.has_budget,
-          budget_currency: data.budget_currency ?? "INR",
-          budget_min: data.budget_min,
-          budget_max: data.budget_max,
-        }}
-        onChange={(patch) => setData((p) => ({ ...p, ...patch }))}
-      />
-      <div className={cn("space-y-1.5", !canEdit && "pointer-events-none opacity-60")}>
-        <Label>Countries of Interest</Label>
-        <RegionCountriesPicker
-          value={data.interested_countries}
-          onChange={(v) => setData((p) => ({ ...p, interested_countries: v }))}
+      {show("funding") && (
+        <LeadJourneyFieldsBlock
+          interestedCountries={data.interested_countries}
+          value={{
+            sponsor: data.sponsor,
+            sponsor_other: data.sponsor_other,
+            start_timeline: data.start_timeline,
+            has_budget: data.has_budget,
+            budget_currency: data.budget_currency ?? "INR",
+            budget_min: data.budget_min,
+            budget_max: data.budget_max,
+          }}
+          onChange={(patch) => setData((p) => ({ ...p, ...patch }))}
         />
-      </div>
-      <div className="space-y-1.5">
-        <Label>Lead source</Label>
-        <input
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-          value={data.lead_source ?? ""}
-          onChange={(e) => setData((p) => ({ ...p, lead_source: e.target.value || null }))}
-          disabled={!canEdit}
-          placeholder="e.g. Walk-in, Referral"
-        />
-      </div>
-      <div className="space-y-1.5">
-        <Label>Counselor notes</Label>
-        <Textarea
-          rows={4}
-          value={data.counselor_notes ?? ""}
-          onChange={(e) => setData((p) => ({ ...p, counselor_notes: e.target.value || null }))}
-          readOnly={!canEdit}
-          placeholder="Internal notes — not visible to client"
-        />
-      </div>
+      )}
+      {show("countries") && (
+        <div className={cn("space-y-1.5", !canEdit && "pointer-events-none opacity-60")}>
+          <Label>Countries of Interest</Label>
+          <RegionCountriesPicker
+            value={data.interested_countries}
+            onChange={(v) => setData((p) => ({ ...p, interested_countries: v }))}
+          />
+        </div>
+      )}
+      {show("source") && (
+        <div className="space-y-1.5">
+          <Label>Lead source</Label>
+          <input
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+            value={data.lead_source ?? ""}
+            onChange={(e) => setData((p) => ({ ...p, lead_source: e.target.value || null }))}
+            disabled={!canEdit}
+            placeholder="e.g. Walk-in, Referral"
+          />
+        </div>
+      )}
+      {show("notes") && (
+        <div className="space-y-1.5">
+          <Label>Counselor notes</Label>
+          <Textarea
+            rows={4}
+            value={data.counselor_notes ?? ""}
+            onChange={(e) => setData((p) => ({ ...p, counselor_notes: e.target.value || null }))}
+            readOnly={!canEdit}
+            placeholder="Internal notes — not visible to client"
+          />
+        </div>
+      )}
     </Card>
   );
 }

@@ -32,11 +32,8 @@ import { ShareLinkDialog } from "@/components/documents/ShareLinkDialog";
 import { BINDER_GROUPS, groupForType } from "@/lib/binderGroups";
 import { AddDocTypeDialog, type ExtraItem } from "@/components/clients/AddDocTypeDialog";
 import { ClientProfileCard } from "@/components/clients/ClientProfileCard";
-import { ClientJourneyProfileSection } from "@/components/clients/ClientJourneyProfileSection";
 import { ClientLocationPreferencesSection } from "@/components/clients/ClientLocationPreferencesSection";
 import { ClientPaymentsCard } from "@/components/clients/ClientPaymentsCard";
-import { ClientServicesCard } from "@/components/clients/ClientServicesCard";
-import { ClientProgramsCard } from "@/components/clients/ClientProgramsCard";
 import { ClientPromotionsStrip } from "@/components/clients/ClientPromotionsStrip";
 import { LetterCard } from "@/components/letters/LetterCard";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
@@ -86,7 +83,6 @@ import { fetchWorkflowTemplatesForService } from "@/lib/service-library/matchWor
 import { useActiveServiceContext } from "@/lib/clientActiveServiceContext";
 import { ClientIdentityHeader } from "@/components/clients/ClientIdentityHeader";
 import { ClientStageStepper } from "@/components/clients/ClientStageStepper";
-import { ClientActivityLogCard } from "@/components/clients/ClientActivityLogCard";
 import { ClientTaskHistoryCard } from "@/components/clients/ClientTaskHistoryCard";
 import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitcher";
 import { ClientOverviewDashboard } from "@/components/clients/ClientOverviewDashboard";
@@ -1211,8 +1207,8 @@ const ClientDetail = () => {
               onSyncOdoo={onSyncOdoo}
               syncingOdoo={syncingOdoo}
               refreshKey={profileRefreshKey}
+              onProgramsChanged={() => setProfileRefreshKey((k) => k + 1)}
             />
-            <ClientJourneyProfileSection clientId={client.id} canEdit={canUpload} refreshKey={profileRefreshKey} />
             <ClientLocationPreferencesSection
               clientId={client.id}
               canEdit={canUpload}
@@ -1225,13 +1221,6 @@ const ClientDetail = () => {
               }}
             />
             <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
-            <ClientServicesCard clientId={client.id} canEdit={canUpload} />
-            <ClientProgramsCard
-              clientId={client.id}
-              canEdit={canUpload}
-              onChanged={() => setProfileRefreshKey((k) => k + 1)}
-            />
-            <ClientActivityLogCard clientId={client.id} />
             <ClientTaskHistoryCard clientId={client.id} />
           </TabsContent>
 
