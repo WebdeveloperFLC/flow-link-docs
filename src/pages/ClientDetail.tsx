@@ -1220,8 +1220,6 @@ const ClientDetail = () => {
                 travel_services: client.travel_financial_services ?? [],
               }}
             />
-            <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
-            <ClientTaskHistoryCard clientId={client.id} />
           </TabsContent>
 
           <TabsContent value="commercial" className="mt-0 space-y-6">
@@ -1267,9 +1265,16 @@ const ClientDetail = () => {
 
           <TabsContent value="tasks" className="mt-0 space-y-6">
             <ClientTasksCard clientId={client.id} />
+            <ClientTaskHistoryCard clientId={client.id} />
           </TabsContent>
 
           <TabsContent value="team" className="mt-0 space-y-6">
+            <CasePeopleCard
+              clientId={client.id}
+              canEdit={canUpload}
+              isAdmin={isAdmin}
+              onChange={setPeople}
+            />
             <div className="grid lg:grid-cols-2 gap-6">
               <ClientAccessCard
                 key={accessRefreshKey}
