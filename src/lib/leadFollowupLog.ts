@@ -5,6 +5,7 @@ import {
 } from "@/lib/clientActivityLog";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
 import { followupChannelLabel, formatFollowupDue } from "@/lib/leadFollowup";
+import { updateLead } from "@/lib/leads";
 
 export type LeadFollowupLogStatus = "scheduled" | "completed" | "cancelled";
 
@@ -250,6 +251,21 @@ async function completeLeadFollowupLegacy(
   };
 }
 
+async function persistLeadFollowupOnLead(
+  leadId: string,
+  opts: {
+    scheduledAt: string | null;
+    channel: string | null;
+    note: string | null;
+  },
+): Promise<void> {
+  await updateLead(leadId, {
+    next_followup_at: opts.scheduledAt,
+    followup_channel: opts.channel,
+    followup_note: opts.note,
+  });
+}
+
 export async function listLeadFollowupLog(leadId: string): Promise<LeadFollowupLogEntry[]> {
   if (!(await probeLeadFollowupLogAvailable())) return [];
 
@@ -274,7 +290,10 @@ export async function syncLeadFollowupLog(
     note: string | null;
   },
 ): Promise<LeadFollowupLogEntry | null> {
-  if (!(await probeLeadFollowupLogAvailable())) return null;
+  if (!(await probeLeadFollowupLogAvailable())) {
+    await persistLeadFollowupOnLead(leadId, opts);
+    return null;
+  }
 
   const { data, error } = await supabase.rpc("sync_lead_followup_log", {
     _lead_id: leadId,

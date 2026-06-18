@@ -96,6 +96,7 @@ const LeadNew = () => {
   const [followupChannel, setFollowupChannel] = useState("");
   const [followupNote, setFollowupNote] = useState("");
   const [followupLogVersion, setFollowupLogVersion] = useState(0);
+  const [followupSaved, setFollowupSaved] = useState(false);
   const [savingFollowup, setSavingFollowup] = useState(false);
 
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -201,6 +202,7 @@ const LeadNew = () => {
     setFollowupAtLocal(toDatetimeLocalValue(l.next_followup_at));
     setFollowupChannel(l.followup_channel ?? "");
     setFollowupNote(l.followup_note ?? "");
+    setFollowupSaved(!!l.next_followup_at);
     if (l.converted_to_client_id) {
       setConvertedClientId(l.converted_to_client_id);
     }
@@ -353,6 +355,7 @@ const LeadNew = () => {
         note: followupNote.trim() || null,
       });
       setFollowupLogVersion((v) => v + 1);
+      setFollowupSaved(true);
       toast.success("Follow-up saved");
       return true;
     } catch (e) {
@@ -367,7 +370,21 @@ const LeadNew = () => {
     setFollowupAtLocal("");
     setFollowupChannel("");
     setFollowupNote("");
+    setFollowupSaved(false);
     setFollowupLogVersion((v) => v + 1);
+  }, []);
+
+  const onFollowupAtChange = useCallback((value: string) => {
+    setFollowupAtLocal(value);
+    setFollowupSaved(false);
+  }, []);
+  const onFollowupChannelChange = useCallback((value: string) => {
+    setFollowupChannel(value);
+    setFollowupSaved(false);
+  }, []);
+  const onFollowupNoteChange = useCallback((value: string) => {
+    setFollowupNote(value);
+    setFollowupSaved(false);
   }, []);
 
   const scheduleAutosave = () => {
@@ -839,13 +856,14 @@ const LeadNew = () => {
                     followupAtLocal={followupAtLocal}
                     followupChannel={followupChannel}
                     followupNote={followupNote}
-                    onFollowupAtChange={setFollowupAtLocal}
-                    onFollowupChannelChange={setFollowupChannel}
-                    onFollowupNoteChange={setFollowupNote}
+                    onFollowupAtChange={onFollowupAtChange}
+                    onFollowupChannelChange={onFollowupChannelChange}
+                    onFollowupNoteChange={onFollowupNoteChange}
                     onSaveFollowup={saveFollowupOnly}
                     savingFollowup={savingFollowup}
                     followupLogVersion={followupLogVersion}
                     onFollowupCompleted={onFollowupCompleted}
+                    followupSaved={followupSaved}
                     description="Schedule the next touchpoint for the assigned primary user. Save here — no need to save the whole form. Carried over when you register as client."
                   />
                 </Card>
@@ -882,13 +900,14 @@ const LeadNew = () => {
                   followupAtLocal={followupAtLocal}
                   followupChannel={followupChannel}
                   followupNote={followupNote}
-                  onFollowupAtChange={setFollowupAtLocal}
-                  onFollowupChannelChange={setFollowupChannel}
-                  onFollowupNoteChange={setFollowupNote}
+                  onFollowupAtChange={onFollowupAtChange}
+                  onFollowupChannelChange={onFollowupChannelChange}
+                  onFollowupNoteChange={onFollowupNoteChange}
                   onSaveFollowup={saveFollowupOnly}
                   savingFollowup={savingFollowup}
                   followupLogVersion={followupLogVersion}
                   onFollowupCompleted={onFollowupCompleted}
+                  followupSaved={followupSaved}
                   notePlaceholder="Brief reminder for next call"
                   description="Optional — schedule when to call this cold lead again. Save here without saving the whole form."
                 />

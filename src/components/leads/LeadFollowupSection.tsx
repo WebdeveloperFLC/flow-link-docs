@@ -18,6 +18,7 @@ type Props = {
   savingFollowup: boolean;
   followupLogVersion: number;
   onFollowupCompleted: () => void;
+  followupSaved?: boolean;
   notePlaceholder?: string;
   description?: string;
 };
@@ -34,6 +35,7 @@ export function LeadFollowupSection({
   savingFollowup,
   followupLogVersion,
   onFollowupCompleted,
+  followupSaved = false,
   notePlaceholder = "e.g. Send fee quote, call back after IELTS",
   description = "Schedule the next touchpoint. Use Save follow-up here — no need to save the whole lead form.",
 }: Props) {
@@ -98,6 +100,10 @@ export function LeadFollowupSection({
         saving={savingFollowup}
         onSaveFollowup={onSaveFollowup}
         onCompleted={onFollowupCompleted}
+        upcomingAtLocal={followupAtLocal}
+        upcomingChannel={followupChannel}
+        upcomingNote={followupNote}
+        upcomingSaved={followupSaved}
       />
     </>
   );

@@ -15,6 +15,7 @@ import {
   followupChannelLabel,
   followupDueState,
   formatFollowupDue,
+  fromDatetimeLocalValue,
 } from "@/lib/leadFollowup";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,10 @@ type Props = {
   saving?: boolean;
   compact?: boolean;
   refreshToken?: number;
+  upcomingAtLocal?: string;
+  upcomingChannel?: string;
+  upcomingNote?: string;
+  upcomingSaved?: boolean;
 };
 
 export function LeadFollowupLogPanel({
@@ -39,6 +44,10 @@ export function LeadFollowupLogPanel({
   saving = false,
   compact,
   refreshToken = 0,
+  upcomingAtLocal = "",
+  upcomingChannel = "",
+  upcomingNote = "",
+  upcomingSaved = false,
 }: Props) {
   const [entries, setEntries] = useState<LeadFollowupLogEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -72,6 +81,14 @@ export function LeadFollowupLogPanel({
   const openEntry = entries.find((e) => e.status === "scheduled");
   const history = entries.filter((e) => e.status === "completed");
   const canComplete = hasOpenFollowup || !!openEntry;
+  const showUpcomingInHistory = !!openEntry || (hasOpenFollowup && upcomingSaved);
+  const upcomingWhen = openEntry
+    ? formatFollowupDue(openEntry.scheduled_at)
+    : upcomingAtLocal.trim()
+      ? formatFollowupDue(fromDatetimeLocalValue(upcomingAtLocal))
+      : "—";
+  const upcomingChannelLabel = followupChannelLabel(openEntry?.channel ?? upcomingChannel || null);
+  const upcomingPlanNote = openEntry?.note ?? upcomingNote.trim();
 
   const onComplete = async () => {
     if (!leadId) {
@@ -126,7 +143,9 @@ export function LeadFollowupLogPanel({
                 <Badge variant="destructive" className="text-[10px]">Overdue</Badge>
               )}
               {!openEntry && hasOpenFollowup && (
-                <Badge variant="outline" className="text-[10px]">Not in log yet — save or mark complete to sync</Badge>
+                <Badge variant={upcomingSaved ? "secondary" : "outline"} className="text-[10px]">
+                  {upcomingSaved ? "Saved" : "Not saved yet"}
+                </Badge>
               )}
             </div>
             <Button
@@ -147,7 +166,8 @@ export function LeadFollowupLogPanel({
             </p>
           ) : hasOpenFollowup ? (
             <p className="text-xs text-muted-foreground">
-              Mark complete will sync this follow-up to the log, then save your outcome note.
+              {upcomingWhen} · {upcomingChannelLabel}
+              {upcomingPlanNote ? ` — ${upcomingPlanNote}` : ""}
             </p>
           ) : null}
           <div className="space-y-1.5">
@@ -170,13 +190,26 @@ export function LeadFollowupLogPanel({
           <History className="size-4 text-muted-foreground" />
           Follow-up history
           <span className="text-xs text-muted-foreground font-normal">
-            ({history.length} completed{openEntry ? " · 1 open" : ""})
+            ({history.length} completed{showUpcomingInHistory ? " · 1 upcoming" : ""})
           </span>
         </div>
-        {loading && history.length === 0 && (
+        {loading && history.length === 0 && !showUpcomingInHistory && (
           <p className="text-xs text-muted-foreground">Loading…</p>
         )}
-        {!loading && history.length === 0 && !openEntry && !hasOpenFollowup && (
+        {showUpcomingInHistory && (
+          <ul className="space-y-2">
+            <li className="text-xs rounded-md border border-primary/20 bg-primary/5 px-3 py-2 space-y-0.5">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="font-medium text-foreground">
+                  {upcomingWhen} · {upcomingChannelLabel}
+                </div>
+                <Badge variant="outline" className="text-[10px]">Upcoming</Badge>
+              </div>
+              {upcomingPlanNote && <div className="text-muted-foreground">{upcomingPlanNote}</div>}
+            </li>
+          </ul>
+        )}
+        {!loading && history.length === 0 && !showUpcomingInHistory && (
           <p className="text-xs text-muted-foreground">
             {logAvailable === false
               ? "No follow-ups in history yet. Completed ones appear in Notes below."
