@@ -1085,12 +1085,12 @@ const ClientDetail = () => {
   return (
     <AppLayout>
       <div className="flc-workspace page-transition">
-      <ContextBackBar
-        libraryId={slLibraryId ?? serviceCtx.libraryId}
-        country={slCountry ?? serviceCtx.destinationCountry}
-        fallbackLabel="All clients"
-        fallbackHref="/clients"
-      />
+      {!(slLibraryId ?? serviceCtx.libraryId) && (
+        <ContextBackBar
+          fallbackLabel="All clients"
+          fallbackHref="/clients"
+        />
+      )}
       <ClientIdentityHeader
         client={client}
         serviceCtx={serviceCtx}

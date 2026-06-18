@@ -30,7 +30,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CallClientButton } from "@/components/clients/CallClientButton";
 import { LeadTemperatureBadge } from "@/components/leads/LeadBadges";
 import { AddTaskDialog } from "@/components/clients/AddTaskDialog";
-import { ServiceLibraryContextActions } from "@/components/service-library/ServiceLibraryContextActions";
+import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
 import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
 import type { ActiveServiceContext } from "@/lib/clientActiveServiceContext";
 import type { CaseOutcome, ClientServiceCase } from "@/lib/clientServiceCase";
@@ -129,6 +129,8 @@ export function ClientIdentityHeader({
   const destination = serviceCtx.destinationCountry ?? client.country;
   const flag = destination ? countryFlagEmoji(destination) : "";
   const serviceLabel = serviceCtx.serviceLabel ?? client.application_type;
+  const libraryId = slLibraryId ?? serviceCtx.libraryId;
+  const resolvedSlCountry = slCountry ?? serviceCtx.destinationCountry;
   const cleanPhone = (client.phone ?? "").replace(/\D/g, "");
   const canManageAccess =
     isAdmin || (!!userId && (client.owner_id === userId || client.created_by === userId));
@@ -264,14 +266,16 @@ export function ClientIdentityHeader({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 shrink-0">
-            {(fromServiceLibrary || slLibraryId || serviceCtx.libraryId) && (slLibraryId ?? serviceCtx.libraryId) && (
-              <ServiceLibraryContextActions
-                libraryId={(slLibraryId ?? serviceCtx.libraryId)!}
-                country={slCountry ?? serviceCtx.destinationCountry}
-                clientId={client.id}
-                showServiceLibraryBack={false}
-                showEligibility={false}
-              />
+            {libraryId && (
+              <Button variant="outline" size="sm" asChild>
+                <Link
+                  to={buildServiceLibraryUrl({ libraryId, country: resolvedSlCountry })}
+                  title="Service Library"
+                >
+                  <ChevronLeft className="size-4 mr-1" />
+                  Service Library
+                </Link>
+              </Button>
             )}
             {onOpenAssessment && (
               <Button variant="outline" size="sm" onClick={onOpenAssessment}>
@@ -279,7 +283,7 @@ export function ClientIdentityHeader({
                 Eligibility Assessment
               </Button>
             )}
-            {!(slLibraryId ?? serviceCtx.libraryId) && (
+            {!libraryId && (
               <Button asChild variant="outline" size="icon" className="size-9">
                 <Link to="/clients" title="All clients">
                   <ChevronLeft className="size-4" />

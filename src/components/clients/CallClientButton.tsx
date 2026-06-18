@@ -51,11 +51,24 @@ export function CallClientButton({ clientId }: Props) {
     }
   };
 
+  const iconOnly = !browserReady || label === "Call";
+
   return (
     <div className="inline-flex items-center gap-2">
-      <Button onClick={onClick} disabled={callDisabled} variant="outline" size="sm">
-        {activeForThis || startingForThis ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Phone className="size-4 mr-1.5" />}
-        {label}
+      <Button
+        onClick={onClick}
+        disabled={callDisabled}
+        variant="outline"
+        size={iconOnly ? "icon" : "sm"}
+        className={iconOnly ? "size-9" : undefined}
+        title={label}
+      >
+        {activeForThis || startingForThis ? (
+          <Loader2 className={`size-4 animate-spin ${iconOnly ? "" : "mr-1.5"}`} />
+        ) : (
+          <Phone className={`size-4 ${iconOnly ? "" : "mr-1.5"}`} />
+        )}
+        {!iconOnly && label}
       </Button>
       {(activeForThis || (isThisCall && startingForThis)) && (
         <Button onClick={() => hangup()} variant="destructive" size="sm">
