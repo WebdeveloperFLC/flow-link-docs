@@ -7743,6 +7743,7 @@ export type Database = {
           assigned_counselor_id: string | null
           billing_entity: string | null
           branch: string | null
+          branch_id: string | null
           budget: number | null
           client_rating: number | null
           client_type: string | null
@@ -7852,6 +7853,7 @@ export type Database = {
           assigned_counselor_id?: string | null
           billing_entity?: string | null
           branch?: string | null
+          branch_id?: string | null
           budget?: number | null
           client_rating?: number | null
           client_type?: string | null
@@ -7961,6 +7963,7 @@ export type Database = {
           assigned_counselor_id?: string | null
           billing_entity?: string | null
           branch?: string | null
+          branch_id?: string | null
           budget?: number | null
           client_rating?: number | null
           client_type?: string | null
@@ -11957,6 +11960,7 @@ export type Database = {
           assigned_counselor_id: string | null
           b2b_partner_id: string | null
           branch: string | null
+          branch_id: string | null
           coaching_services: string[] | null
           cold_pool_campaign: string | null
           converted_at: string | null
@@ -20627,6 +20631,7 @@ export type Database = {
           assigned_counselor_id: string | null
           billing_entity: string | null
           branch: string | null
+          branch_id: string | null
           budget: number | null
           client_rating: number | null
           client_type: string | null
@@ -20742,6 +20747,7 @@ export type Database = {
           assigned_counselor_id: string | null
           b2b_partner_id: string | null
           branch: string | null
+          branch_id: string | null
           coaching_services: string[] | null
           cold_pool_campaign: string | null
           converted_at: string | null

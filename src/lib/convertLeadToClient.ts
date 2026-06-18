@@ -1,12 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  prefillFromLead,
-  upsertClientRegistration,
-  assignClientRegistrationNumber,
-  type ClientDraft,
-  type ClientRow,
-} from "@/lib/clientRegistration";
+import { type ClientRow } from "@/lib/clientRegistration";
 import type { Lead } from "@/lib/leads";
 import { fetchAllServiceCatalogue } from "@/lib/leads";
 import { autoDraftInvoiceForServices } from "@/lib/autoDraftInvoice";
@@ -14,7 +8,6 @@ import { ensureFreshSession, AuthExpiredError, PermissionDeniedError } from "@/l
 import { autoAssignPipelineForClient } from "@/lib/stagePipelines";
 import { completeClientServiceEnrollment } from "@/lib/service-library/completeClientServiceEnrollment";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
-import { ensureClientProfileSynced } from "@/lib/clientProfileSync";
 import { syncClientBackgroundAfterConversion } from "@/lib/clientBackgroundSync";
 import { copyLeadHistoryToClientActivity, appendClientActivityLog } from "@/lib/clientActivityLog";
 import { createTask } from "@/lib/clientTasks";
@@ -38,14 +31,11 @@ export type ConvertLeadResult = {
   alreadyConverted: boolean;
 };
 
-function buildClientDraftFromLead(lead: Lead, leadNotes?: string): ClientDraft {
-  const draft = prefillFromLead(lead);
-  return {
-    ...draft,
-    lead_source: lead.lead_source ?? null,
-    counselor_notes: leadNotes?.trim() || lead.notes?.trim() || null,
-  };
-}
+type ConvertLeadRpcResult = {
+  client_id: string;
+  registration_number: string | null;
+  already_converted: boolean;
+};
 
 function serviceSelectionFromLead(lead: Lead): ServiceSelection {
   return {
@@ -143,82 +133,63 @@ async function notifyLeadConverted(clientId: string, lead: Lead): Promise<void> 
   }
 }
 
+async function atomicConvertLead(lead: Lead, opts: ConvertLeadOptions): Promise<ConvertLeadRpcResult> {
+  const { data, error } = await supabase.rpc("convert_lead_to_client", {
+    _lead_id: lead.id,
+    _opts: {
+      counselor_notes: opts.leadNotes?.trim() || lead.notes?.trim() || null,
+    },
+  });
+  if (error) throw error;
+  return data as ConvertLeadRpcResult;
+}
+
 /**
- * One-click lead → client conversion:
- * creates client, syncs profile, auto draft invoice, pipeline enrollment, marks lead converted (DB trigger).
+ * Lead → client conversion:
+ * atomic DB RPC (client row, reg #, profile sync, queue close) then enrollment, invoice, notifications.
  */
 export async function convertLeadToClient(
   lead: Lead,
   opts: ConvertLeadOptions = {},
 ): Promise<ConvertLeadResult> {
-  if (lead.converted_to_client_id) {
-    const { data: linked } = await supabase
-      .from("clients")
-      .select("id, registration_number")
-      .eq("id", lead.converted_to_client_id)
-      .maybeSingle();
-    return {
-      clientId: lead.converted_to_client_id,
-      registrationNumber: linked?.registration_number ?? null,
-      invoiceLinesCreated: 0,
-      alreadyConverted: true,
-    };
-  }
-
-  const { data: existingBySource } = await supabase
-    .from("clients")
-    .select("id, registration_number")
-    .eq("source_lead_id", lead.id)
-    .maybeSingle();
-  if (existingBySource) {
-    return {
-      clientId: existingBySource.id,
-      registrationNumber: existingBySource.registration_number ?? null,
-      invoiceLinesCreated: 0,
-      alreadyConverted: true,
-    };
-  }
-
   const ok = await ensureFreshSession();
   if (!ok) throw new AuthExpiredError("Your session expired. Please sign in again.");
 
-  const draft = buildClientDraftFromLead(lead, opts.leadNotes);
-  let saved: ClientRow;
+  let rpcResult: ConvertLeadRpcResult;
   try {
-    saved = await upsertClientRegistration(null, draft);
+    rpcResult = await atomicConvertLead(lead, opts);
   } catch (e) {
     if (e instanceof AuthExpiredError || e instanceof PermissionDeniedError) throw e;
     throw e;
   }
 
-  const syncWarnings: string[] = [];
-  try {
-    await ensureClientProfileSynced(saved.id);
-  } catch (e) {
-    syncWarnings.push("profile sync");
-    console.warn("[convertLeadToClient] profile sync failed", e);
+  if (rpcResult.already_converted) {
+    return {
+      clientId: rpcResult.client_id,
+      registrationNumber: rpcResult.registration_number ?? null,
+      invoiceLinesCreated: 0,
+      alreadyConverted: true,
+    };
   }
 
+  const registered: ClientRow = {
+    id: rpcResult.client_id,
+    registration_number: rpcResult.registration_number ?? null,
+  };
+
   try {
-    await syncClientBackgroundAfterConversion(saved.id);
+    await syncClientBackgroundAfterConversion(registered.id);
   } catch (e) {
-    syncWarnings.push("background sync");
     console.warn("[convertLeadToClient] background sync failed", e);
+    toast.message("Client created — background education sync failed; open the profile to verify.");
   }
 
-  if (syncWarnings.length) {
-    toast.message(`Client created — ${syncWarnings.join(" and ")} failed; open the profile to verify.`);
-  }
-
-  let registered = saved;
   try {
-    registered = await assignClientRegistrationNumber(saved.id);
+    await runServiceEnrollment(registered.id, lead, opts);
   } catch (e) {
-    console.warn("[convertLeadToClient] registration number assignment failed", e);
-    toast.message("Client created — registration number could not be assigned automatically");
+    console.warn("[convertLeadToClient] service enrollment failed", e);
+    toast.message("Client created — service enrollment could not be completed automatically");
   }
-
-  await runServiceEnrollment(registered.id, lead, opts);
 
   let invoiceLinesCreated = 0;
   try {
@@ -242,7 +213,7 @@ export async function convertLeadToClient(
     clientId: registered.id,
     action: "client_created",
     summary: "Client created from lead",
-    newValue: registered.application_id ?? registered.id,
+    newValue: registered.registration_number ?? registered.id,
     metadata: {
       source_lead_id: lead.id,
       source_lead_number: lead.lead_number,
@@ -259,7 +230,7 @@ export async function convertLeadToClient(
       description: lead.followup_note?.trim() || null,
       kind: "reminder",
       dueAt: lead.next_followup_at,
-      assignedTo: lead.assigned_counselor_id ?? registered.assigned_counselor_id ?? null,
+      assignedTo: lead.assigned_counselor_id ?? null,
     }).catch((e) => console.warn("[convertLeadToClient] follow-up task failed", e));
   }
 
