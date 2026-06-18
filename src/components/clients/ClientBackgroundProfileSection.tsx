@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EducationExperienceFields } from "@/components/clients/registration/EducationExperienceFields";
 import { LanguageTestsFields } from "@/components/clients/registration/LanguageTestsFields";
-import { LeadBackgroundDetailPanel } from "@/components/leads/LeadBackgroundDetailPanel";
+import {
+  LeadBackgroundDetailPanel,
+  type BackgroundSummaryNavigateTarget,
+} from "@/components/leads/LeadBackgroundDetailPanel";
 import { fetchClient, upsertClientRegistration } from "@/lib/clientRegistration";
 import type { Lead } from "@/lib/leads";
 import {
@@ -16,6 +19,7 @@ import {
   leadToBackgroundState,
   type LeadBackgroundState,
 } from "@/lib/leadBackground";
+import { buildEnglishTestSwitchPatch } from "@/lib/englishTestScores";
 import { syncEducationHistoryToClientEducation } from "@/lib/clientBackgroundSync";
 import { loadGeoModule } from "@/lib/geoLocations";
 import { EMPTY_LANGUAGE_TESTS, type BackgroundDetailTab } from "@/lib/languageTests";
@@ -31,6 +35,13 @@ interface Props {
   canEdit: boolean;
   refreshKey?: number;
   onSaved?: () => void;
+}
+
+function navigateTargetToTab(target: BackgroundSummaryNavigateTarget): BackgroundDetailTab {
+  if (target.section === "language") return "language";
+  if (target.section === "education") return "education";
+  if (target.section === "experience") return "experience";
+  return "english";
 }
 
 export function ClientBackgroundProfileSection({
@@ -100,8 +111,30 @@ export function ClientBackgroundProfileSection({
     }
   }, [canEdit, clientId, load, onSaved]);
 
+  const handleSummaryNavigate = useCallback(
+    (target: BackgroundSummaryNavigateTarget) => {
+      if (!canEdit) return;
+      setMode("edit");
+      setTab(navigateTargetToTab(target));
+      if (target.section === "english" && target.test) {
+        const patch = buildEnglishTestSwitchPatch(bgRef.current, target.test);
+        setBg((prev) => ({
+          ...prev,
+          english_test: patch.english_test ?? null,
+          english_test_status: patch.english_test_status ?? null,
+          english_overall: patch.english_overall ?? null,
+          english_test_date: patch.english_test_date ?? null,
+          english_test_expiry: patch.english_test_expiry ?? null,
+          english_sections: patch.english_sections ?? {},
+        }));
+      }
+    },
+    [canEdit],
+  );
+
   const counts = countBackgroundItems(bg);
-  const showView = mode === "view";
+  const showEditor = mode === "edit";
+  const showSummary = hasBackgroundData(bg);
 
   const tabBadge = (count: number) =>
     count > 0 ? (
@@ -126,9 +159,7 @@ export function ClientBackgroundProfileSection({
               <GraduationCap className="size-4" /> Tests, education & experience
             </div>
             <div className="text-[11px] text-primary-foreground/80 mt-0.5">
-              {showView
-                ? "Saved tests, qualifications, and work history"
-                : "Same fields as the lead form — English, language, education, and experience"}
+              Saved summary stays visible while editing — click a section to jump to edit
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -144,14 +175,14 @@ export function ClientBackgroundProfileSection({
                 variant="secondary"
                 className="h-8 text-xs bg-white/15 text-primary-foreground border-0 hover:bg-white/25"
                 onClick={() => {
-                  if (showView) {
+                  if (!showEditor) {
                     setMode("edit");
                   } else {
                     void load();
                   }
                 }}
               >
-                {showView ? (
+                {!showEditor ? (
                   <>
                     <Pencil className="size-3.5 mr-1" /> Edit details
                   </>
@@ -164,97 +195,106 @@ export function ClientBackgroundProfileSection({
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 py-4">
+      <div className="px-4 sm:px-6 py-4 space-y-4">
         {loading ? (
           <div className="py-8 text-center text-sm text-muted-foreground">Loading background details…</div>
-        ) : showView ? (
-          hasBackgroundData(bg) ? (
-            <div className="space-y-3">
-              {summaryBadges.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {summaryBadges.map((b) => (
-                    <Badge key={b.label} variant="secondary" className="font-normal">
-                      {b.label} · {b.count}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-              <LeadBackgroundDetailPanel background={bg} />
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground italic py-4">
-              No background details yet
-              {canEdit ? " — click Edit details to add tests, education, or experience." : "."}
-            </p>
-          )
         ) : (
           <>
-            <Tabs value={tab} onValueChange={(v) => setTab(v as BackgroundDetailTab)}>
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
-                <TabsTrigger value="english" className="text-xs sm:text-sm">
-                  English test
-                  {tabBadge(counts.english + counts.academic)}
-                </TabsTrigger>
-                <TabsTrigger value="language" className="text-xs sm:text-sm">
-                  Language test
-                  {tabBadge(counts.language)}
-                </TabsTrigger>
-                <TabsTrigger value="education" className="text-xs sm:text-sm">
-                  Education
-                  {tabBadge(counts.education)}
-                </TabsTrigger>
-                <TabsTrigger value="experience" className="text-xs sm:text-sm">
-                  Experience
-                  {tabBadge(counts.experience)}
-                </TabsTrigger>
-              </TabsList>
-
-              <div className={cn(!canEdit && "pointer-events-none opacity-75")}>
-                <TabsContent value="english" className="mt-4 focus-visible:outline-none">
-                  <EducationExperienceFields
-                    value={bg}
-                    onChange={handleChange}
-                    compact
-                    visibleSections={["english", "academic"]}
-                  />
-                </TabsContent>
-                <TabsContent value="language" className="mt-4 focus-visible:outline-none">
-                  <LanguageTestsFields
-                    value={bg.language_tests ?? EMPTY_LANGUAGE_TESTS}
-                    onChange={(patch) =>
-                      handleChange({
-                        language_tests: {
-                          ...(bg.language_tests ?? EMPTY_LANGUAGE_TESTS),
-                          ...patch,
-                        },
-                      })
-                    }
-                  />
-                </TabsContent>
-                <TabsContent value="education" className="mt-4 focus-visible:outline-none">
-                  <EducationExperienceFields
-                    value={bg}
-                    onChange={handleChange}
-                    compact
-                    visibleSections={["education"]}
-                  />
-                </TabsContent>
-                <TabsContent value="experience" className="mt-4 focus-visible:outline-none">
-                  <EducationExperienceFields
-                    value={bg}
-                    onChange={handleChange}
-                    compact
-                    visibleSections={["experience"]}
-                  />
-                </TabsContent>
+            {showSummary ? (
+              <div className="space-y-3">
+                {summaryBadges.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {summaryBadges.map((b) => (
+                      <Badge key={b.label} variant="secondary" className="font-normal">
+                        {b.label} · {b.count}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                <LeadBackgroundDetailPanel
+                  background={bg}
+                  onNavigate={canEdit ? handleSummaryNavigate : undefined}
+                />
               </div>
-            </Tabs>
+            ) : (
+              !showEditor && (
+                <p className="text-sm text-muted-foreground italic py-2">
+                  No background details yet
+                  {canEdit ? " — click Edit details to add tests, education, or experience." : "."}
+                </p>
+              )
+            )}
 
-            {canEdit && (
-              <div className="flex justify-end pt-4 border-t mt-4">
-                <Button type="button" onClick={saveBackground} disabled={saving}>
-                  {saving ? "Saving…" : "Save background details"}
-                </Button>
+            {showEditor && (
+              <div className={cn(showSummary && "border-t pt-4")}>
+                <Tabs value={tab} onValueChange={(v) => setTab(v as BackgroundDetailTab)}>
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+                    <TabsTrigger value="english" className="text-xs sm:text-sm">
+                      English test
+                      {tabBadge(counts.english + counts.academic)}
+                    </TabsTrigger>
+                    <TabsTrigger value="language" className="text-xs sm:text-sm">
+                      Language test
+                      {tabBadge(counts.language)}
+                    </TabsTrigger>
+                    <TabsTrigger value="education" className="text-xs sm:text-sm">
+                      Education
+                      {tabBadge(counts.education)}
+                    </TabsTrigger>
+                    <TabsTrigger value="experience" className="text-xs sm:text-sm">
+                      Experience
+                      {tabBadge(counts.experience)}
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <div className={cn(!canEdit && "pointer-events-none opacity-75")}>
+                    <TabsContent value="english" className="mt-4 focus-visible:outline-none">
+                      <EducationExperienceFields
+                        value={bg}
+                        onChange={handleChange}
+                        compact
+                        visibleSections={["english", "academic"]}
+                      />
+                    </TabsContent>
+                    <TabsContent value="language" className="mt-4 focus-visible:outline-none">
+                      <LanguageTestsFields
+                        value={bg.language_tests ?? EMPTY_LANGUAGE_TESTS}
+                        onChange={(patch) =>
+                          handleChange({
+                            language_tests: {
+                              ...(bg.language_tests ?? EMPTY_LANGUAGE_TESTS),
+                              ...patch,
+                            },
+                          })
+                        }
+                      />
+                    </TabsContent>
+                    <TabsContent value="education" className="mt-4 focus-visible:outline-none">
+                      <EducationExperienceFields
+                        value={bg}
+                        onChange={handleChange}
+                        compact
+                        visibleSections={["education"]}
+                      />
+                    </TabsContent>
+                    <TabsContent value="experience" className="mt-4 focus-visible:outline-none">
+                      <EducationExperienceFields
+                        value={bg}
+                        onChange={handleChange}
+                        compact
+                        visibleSections={["experience"]}
+                      />
+                    </TabsContent>
+                  </div>
+                </Tabs>
+
+                {canEdit && (
+                  <div className="flex justify-end pt-4 border-t mt-4">
+                    <Button type="button" onClick={saveBackground} disabled={saving}>
+                      {saving ? "Saving…" : "Save background details"}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </>

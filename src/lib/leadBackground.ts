@@ -228,7 +228,7 @@ const SECTION_LABEL: Record<string, string> = {
   ebrw: "EBRW",
 };
 
-function englishTestEntryHasData(entry: EnglishTestScoreEntry | undefined): boolean {
+export function englishTestEntryHasData(entry: EnglishTestScoreEntry | undefined): boolean {
   if (!entry) return false;
   if (entry.status === "scheduled" || entry.status === "taken" || entry.status === "waived") return true;
   if (entry.overall?.trim()) return true;

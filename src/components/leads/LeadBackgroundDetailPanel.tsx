@@ -9,9 +9,18 @@ import {
 } from "@/lib/leadBackground";
 import { cn } from "@/lib/utils";
 
+export type BackgroundSummaryNavigateTarget =
+  | { section: "english"; test?: string }
+  | { section: "academic" }
+  | { section: "language" }
+  | { section: "education" }
+  | { section: "experience" };
+
 interface Props {
   background: LeadBackgroundState;
   className?: string;
+  compact?: boolean;
+  onNavigate?: (target: BackgroundSummaryNavigateTarget) => void;
 }
 
 function ScoreRow({ chips }: { chips: ScoreChip[] }) {
@@ -37,9 +46,25 @@ function MetaLine({ items }: { items: (string | undefined)[] }) {
   return <p className="text-xs text-muted-foreground mt-1">{text}</p>;
 }
 
-function EnglishCard({ test }: { test: EnglishTestDetailView }) {
+function EnglishCard({
+  test,
+  interactive,
+  onClick,
+}: {
+  test: EnglishTestDetailView;
+  interactive?: boolean;
+  onClick?: () => void;
+}) {
+  const Wrapper = interactive ? "button" : "div";
   return (
-    <div className="rounded-lg border bg-background p-3">
+    <Wrapper
+      type={interactive ? "button" : undefined}
+      onClick={onClick}
+      className={cn(
+        "rounded-lg border bg-background p-3 text-left w-full",
+        interactive && "hover:bg-accent/50 transition-colors cursor-pointer",
+      )}
+    >
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-semibold">{test.test}</span>
         {test.status && (
@@ -60,41 +85,80 @@ function EnglishCard({ test }: { test: EnglishTestDetailView }) {
         ]}
       />
       <ScoreRow chips={test.sections} />
-    </div>
+    </Wrapper>
   );
 }
 
 function SectionBlock({
   title,
   count,
+  section,
+  interactive,
+  onSectionClick,
   children,
 }: {
   title: string;
   count: number;
+  section: BackgroundSummaryNavigateTarget["section"];
+  interactive?: boolean;
+  onSectionClick?: (section: BackgroundSummaryNavigateTarget["section"]) => void;
   children: ReactNode;
 }) {
   if (count === 0) return null;
+  const Heading = interactive ? "button" : "h4";
   return (
     <div className="space-y-2">
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <Heading
+        type={interactive ? "button" : undefined}
+        onClick={interactive ? () => onSectionClick?.(section) : undefined}
+        className={cn(
+          "text-xs font-semibold uppercase tracking-wide text-muted-foreground",
+          interactive && "hover:text-foreground transition-colors cursor-pointer text-left w-full",
+        )}
+      >
         {title}
         <span className="ml-1.5 font-normal normal-case tracking-normal">({count})</span>
-      </h4>
+      </Heading>
       <div className="space-y-2">{children}</div>
     </div>
   );
 }
 
-function DetailContent({ view }: { view: BackgroundDetailView }) {
+function DetailContent({
+  view,
+  interactive,
+  onNavigate,
+}: {
+  view: BackgroundDetailView;
+  interactive?: boolean;
+  onNavigate?: (target: BackgroundSummaryNavigateTarget) => void;
+}) {
   return (
     <div className="space-y-5">
-      <SectionBlock title="English tests" count={view.english.length}>
+      <SectionBlock
+        title="English tests"
+        count={view.english.length}
+        section="english"
+        interactive={interactive}
+        onSectionClick={(s) => onNavigate?.({ section: s })}
+      >
         {view.english.map((t) => (
-          <EnglishCard key={t.test} test={t} />
+          <EnglishCard
+            key={t.test}
+            test={t}
+            interactive={interactive}
+            onClick={() => onNavigate?.({ section: "english", test: t.test })}
+          />
         ))}
       </SectionBlock>
 
-      <SectionBlock title="Academic tests" count={view.academic.length}>
+      <SectionBlock
+        title="Academic tests"
+        count={view.academic.length}
+        section="academic"
+        interactive={interactive}
+        onSectionClick={(s) => onNavigate?.({ section: s })}
+      >
         {view.academic.map((t) => (
           <div key={t.type} className="rounded-lg border bg-background p-3">
             <div className="flex flex-wrap items-center gap-2">
@@ -111,7 +175,13 @@ function DetailContent({ view }: { view: BackgroundDetailView }) {
         ))}
       </SectionBlock>
 
-      <SectionBlock title="Language tests" count={view.language.length}>
+      <SectionBlock
+        title="Language tests"
+        count={view.language.length}
+        section="language"
+        interactive={interactive}
+        onSectionClick={(s) => onNavigate?.({ section: s })}
+      >
         {view.language.map((t) => (
           <div key={t.language} className="rounded-lg border bg-background p-3">
             <div className="flex flex-wrap items-center gap-2">
@@ -136,7 +206,13 @@ function DetailContent({ view }: { view: BackgroundDetailView }) {
         ))}
       </SectionBlock>
 
-      <SectionBlock title="Education" count={view.education.length}>
+      <SectionBlock
+        title="Education"
+        count={view.education.length}
+        section="education"
+        interactive={interactive}
+        onSectionClick={(s) => onNavigate?.({ section: s })}
+      >
         {view.education.map((entry, i) => (
           <div key={i} className="rounded-lg border bg-background p-3 space-y-1">
             <div className="text-sm font-semibold">{entry.title}</div>
@@ -150,7 +226,13 @@ function DetailContent({ view }: { view: BackgroundDetailView }) {
         ))}
       </SectionBlock>
 
-      <SectionBlock title="Experience" count={view.experience.length}>
+      <SectionBlock
+        title="Experience"
+        count={view.experience.length}
+        section="experience"
+        interactive={interactive}
+        onSectionClick={(s) => onNavigate?.({ section: s })}
+      >
         {view.experience.map((entry, i) => (
           <div key={i} className="rounded-lg border bg-background p-3 space-y-1">
             <div className="text-sm font-semibold">{entry.title}</div>
@@ -164,7 +246,7 @@ function DetailContent({ view }: { view: BackgroundDetailView }) {
   );
 }
 
-export function LeadBackgroundDetailPanel({ background, className }: Props) {
+export function LeadBackgroundDetailPanel({ background, className, compact, onNavigate }: Props) {
   const view = buildBackgroundDetailView(background);
   const hasAny =
     view.english.length > 0 ||
@@ -176,8 +258,8 @@ export function LeadBackgroundDetailPanel({ background, className }: Props) {
   if (!hasAny) return null;
 
   return (
-    <div className={cn("rounded-lg border bg-muted/30 p-4", className)}>
-      <DetailContent view={view} />
+    <div className={cn("rounded-lg border bg-muted/30 p-4", compact && "p-3", className)}>
+      <DetailContent view={view} interactive={!!onNavigate} onNavigate={onNavigate} />
     </div>
   );
 }

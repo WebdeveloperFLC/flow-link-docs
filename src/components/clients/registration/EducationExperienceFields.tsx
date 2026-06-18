@@ -14,13 +14,14 @@ import { LocationCascadeFields } from "@/components/shared/LocationCascadeFields
 import type { EducationEntry, ExperienceEntry } from "@/lib/clientRegistration";
 import { useMasterItems } from "@/lib/masters";
 import type { EnglishTestStatus } from "@/lib/leadBackground";
-import { ENGLISH_TEST_STATUS_LABELS } from "@/lib/leadBackground";
+import { ENGLISH_TEST_STATUS_LABELS, englishTestEntryHasData, getEnglishTestsByType } from "@/lib/leadBackground";
 import {
   buildEnglishScorePatch,
   buildEnglishStatusPatch,
   buildEnglishTestSwitchPatch,
   sectionalScoresOnly,
 } from "@/lib/englishTestScores";
+import { cn } from "@/lib/utils";
 
 const ENGLISH_TESTS = ["IELTS", "PTE", "TOEFL", "CELPIP", "Duolingo"];
 const OTHER_TESTS = ["GRE", "GMAT", "SAT"];
@@ -98,6 +99,21 @@ export const EducationExperienceFields = ({
   const patchEnglishScores = (
     patch: Partial<Pick<EducationExperienceValue, "english_overall" | "english_test_date" | "english_test_expiry" | "english_sections">>,
   ) => onChange(buildEnglishScorePatch(value, patch) as Partial<EducationExperienceValue>);
+
+  const englishTestsByType = getEnglishTestsByType(value);
+
+  const switchEnglishTest = (next: string | null) => {
+    const patch = buildEnglishTestSwitchPatch(value, next);
+    onChange({
+      english_test: patch.english_test ?? null,
+      english_test_status: patch.english_test_status ?? null,
+      english_overall: patch.english_overall ?? null,
+      english_test_date: patch.english_test_date ?? null,
+      english_test_expiry: patch.english_test_expiry ?? null,
+      english_sections: patch.english_sections ?? {},
+    });
+    setTimeout(commit, 0);
+  };
 
   return (
     <div className="space-y-5">
@@ -182,24 +198,39 @@ export const EducationExperienceFields = ({
         <>
           <div className={`space-y-3 ${show("education") ? "border-t pt-4" : ""}`}>
             <Label className="text-sm font-semibold">English Test</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {ENGLISH_TESTS.map((t) => {
+                const entry = englishTestsByType[t];
+                const filled = englishTestEntryHasData(entry);
+                const active = englishTest === t;
+                const scoreHint = entry?.overall?.trim();
+                return (
+                  <Button
+                    key={t}
+                    type="button"
+                    size="sm"
+                    variant={active ? "default" : filled ? "secondary" : "outline"}
+                    className={cn(
+                      "h-8 text-xs font-normal",
+                      !active && filled && "border-primary/40",
+                    )}
+                    onClick={() => switchEnglishTest(t)}
+                  >
+                    {filled && !active && (
+                      <span className="mr-1.5 size-1.5 rounded-full bg-primary shrink-0" aria-hidden />
+                    )}
+                    {t}
+                    {scoreHint ? ` · ${scoreHint}` : ""}
+                  </Button>
+                );
+              })}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-lg">
               <div className="space-y-1">
                 <Label className="text-xs">Test type</Label>
                 <Select
                   value={englishTest || "__none__"}
-                  onValueChange={(v) => {
-                    const next = v === "__none__" ? null : v;
-                    const patch = buildEnglishTestSwitchPatch(value, next);
-                    onChange({
-                      english_test: patch.english_test ?? null,
-                      english_test_status: patch.english_test_status ?? null,
-                      english_overall: patch.english_overall ?? null,
-                      english_test_date: patch.english_test_date ?? null,
-                      english_test_expiry: patch.english_test_expiry ?? null,
-                      english_sections: patch.english_sections ?? {},
-                    });
-                    setTimeout(commit, 0);
-                  }}
+                  onValueChange={(v) => switchEnglishTest(v === "__none__" ? null : v)}
                 >
                   <SelectTrigger><SelectValue placeholder="Select test" /></SelectTrigger>
                   <SelectContent>

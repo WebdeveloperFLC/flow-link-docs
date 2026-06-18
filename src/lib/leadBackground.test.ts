@@ -144,6 +144,38 @@ describe("leadBackground summaries", () => {
     expect(view.english[0]?.test).toBe("IELTS");
   });
 
+  it("buildBackgroundDetailView lists multiple English test cards from __by_test__", () => {
+    const view = buildBackgroundDetailView({
+      english_test: "CELPIP",
+      english_test_status: "taken",
+      english_overall: "54",
+      english_sections: {
+        listening: "55",
+        reading: "66",
+        writing: "44",
+        speaking: "55",
+        __by_test__: {
+          IELTS: {
+            status: "scheduled",
+            overall: "7",
+            test_date: "2026-06-17",
+            sections: { listening: "7", reading: "8", writing: "4", speaking: "6" },
+          },
+          CELPIP: {
+            status: "taken",
+            overall: "54",
+            sections: { listening: "55", reading: "66", writing: "44", speaking: "55" },
+          },
+        },
+      },
+    } as never);
+
+    expect(view.english).toHaveLength(2);
+    expect(view.english.map((t) => t.test)).toEqual(expect.arrayContaining(["IELTS", "CELPIP"]));
+    expect(view.english.find((t) => t.test === "IELTS")?.overall).toBe("7");
+    expect(view.english.find((t) => t.test === "CELPIP")?.overall).toBe("54");
+  });
+
   it("includes academic tests with sectional scores in detail sections", () => {
     const bg = leadToBackgroundState({
       other_tests: [
