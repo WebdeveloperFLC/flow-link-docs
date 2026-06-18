@@ -126,6 +126,53 @@ function programLabel(course: CfCourseSummary): string {
   return `${course.university.name} — ${course.name}`;
 }
 
+/** Append a country to interested_countries on clients + client_profile if missing. */
+async function ensureClientInterestedCountry(clientId: string, countryName: string): Promise<boolean> {
+  const trimmed = countryName.trim();
+  if (!trimmed) return false;
+
+  const { data: clientRow, error: fetchErr } = await supabase
+    .from("clients")
+    .select("interested_countries")
+    .eq("id", clientId)
+    .maybeSingle();
+  if (fetchErr) throw fetchErr;
+
+  const current = ((clientRow as { interested_countries?: string[] | null })?.interested_countries ?? []) as string[];
+  if (current.some((c) => c.trim().toLowerCase() === trimmed.toLowerCase())) {
+    return false;
+  }
+
+  const next = [...current, trimmed];
+
+  const { error: clientUpdErr } = await supabase
+    .from("clients")
+    .update({ interested_countries: next } as never)
+    .eq("id", clientId);
+  if (clientUpdErr) throw clientUpdErr;
+
+  const { data: prof } = await supabase
+    .from("client_profile")
+    .select("client_id")
+    .eq("client_id", clientId)
+    .maybeSingle();
+
+  if (prof) {
+    const { error: profUpdErr } = await supabase
+      .from("client_profile")
+      .update({ interested_countries: next } as never)
+      .eq("client_id", clientId);
+    if (profUpdErr) throw profUpdErr;
+  } else {
+    const { error: profInsErr } = await supabase
+      .from("client_profile")
+      .insert({ client_id: clientId, interested_countries: next } as never);
+    if (profInsErr) throw profInsErr;
+  }
+
+  return true;
+}
+
 /** List programs for a client, optionally filtered by status. */
 export async function listClientPrograms(
   clientId: string,
@@ -245,6 +292,8 @@ export async function finalizeClientProgram(
   if (updErr) throw updErr;
 
   const enriched = mapEnriched(updated as Record<string, unknown>);
+
+  await ensureClientInterestedCountry(current.client_id, enriched.course.country.name);
 
   if (makePrimary) {
     await syncClientPrimaryFromProgram(enriched);

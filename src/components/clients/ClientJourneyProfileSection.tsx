@@ -40,9 +40,11 @@ const EMPTY: JourneyProfile = {
 export function ClientJourneyProfileSection({
   clientId,
   canEdit,
+  refreshKey = 0,
 }: {
   clientId: string;
   canEdit: boolean;
+  refreshKey?: number;
 }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -77,7 +79,7 @@ export function ClientJourneyProfileSection({
 
   useEffect(() => {
     load();
-  }, [clientId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [clientId, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = async () => {
     setSaving(true);

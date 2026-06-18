@@ -103,7 +103,15 @@ function ProgramRow({
   );
 }
 
-export function ClientProgramsCard({ clientId, canEdit }: { clientId: string; canEdit: boolean }) {
+export function ClientProgramsCard({
+  clientId,
+  canEdit,
+  onChanged,
+}: {
+  clientId: string;
+  canEdit: boolean;
+  onChanged?: () => void;
+}) {
   const [programs, setPrograms] = useState<ClientProgramEnriched[]>([]);
   const [loading, setLoading] = useState(true);
   const [finalizeTarget, setFinalizeTarget] = useState<ClientProgramEnriched | null>(null);
@@ -137,6 +145,7 @@ export function ClientProgramsCard({ clientId, canEdit }: { clientId: string; ca
       toast.success("Program added to client file permanently");
       setFinalizeTarget(null);
       await load();
+      onChanged?.();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not finalize");
     } finally {

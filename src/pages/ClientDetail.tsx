@@ -1200,7 +1200,7 @@ const ClientDetail = () => {
               syncingOdoo={syncingOdoo}
               refreshKey={profileRefreshKey}
             />
-            <ClientJourneyProfileSection clientId={client.id} canEdit={canUpload} />
+            <ClientJourneyProfileSection clientId={client.id} canEdit={canUpload} refreshKey={profileRefreshKey} />
             <ClientLocationPreferencesSection
               clientId={client.id}
               canEdit={canUpload}
@@ -1214,7 +1214,11 @@ const ClientDetail = () => {
             />
             <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
             <ClientServicesCard clientId={client.id} canEdit={canUpload} />
-            <ClientProgramsCard clientId={client.id} canEdit={canUpload} />
+            <ClientProgramsCard
+              clientId={client.id}
+              canEdit={canUpload}
+              onChanged={() => setProfileRefreshKey((k) => k + 1)}
+            />
             <ClientActivityLogCard clientId={client.id} />
             <ClientTaskHistoryCard clientId={client.id} />
           </TabsContent>
