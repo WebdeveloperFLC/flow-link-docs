@@ -92,6 +92,9 @@ import { ClientOverviewDashboard } from "@/components/clients/ClientOverviewDash
 import { CaseOutcomeDialog } from "@/components/clients/CaseOutcomeDialog";
 import { useActiveServiceCase } from "@/hooks/useActiveServiceCase";
 
+/** Re-enable when client AI summaries are ready for production. */
+const CLIENT_AI_SUMMARY_ENABLED = false;
+
 interface Client {
   id: string;
   full_name: string;
@@ -1199,6 +1202,13 @@ const ClientDetail = () => {
                 setActiveTab(resolved);
               }}
             />
+            <ClientJourneyProfileSection
+              clientId={client.id}
+              canEdit={canUpload}
+              refreshKey={profileRefreshKey}
+              blocks={["funding"]}
+              title="Funding & timeline"
+            />
             <QuickActionsBar
               clientId={client.id}
               clientName={client.full_name}
@@ -1210,7 +1220,7 @@ const ClientDetail = () => {
                 setClient((c) => (c ? { ...c, lead_temperature: temperature } : c))
               }
             />
-            <AiSummaryPanel clientId={client.id} />
+            {CLIENT_AI_SUMMARY_ENABLED && <AiSummaryPanel clientId={client.id} />}
           </TabsContent>
 
           <TabsContent value="profile" className="mt-0 space-y-6">
@@ -1234,13 +1244,6 @@ const ClientDetail = () => {
               canEdit={canUpload}
               isAdmin={isAdmin}
               onChange={setPeople}
-            />
-            <ClientJourneyProfileSection
-              clientId={client.id}
-              canEdit={canUpload}
-              refreshKey={profileRefreshKey}
-              blocks={["funding"]}
-              title="Funding & timeline"
             />
           </TabsContent>
 
