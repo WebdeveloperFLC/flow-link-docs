@@ -15,6 +15,11 @@ import type { EducationEntry, ExperienceEntry } from "@/lib/clientRegistration";
 import { useMasterItems } from "@/lib/masters";
 import type { EnglishTestStatus } from "@/lib/leadBackground";
 import { ENGLISH_TEST_STATUS_LABELS } from "@/lib/leadBackground";
+import {
+  buildEnglishScorePatch,
+  buildEnglishTestSwitchPatch,
+  sectionalScoresOnly,
+} from "@/lib/englishTestScores";
 
 const ENGLISH_TESTS = ["IELTS", "PTE", "TOEFL", "CELPIP", "Duolingo", "None"];
 const OTHER_TESTS = ["GRE", "GMAT", "SAT"];
@@ -27,7 +32,7 @@ export interface EducationExperienceValue {
   english_overall: string | null;
   english_test_date: string | null;
   english_test_expiry: string | null;
-  english_sections: Record<string, string>;
+  english_sections: Record<string, unknown>;
   other_tests: Array<{ type: string; score?: string; date?: string; sections?: Record<string, string> }>;
   work_experience: ExperienceEntry[];
 }
@@ -81,6 +86,10 @@ export const EducationExperienceFields = ({
   };
 
   const englishSecs = ENGLISH_SECTIONS[englishTest] ?? [];
+  const englishSectionValues = sectionalScoresOnly(value.english_sections);
+  const patchEnglishScores = (
+    patch: Partial<Pick<EducationExperienceValue, "english_overall" | "english_test_date" | "english_test_expiry" | "english_sections">>,
+  ) => onChange(buildEnglishScorePatch(value, patch) as Partial<EducationExperienceValue>);
 
   return (
     <div className="space-y-5">
@@ -185,14 +194,19 @@ export const EducationExperienceFields = ({
                         variant={englishTest === t ? "default" : "outline"}
                         onClick={() => {
                           const next = t === englishTest ? null : t;
-                          const patch: Partial<EducationExperienceValue> = {
-                            english_test: next,
-                            english_sections: next ? value.english_sections : {},
+                          const patch = buildEnglishTestSwitchPatch(value, next);
+                          const fullPatch: Partial<EducationExperienceValue> = {
+                            ...patch,
+                            english_test: patch.english_test ?? null,
+                            english_overall: patch.english_overall ?? null,
+                            english_test_date: patch.english_test_date ?? null,
+                            english_test_expiry: patch.english_test_expiry ?? null,
+                            english_sections: patch.english_sections ?? {},
                           };
                           if (next && next !== "None" && !englishStatus) {
-                            patch.english_test_status = "taken";
+                            fullPatch.english_test_status = "taken";
                           }
-                          onChange(patch);
+                          onChange(fullPatch);
                           setTimeout(commit, 0);
                         }}
                       >
@@ -206,22 +220,22 @@ export const EducationExperienceFields = ({
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs">Overall Score</Label>
-                        <Input value={value.english_overall ?? ""} onChange={(e) => onChange({ english_overall: e.target.value })} onBlur={commit} />
+                        <Input value={value.english_overall ?? ""} onChange={(e) => patchEnglishScores({ english_overall: e.target.value })} onBlur={commit} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Test Date</Label>
-                        <Input type="date" value={value.english_test_date ?? ""} onChange={(e) => onChange({ english_test_date: e.target.value || null })} onBlur={commit} />
+                        <Input type="date" value={value.english_test_date ?? ""} onChange={(e) => patchEnglishScores({ english_test_date: e.target.value || null })} onBlur={commit} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Expiry Date</Label>
-                        <Input type="date" value={value.english_test_expiry ?? ""} onChange={(e) => onChange({ english_test_expiry: e.target.value || null })} onBlur={commit} />
+                        <Input type="date" value={value.english_test_expiry ?? ""} onChange={(e) => patchEnglishScores({ english_test_expiry: e.target.value || null })} onBlur={commit} />
                       </div>
                     </div>
                     {englishSecs.length > 0 && (
                       <SectionalInputs
                         sections={englishSecs}
-                        values={value.english_sections}
-                        onChange={(next) => onChange({ english_sections: next })}
+                        values={englishSectionValues}
+                        onChange={(next) => patchEnglishScores({ english_sections: next })}
                         onBlur={commit}
                       />
                     )}

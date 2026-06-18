@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { ClientRow } from "@/lib/clientRegistration";
+import { sectionalScoresOnly } from "@/lib/englishTestScores";
 
 function parseNumericScore(value?: string | null): number | null {
   if (value == null || value === "") return null;
@@ -37,7 +38,7 @@ export function clientToProfilePatch(
 
   const englishTest = (client.english_test ?? "").toUpperCase();
   const overall = parseNumericScore(client.english_overall);
-  const sections = client.english_sections;
+  const sections = sectionalScoresOnly(client.english_sections as Record<string, unknown> | undefined);
   if (englishTest === "IELTS" || englishTest === "CELPIP") {
     if (overall != null) patch.ielts_overall = overall;
     if (client.english_test_date) patch.ielts_test_date = client.english_test_date;
