@@ -29,6 +29,8 @@ import { ServiceTabs, type ServiceSelection } from "@/components/leads/ServiceTa
 import { FamilyMembersSection } from "@/components/clients/registration/FamilyMembersSection";
 import { InvoicePreviewSection } from "@/components/clients/registration/InvoicePreviewSection";
 import { EducationExperienceFields } from "@/components/clients/registration/EducationExperienceFields";
+import { LanguageTestsFields } from "@/components/clients/registration/LanguageTestsFields";
+import { EMPTY_LANGUAGE_TESTS } from "@/lib/languageTests";
 import { RegistrationWorkspace, type RegistrationSection } from "@/components/crm/RegistrationWorkspace";
 
 import {
@@ -283,6 +285,7 @@ export function ClientRegistrationPanel({
       budget_min: f.budget_min ?? lead.budget_min ?? null,
       budget_max: f.budget_max ?? lead.budget_max ?? null,
       other_tests: otherTests,
+      language_tests: f.language_tests ?? EMPTY_LANGUAGE_TESTS,
       english_sections: f.english_sections ?? {},
       education_history: f.education_history ?? [],
       work_experience: f.work_experience ?? [],
@@ -666,33 +669,50 @@ export function ClientRegistrationPanel({
         );
       case "education":
         return (
-          <EducationExperienceFields
-            value={{
-              education_history: (f.education_history ?? []) as never,
-              english_test: f.english_test ?? null,
-              english_overall: f.english_overall ?? null,
-              english_test_date: f.english_test_date ?? null,
-              english_test_expiry: f.english_test_expiry ?? null,
-              english_sections: (f.english_sections ?? {}) as Record<string, string>,
-              other_tests: otherTests,
-              work_experience: (f.work_experience ?? []) as never,
-            }}
-            onChange={(patch) => {
-              if (patch.other_tests !== undefined) setOtherTests(patch.other_tests);
-              setF((p) => {
-                const next: typeof p = { ...p };
-                if (patch.education_history !== undefined) next.education_history = patch.education_history;
-                if (patch.english_test !== undefined) next.english_test = patch.english_test;
-                if (patch.english_overall !== undefined) next.english_overall = patch.english_overall;
-                if (patch.english_test_date !== undefined) next.english_test_date = patch.english_test_date;
-                if (patch.english_test_expiry !== undefined) next.english_test_expiry = patch.english_test_expiry;
-                if (patch.english_sections !== undefined) next.english_sections = patch.english_sections;
-                if (patch.work_experience !== undefined) next.work_experience = patch.work_experience;
-                return next;
-              });
-            }}
-            onCommit={autosave}
-          />
+          <div className="space-y-6">
+            <EducationExperienceFields
+              value={{
+                education_history: (f.education_history ?? []) as never,
+                english_test: f.english_test ?? null,
+                english_test_status: (f as { english_test_status?: string | null }).english_test_status ?? null,
+                english_overall: f.english_overall ?? null,
+                english_test_date: f.english_test_date ?? null,
+                english_test_expiry: f.english_test_expiry ?? null,
+                english_sections: (f.english_sections ?? {}) as Record<string, string>,
+                other_tests: otherTests,
+                work_experience: (f.work_experience ?? []) as never,
+              }}
+              onChange={(patch) => {
+                if (patch.other_tests !== undefined) setOtherTests(patch.other_tests);
+                setF((p) => {
+                  const next: typeof p = { ...p };
+                  if (patch.education_history !== undefined) next.education_history = patch.education_history;
+                  if (patch.english_test !== undefined) next.english_test = patch.english_test;
+                  if (patch.english_overall !== undefined) next.english_overall = patch.english_overall;
+                  if (patch.english_test_date !== undefined) next.english_test_date = patch.english_test_date;
+                  if (patch.english_test_expiry !== undefined) next.english_test_expiry = patch.english_test_expiry;
+                  if (patch.english_sections !== undefined) next.english_sections = patch.english_sections;
+                  if (patch.work_experience !== undefined) next.work_experience = patch.work_experience;
+                  return next;
+                });
+              }}
+              onCommit={autosave}
+              visibleSections={["english", "academic", "education", "experience"]}
+            />
+            <div className="border-t pt-6">
+              <h4 className="text-sm font-semibold mb-3">Language tests (French & German)</h4>
+              <LanguageTestsFields
+                value={f.language_tests ?? EMPTY_LANGUAGE_TESTS}
+                onChange={(patch) =>
+                  setF((p) => ({
+                    ...p,
+                    language_tests: { ...(p.language_tests ?? EMPTY_LANGUAGE_TESTS), ...patch },
+                  }))
+                }
+                onCommit={autosave}
+              />
+            </div>
+          </div>
         );
       case "family":
         return (

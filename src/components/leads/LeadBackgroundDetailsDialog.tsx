@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
   EducationExperienceFields,
-  type EducationExperienceSection,
 } from "@/components/clients/registration/EducationExperienceFields";
+import { LanguageTestsFields } from "@/components/clients/registration/LanguageTestsFields";
 import type { LeadBackgroundState } from "@/lib/leadBackground";
+import { EMPTY_LANGUAGE_TESTS, type BackgroundDetailTab } from "@/lib/languageTests";
 
 interface Props {
   open: boolean;
@@ -20,7 +21,7 @@ interface Props {
   value: LeadBackgroundState;
   onChange: (patch: Partial<LeadBackgroundState>) => void;
   onCommit: () => void;
-  initialTab?: EducationExperienceSection;
+  initialTab?: BackgroundDetailTab;
 }
 
 export function LeadBackgroundDetailsDialog({
@@ -29,9 +30,13 @@ export function LeadBackgroundDetailsDialog({
   value,
   onChange,
   onCommit,
-  initialTab = "tests",
+  initialTab = "english",
 }: Props) {
-  const [tab, setTab] = useState<EducationExperienceSection>(initialTab);
+  const [tab, setTab] = useState<BackgroundDetailTab>(initialTab);
+
+  useEffect(() => {
+    if (open) setTab(initialTab);
+  }, [open, initialTab]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -42,19 +47,34 @@ export function LeadBackgroundDetailsDialog({
             Optional tests, education, and experience. Nothing here is required to save the lead.
           </DialogDescription>
         </DialogHeader>
-        <Tabs value={tab} onValueChange={(v) => setTab(v as EducationExperienceSection)}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="tests">Tests</TabsTrigger>
+        <Tabs value={tab} onValueChange={(v) => setTab(v as BackgroundDetailTab)}>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+            <TabsTrigger value="english">English</TabsTrigger>
+            <TabsTrigger value="language">Language</TabsTrigger>
             <TabsTrigger value="education">Education</TabsTrigger>
             <TabsTrigger value="experience">Experience</TabsTrigger>
           </TabsList>
-          <TabsContent value="tests" className="mt-4">
+          <TabsContent value="english" className="mt-4">
             <EducationExperienceFields
               value={value}
               onChange={onChange}
               onCommit={onCommit}
               compact
-              visibleSections={["tests"]}
+              visibleSections={["english", "academic"]}
+            />
+          </TabsContent>
+          <TabsContent value="language" className="mt-4">
+            <LanguageTestsFields
+              value={value.language_tests ?? EMPTY_LANGUAGE_TESTS}
+              onChange={(patch) =>
+                onChange({
+                  language_tests: {
+                    ...(value.language_tests ?? EMPTY_LANGUAGE_TESTS),
+                    ...patch,
+                  },
+                })
+              }
+              onCommit={onCommit}
             />
           </TabsContent>
           <TabsContent value="education" className="mt-4">

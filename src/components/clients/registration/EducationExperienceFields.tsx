@@ -16,7 +16,7 @@ import type { EnglishTestStatus } from "@/lib/leadBackground";
 import { ENGLISH_TEST_STATUS_LABELS } from "@/lib/leadBackground";
 
 const ENGLISH_TESTS = ["IELTS", "PTE", "TOEFL", "CELPIP", "Duolingo", "None"];
-const OTHER_TESTS = ["GRE", "GMAT", "SAT", "DELF", "TestDaF"];
+const OTHER_TESTS = ["GRE", "GMAT", "SAT"];
 const ENGLISH_STATUSES: EnglishTestStatus[] = ["not_taken", "scheduled", "taken", "waived"];
 
 export interface EducationExperienceValue {
@@ -31,7 +31,7 @@ export interface EducationExperienceValue {
   work_experience: ExperienceEntry[];
 }
 
-export type EducationExperienceSection = "education" | "tests" | "experience";
+export type EducationExperienceSection = "english" | "academic" | "education" | "experience";
 
 interface Props {
   value: EducationExperienceValue;
@@ -46,7 +46,7 @@ export const EducationExperienceFields = ({
   onChange,
   onCommit,
   compact,
-  visibleSections = ["education", "tests", "experience"],
+  visibleSections = ["english", "academic", "education", "experience"],
 }: Props) => {
   const qualificationLevels = useMasterItems("qualification_levels");
   const commit = () => onCommit?.();
@@ -141,7 +141,7 @@ export const EducationExperienceFields = ({
         </div>
       )}
 
-      {show("tests") && (
+      {show("english") && (
         <>
           <div className={`space-y-2 ${show("education") ? "border-t pt-4" : ""}`}>
             <Label className="text-sm font-semibold">English Test</Label>
@@ -215,8 +215,9 @@ export const EducationExperienceFields = ({
             )}
           </div>
 
+          {show("academic") && (
           <div className="space-y-2 border-t pt-4">
-            <Label className="text-sm font-semibold">Other Tests (optional)</Label>
+            <Label className="text-sm font-semibold">Academic Tests (optional)</Label>
             <div className="flex flex-wrap gap-1.5">
               {OTHER_TESTS.map((t) => {
                 const sel = otherTests.find((x) => x.type === t);
@@ -287,11 +288,12 @@ export const EducationExperienceFields = ({
               );
             })}
           </div>
+          )}
         </>
       )}
 
       {show("experience") && (
-        <div className={`space-y-3 ${show("education") || show("tests") ? "border-t pt-4" : ""}`}>
+        <div className={`space-y-3 ${show("education") || show("english") || show("academic") ? "border-t pt-4" : ""}`}>
           <div className="flex items-center justify-between">
             <Label className="text-sm font-semibold">Work Experience</Label>
             <Button type="button" size="sm" variant="outline" onClick={addExperience}>

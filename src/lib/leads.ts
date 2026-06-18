@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { EducationEntry, ExperienceEntry } from "@/lib/clientRegistration";
+import type { LanguageTestsValue } from "@/lib/languageTests";
 import { isExcludedCatalogueService } from "@/lib/service-library/excludedCatalogueServices";
 import { isPipelineBackedLibraryId } from "@/lib/service-library/pipelineBackedLibraryIds";
 import {
@@ -77,6 +78,7 @@ export interface Lead {
   english_sections?: Record<string, string>;
   other_tests?: Array<{ type: string; score?: string; date?: string; sections?: Record<string, string> }>;
   work_experience?: ExperienceEntry[];
+  language_tests?: LanguageTestsValue;
   priority?: string | null;
   source?: string | null;
   created_by?: string | null;

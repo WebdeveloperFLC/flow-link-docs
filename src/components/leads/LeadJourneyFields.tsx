@@ -103,7 +103,7 @@ export function LeadJourneyFieldsBlock({
           </div>
         )}
         <div className="space-y-1.5">
-          <Label>How Soon Do You Wish to Start the Process?</Label>
+          <Label>How soon you wish to register?</Label>
           <Select value={value.start_timeline ?? ""} onValueChange={(v) => set({ start_timeline: v })}>
             <SelectTrigger>
               <SelectValue placeholder="Select timeline" />

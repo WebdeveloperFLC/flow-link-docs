@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Lead } from "@/lib/leads";
 import { leadToBackgroundState } from "@/lib/leadBackground";
+import { EMPTY_LANGUAGE_TESTS, type LanguageTestsValue } from "@/lib/languageTests";
 import { ensureClientProfileSynced } from "@/lib/clientProfileSync";
 import { runWithAuthRetry } from "@/lib/supabaseSafeInsert";
 
@@ -102,6 +103,7 @@ export interface ClientRow {
   english_sections?: Record<string, string>;
   education_history?: EducationEntry[];
   work_experience?: ExperienceEntry[];
+  language_tests?: LanguageTestsValue;
   branch?: string | null;
   department?: string | null;
   assigned_counselor_id?: string | null;
@@ -176,6 +178,7 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     english_sections: bg.english_sections ?? {},
     other_tests: bg.other_tests ?? [],
     work_experience: bg.work_experience ?? [],
+    language_tests: bg.language_tests ?? EMPTY_LANGUAGE_TESTS,
     interested_countries: interested,
     branch: lead.branch ?? null,
     department: lead.department ?? null,

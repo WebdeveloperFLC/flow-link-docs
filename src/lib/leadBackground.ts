@@ -1,11 +1,19 @@
 import type { EducationEntry, ExperienceEntry } from "@/lib/clientRegistration";
 import type { EducationExperienceValue } from "@/components/clients/registration/EducationExperienceFields";
 import type { Lead, LeadDraft } from "@/lib/leads";
+import {
+  absorbLegacyLanguageTests,
+  EMPTY_LANGUAGE_TESTS,
+  normalizeLanguageTests,
+  summarizeLanguageTests,
+  type LanguageTestsValue,
+} from "@/lib/languageTests";
 
 export type EnglishTestStatus = "not_taken" | "scheduled" | "taken" | "waived";
 
 export interface LeadBackgroundState extends EducationExperienceValue {
   english_test_status?: EnglishTestStatus | null;
+  language_tests?: LanguageTestsValue;
 }
 
 export const ENGLISH_TEST_STATUS_LABELS: Record<EnglishTestStatus, string> = {
@@ -25,9 +33,14 @@ export const EMPTY_LEAD_BACKGROUND: LeadBackgroundState = {
   english_sections: {},
   other_tests: [],
   work_experience: [],
+  language_tests: EMPTY_LANGUAGE_TESTS,
 };
 
 export function leadToBackgroundState(lead: Partial<Lead>): LeadBackgroundState {
+  const absorbed = absorbLegacyLanguageTests(
+    normalizeLanguageTests(lead.language_tests),
+    lead.other_tests,
+  );
   return {
     education_history: (lead.education_history as EducationEntry[] | undefined) ?? [],
     english_test: lead.english_test ?? null,
@@ -36,8 +49,9 @@ export function leadToBackgroundState(lead: Partial<Lead>): LeadBackgroundState 
     english_test_date: lead.english_test_date ?? null,
     english_test_expiry: lead.english_test_expiry ?? null,
     english_sections: (lead.english_sections as Record<string, string> | undefined) ?? {},
-    other_tests: lead.other_tests ?? [],
+    other_tests: absorbed.other_tests,
     work_experience: (lead.work_experience as ExperienceEntry[] | undefined) ?? [],
+    language_tests: absorbed.language_tests,
   };
 }
 
@@ -52,6 +66,7 @@ export function backgroundStateToLeadDraft(bg: LeadBackgroundState): LeadDraft {
     english_sections: bg.english_sections ?? {},
     other_tests: bg.other_tests ?? [],
     work_experience: bg.work_experience ?? [],
+    language_tests: bg.language_tests ?? EMPTY_LANGUAGE_TESTS,
   };
 }
 
@@ -85,12 +100,12 @@ export function mergeBackgroundIntoEducationHistory(
   return history;
 }
 
-export function summarizeTests(bg: LeadBackgroundState): string {
+export function summarizeEnglishTests(bg: LeadBackgroundState): string {
   const status = bg.english_test_status;
   if (status === "waived") return "Waived";
   if (status === "not_taken") return "Not taken";
   if (status === "scheduled") {
-    const test = bg.english_test && bg.english_test !== "None" ? bg.english_test : "English test";
+    const test = bg.english_test && bg.english_test !== "None" ? bg.english_test : "English";
     return `Scheduled · ${test}`;
   }
   if (bg.english_test && bg.english_test !== "None") {
@@ -98,10 +113,15 @@ export function summarizeTests(bg: LeadBackgroundState): string {
     if (status === "taken") return `${bg.english_test} (taken)`;
     return bg.english_test;
   }
-  const otherCount = bg.other_tests?.filter((t) => t.type)?.length ?? 0;
-  if (otherCount) return `${otherCount} other test${otherCount === 1 ? "" : "s"}`;
+  const academicCount = bg.other_tests?.filter((t) => t.type)?.length ?? 0;
+  if (academicCount) return `${academicCount} academic`;
   return "Not added";
 }
+
+/** @deprecated use summarizeEnglishTests */
+export const summarizeTests = summarizeEnglishTests;
+
+export { summarizeLanguageTests };
 
 export function summarizeEducation(bg: LeadBackgroundState): string {
   const count = bg.education_history?.filter((e) => e.level || e.institution)?.length ?? 0;
@@ -117,7 +137,8 @@ export function summarizeExperience(bg: LeadBackgroundState): string {
 
 export function hasBackgroundData(bg: LeadBackgroundState): boolean {
   return (
-    summarizeTests(bg) !== "Not added" ||
+    summarizeEnglishTests(bg) !== "Not added" ||
+    summarizeLanguageTests(bg.language_tests ?? EMPTY_LANGUAGE_TESTS) !== "Not added" ||
     summarizeEducation(bg) !== "Not added" ||
     summarizeExperience(bg) !== "Not added"
   );

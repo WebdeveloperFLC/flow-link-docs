@@ -5,14 +5,13 @@ import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import {
   hasBackgroundData,
   summarizeEducation,
+  summarizeEnglishTests,
   summarizeExperience,
-  summarizeTests,
+  summarizeLanguageTests,
   type LeadBackgroundState,
 } from "@/lib/leadBackground";
-import {
-  LeadBackgroundDetailsDialog,
-} from "@/components/leads/LeadBackgroundDetailsDialog";
-import type { EducationExperienceSection } from "@/components/clients/registration/EducationExperienceFields";
+import { LeadBackgroundDetailsDialog } from "@/components/leads/LeadBackgroundDetailsDialog";
+import { EMPTY_LANGUAGE_TESTS, type BackgroundDetailTab } from "@/lib/languageTests";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -31,9 +30,10 @@ const Column = ({ label, summary }: { label: string; summary: string }) => (
 export function LeadBackgroundSummaryCard({ value, onChange, onCommit }: Props) {
   const [open, setOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [initialTab, setInitialTab] = useState<EducationExperienceSection>("tests");
+  const [initialTab, setInitialTab] = useState<BackgroundDetailTab>("english");
+  const langSummary = summarizeLanguageTests(value.language_tests ?? EMPTY_LANGUAGE_TESTS);
 
-  const openDialog = (tab: EducationExperienceSection) => {
+  const openDialog = (tab: BackgroundDetailTab) => {
     setInitialTab(tab);
     setOpen(true);
   };
@@ -44,17 +44,20 @@ export function LeadBackgroundSummaryCard({ value, onChange, onCommit }: Props) 
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 className="font-semibold">3.5 Background details</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Optional — tests, education history, work experience</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Optional — English, language, education, experience</p>
           </div>
-          <Button type="button" size="sm" variant="outline" onClick={() => openDialog("tests")}>
+          <Button type="button" size="sm" variant="outline" onClick={() => openDialog("english")}>
             <Pencil className="h-3.5 w-3.5 mr-1" />
             Edit details
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <button type="button" className="text-left rounded-md hover:bg-muted/40 p-2 -m-2 transition-colors" onClick={() => openDialog("tests")}>
-            <Column label="Tests" summary={summarizeTests(value)} />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <button type="button" className="text-left rounded-md hover:bg-muted/40 p-2 -m-2 transition-colors" onClick={() => openDialog("english")}>
+            <Column label="English" summary={summarizeEnglishTests(value)} />
+          </button>
+          <button type="button" className="text-left rounded-md hover:bg-muted/40 p-2 -m-2 transition-colors" onClick={() => openDialog("language")}>
+            <Column label="Language" summary={langSummary} />
           </button>
           <button type="button" className="text-left rounded-md hover:bg-muted/40 p-2 -m-2 transition-colors" onClick={() => openDialog("education")}>
             <Column label="Education" summary={summarizeEducation(value)} />
@@ -76,7 +79,8 @@ export function LeadBackgroundSummaryCard({ value, onChange, onCommit }: Props) 
             </button>
             {previewOpen && (
               <div className="mt-3 text-xs space-y-2 text-muted-foreground border rounded-md p-3 bg-muted/20">
-                <div><span className="font-medium text-foreground">Tests:</span> {summarizeTests(value)}</div>
+                <div><span className="font-medium text-foreground">English:</span> {summarizeEnglishTests(value)}</div>
+                <div><span className="font-medium text-foreground">Language:</span> {langSummary}</div>
                 {(value.education_history ?? []).filter((e) => e.level || e.institution).map((e, i) => (
                   <div key={i}>
                     <span className="font-medium text-foreground">Education {i + 1}:</span>{" "}
