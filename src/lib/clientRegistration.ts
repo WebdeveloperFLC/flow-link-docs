@@ -65,6 +65,8 @@ export interface ClientRow {
   registration_number?: string | null;
   application_id?: string | null;
   source_lead_id?: string | null;
+  source_lead_number?: string | null;
+  registered_at?: string | null;
   full_name?: string | null;
   first_name?: string | null;
   middle_name?: string | null;
@@ -245,6 +247,15 @@ export async function fetchClient(id: string): Promise<ClientRow | null> {
   const { data, error } = await supabase.from("clients").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return data as unknown as ClientRow | null;
+}
+
+/** Assign FL-YYYY-NNNN when formal registration completes (invoice / explicit step). Idempotent. */
+export async function assignClientRegistrationNumber(clientId: string): Promise<ClientRow> {
+  const { data, error } = await supabase.rpc("assign_client_registration_number", {
+    _client_id: clientId,
+  });
+  if (error) throw error;
+  return data as unknown as ClientRow;
 }
 
 // ---------- Family members ----------

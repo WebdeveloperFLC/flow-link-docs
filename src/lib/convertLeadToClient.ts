@@ -198,8 +198,12 @@ export async function convertLeadToClient(
     clientId: saved.id,
     action: "client_created",
     summary: "Client created from lead",
-    newValue: saved.registration_number ?? saved.id,
-    metadata: { source_lead_id: lead.id, invoice_lines: invoiceLinesCreated },
+    newValue: saved.application_id ?? saved.id,
+    metadata: {
+      source_lead_id: lead.id,
+      source_lead_number: lead.lead_number,
+      invoice_lines: invoiceLinesCreated,
+    },
   }).catch(() => {});
 
   if (lead.next_followup_at) {

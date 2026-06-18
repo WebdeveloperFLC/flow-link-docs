@@ -34,6 +34,7 @@ import { RegistrationWorkspace, type RegistrationSection } from "@/components/cr
 import {
   upsertClientRegistration,
   fetchClient,
+  assignClientRegistrationNumber,
   createDraftInvoice,
   type ClientDraft,
   type ClientRow,
@@ -367,7 +368,7 @@ export function ClientRegistrationPanel({
         setClientId(saved.id);
         onClientIdChange?.(saved.id);
         setRegNumber(saved.registration_number ?? null);
-        toast.success(`Client registered: ${saved.registration_number ?? saved.application_id ?? saved.id}`);
+        toast.success(`Client file created: ${saved.application_id ?? saved.id}`);
         try {
           const { data: cli } = await supabase
             .from("clients")
@@ -451,6 +452,8 @@ export function ClientRegistrationPanel({
         return;
       }
       await upsertClientRegistration(clientId, buildDraft());
+      const registered = await assignClientRegistrationNumber(clientId);
+      setRegNumber(registered.registration_number ?? null);
       const res = await createDraftInvoice({
         client_id: clientId,
         client_name: primaryName,
@@ -469,7 +472,9 @@ export function ClientRegistrationPanel({
           toast.warning("Client saved but portal invite could not be sent");
         }
       }
-      toast.success(`Client ${regNumber ?? clientId} registered. Draft invoice ${res.invoice_number} ready.`);
+      toast.success(
+        `Registered ${registered.registration_number ?? clientId}. Draft invoice ${res.invoice_number} ready.`,
+      );
       if (slLibraryId) {
         nav(
           buildClientDetailUrlFromServiceLibrary({

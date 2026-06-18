@@ -65,7 +65,11 @@ const LeadDetail = () => {
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
   const [serviceMap, setServiceMap] = useState<Map<string, string>>(new Map());
-  const [convertedClient, setConvertedClient] = useState<{ id: string; registration_number: string | null } | null>(null);
+  const [convertedClient, setConvertedClient] = useState<{
+    id: string;
+    application_id: string | null;
+    registration_number: string | null;
+  } | null>(null);
   const [converting, setConverting] = useState(false);
   const [followupLogVersion, setFollowupLogVersion] = useState(0);
 
@@ -105,7 +109,7 @@ const LeadDetail = () => {
     setConverting(true);
     try {
       const result = await convertLeadToClient(lead, { leadNotes: lead.notes ?? undefined });
-      toast.success(`Client created — opening profile`);
+      toast.success(`Client file created — opening profile`);
       nav(`/clients/${result.clientId}`);
     } catch (e: unknown) {
       toast.error(formatSupabaseError(e, "Conversion failed"));
@@ -124,7 +128,7 @@ const LeadDetail = () => {
   useEffect(() => {
     if (!lead || lead.status !== "converted") return;
     (supabase.from("clients") as any)
-      .select("id, registration_number")
+      .select("id, application_id, registration_number")
       .eq("source_lead_id", lead.id)
       .maybeSingle()
       .then(({ data }: any) => { if (data) setConvertedClient(data); });
@@ -164,7 +168,9 @@ const LeadDetail = () => {
               <Button variant="outline" asChild>
                 <Link to={`/clients/${convertedClient.id}`}>
                   <ExternalLink className="h-4 w-4 mr-1" />
-                  Converted{convertedClient.registration_number ? ` · ${convertedClient.registration_number}` : ""}
+                  Client file
+                  {convertedClient.application_id ? ` · ${convertedClient.application_id}` : ""}
+                  {convertedClient.registration_number ? ` · Reg ${convertedClient.registration_number}` : ""}
                 </Link>
               </Button>
             ) : (

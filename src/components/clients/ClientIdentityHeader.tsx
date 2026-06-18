@@ -48,6 +48,8 @@ export type ClientHeaderClient = {
   id: string;
   full_name: string;
   application_id: string;
+  registration_number?: string | null;
+  source_lead_number?: string | null;
   country: string;
   application_type: string;
   branch?: string | null;
@@ -300,7 +302,23 @@ export function ClientIdentityHeader({
                 )}
               </div>
               <p className="text-sm text-muted-foreground mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-                <span className="font-mono text-primary/90">{client.application_id}</span>
+                <span className="font-mono text-primary/90" title="Client file number">
+                  {client.application_id}
+                </span>
+                {client.registration_number && (
+                  <>
+                    <span>·</span>
+                    <span className="font-mono" title="Registration number">
+                      Reg {client.registration_number}
+                    </span>
+                  </>
+                )}
+                {client.source_lead_number && (
+                  <>
+                    <span>·</span>
+                    <span title="Source lead number">Lead {client.source_lead_number}</span>
+                  </>
+                )}
                 {destination && (
                   <>
                     <span>·</span>

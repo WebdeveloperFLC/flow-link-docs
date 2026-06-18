@@ -13,6 +13,7 @@ interface Client {
   id: string;
   full_name: string;
   application_id: string;
+  registration_number?: string | null;
   country: string;
   application_type: string;
   status: string;
@@ -70,14 +71,14 @@ const Clients = () => {
     const to = from + PAGE_SIZE - 1;
     let query = supabase
       .from("clients")
-      .select("id,full_name,application_id,country,application_type,status,created_at,updated_at,email,phone", { count: "exact" })
+      .select("id,full_name,application_id,registration_number,country,application_type,status,created_at,updated_at,email,phone", { count: "exact" })
       .order(sort, { ascending: dir === "asc" })
       .range(from, to);
     if (q) {
       const term = q.replace(/[%,()]/g, " ").trim();
       // OR across name, email, phone, application id
       query = query.or(
-        `full_name.ilike.%${term}%,email.ilike.%${term}%,phone.ilike.%${term}%,application_id.ilike.%${term}%`
+        `full_name.ilike.%${term}%,email.ilike.%${term}%,phone.ilike.%${term}%,application_id.ilike.%${term}%,registration_number.ilike.%${term}%`
       );
     }
     const { data, count } = await query;
