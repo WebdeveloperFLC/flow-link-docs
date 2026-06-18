@@ -109,16 +109,19 @@ export function ClientServiceSwitcher({
       setActiveCode(targetCode);
 
       if (targetCode && params.get("service")) {
-        const expected = await resolvePipelineForServiceCode(targetCode, cat, clientCountry);
-        const currentPipeline = clientRes.data?.pipeline_id ?? null;
-        if (expected && expected.pipelineId !== currentPipeline) {
-          const switched = await switchClientActiveService({
-            clientId,
-            serviceCode: targetCode,
-            catalogue: cat,
-            clientCountry,
-          });
-          if (switched) onSwitched?.();
+        const entry = entries.find((e) => e.code === targetCode);
+        if (entry?.category === "visa") {
+          const expected = await resolvePipelineForServiceCode(targetCode, cat, clientCountry);
+          const currentPipeline = clientRes.data?.pipeline_id ?? null;
+          if (expected && expected.pipelineId !== currentPipeline) {
+            const switched = await switchClientActiveService({
+              clientId,
+              serviceCode: targetCode,
+              catalogue: cat,
+              clientCountry,
+            });
+            if (switched) onSwitched?.();
+          }
         }
       }
     } finally {
@@ -157,6 +160,16 @@ export function ClientServiceSwitcher({
 
   const onSelect = async (code: string) => {
     if (code === activeCode || switching) return;
+    const entry = services.find((s) => s.code === code);
+    if (entry && entry.category !== "visa") {
+      setActiveCode(code);
+      setParams((p) => {
+        const next = new URLSearchParams(p);
+        next.set("service", code);
+        return next;
+      }, { replace: true });
+      return;
+    }
     setSwitching(code);
     try {
       const ok = await switchClientActiveService({
@@ -247,10 +260,12 @@ export function ClientServiceSwitcher({
       <div className="rounded-xl border bg-card p-2 shadow-elev-sm">
       <div className="px-2 pt-1 pb-2">
         <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Active application
+          {visaOnly ? "Visa application" : "Active application"}
         </div>
         <p className="text-[11px] text-muted-foreground">
-          {displayServices.length} services — select one to view its stage progress
+          {visaOnly
+            ? `${displayServices.length} visa service${displayServices.length === 1 ? "" : "s"} — select one to view stage progress`
+            : `${displayServices.length} services — select one to view its stage progress`}
         </p>
       </div>
       <div className="flex flex-wrap gap-1.5 px-1 pb-1">

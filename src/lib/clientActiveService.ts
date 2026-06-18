@@ -154,6 +154,10 @@ export async function switchClientActiveService(params: {
   clientCountry?: string | null;
 }): Promise<boolean> {
   const item = catalogueItemForCode(params.serviceCode, params.catalogue);
+  if (categoryForCatalogueItem(item) !== "visa") {
+    return true;
+  }
+
   const match = await resolvePipelineForServiceCode(
     params.serviceCode,
     params.catalogue,

@@ -1153,19 +1153,22 @@ const ClientDetail = () => {
           clientId={client.id}
           clientCountry={client.country}
           onSwitched={onServiceSwitched}
+          visaOnly
         />
-        <ClientStageStepper
-          clientId={client.id}
-          clientCountry={client.country}
-          destinationCountry={serviceCtx.destinationCountry}
-          refreshKey={stageRefreshKey}
-          activeServiceLabel={serviceCtx.serviceLabel}
-          caseId={serviceCase?.id}
-          caseClosed={caseClosed}
-          caseOutcome={serviceCase?.outcome}
-          onStageChanged={() => setStageRefreshKey((k) => k + 1)}
-          onServiceSwitched={onServiceSwitched}
-        />
+        {serviceCtx.pipelineApplicable && (
+          <ClientStageStepper
+            clientId={client.id}
+            clientCountry={client.country}
+            destinationCountry={serviceCtx.destinationCountry}
+            refreshKey={stageRefreshKey}
+            activeServiceLabel={serviceCtx.serviceLabel}
+            caseId={serviceCase?.id}
+            caseClosed={caseClosed}
+            caseOutcome={serviceCase?.outcome}
+            onStageChanged={() => setStageRefreshKey((k) => k + 1)}
+            onServiceSwitched={onServiceSwitched}
+          />
+        )}
         <ClientDetailTabNav badges={{ documents: requiredMissing.length, communications: pendingAppointmentCount }} />
 
         <div className="p-6 sm:p-8 max-w-7xl mx-auto">

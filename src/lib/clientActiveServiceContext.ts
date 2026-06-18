@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
 import {
   buildClientServiceEntries,
+  categoryForCatalogueItem,
   collectClientServices,
   guessServiceCodeForPipeline,
 } from "@/lib/clientActiveService";
@@ -37,6 +38,10 @@ export type ActiveServiceContext = {
   serviceLabel: string | null;
   residenceCountry: string | null;
   isCanadaDestination: boolean;
+  /** True when the active service is visa & immigration (pipeline applies). */
+  pipelineApplicable: boolean;
+  /** Client has at least one visa service on file. */
+  hasVisaServices: boolean;
 };
 
 function countryFromServiceCode(code: string, item: ServiceCatalogueItem | null, fallback?: string | null) {
@@ -102,6 +107,11 @@ export function resolveActiveServiceContextSync(params: {
 
   const residenceCountry = params.client.country?.trim() || null;
   const isCanadaDestination = (destinationCountry ?? "").trim().toLowerCase() === "canada";
+  const activeEntry = entries.find((e) => e.code === activeCode);
+  const activeCategory =
+    activeEntry?.category ?? (item ? categoryForCatalogueItem(item) : null);
+  const hasVisaServices = entries.some((e) => e.category === "visa");
+  const pipelineApplicable = activeCategory === "visa";
 
   return {
     activeServiceCode: activeCode,
@@ -111,6 +121,8 @@ export function resolveActiveServiceContextSync(params: {
     serviceLabel: normalizedServiceLabel,
     residenceCountry,
     isCanadaDestination,
+    pipelineApplicable,
+    hasVisaServices,
   };
 }
 
@@ -222,6 +234,8 @@ export function useActiveServiceContext(
         serviceLabel: null,
         residenceCountry: null,
         isCanadaDestination: false,
+        pipelineApplicable: false,
+        hasVisaServices: false,
       };
     }
 
