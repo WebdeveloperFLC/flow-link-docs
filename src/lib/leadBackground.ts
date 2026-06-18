@@ -2,6 +2,12 @@ import type { EducationEntry, ExperienceEntry } from "@/lib/clientRegistration";
 import type { EducationExperienceValue } from "@/components/clients/registration/EducationExperienceFields";
 import type { Lead, LeadDraft } from "@/lib/leads";
 import {
+  ENGLISH_SCORES_BY_TEST_KEY,
+  hydrateScoresByTest,
+  scoresForTest,
+  sectionalScoresOnly,
+} from "@/lib/englishTestScores";
+import {
   absorbLegacyLanguageTests,
   EMPTY_LANGUAGE_TESTS,
   normalizeLanguageTests,
@@ -36,21 +42,94 @@ export const EMPTY_LEAD_BACKGROUND: LeadBackgroundState = {
   language_tests: EMPTY_LANGUAGE_TESTS,
 };
 
+function parseJsonArray<T>(raw: unknown): T[] {
+  if (Array.isArray(raw)) return raw as T[];
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      return Array.isArray(parsed) ? (parsed as T[]) : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+export function educationEntryHasData(e: EducationEntry | undefined): boolean {
+  if (!e) return false;
+  return !!(
+    e.level ||
+    e.institution ||
+    e.city ||
+    e.country ||
+    e.state_province ||
+    e.year ||
+    e.percentage_cgpa ||
+    e.specialization
+  );
+}
+
+export function experienceEntryHasData(e: ExperienceEntry | undefined): boolean {
+  if (!e) return false;
+  return !!(e.company || e.role || e.city || e.country || e.state_province || e.start_date || e.description);
+}
+
+function mergeLastEducationIntoHistory(
+  history: EducationEntry[],
+  lastEducation?: string | null,
+): EducationEntry[] {
+  if (!lastEducation?.trim()) return history;
+  const next = [...history];
+  if (next.length === 0) return [{ level: lastEducation }];
+  if (!next[0]?.level) next[0] = { ...next[0], level: lastEducation };
+  return next;
+}
+
+function hydrateEnglishFromSections(
+  lead: Partial<Lead>,
+): Pick<
+  LeadBackgroundState,
+  "english_overall" | "english_test_date" | "english_test_expiry" | "english_sections"
+> {
+  const sections = (lead.english_sections ?? {}) as Record<string, unknown>;
+  const byTest = hydrateScoresByTest({
+    english_test: lead.english_test,
+    english_overall: lead.english_overall,
+    english_test_date: lead.english_test_date,
+    english_test_expiry: lead.english_test_expiry,
+    english_sections: sections,
+  });
+  const active = scoresForTest(byTest, lead.english_test);
+  const flatSections = sectionalScoresOnly(sections);
+  const mergedSections: Record<string, unknown> = {
+    ...flatSections,
+    ...(Object.keys(byTest).length ? { [ENGLISH_SCORES_BY_TEST_KEY]: byTest } : {}),
+  };
+  return {
+    english_overall: lead.english_overall ?? active.overall ?? null,
+    english_test_date: lead.english_test_date ?? active.test_date ?? null,
+    english_test_expiry: lead.english_test_expiry ?? active.test_expiry ?? null,
+    english_sections: mergedSections,
+  };
+}
+
 export function leadToBackgroundState(lead: Partial<Lead>): LeadBackgroundState {
   const absorbed = absorbLegacyLanguageTests(
     normalizeLanguageTests(lead.language_tests),
     lead.other_tests,
   );
+  const education_history = mergeLastEducationIntoHistory(
+    parseJsonArray<EducationEntry>(lead.education_history),
+    lead.last_education,
+  );
+  const english = hydrateEnglishFromSections(lead);
   return {
-    education_history: (lead.education_history as EducationEntry[] | undefined) ?? [],
+    education_history,
     english_test: lead.english_test ?? null,
     english_test_status: (lead.english_test_status as EnglishTestStatus | null | undefined) ?? null,
-    english_overall: lead.english_overall ?? null,
-    english_test_date: lead.english_test_date ?? null,
-    english_test_expiry: lead.english_test_expiry ?? null,
-    english_sections: (lead.english_sections as Record<string, string> | undefined) ?? {},
+    ...english,
     other_tests: absorbed.other_tests,
-    work_experience: (lead.work_experience as ExperienceEntry[] | undefined) ?? [],
+    work_experience: parseJsonArray<ExperienceEntry>(lead.work_experience),
     language_tests: absorbed.language_tests,
   };
 }
@@ -102,16 +181,19 @@ export function mergeBackgroundIntoEducationHistory(
 
 export function summarizeEnglishTests(bg: LeadBackgroundState): string {
   const status = bg.english_test_status;
+  const test = bg.english_test && bg.english_test !== "None" ? bg.english_test : null;
+  const score = bg.english_overall?.trim() ? ` ${bg.english_overall.trim()}` : "";
+
   if (status === "waived") return "Waived";
   if (status === "not_taken") return "Not taken";
   if (status === "scheduled") {
-    const test = bg.english_test && bg.english_test !== "None" ? bg.english_test : "English";
-    return `Scheduled · ${test}`;
+    const label = test ?? "English";
+    return score ? `Scheduled · ${label}${score}` : `Scheduled · ${label}`;
   }
-  if (bg.english_test && bg.english_test !== "None") {
-    if (bg.english_overall) return `${bg.english_test} ${bg.english_overall}`;
-    if (status === "taken") return `${bg.english_test} (taken)`;
-    return bg.english_test;
+  if (test) {
+    if (score) return `${test}${score}`;
+    if (status === "taken") return `${test} (taken)`;
+    return test;
   }
   const academicCount = bg.other_tests?.filter((t) => t.type)?.length ?? 0;
   if (academicCount) return `${academicCount} academic`;
@@ -123,23 +205,44 @@ export const summarizeTests = summarizeEnglishTests;
 
 export { summarizeLanguageTests };
 
+export function formatEducationEntrySummary(e: EducationEntry): string {
+  return [e.level, e.institution, e.specialization, e.city, e.state_province, e.country, e.year, e.percentage_cgpa]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+export function formatExperienceEntrySummary(e: ExperienceEntry): string {
+  const dates = [e.start_date, e.currently_working ? "Present" : e.end_date].filter(Boolean).join(" – ");
+  return [[e.role, e.company].filter(Boolean).join(" · "), e.city, e.state_province, e.country, dates]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export function summarizeEducation(bg: LeadBackgroundState): string {
-  const count = bg.education_history?.filter((e) => e.level || e.institution)?.length ?? 0;
-  if (!count) return "Not added";
-  return count === 1 ? "1 qualification" : `${count} qualifications`;
+  const rows = (bg.education_history ?? []).filter(educationEntryHasData);
+  if (!rows.length) return "Not added";
+  if (rows.length === 1) {
+    const detail = formatEducationEntrySummary(rows[0]!);
+    return detail || "1 qualification";
+  }
+  return `${rows.length} qualifications`;
 }
 
 export function summarizeExperience(bg: LeadBackgroundState): string {
-  const count = bg.work_experience?.filter((e) => e.company || e.role)?.length ?? 0;
-  if (!count) return "Not added";
-  return count === 1 ? "1 job" : `${count} jobs`;
+  const rows = (bg.work_experience ?? []).filter(experienceEntryHasData);
+  if (!rows.length) return "Not added";
+  if (rows.length === 1) {
+    const detail = formatExperienceEntrySummary(rows[0]!);
+    return detail || "1 job";
+  }
+  return `${rows.length} jobs`;
 }
 
 export function hasBackgroundData(bg: LeadBackgroundState): boolean {
   return (
     summarizeEnglishTests(bg) !== "Not added" ||
     summarizeLanguageTests(bg.language_tests ?? EMPTY_LANGUAGE_TESTS) !== "Not added" ||
-    summarizeEducation(bg) !== "Not added" ||
-    summarizeExperience(bg) !== "Not added"
+    (bg.education_history ?? []).some(educationEntryHasData) ||
+    (bg.work_experience ?? []).some(experienceEntryHasData)
   );
 }

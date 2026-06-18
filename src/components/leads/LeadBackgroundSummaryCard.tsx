@@ -1,17 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import {
+  educationEntryHasData,
+  experienceEntryHasData,
+  formatEducationEntrySummary,
+  formatExperienceEntrySummary,
   hasBackgroundData,
   summarizeEducation,
   summarizeEnglishTests,
   summarizeExperience,
-  summarizeLanguageTests,
   type LeadBackgroundState,
 } from "@/lib/leadBackground";
 import { LeadBackgroundDetailsDialog } from "@/components/leads/LeadBackgroundDetailsDialog";
 import { EMPTY_LANGUAGE_TESTS, type BackgroundDetailTab } from "@/lib/languageTests";
+import { summarizeLanguageTests } from "@/lib/languageTests";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -23,7 +27,15 @@ interface Props {
 const Column = ({ label, summary }: { label: string; summary: string }) => (
   <div className="space-y-1 min-w-0">
     <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</div>
-    <div className={cn("text-sm truncate", summary === "Not added" && "text-muted-foreground")}>{summary}</div>
+    <div
+      className={cn(
+        "text-sm line-clamp-2",
+        summary === "Not added" && "text-muted-foreground italic",
+      )}
+      title={summary}
+    >
+      {summary}
+    </div>
   </div>
 );
 
@@ -32,11 +44,19 @@ export function LeadBackgroundSummaryCard({ value, onChange, onCommit }: Props) 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [initialTab, setInitialTab] = useState<BackgroundDetailTab>("english");
   const langSummary = summarizeLanguageTests(value.language_tests ?? EMPTY_LANGUAGE_TESTS);
+  const hasData = hasBackgroundData(value);
+
+  useEffect(() => {
+    if (hasData) setPreviewOpen(true);
+  }, [hasData]);
 
   const openDialog = (tab: BackgroundDetailTab) => {
     setInitialTab(tab);
     setOpen(true);
   };
+
+  const educationRows = (value.education_history ?? []).filter(educationEntryHasData);
+  const experienceRows = (value.work_experience ?? []).filter(experienceEntryHasData);
 
   return (
     <>
@@ -67,7 +87,7 @@ export function LeadBackgroundSummaryCard({ value, onChange, onCommit }: Props) 
           </button>
         </div>
 
-        {hasBackgroundData(value) && (
+        {hasData ? (
           <div>
             <button
               type="button"
@@ -75,27 +95,35 @@ export function LeadBackgroundSummaryCard({ value, onChange, onCommit }: Props) 
               onClick={() => setPreviewOpen((v) => !v)}
             >
               {previewOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-              {previewOpen ? "Hide preview" : "Show preview"}
+              {previewOpen ? "Hide saved details" : "Show saved details"}
             </button>
             {previewOpen && (
               <div className="mt-3 text-xs space-y-2 text-muted-foreground border rounded-md p-3 bg-muted/20">
                 <div><span className="font-medium text-foreground">English:</span> {summarizeEnglishTests(value)}</div>
                 <div><span className="font-medium text-foreground">Language:</span> {langSummary}</div>
-                {(value.education_history ?? []).filter((e) => e.level || e.institution).map((e, i) => (
+                {educationRows.map((e, i) => (
                   <div key={i}>
                     <span className="font-medium text-foreground">Education {i + 1}:</span>{" "}
-                    {[e.level, e.institution, e.city, e.state_province, e.country, e.year].filter(Boolean).join(" · ") || "—"}
+                    {formatEducationEntrySummary(e) || "—"}
                   </div>
                 ))}
-                {(value.work_experience ?? []).filter((e) => e.company || e.role).map((e, i) => (
+                {experienceRows.map((e, i) => (
                   <div key={i}>
-                    <span className="font-medium text-foreground">Job {i + 1}:</span>{" "}
-                    {[e.role, e.company, e.city, e.state_province, e.country].filter(Boolean).join(" · ") || "—"}
+                    <span className="font-medium text-foreground">Experience {i + 1}:</span>{" "}
+                    {formatExperienceEntrySummary(e) || "—"}
+                  </div>
+                ))}
+                {(value.other_tests ?? []).filter((t) => t.type).map((t, i) => (
+                  <div key={`ac-${i}`}>
+                    <span className="font-medium text-foreground">{t.type}:</span>{" "}
+                    {[t.score, t.date].filter(Boolean).join(" · ") || "Added"}
                   </div>
                 ))}
               </div>
             )}
           </div>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">No background details yet — click Edit details to add tests, education, or experience.</p>
         )}
       </Card>
 

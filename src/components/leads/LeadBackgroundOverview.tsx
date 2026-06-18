@@ -2,13 +2,17 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   ENGLISH_TEST_STATUS_LABELS,
+  educationEntryHasData,
+  experienceEntryHasData,
+  formatEducationEntrySummary,
+  formatExperienceEntrySummary,
+  hasBackgroundData,
   summarizeEducation,
   summarizeEnglishTests,
   summarizeExperience,
-  summarizeLanguageTests,
   type LeadBackgroundState,
 } from "@/lib/leadBackground";
-import { CEFR_LEVELS, EMPTY_LANGUAGE_TESTS, LANGUAGE_STATUS_LABELS } from "@/lib/languageTests";
+import { CEFR_LEVELS, EMPTY_LANGUAGE_TESTS, LANGUAGE_STATUS_LABELS, summarizeLanguageTests } from "@/lib/languageTests";
 import { useMasterItems } from "@/lib/masters";
 
 interface Props {
@@ -17,16 +21,11 @@ interface Props {
 
 export function LeadBackgroundOverview({ background }: Props) {
   const qualificationLevels = useMasterItems("qualification_levels");
-  const educationRows = (background.education_history ?? []).filter((e) => e.level || e.institution);
-  const jobs = (background.work_experience ?? []).filter((e) => e.company || e.role);
+  const educationRows = (background.education_history ?? []).filter(educationEntryHasData);
+  const jobs = (background.work_experience ?? []).filter(experienceEntryHasData);
   const lang = background.language_tests ?? EMPTY_LANGUAGE_TESTS;
-  const hasAny =
-    summarizeEnglishTests(background) !== "Not added" ||
-    summarizeLanguageTests(lang) !== "Not added" ||
-    educationRows.length > 0 ||
-    jobs.length > 0;
 
-  if (!hasAny) return null;
+  if (!hasBackgroundData(background)) return null;
 
   const levelLabel = (code?: string) =>
     qualificationLevels.find((q) => q.code === code)?.label ?? code;
@@ -93,9 +92,7 @@ export function LeadBackgroundOverview({ background }: Props) {
           {educationRows.map((e, i) => (
             <div key={i} className="text-sm border rounded-md p-3 bg-muted/10 flex flex-wrap gap-2 items-center">
               {e.level && <Badge variant="secondary">{levelLabel(e.level)}</Badge>}
-              <span>{[e.institution, e.specialization, e.country].filter(Boolean).join(" · ")}</span>
-              {e.year && <span className="text-muted-foreground text-xs">{e.year}</span>}
-              {e.percentage_cgpa && <span className="text-muted-foreground text-xs">{e.percentage_cgpa}</span>}
+              <span>{formatEducationEntrySummary(e) || "—"}</span>
             </div>
           ))}
         </div>
@@ -106,10 +103,7 @@ export function LeadBackgroundOverview({ background }: Props) {
           <div className="text-xs font-medium text-muted-foreground">Work experience</div>
           {jobs.map((e, i) => (
             <div key={i} className="text-sm border rounded-md p-3 bg-muted/10">
-              <div className="font-medium">{[e.role, e.company].filter(Boolean).join(" · ")}</div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {[e.start_date, e.currently_working ? "Present" : e.end_date, e.country].filter(Boolean).join(" · ")}
-              </div>
+              <div className="font-medium">{formatExperienceEntrySummary(e) || "—"}</div>
             </div>
           ))}
         </div>

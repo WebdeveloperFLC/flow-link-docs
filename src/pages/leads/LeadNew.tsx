@@ -610,7 +610,8 @@ const LeadNew = () => {
     if (currentLeadId) {
       try {
         setSaving(true);
-        await updateLead(currentLeadId, buildDraft());
+        const saved = await updateLead(currentLeadId, buildDraft());
+        setBackground(leadToBackgroundState(saved));
         toast.success("Background details saved");
       } catch (e) {
         toast.error(formatSupabaseError(e, "Could not save background details"));
@@ -621,6 +622,12 @@ const LeadNew = () => {
     }
     const id = await autosave();
     if (id) {
+      try {
+        const refreshed = await fetchLead(id);
+        if (refreshed) setBackground(leadToBackgroundState(refreshed));
+      } catch {
+        /* keep local state */
+      }
       toast.success("Background details saved");
       return;
     }
