@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { EducationExperienceFields } from "@/components/clients/registration/EducationExperienceFields";
 import { LanguageTestsFields } from "@/components/clients/registration/LanguageTestsFields";
 import { fetchClient, upsertClientRegistration } from "@/lib/clientRegistration";
+import type { Lead } from "@/lib/leads";
 import {
   backgroundStateToLeadDraft,
   countBackgroundItems,
