@@ -55,6 +55,11 @@ import {
   type LineDiscountInput,
   type TaxBasis,
 } from "@/lib/invoiceLinePricing";
+import {
+  distributeLumpSumAcrossLines,
+  lineItemKeyFromIndex,
+  paidByLineFromAllocations,
+} from "@/lib/invoicePaymentAllocation";
 import { Switch } from "@/components/ui/switch";
 import {
   notifyUsers,
@@ -396,7 +401,21 @@ export function ClientInvoicesPanel({
         <div className="mb-3 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm flex flex-wrap items-center justify-between gap-2">
           <span>
             Pending draft <b>{pendingDraft.invoice_number}</b> —{" "}
-            {money(Number(pendingDraft.amount), pendingDraft.currency)} awaiting payment
+            {money(Number(pendingDraft.amount), pendingDraft.currency)} total
+            {(verifiedPaidByInvoice[pendingDraft.id] ?? 0) > 0 && (
+              <>
+                {" "}
+                · Paid {money(verifiedPaidByInvoice[pendingDraft.id] ?? 0, pendingDraft.currency)} · Balance{" "}
+                {money(
+                  Math.max(
+                    Number(pendingDraft.amount) - (verifiedPaidByInvoice[pendingDraft.id] ?? 0),
+                    0,
+                  ),
+                  pendingDraft.currency,
+                )}
+              </>
+            )}
+            {(verifiedPaidByInvoice[pendingDraft.id] ?? 0) <= 0 && " awaiting payment"}
           </span>
           <Button size="sm" variant="outline" onClick={openInvoiceEditor}>
             Edit draft
@@ -850,6 +869,8 @@ function InvoiceEditorDialog({
     value: 0,
   });
   const [saving, setSaving] = useState(false);
+  const [paidByLineKey, setPaidByLineKey] = useState<Record<string, number>>({});
+  const [paidByServiceId, setPaidByServiceId] = useState<Record<string, number>>({});
 
   type EligibleOffer = {
     id: string;
@@ -920,14 +941,38 @@ function InvoiceEditorDialog({
             }
           }
           if (loadedGstBasis) setGstBasis(loadedGstBasis);
+          for (const s of mergedServices) {
+            if (nextPicked[s.id] == null) nextPicked[s.id] = 0;
+          }
           const normalized = normalizeInvoicePickedState(mergedServices, nextPicked, nextDiscounts);
           setServices(normalized.services);
           setPicked(normalized.picked);
           setLineDiscounts(normalized.discounts);
           setGstEnabled(hasTax || currency === "INR");
+
+          if (existingInvoice.id) {
+            const { data: allocs } = await supabase
+              .from("client_invoice_payment_allocations")
+              .select("amount_allocated,line_item_key,service_id")
+              .eq("invoice_id", existingInvoice.id);
+            const { byLineKey, byServiceId } = paidByLineFromAllocations(allocs ?? []);
+            const linePaid: Record<string, number> = {};
+            lines.forEach((li, idx) => {
+              if (isCheckoutDiscountMetaLine(li)) return;
+              const key = lineItemKeyFromIndex(li, idx);
+              linePaid[key] =
+                byLineKey.get(key) ??
+                (li.service_id ? byServiceId.get(String(li.service_id)) ?? 0 : 0);
+            });
+            setPaidByLineKey(linePaid);
+            setPaidByServiceId(Object.fromEntries(byServiceId));
+          }
         } else {
+          const allPicked: Record<string, number> = {};
+          for (const s of clientServices) allPicked[s.id] = 1;
+          setPicked(allPicked);
           const preId = resolvePreselectedServiceId(clientServices, cat, activeServiceCode);
-          if (preId) setPicked({ [preId]: 1 });
+          if (preId && !allPicked[preId]) setPicked({ ...allPicked, [preId]: 1 });
         }
       } catch (e) {
         console.warn("[invoice] load client services failed", e);
@@ -978,9 +1023,7 @@ function InvoiceEditorDialog({
   const selectedOffer = offers.find((o) => o.id === selectedOfferId) || null;
 
   const displayServices = useMemo(() => {
-    if (isEdit) {
-      return services.filter((s) => getPickedQty(s, picked) > 0);
-    }
+    if (isEdit) return services;
     if (activeServiceCode) {
       const libPrefix = activeServiceCode.split("::")[0] ?? "";
       const matched = services.filter(
@@ -1088,6 +1131,16 @@ function InvoiceEditorDialog({
   ]);
 
   const netTotal = priced.grandTotal;
+  const verifiedPaidOnDraft = useMemo(() => {
+    if (!isEdit || !existingInvoice) return 0;
+    return Number(existingInvoice.amount_paid ?? 0);
+  }, [isEdit, existingInvoice]);
+  const hasLinePayments = Object.values(paidByLineKey).some((v) => v > 0);
+
+  const linePaidForService = (s: BillableClientService, lineIdx: number): number => {
+    const key = lineItemKeyFromIndex({ service_id: s.id, service_name: s.service_name }, lineIdx);
+    return paidByLineKey[key] ?? paidByServiceId[s.id] ?? 0;
+  };
 
   const save = async () => {
     if (lineItems.length === 0) {
@@ -1206,7 +1259,12 @@ function InvoiceEditorDialog({
           </div>
         ) : (
           <>
-            {primaryService && (
+            <p className="text-xs text-muted-foreground rounded-md border bg-muted/20 px-3 py-2">
+              {isEdit
+                ? "All client services appear here. Qty 0 = not on this invoice yet. Partial payments are tracked per service — unpaid services stay on the draft."
+                : "Set qty to 1 for each service to include on this draft. Clients can pay selected services or a lump sum later."}
+            </p>
+            {primaryService && !isEdit && (
               <div className="rounded-md border bg-muted/20 px-3 py-2 text-sm">
                 <div className="text-xs uppercase tracking-wide text-muted-foreground mb-0.5">Service</div>
                 <div className="font-medium leading-snug">{primaryService.service_name}</div>
@@ -1274,6 +1332,12 @@ function InvoiceEditorDialog({
                     <th className="text-right px-3 py-2 w-[4.5rem]">Qty</th>
                     <th className="text-right px-3 py-2 w-40">Discount</th>
                     <th className="text-right px-3 py-2 w-24">Total</th>
+                    {(hasLinePayments || verifiedPaidOnDraft > 0) && (
+                      <>
+                        <th className="text-right px-3 py-2 w-20">Paid</th>
+                        <th className="text-right px-3 py-2 w-20">Pending</th>
+                      </>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -1285,9 +1349,12 @@ function InvoiceEditorDialog({
                     const lineDiscountAmt = resolveLineDiscountAmount(gross, discount);
                     const rowIdx = pricingInputs.findIndex((r) => r.id === s.id);
                     const lineTotal = rowIdx >= 0 ? (priced.lines[rowIdx]?.total ?? 0) : 0;
+                    const linePaid = qty > 0 ? linePaidForService(s, rowIdx >= 0 ? rowIdx : displayServices.indexOf(s)) : 0;
+                    const linePending = Math.max(lineTotal - linePaid, 0);
                     const currencySuffix = currency === "INR" ? "₹" : currency === "CAD" ? "CA$" : "$";
+                    const showPaidCols = hasLinePayments || verifiedPaidOnDraft > 0;
                     return (
-                      <tr key={s.id} className="border-t align-top">
+                      <tr key={s.id} className={`border-t align-top ${qty <= 0 ? "opacity-60" : ""}`}>
                         <td className="px-3 py-2">
                           <div className="font-medium leading-snug">{s.service_name}</div>
                           {lineDiscountAmt > 0 && qty > 0 && (
@@ -1358,6 +1425,16 @@ function InvoiceEditorDialog({
                           </div>
                         </td>
                         <td className="px-3 py-2 text-right tabular-nums">{money(lineTotal, currency)}</td>
+                        {showPaidCols && (
+                          <>
+                            <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+                              {qty > 0 && linePaid > 0 ? money(linePaid, currency) : "—"}
+                            </td>
+                            <td className="px-3 py-2 text-right tabular-nums">
+                              {qty > 0 ? money(linePending, currency) : "—"}
+                            </td>
+                          </>
+                        )}
                       </tr>
                     );
                   })}
@@ -1495,6 +1572,14 @@ function InvoiceEditorDialog({
                 </>
               )}
               <div className="font-medium">Amount due: {money(netTotal, currency)}</div>
+              {verifiedPaidOnDraft > 0 && (
+                <>
+                  <div className="text-emerald-700">Paid so far: {money(verifiedPaidOnDraft, currency)}</div>
+                  <div className="font-medium text-amber-700">
+                    Balance pending: {money(Math.max(netTotal - verifiedPaidOnDraft, 0), currency)}
+                  </div>
+                </>
+              )}
             </div>
           </>
         )}
@@ -1555,7 +1640,9 @@ function CollectPaymentDialog({
     counselor: "",
     handler: "",
   });
-  const [mode, setMode] = useState<"consolidated" | "individual" | "partial" | "installment">("consolidated");
+  type CollectMode = "select_services" | "lump_sum" | "installment";
+  const [mode, setMode] = useState<CollectMode>("select_services");
+  const [lumpSumAmount, setLumpSumAmount] = useState("");
 
   const [payCcy, setPayCcy] = useState<string>(invCcy);
   const [fxRate, setFxRate] = useState<number>(1);
@@ -1756,37 +1843,47 @@ function CollectPaymentDialog({
         });
       }
 
-      // Default selection: select all outstanding rows
-      out.forEach((r) => {
-        if (Math.max(r.total - r.already_paid, 0) > 0) r.selected = true;
-      });
+      // Default: nothing selected — counselor picks services or uses lump sum.
       setRows(out);
       setLoadingRows(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoice.id]);
 
+  const hasInstallmentRows = rows.some((r) => r.kind === "installment");
+
   // Mode effects on default selection / amounts
   useEffect(() => {
-    setRows((rs) =>
-      rs.map((r, i) => {
-        const out = Math.max(r.total - r.already_paid, 0);
-        if (mode === "individual") {
-          return {
-            ...r,
-            selected: i === rs.findIndex((x) => Math.max(x.total - x.already_paid, 0) > 0),
-            payNow: out.toFixed(2),
-          };
-        }
-        if (mode === "installment") {
+    if (mode === "lump_sum") {
+      setRows((rs) => {
+        const totalOut = rs.reduce((s, r) => s + Math.max(r.total - r.already_paid, 0), 0);
+        setLumpSumAmount((prev) => {
+          if (prev.trim()) return prev;
+          return totalOut > 0 ? totalOut.toFixed(2) : "";
+        });
+        return rs.map((r) => ({ ...r, selected: false }));
+      });
+      return;
+    }
+    if (mode === "installment") {
+      setRows((rs) =>
+        rs.map((r) => {
+          const out = Math.max(r.total - r.already_paid, 0);
           const isInst = r.kind === "installment";
           return { ...r, selected: isInst && out > 0, payNow: out.toFixed(2) };
-        }
-        if (mode === "partial") {
-          return { ...r, payNow: out > 0 ? Math.max(0, out / 2).toFixed(2) : "0.00" };
-        }
-        // consolidated
-        return { ...r, selected: out > 0, payNow: out.toFixed(2) };
+        }),
+      );
+      return;
+    }
+    // select_services — user picks rows; default payNow to full outstanding when checked
+    setRows((rs) =>
+      rs.map((r) => {
+        const out = Math.max(r.total - r.already_paid, 0);
+        return {
+          ...r,
+          selected: r.selected && out > 0,
+          payNow: r.selected && out > 0 ? out.toFixed(2) : r.payNow,
+        };
       }),
     );
   }, [mode]);
@@ -1794,14 +1891,43 @@ function CollectPaymentDialog({
   const updateRow = (key: string, patch: Partial<Row>) =>
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
 
+  const invoiceBalance = Math.max(
+    rows.reduce((s, r) => s + Math.max(r.total - r.already_paid, 0), 0),
+    balance,
+  );
+
+  const lumpSumDistribution = useMemo(() => {
+    if (mode !== "lump_sum") return new Map<string, number>();
+    const amt = Math.min(Math.max(Number(lumpSumAmount) || 0, 0), invoiceBalance);
+    return distributeLumpSumAcrossLines(
+      rows.map((r) => ({
+        key: r.key,
+        line_item_key: r.line_item_key,
+        service_id: r.service_id,
+        total: r.total,
+        already_paid: r.already_paid,
+      })),
+      amt,
+    );
+  }, [mode, lumpSumAmount, rows, invoiceBalance]);
+
   // Derived
-  const selectedRows = rows.filter((r) => r.selected);
+  const selectedRows =
+    mode === "lump_sum"
+      ? rows.filter((r) => (lumpSumDistribution.get(r.key) ?? 0) > 0)
+      : rows.filter((r) => r.selected);
   const selectedOutstanding = selectedRows.reduce((s, r) => s + Math.max(r.total - r.already_paid, 0), 0);
-  const sumPayNow = selectedRows.reduce((s, r) => s + (Number(r.payNow) || 0), 0);
+  const sumPayNow =
+    mode === "lump_sum"
+      ? Math.min(Math.max(Number(lumpSumAmount) || 0, 0), invoiceBalance)
+      : selectedRows.reduce((s, r) => s + (Number(r.payNow) || 0), 0);
   const convertedToInvoiceCcy = sumPayNow; // amounts entered in invoice ccy
   // Payment currency input: derived amount in payCcy = invoice-ccy total / fxRate
   const amountInPayCcy = fxRate > 0 ? sumPayNow / fxRate : sumPayNow;
-  const overpay = selectedRows.some((r) => (Number(r.payNow) || 0) > Math.max(r.total - r.already_paid, 0) + 0.01);
+  const overpay =
+    mode === "lump_sum"
+      ? sumPayNow > invoiceBalance + 0.01
+      : selectedRows.some((r) => (Number(r.payNow) || 0) > Math.max(r.total - r.already_paid, 0) + 0.01);
   const proofRequired = isProofRequired(method);
   // Admin override removes the proof requirement entirely.
   const proofMissing = proofRequired && !proofFile && !adminOverride;
@@ -1828,11 +1954,19 @@ function CollectPaymentDialog({
 
   /** Validate, then open the confirmation modal. */
   const requestSave = () => {
-    if (selectedRows.length === 0) {
-      toast.error("Select at least one service");
+    if (mode === "lump_sum") {
+      if (sumPayNow <= 0) {
+        toast.error("Enter a positive lump-sum amount");
+        return;
+      }
+      if (sumPayNow > invoiceBalance + 0.01) {
+        toast.error(`Amount cannot exceed balance due (${money(invoiceBalance, invCcy)})`);
+        return;
+      }
+    } else if (selectedRows.length === 0) {
+      toast.error("Select at least one service to pay");
       return;
-    }
-    if (sumPayNow <= 0) {
+    } else if (sumPayNow <= 0) {
       toast.error("Enter a positive amount");
       return;
     }
@@ -1898,28 +2032,52 @@ function CollectPaymentDialog({
       });
 
       const noteForTimeline = confirmNote.trim();
-      const allocationMetas = selectedRows
-        .map((r) => ({
-          row: r,
-          amount: Math.min(Math.max(Number(r.payNow) || 0, 0), Math.max(r.total - r.already_paid, 0)),
-        }))
-        .filter((a) => a.amount > 0)
-        .map((a, idx) => ({
-          allocation_order: idx + 1,
-          allocation_label: buildLabel(a.row),
-          service_id: a.row.service_id,
-          service_name: a.row.service_name,
-          country: a.row.country,
-          category: a.row.category,
-          service_type: a.row.service_type,
-          installment_id: a.row.installment_id,
-          installment_number: a.row.installment_number,
-          line_item_key: a.row.line_item_key,
-          payer: a.row.payer || null,
-          payer_name: a.row.payer === "other" ? a.row.payerName || null : null,
-          amount_allocated: a.amount,
-          currency: invCcy,
-        }));
+      const allocationMetas =
+        mode === "lump_sum"
+          ? rows
+              .map((r) => ({
+                row: r,
+                amount: lumpSumDistribution.get(r.key) ?? 0,
+              }))
+              .filter((a) => a.amount > 0)
+              .map((a, idx) => ({
+                allocation_order: idx + 1,
+                allocation_label: buildLabel(a.row),
+                service_id: a.row.service_id,
+                service_name: a.row.service_name,
+                country: a.row.country,
+                category: a.row.category,
+                service_type: a.row.service_type,
+                installment_id: a.row.installment_id,
+                installment_number: a.row.installment_number,
+                line_item_key: a.row.line_item_key,
+                payer: a.row.payer || null,
+                payer_name: a.row.payer === "other" ? a.row.payerName || null : null,
+                amount_allocated: a.amount,
+                currency: invCcy,
+              }))
+          : selectedRows
+              .map((r) => ({
+                row: r,
+                amount: Math.min(Math.max(Number(r.payNow) || 0, 0), Math.max(r.total - r.already_paid, 0)),
+              }))
+              .filter((a) => a.amount > 0)
+              .map((a, idx) => ({
+                allocation_order: idx + 1,
+                allocation_label: buildLabel(a.row),
+                service_id: a.row.service_id,
+                service_name: a.row.service_name,
+                country: a.row.country,
+                category: a.row.category,
+                service_type: a.row.service_type,
+                installment_id: a.row.installment_id,
+                installment_number: a.row.installment_number,
+                line_item_key: a.row.line_item_key,
+                payer: a.row.payer || null,
+                payer_name: a.row.payer === "other" ? a.row.payerName || null : null,
+                amount_allocated: a.amount,
+                currency: invCcy,
+              }));
 
       const { data: inserted, error } = await supabase
         .from("client_invoice_payments")
@@ -2197,21 +2355,25 @@ function CollectPaymentDialog({
 
           <div className="text-xs text-muted-foreground mb-2">
             Invoice total: <b>{money(Number(invoice.amount), invCcy)}</b> · Balance due: <b>{money(balance, invCcy)}</b>
+            <span className="block mt-0.5">
+              All services stay on this invoice — unpaid amounts remain on the draft for future collection.
+            </span>
           </div>
 
           {/* Mode selector */}
           <div className="grid grid-cols-4 gap-2 mb-3">
             <div className="col-span-2">
-              <Label>Payment mode</Label>
-              <Select value={mode} onValueChange={(v) => setMode(v as any)}>
+              <Label>How is the client paying?</Label>
+              <Select value={mode} onValueChange={(v) => setMode(v as CollectMode)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="consolidated">Consolidated (all services)</SelectItem>
-                  <SelectItem value="individual">Individual service</SelectItem>
-                  <SelectItem value="partial">Partial payment</SelectItem>
-                  <SelectItem value="installment">Installment payment</SelectItem>
+                  <SelectItem value="select_services">Select services to pay now</SelectItem>
+                  <SelectItem value="lump_sum">Lump sum (any amount)</SelectItem>
+                  {hasInstallmentRows && (
+                    <SelectItem value="installment">Installment schedule</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -2243,6 +2405,25 @@ function CollectPaymentDialog({
               />
             </div>
           </div>
+
+          {mode === "lump_sum" && (
+            <div className="rounded-md border border-primary/20 bg-primary/5 p-3 mb-3 space-y-2">
+              <Label>Lump-sum amount ({invCcy})</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                max={invoiceBalance}
+                value={lumpSumAmount}
+                onChange={(e) => setLumpSumAmount(e.target.value)}
+                placeholder={`Up to ${money(invoiceBalance, invCcy)}`}
+                className="max-w-xs text-right tabular-nums"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Split proportionally across all services with a balance. Unpaid services keep their full pending amount on the draft.
+              </p>
+            </div>
+          )}
 
           {/* Services table */}
           <div className="rounded-md border overflow-x-auto">
@@ -2277,14 +2458,26 @@ function CollectPaymentDialog({
                 ) : (
                   rows.map((r) => {
                     const out = Math.max(r.total - r.already_paid, 0);
+                    const lumpAlloc = lumpSumDistribution.get(r.key) ?? 0;
+                    const payDisplay = mode === "lump_sum" ? lumpAlloc : Number(r.payNow) || 0;
                     return (
                       <tr key={r.key} className="border-t align-middle">
                         <td className="px-2 py-1.5">
-                          <Checkbox
-                            checked={r.selected}
-                            disabled={out <= 0}
-                            onCheckedChange={(v) => updateRow(r.key, { selected: !!v })}
-                          />
+                          {mode !== "lump_sum" ? (
+                            <Checkbox
+                              checked={r.selected}
+                              disabled={out <= 0}
+                              onCheckedChange={(v) => {
+                                const selected = !!v;
+                                updateRow(r.key, {
+                                  selected,
+                                  payNow: selected ? out.toFixed(2) : "0.00",
+                                });
+                              }}
+                            />
+                          ) : (
+                            <span className="text-muted-foreground text-[10px]">—</span>
+                          )}
                         </td>
                         <td className="px-2 py-1.5">
                           <div className="font-medium">{buildLabel(r)}</div>
@@ -2301,15 +2494,21 @@ function CollectPaymentDialog({
                         </td>
                         <td className="px-2 py-1.5 text-right tabular-nums">{money(out, invCcy)}</td>
                         <td className="px-2 py-1.5">
-                          <Input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            className="h-7 text-right"
-                            disabled={!r.selected || out <= 0}
-                            value={r.payNow}
-                            onChange={(e) => updateRow(r.key, { payNow: e.target.value })}
-                          />
+                          {mode === "lump_sum" ? (
+                            <span className="tabular-nums text-right block">
+                              {lumpAlloc > 0 ? money(lumpAlloc, invCcy) : "—"}
+                            </span>
+                          ) : (
+                            <Input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              className="h-7 text-right"
+                              disabled={!r.selected || out <= 0}
+                              value={r.payNow}
+                              onChange={(e) => updateRow(r.key, { payNow: e.target.value })}
+                            />
+                          )}
                         </td>
                         <td className="px-2 py-1.5">
                           <Select value={r.payer || "applicant"} onValueChange={(v) => updateRow(r.key, { payer: v })}>
@@ -2332,7 +2531,7 @@ function CollectPaymentDialog({
                             />
                           )}
                         </td>
-                        <td className="px-2 py-1.5">{projectedChip(r)}</td>
+                        <td className="px-2 py-1.5">{projectedChip({ ...r, selected: mode === "lump_sum" ? lumpAlloc > 0 : r.selected, payNow: String(payDisplay) })}</td>
                       </tr>
                     );
                   })
@@ -2479,7 +2678,13 @@ function CollectPaymentDialog({
             </Button>
             <Button
               onClick={requestSave}
-              disabled={saving || proofMissing || overpay || sumPayNow <= 0 || selectedRows.length === 0}
+              disabled={
+                saving ||
+                proofMissing ||
+                overpay ||
+                sumPayNow <= 0 ||
+                (mode !== "lump_sum" && selectedRows.length === 0)
+              }
             >
               {saving
                 ? "Posting…"
@@ -3118,12 +3323,13 @@ function SendReminderDialog({
 function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose: () => void }) {
   const [payments, setPayments] = useState<any[]>([]);
   const [receipts, setReceipts] = useState<any[]>([]);
+  const [linePaidByKey, setLinePaidByKey] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
     (async () => {
-      const [p, r] = await Promise.all([
+      const [p, r, a] = await Promise.all([
         supabase
           .from("client_invoice_payments")
           .select(
@@ -3138,12 +3344,27 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
           .eq("invoice_id", invoice.id)
           .is("archived_at", null)
           .order("generated_at", { ascending: false }),
+        supabase
+          .from("client_invoice_payment_allocations")
+          .select("amount_allocated,line_item_key,service_id")
+          .eq("invoice_id", invoice.id),
       ]);
       setPayments(p.data ?? []);
       setReceipts(r.data ?? []);
+      const { byLineKey, byServiceId } = paidByLineFromAllocations(a.data ?? []);
+      const lines = Array.isArray(invoice.line_items) ? invoice.line_items : [];
+      const paid: Record<string, number> = {};
+      lines.forEach((li: InvoiceLineLike, idx: number) => {
+        if (isCheckoutDiscountMetaLine(li)) return;
+        const key = lineItemKeyFromIndex(li, idx);
+        paid[key] =
+          byLineKey.get(key) ??
+          (li.service_id ? byServiceId.get(String(li.service_id)) ?? 0 : 0);
+      });
+      setLinePaidByKey(paid);
       setLoading(false);
     })();
-  }, [invoice.id]);
+  }, [invoice.id, invoice.line_items]);
 
   const verifiedPaid = payments.reduce(
     (s, p) => s + (p.payment_status === "verified" ? (p.is_refund ? -1 : 1) * Number(p.amount || 0) : 0),
@@ -3255,20 +3476,34 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
                     <th className="text-left px-2 py-1">Service</th>
                     <th className="text-right px-2 py-1">Qty</th>
                     <th className="text-right px-2 py-1">Total</th>
+                    <th className="text-right px-2 py-1">Paid</th>
+                    <th className="text-right px-2 py-1">Pending</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(Array.isArray(invoice.line_items) ? invoice.line_items : [])
                     .filter((li: any) => !isCheckoutDiscountMetaLine(li))
-                    .map((li: any, i: number) => (
+                    .map((li: any, i: number) => {
+                      const lineTotal = Number(li.total ?? li.amount ?? 0);
+                      const key = lineItemKeyFromIndex(li, i);
+                      const linePaid = linePaidByKey[key] ?? 0;
+                      const pending = Math.max(lineTotal - linePaid, 0);
+                      return (
                     <tr key={i} className="border-t">
                       <td className="px-2 py-1">{li.service_name || li.description || "—"}</td>
                       <td className="px-2 py-1 text-right tabular-nums">{li.quantity ?? 1}</td>
                       <td className="px-2 py-1 text-right tabular-nums">
-                        {money(Number(li.total ?? li.amount ?? 0), invoice.currency)}
+                        {money(lineTotal, invoice.currency)}
+                      </td>
+                      <td className="px-2 py-1 text-right tabular-nums text-muted-foreground">
+                        {linePaid > 0 ? money(linePaid, invoice.currency) : "—"}
+                      </td>
+                      <td className="px-2 py-1 text-right tabular-nums">
+                        {money(pending, invoice.currency)}
                       </td>
                     </tr>
-                  ))}
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
