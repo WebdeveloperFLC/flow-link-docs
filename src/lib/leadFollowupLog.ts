@@ -22,6 +22,11 @@ export interface LeadFollowupLogEntry {
   created_by: string | null;
 }
 
+export const FOLLOWUP_LOG_PUBLISH_HINT =
+  "Lovable → Publish → approve migrations 20260718120035 and 20260718120036, then hard refresh (Cmd+Shift+R).";
+
+let logTableProbe: boolean | null = null;
+
 function formatFollowupLogSummary(entry: LeadFollowupLogEntry): string {
   const channel = followupChannelLabel(entry.channel);
   const when = formatFollowupDue(entry.scheduled_at);
@@ -36,24 +41,43 @@ function formatFollowupLogSummary(entry: LeadFollowupLogEntry): string {
   return `Follow-up scheduled (${channel})${detail ? `: ${detail}` : ""}`;
 }
 
-function isFollowupRpcMissing(error: unknown): boolean {
+export function isFollowupLogUnavailableError(error: unknown): boolean {
   const msg = formatSupabaseError(error, "").toLowerCase();
   return (
-    msg.includes("could not find the function") ||
-    msg.includes("schema cache") ||
-    msg.includes("lead_followup_log") && msg.includes("does not exist")
+    msg.includes("lead_followup_log") &&
+    (msg.includes("could not find") ||
+      msg.includes("schema cache") ||
+      msg.includes("does not exist"))
   );
 }
 
+function isFollowupRpcMissing(error: unknown): boolean {
+  if (isFollowupLogUnavailableError(error)) return false;
+  const msg = formatSupabaseError(error, "").toLowerCase();
+  return msg.includes("could not find the function") && msg.includes("followup");
+}
+
+/** Probe once per session whether lead_followup_log exists in Supabase. */
+export async function probeLeadFollowupLogAvailable(force = false): Promise<boolean> {
+  if (!force && logTableProbe !== null) return logTableProbe;
+  const { error } = await supabase.from("lead_followup_log" as never).select("id").limit(0);
+  if (error && isFollowupLogUnavailableError(error)) {
+    logTableProbe = false;
+    return false;
+  }
+  logTableProbe = !error;
+  return logTableProbe;
+}
+
 async function clearLeadFollowupFields(leadId: string): Promise<void> {
-  const { error } = await supabase
-    .from("leads")
-    .update({
-      next_followup_at: null,
-      followup_channel: null,
-      followup_note: null,
-    } as never)
-    .eq("id", leadId);
+  const { error } = await supabase.rpc("patch_lead_draft", {
+    _id: leadId,
+    _data: {
+      next_followup_at: "",
+      followup_channel: "",
+      followup_note: "",
+    },
+  });
   if (error) throw error;
 }
 
@@ -119,14 +143,14 @@ async function syncLeadFollowupLogDirect(
     row = data as LeadFollowupLogEntry;
   }
 
-  const { error: leadErr } = await supabase
-    .from("leads")
-    .update({
+  const { error: leadErr } = await supabase.rpc("patch_lead_draft", {
+    _id: leadId,
+    _data: {
       next_followup_at: opts.scheduledAt,
-      followup_channel: channel,
-      followup_note: note,
-    } as never)
-    .eq("id", leadId);
+      followup_channel: channel ?? "",
+      followup_note: note ?? "",
+    },
+  });
   if (leadErr) throw leadErr;
 
   return row;
@@ -169,7 +193,66 @@ async function completeLeadFollowupDirect(
   return data as LeadFollowupLogEntry;
 }
 
+/** When log table is not published yet: clear follow-up fields and append outcome to lead notes. */
+async function completeLeadFollowupLegacy(
+  leadId: string,
+  completionNote?: string | null,
+): Promise<LeadFollowupLogEntry> {
+  const { data: lead, error: fetchErr } = await supabase
+    .from("leads")
+    .select("notes, next_followup_at, followup_channel, followup_note")
+    .eq("id", leadId)
+    .single();
+  if (fetchErr) throw fetchErr;
+
+  const row = lead as {
+    notes: string | null;
+    next_followup_at: string | null;
+    followup_channel: string | null;
+    followup_note: string | null;
+  };
+
+  const when = formatFollowupDue(row.next_followup_at);
+  const channel = followupChannelLabel(row.followup_channel);
+  const outcome = completionNote?.trim();
+  const noteLine = [
+    `[Follow-up completed ${when !== "—" ? when : "now"} · ${channel}]`,
+    row.followup_note?.trim() ? `Planned: ${row.followup_note.trim()}` : null,
+    outcome ? `Outcome: ${outcome}` : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const patch: Record<string, string> = {
+    next_followup_at: "",
+    followup_channel: "",
+    followup_note: "",
+  };
+  if (noteLine) {
+    patch.notes = [row.notes?.trim(), noteLine].filter(Boolean).join("\n");
+  }
+
+  const { error } = await supabase.rpc("patch_lead_draft", { _id: leadId, _data: patch });
+  if (error) throw error;
+
+  return {
+    id: "legacy",
+    lead_id: leadId,
+    scheduled_at: row.next_followup_at ?? new Date().toISOString(),
+    channel: row.followup_channel,
+    note: row.followup_note,
+    status: "completed",
+    completed_at: new Date().toISOString(),
+    completed_by: null,
+    completion_note: outcome ?? null,
+    created_at: row.next_followup_at ?? new Date().toISOString(),
+    created_by: null,
+  };
+}
+
 export async function listLeadFollowupLog(leadId: string): Promise<LeadFollowupLogEntry[]> {
+  if (!(await probeLeadFollowupLogAvailable())) return [];
+
   const { data, error } = await supabase
     .from("lead_followup_log" as never)
     .select("*")
@@ -177,9 +260,7 @@ export async function listLeadFollowupLog(leadId: string): Promise<LeadFollowupL
     .in("status", ["scheduled", "completed"])
     .order("created_at", { ascending: false });
   if (error) {
-    if (isFollowupRpcMissing(error) || error.message.includes("lead_followup_log")) {
-      return [];
-    }
+    if (isFollowupLogUnavailableError(error)) return [];
     throw error;
   }
   return (data ?? []) as LeadFollowupLogEntry[];
@@ -193,6 +274,8 @@ export async function syncLeadFollowupLog(
     note: string | null;
   },
 ): Promise<LeadFollowupLogEntry | null> {
+  if (!(await probeLeadFollowupLogAvailable())) return null;
+
   const { data, error } = await supabase.rpc("sync_lead_followup_log", {
     _lead_id: leadId,
     _scheduled_at: opts.scheduledAt,
@@ -209,14 +292,26 @@ export async function syncLeadFollowupLog(
 export async function completeLeadFollowup(
   leadId: string,
   completionNote?: string | null,
-): Promise<LeadFollowupLogEntry> {
+): Promise<{ entry: LeadFollowupLogEntry; usedLegacy: boolean }> {
+  if (!(await probeLeadFollowupLogAvailable())) {
+    return {
+      entry: await completeLeadFollowupLegacy(leadId, completionNote),
+      usedLegacy: true,
+    };
+  }
+
   const { data, error } = await supabase.rpc("complete_lead_followup", {
     _lead_id: leadId,
     _completion_note: completionNote?.trim() || null,
   });
-  if (!error) return data as LeadFollowupLogEntry;
+  if (!error) {
+    return { entry: data as LeadFollowupLogEntry, usedLegacy: false };
+  }
   if (isFollowupRpcMissing(error)) {
-    return completeLeadFollowupDirect(leadId, completionNote);
+    return {
+      entry: await completeLeadFollowupDirect(leadId, completionNote),
+      usedLegacy: false,
+    };
   }
   throw error;
 }
@@ -226,6 +321,8 @@ export async function copyLeadFollowupLogToClientActivity(
   leadId: string,
   clientId: string,
 ): Promise<void> {
+  if (!(await probeLeadFollowupLogAvailable())) return;
+
   const { data: rows, error } = await supabase
     .from("lead_followup_log" as never)
     .select("*")
@@ -284,6 +381,6 @@ export function followupLogActionLabel(action: string): string {
 }
 
 export function followupDatabaseHint(error: unknown): string | null {
-  if (!isFollowupRpcMissing(error)) return null;
-  return "Publish migrations 20260718120034 and 20260718120035–36 in Lovable, then hard refresh.";
+  if (!isFollowupLogUnavailableError(error) && !isFollowupRpcMissing(error)) return null;
+  return FOLLOWUP_LOG_PUBLISH_HINT;
 }

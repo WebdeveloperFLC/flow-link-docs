@@ -8,7 +8,9 @@ import { CheckCircle2, History } from "lucide-react";
 import {
   completeLeadFollowup,
   followupDatabaseHint,
+  FOLLOWUP_LOG_PUBLISH_HINT,
   listLeadFollowupLog,
+  probeLeadFollowupLogAvailable,
   type LeadFollowupLogEntry,
 } from "@/lib/leadFollowupLog";
 import {
@@ -44,6 +46,7 @@ export function LeadFollowupLogPanel({
   const [loading, setLoading] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [completionNote, setCompletionNote] = useState("");
+  const [logAvailable, setLogAvailable] = useState<boolean | null>(null);
 
   const refresh = useCallback(async () => {
     if (!leadId) {
@@ -63,6 +66,10 @@ export function LeadFollowupLogPanel({
   useEffect(() => {
     void refresh();
   }, [refresh, refreshToken]);
+
+  useEffect(() => {
+    void probeLeadFollowupLogAvailable().then(setLogAvailable);
+  }, [refreshToken]);
 
   const openEntry = entries.find((e) => e.status === "scheduled");
   const history = entries.filter((e) => e.status === "completed");
@@ -86,8 +93,12 @@ export function LeadFollowupLogPanel({
         if (!saved) return;
         await refresh();
       }
-      await completeLeadFollowup(leadId, completionNote);
-      toast.success("Follow-up marked complete — schedule the next one above");
+      const { usedLegacy } = await completeLeadFollowup(leadId, completionNote);
+      toast.success(
+        usedLegacy
+          ? "Follow-up cleared (outcome saved to lead notes). Publish migrations 20260718120035–36 in Lovable for full history."
+          : "Follow-up marked complete — schedule the next one above",
+      );
       setCompletionNote("");
       await refresh();
       onCompleted?.();
@@ -113,6 +124,12 @@ export function LeadFollowupLogPanel({
 
   return (
     <div className={cn("space-y-4", compact ? "pt-2" : "pt-1 border-t mt-4")}>
+      {logAvailable === false && (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-950 dark:text-amber-100">
+          Follow-up history is not enabled on this database yet. Mark complete still clears the date
+          and saves your outcome to lead notes. {FOLLOWUP_LOG_PUBLISH_HINT}
+        </div>
+      )}
       {canComplete && (
         <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-3">
           <div className="flex items-center justify-between gap-2 flex-wrap">
