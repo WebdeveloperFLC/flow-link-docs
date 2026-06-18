@@ -28,6 +28,71 @@ export const FOLLOWUP_LOG_PUBLISH_HINT =
 
 let logTableProbe: boolean | null = null;
 
+const offlineFollowupKey = (leadId: string) => `flc_lead_followup_offline_${leadId}`;
+
+/** Browser fallback when lead_followup_log migration is not published yet. */
+export function listOfflineFollowupCompletions(leadId: string): LeadFollowupLogEntry[] {
+  try {
+    const raw = localStorage.getItem(offlineFollowupKey(leadId));
+    if (!raw) return [];
+    return JSON.parse(raw) as LeadFollowupLogEntry[];
+  } catch {
+    return [];
+  }
+}
+
+function appendOfflineFollowupCompletion(leadId: string, entry: LeadFollowupLogEntry): void {
+  const rows = listOfflineFollowupCompletions(leadId);
+  rows.unshift(entry);
+  localStorage.setItem(offlineFollowupKey(leadId), JSON.stringify(rows));
+}
+
+function clearOfflineFollowupCompletions(leadId: string): void {
+  localStorage.removeItem(offlineFollowupKey(leadId));
+}
+
+async function appendFollowupRowToClientActivity(
+  leadId: string,
+  clientId: string,
+  row: LeadFollowupLogEntry,
+): Promise<void> {
+  const action =
+    row.status === "completed" ? "lead_followup_completed" : "lead_followup_scheduled";
+  const channel = followupChannelLabel(row.channel);
+  const when = formatFollowupDue(row.scheduled_at);
+  const summary = formatFollowupLogSummary(row);
+  const newValue = [
+    row.note?.trim(),
+    row.completion_note?.trim() ? `Outcome: ${row.completion_note.trim()}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n") || `${channel} · ${when}`;
+
+  const eventAt =
+    row.status === "completed" && row.completed_at ? row.completed_at : row.created_at;
+
+  await appendClientActivityLog({
+    clientId,
+    leadId,
+    action,
+    summary,
+    newValue,
+    metadata: {
+      channel: row.channel,
+      scheduled_at: row.scheduled_at,
+      note: row.note,
+      status: row.status,
+      completed_at: row.completed_at,
+      completion_note: row.completion_note,
+      offline: row.id.startsWith("offline-"),
+    },
+    actorId: row.status === "completed" ? row.completed_by : row.created_by,
+    sourceTable: "lead_followup_log",
+    sourceId: row.id,
+    createdAt: eventAt,
+  });
+}
+
 function formatFollowupLogSummary(entry: LeadFollowupLogEntry): string {
   const channel = followupChannelLabel(entry.channel);
   const when = formatFollowupDue(entry.scheduled_at);
@@ -194,50 +259,27 @@ async function completeLeadFollowupDirect(
   return data as LeadFollowupLogEntry;
 }
 
-/** When log table is not published yet: clear follow-up fields and append outcome to lead notes. */
+/** When log table is not published yet: clear follow-up fields and store completion locally. */
 async function completeLeadFollowupLegacy(
   leadId: string,
   completionNote?: string | null,
 ): Promise<LeadFollowupLogEntry> {
   const { data: lead, error: fetchErr } = await supabase
     .from("leads")
-    .select("notes, next_followup_at, followup_channel, followup_note")
+    .select("next_followup_at, followup_channel, followup_note")
     .eq("id", leadId)
     .single();
   if (fetchErr) throw fetchErr;
 
   const row = lead as {
-    notes: string | null;
     next_followup_at: string | null;
     followup_channel: string | null;
     followup_note: string | null;
   };
 
-  const when = formatFollowupDue(row.next_followup_at);
-  const channel = followupChannelLabel(row.followup_channel);
-  const outcome = completionNote?.trim();
-  const noteLine = [
-    `[Follow-up completed ${when !== "—" ? when : "now"} · ${channel}]`,
-    row.followup_note?.trim() ? `Planned: ${row.followup_note.trim()}` : null,
-    outcome ? `Outcome: ${outcome}` : null,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  const patch: Record<string, string> = {
-    next_followup_at: "",
-    followup_channel: "",
-    followup_note: "",
-  };
-  if (noteLine) {
-    patch.notes = [row.notes?.trim(), noteLine].filter(Boolean).join("\n");
-  }
-
-  const { error } = await supabase.rpc("patch_lead_draft", { _id: leadId, _data: patch });
-  if (error) throw error;
-
-  return {
-    id: "legacy",
+  const outcome = completionNote?.trim() || null;
+  const entry: LeadFollowupLogEntry = {
+    id: `offline-${crypto.randomUUID()}`,
     lead_id: leadId,
     scheduled_at: row.next_followup_at ?? new Date().toISOString(),
     channel: row.followup_channel,
@@ -245,10 +287,14 @@ async function completeLeadFollowupLegacy(
     status: "completed",
     completed_at: new Date().toISOString(),
     completed_by: null,
-    completion_note: outcome ?? null,
+    completion_note: outcome,
     created_at: row.next_followup_at ?? new Date().toISOString(),
     created_by: null,
   };
+
+  await clearLeadFollowupFields(leadId);
+  appendOfflineFollowupCompletion(leadId, entry);
+  return entry;
 }
 
 async function persistLeadFollowupOnLead(
@@ -267,7 +313,14 @@ async function persistLeadFollowupOnLead(
 }
 
 export async function listLeadFollowupLog(leadId: string): Promise<LeadFollowupLogEntry[]> {
-  if (!(await probeLeadFollowupLogAvailable())) return [];
+  const offline = listOfflineFollowupCompletions(leadId);
+  if (!(await probeLeadFollowupLogAvailable())) {
+    return offline.sort(
+      (a, b) =>
+        new Date(b.completed_at ?? b.created_at).getTime() -
+        new Date(a.completed_at ?? a.created_at).getTime(),
+    );
+  }
 
   const { data, error } = await supabase
     .from("lead_followup_log" as never)
@@ -276,10 +329,18 @@ export async function listLeadFollowupLog(leadId: string): Promise<LeadFollowupL
     .in("status", ["scheduled", "completed"])
     .order("created_at", { ascending: false });
   if (error) {
-    if (isFollowupLogUnavailableError(error)) return [];
+    if (isFollowupLogUnavailableError(error)) return offline;
     throw error;
   }
-  return (data ?? []) as LeadFollowupLogEntry[];
+
+  const dbRows = (data ?? []) as LeadFollowupLogEntry[];
+  const dbIds = new Set(dbRows.map((r) => r.id));
+  const merged = [...dbRows, ...offline.filter((r) => !dbIds.has(r.id))];
+  return merged.sort((a, b) => {
+    const aTime = new Date(a.completed_at ?? a.created_at).getTime();
+    const bTime = new Date(b.completed_at ?? b.created_at).getTime();
+    return bTime - aTime;
+  });
 }
 
 export async function syncLeadFollowupLog(
@@ -340,7 +401,15 @@ export async function copyLeadFollowupLogToClientActivity(
   leadId: string,
   clientId: string,
 ): Promise<void> {
-  if (!(await probeLeadFollowupLogAvailable())) return;
+  const offline = listOfflineFollowupCompletions(leadId);
+
+  if (!(await probeLeadFollowupLogAvailable())) {
+    for (const row of offline) {
+      await appendFollowupRowToClientActivity(leadId, clientId, row);
+    }
+    clearOfflineFollowupCompletions(leadId);
+    return;
+  }
 
   const { data: rows, error } = await supabase
     .from("lead_followup_log" as never)
@@ -350,47 +419,20 @@ export async function copyLeadFollowupLogToClientActivity(
     .order("created_at", { ascending: true });
   if (error) {
     console.warn("[copyLeadFollowupLog]", error.message);
+    for (const row of offline) {
+      await appendFollowupRowToClientActivity(leadId, clientId, row);
+    }
+    clearOfflineFollowupCompletions(leadId);
     return;
   }
 
   for (const row of (rows ?? []) as LeadFollowupLogEntry[]) {
-    const action =
-      row.status === "completed" ? "lead_followup_completed" : "lead_followup_scheduled";
-    const channel = followupChannelLabel(row.channel);
-    const when = formatFollowupDue(row.scheduled_at);
-    const summary = formatFollowupLogSummary(row);
-    const newValue = [
-      row.note?.trim(),
-      row.completion_note?.trim() ? `Outcome: ${row.completion_note.trim()}` : null,
-    ]
-      .filter(Boolean)
-      .join("\n") || `${channel} · ${when}`;
-
-    const eventAt =
-      row.status === "completed" && row.completed_at
-        ? row.completed_at
-        : row.created_at;
-
-    await appendClientActivityLog({
-      clientId,
-      leadId,
-      action,
-      summary,
-      newValue,
-      metadata: {
-        channel: row.channel,
-        scheduled_at: row.scheduled_at,
-        note: row.note,
-        status: row.status,
-        completed_at: row.completed_at,
-        completion_note: row.completion_note,
-      },
-      actorId: row.status === "completed" ? row.completed_by : row.created_by,
-      sourceTable: "lead_followup_log",
-      sourceId: row.id,
-      createdAt: eventAt,
-    });
+    await appendFollowupRowToClientActivity(leadId, clientId, row);
   }
+  for (const row of offline) {
+    await appendFollowupRowToClientActivity(leadId, clientId, row);
+  }
+  clearOfflineFollowupCompletions(leadId);
 }
 
 export function followupLogActionLabel(action: string): string {

@@ -8,7 +8,6 @@ import { CheckCircle2, History } from "lucide-react";
 import {
   completeLeadFollowup,
   listLeadFollowupLog,
-  probeLeadFollowupLogAvailable,
   type LeadFollowupLogEntry,
 } from "@/lib/leadFollowupLog";
 import {
@@ -53,7 +52,6 @@ export function LeadFollowupLogPanel({
   const [loading, setLoading] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [completionNote, setCompletionNote] = useState("");
-  const [logAvailable, setLogAvailable] = useState<boolean | null>(null);
 
   const refresh = useCallback(async () => {
     if (!leadId) {
@@ -73,10 +71,6 @@ export function LeadFollowupLogPanel({
   useEffect(() => {
     void refresh();
   }, [refresh, refreshToken]);
-
-  useEffect(() => {
-    void probeLeadFollowupLogAvailable().then(setLogAvailable);
-  }, [refreshToken]);
 
   const openEntry = entries.find((e) => e.status === "scheduled");
   const history = entries.filter((e) => e.status === "completed");
@@ -110,12 +104,8 @@ export function LeadFollowupLogPanel({
         if (!saved) return;
         await refresh();
       }
-      const { usedLegacy } = await completeLeadFollowup(leadId, completionNote);
-      toast.success(
-        usedLegacy
-          ? "Follow-up marked complete — outcome saved to lead notes"
-          : "Follow-up marked complete — schedule the next one above",
-      );
+      await completeLeadFollowup(leadId, completionNote);
+      toast.success("Follow-up marked complete — schedule the next one above");
       setCompletionNote("");
       await refresh();
       onCompleted?.();
@@ -213,9 +203,7 @@ export function LeadFollowupLogPanel({
         )}
         {!loading && history.length === 0 && !showUpcomingInHistory && (
           <p className="text-xs text-muted-foreground">
-            {logAvailable === false
-              ? "No follow-ups in history yet. Completed ones appear in Notes below."
-              : "No follow-ups logged yet. Set a date above and click Save follow-up."}
+            No follow-ups logged yet. Set a date above and click Save follow-up.
           </p>
         )}
         {history.length > 0 && (
