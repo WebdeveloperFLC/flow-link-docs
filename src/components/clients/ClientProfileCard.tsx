@@ -12,10 +12,7 @@ import {
   Sparkles,
   Upload,
   User,
-  CreditCard,
   MapPin,
-  Briefcase,
-  Phone,
   Maximize2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -50,9 +47,9 @@ type GroupDef = {
   fields: FieldDef[];
 };
 
-type PersonalSectionId = "identity" | "passport" | "contact" | "emergency" | "employment";
+type PersonalSectionId = "identity" | "contact";
 
-const PERSONAL_GROUP_IDS: PersonalSectionId[] = ["identity", "passport", "contact", "emergency", "employment"];
+const PERSONAL_GROUP_IDS: PersonalSectionId[] = ["identity", "contact"];
 
 const GROUPS: GroupDef[] = [
   {
@@ -67,14 +64,6 @@ const GROUPS: GroupDef[] = [
       { key: "place_of_birth", label: "Place of birth" },
       { key: "marital_status", label: "Marital status" },
       { key: "spouse_name", label: "Spouse name" },
-    ],
-  },
-  {
-    id: "passport",
-    title: "Passport",
-    shortLabel: "Passport",
-    icon: CreditCard,
-    fields: [
       { key: "passport_number", label: "Passport number" },
       { key: "passport_country", label: "Passport country" },
       { key: "passport_issue_date", label: "Issue date", type: "date" },
@@ -94,32 +83,8 @@ const GROUPS: GroupDef[] = [
       { key: "address_state", label: "State" },
       { key: "address_country", label: "Country" },
       { key: "address_postal", label: "Postal code" },
-    ],
-  },
-  {
-    id: "employment",
-    title: "Employment & finance",
-    shortLabel: "Employment",
-    icon: Briefcase,
-    fields: [
-      { key: "employer_name", label: "Employer" },
-      { key: "job_title", label: "Job title" },
-      { key: "annual_income", label: "Annual income", type: "number" },
-      { key: "currency", label: "Currency" },
-      { key: "bank_name", label: "Bank" },
-      { key: "account_balance", label: "Account balance", type: "number" },
-      { key: "gic_amount", label: "GIC amount", type: "number" },
-      { key: "tuition_paid", label: "Tuition paid", type: "number" },
-    ],
-  },
-  {
-    id: "emergency",
-    title: "Emergency",
-    shortLabel: "Emergency",
-    icon: Phone,
-    fields: [
-      { key: "emergency_contact_name", label: "Contact name" },
-      { key: "emergency_contact_phone", label: "Contact phone" },
+      { key: "emergency_contact_name", label: "Emergency contact name" },
+      { key: "emergency_contact_phone", label: "Emergency contact phone" },
     ],
   },
 ];
