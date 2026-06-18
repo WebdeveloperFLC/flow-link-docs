@@ -15,6 +15,8 @@ import { completeClientServiceEnrollment } from "@/lib/service-library/completeC
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
 import { ensureClientProfileSynced } from "@/lib/clientProfileSync";
 import { copyLeadHistoryToClientActivity, appendClientActivityLog } from "@/lib/clientActivityLog";
+import { createTask } from "@/lib/clientTasks";
+import { followupChannelLabel } from "@/lib/leadFollowup";
 import type { ServiceSelection } from "@/components/leads/ServiceTabs";
 
 export type ConvertLeadOptions = {
@@ -199,6 +201,19 @@ export async function convertLeadToClient(
     newValue: saved.registration_number ?? saved.id,
     metadata: { source_lead_id: lead.id, invoice_lines: invoiceLinesCreated },
   }).catch(() => {});
+
+  if (lead.next_followup_at) {
+    const channel = followupChannelLabel(lead.followup_channel);
+    const title = lead.followup_note?.trim() || `Follow up (${channel})`;
+    await createTask({
+      clientId: saved.id,
+      title,
+      description: lead.followup_note?.trim() || null,
+      kind: "reminder",
+      dueAt: lead.next_followup_at,
+      assignedTo: lead.assigned_counselor_id ?? saved.assigned_counselor_id ?? null,
+    }).catch((e) => console.warn("[convertLeadToClient] follow-up task failed", e));
+  }
 
   return {
     clientId: saved.id,

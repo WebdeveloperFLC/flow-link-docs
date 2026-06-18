@@ -2,10 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Workflow, AlertTriangle } from "lucide-react";
+import { Workflow } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { ClientRefusalWorkflowDialog } from "@/components/clients/ClientRefusalWorkflowDialog";
 import { appendClientActivityLog } from "@/lib/clientActivityLog";
 import { useMasterItems } from "@/lib/masters";
 import { resolveClientStatusLabel } from "@/lib/clientStatus";
@@ -23,23 +22,17 @@ type Props = {
   destinationCountry?: string | null;
   caseClosed?: boolean;
   hasPipeline: boolean;
-  pipelineId?: string | null;
-  currentStageKey?: string | null;
-  derivedCurrentStageId?: string | null;
-  currentStageLabel?: string | null;
   busy?: boolean;
   onReload?: () => void;
 };
 
-/** Pipeline assign (no pipeline) + client status panel under the journey bar. */
+/** Pipeline assign (no pipeline) + client status panel under the journey bar. Refusal next steps: Case outcome only. */
 export function ClientStageInternalPanel({
   clientId,
   clientCountry,
   destinationCountry,
   caseClosed,
   hasPipeline,
-  pipelineId,
-  currentStageKey,
   busy = false,
   onReload,
 }: Props) {
@@ -48,7 +41,6 @@ export function ClientStageInternalPanel({
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
   const [clientStatus, setClientStatus] = useState("in_progress");
   const [savedStatus, setSavedStatus] = useState("in_progress");
-  const [refusalOpen, setRefusalOpen] = useState(false);
   const [assignBusy, setAssignBusy] = useState(false);
 
   const loadClientMeta = async () => {
@@ -86,7 +78,6 @@ export function ClientStageInternalPanel({
   }, [pipelines, clientCountry, destinationCountry]);
 
   const metaBusy = busy || assignBusy;
-  const showRefusalActions = currentStageKey === "visa_refused" || currentStageKey === "decision_received";
   const defaultStatusCode = statusOptions[0]?.code ?? "in_progress";
 
   const onAssignPipeline = async (pipelineIdVal: string) => {
@@ -156,45 +147,6 @@ export function ClientStageInternalPanel({
     }
   };
 
-  const onMarkRefused = async () => {
-    if (!pipelineId) return;
-    setAssignBusy(true);
-    try {
-      const { data: refusedStage } = await supabase
-        .from("pipeline_stages")
-        .select("id, label")
-        .eq("pipeline_id", pipelineId)
-        .eq("key", "visa_refused")
-        .maybeSingle();
-      if (refusedStage?.id) {
-        const { error } = await supabase
-          .from("clients")
-          .update({
-            current_stage_id: refusedStage.id,
-            status: "rejected",
-          })
-          .eq("id", clientId);
-        if (error) throw error;
-        setClientStatus("rejected");
-        setSavedStatus("rejected");
-        await appendClientActivityLog({
-          clientId,
-          action: "stage_changed",
-          summary: "Marked as visa refused",
-          newValue: refusedStage.label ?? "Visa refused",
-        });
-        toast.success("Marked as visa refused");
-        onReload?.();
-      } else {
-        setRefusalOpen(true);
-      }
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Failed to mark refused");
-    } finally {
-      setAssignBusy(false);
-    }
-  };
-
   if (!hasPipeline) {
     return (
       <div className="px-4 sm:px-8 py-3 border-b bg-muted/20">
@@ -226,60 +178,33 @@ export function ClientStageInternalPanel({
   if (!canUpload || caseClosed) return null;
 
   return (
-    <>
-      <div className="px-4 sm:px-8 py-2 border-b bg-muted/10">
-        <div className="rounded-md border bg-muted/20 p-3 space-y-2">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Client status</div>
-          <div className="flex flex-wrap gap-2">
-            <Select value={clientStatus || defaultStatusCode} onValueChange={setClientStatus} disabled={metaBusy}>
-              <SelectTrigger className="w-[220px] h-8 text-xs">
-                <SelectValue placeholder="Select status…" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.length === 0 ? (
-                  <SelectItem value="in_progress" disabled>
-                    No statuses configured — add in Masters
+    <div className="px-4 sm:px-8 py-2 border-b bg-muted/10">
+      <div className="rounded-md border bg-muted/20 p-3 space-y-2">
+        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Client status</div>
+        <div className="flex flex-wrap gap-2">
+          <Select value={clientStatus || defaultStatusCode} onValueChange={setClientStatus} disabled={metaBusy}>
+            <SelectTrigger className="w-[220px] h-8 text-xs">
+              <SelectValue placeholder="Select status…" />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.length === 0 ? (
+                <SelectItem value="in_progress" disabled>
+                  No statuses configured — add in Masters
+                </SelectItem>
+              ) : (
+                statusOptions.map((opt) => (
+                  <SelectItem key={opt.code} value={opt.code}>
+                    {opt.label}
                   </SelectItem>
-                ) : (
-                  statusOptions.map((opt) => (
-                    <SelectItem key={opt.code} value={opt.code}>
-                      {opt.label}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            <Button size="sm" variant="secondary" className="h-8" onClick={onSaveStatus} disabled={metaBusy}>
-              Save
-            </Button>
-            {!showRefusalActions && (
-              <Button size="sm" variant="outline" className="h-8 gap-1" onClick={onMarkRefused} disabled={metaBusy}>
-                <AlertTriangle className="size-3.5" /> Mark refused
-              </Button>
-            )}
-            {showRefusalActions && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-8 gap-1"
-                onClick={() => setRefusalOpen(true)}
-                disabled={metaBusy}
-              >
-                <AlertTriangle className="size-3.5" /> Refusal workflow
-              </Button>
-            )}
-          </div>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+          <Button size="sm" variant="secondary" className="h-8" onClick={onSaveStatus} disabled={metaBusy}>
+            Save
+          </Button>
         </div>
       </div>
-      {pipelineId && (
-        <ClientRefusalWorkflowDialog
-          open={refusalOpen}
-          onOpenChange={setRefusalOpen}
-          clientId={clientId}
-          pipelineId={pipelineId}
-          onComplete={onReload}
-        />
-      )}
-    </>
+    </div>
   );
 }

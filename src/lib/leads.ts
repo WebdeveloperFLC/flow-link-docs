@@ -63,6 +63,9 @@ export interface Lead {
   cold_pool_campaign?: string | null;
   notes?: string | null;
   notes_locked: boolean;
+  next_followup_at?: string | null;
+  followup_channel?: string | null;
+  followup_note?: string | null;
   priority?: string | null;
   source?: string | null;
   created_by?: string | null;

@@ -11965,6 +11965,9 @@ export type Database = {
           notes_locked: boolean | null
           notes_locked_at: string | null
           notes_locked_by: string | null
+          next_followup_at: string | null
+          followup_channel: string | null
+          followup_note: string | null
           phone: string | null
           phone_country_code: string | null
           priority: string | null
@@ -12010,6 +12013,9 @@ export type Database = {
           notes_locked?: boolean | null
           notes_locked_at?: string | null
           notes_locked_by?: string | null
+          next_followup_at?: string | null
+          followup_channel?: string | null
+          followup_note?: string | null
           phone?: string | null
           phone_country_code?: string | null
           priority?: string | null
@@ -12055,6 +12061,9 @@ export type Database = {
           notes_locked?: boolean | null
           notes_locked_at?: string | null
           notes_locked_by?: string | null
+          next_followup_at?: string | null
+          followup_channel?: string | null
+          followup_note?: string | null
           phone?: string | null
           phone_country_code?: string | null
           priority?: string | null
@@ -20741,6 +20750,9 @@ export type Database = {
           notes_locked: boolean | null
           notes_locked_at: string | null
           notes_locked_by: string | null
+          next_followup_at: string | null
+          followup_channel: string | null
+          followup_note: string | null
           phone: string | null
           phone_country_code: string | null
           priority: string | null

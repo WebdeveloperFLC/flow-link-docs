@@ -23,6 +23,11 @@ import {
   startTimelineLabel,
 } from "@/lib/leadJourney";
 import { formatBudgetRange } from "@/lib/currencyMaster";
+import {
+  followupChannelLabel,
+  formatFollowupDue,
+  followupDueState,
+} from "@/lib/leadFollowup";
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="space-y-0.5">
@@ -232,6 +237,23 @@ const LeadDetail = () => {
                 <Row label="Temperature" value={lead.lead_temperature} />
               </div>
             </Card>
+
+            <Card className="p-6 space-y-4">
+              <h3 className="font-semibold flex items-center gap-2">
+                Follow-up
+                {followupDueState(lead.next_followup_at) === "overdue" && (
+                  <Badge variant="destructive" className="text-[10px]">Overdue</Badge>
+                )}
+                {followupDueState(lead.next_followup_at) === "due" && (
+                  <Badge variant="secondary" className="text-[10px]">Due now</Badge>
+                )}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Row label="Next follow-up" value={formatFollowupDue(lead.next_followup_at)} />
+                <Row label="Channel" value={followupChannelLabel(lead.followup_channel)} />
+                <Row label="Note" value={lead.followup_note} />
+              </div>
+            </Card>
           </>
         )}
 
@@ -241,6 +263,22 @@ const LeadDetail = () => {
             <div className="grid grid-cols-2 gap-4">
               <Row label="Campaign" value={lead.cold_pool_campaign} />
               <Row label="Source" value={lead.lead_source} />
+            </div>
+          </Card>
+        )}
+
+        {(lead.is_cold_pool || lead.lead_type === "cold") && (
+          <Card className="p-6 space-y-4">
+            <h3 className="font-semibold flex items-center gap-2">
+              Follow-up
+              {followupDueState(lead.next_followup_at) === "overdue" && (
+                <Badge variant="destructive" className="text-[10px]">Overdue</Badge>
+              )}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Row label="Next follow-up" value={formatFollowupDue(lead.next_followup_at)} />
+              <Row label="Channel" value={followupChannelLabel(lead.followup_channel)} />
+              <Row label="Note" value={lead.followup_note} />
             </div>
           </Card>
         )}

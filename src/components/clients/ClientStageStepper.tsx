@@ -56,8 +56,6 @@ export function ClientStageStepper({
   };
 
   const pipelineTitle = activeServiceLabel?.trim() || "Application workflow";
-  const currentStageKey =
-    current?.stage_key ?? stages.find((s) => s.id === derivedCurrentStageId)?.key ?? null;
 
   const headerActions: ReactNode =
     canUpload && hasPipeline && stages.length > 0 && !caseClosed ? (
@@ -124,10 +122,6 @@ export function ClientStageStepper({
         destinationCountry={destinationCountry}
         caseClosed={caseClosed}
         hasPipeline={hasPipeline}
-        pipelineId={current?.pipeline_id}
-        currentStageKey={currentStageKey}
-        derivedCurrentStageId={derivedCurrentStageId}
-        currentStageLabel={current?.stage_label}
         busy={busy}
         onReload={() => {
           void load();

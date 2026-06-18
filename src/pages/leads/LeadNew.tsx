@@ -44,6 +44,11 @@ import {
   mergePrimaryUserOptionsWithSelf,
   type PrimaryUserOption,
 } from "@/lib/leadAssignment";
+import {
+  LEAD_FOLLOWUP_CHANNELS,
+  fromDatetimeLocalValue,
+  toDatetimeLocalValue,
+} from "@/lib/leadFollowup";
 
 const VISA_LOCK_TEMPLATE = (reason: string) =>
   `Visa not pursued at this stage. Reason: ${reason || "(please specify)"}\n\nFollow-up: Re-engage when visa interest is expressed.\n\n`;
@@ -78,6 +83,9 @@ const LeadNew = () => {
   const [visaLocked, setVisaLocked] = useState(false);
   const [visaLockReason, setVisaLockReason] = useState("");
   const [notes, setNotes] = useState("");
+  const [followupAtLocal, setFollowupAtLocal] = useState("");
+  const [followupChannel, setFollowupChannel] = useState("");
+  const [followupNote, setFollowupNote] = useState("");
 
   const [branches, setBranches] = useState<Branch[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -175,6 +183,9 @@ const LeadNew = () => {
     setVisaLocked(l.visa_locked);
     setVisaLockReason(l.visa_lock_reason ?? "");
     setNotes(l.notes ?? "");
+    setFollowupAtLocal(toDatetimeLocalValue(l.next_followup_at));
+    setFollowupChannel(l.followup_channel ?? "");
+    setFollowupNote(l.followup_note ?? "");
     if (l.converted_to_client_id) {
       setConvertedClientId(l.converted_to_client_id);
     }
@@ -203,6 +214,9 @@ const LeadNew = () => {
       visa_locked: visaLocked,
       visa_lock_reason: visaLocked ? visaLockReason : null,
       notes,
+      next_followup_at: fromDatetimeLocalValue(followupAtLocal),
+      followup_channel: followupChannel || null,
+      followup_note: followupNote.trim() || null,
     } as LeadDraft;
   };
 
@@ -270,8 +284,11 @@ const LeadNew = () => {
     travel_financial_services: services.travel_services,
     interested_countries: interestedCountries,
     notes,
+    next_followup_at: fromDatetimeLocalValue(followupAtLocal),
+    followup_channel: followupChannel || null,
+    followup_note: followupNote.trim() || null,
     ...(f as Partial<Lead>),
-  }), [f, services, interestedCountries, notes]);
+  }), [f, services, interestedCountries, notes, followupAtLocal, followupChannel, followupNote]);
 
   const convertAndNavigate = async () => {
     let id = leadId;
@@ -704,6 +721,54 @@ const LeadNew = () => {
                     </div>
                   </div>
                 </Card>
+
+                <Card className="p-4 sm:p-6 space-y-4">
+                  <h3 className="font-semibold">7. Follow-up</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Schedule the next touchpoint for the assigned primary user. Carried over when you register as client.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                      <Label>Next follow-up</Label>
+                      <Input
+                        type="datetime-local"
+                        value={followupAtLocal}
+                        onChange={(e) => {
+                          setFollowupAtLocal(e.target.value);
+                          setTimeout(autosave, 0);
+                        }}
+                        onBlur={autosave}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Channel</Label>
+                      <Select
+                        value={followupChannel || "__none__"}
+                        onValueChange={(v) => {
+                          setFollowupChannel(v === "__none__" ? "" : v);
+                          setTimeout(autosave, 0);
+                        }}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">— Not set —</SelectItem>
+                          {LEAD_FOLLOWUP_CHANNELS.map((c) => (
+                            <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5 md:col-span-2 lg:col-span-1">
+                      <Label>Follow-up note</Label>
+                      <Input
+                        value={followupNote}
+                        onChange={(e) => setFollowupNote(e.target.value)}
+                        onBlur={autosave}
+                        placeholder="e.g. Send fee quote, call back after IELTS"
+                      />
+                    </div>
+                  </div>
+                </Card>
               </>
             )}
 
@@ -729,8 +794,58 @@ const LeadNew = () => {
               </Card>
             )}
 
+            {isCold && (
+              <Card className="p-4 sm:p-6 space-y-4">
+                <h3 className="font-semibold">Follow-up</h3>
+                <p className="text-xs text-muted-foreground">
+                  Optional — schedule when to call this cold lead again.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <Label>Next follow-up</Label>
+                    <Input
+                      type="datetime-local"
+                      value={followupAtLocal}
+                      onChange={(e) => {
+                        setFollowupAtLocal(e.target.value);
+                        setTimeout(autosave, 0);
+                      }}
+                      onBlur={autosave}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Channel</Label>
+                    <Select
+                      value={followupChannel || "__none__"}
+                      onValueChange={(v) => {
+                        setFollowupChannel(v === "__none__" ? "" : v);
+                        setTimeout(autosave, 0);
+                      }}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">— Not set —</SelectItem>
+                        {LEAD_FOLLOWUP_CHANNELS.map((c) => (
+                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5 md:col-span-2 lg:col-span-1">
+                    <Label>Follow-up note</Label>
+                    <Input
+                      value={followupNote}
+                      onChange={(e) => setFollowupNote(e.target.value)}
+                      onBlur={autosave}
+                      placeholder="Brief reminder for next call"
+                    />
+                  </div>
+                </div>
+              </Card>
+            )}
+
             <Card className="p-6 space-y-3">
-              <h3 className="font-semibold">{isCold ? "Notes" : "7. Notes"}</h3>
+              <h3 className="font-semibold">{isCold ? "Notes" : "8. Notes"}</h3>
               <Textarea
                 ref={notesRef}
                 value={notes}

@@ -184,6 +184,7 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     lead_temperature:
       lead.lead_temperature ??
       (lead.is_cold_pool || lead.lead_type === "cold" ? "cold" : "warm"),
+    next_followup_at: lead.next_followup_at ?? null,
   };
 }
 
