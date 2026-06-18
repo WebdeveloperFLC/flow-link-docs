@@ -143,6 +143,57 @@ export interface ClientRow {
 
 export type ClientDraft = Partial<Omit<ClientRow, "id" | "registration_number" | "application_id">>;
 
+/** Columns added in migrations 40–44 — strip and retry if DB not published yet. */
+const CLIENT_SCHEMA_OPTIONAL_FIELDS = [
+  "language_tests",
+  "english_test_status",
+  "education_history",
+  "work_experience",
+  "english_sections",
+  "other_tests",
+  "next_followup_at",
+] as const;
+
+function schemaCacheMissingColumn(error: unknown): string | null {
+  const message =
+    typeof error === "object" && error && "message" in error
+      ? String((error as { message: unknown }).message)
+      : String(error);
+  if (!message.includes("schema cache") && !message.includes("Could not find")) return null;
+  const match = message.match(/'([^']+)'\s+column/i);
+  return match?.[1] ?? null;
+}
+
+async function writeClientRow(
+  id: string | null,
+  body: Record<string, unknown>,
+): Promise<ClientRow> {
+  const payload = { ...body };
+  const op = id ? "update" : "insert";
+
+  for (let attempt = 0; attempt <= CLIENT_SCHEMA_OPTIONAL_FIELDS.length; attempt++) {
+    const fn = id
+      ? () => supabase.from("clients").update(payload as never).eq("id", id).select().single()
+      : () => supabase.from("clients").insert([payload as never]).select().single();
+
+    try {
+      const data = await runWithAuthRetry(fn, { table: "clients", operation: op });
+      return data as unknown as ClientRow;
+    } catch (err) {
+      const missing = schemaCacheMissingColumn(err);
+      if (missing && missing in payload) {
+        delete payload[missing];
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw new Error(
+    "Database schema is out of date (missing client columns). In Lovable → Publish, approve migration 20260718120044_client_language_tests_hotfix.sql (and 40–42 if pending), then hard refresh.",
+  );
+}
+
 /** Prefill a client draft from a lead row. */
 export function prefillFromLead(lead: Lead): ClientDraft {
   const visaCode = (lead.visa_services && lead.visa_services[0]) || "";
@@ -247,21 +298,13 @@ export async function upsertClientRegistration(
   }
 
   if (id) {
-    const data = await runWithAuthRetry(() =>
-      supabase.from("clients").update(body as never).eq("id", id).select().single(),
-      { table: "clients", operation: "update" },
-    );
-    const row = data as unknown as ClientRow;
+    const row = await writeClientRow(id, body);
     await ensureClientProfileSynced(row.id).catch((e) =>
       console.warn("[upsertClientRegistration] profile sync failed", e),
     );
     return row;
   }
-  const data = await runWithAuthRetry(() =>
-    supabase.from("clients").insert([body as never]).select().single(),
-    { table: "clients", operation: "insert" },
-  );
-  const row = data as unknown as ClientRow;
+  const row = await writeClientRow(null, body);
   await ensureClientProfileSynced(row.id).catch((e) =>
     console.warn("[upsertClientRegistration] profile sync failed", e),
   );
