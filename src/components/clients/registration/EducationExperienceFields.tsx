@@ -52,7 +52,9 @@ export const EducationExperienceFields = ({
   const commit = () => onCommit?.();
   const englishTest = value.english_test ?? "";
   const englishStatus = value.english_test_status ?? null;
-  const showEnglishDetails = englishStatus === "scheduled" || englishStatus === "taken";
+  const hideEnglishFields = englishStatus === "waived" || englishStatus === "not_taken";
+  const showEnglishDates = englishStatus === "scheduled" || englishStatus === "taken";
+  const showEnglishScores = englishStatus === "taken";
   const show = (section: EducationExperienceSection) => visibleSections.includes(section);
 
   const education = value.education_history ?? [];
@@ -164,29 +166,32 @@ export const EducationExperienceFields = ({
                 </Select>
               </div>
             </div>
-            {showEnglishDetails && (
+            {!hideEnglishFields && (
               <>
-                <div className="flex flex-wrap gap-1.5">
-                  {ENGLISH_TESTS.map((t) => (
-                    <Button
-                      key={t}
-                      type="button"
-                      size="sm"
-                      variant={englishTest === t ? "default" : "outline"}
-                      onClick={() => {
-                        const next = t === englishTest ? null : t;
-                        onChange({ english_test: next, english_sections: next ? value.english_sections : {} });
-                        setTimeout(commit, 0);
-                      }}
-                    >
-                      {t}
-                    </Button>
-                  ))}
+                <div className="space-y-1 pt-1">
+                  <Label className="text-xs">Test type</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ENGLISH_TESTS.map((t) => (
+                      <Button
+                        key={t}
+                        type="button"
+                        size="sm"
+                        variant={englishTest === t ? "default" : "outline"}
+                        onClick={() => {
+                          const next = t === englishTest ? null : t;
+                          onChange({ english_test: next, english_sections: next ? value.english_sections : {} });
+                          setTimeout(commit, 0);
+                        }}
+                      >
+                        {t}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-                {(englishTest && englishTest !== "None") || englishStatus === "scheduled" ? (
+                {showEnglishDates && (englishTest && englishTest !== "None") && (
                   <div className="space-y-3 pt-2">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {englishStatus === "taken" && (
+                      {showEnglishScores && (
                         <div className="space-y-1">
                           <Label className="text-xs">Overall Score</Label>
                           <Input value={value.english_overall ?? ""} onChange={(e) => onChange({ english_overall: e.target.value })} onBlur={commit} />
@@ -201,7 +206,7 @@ export const EducationExperienceFields = ({
                         <Input type="date" value={value.english_test_expiry ?? ""} onChange={(e) => onChange({ english_test_expiry: e.target.value || null })} onBlur={commit} />
                       </div>
                     </div>
-                    {englishStatus === "taken" && englishSecs.length > 0 && (
+                    {showEnglishScores && englishSecs.length > 0 && (
                       <SectionalInputs
                         sections={englishSecs}
                         values={value.english_sections}
@@ -210,7 +215,7 @@ export const EducationExperienceFields = ({
                       />
                     )}
                   </div>
-                ) : null}
+                )}
               </>
             )}
           </div>
