@@ -32,10 +32,18 @@ type DisplayGroup = {
   keys: (keyof ServiceSelection)[];
 };
 
-const DISPLAY_GROUPS: DisplayGroup[] = [
+const CATEGORY_GROUPS: DisplayGroup[] = [
   { label: "Coaching", keys: ["coaching_services"] },
   { label: "Visa & Immigration", keys: ["visa_services"] },
   { label: "Allied & Travel", keys: ["allied_services", "travel_services"] },
+];
+
+const DISPLAY_GROUPS: DisplayGroup[] = [
+  ...CATEGORY_GROUPS,
+  {
+    label: "Custom Combo",
+    keys: ["coaching_services", "visa_services", "allied_services", "travel_services"],
+  },
 ];
 
 const GROUP_LABELS: { key: keyof ServiceSelection; label: string }[] = [
@@ -163,7 +171,7 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
       if (error) throw error;
 
       const diffParts: string[] = [];
-      for (const g of DISPLAY_GROUPS) {
+      for (const g of CATEGORY_GROUPS) {
         for (const key of g.keys) {
           const before = new Set(selection[key] ?? []);
           const after = new Set(draft[key] ?? []);

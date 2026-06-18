@@ -35,7 +35,7 @@ export function TabSelectedServices({
       catalogue={catalogue}
       labelByCode={labelByCode}
       onChange={(next) => {
-        if (tabKey === "all") {
+        if (tabKey === "all" || tabKey === "custom_combo") {
           onChange(next);
           return;
         }

@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
 import { type FeeCurrency } from "@/lib/leads/serviceFeeLabel";
 import { ServicePickerDialog } from "@/components/leads/ServicePickerDialog";
+import { CustomComboPickerDialog } from "@/components/leads/CustomComboPickerDialog";
+import { CustomComboServicePicker } from "@/components/leads/CustomComboServicePicker";
 import { ServicePickerListBody } from "@/components/leads/ServicePickerListBody";
 import { TabSelectedServices } from "@/components/leads/TabSelectedServices";
 import {
@@ -178,6 +180,7 @@ export const ServiceTabs = ({
         {SERVICE_TABS.map((t) => {
           const filtered = filterCatalogueForTab(t, byKey, { visaCountry, interestedCountries });
           const isVisa = t.key === "visa_services";
+          const isCustomCombo = t.key === "custom_combo";
           const locked = isVisa && visaLocked;
           const noCountriesPicked =
             isVisa && interestedCountries !== undefined && interestedCountries.length === 0;
@@ -188,6 +191,12 @@ export const ServiceTabs = ({
 
           return (
             <TabsContent key={t.key} value={t.key} className="space-y-3">
+              {isCustomCombo && (
+                <p className="text-xs text-muted-foreground">
+                  Merge coaching, visa, allied and travel into one offer for this lead or client.
+                </p>
+              )}
+
               {isVisa && noCountriesPicked && (
                 <div className="p-4 text-sm text-muted-foreground border rounded-md bg-muted/30 text-center">
                   Select countries of interest under Geography to see visa services.
@@ -261,7 +270,24 @@ export const ServiceTabs = ({
                     catalogue={catalogue}
                     onChange={onChange}
                   />
-                  {!(isVisa && noCountriesPicked) && (
+                  {isCustomCombo ? (
+                    <>
+                      {count === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          No services in this combo yet. Open the picker to add from any category.
+                        </p>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPickerTab("custom_combo")}
+                      >
+                        <Plus className="size-4 mr-1.5" />
+                        {count > 0 ? "Edit custom combo" : "Build custom combo"}
+                      </Button>
+                    </>
+                  ) : !(isVisa && noCountriesPicked) && (
                     <>
                       {count === 0 && (
                         <p className="text-sm text-muted-foreground">
@@ -281,6 +307,19 @@ export const ServiceTabs = ({
                     </>
                   )}
                 </div>
+              ) : isCustomCombo ? (
+                <CustomComboServicePicker
+                  byKey={byKey}
+                  catalogue={catalogue}
+                  value={value}
+                  onToggle={toggle}
+                  visaLocked={visaLocked}
+                  interestedCountries={interestedCountries}
+                  visaCountry={visaCountry}
+                  onVisaCountryChange={setVisaCountry}
+                  feeCurrency={feeCurrency}
+                  onFeeCurrencyChange={setFeeCurrency}
+                />
               ) : (
                 !(isVisa && noCountriesPicked) && (
                   <ServicePickerListBody
@@ -305,7 +344,22 @@ export const ServiceTabs = ({
         })}
       </Tabs>
 
-      {pickerDialogProps && (
+      {pickerTab === "custom_combo" && (
+        <CustomComboPickerDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setPickerTab(null);
+          }}
+          byKey={byKey}
+          catalogue={catalogue}
+          value={value}
+          onToggle={toggle}
+          visaLocked={visaLocked}
+          interestedCountries={interestedCountries}
+        />
+      )}
+
+      {pickerDialogProps && pickerTab !== "custom_combo" && (
         <ServicePickerDialog
           open={pickerTab !== null}
           onOpenChange={(open) => {

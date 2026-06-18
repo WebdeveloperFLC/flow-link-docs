@@ -15,7 +15,7 @@ export function serviceSelectionForTab(
   tabKey: ServiceTabKey,
   value: ServiceSelection,
 ): ServiceSelection {
-  if (tabKey === "all") return value;
+  if (tabKey === "all" || tabKey === "custom_combo") return value;
   if (tabKey === "coaching_services") {
     return {
       coaching_services: value.coaching_services ?? [],
