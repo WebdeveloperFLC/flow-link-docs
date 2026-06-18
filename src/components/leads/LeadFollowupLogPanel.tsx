@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { CheckCircle2, History } from "lucide-react";
 import {
   completeLeadFollowup,
+  followupDatabaseHint,
   listLeadFollowupLog,
   type LeadFollowupLogEntry,
 } from "@/lib/leadFollowupLog";
@@ -23,6 +24,7 @@ type Props = {
   hasOpenFollowup: boolean;
   onCompleted?: () => void;
   onSaveFollowup?: () => Promise<boolean>;
+  ensureSynced?: () => Promise<boolean>;
   saving?: boolean;
   compact?: boolean;
   refreshToken?: number;
@@ -33,6 +35,7 @@ export function LeadFollowupLogPanel({
   hasOpenFollowup,
   onCompleted,
   onSaveFollowup,
+  ensureSynced,
   saving = false,
   compact,
   refreshToken = 0,
@@ -72,7 +75,13 @@ export function LeadFollowupLogPanel({
     }
     setCompleting(true);
     try {
-      if (onSaveFollowup) {
+      if (!openEntry && (onSaveFollowup || ensureSynced)) {
+        const saved = onSaveFollowup
+          ? await onSaveFollowup()
+          : await ensureSynced?.();
+        if (!saved) return;
+        await refresh();
+      } else if (onSaveFollowup) {
         const saved = await onSaveFollowup();
         if (!saved) return;
         await refresh();
@@ -83,7 +92,12 @@ export function LeadFollowupLogPanel({
       await refresh();
       onCompleted?.();
     } catch (e) {
-      toast.error(formatSupabaseError(e, "Could not complete follow-up"));
+      const hint = followupDatabaseHint(e);
+      toast.error(
+        hint
+          ? `${formatSupabaseError(e, "Could not complete follow-up")} ${hint}`
+          : formatSupabaseError(e, "Could not complete follow-up"),
+      );
     } finally {
       setCompleting(false);
     }
@@ -108,7 +122,7 @@ export function LeadFollowupLogPanel({
                 <Badge variant="destructive" className="text-[10px]">Overdue</Badge>
               )}
               {!openEntry && hasOpenFollowup && (
-                <Badge variant="outline" className="text-[10px]">Unsaved changes — save first</Badge>
+                <Badge variant="outline" className="text-[10px]">Not in log yet — save or mark complete to sync</Badge>
               )}
             </div>
             <Button
@@ -129,7 +143,7 @@ export function LeadFollowupLogPanel({
             </p>
           ) : hasOpenFollowup ? (
             <p className="text-xs text-muted-foreground">
-              Click Save follow-up above, then add your outcome note and mark complete.
+              Mark complete will sync this follow-up to the log, then save your outcome note.
             </p>
           ) : null}
           <div className="space-y-1.5">

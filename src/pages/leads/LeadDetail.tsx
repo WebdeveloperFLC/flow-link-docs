@@ -29,6 +29,7 @@ import {
   followupDueState,
 } from "@/lib/leadFollowup";
 import { LeadFollowupLogPanel } from "@/components/leads/LeadFollowupLogPanel";
+import { syncLeadFollowupLog } from "@/lib/leadFollowupLog";
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="space-y-0.5">
@@ -67,6 +68,22 @@ const LeadDetail = () => {
   const [convertedClient, setConvertedClient] = useState<{ id: string; registration_number: string | null } | null>(null);
   const [converting, setConverting] = useState(false);
   const [followupLogVersion, setFollowupLogVersion] = useState(0);
+
+  const ensureFollowupSynced = async (): Promise<boolean> => {
+    if (!lead?.next_followup_at) return false;
+    try {
+      await syncLeadFollowupLog(lead.id, {
+        scheduledAt: lead.next_followup_at,
+        channel: lead.followup_channel,
+        note: lead.followup_note,
+      });
+      setFollowupLogVersion((v) => v + 1);
+      return true;
+    } catch (e) {
+      toast.error(formatSupabaseError(e, "Could not sync follow-up"));
+      return false;
+    }
+  };
 
   const onRegisterAsClient = async () => {
     if (!lead) return;
@@ -260,6 +277,7 @@ const LeadDetail = () => {
                   leadId={lead.id}
                   hasOpenFollowup={!!lead.next_followup_at}
                   refreshToken={followupLogVersion}
+                  ensureSynced={ensureFollowupSynced}
                   onCompleted={() => {
                     fetchLead(lead.id).then((l) => {
                       if (l) setLead(l);
@@ -300,6 +318,7 @@ const LeadDetail = () => {
                 leadId={lead.id}
                 hasOpenFollowup={!!lead.next_followup_at}
                 refreshToken={followupLogVersion}
+                ensureSynced={ensureFollowupSynced}
                 onCompleted={() => {
                   fetchLead(lead.id).then((l) => {
                     if (l) setLead(l);
