@@ -34,6 +34,7 @@ import {
   type AcademyTabId,
 } from "@/lib/service-library/academyTabs";
 import { buildPageSearchIndex } from "@/lib/service-library/buildPageSearchIndex";
+import { openVisaFormLink } from "@/lib/service-library/openVisaFormLink";
 
 export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
@@ -327,6 +328,24 @@ export default function ServiceLibrary() {
     else toast.error(`Could not download ${fileName}`);
   };
 
+  const openVisaForm = async (formId: string, title: string) => {
+    const { data: row, error } = await supabase
+      .from("service_library_visa_form_files")
+      .select("file_path,mime_type")
+      .eq("id", formId)
+      .maybeSingle();
+    if (error || !row?.file_path) {
+      toast.error("Form not found");
+      return;
+    }
+    await openVisaFormLink({
+      filePath: row.file_path,
+      title,
+      mimeType: row.mime_type,
+      storageBucket: "service-library-files",
+    });
+  };
+
   const openSampleDoc = async (filePath: string, fileName: string) => {
     const { data } = await supabase.storage.from("service-library-files").createSignedUrl(filePath, 600);
     if (data?.signedUrl) window.open(data.signedUrl, "_blank");
@@ -454,6 +473,7 @@ export default function ServiceLibrary() {
                   onToggleChecklistItem={toggleSub}
                   onPushChecklist={() => openClientDialog("push")}
                   onDownloadFile={downloadFile}
+                  onOpenVisaForm={openVisaForm}
                   onOpenSampleDoc={openSampleDoc}
                   onStartEligibility={onStartEligibility}
                 />

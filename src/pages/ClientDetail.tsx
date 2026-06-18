@@ -1267,6 +1267,7 @@ const ClientDetail = () => {
               clientId={client.id}
               country={serviceCtx.destinationCountry ?? client.country}
               category={serviceCtx.formsCategory ?? client.application_type}
+              libraryId={serviceCtx.libraryId}
               canEdit={canUpload}
             />
           </TabsContent>

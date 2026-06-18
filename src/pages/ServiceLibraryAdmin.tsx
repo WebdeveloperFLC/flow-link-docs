@@ -22,6 +22,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import { openVisaFormLink } from "@/lib/service-library/openVisaFormLink";
 import {
   buildAcademyNav,
   masterDisplayLabel,
@@ -1172,12 +1173,11 @@ function VisaFormsTab({ master }: { master: Master }) {
   const current = (forms.data ?? []).filter((f) => f.is_current).sort((a, b) => a.sort_order - b.sort_order);
 
   const openForm = (f: VisaFormFile) => {
-    if (f.file_path.startsWith("/specimens/") || /^https?:\/\//i.test(f.file_path)) {
-      window.open(f.file_path, "_blank", "noopener");
-      return;
-    }
-    supabase.storage.from("service-library-files").createSignedUrl(f.file_path, 600).then(({ data }) => {
-      if (data?.signedUrl) window.open(data.signedUrl, "_blank", "noopener");
+    void openVisaFormLink({
+      filePath: f.file_path,
+      title: f.file_name,
+      mimeType: f.mime_type,
+      storageBucket: "service-library-files",
     });
   };
 

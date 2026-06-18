@@ -51,6 +51,7 @@ type Props = {
   onToggleChecklistItem?: (id: string) => void;
   onPushChecklist?: () => void;
   onDownloadFile?: (fileId: string, fileName: string) => void;
+  onOpenVisaForm?: (formId: string, title: string) => void;
   onOpenSampleDoc?: (filePath: string, fileName: string) => void;
   onStartEligibility?: () => void;
 };
@@ -63,6 +64,7 @@ export function ServiceLibraryTabs({
   onToggleChecklistItem,
   onPushChecklist,
   onDownloadFile,
+  onOpenVisaForm,
   onOpenSampleDoc,
   onStartEligibility,
 }: Props) {
@@ -545,20 +547,24 @@ export function ServiceLibraryTabs({
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{form.notes}</p>
                   )}
                 </div>
-                <Button variant="outline" size="sm" className="shrink-0" asChild>
-                  <a href={form.url} target="_blank" rel="noopener noreferrer">
-                    {form.isOnline ? (
-                      <>
-                        <ExternalLink className="size-4 mr-1" />
-                        Open
-                      </>
-                    ) : (
-                      <>
-                        <Download className="size-4 mr-1" />
-                        Open PDF
-                      </>
-                    )}
-                  </a>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                  onClick={() => onOpenVisaForm?.(form.id, form.title)}
+                  disabled={!onOpenVisaForm}
+                >
+                  {form.isOnline ? (
+                    <>
+                      <ExternalLink className="size-4 mr-1" />
+                      Open
+                    </>
+                  ) : (
+                    <>
+                      <Download className="size-4 mr-1" />
+                      Open PDF
+                    </>
+                  )}
                 </Button>
               </Card>
             ))}

@@ -62,7 +62,7 @@ export function useServiceAcademyDetail(masterId: string | null, country: string
           .eq("library_id", m.id)
           .order("version", { ascending: false }),
         supabase
-          .from("service_library_visa_form_files" as "service_library_checklist_files")
+          .from("service_library_visa_form_files")
           .select("*")
           .eq("library_id", m.id)
           .order("sort_order")

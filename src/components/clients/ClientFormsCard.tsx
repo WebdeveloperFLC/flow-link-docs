@@ -6,6 +6,12 @@ import { FileText, Eye, Link2, Copy, Check, Loader2, Send, Archive, FileDown, Ma
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 import { copyTextToClipboard, parseSupabaseFunctionError } from "@/lib/supabaseFunctions";
+import {
+  isExternalVisaFormUrl,
+  isVisaFormPlaceholderPath,
+  matchOfficialVisaFormPath,
+  openVisaFormLink,
+} from "@/lib/service-library/openVisaFormLink";
 
 interface VisaForm {
   id: string;
@@ -39,8 +45,8 @@ const randomToken = () => {
 const LINK_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 export const ClientFormsCard = ({
-  clientId, country, category, canEdit,
-}: { clientId: string; country: string; category: string; canEdit: boolean }) => {
+  clientId, country, category, libraryId, canEdit,
+}: { clientId: string; country: string; category: string; libraryId?: string | null; canEdit: boolean }) => {
   const [forms, setForms] = useState<VisaForm[]>([]);
   const [schemas, setSchemas] = useState<SchemaRow[]>([]);
   const [instances, setInstances] = useState<InstanceRow[]>([]);
@@ -105,6 +111,16 @@ export const ClientFormsCard = ({
   const instanceForForm = (formId: string): InstanceRow | undefined =>
     instances.find((x) => x.form_id === formId);
 
+  const resolveOfficialFormPath = async (form: VisaForm): Promise<string | null> => {
+    if (!libraryId?.trim() || !form.code?.trim()) return null;
+    const { data } = await supabase
+      .from("service_library_visa_form_files")
+      .select("form_code,file_path")
+      .eq("library_id", libraryId)
+      .eq("is_current", true);
+    return matchOfficialVisaFormPath(form.code, data ?? []);
+  };
+
   /** Create or refresh questionnaire instance + share URL. */
   const ensureQuestionnaireLink = async (form: VisaForm): Promise<{ url: string; inst: InstanceRow }> => {
     const schema = schemaForForm(form.id);
@@ -149,14 +165,33 @@ export const ClientFormsCard = ({
   };
 
   const onView = async (form: VisaForm) => {
-    if (!form.file_path?.trim()) {
-      toast.error("Form PDF path is missing");
-      return;
-    }
     try {
-      const { data, error } = await supabase.storage.from("visa-forms").createSignedUrl(form.file_path, 600);
-      if (error || !data?.signedUrl) throw error ?? new Error("Could not open form");
-      window.open(data.signedUrl, "_blank", "noopener");
+      const [{ data: fresh }, officialPath] = await Promise.all([
+        supabase.from("visa_forms").select("file_path,code").eq("id", form.id).maybeSingle(),
+        resolveOfficialFormPath(form),
+      ]);
+      const storedPath = fresh?.file_path ?? form.file_path;
+      const path =
+        officialPath ??
+        (storedPath && !isVisaFormPlaceholderPath(storedPath) ? storedPath : null) ??
+        (storedPath && isExternalVisaFormUrl(storedPath) ? storedPath : null);
+
+      if (!path?.trim()) {
+        toast.error("Official form link not configured — add it in Service Library → Visa forms");
+        return;
+      }
+
+      if (isExternalVisaFormUrl(path)) {
+        window.open(path, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      const opened = await openVisaFormLink({
+        filePath: path,
+        title: form.name,
+        storageBucket: "visa-forms",
+      });
+      if (!opened) throw new Error("Could not open form");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to open form");
     }
