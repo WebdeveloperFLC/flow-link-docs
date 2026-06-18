@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildBackgroundDetailSections,
+  buildBackgroundDetailView,
   educationEntryHasData,
   formatEducationEntrySummary,
   hasBackgroundData,
@@ -12,15 +13,13 @@ import {
 } from "@/lib/leadBackground";
 
 describe("leadBackground summaries", () => {
-  it("shows scheduled English test with score in summary", () => {
+  it("shows compact English test summary", () => {
     const summary = summarizeEnglishTests({
       english_test_status: "scheduled",
       english_test: "CELPIP",
       english_overall: "7",
     } as never);
-    expect(summary).toContain("CELPIP");
-    expect(summary).toContain("Scheduled");
-    expect(summary).toContain("Overall 7");
+    expect(summary).toBe("CELPIP 7");
   });
 
   it("counts education with location-only entries", () => {
@@ -47,8 +46,7 @@ describe("leadBackground summaries", () => {
     } as never);
     expect(state.english_overall).toBe("7");
     expect(state.english_test_date).toBe("2026-06-17");
-    expect(summarizeEnglishTests(state)).toContain("IELTS");
-    expect(summarizeEnglishTests(state)).toContain("Overall 7");
+    expect(summarizeEnglishTests(state)).toBe("IELTS 7");
   });
 
   it("merges last_education into empty education history", () => {
@@ -106,8 +104,24 @@ describe("leadBackground summaries", () => {
     expect(lines[1]).toContain("Scheduled");
 
     const summary = summarizeEnglishTests(bg);
-    expect(summary).toContain("IELTS");
-    expect(summary).toContain("CELPIP");
+    expect(summary).toBe("IELTS 7, CELPIP 54");
+  });
+
+  it("ignores empty English test cache entries from tab switching", () => {
+    const view = buildBackgroundDetailView({
+      english_test: "IELTS",
+      english_overall: "7",
+      english_sections: {
+        __by_test__: {
+          IELTS: { overall: "7", sections: { listening: "7" } },
+          PTE: {},
+          TOEFL: { sections: {} },
+          Duolingo: { overall: "" },
+        },
+      },
+    } as never);
+    expect(view.english).toHaveLength(1);
+    expect(view.english[0]?.test).toBe("IELTS");
   });
 
   it("includes academic tests with sectional scores in detail sections", () => {

@@ -197,20 +197,64 @@ const SECTION_LABEL: Record<string, string> = {
   ebrw: "EBRW",
 };
 
-function formatSectionScores(
+function englishTestEntryHasData(entry: EnglishTestScoreEntry | undefined): boolean {
+  if (!entry) return false;
+  if (entry.overall?.trim()) return true;
+  if (entry.test_date || entry.test_expiry) return true;
+  return Object.values(entry.sections ?? {}).some((v) => v?.trim());
+}
+
+export interface ScoreChip {
+  label: string;
+  value: string;
+}
+
+export interface EnglishTestDetailView {
+  test: string;
+  status?: string;
+  overall?: string;
+  testDate?: string;
+  expiry?: string;
+  sections: ScoreChip[];
+}
+
+export interface AcademicTestDetailView {
+  type: string;
+  overall?: string;
+  testDate?: string;
+  sections: ScoreChip[];
+}
+
+export interface LanguageTestDetailView {
+  language: string;
+  status?: string;
+  cefr?: string;
+  exam?: string;
+  overall?: string;
+  testDate?: string;
+  expiry?: string;
+  sections: ScoreChip[];
+}
+
+export interface BackgroundDetailView {
+  english: EnglishTestDetailView[];
+  academic: AcademicTestDetailView[];
+  language: LanguageTestDetailView[];
+  education: string[];
+  experience: string[];
+}
+
+function sectionChips(
   sectionKeys: string[],
   sections?: Record<string, string>,
-): string {
-  if (!sections) return "";
-  const parts = sectionKeys
+): ScoreChip[] {
+  return sectionKeys
     .map((k) => {
-      const v = sections[k];
-      if (!v?.trim()) return null;
-      const label = SECTION_LABEL[k] ?? k;
-      return `${label} ${v}`;
+      const v = sections?.[k]?.trim();
+      if (!v) return null;
+      return { label: SECTION_LABEL[k] ?? k, value: v };
     })
-    .filter(Boolean);
-  return parts.join(" · ");
+    .filter(Boolean) as ScoreChip[];
 }
 
 export function getEnglishTestsByType(bg: LeadBackgroundState): EnglishScoresByTest {
@@ -250,35 +294,141 @@ export function formatEnglishTestDetail(
   entry: EnglishTestScoreEntry,
   bg: LeadBackgroundState,
 ): string {
-  const parts: string[] = [testName];
-  const isActive = testName === bg.english_test;
-  if (isActive && bg.english_test_status) {
-    parts.push(ENGLISH_TEST_STATUS_LABELS[bg.english_test_status]);
-  }
-  if (entry.overall?.trim()) parts.push(`Overall ${entry.overall.trim()}`);
-  if (entry.test_date) parts.push(`Test ${entry.test_date}`);
-  if (entry.test_expiry) parts.push(`Exp ${entry.test_expiry}`);
-  const sectionText = formatSectionScores(
-    ENGLISH_SECTIONS[testName] ?? Object.keys(entry.sections ?? {}),
-    entry.sections,
-  );
+  const view = buildEnglishTestDetailView(testName, entry, bg);
+  const parts = [view.test];
+  if (view.status) parts.push(view.status);
+  if (view.overall) parts.push(`Overall ${view.overall}`);
+  if (view.testDate) parts.push(`Test ${view.testDate}`);
+  if (view.expiry) parts.push(`Exp ${view.expiry}`);
+  const sectionText = view.sections.map((s) => `${s.label} ${s.value}`).join(" · ");
   if (sectionText) parts.push(sectionText);
   return parts.join(" · ");
 }
 
+export function buildEnglishTestDetailView(
+  testName: string,
+  entry: EnglishTestScoreEntry,
+  bg: LeadBackgroundState,
+): EnglishTestDetailView {
+  const isActive = testName === bg.english_test;
+  return {
+    test: testName,
+    status: isActive && bg.english_test_status
+      ? ENGLISH_TEST_STATUS_LABELS[bg.english_test_status]
+      : undefined,
+    overall: entry.overall?.trim() || undefined,
+    testDate: entry.test_date ?? undefined,
+    expiry: entry.test_expiry ?? undefined,
+    sections: sectionChips(
+      ENGLISH_SECTIONS[testName] ?? Object.keys(entry.sections ?? {}),
+      entry.sections,
+    ),
+  };
+}
+
+function formatSectionScores(
+  sectionKeys: string[],
+  sections?: Record<string, string>,
+): string {
+  return sectionChips(sectionKeys, sections)
+    .map((s) => `${s.label} ${s.value}`)
+    .join(" · ");
+}
+
+function listEnglishTestNames(byTest: EnglishScoresByTest): string[] {
+  const order = ["IELTS", "PTE", "TOEFL", "CELPIP", "Duolingo"];
+  return [
+    ...order.filter((t) => englishTestEntryHasData(byTest[t])),
+    ...Object.keys(byTest).filter((t) => !order.includes(t) && englishTestEntryHasData(byTest[t])),
+  ];
+}
+
 export function listEnglishTestDetails(bg: LeadBackgroundState): string[] {
   const byTest = getEnglishTestsByType(bg);
-  const order = ["IELTS", "PTE", "TOEFL", "CELPIP", "Duolingo"];
-  const names = [
-    ...order.filter((t) => byTest[t]),
-    ...Object.keys(byTest).filter((t) => !order.includes(t)),
-  ];
+  const names = listEnglishTestNames(byTest);
   if (names.length) {
     return names.map((t) => formatEnglishTestDetail(t, byTest[t]!, bg));
   }
   if (bg.english_test_status === "waived") return ["Waived"];
   if (bg.english_test_status === "not_taken") return ["Not taken"];
   return [];
+}
+
+export function buildBackgroundDetailView(bg: LeadBackgroundState): BackgroundDetailView {
+  const byTest = getEnglishTestsByType(bg);
+  const englishNames = listEnglishTestNames(byTest);
+  let english = englishNames.map((t) => buildEnglishTestDetailView(t, byTest[t]!, bg));
+
+  if (!english.length && bg.english_test_status === "waived") {
+    english = [{ test: "English", status: "Waived", sections: [] }];
+  } else if (!english.length && bg.english_test_status === "not_taken") {
+    english = [{ test: "English", status: "Not taken", sections: [] }];
+  }
+
+  const lt = bg.language_tests ?? EMPTY_LANGUAGE_TESTS;
+  const language: LanguageTestDetailView[] = [
+    { language: "French", ...languageBlockToView(lt.french) },
+    { language: "German", ...languageBlockToView(lt.german) },
+  ].filter((b) => b.status || b.cefr || b.exam || b.overall || b.sections.length > 0);
+
+  return {
+    english,
+    academic: (bg.other_tests ?? [])
+      .filter((t) => t.type)
+      .map((t) => ({
+        type: t.type!,
+        overall: t.score?.trim() || undefined,
+        testDate: t.date ?? undefined,
+        sections: sectionChips(
+          OTHER_TEST_SECTIONS[t.type!] ?? Object.keys(t.sections ?? {}),
+          t.sections,
+        ),
+      })),
+    language,
+    education: (bg.education_history ?? [])
+      .filter(educationEntryHasData)
+      .map(formatEducationEntrySummary)
+      .filter(Boolean),
+    experience: (bg.work_experience ?? [])
+      .filter(experienceEntryHasData)
+      .map(formatExperienceEntrySummary)
+      .filter(Boolean),
+  };
+}
+
+function languageBlockToView(
+  block?: LanguageTestBlock | null,
+): Omit<LanguageTestDetailView, "language"> {
+  if (!block) return { sections: [] };
+  return {
+    status: block.status ? (LANGUAGE_STATUS_LABELS[block.status] ?? block.status) : undefined,
+    cefr: block.cefr_level ?? undefined,
+    exam: block.exam_type ?? undefined,
+    overall: block.overall_score?.trim() || undefined,
+    testDate: block.test_date ?? undefined,
+    expiry: block.expiry_date ?? undefined,
+    sections: sectionChips(
+      block.exam_type ? (OTHER_TEST_SECTIONS[block.exam_type] ?? []) : [],
+      block.sections,
+    ),
+  };
+}
+
+export function countBackgroundItems(bg: LeadBackgroundState): {
+  english: number;
+  academic: number;
+  language: number;
+  education: number;
+  experience: number;
+} {
+  const view = buildBackgroundDetailView(bg);
+  return {
+    english: view.english.length,
+    academic: view.academic.length,
+    language: view.language.length,
+    education: view.education.length,
+    experience: view.experience.length,
+  };
 }
 
 export function listAcademicTestDetails(bg: LeadBackgroundState): string[] {
@@ -345,14 +495,21 @@ export function buildBackgroundDetailSections(bg: LeadBackgroundState): Backgrou
 }
 
 export function summarizeEnglishTests(bg: LeadBackgroundState): string {
-  const lines = listEnglishTestDetails(bg);
-  const academic = listAcademicTestDetails(bg);
-  if (lines.length && academic.length) {
-    return `${lines.join(" | ")} | ${academic.join(" | ")}`;
+  const view = buildBackgroundDetailView(bg);
+  const parts = view.english.map((t) => {
+    const score = t.overall ? ` ${t.overall}` : "";
+    return `${t.test}${score}`;
+  });
+  view.academic.forEach((t) => {
+    const score = t.overall ? ` ${t.overall}` : "";
+    parts.push(`${t.type}${score}`);
+  });
+  if (!parts.length) {
+    if (bg.english_test_status === "waived") return "Waived";
+    if (bg.english_test_status === "not_taken") return "Not taken";
+    return "Not added";
   }
-  if (lines.length) return lines.join(" | ");
-  if (academic.length) return academic.join(" | ");
-  return "Not added";
+  return parts.join(", ");
 }
 
 /** @deprecated use summarizeEnglishTests */
@@ -380,22 +537,24 @@ export function formatExperienceEntrySummary(e: ExperienceEntry): string {
 export function summarizeEducation(bg: LeadBackgroundState): string {
   const rows = (bg.education_history ?? []).filter(educationEntryHasData);
   if (!rows.length) return "Not added";
-  return rows.map(formatEducationEntrySummary).filter(Boolean).join("\n") || "Not added";
+  if (rows.length === 1) return formatEducationEntrySummary(rows[0]!) || "1 entry";
+  return `${rows.length} entries`;
 }
 
 export function summarizeExperience(bg: LeadBackgroundState): string {
   const rows = (bg.work_experience ?? []).filter(experienceEntryHasData);
   if (!rows.length) return "Not added";
-  return rows.map(formatExperienceEntrySummary).filter(Boolean).join("\n") || "Not added";
+  if (rows.length === 1) return formatExperienceEntrySummary(rows[0]!) || "1 entry";
+  return `${rows.length} entries`;
 }
 
 export function hasBackgroundData(bg: LeadBackgroundState): boolean {
-  const sections = buildBackgroundDetailSections(bg);
+  const view = buildBackgroundDetailView(bg);
   return (
-    sections.english.length > 0 ||
-    sections.academic.length > 0 ||
-    sections.language.length > 0 ||
-    sections.education.length > 0 ||
-    sections.experience.length > 0
+    view.english.length > 0 ||
+    view.academic.length > 0 ||
+    view.language.length > 0 ||
+    view.education.length > 0 ||
+    view.experience.length > 0
   );
 }
