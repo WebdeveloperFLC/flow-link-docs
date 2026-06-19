@@ -6,7 +6,16 @@ Lead background uses the **same profile components** as the client Profile tab (
 
 - Phase E UAT passed (or in progress)
 - Migration `20260718120050_test_attempts.sql` published on `leads` + `clients`
+- Migration `20260718120051_lead_rls_recursion_fix.sql` published (follow-up RLS hotfix)
 - Lovable Publish + hard refresh
+
+## Known blocker (High — follow-up)
+
+| ID | Symptom | Fix migration |
+|----|---------|----------------|
+| D-BLK-001 | `infinite recursion detected in policy for relation "leads"` on New Lead → Follow-up save/history | `20260718120051_lead_rls_recursion_fix.sql` |
+
+**Do not sign off follow-up (§ below) until D-BLK-001 is published and retested.**
 
 ## D1 — Shared Tests UI (lead form + lead detail)
 
