@@ -133,22 +133,31 @@ CREATE POLICY "queue read scoped" ON public.call_queue_items
 
 -- ---------------------------------------------------------------------------
 -- lead_followup_log — stop subquerying leads inside RLS
+-- (skipped when 20260718120035 not published yet — table missing on some envs)
 -- ---------------------------------------------------------------------------
-DROP POLICY IF EXISTS "lead_followup_log staff select" ON public.lead_followup_log;
-CREATE POLICY "lead_followup_log staff select"
-  ON public.lead_followup_log FOR SELECT TO authenticated
-  USING (public.fn_can_access_lead_followup_rls(auth.uid(), lead_id));
+DO $$
+BEGIN
+  IF to_regclass('public.lead_followup_log') IS NULL THEN
+    RAISE NOTICE 'lead_followup_log missing — skipping follow-up log RLS policies (publish 20260718120035 first)';
+    RETURN;
+  END IF;
 
-DROP POLICY IF EXISTS "lead_followup_log staff insert" ON public.lead_followup_log;
-CREATE POLICY "lead_followup_log staff insert"
-  ON public.lead_followup_log FOR INSERT TO authenticated
-  WITH CHECK (public.fn_can_access_lead_followup_rls(auth.uid(), lead_id));
+  DROP POLICY IF EXISTS "lead_followup_log staff select" ON public.lead_followup_log;
+  CREATE POLICY "lead_followup_log staff select"
+    ON public.lead_followup_log FOR SELECT TO authenticated
+    USING (public.fn_can_access_lead_followup_rls(auth.uid(), lead_id));
 
-DROP POLICY IF EXISTS "lead_followup_log staff update" ON public.lead_followup_log;
-CREATE POLICY "lead_followup_log staff update"
-  ON public.lead_followup_log FOR UPDATE TO authenticated
-  USING (public.fn_can_access_lead_followup_rls(auth.uid(), lead_id))
-  WITH CHECK (public.fn_can_access_lead_followup_rls(auth.uid(), lead_id));
+  DROP POLICY IF EXISTS "lead_followup_log staff insert" ON public.lead_followup_log;
+  CREATE POLICY "lead_followup_log staff insert"
+    ON public.lead_followup_log FOR INSERT TO authenticated
+    WITH CHECK (public.fn_can_access_lead_followup_rls(auth.uid(), lead_id));
+
+  DROP POLICY IF EXISTS "lead_followup_log staff update" ON public.lead_followup_log;
+  CREATE POLICY "lead_followup_log staff update"
+    ON public.lead_followup_log FOR UPDATE TO authenticated
+    USING (public.fn_can_access_lead_followup_rls(auth.uid(), lead_id))
+    WITH CHECK (public.fn_can_access_lead_followup_rls(auth.uid(), lead_id));
+END $$;
 
 -- ---------------------------------------------------------------------------
 -- lead_remarks — same pattern (follow-up notes / history adjacent flows)

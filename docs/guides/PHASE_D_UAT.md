@@ -15,6 +15,15 @@ Lead background uses the **same profile components** as the client Profile tab (
 |----|---------|----------------|
 | D-BLK-001 | `infinite recursion detected in policy for relation "leads"` on New Lead → Follow-up save/history | `20260718120051_lead_rls_recursion_fix.sql` |
 
+**Prerequisite migrations** (publish in Lovable before or with 051):
+
+| Migration | Creates |
+|-----------|---------|
+| `20260718120035_lead_followup_log.sql` | `lead_followup_log` table + RPCs |
+| `20260718120036_lead_followup_log_rls_rpc_reload.sql` | follow-up log write policies |
+
+051 is safe if `lead_followup_log` is missing — it skips those policies and still fixes the `leads` ↔ `call_queue_items` recursion. Full follow-up history needs 035+036 published.
+
 **Do not sign off follow-up (§ below) until D-BLK-001 is published and retested.**
 
 ## D1 — Shared Tests UI (lead form + lead detail)
