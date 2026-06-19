@@ -51,5 +51,5 @@ export {
   formatAttemptSummary,
   defaultAttemptIdForTest,
 } from "@/lib/profile/testAttempts";
-export { visibilityForAttemptStatus, statusLabel } from "@/lib/profile/testAttemptFormRules";
+export { visibilityForAttemptStatus, statusLabel, attemptHasStoredScores, editShowsScoreFields } from "@/lib/profile/testAttemptFormRules";
 export { ensureAttemptId, testAttemptRefKey } from "@/lib/profile/profileRecordIds";

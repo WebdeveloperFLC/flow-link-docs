@@ -116,7 +116,33 @@ export function visibilityForAttemptStatus(
   }
 }
 
-/** IELTS variant only when status warrants score capture. */
+export function statusLabel(status: ProfileTestStatus | null | undefined): string {
+  if (!status) return "—";
+  return status.replace(/_/g, " ");
+}
+
+/** True when attempt already has score data saved (keep fields visible in edit). */
+export function attemptHasStoredScores(attempt: {
+  overall_score?: string | null;
+  sections?: Readonly<Record<string, string>>;
+}): boolean {
+  return !!(
+    (attempt.overall_score && attempt.overall_score.trim()) ||
+    Object.values(attempt.sections ?? {}).some((v) => v?.trim())
+  );
+}
+
+/** Edit mode: show score inputs when status allows OR existing scores must remain editable. */
+export function editShowsScoreFields(
+  status: ProfileTestStatus | null | undefined,
+  attempt: { overall_score?: string | null; sections?: Readonly<Record<string, string>> },
+): boolean {
+  const vis = visibilityForAttemptStatus(status, "english");
+  if (vis.showOverall || vis.showSectionals) return true;
+  return attemptHasStoredScores(attempt);
+}
+
+/** @deprecated Use always-show variant in edit for IELTS instead. */
 export function showIeltsVariant(
   testId: string,
   status: ProfileTestStatus | null | undefined,
@@ -124,9 +150,4 @@ export function showIeltsVariant(
   if (testId !== "ielts") return false;
   const s = status ?? "not_taken";
   return s === "taken" || s === "expired";
-}
-
-export function statusLabel(status: ProfileTestStatus | null | undefined): string {
-  if (!status) return "—";
-  return status.replace(/_/g, " ");
 }

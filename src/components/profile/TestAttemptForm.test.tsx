@@ -47,7 +47,65 @@ describe("TestAttemptForm", () => {
     expect(screen.getByText("IELTS variant")).toBeInTheDocument();
   });
 
-  it("hides overall when status is scheduled", () => {
+  it("keeps IELTS variant editable when status is not_taken", () => {
+    render(
+      <TestAttemptForm
+        attempt={{
+          ...IELTS_TAKEN,
+          status: "not_taken",
+          variant: "General",
+        }}
+        mode="edit"
+        onChange={() => {}}
+      />,
+    );
+    expect(screen.getByText("IELTS variant")).toBeInTheDocument();
+    expect(screen.getByText("Listening")).toBeInTheDocument();
+    expect(screen.getByText("Overall")).toBeInTheDocument();
+  });
+
+  it("shows CEFR in view when set", () => {
+    render(
+      <TestAttemptForm
+        attempt={{
+          attempt_id: "test_de1",
+          test_id: "german",
+          category: "language",
+          status: "taken",
+          exam_type: "Goethe",
+          cefr_level: "B2",
+          overall_score: "B2",
+          sections: {},
+          linked_documents: [],
+        }}
+        mode="view"
+      />,
+    );
+    expect(screen.getByText(/CEFR B2/)).toBeInTheDocument();
+  });
+
+  it("shows exam type select for language in edit mode", () => {
+    render(
+      <TestAttemptForm
+        attempt={{
+          attempt_id: "test_de1",
+          test_id: "german",
+          category: "language",
+          status: "scheduled",
+          exam_type: "Goethe",
+          test_date: "2026-06-27",
+          sections: {},
+          linked_documents: [],
+        }}
+        mode="edit"
+        onChange={() => {}}
+      />,
+    );
+    expect(screen.getByText("Exam type")).toBeInTheDocument();
+    expect(screen.getByText("CEFR level")).toBeInTheDocument();
+  });
+
+  it("hides overall when status is scheduled and no stored scores", () => {
     render(
       <TestAttemptForm
         attempt={{ ...IELTS_TAKEN, status: "scheduled", overall_score: null, sections: {} }}

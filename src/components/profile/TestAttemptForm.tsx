@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { LinkedDocumentsPanel, type LinkedDocumentOption } from "@/components/profile/LinkedDocumentsPanel";
-import { FRENCH_EXAMS, GERMAN_EXAMS } from "@/lib/languageTests";
+import { CEFR_LEVELS, FRENCH_EXAMS, GERMAN_EXAMS } from "@/lib/languageTests";
 import {
-  showIeltsVariant,
+  attemptHasStoredScores,
   statusLabel,
   visibilityForAttemptStatus,
 } from "@/lib/profile/testAttemptFormRules";
@@ -89,10 +89,10 @@ export function TestAttemptForm({
 }: Props) {
   const vis = visibilityForAttemptStatus(attempt.status, attempt.category);
   const label = testLabel(attempt.test_id);
-  const sectionKeys =
-    vis.showSectionals && (attempt.category !== "language" || attempt.exam_type)
-      ? sectionKeysForAttempt(attempt)
-      : [];
+  const isLanguage = attempt.category === "language";
+  const isIelts = attempt.test_id === "ielts";
+  const hasStoredScores = attemptHasStoredScores(attempt);
+  const sectionalKeys = sectionKeysForAttempt(attempt);
 
   if (mode === "view") {
     return (
@@ -111,12 +111,20 @@ export function TestAttemptForm({
               Overall <span className="font-semibold tabular-nums">{attempt.overall_score}</span>
             </span>
           )}
+          {attempt.cefr_level && (
+            <Badge variant="outline" className="text-[10px]">
+              CEFR {attempt.cefr_level}
+            </Badge>
+          )}
         </div>
         {attempt.test_date && (
           <p className="text-xs text-muted-foreground">Test date: {attempt.test_date}</p>
         )}
         {attempt.expiry_date && (
           <p className="text-xs text-muted-foreground">Expiry: {attempt.expiry_date}</p>
+        )}
+        {attempt.result_date && (
+          <p className="text-xs text-muted-foreground">Result date: {attempt.result_date}</p>
         )}
         {vis.showExpiredBanner && (
           <Alert variant="destructive" className="py-2">
@@ -139,6 +147,11 @@ export function TestAttemptForm({
       </div>
     );
   }
+
+  const showOverallField = vis.showOverall || hasStoredScores;
+  const showSectionalFields =
+    (vis.showSectionals || hasStoredScores) && sectionalKeys.length > 0;
+  const showDocsField = vis.showDocuments || attempt.linked_documents.length > 0;
 
   return (
     <div className={cn("rounded-lg border p-3 space-y-3", className)} data-testid="attempt-form-edit">
@@ -169,15 +182,17 @@ export function TestAttemptForm({
           </Select>
         </div>
 
-        {showIeltsVariant(attempt.test_id, attempt.status) && (
+        {isIelts && (
           <div className="space-y-1">
             <Label>IELTS variant</Label>
             <Select
               value={attempt.variant ?? ""}
-              onValueChange={(v) => onChange?.({ variant: (v || null) as IeltsVariant | null })}
+              onValueChange={(v) =>
+                onChange?.({ variant: (v || null) as IeltsVariant | null })
+              }
             >
               <SelectTrigger className="h-8 w-36">
-                <SelectValue placeholder="Variant" />
+                <SelectValue placeholder="Select variant" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Academic">Academic</SelectItem>
@@ -187,31 +202,45 @@ export function TestAttemptForm({
           </div>
         )}
 
-        {vis.showExamType && (
+        {isLanguage && (
           <div className="space-y-1">
             <Label>Exam type</Label>
-            <Input
-              className="h-8 max-w-xs"
-              list={`exam-types-${attempt.test_id}`}
+            <Select
               value={attempt.exam_type ?? ""}
-              onChange={(e) => onChange?.({ exam_type: e.target.value || null })}
-            />
-            <datalist id={`exam-types-${attempt.test_id}`}>
-              {(attempt.test_id === "french" ? FRENCH_EXAMS : GERMAN_EXAMS).map((e) => (
-                <option key={e} value={e} />
-              ))}
-            </datalist>
+              onValueChange={(v) => onChange?.({ exam_type: v || null })}
+            >
+              <SelectTrigger className="h-8 w-40">
+                <SelectValue placeholder="Select exam" />
+              </SelectTrigger>
+              <SelectContent>
+                {(attempt.test_id === "french" ? FRENCH_EXAMS : GERMAN_EXAMS).map((e) => (
+                  <SelectItem key={e} value={e}>
+                    {e}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
 
-        {vis.showCefr && (
+        {isLanguage && (
           <div className="space-y-1">
             <Label>CEFR level</Label>
-            <Input
-              className="h-8 w-24"
+            <Select
               value={attempt.cefr_level ?? ""}
-              onChange={(e) => onChange?.({ cefr_level: e.target.value || null })}
-            />
+              onValueChange={(v) => onChange?.({ cefr_level: v || null })}
+            >
+              <SelectTrigger className="h-8 w-28">
+                <SelectValue placeholder="CEFR" />
+              </SelectTrigger>
+              <SelectContent>
+                {CEFR_LEVELS.map((level) => (
+                  <SelectItem key={level} value={level}>
+                    {level}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
 
@@ -238,7 +267,7 @@ export function TestAttemptForm({
           </div>
         )}
 
-        {vis.showTestDate && (
+        {(vis.showTestDate || attempt.test_date) && (
           <div className="space-y-1">
             <Label>{attempt.status === "planned" ? "Expected test date" : "Test date"}</Label>
             <Input
@@ -262,7 +291,7 @@ export function TestAttemptForm({
           </div>
         )}
 
-        {vis.showOverall && (
+        {showOverallField && (
           <div className="space-y-1">
             <Label>Overall</Label>
             <Input
@@ -273,7 +302,7 @@ export function TestAttemptForm({
           </div>
         )}
 
-        {vis.showExpiryDate && (
+        {(vis.showExpiryDate || attempt.expiry_date) && (
           <div className="space-y-1">
             <Label>Expiry date</Label>
             <Input
@@ -308,9 +337,9 @@ export function TestAttemptForm({
         )}
       </div>
 
-      {sectionKeys.length > 0 && (
+      {showSectionalFields && (
         <SectionalInputs
-          sections={sectionKeys}
+          sections={sectionalKeys}
           values={attempt.sections}
           onChange={(next) => onChange?.({ sections: next })}
         />
@@ -339,7 +368,7 @@ export function TestAttemptForm({
         </div>
       )}
 
-      {vis.showDocuments && (
+      {showDocsField && (
         <LinkedDocumentsPanel
           linkedDocuments={attempt.linked_documents}
           scope="tests"
