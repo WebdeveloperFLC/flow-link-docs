@@ -289,12 +289,15 @@ describe("toEditState", () => {
 });
 
 describe("summarizeProfile", () => {
-  it("uses catalog labels in summaries", () => {
+  it("uses active attempts only with catalog labels", () => {
     const vm = buildProfileViewModelFromSources({ client: LEGACY_CLIENT, profile: LEGACY_PROFILE });
     const tests = summarizeProfileSection(vm, "tests");
     expect(tests.lines[0]).toContain(testLabel("ielts"));
     expect(tests.lines[0]).toContain("Academic");
+    expect(tests.lines[0]).toContain("Taken");
+    expect(tests.lines[0]).toContain("7.5");
     expect(tests.lines.some((l) => l.includes(testLabel("sat")))).toBe(true);
+    expect(tests.lines.some((l) => l.toLowerCase().includes("pte"))).toBe(false);
 
     const c360 = summarizeProfileFor360(vm);
     expect(c360.highlights.some((h) => h.includes(testLabel("ielts")))).toBe(true);

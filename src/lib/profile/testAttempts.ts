@@ -372,7 +372,7 @@ export function parseTestAttemptsFromClient(
   return { attempts, active_attempt_ids };
 }
 
-function getActiveAttempt(
+export function getActiveAttempt(
   attempts: TestAttempt[],
   activeIds: Partial<Record<ProfileTestId, string>>,
   testId: ProfileTestId,

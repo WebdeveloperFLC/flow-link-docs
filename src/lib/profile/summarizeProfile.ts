@@ -1,4 +1,8 @@
-import { testLabel } from "@/lib/profile/profileTestCatalog";
+import {
+  formatActiveAttemptHighlight,
+  formatActiveAttemptLine,
+  listActiveAttemptsForSummary,
+} from "@/lib/profile/testAttemptSummary";
 import type { ProfileSectionId, ProfileSectionSummary, ProfileViewModel } from "@/lib/profile/types";
 
 function filled(v: string | null | undefined): string | null {
@@ -43,20 +47,7 @@ export function summarizeProfileSection(vm: ProfileViewModel, section: ProfileSe
       return { section, headline: "Contact & address", lines };
     }
     case "tests": {
-      const active = vm.tests.english.find((e) => e.test_id === vm.tests.active_english_test_id);
-      const lines: string[] = [];
-      if (active) {
-        const variant = active.ielts_variant ? ` (${active.ielts_variant})` : "";
-        lines.push(
-          `English: ${testLabel(active.test_id)}${variant} — ${active.status ?? "—"}${active.overall ? `, ${active.overall}` : ""}`,
-        );
-      }
-      for (const a of vm.tests.aptitude.slice(0, 2)) {
-        lines.push(`${testLabel(a.test_id)}: ${a.overall ?? a.status ?? "—"}`);
-      }
-      for (const l of vm.tests.language.slice(0, 1)) {
-        lines.push(`${testLabel(l.test_id)}: ${l.exam_type ?? "—"} ${l.overall_score ?? ""}`.trim());
-      }
+      const lines = listActiveAttemptsForSummary(vm.tests).map(formatActiveAttemptLine);
       return { section, headline: "Tests", lines: capLines(lines, 5) };
     }
     case "education": {
@@ -114,8 +105,11 @@ export function summarizeProfileFor360(vm: ProfileViewModel): Client360ProfileSu
   const highlights: string[] = [];
   const name = filled(vm.identity.full_name);
   if (name) highlights.push(name);
-  const active = vm.tests.english.find((e) => e.test_id === vm.tests.active_english_test_id);
-  if (active?.overall) highlights.push(`${testLabel(active.test_id)} ${active.overall}`);
+  const activeEnglish = vm.tests.active_english_test_id
+    ? listActiveAttemptsForSummary(vm.tests).find((a) => a.test_id === vm.tests.active_english_test_id)
+    : null;
+  const scoreHighlight = activeEnglish ? formatActiveAttemptHighlight(activeEnglish) : null;
+  if (scoreHighlight) highlights.push(scoreHighlight);
   if (vm.education[0]?.qualification_type) highlights.push(vm.education[0].qualification_type);
   if (vm.experience[0]?.company) highlights.push(vm.experience[0].company);
 

@@ -17,7 +17,7 @@ describe("profileCompletion", () => {
     expect(EMPTY_VM.services.total_count).toBe(0);
   });
 
-  it("counts extended test status planned as filled", () => {
+  it("counts extended test status planned as partial (0.5)", () => {
     const vm = buildProfileViewModelFromSources({
       client: {
         id: "c1",
@@ -33,7 +33,34 @@ describe("profileCompletion", () => {
     });
     expect(vm.tests.active_english_test_id).toBe("pte");
     const tests = completionForSection(vm, "tests");
-    expect(tests.filled).toBeGreaterThanOrEqual(1);
+    expect(tests.filled).toBe(0.5);
+    expect(tests.percent).toBe(17);
+  });
+
+  it("IELTS taken with overall and date counts as complete bucket", () => {
+    const vm = buildProfileViewModelFromSources({
+      client: {
+        id: "c1b",
+        english_test: "IELTS",
+        english_test_status: "taken",
+        english_overall: "7",
+        english_test_date: "2025-06-01",
+        english_sections: {
+          __by_test__: {
+            IELTS: {
+              status: "taken",
+              overall: "7",
+              test_date: "2025-06-01",
+              test_expiry: null,
+              sections: {},
+            },
+          },
+        },
+      },
+      profile: {},
+    });
+    const tests = completionForSection(vm, "tests");
+    expect(tests.filled).toBe(1);
   });
 
   it("flags missing documents using catalog labels", () => {

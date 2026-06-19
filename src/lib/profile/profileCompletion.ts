@@ -1,11 +1,12 @@
 import { testLabel } from "@/lib/profile/profileTestCatalog";
+import { getTestsCompletionBuckets, attemptCompletionWeight } from "@/lib/profile/testAttemptCompletion";
+import { listActiveAttemptsForSummary } from "@/lib/profile/testAttemptSummary";
 import type {
   ProfileCompletionResult,
   ProfileCompletionSection,
   ProfileEducationRecord,
   ProfileExperienceRecord,
   ProfileSectionId,
-  ProfileTestStatus,
   ProfileViewModel,
 } from "@/lib/profile/types";
 
@@ -57,20 +58,13 @@ function countContact(vm: ProfileViewModel): ProfileCompletionSection {
   return { section: "contact", filled, total, percent: percent(filled, total) };
 }
 
-function testStatusCounts(status: ProfileTestStatus | null | undefined): boolean {
-  return !!status && status !== "not_taken";
-}
-
 function countTests(vm: ProfileViewModel): ProfileCompletionSection {
-  let filled = 0;
-  let total = 3;
-
-  const activeEnglish = vm.tests.english.find((e) => e.test_id === vm.tests.active_english_test_id);
-  if (testStatusCounts(activeEnglish?.status ?? null)) filled += 1;
-
-  if (vm.tests.aptitude.some((a) => testStatusCounts(a.status) || filledStr(a.overall))) filled += 1;
-  if (vm.tests.language.some((l) => testStatusCounts(l.status) || filledStr(l.overall_score))) filled += 1;
-
+  const buckets = getTestsCompletionBuckets(vm.tests);
+  const weights = [buckets.english, buckets.aptitude, buckets.language].map((a) =>
+    a ? attemptCompletionWeight(a) : 0,
+  );
+  const filled = weights.reduce((sum, w) => sum + w, 0);
+  const total = 3;
   return { section: "tests", filled, total, percent: percent(filled, total) };
 }
 
@@ -113,9 +107,9 @@ function countExperience(vm: ProfileViewModel): ProfileCompletionSection {
 function missingRequiredDocuments(vm: ProfileViewModel): string[] {
   const missing: string[] = [];
 
-  for (const e of vm.tests.english) {
-    if (e.status === "taken" && e.linked_documents.length === 0) {
-      missing.push(`${testLabel(e.test_id)}: score report or TRF`);
+  for (const attempt of listActiveAttemptsForSummary(vm.tests)) {
+    if (attempt.status === "taken" && attempt.linked_documents.length === 0) {
+      missing.push(`${testLabel(attempt.test_id)}: score report or TRF`);
     }
   }
   for (const edu of vm.education) {
