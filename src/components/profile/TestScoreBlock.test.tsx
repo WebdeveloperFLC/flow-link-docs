@@ -15,6 +15,7 @@ describe("TestScoreBlock", () => {
           test_expiry: null,
           sections: { listening: "8.0", reading: "7.5" },
           ielts_variant: "Academic",
+          ielts_test_type: "CBT",
           country: null,
           linked_documents: [],
         }}
@@ -22,6 +23,7 @@ describe("TestScoreBlock", () => {
     );
     expect(screen.getByText("IELTS")).toBeInTheDocument();
     expect(screen.getByText("Academic")).toBeInTheDocument();
+    expect(screen.getByText("CBT")).toBeInTheDocument();
     expect(screen.getByText(/Overall/)).toBeInTheDocument();
     expect(screen.getAllByText("7.5").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("8.0")).toBeInTheDocument();
@@ -57,6 +59,7 @@ describe("TestScoreBlock", () => {
           test_expiry: null,
           sections: {},
           ielts_variant: null,
+          ielts_test_type: null,
           country: null,
           linked_documents: [],
         }}

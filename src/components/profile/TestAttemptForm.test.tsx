@@ -45,6 +45,14 @@ describe("TestAttemptForm", () => {
     render(<TestAttemptForm attempt={IELTS_TAKEN} mode="edit" onChange={() => {}} />);
     expect(screen.getByText("Listening")).toBeInTheDocument();
     expect(screen.getByText("IELTS variant")).toBeInTheDocument();
+    expect(screen.getByText("Test Type")).toBeInTheDocument();
+  });
+
+  it("orders IELTS overall score before sectional inputs", () => {
+    render(<TestAttemptForm attempt={IELTS_TAKEN} mode="edit" onChange={() => {}} />);
+    const overall = screen.getByText("Overall score");
+    const listening = screen.getByText("Listening");
+    expect(overall.compareDocumentPosition(listening) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("renders DET subscores for Duolingo taken in edit mode", () => {
@@ -281,13 +289,12 @@ describe("ProfileTestsPanel Phase E", () => {
         activeAttemptIds={{ ielts: "test_a2" }}
         activeEnglishTestId="ielts"
         selectedEnglishTestId="ielts"
-        selectedAttemptId="test_a2"
       />,
     );
     expect(screen.getByTestId("attempt-list-ielts")).toBeInTheDocument();
-    expect(screen.getByText("Attempt 1")).toBeInTheDocument();
-    expect(screen.getByText("Attempt 3")).toBeInTheDocument();
-    expect(screen.getByText(/Overall 8\.0/)).toBeInTheDocument();
+    expect(screen.getByText("IELTS Attempt 1")).toBeInTheDocument();
+    expect(screen.getByText("IELTS Attempt 3")).toBeInTheDocument();
+    expect(screen.getByText(/Overall: 8\.0/)).toBeInTheDocument();
   });
 
   it("shows Add attempt in edit mode", () => {

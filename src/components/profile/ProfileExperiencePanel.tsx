@@ -9,6 +9,7 @@ import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LinkedDocumentsPanel, type LinkedDocumentOption } from "@/components/profile/LinkedDocumentsPanel";
 import { ProfileRecordCardHeader } from "@/components/profile/ProfileRecordCardHeader";
+import { experienceCardPreview } from "@/lib/profile/recordCardPreview";
 
 interface Props {
   records: readonly ProfileExperienceRecord[];
@@ -35,18 +36,6 @@ function viewLine(label: string, value: string | null | undefined) {
       <span>{v}</span>
     </div>
   );
-}
-
-function experiencePreview(record: ProfileExperienceRecord): string {
-  const parts: string[] = [];
-  if (record.designation?.trim()) parts.push(record.designation.trim());
-  const dates = record.currently_working
-    ? [record.start_date, "Present"].filter(Boolean).join(" – ")
-    : [record.start_date, record.end_date].filter(Boolean).join(" – ");
-  if (dates) parts.push(dates);
-  const location = [record.city, record.state_province, record.country].filter(Boolean).join(", ");
-  if (location) parts.push(location);
-  return parts.slice(0, 2).join(" · ");
 }
 
 export function ProfileExperiencePanel({
@@ -91,6 +80,7 @@ export function ProfileExperiencePanel({
       {records.map((record, index) => {
         const expanded = expandedId === record.id;
         const headline = record.company?.trim() || record.designation?.trim() || `Experience ${index + 1}`;
+        const preview = experienceCardPreview(record);
         const toggleExpand = () => onExpand?.(expanded ? null : record.id);
 
         if (mode === "view") {
@@ -98,7 +88,7 @@ export function ProfileExperiencePanel({
             <div key={record.id} className="rounded-lg border p-3 space-y-1">
               <ProfileRecordCardHeader
                 headline={headline}
-                preview={experiencePreview(record)}
+                preview={preview}
                 expanded={expanded}
                 onToggle={toggleExpand}
               />
@@ -132,7 +122,7 @@ export function ProfileExperiencePanel({
           >
             <ProfileRecordCardHeader
               headline={headline}
-              preview={experiencePreview(record)}
+              preview={preview}
               expanded={expanded}
               onToggle={toggleExpand}
               onRemove={onRemove ? () => onRemove(record.id) : undefined}

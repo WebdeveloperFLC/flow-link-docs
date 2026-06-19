@@ -32,6 +32,7 @@ import { LeadFollowupLogPanel } from "@/components/leads/LeadFollowupLogPanel";
 import { LeadBackgroundOverview } from "@/components/leads/LeadBackgroundOverview";
 import { syncLeadFollowupLog } from "@/lib/leadFollowupLog";
 import { leadToBackgroundState } from "@/lib/leadBackground";
+import { buildLeadCustomComboCodes } from "@/lib/leads/leadServicePreview";
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="space-y-0.5">
@@ -146,6 +147,7 @@ const LeadDetail = () => {
     lead.sponsor === "other" && lead.sponsor_other
       ? `${sponsorLabel(lead.sponsor)} — ${lead.sponsor_other}`
       : sponsorLabel(lead.sponsor);
+  const customComboCodes = buildLeadCustomComboCodes(lead);
 
   return (
     <AppLayout>
@@ -245,6 +247,16 @@ const LeadDetail = () => {
               <Row label="Visa & Immigration" value={<ServiceChipList items={lead.visa_services} map={serviceMap} />} />
               <Row label="Admission" value={<ServiceChipList items={lead.admission_services} map={serviceMap} />} />
               <Row label="Allied" value={<ServiceChipList items={lead.allied_services} map={serviceMap} />} />
+              <Row
+                label="Travel & Financial"
+                value={<ServiceChipList items={lead.travel_financial_services} map={serviceMap} />}
+              />
+              {customComboCodes.length > 0 && (
+                <Row
+                  label="Custom Combo"
+                  value={<ServiceChipList items={customComboCodes} map={serviceMap} />}
+                />
+              )}
               {lead.visa_locked && <Row label="Visa lock reason" value={lead.visa_lock_reason} />}
             </Card>
 

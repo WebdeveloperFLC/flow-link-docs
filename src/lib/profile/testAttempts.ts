@@ -23,6 +23,7 @@ import {
 import { PTE_VARIANTS, TOEFL_VARIANTS } from "@/lib/profile/types";
 import type {
   ClientDocumentRefRow,
+  IeltsTestType,
   IeltsVariant,
   PteVariant,
   ToeflVariant,
@@ -103,6 +104,15 @@ function readVariantForEnglishTest(
   return str(entryVariant);
 }
 
+function readIeltsTestType(sections: Record<string, unknown>, topLevel?: unknown): IeltsTestType | null {
+  const v = str(topLevel) ?? str(sections.ielts_test_type);
+  if (v === "CBT" || v === "PBT") return v;
+  const upper = v?.toUpperCase();
+  if (upper === "CBT") return "CBT";
+  if (upper === "PBT") return "PBT";
+  return null;
+}
+
 function mergeLinkedDocs(
   jsonb: RawLinkedDoc[] | undefined,
   refs: ClientDocumentRefRow[],
@@ -140,6 +150,7 @@ export function attemptHasData(a: TestAttempt): boolean {
     a.result_date ||
     a.expiry_date ||
     a.variant ||
+    a.ielts_test_type ||
     a.exam_type ||
     a.cefr_level ||
     a.notes ||
@@ -177,6 +188,7 @@ function normalizeAttemptRow(raw: unknown, refs: ClientDocumentRefRow[] = []): T
     category,
     status: coerceAttemptStatus(o.status),
     variant: str(o.variant) ?? str(o.ielts_variant),
+    ielts_test_type: readIeltsTestType({}, o.ielts_test_type),
     test_date: str(o.test_date),
     result_date: str(o.result_date),
     expiry_date: str(o.expiry_date) ?? str(o.test_expiry),
@@ -201,6 +213,7 @@ function serializeAttempt(a: TestAttempt): Record<string, unknown> {
     category: a.category,
     status: a.status,
     variant: a.variant,
+    ielts_test_type: a.ielts_test_type,
     test_date: a.test_date,
     result_date: a.result_date,
     expiry_date: a.expiry_date,
@@ -245,6 +258,7 @@ function englishAttemptFromCache(
       coerceAttemptStatus(entry.status) ??
       (isActive ? coerceAttemptStatus(bgEnglishStatus) : null),
     variant: readVariantForEnglishTest(testId, sectionsRaw, entry.variant),
+    ielts_test_type: testId === "ielts" ? readIeltsTestType(sectionsRaw) : null,
     test_date: str(entry.test_date),
     expiry_date: str(entry.test_expiry),
     overall_score: str(entry.overall),
@@ -307,9 +321,8 @@ export function migrateLegacyToAttempts(
       test_id: activeEnglishId,
       category: "english",
       status: coerceAttemptStatus(bg.english_test_status),
-      variant: activeEnglishId
-        ? readVariantForEnglishTest(activeEnglishId, sectionsRaw)
-        : null,
+      variant: activeEnglishId ? readVariantForEnglishTest(activeEnglishId, sectionsRaw) : null,
+      ielts_test_type: activeEnglishId === "ielts" ? readIeltsTestType(sectionsRaw) : null,
       test_date: str(bg.english_test_date),
       expiry_date: str(bg.english_test_expiry),
       overall_score: str(bg.english_overall),
@@ -432,6 +445,7 @@ function attemptToEnglishEntry(a: TestAttempt): ProfileEnglishTestEntry {
     test_expiry: a.expiry_date,
     sections: { ...a.sections },
     ielts_variant: (a.variant as IeltsVariant | null) ?? null,
+    ielts_test_type: a.ielts_test_type ?? null,
     country: a.country,
     linked_documents: a.linked_documents,
   };
@@ -573,6 +587,7 @@ export function mergeLegacyEditsIntoAttempts(
     upsertFromLegacy(e.test_id, "english", {
       status: e.status,
       variant: e.ielts_variant,
+      ielts_test_type: e.ielts_test_type,
       test_date: e.test_date,
       expiry_date: e.test_expiry,
       overall_score: e.overall,
@@ -674,6 +689,9 @@ export function attemptsToLegacyMirror(
   };
   if (activeAttempt?.variant && activeEnglish === "ielts") {
     sections.ielts_variant = activeAttempt.variant;
+  }
+  if (activeAttempt?.ielts_test_type && activeEnglish === "ielts") {
+    sections.ielts_test_type = activeAttempt.ielts_test_type;
   }
   if (activeAttempt?.variant && activeEnglish === "pte") {
     sections.pte_variant = activeAttempt.variant;
@@ -802,6 +820,7 @@ export function sortAttemptsChronologically(attempts: readonly TestAttempt[]): T
 export function formatAttemptSummary(attempt: TestAttempt): string {
   const parts: string[] = [];
   if (attempt.variant) parts.push(attempt.variant);
+  if (attempt.ielts_test_type) parts.push(attempt.ielts_test_type);
   if (attempt.status) parts.push(attempt.status.replace(/_/g, " "));
   if (attempt.test_date) parts.push(attempt.test_date);
   if (attempt.overall_score) parts.push(`Overall ${attempt.overall_score}`);

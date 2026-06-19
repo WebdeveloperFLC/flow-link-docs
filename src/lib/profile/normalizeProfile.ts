@@ -30,6 +30,7 @@ import {
 } from "@/lib/profile/profileTestCatalog";
 import type {
   ClientDocumentRefRow,
+  IeltsTestType,
   IeltsVariant,
   ProfileAptitudeTestEntry,
   ProfileAptitudeTestId,
@@ -204,6 +205,12 @@ function readIeltsVariant(sections: Record<string, unknown>): IeltsVariant | nul
   return null;
 }
 
+function readIeltsTestType(sections: Record<string, unknown>): IeltsTestType | null {
+  const v = str(sections.ielts_test_type);
+  if (v === "CBT" || v === "PBT") return v;
+  return null;
+}
+
 function buildEnglishEntries(
   client: Partial<ClientRow>,
   refs: ClientDocumentRefRow[],
@@ -219,6 +226,7 @@ function buildEnglishEntries(
     english_sections: sectionsRaw,
   });
   const ieltsVariant = readIeltsVariant(sectionsRaw);
+  const ieltsTestType = readIeltsTestType(sectionsRaw);
   const testCountry = str(sectionsRaw.test_country);
 
   const entries: ProfileEnglishTestEntry[] = [];
@@ -246,6 +254,7 @@ function buildEnglishEntries(
       test_expiry: str(cached.test_expiry),
       sections: { ...(cached.sections ?? {}) },
       ielts_variant: testId === "ielts" ? ieltsVariant : null,
+      ielts_test_type: testId === "ielts" ? ieltsTestType : null,
       country: isActive ? testCountry : null,
       linked_documents: mergeLinkedDocs(jsonbLinked, refs, refKey),
     });
@@ -262,6 +271,7 @@ function buildEnglishEntries(
       test_expiry: str(bg.english_test_expiry),
       sections: {},
       ielts_variant: active === "ielts" ? ieltsVariant : null,
+      ielts_test_type: active === "ielts" ? ieltsTestType : null,
       country: testCountry,
       linked_documents: mergeLinkedDocs(
         sectionsRaw.linked_documents as RawLinkedDoc[] | undefined,
@@ -475,6 +485,7 @@ export function englishEntriesToClientFields(
     [ENGLISH_SCORES_BY_TEST_KEY]: byTest,
   };
   if (active?.ielts_variant) sections.ielts_variant = active.ielts_variant;
+  if (active?.ielts_test_type) sections.ielts_test_type = active.ielts_test_type;
   if (active?.country) sections.test_country = active.country;
   if (active) {
     sections.linked_documents = active.linked_documents.map((d) => ({

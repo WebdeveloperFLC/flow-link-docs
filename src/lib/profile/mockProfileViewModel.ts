@@ -166,6 +166,7 @@ export function createMockProfileViewModel(): ProfileViewModel {
           test_expiry: null,
           sections: {},
           ielts_variant: null,
+          ielts_test_type: null,
           country: null,
           linked_documents: [],
         },

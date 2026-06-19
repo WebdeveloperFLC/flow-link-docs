@@ -116,6 +116,7 @@ describe("mergeLegacyEditsIntoAttempts", () => {
           test_expiry: null,
           sections: {},
           ielts_variant: null,
+          ielts_test_type: null,
           country: null,
           linked_documents: [],
         },
@@ -185,6 +186,43 @@ describe("attempts round-trip", () => {
     expect(mirror.other_tests).toHaveLength(2);
     expect(mirror.english_test).toBe("IELTS");
     expect(mirror.english_overall).toBe("7.5");
+  });
+
+  it("round-trips ielts_test_type through storage and legacy mirror", () => {
+    const attempts: TestAttempt[] = [
+      {
+        attempt_id: ensureAttemptId("ielts_cbt"),
+        test_id: "ielts",
+        category: "english",
+        status: "taken",
+        variant: "Academic",
+        ielts_test_type: "CBT",
+        overall_score: "7.5",
+        sections: { listening: "8", reading: "7.5", writing: "7", speaking: "7.5" },
+        linked_documents: [],
+      },
+    ];
+    const active_attempt_ids = { ielts: attempts[0]!.attempt_id };
+    const payload = attemptsToStoragePayload(attempts, active_attempt_ids);
+    const parsed = buildProfileTests({
+      id: "c-ielts-type",
+      test_attempts: payload.test_attempts,
+      active_attempt_ids: payload.active_attempt_ids,
+    });
+    const ielts = parsed.attempts.find((a) => a.test_id === "ielts");
+    expect(ielts?.variant).toBe("Academic");
+    expect(ielts?.ielts_test_type).toBe("CBT");
+
+    const mirror = attemptsToLegacyMirror(parsed.attempts, parsed.active_attempt_ids);
+    expect(mirror.english_sections?.ielts_variant).toBe("Academic");
+    expect(mirror.english_sections?.ielts_test_type).toBe("CBT");
+  });
+
+  it("loads legacy IELTS without ielts_test_type", () => {
+    const { attempts } = migrateLegacyToAttempts(LEGACY_CLIENT);
+    const ielts = attempts.find((a) => a.test_id === "ielts");
+    expect(ielts?.variant).toBe("Academic");
+    expect(ielts?.ielts_test_type).toBeNull();
   });
 });
 

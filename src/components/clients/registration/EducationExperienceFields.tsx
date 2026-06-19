@@ -19,8 +19,11 @@ import {
   buildEnglishScorePatch,
   buildEnglishStatusPatch,
   buildEnglishTestSwitchPatch,
+  mergeEnglishSectionMetadata,
+  readEnglishSectionMetadata,
   sectionalScoresOnly,
 } from "@/lib/englishTestScores";
+import type { IeltsTestType, IeltsVariant } from "@/lib/profile/types";
 import { cn } from "@/lib/utils";
 
 const ENGLISH_TESTS = ["IELTS", "PTE", "TOEFL", "CELPIP", "Duolingo"];
@@ -96,6 +99,17 @@ export const EducationExperienceFields = ({
 
   const englishSecs = ENGLISH_SECTIONS[englishTest] ?? [];
   const englishSectionValues = sectionalScoresOnly(value.english_sections);
+  const englishMetadata = readEnglishSectionMetadata(value.english_sections);
+  const isIelts = englishTest === "IELTS";
+  const patchEnglishMetadata = (meta: Partial<typeof englishMetadata>) => {
+    onChange({
+      english_sections: mergeEnglishSectionMetadata(value.english_sections ?? {}, {
+        ...englishMetadata,
+        ...meta,
+      }),
+    });
+    setTimeout(commit, 0);
+  };
   const patchEnglishScores = (
     patch: Partial<Pick<EducationExperienceValue, "english_overall" | "english_test_date" | "english_test_expiry" | "english_sections">>,
   ) => onChange(buildEnglishScorePatch(value, patch) as Partial<EducationExperienceValue>);
@@ -265,30 +279,95 @@ export const EducationExperienceFields = ({
                   </Select>
                 </div>
               )}
+              {hasEnglishTest && isIelts && (
+                <>
+                  <div className="space-y-1">
+                    <Label className="text-xs">IELTS variant</Label>
+                    <Select
+                      value={englishMetadata.ielts_variant ?? ""}
+                      onValueChange={(v) =>
+                        patchEnglishMetadata({ ielts_variant: (v || null) as IeltsVariant | null })
+                      }
+                    >
+                      <SelectTrigger><SelectValue placeholder="Select variant" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Academic">Academic</SelectItem>
+                        <SelectItem value="General">General</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Test Type</Label>
+                    <Select
+                      value={englishMetadata.ielts_test_type ?? ""}
+                      onValueChange={(v) =>
+                        patchEnglishMetadata({ ielts_test_type: (v || null) as IeltsTestType | null })
+                      }
+                    >
+                      <SelectTrigger><SelectValue placeholder="Select test type" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CBT">CBT (Computer-Based Test)</SelectItem>
+                        <SelectItem value="PBT">PBT (Paper-Based Test)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
             </div>
             {!hideEnglishFields && hasEnglishTest && (
               <div className="space-y-3 pt-1">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Overall Score</Label>
-                    <Input value={value.english_overall ?? ""} onChange={(e) => patchEnglishScores({ english_overall: e.target.value })} onBlur={commit} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Test Date</Label>
-                    <Input type="date" value={value.english_test_date ?? ""} onChange={(e) => patchEnglishScores({ english_test_date: e.target.value || null })} onBlur={commit} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Expiry Date</Label>
-                    <Input type="date" value={value.english_test_expiry ?? ""} onChange={(e) => patchEnglishScores({ english_test_expiry: e.target.value || null })} onBlur={commit} />
-                  </div>
-                </div>
-                {englishSecs.length > 0 && (
-                  <SectionalInputs
-                    sections={englishSecs}
-                    values={englishSectionValues}
-                    onChange={(next) => patchEnglishScores({ english_sections: next })}
-                    onBlur={commit}
-                  />
+                {isIelts ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-lg">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Test Date</Label>
+                        <Input type="date" value={value.english_test_date ?? ""} onChange={(e) => patchEnglishScores({ english_test_date: e.target.value || null })} onBlur={commit} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Expiry Date</Label>
+                        <Input type="date" value={value.english_test_expiry ?? ""} onChange={(e) => patchEnglishScores({ english_test_expiry: e.target.value || null })} onBlur={commit} />
+                      </div>
+                    </div>
+                    <div className="space-y-3" data-testid="ielts-scores-block">
+                      <div className="space-y-1 max-w-xs">
+                        <Label className="text-xs">Overall Score</Label>
+                        <Input value={value.english_overall ?? ""} onChange={(e) => patchEnglishScores({ english_overall: e.target.value })} onBlur={commit} />
+                      </div>
+                      {englishSecs.length > 0 && (
+                        <SectionalInputs
+                          sections={englishSecs}
+                          values={englishSectionValues}
+                          onChange={(next) => patchEnglishScores({ english_sections: next })}
+                          onBlur={commit}
+                        />
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Overall Score</Label>
+                        <Input value={value.english_overall ?? ""} onChange={(e) => patchEnglishScores({ english_overall: e.target.value })} onBlur={commit} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Test Date</Label>
+                        <Input type="date" value={value.english_test_date ?? ""} onChange={(e) => patchEnglishScores({ english_test_date: e.target.value || null })} onBlur={commit} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Expiry Date</Label>
+                        <Input type="date" value={value.english_test_expiry ?? ""} onChange={(e) => patchEnglishScores({ english_test_expiry: e.target.value || null })} onBlur={commit} />
+                      </div>
+                    </div>
+                    {englishSecs.length > 0 && (
+                      <SectionalInputs
+                        sections={englishSecs}
+                        values={englishSectionValues}
+                        onChange={(next) => patchEnglishScores({ english_sections: next })}
+                        onBlur={commit}
+                      />
+                    )}
+                  </>
                 )}
               </div>
             )}
