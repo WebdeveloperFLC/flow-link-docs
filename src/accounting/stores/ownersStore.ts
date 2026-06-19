@@ -378,3 +378,16 @@ export async function deleteFinancialAccount(id: string): Promise<void> {
     toast.error(`Failed to delete account: ${errMsg(e)}`);
   }
 }
+
+/** Permanently remove every owner profile and linked financial account from Supabase. */
+export async function deleteAllOwnersAndAccounts(): Promise<number> {
+  const ids = owners.map((o) => o.id);
+  if (!ids.length) return 0;
+  let deleted = 0;
+  for (const id of ids) {
+    const before = owners.length;
+    await deleteOwner(id);
+    if (owners.length < before) deleted += 1;
+  }
+  return deleted;
+}

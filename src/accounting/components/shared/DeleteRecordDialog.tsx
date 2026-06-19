@@ -8,25 +8,37 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   posted?: boolean;
+  title?: string;
+  description?: string;
+  confirmLabel?: string;
 }
 
 /**
  * Shared destructive-confirmation dialog for accounting list/detail pages.
  * Pass `posted` for stronger wording (posted journals etc.).
  */
-export default function DeleteRecordDialog({ open, onOpenChange, onConfirm, posted = false }: Props) {
+export default function DeleteRecordDialog({
+  open,
+  onOpenChange,
+  onConfirm,
+  posted = false,
+  title,
+  description,
+  confirmLabel,
+}: Props) {
+  const dialogTitle = title ?? (posted ? "Delete posted journal entry?" : "Delete this record?");
+  const dialogDescription =
+    description ??
+    (posted
+      ? "Warning: This journal has been posted. Deleting it will affect your trial balance and general ledger. During testing this is allowed."
+      : "This action cannot be undone. The record will be permanently removed.");
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            {posted ? "Delete posted journal entry?" : "Delete this record?"}
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            {posted
-              ? "Warning: This journal has been posted. Deleting it will affect your trial balance and general ledger. During testing this is allowed."
-              : "This action cannot be undone. The record will be permanently removed."}
-          </AlertDialogDescription>
+          <AlertDialogTitle>{dialogTitle}</AlertDialogTitle>
+          <AlertDialogDescription>{dialogDescription}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -34,7 +46,7 @@ export default function DeleteRecordDialog({ open, onOpenChange, onConfirm, post
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             onClick={onConfirm}
           >
-            {posted ? "Delete anyway" : "Delete"}
+            {confirmLabel ?? (posted ? "Delete anyway" : "Delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

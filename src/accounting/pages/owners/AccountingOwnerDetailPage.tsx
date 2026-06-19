@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   ChevronLeft, UserCircle, Plus, Edit, Wallet, TrendingUp, AlertCircle,
   Landmark, Clock, PieChart, Shield, Heart, CreditCard, Banknote, Star, Home,
-  ChevronDown, ChevronRight, MoreHorizontal,
+  ChevronDown, ChevronRight, MoreHorizontal, Trash2,
 } from 'lucide-react';
 
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
+import DeleteRecordDialog from '../../components/shared/DeleteRecordDialog';
 
 import {
   ownerDisplayName, ownerInitials, avatarColorClass, countryFlag,
@@ -30,11 +30,12 @@ import {
 } from '../../data/mockOwners';
 import {
   useOwners, useAccountsForOwner,
-  createFinancialAccount, updateFinancialAccount,
+  createFinancialAccount, updateFinancialAccount, deleteFinancialAccount, deleteOwner,
 } from '../../stores/ownersStore';
 import { MOCK_DOCUMENTS } from '../../data/mockDocuments';
 import type { AccountType, FinancialAccount } from '../../types/owners';
 import DirectorsSection from '../../components/owners/DirectorsSection';
+import { cn } from '@/lib/utils';
 
 const TYPE_PILL: Record<string, string> = {
   CORPORATION: 'bg-blue-100 text-blue-700',
@@ -102,6 +103,7 @@ const SECTION_ADD_LABEL: Record<Section, string> = {
 };
 
 export default function AccountingOwnerDetailPage() {
+  const navigate = useNavigate();
   const { id = '' } = useParams<{ id: string }>();
   const owners = useOwners();
   const owner = owners.find((o) => o.id === id);
@@ -111,6 +113,8 @@ export default function AccountingOwnerDetailPage() {
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<FinancialAccount | null>(null);
   const [defaultSection, setDefaultSection] = useState<Section>('BANK');
+  const [deleteAccountId, setDeleteAccountId] = useState<string | null>(null);
+  const [confirmDeleteOwner, setConfirmDeleteOwner] = useState(false);
 
   const totals = useMemo(() => {
     let assets = 0, liab = 0;
@@ -193,6 +197,9 @@ export default function AccountingOwnerDetailPage() {
           <Button variant="outline" onClick={() => toast.info('Edit profile — open from list page')}>
             <Edit className="size-4" /> Edit
           </Button>
+          <Button variant="outline" className="text-destructive hover:text-destructive" onClick={() => setConfirmDeleteOwner(true)}>
+            <Trash2 className="size-4" /> Delete profile
+          </Button>
         </Card>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -235,6 +242,7 @@ export default function AccountingOwnerDetailPage() {
                           key={a.id}
                           a={a}
                           onEdit={() => { setEditingAccount(a); setDefaultSection(sectionOf(a)); setAccountModalOpen(true); }}
+                          onDelete={() => setDeleteAccountId(a.id)}
                         />
                       ))}
                     </div>
@@ -334,6 +342,33 @@ export default function AccountingOwnerDetailPage() {
           defaultSection={defaultSection}
           onSave={saveAccount}
         />
+
+        <DeleteRecordDialog
+          open={!!deleteAccountId}
+          onOpenChange={(open) => { if (!open) setDeleteAccountId(null); }}
+          title="Delete this financial account?"
+          description="The account will be permanently removed from this owner profile and Supabase."
+          onConfirm={async () => {
+            if (!deleteAccountId) return;
+            await deleteFinancialAccount(deleteAccountId);
+            setDeleteAccountId(null);
+            toast.success('Account deleted');
+          }}
+        />
+
+        <DeleteRecordDialog
+          open={confirmDeleteOwner}
+          onOpenChange={setConfirmDeleteOwner}
+          title="Delete owner profile?"
+          description={`Permanently delete ${ownerDisplayName(owner)} and all linked financial accounts. This cannot be undone.`}
+          confirmLabel="Delete profile"
+          onConfirm={async () => {
+            await deleteOwner(owner.id);
+            setConfirmDeleteOwner(false);
+            toast.success('Owner profile deleted');
+            navigate('/accounting/owners');
+          }}
+        />
       </div>
     </AppLayout>
   );
@@ -365,7 +400,7 @@ function SectionBlock({ title, subtitle, addLabel, count, onAdd, children }: { t
   );
 }
 
-function AccountRow({ a, onEdit }: { a: FinancialAccount; onEdit: () => void }) {
+function AccountRow({ a, onEdit, onDelete }: { a: FinancialAccount; onEdit: () => void; onDelete: () => void }) {
   const Icon = iconForType(a.accountType);
   const cat = categoryOf(a.accountType);
   const bal = a.currentBalance ?? 0;
@@ -413,6 +448,9 @@ function AccountRow({ a, onEdit }: { a: FinancialAccount; onEdit: () => void }) 
           <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
           <DropdownMenuItem onClick={() => toast.info('Transactions — coming soon')}>View transactions</DropdownMenuItem>
           <DropdownMenuItem onClick={() => toast.info('Document linking — coming soon')}>Link document</DropdownMenuItem>
+          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={onDelete}>
+            <Trash2 className="size-3.5 mr-2" /> Delete account
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

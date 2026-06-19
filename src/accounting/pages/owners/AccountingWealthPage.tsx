@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { TrendingUp, AlertCircle, Wallet, Heart, Check } from 'lucide-react';
+import { TrendingUp, AlertCircle, Wallet, Heart, Check, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -20,7 +20,8 @@ import {
   ownerDisplayName, categoryOf,
   convertTo, formatAccountAmount,
 } from '../../data/mockOwners';
-import { useOwners, useFinancialAccounts } from '../../stores/ownersStore';
+import { useOwners, useFinancialAccounts, deleteAllOwnersAndAccounts } from '../../stores/ownersStore';
+import DeleteRecordDialog from '../../components/shared/DeleteRecordDialog';
 import type { FinancialAccount } from '../../types/owners';
 
 const DISPLAY_CCY: ('INR'|'CAD'|'USD')[] = ['INR','CAD','USD'];
@@ -121,6 +122,7 @@ export default function AccountingWealthPage() {
   const [displayCcy, setDisplayCcy] = useState<'INR'|'CAD'|'USD'>('INR');
   const [asOf, setAsOf] = useState(() => new Date().toISOString().slice(0, 10));
   const [paid, setPaid] = useState<Set<string>>(new Set());
+  const [confirmPurge, setConfirmPurge] = useState(false);
 
   const accounts = useMemo(
     () => allAccounts.filter(a => selectedOwners.includes(a.ownerProfileId)),
@@ -186,6 +188,31 @@ export default function AccountingWealthPage() {
         <AccountingPageHeader
           title="Wealth & investment summary"
           subtitle="Across all owner profiles"
+          actions={
+            allOwners.length > 0 ? (
+              <Button
+                variant="outline"
+                className="text-destructive hover:text-destructive"
+                onClick={() => setConfirmPurge(true)}
+              >
+                <Trash2 className="size-4" /> Clear all wealth data
+              </Button>
+            ) : undefined
+          }
+        />
+
+        <DeleteRecordDialog
+          open={confirmPurge}
+          onOpenChange={setConfirmPurge}
+          title="Delete all owner profiles and financial accounts?"
+          description="Permanently removes every owner profile, linked financial account, and wealth summary data from Supabase. This cannot be undone."
+          confirmLabel="Delete all"
+          onConfirm={async () => {
+            const n = await deleteAllOwnersAndAccounts();
+            setConfirmPurge(false);
+            setSelectedOwners([]);
+            toast.success(n ? `Deleted ${n} owner profile${n === 1 ? '' : 's'}` : 'No owner data to delete');
+          }}
         />
 
         <Card className="p-4 mb-6 flex flex-wrap gap-3 items-center">
