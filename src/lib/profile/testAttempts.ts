@@ -20,9 +20,11 @@ import {
   type ProfileLanguageTestId,
   type ProfileTestId,
 } from "@/lib/profile/profileTestCatalog";
+import { PTE_VARIANTS } from "@/lib/profile/types";
 import type {
   ClientDocumentRefRow,
   IeltsVariant,
+  PteVariant,
   ProfileAptitudeTestEntry,
   ProfileEnglishTestEntry,
   ProfileLanguageTestEntry,
@@ -73,6 +75,23 @@ function readIeltsVariant(sections: Record<string, unknown>, topLevel?: unknown)
   if (lower === "academic") return "Academic";
   if (lower === "general") return "General";
   return null;
+}
+
+function readPteVariant(sections: Record<string, unknown>, topLevel?: unknown): PteVariant | null {
+  const v = str(topLevel) ?? str(sections.pte_variant) ?? str(sections.variant);
+  if (!v) return null;
+  const hit = PTE_VARIANTS.find((option) => option.toLowerCase() === v.toLowerCase());
+  return hit ?? null;
+}
+
+function readVariantForEnglishTest(
+  testId: ProfileEnglishTestId,
+  sections: Record<string, unknown>,
+  entryVariant?: unknown,
+): string | null {
+  if (testId === "ielts") return readIeltsVariant(sections, entryVariant);
+  if (testId === "pte") return readPteVariant(sections, entryVariant);
+  return str(entryVariant);
 }
 
 function mergeLinkedDocs(
@@ -216,7 +235,7 @@ function englishAttemptFromCache(
     status:
       coerceAttemptStatus(entry.status) ??
       (isActive ? coerceAttemptStatus(bgEnglishStatus) : null),
-    variant: testId === "ielts" ? readIeltsVariant(sectionsRaw) : null,
+    variant: readVariantForEnglishTest(testId, sectionsRaw, entry.variant),
     test_date: str(entry.test_date),
     expiry_date: str(entry.test_expiry),
     overall_score: str(entry.overall),
@@ -279,7 +298,9 @@ export function migrateLegacyToAttempts(
       test_id: activeEnglishId,
       category: "english",
       status: coerceAttemptStatus(bg.english_test_status),
-      variant: activeEnglishId === "ielts" ? readIeltsVariant(sectionsRaw) : null,
+      variant: activeEnglishId
+        ? readVariantForEnglishTest(activeEnglishId, sectionsRaw)
+        : null,
       test_date: str(bg.english_test_date),
       expiry_date: str(bg.english_test_expiry),
       overall_score: str(bg.english_overall),
@@ -625,6 +646,7 @@ export function attemptsToLegacyMirror(
       overall: active.overall_score,
       test_date: active.test_date,
       test_expiry: active.expiry_date,
+      variant: active.variant ?? null,
       sections: { ...active.sections },
     };
   }
@@ -641,7 +663,12 @@ export function attemptsToLegacyMirror(
     ...(activeAttempt?.sections ?? {}),
     [ENGLISH_SCORES_BY_TEST_KEY]: byTest,
   };
-  if (activeAttempt?.variant) sections.ielts_variant = activeAttempt.variant;
+  if (activeAttempt?.variant && activeEnglish === "ielts") {
+    sections.ielts_variant = activeAttempt.variant;
+  }
+  if (activeAttempt?.variant && activeEnglish === "pte") {
+    sections.pte_variant = activeAttempt.variant;
+  }
   if (activeAttempt?.country) sections.test_country = activeAttempt.country;
   if (activeAttempt?.linked_documents.length) {
     sections.linked_documents = activeAttempt.linked_documents.map((d) => ({

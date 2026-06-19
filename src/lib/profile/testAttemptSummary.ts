@@ -20,7 +20,11 @@ const STATUS_DISPLAY: Record<ProfileTestStatus, string> = {
 /** C360 / section summary line — active attempt only, e.g. `IELTS (Academic) Taken 7.5`. */
 export function formatActiveAttemptLine(attempt: TestAttempt): string {
   const name = testLabel(attempt.test_id);
-  const variant = attempt.test_id === "ielts" && attempt.variant ? ` (${attempt.variant})` : "";
+  const variant =
+    attempt.variant &&
+    (attempt.test_id === "ielts" || attempt.test_id === "pte")
+      ? ` (${attempt.variant})`
+      : "";
   const statusKey = attempt.status ?? "not_taken";
   const status = STATUS_DISPLAY[statusKey] ?? statusKey;
 

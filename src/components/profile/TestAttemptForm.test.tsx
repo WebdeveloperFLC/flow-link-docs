@@ -75,6 +75,29 @@ describe("TestAttemptForm", () => {
     expect(screen.getByText("Production")).toBeInTheDocument();
   });
 
+  it("renders PTE variant and overall for taken in edit mode", () => {
+    render(
+      <TestAttemptForm
+        attempt={{
+          attempt_id: "test_pte1",
+          test_id: "pte",
+          category: "english",
+          status: "taken",
+          variant: "PTE Academic",
+          overall_score: "65",
+          test_date: "2025-11-20",
+          sections: { listening: "60", reading: "65", writing: "62", speaking: "68" },
+          linked_documents: [],
+        }}
+        mode="edit"
+        onChange={() => {}}
+      />,
+    );
+    expect(screen.getByText("PTE variant")).toBeInTheDocument();
+    expect(screen.getByText("Overall")).toBeInTheDocument();
+    expect(screen.getByText("Listening")).toBeInTheDocument();
+  });
+
   it("keeps IELTS variant editable when status is not_taken", () => {
     render(
       <TestAttemptForm

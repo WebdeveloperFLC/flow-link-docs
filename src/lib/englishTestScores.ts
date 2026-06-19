@@ -8,6 +8,7 @@ export interface EnglishTestScoreEntry {
   overall?: string | null;
   test_date?: string | null;
   test_expiry?: string | null;
+  variant?: string | null;
   sections?: Record<string, string>;
 }
 

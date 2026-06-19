@@ -26,6 +26,15 @@ export type { ProfileEnglishTestId, ProfileAptitudeTestId, ProfileLanguageTestId
 
 export type IeltsVariant = "Academic" | "General";
 
+export const PTE_VARIANTS = [
+  "PTE Academic",
+  "PTE Home",
+  "PTE Academic UKVI",
+  "PTE Core",
+] as const;
+
+export type PteVariant = (typeof PTE_VARIANTS)[number];
+
 /** Stable slot id from profileDocumentSlots registry. */
 export type ProfileDocumentSlotId = string;
 

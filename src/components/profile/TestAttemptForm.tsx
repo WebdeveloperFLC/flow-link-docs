@@ -22,7 +22,13 @@ import {
   testIdToLegacyEnglish,
   testLabel,
 } from "@/lib/profile/profileTestCatalog";
-import type { IeltsVariant, ProfileTestStatus, TestAttempt } from "@/lib/profile/types";
+import {
+  PTE_VARIANTS,
+  type IeltsVariant,
+  type ProfileTestStatus,
+  type PteVariant,
+  type TestAttempt,
+} from "@/lib/profile/types";
 import { ENGLISH_SECTIONS, OTHER_TEST_SECTIONS, SectionalInputs } from "@/lib/testSections";
 import { cn } from "@/lib/utils";
 import { AlertTriangle } from "lucide-react";
@@ -93,6 +99,8 @@ export function TestAttemptForm({
   const label = testLabel(attempt.test_id);
   const isLanguage = attempt.category === "language";
   const isIelts = attempt.test_id === "ielts";
+  const isPte = attempt.test_id === "pte";
+  const isEnglish = attempt.category === "english";
   const hasStoredScores = attemptHasStoredScores(attempt);
   const sectionalKeys = sectionKeysForAttempt(attempt);
 
@@ -150,7 +158,10 @@ export function TestAttemptForm({
     );
   }
 
-  const showOverallField = vis.showOverall || hasStoredScores;
+  const showOverallField =
+    vis.showOverall ||
+    hasStoredScores ||
+    (isEnglish && attempt.status !== "waived" && attempt.status !== "not_taken");
   const showSectionalFields =
     (vis.showSectionals || hasStoredScores) && sectionalKeys.length > 0;
   const showDocsField = vis.showDocuments || attempt.linked_documents.length > 0;
@@ -199,6 +210,27 @@ export function TestAttemptForm({
               <SelectContent>
                 <SelectItem value="Academic">Academic</SelectItem>
                 <SelectItem value="General">General</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {isPte && (
+          <div className="space-y-1">
+            <Label>PTE variant</Label>
+            <Select
+              value={attempt.variant ?? ""}
+              onValueChange={(v) => onChange?.({ variant: (v || null) as PteVariant | null })}
+            >
+              <SelectTrigger className="h-8 w-52">
+                <SelectValue placeholder="Select variant" />
+              </SelectTrigger>
+              <SelectContent>
+                {PTE_VARIANTS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
