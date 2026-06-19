@@ -47,6 +47,34 @@ describe("TestAttemptForm", () => {
     expect(screen.getByText("IELTS variant")).toBeInTheDocument();
   });
 
+  it("renders DET subscores for Duolingo taken in edit mode", () => {
+    render(
+      <TestAttemptForm
+        attempt={{
+          attempt_id: "test_det1",
+          test_id: "duolingo",
+          category: "english",
+          status: "taken",
+          overall_score: "125",
+          test_date: "2025-11-20",
+          sections: {
+            literacy: "120",
+            comprehension: "130",
+            conversation: "125",
+            production: "115",
+          },
+          linked_documents: [],
+        }}
+        mode="edit"
+        onChange={() => {}}
+      />,
+    );
+    expect(screen.getByText("Literacy")).toBeInTheDocument();
+    expect(screen.getByText("Comprehension")).toBeInTheDocument();
+    expect(screen.getByText("Conversation")).toBeInTheDocument();
+    expect(screen.getByText("Production")).toBeInTheDocument();
+  });
+
   it("keeps IELTS variant editable when status is not_taken", () => {
     render(
       <TestAttemptForm

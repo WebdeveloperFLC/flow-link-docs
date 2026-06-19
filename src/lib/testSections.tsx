@@ -11,7 +11,7 @@ export const ENGLISH_SECTIONS: Record<string, string[]> = {
   PTE: ["listening", "reading", "writing", "speaking"],
   TOEFL: ["listening", "reading", "writing", "speaking"],
   CELPIP: ["listening", "reading", "writing", "speaking"],
-  Duolingo: [],
+  Duolingo: ["literacy", "comprehension", "conversation", "production"],
   None: [],
 };
 
