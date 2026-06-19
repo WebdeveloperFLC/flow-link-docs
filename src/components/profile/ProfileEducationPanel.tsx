@@ -112,8 +112,22 @@ export function ProfileEducationPanel({
                 <>
                   {viewLine("Institution", record.institution_name)}
                   {viewLine("Field", record.field_of_study)}
-                  {viewLine("Year", record.end_year)}
+                  {viewLine("Major", record.major)}
+                  {viewLine("Start year", record.start_year)}
+                  {viewLine("End year", record.end_year)}
+                  {viewLine("Status", record.status)}
+                  {viewLine("Grade type", record.grade_type)}
                   {viewLine("Score", record.score)}
+                  {viewLine("Backlogs", record.backlogs)}
+                  {viewLine("Notes", record.notes)}
+                  {(record.country || record.state_province || record.city) && (
+                    <div className="text-xs">
+                      <span className="text-muted-foreground">Location: </span>
+                      <span>
+                        {[record.city, record.state_province, record.country].filter(Boolean).join(", ")}
+                      </span>
+                    </div>
+                  )}
                   <LinkedDocumentsPanel
                     linkedDocuments={record.linked_documents}
                     scope="education"

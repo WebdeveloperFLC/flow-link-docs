@@ -18,6 +18,17 @@ import type {
   TestAttempt,
 } from "@/lib/profile/types";
 
+function str(v: unknown): string | null {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s.length ? s : null;
+}
+
+function opt(v: string | null | undefined): string | undefined {
+  const s = v?.trim();
+  return s ? s : undefined;
+}
+
 export function testsStateFromLeadBackground(bg: LeadBackgroundState): ProfileTests {
   if (bg.attempts?.length) {
     const legacy = deriveLegacyTestsFromAttempts(bg.attempts, bg.active_attempt_ids ?? {});
@@ -58,24 +69,26 @@ export function applyTestsPatchToLeadBackground(
 
 export function educationRecordsFromLeadBackground(bg: LeadBackgroundState): ProfileEducationRecord[] {
   return (bg.education_history ?? []).map((raw, index) => {
-    const e = raw as EducationEntry & { id?: string };
+    const e = raw as EducationEntry;
     const id = ensureEducationId(e.id ?? `lead_${index}`);
+    const endYear =
+      str(e.end_year) ?? (e.year != null ? formatPassingYearDisplay(e.year) : null);
     return {
       id,
-      qualification_type: e.level?.trim() || null,
-      institution_name: e.institution?.trim() || null,
-      country: e.country?.trim() || null,
-      state_province: e.state_province?.trim() || null,
-      city: e.city?.trim() || null,
-      field_of_study: e.specialization?.trim() || null,
-      major: null,
-      start_year: null,
-      end_year: formatPassingYearDisplay(e.year) ?? null,
-      status: null,
-      grade_type: null,
-      score: e.percentage_cgpa?.trim() || null,
-      backlogs: null,
-      notes: null,
+      qualification_type: str(e.qualification_type) ?? str(e.level),
+      institution_name: str(e.institution_name) ?? str(e.institution),
+      country: str(e.country),
+      state_province: str(e.state_province),
+      city: str(e.city),
+      field_of_study: str(e.field_of_study) ?? str(e.specialization),
+      major: str(e.major),
+      start_year: str(e.start_year),
+      end_year: endYear,
+      status: str(e.status),
+      grade_type: str(e.grade_type),
+      score: str(e.score) ?? str(e.percentage_cgpa),
+      backlogs: str(e.backlogs),
+      notes: str(e.notes),
       linked_documents: [],
     };
   });
@@ -107,17 +120,45 @@ export function applyEducationRecordsToLeadBackground(
   bg: LeadBackgroundState,
   records: readonly ProfileEducationRecord[],
 ): LeadBackgroundState {
-  const education_history: EducationEntry[] = records.map((r) => ({
-    id: r.id,
-    level: r.qualification_type ?? undefined,
-    institution: r.institution_name ?? undefined,
-    country: r.country ?? undefined,
-    state_province: r.state_province ?? undefined,
-    city: r.city ?? undefined,
-    specialization: r.field_of_study ?? r.major ?? undefined,
-    year: r.end_year ?? undefined,
-    percentage_cgpa: r.score ?? undefined,
-  }));
+  const education_history: EducationEntry[] = records.map((r) => {
+    const level = opt(r.qualification_type);
+    const institution = opt(r.institution_name);
+    const fieldOfStudy = opt(r.field_of_study);
+    const major = opt(r.major);
+    const endYear = opt(r.end_year);
+    const score = opt(r.score);
+    const entry: EducationEntry = { id: r.id };
+    if (level) {
+      entry.level = level;
+      entry.qualification_type = level;
+    }
+    if (institution) {
+      entry.institution = institution;
+      entry.institution_name = institution;
+    }
+    if (opt(r.country)) entry.country = opt(r.country);
+    if (opt(r.state_province)) entry.state_province = opt(r.state_province);
+    if (opt(r.city)) entry.city = opt(r.city);
+    if (fieldOfStudy) {
+      entry.specialization = fieldOfStudy;
+      entry.field_of_study = fieldOfStudy;
+    }
+    if (major) entry.major = major;
+    if (opt(r.start_year)) entry.start_year = opt(r.start_year);
+    if (endYear) {
+      entry.end_year = endYear;
+      entry.year = endYear;
+    }
+    if (opt(r.status)) entry.status = opt(r.status);
+    if (opt(r.grade_type)) entry.grade_type = opt(r.grade_type);
+    if (score) {
+      entry.score = score;
+      entry.percentage_cgpa = score;
+    }
+    if (opt(r.backlogs)) entry.backlogs = opt(r.backlogs);
+    if (opt(r.notes)) entry.notes = opt(r.notes);
+    return entry;
+  });
   return { ...bg, education_history };
 }
 

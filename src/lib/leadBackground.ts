@@ -96,8 +96,17 @@ export function educationEntryHasData(e: EducationEntry | undefined): boolean {
     e.country ||
     e.state_province ||
     e.year ||
+    e.end_year ||
+    e.start_year ||
     e.percentage_cgpa ||
-    e.specialization
+    e.score ||
+    e.specialization ||
+    e.field_of_study ||
+    e.major ||
+    e.status ||
+    e.grade_type ||
+    e.backlogs ||
+    e.notes
   );
 }
 
@@ -863,15 +872,28 @@ function formatEducationLevelTitle(level?: string | null): string {
 export function buildEducationDetailView(e: EducationEntry): EducationDetailView {
   const details: string[] = [];
   if (e.institution) details.push(e.institution);
-  if (e.specialization) details.push(e.specialization);
-  const year = formatPassingYearDisplay(e.year);
-  if (year) details.push(`Passed ${year}`);
-  if (e.percentage_cgpa?.trim()) {
-    const score = e.percentage_cgpa.trim();
-    details.push(/\d/.test(score) && !score.includes("%") ? `${score}% / CGPA` : score);
+  const fieldOfStudy = e.field_of_study ?? e.specialization;
+  if (fieldOfStudy) details.push(fieldOfStudy);
+  if (e.major) details.push(`Major: ${e.major}`);
+  const startYear = formatPassingYearDisplay(e.start_year);
+  const endYear = formatPassingYearDisplay(e.end_year ?? e.year);
+  if (startYear && endYear) {
+    details.push(`${startYear}–${endYear}`);
+  } else if (startYear) {
+    details.push(`Start ${startYear}`);
+  } else if (endYear) {
+    details.push(`Passed ${endYear}`);
   }
+  if (e.status) details.push(`Status: ${e.status}`);
+  if (e.grade_type) details.push(`Grade: ${e.grade_type}`);
+  const rawScore = (e.score ?? e.percentage_cgpa ?? "").trim();
+  if (rawScore) {
+    details.push(/\d/.test(rawScore) && !rawScore.includes("%") ? `${rawScore}% / CGPA` : rawScore);
+  }
+  if (e.backlogs) details.push(`Backlogs: ${e.backlogs}`);
+  if (e.notes?.trim()) details.push(e.notes.trim());
   return {
-    title: formatEducationLevelTitle(e.level),
+    title: formatEducationLevelTitle(e.level ?? e.qualification_type),
     details,
     location: formatEducationLocation(e),
   };

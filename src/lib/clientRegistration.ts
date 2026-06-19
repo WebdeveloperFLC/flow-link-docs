@@ -23,15 +23,27 @@ export interface FamilyMember extends FamilyMemberExtras {
 }
 
 export interface EducationEntry {
+  id?: string;
   level?: string;
+  qualification_type?: string;
   institution?: string;
+  institution_name?: string;
   year?: string | null;
+  start_year?: string | null;
+  end_year?: string | null;
   percentage_cgpa?: string;
+  score?: string;
   country?: string;
   state_province?: string;
   province_code?: string;
   city?: string;
   specialization?: string;
+  field_of_study?: string;
+  major?: string;
+  status?: string;
+  grade_type?: string;
+  backlogs?: string;
+  notes?: string;
 }
 
 export interface ExperienceEntry {
