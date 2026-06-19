@@ -2,15 +2,37 @@ import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "./constants";
 import type { AttendanceRow } from "./types";
 
+export type HrActorInfo = { id: string | null; label: string };
+
+export async function getHrActorInfo(): Promise<HrActorInfo> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { id: null, label: "HR User" };
+
+  const { data: profile } = await supabase
+    .from("profiles" as never)
+    .select("full_name, email")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const row = profile as { full_name?: string | null; email?: string | null } | null;
+  const label = row?.full_name?.trim() || row?.email || user.email || "HR User";
+  return { id: user.id, label };
+}
+
 export async function hrAudit(
   action: string,
   target: string,
   prev?: string,
   next?: string,
+  actor?: HrActorInfo,
 ) {
+  const resolved = actor ?? (await getHrActorInfo());
   await supabase.from("audit_log" as never).insert({
     org_id: HR_ORG_ID,
-    actor_label: "You (HR)",
+    actor_id: resolved.id,
+    actor_label: resolved.label,
     action,
     target,
     prev_value: prev ?? "—",

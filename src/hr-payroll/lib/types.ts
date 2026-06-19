@@ -1,4 +1,5 @@
 import type { HrRole, HrScreenKey } from "./constants";
+import type { SecurityChequeStatus } from "./securityCheque";
 
 export type HrPerms = {
   view: boolean;
@@ -133,6 +134,13 @@ export type EmployeeRow = {
   bank_verified: boolean;
   bank_verified_by?: string | null;
   bank_verified_at?: string | null;
+  security_cheque_status?: SecurityChequeStatus;
+  security_cheque_reason?: string | null;
+  security_cheque_storage_path?: string | null;
+  security_cheque_file_name?: string | null;
+  security_cheque_uploaded_at?: string | null;
+  security_cheque_uploaded_by?: string | null;
+  security_cheque_uploaded_by_label?: string | null;
   companies?: { name: string; legal_name?: string | null; currency?: string } | null;
   branches?: { name: string } | null;
   shifts?: { name: string; login_time: string; logout_time: string; working_days_per_week?: number; timezone?: string } | null;

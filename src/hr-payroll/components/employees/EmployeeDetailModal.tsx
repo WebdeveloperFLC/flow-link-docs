@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { useHrAccess } from "../../context/HrPayrollProvider";
 import { useHrEmployees } from "../../hooks/useHrEmployees";
 import { useHrCrmStaff, useCrmProfile } from "../../hooks/useHrTeam";
 import { displayEmployeeName, formatMoney, initials, parseEmergencyContacts, payrollCompanyLabel } from "../../lib/format";
+import { downloadHrDocument, getHrDocumentSignedUrl } from "../../lib/hrStorage";
+import { formatSecurityChequeUploadedAt } from "../../lib/securityCheque";
 import { useSalaryRevisions } from "../../hooks/useSalaryRevisions";
 import type { EmployeeRow } from "../../lib/types";
 import { EmployeeDocumentsPanel } from "./EmployeeDocumentsPanel";
@@ -9,6 +12,7 @@ import { EmployeeDocumentsPanel } from "./EmployeeDocumentsPanel";
 type Tab = "profile" | "employment" | "salary" | "statutory" | "bank" | "documents";
 
 export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClose: () => void }) {
+  const { fire } = useHrAccess();
   const [tab, setTab] = useState<Tab>("profile");
   const { data: employees = [] } = useHrEmployees();
   const { data: revisions = [] } = useSalaryRevisions(emp.id);
@@ -42,6 +46,47 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
 
   const tabs: Tab[] = ["profile", "employment", "salary", "statutory", "bank", "documents"];
   const displayName = displayEmployeeName(emp);
+
+  const openCheque = async () => {
+    if (!emp.security_cheque_storage_path) return;
+    try {
+      const url = await getHrDocumentSignedUrl(emp.security_cheque_storage_path);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Could not open file");
+    }
+  };
+
+  const saveCheque = async () => {
+    if (!emp.security_cheque_storage_path) return;
+    try {
+      await downloadHrDocument(
+        emp.security_cheque_storage_path,
+        emp.security_cheque_file_name ?? "security-cheque",
+      );
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Could not download file");
+    }
+  };
+
+  const bankRows: [string, string | null | undefined][] = [
+    ["Account Holder", emp.bank_holder_name],
+    ["Bank", emp.bank_name],
+    ["Account Number", emp.bank_account_number],
+    ["IFSC", emp.bank_ifsc],
+    ["Branch", emp.bank_branch],
+    ["Account Type", emp.bank_account_type],
+    ["Verified", emp.bank_verified ? "Yes" : "No"],
+    ["Security Cheque Status", emp.security_cheque_status ?? "Pending"],
+  ];
+
+  if (emp.security_cheque_status !== "Submitted" && emp.security_cheque_reason) {
+    bankRows.push(["Reason", emp.security_cheque_reason]);
+  }
+  if (emp.security_cheque_storage_path) {
+    bankRows.push(["Uploaded By", emp.security_cheque_uploaded_by_label ?? "—"]);
+    bankRows.push(["Uploaded On", formatSecurityChequeUploadedAt(emp.security_cheque_uploaded_at)]);
+  }
 
   return (
     <div className="modal-bg" onClick={onClose}>
@@ -226,15 +271,7 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
           )}
           {tab === "bank" && (
             <div className="grid" style={{ gap: 10 }}>
-              {[
-                ["Account Holder", emp.bank_holder_name],
-                ["Bank", emp.bank_name],
-                ["Account Number", emp.bank_account_number],
-                ["IFSC", emp.bank_ifsc],
-                ["Branch", emp.bank_branch],
-                ["Account Type", emp.bank_account_type],
-                ["Verified", emp.bank_verified ? "Yes" : "No"],
-              ].map(([k, v]) => (
+              {bankRows.map(([k, v]) => (
                 <div
                   key={k}
                   style={{
@@ -251,6 +288,35 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
                   </span>
                 </div>
               ))}
+              {emp.security_cheque_storage_path && (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "11px 14px",
+                    background: "var(--paper)",
+                    borderRadius: 9,
+                    gap: 10,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <span style={{ fontSize: 12, color: "var(--mut)", fontWeight: 600 }}>
+                    Security Cheque
+                  </span>
+                  <div className="row-flex" style={{ gap: 6 }}>
+                    <span className="mono muted" style={{ fontSize: 12 }}>
+                      {emp.security_cheque_file_name ?? "file"}
+                    </span>
+                    <button type="button" className="btn btn-sm" onClick={() => void openCheque()}>
+                      View
+                    </button>
+                    <button type="button" className="btn btn-sm" onClick={() => void saveCheque()}>
+                      Download
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
           {tab === "documents" && <EmployeeDocumentsPanel emp={emp} />}

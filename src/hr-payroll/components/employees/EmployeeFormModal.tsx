@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID, DEPARTMENTS, EMPLOYMENT_TYPES } from "../../lib/constants";
@@ -9,7 +9,15 @@ import {
   PAYROLL_ENTITY_REGIONS,
   type PayrollEntityRegion,
 } from "../../lib/payrollCompanies";
-import { uploadEmployeePhoto } from "../../lib/hrStorage";
+import { uploadEmployeePhoto, uploadSecurityCheque, deleteSecurityCheque } from "../../lib/hrStorage";
+import { getHrActorInfo, hrAudit } from "../../lib/hrApi";
+import {
+  SECURITY_CHEQUE_STATUSES,
+  formatSecurityChequeAuditValue,
+  isValidSecurityChequeFile,
+  isValidSecurityChequeStatus,
+  type SecurityChequeStatus,
+} from "../../lib/securityCheque";
 import { EmployeeAvatar } from "../ui/EmployeeAvatar";
 import type { BranchRow, CompanyRow, EmergencyContact, EmployeeRow, ShiftRow, CrmStaffRow } from "../../lib/types";
 import { fetchNextEmpCode, useHrEmployee, useHrEmployees } from "../../hooks/useHrEmployees";
@@ -83,6 +91,8 @@ type FormState = {
   bank_branch: string;
   bank_account_type: string;
   bank_verified: boolean;
+  security_cheque_status: SecurityChequeStatus;
+  security_cheque_reason: string;
   staff_id: string;
 };
 
@@ -150,6 +160,10 @@ function fromEmployee(e: EmployeeRow): FormState {
     bank_branch: e.bank_branch ?? "",
     bank_account_type: e.bank_account_type ?? "Savings",
     bank_verified: e.bank_verified,
+    security_cheque_status: isValidSecurityChequeStatus(e.security_cheque_status ?? "")
+      ? e.security_cheque_status
+      : "Pending",
+    security_cheque_reason: e.security_cheque_reason ?? "",
     staff_id: e.staff_id ?? "",
   };
 }
@@ -213,6 +227,8 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
   bank_branch: "",
   bank_account_type: "Savings",
   bank_verified: false,
+  security_cheque_status: "Pending",
+  security_cheque_reason: "",
   staff_id: "",
 };
 };
@@ -246,10 +262,16 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
   const [saving, setSaving] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const chequeFileRef = useRef<HTMLInputElement>(null);
+  const [chequeFile, setChequeFile] = useState<File | null>(null);
+  const [chequeRemoved, setChequeRemoved] = useState(false);
 
   useEffect(() => {
     if (sourceEmp) {
       setF(fromEmployee(sourceEmp));
+      setChequeFile(null);
+      setChequeRemoved(false);
+      if (chequeFileRef.current) chequeFileRef.current.value = "";
       const co = companies.find((c) => c.id === sourceEmp.company_id);
       setEntityRegion(defaultPayrollEntityRegion(sourceEmp.payroll_country, co));
     }
@@ -343,9 +365,37 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
     if (!f.last_name.trim()) e.lastName = "Last name required";
     if (!f.designation.trim()) e.desig = "Designation required";
     if (!f.monthly_gross || Number(f.monthly_gross) <= 0) e.monthly = "Valid monthly salary required";
+
+    if (!isValidSecurityChequeStatus(f.security_cheque_status)) {
+      e.security_cheque_status = "Security Cheque Status is required";
+    }
+
+    const existingChequePath =
+      chequeRemoved ? null : (sourceEmp?.security_cheque_storage_path ?? null);
+    const hasChequeFile = Boolean(chequeFile) || Boolean(existingChequePath);
+    const reasonValue =
+      f.security_cheque_status === "Submitted" ? null : f.security_cheque_reason.trim() || null;
+
+    if (f.security_cheque_status !== "Submitted" && !reasonValue) {
+      e.security_cheque_reason = "Reason is required";
+    }
+    if (f.security_cheque_status === "Submitted" && !hasChequeFile) {
+      e.security_cheque_upload = "Security cheque upload is required when status is Submitted";
+    }
+    if (chequeFile && !isValidSecurityChequeFile(chequeFile)) {
+      e.security_cheque_upload = "Allowed formats: JPG, JPEG, PNG, PDF";
+    }
+
     setErr(e);
     if (Object.keys(e).length) {
-      setTab(e.emp_code || e.name || e.lastName || e.desig ? "basic" : "salary");
+      const bankErr = e.security_cheque_status || e.security_cheque_reason || e.security_cheque_upload;
+      setTab(
+        bankErr
+          ? "bank"
+          : e.emp_code || e.name || e.lastName || e.desig
+            ? "basic"
+            : "salary",
+      );
       return;
     }
 
@@ -415,8 +465,13 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
       bank_branch: f.bank_branch || null,
       bank_account_type: f.bank_account_type || "Savings",
       bank_verified: f.bank_verified,
+      security_cheque_status: f.security_cheque_status,
+      security_cheque_reason: reasonValue,
       staff_id: f.staff_id || null,
     };
+
+    const auditTarget = `${f.emp_code.trim()} · ${fullName}`;
+    const actor = await getHrActorInfo();
 
     try {
       let employeeId = emp?.id;
@@ -438,6 +493,68 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
         employeeId = (data as { id: string }).id;
         fire(`Employee ${fullName} added`);
       }
+
+      if (employeeId) {
+        const prevPath = sourceEmp?.security_cheque_storage_path ?? null;
+        const prevName = sourceEmp?.security_cheque_file_name ?? null;
+        const prevLabel = sourceEmp?.security_cheque_uploaded_by_label ?? "—";
+        const prevAt = sourceEmp?.security_cheque_uploaded_at ?? "";
+
+        if (chequeRemoved && prevPath) {
+          await deleteSecurityCheque(employeeId, prevPath);
+          await hrAudit(
+            "Security Cheque Deleted",
+            auditTarget,
+            formatSecurityChequeAuditValue(prevName ?? "file", prevLabel, prevAt),
+            "—",
+            actor,
+          );
+        }
+
+        if (chequeFile) {
+          const uploaded = await uploadSecurityCheque(employeeId, chequeFile, actor, chequeRemoved ? null : prevPath);
+          const newAudit = formatSecurityChequeAuditValue(
+            uploaded.file_name,
+            uploaded.uploaded_by_label,
+            uploaded.uploaded_at,
+          );
+          if (prevPath && !chequeRemoved) {
+            await hrAudit(
+              "Security Cheque Replaced",
+              auditTarget,
+              formatSecurityChequeAuditValue(prevName ?? "file", prevLabel, prevAt),
+              newAudit,
+              actor,
+            );
+          } else {
+            await hrAudit("Security Cheque Uploaded", auditTarget, "—", newAudit, actor);
+          }
+        }
+
+        if (sourceEmp) {
+          const prevStatus = sourceEmp.security_cheque_status ?? "Pending";
+          if (prevStatus !== f.security_cheque_status) {
+            await hrAudit(
+              "Security Cheque Status",
+              auditTarget,
+              prevStatus,
+              f.security_cheque_status,
+              actor,
+            );
+          }
+          const prevReason = sourceEmp.security_cheque_reason ?? null;
+          if (prevReason !== reasonValue) {
+            await hrAudit(
+              "Security Cheque Reason",
+              auditTarget,
+              prevReason ?? "—",
+              reasonValue ?? "—",
+              actor,
+            );
+          }
+        }
+      }
+
       if (photoFile && employeeId) {
         await uploadEmployeePhoto(employeeId, photoFile);
         fire("Photo uploaded");
@@ -462,6 +579,12 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
     (Number(f.hra) || 0) +
     (Number(f.conveyance) || 0) +
     (Number(f.special_allow) || 0);
+
+  const existingChequePath =
+    chequeRemoved ? null : (sourceEmp?.security_cheque_storage_path ?? null);
+  const existingChequeName =
+    chequeRemoved ? null : (sourceEmp?.security_cheque_file_name ?? null);
+  const showChequeReason = f.security_cheque_status !== "Submitted";
 
   const T = (
     k: keyof FormState,
@@ -927,6 +1050,92 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                   onChange={(e) => set("bank_verified", e.target.checked)}
                 />
                 Bank details verified
+              </label>
+              <div className="sec-label" style={{ marginTop: 16 }}>
+                Security Cheque
+              </div>
+              <label className="fld">
+                <span className="l">Security Cheque Status</span>
+                <select
+                  className={`input${err.security_cheque_status ? " err" : ""}`}
+                  value={f.security_cheque_status}
+                  onChange={(e) => {
+                    const next = e.target.value as SecurityChequeStatus;
+                    setF((prev) => ({
+                      ...prev,
+                      security_cheque_status: next,
+                      ...(next === "Submitted" ? { security_cheque_reason: "" } : {}),
+                    }));
+                  }}
+                >
+                  {SECURITY_CHEQUE_STATUSES.map((o) => (
+                    <option key={o} value={o}>
+                      {o}
+                    </option>
+                  ))}
+                </select>
+                {err.security_cheque_status && (
+                  <div className="errmsg">{err.security_cheque_status}</div>
+                )}
+              </label>
+              {showChequeReason && (
+                <label className="fld">
+                  <span className="l">Reason</span>
+                  <textarea
+                    className={`input${err.security_cheque_reason ? " err" : ""}`}
+                    rows={3}
+                    value={f.security_cheque_reason}
+                    onChange={(e) => set("security_cheque_reason", e.target.value)}
+                    placeholder="Why is the security cheque pending or not submitted?"
+                  />
+                  {err.security_cheque_reason && (
+                    <div className="errmsg">{err.security_cheque_reason}</div>
+                  )}
+                </label>
+              )}
+              <label className="fld">
+                <span className="l">Security Cheque Upload</span>
+                {(existingChequeName || chequeFile) && (
+                  <div
+                    className="row-flex"
+                    style={{ fontSize: 12, marginBottom: 6, gap: 8, flexWrap: "wrap" }}
+                  >
+                    <span className="mono muted">
+                      {chequeFile?.name ?? existingChequeName}
+                    </span>
+                    {(existingChequePath || chequeFile) && (
+                      <button
+                        type="button"
+                        className="btn btn-sm"
+                        onClick={() => {
+                          setChequeFile(null);
+                          setChequeRemoved(true);
+                          if (chequeFileRef.current) chequeFileRef.current.value = "";
+                        }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                )}
+                <input
+                  ref={chequeFileRef}
+                  type="file"
+                  className={`input${err.security_cheque_upload ? " err" : ""}`}
+                  accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setChequeFile(file);
+                    setChequeRemoved(false);
+                  }}
+                />
+                <div style={{ fontSize: 11, color: "var(--mut)", marginTop: 4 }}>
+                  JPG, JPEG, PNG, or PDF. Required when status is Submitted.
+                </div>
+                {err.security_cheque_upload && (
+                  <div className="errmsg">{err.security_cheque_upload}</div>
+                )}
               </label>
             </>
           )}

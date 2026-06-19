@@ -106,3 +106,76 @@ export async function uploadEmployeePhoto(employeeId: string, file: File): Promi
 
   return storagePath;
 }
+
+function securityChequeStoragePath(employeeId: string, fileName: string): string {
+  const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `${HR_ORG_ID}/${employeeId}/security-cheque-${Date.now()}-${safe}`;
+}
+
+export type SecurityChequeUploadResult = {
+  storage_path: string;
+  file_name: string;
+  uploaded_at: string;
+  uploaded_by: string | null;
+  uploaded_by_label: string;
+};
+
+export async function uploadSecurityCheque(
+  employeeId: string,
+  file: File,
+  actor: { id: string | null; label: string },
+  previousPath?: string | null,
+): Promise<SecurityChequeUploadResult> {
+  const storagePath = securityChequeStoragePath(employeeId, file.name);
+  const uploadedAt = new Date().toISOString();
+
+  const { error: upErr } = await supabase.storage.from("hr-docs").upload(storagePath, file, {
+    upsert: false,
+    contentType: file.type || undefined,
+  });
+  if (upErr) throw upErr;
+
+  const { error } = await supabase
+    .from("employees" as never)
+    .update({
+      security_cheque_storage_path: storagePath,
+      security_cheque_file_name: file.name,
+      security_cheque_uploaded_at: uploadedAt,
+      security_cheque_uploaded_by: actor.id,
+      security_cheque_uploaded_by_label: actor.label,
+    } as never)
+    .eq("id", employeeId);
+  if (error) {
+    await supabase.storage.from("hr-docs").remove([storagePath]);
+    throw error;
+  }
+
+  if (previousPath && previousPath !== storagePath) {
+    await supabase.storage.from("hr-docs").remove([previousPath]);
+  }
+
+  return {
+    storage_path: storagePath,
+    file_name: file.name,
+    uploaded_at: uploadedAt,
+    uploaded_by: actor.id,
+    uploaded_by_label: actor.label,
+  };
+}
+
+export async function deleteSecurityCheque(employeeId: string, storagePath: string | null): Promise<void> {
+  const { error } = await supabase
+    .from("employees" as never)
+    .update({
+      security_cheque_storage_path: null,
+      security_cheque_file_name: null,
+      security_cheque_uploaded_at: null,
+      security_cheque_uploaded_by: null,
+      security_cheque_uploaded_by_label: null,
+    } as never)
+    .eq("id", employeeId);
+  if (error) throw error;
+  if (storagePath) {
+    await supabase.storage.from("hr-docs").remove([storagePath]);
+  }
+}
