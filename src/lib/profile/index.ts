@@ -37,4 +37,14 @@ export type {
   ProfileLanguageTestId,
   ProfileServicesSummary,
   ProfileViewModelMeta,
+  TestAttempt,
 } from "@/lib/profile/types";
+export {
+  migrateLegacyToAttempts,
+  mergeLegacyEditsIntoAttempts,
+  attemptsToLegacyMirror,
+  attemptsToStoragePayload,
+  buildProfileTests,
+  deriveLegacyTestsFromAttempts,
+} from "@/lib/profile/testAttempts";
+export { ensureAttemptId, testAttemptRefKey } from "@/lib/profile/profileRecordIds";

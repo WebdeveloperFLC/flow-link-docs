@@ -59,6 +59,8 @@ export function ensureFullTestCatalog(tests: ProfileTests): ProfileTests {
   const languageMap = new Map(tests.language.map((l) => [l.test_id, l]));
 
   return {
+    attempts: [...(tests.attempts ?? [])],
+    active_attempt_ids: { ...(tests.active_attempt_ids ?? {}) },
     active_english_test_id: tests.active_english_test_id,
     english: ENGLISH_TEST_IDS.map((id) => englishMap.get(id) ?? emptyEnglishTestEntry(id)),
     aptitude: APTITUDE_TEST_IDS.map((id) => aptitudeMap.get(id) ?? emptyAptitudeTestEntry(id)),

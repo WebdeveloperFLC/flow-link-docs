@@ -10,11 +10,12 @@ import {
 } from "@/lib/englishTestScores";
 import { normalizeLanguageTests } from "@/lib/languageTests";
 import { slotLabel } from "@/lib/profile/profileDocumentSlots";
+import { buildProfileTests } from "@/lib/profile/testAttempts";
 import {
-  aptitudeTestRefKey,
   educationRefKey,
   ensureEducationId,
   ensureExperienceId,
+  aptitudeTestRefKey,
   englishTestRefKey,
   experienceRefKey,
   languageTestRefKey,
@@ -404,13 +405,7 @@ export interface BuildProfileViewModelInput {
 export function buildProfileViewModelFromSources(input: BuildProfileViewModelInput): ProfileViewModel {
   const { client, profile = {}, documentRefs = [], loadedAt, enrichment } = input;
   const loaded = loadedAt ?? new Date().toISOString();
-  const english = buildEnglishEntries(client, documentRefs);
-  const tests: ProfileTests = {
-    active_english_test_id: english.active,
-    english: english.entries,
-    aptitude: buildAptitudeEntries(client, documentRefs),
-    language: buildLanguageEntries(client, documentRefs),
-  };
+  const tests = buildProfileTests(client, documentRefs);
 
   const services = buildProfileServicesSummary({
     client,

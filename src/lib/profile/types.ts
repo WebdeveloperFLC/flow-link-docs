@@ -2,6 +2,7 @@ import type {
   ProfileAptitudeTestId,
   ProfileEnglishTestId,
   ProfileLanguageTestId,
+  ProfileTestCategory,
   ProfileTestId,
 } from "@/lib/profile/profileTestCatalog";
 
@@ -21,7 +22,7 @@ export type ProfileTestStatus =
   | "expired"
   | "waived";
 
-export type { ProfileEnglishTestId, ProfileAptitudeTestId, ProfileLanguageTestId, ProfileTestId };
+export type { ProfileEnglishTestId, ProfileAptitudeTestId, ProfileLanguageTestId, ProfileTestId, ProfileTestCategory };
 
 export type IeltsVariant = "Academic" | "General";
 
@@ -102,7 +103,38 @@ export interface ProfileLanguageTestEntry {
   readonly linked_documents: readonly ProfileLinkedDocument[];
 }
 
+/**
+ * Phase E — one record per test attempt (not per test type).
+ * Multiple IELTS/GRE/etc. attempts per client; never overwrite siblings.
+ */
+export interface TestAttempt {
+  readonly attempt_id: string;
+  readonly test_id: ProfileTestId;
+  readonly category: ProfileTestCategory;
+  readonly status: ProfileTestStatus | null;
+  readonly variant?: string | null;
+  readonly test_date?: string | null;
+  readonly result_date?: string | null;
+  readonly expiry_date?: string | null;
+  readonly overall_score?: string | null;
+  readonly sections: Readonly<Record<string, string>>;
+  readonly exam_type?: string | null;
+  readonly cefr_level?: string | null;
+  readonly country?: string | null;
+  readonly planned_month?: string | null;
+  readonly target_intake?: string | null;
+  readonly exam_centre?: string | null;
+  readonly waiver_reason?: string | null;
+  readonly notes?: string | null;
+  readonly linked_documents: readonly ProfileLinkedDocument[];
+}
+
 export interface ProfileTests {
+  /** Phase E source of truth — all attempts across English, aptitude, language. */
+  readonly attempts: readonly TestAttempt[];
+  /** Counselor-selected active result per test type (test_id → attempt_id). */
+  readonly active_attempt_ids: Readonly<Partial<Record<ProfileTestId, string>>>;
+  /** @deprecated Phase C compat — derived from active attempts; removed in E2 UI. */
   readonly active_english_test_id: ProfileEnglishTestId | null;
   readonly english: readonly ProfileEnglishTestEntry[];
   readonly aptitude: readonly ProfileAptitudeTestEntry[];
@@ -208,6 +240,8 @@ export interface ProfileEditState {
   identity: ProfileIdentity;
   contact: ProfileContact;
   tests: {
+    attempts: TestAttempt[];
+    active_attempt_ids: Partial<Record<ProfileTestId, string>>;
     active_english_test_id: ProfileEnglishTestId | null;
     english: ProfileEnglishTestEntry[];
     aptitude: ProfileAptitudeTestEntry[];

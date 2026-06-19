@@ -6,18 +6,21 @@ import { formatProfileSaveError } from "@/lib/profile/profileSaveError";
 import { syncEducationHistoryToClientEducation } from "@/lib/clientBackgroundSync";
 import { getProfileViewModel } from "@/lib/profile/getProfileViewModel";
 import {
-  aptitudeEntriesToOtherTests,
   educationRecordsToJson,
-  englishEntriesToClientFields,
   experienceRecordsToJson,
-  languageEntriesToJson,
 } from "@/lib/profile/normalizeProfile";
+import {
+  attemptsToLegacyMirror,
+  attemptsToStoragePayload,
+  mergeLegacyEditsIntoAttempts,
+} from "@/lib/profile/testAttempts";
 import {
   aptitudeTestRefKey,
   educationRefKey,
   englishTestRefKey,
   experienceRefKey,
   languageTestRefKey,
+  testAttemptRefKey,
 } from "@/lib/profile/profileRecordIds";
 import type { ProfileEditState, ProfileSectionId, ProfileViewModel } from "@/lib/profile/types";
 import { syncLastEducationFromBackground, yearOfPassingForDb } from "@/lib/leadBackground";
@@ -76,6 +79,18 @@ function collectRefSyncEntriesForSections(
   const entries: RefSyncEntry[] = [];
 
   if (sections.has("tests")) {
+  for (const a of state.tests.attempts) {
+    entries.push({
+      ref_key: testAttemptRefKey(a.test_id, a.attempt_id),
+      linked_documents: a.linked_documents.map((d) => ({
+        document_id: d.document_id,
+        slot: d.slot,
+        label: d.label,
+        linked_at: d.linked_at,
+      })),
+    });
+  }
+  // Legacy ref keys for attempts not yet migrated in document_refs table
   for (const e of state.tests.english) {
     entries.push({
       ref_key: englishTestRefKey(e.test_id),
@@ -207,12 +222,22 @@ export async function profileSave(
   }
 
   if (sections.has("tests")) {
-    Object.assign(
-      clientPatch,
-      englishEntriesToClientFields(state.tests.active_english_test_id, state.tests.english),
+    const merged = mergeLegacyEditsIntoAttempts(
+      state.tests.attempts,
+      state.tests.active_attempt_ids,
+      {
+        active_english_test_id: state.tests.active_english_test_id,
+        english: state.tests.english,
+        aptitude: state.tests.aptitude,
+        language: state.tests.language,
+      },
     );
-    clientPatch.other_tests = aptitudeEntriesToOtherTests(state.tests.aptitude);
-    clientPatch.language_tests = languageEntriesToJson(state.tests.language);
+    const storage = attemptsToStoragePayload(merged.attempts, merged.active_attempt_ids);
+    const legacyMirror = attemptsToLegacyMirror(merged.attempts, merged.active_attempt_ids);
+
+    clientPatch.test_attempts = storage.test_attempts;
+    clientPatch.active_attempt_ids = storage.active_attempt_ids;
+    Object.assign(clientPatch, legacyMirror);
   }
 
   if (sections.has("education")) {

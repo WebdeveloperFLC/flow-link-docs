@@ -10,6 +10,12 @@ function cloneContact(vm: ProfileViewModel): ProfileEditState["contact"] {
 
 function cloneTests(vm: ProfileViewModel): ProfileEditState["tests"] {
   return {
+    attempts: vm.tests.attempts.map((a) => ({
+      ...a,
+      sections: { ...a.sections },
+      linked_documents: a.linked_documents.map((d) => ({ ...d })),
+    })),
+    active_attempt_ids: { ...vm.tests.active_attempt_ids },
     active_english_test_id: vm.tests.active_english_test_id,
     english: vm.tests.english.map((e) => ({
       ...e,

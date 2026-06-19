@@ -111,6 +111,9 @@ export interface ClientRow {
   education_history?: EducationEntry[];
   work_experience?: ExperienceEntry[];
   language_tests?: LanguageTestsValue;
+  /** Phase E — multi-attempt tests (source of truth). */
+  test_attempts?: Array<Record<string, unknown>>;
+  active_attempt_ids?: Record<string, string>;
   branch?: string | null;
   department?: string | null;
   assigned_counselor_id?: string | null;
