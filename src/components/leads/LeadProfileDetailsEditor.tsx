@@ -39,12 +39,8 @@ export function LeadProfileDetailsEditor({ value, onChange, activeTab }: Props) 
   const [selectedAptitudeTestId, setSelectedAptitudeTestId] = useState<ProfileAptitudeTestId | null>("gre");
   const [selectedLanguageTestId, setSelectedLanguageTestId] = useState<ProfileLanguageTestId | null>("french");
   const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
-  const [expandedEducationId, setExpandedEducationId] = useState<string | null>(
-    education[0]?.id ?? null,
-  );
-  const [expandedExperienceId, setExpandedExperienceId] = useState<string | null>(
-    experience[0]?.id ?? null,
-  );
+  const [expandedEducationId, setExpandedEducationId] = useState<string | null>(null);
+  const [expandedExperienceId, setExpandedExperienceId] = useState<string | null>(null);
 
   const patchTests = (next: {
     attempts: TestAttempt[];

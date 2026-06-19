@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,12 +9,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  LeadBackgroundDetailPanel,
-  type BackgroundSummaryNavigateTarget,
-} from "@/components/leads/LeadBackgroundDetailPanel";
 import { LeadProfileDetailsEditor } from "@/components/leads/LeadProfileDetailsEditor";
-import { countBackgroundItems, hasBackgroundData, type LeadBackgroundState } from "@/lib/leadBackground";
+import { countBackgroundItems, type LeadBackgroundState } from "@/lib/leadBackground";
 import { loadGeoModule } from "@/lib/geoLocations";
 import { preventDialogDismissOnNestedOverlay } from "@/lib/dialogOverlayGuard";
 import type { BackgroundDetailTab } from "@/lib/languageTests";
@@ -26,12 +22,6 @@ interface Props {
   onChange: (patch: Partial<LeadBackgroundState>) => void;
   onCommit: () => void | Promise<void>;
   initialTab?: BackgroundDetailTab;
-}
-
-function navigateTargetToTab(target: BackgroundSummaryNavigateTarget): BackgroundDetailTab {
-  if (target.section === "education") return "education";
-  if (target.section === "experience") return "experience";
-  return "tests";
 }
 
 function normalizeTab(tab: BackgroundDetailTab): BackgroundDetailTab {
@@ -57,10 +47,6 @@ export function LeadBackgroundDetailsDialog({
     }
   }, [open, initialTab]);
 
-  const handleSummaryNavigate = useCallback((target: BackgroundSummaryNavigateTarget) => {
-    setTab(navigateTargetToTab(target));
-  }, []);
-
   const handleDone = async () => {
     setSaving(true);
     try {
@@ -72,7 +58,6 @@ export function LeadBackgroundDetailsDialog({
   };
 
   const counts = countBackgroundItems(value);
-  const showSummary = hasBackgroundData(value);
   const testsCount = counts.english + counts.academic + counts.language;
 
   const tabBadge = (count: number) =>
@@ -96,14 +81,6 @@ export function LeadBackgroundDetailsDialog({
             Same fields as client profile — document linking unlocks after registration.
           </DialogDescription>
         </DialogHeader>
-
-        {showSummary && (
-          <LeadBackgroundDetailPanel
-            background={value}
-            compact
-            onNavigate={handleSummaryNavigate}
-          />
-        )}
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as BackgroundDetailTab)}>
           <TabsList className="grid w-full grid-cols-3 h-auto">

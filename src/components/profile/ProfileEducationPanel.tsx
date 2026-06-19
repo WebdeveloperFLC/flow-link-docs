@@ -12,9 +12,10 @@ import {
 import { LocationCascadeFields } from "@/components/shared/LocationCascadeFields";
 import { useMasterItems } from "@/lib/masters";
 import type { ProfileEducationRecord } from "@/lib/profile/types";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LinkedDocumentsPanel, type LinkedDocumentOption } from "@/components/profile/LinkedDocumentsPanel";
+import { ProfileRecordCardHeader } from "@/components/profile/ProfileRecordCardHeader";
 
 interface Props {
   records: readonly ProfileEducationRecord[];
@@ -48,6 +49,18 @@ function normalizeYearInput(year?: string | null): string {
   const v = year.trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v.slice(0, 4);
   return v.replace(/\D/g, "").slice(0, 4);
+}
+
+function educationPreview(record: ProfileEducationRecord): string {
+  const parts: string[] = [];
+  if (record.institution_name?.trim()) parts.push(record.institution_name.trim());
+  const years = [normalizeYearInput(record.start_year), normalizeYearInput(record.end_year)]
+    .filter(Boolean)
+    .join(" – ");
+  if (years) parts.push(years);
+  const location = [record.city, record.state_province, record.country].filter(Boolean).join(", ");
+  if (location) parts.push(location);
+  return parts.slice(0, 2).join(" · ");
 }
 
 export function ProfileEducationPanel({
@@ -92,22 +105,22 @@ export function ProfileEducationPanel({
         </div>
       )}
       {records.map((record, index) => {
-        const expanded = expandedId ? expandedId === record.id : index === 0;
+        const expanded = expandedId === record.id;
         const headline =
           record.qualification_type?.trim() ||
           record.institution_name?.trim() ||
           `Education ${index + 1}`;
+        const toggleExpand = () => onExpand?.(expanded ? null : record.id);
 
         if (mode === "view") {
           return (
             <div key={record.id} className="rounded-lg border p-3 space-y-1">
-              <button
-                type="button"
-                className="text-sm font-semibold text-left w-full"
-                onClick={() => onExpand?.(expanded ? null : record.id)}
-              >
-                {headline}
-              </button>
+              <ProfileRecordCardHeader
+                headline={headline}
+                preview={educationPreview(record)}
+                expanded={expanded}
+                onToggle={toggleExpand}
+              />
               {expanded && (
                 <>
                   {viewLine("Institution", record.institution_name)}
@@ -141,15 +154,22 @@ export function ProfileEducationPanel({
         }
 
         return (
-          <div key={record.id} className="rounded-lg border p-3 space-y-3 bg-muted/10">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">{headline}</span>
-              {onRemove && (
-                <Button type="button" size="icon" variant="ghost" onClick={() => onRemove(record.id)}>
-                  <Trash2 className="size-3.5" />
-                </Button>
-              )}
-            </div>
+          <div
+            key={record.id}
+            className={cn(
+              "rounded-lg border bg-muted/10",
+              expanded ? "p-3 space-y-3" : "p-2.5",
+            )}
+          >
+            <ProfileRecordCardHeader
+              headline={headline}
+              preview={educationPreview(record)}
+              expanded={expanded}
+              onToggle={toggleExpand}
+              onRemove={onRemove ? () => onRemove(record.id) : undefined}
+            />
+            {expanded && (
+              <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs">Qualification</Label>
@@ -273,6 +293,8 @@ export function ProfileEducationPanel({
               onUnlink={(docId, slot) => onUnlinkDocument?.(record.id, docId, slot)}
               onUpload={(file, slot) => onUploadDocument?.(record.id, file, slot)}
             />
+              </>
+            )}
           </div>
         );
       })}
