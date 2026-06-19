@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   backgroundStateToLeadDraft,
   buildBackgroundDetailSections,
+  reconcileBackgroundAfterSave,
   buildBackgroundDetailView,
   educationEntryHasData,
   formatEducationEntrySummary,
@@ -273,5 +274,49 @@ describe("leadBackground attempts (Phase E5)", () => {
     expect(draft.test_attempts?.length).toBeGreaterThan(0);
     expect(draft.active_attempt_ids?.ielts).toBeTruthy();
     expect(draft.english_overall).toBe("7");
+  });
+
+  it("falls back to legacy english when attempt rows exist but active summary is empty", () => {
+    const view = buildBackgroundDetailView({
+      attempts: [
+        {
+          attempt_id: ensureAttemptId("stub"),
+          test_id: "ielts",
+          category: "english",
+          sections: {},
+          linked_documents: [],
+        },
+      ],
+      active_attempt_ids: {},
+      english_test: "IELTS",
+      english_test_status: "taken",
+      english_overall: "7",
+      english_sections: { listening: "7" },
+    } as never);
+    expect(view.english.length).toBeGreaterThan(0);
+    expect(view.english[0]?.overall).toBe("7");
+  });
+
+  it("reconcileBackgroundAfterSave keeps local tests when DB round-trip is empty", () => {
+    const local = leadToBackgroundState({
+      english_test: "IELTS",
+      english_test_status: "taken",
+      english_overall: "7",
+    } as never);
+    const fromDb = leadToBackgroundState({
+      last_education: "post_graduate",
+      education_history: [{ level: "post_graduate" }],
+      test_attempts: [],
+    } as never);
+    const merged = reconcileBackgroundAfterSave(local, fromDb);
+    expect(merged.english_overall).toBe("7");
+    expect(buildBackgroundDetailView(merged).english.length).toBeGreaterThan(0);
+  });
+
+  it("formats education level code for display", () => {
+    const view = buildBackgroundDetailView({
+      education_history: [{ level: "post_graduate" }],
+    } as never);
+    expect(view.education[0]?.title).toBe("Post Graduate");
   });
 });

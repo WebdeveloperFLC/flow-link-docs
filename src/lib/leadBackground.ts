@@ -432,7 +432,53 @@ function activeAttemptDetailSlice(bg: LeadBackgroundState): Pick<
     else if (attempt.category === "aptitude") academic.push(academicViewFromAttempt(attempt));
     else language.push(languageViewFromAttempt(attempt));
   }
+  if (!english.length && !academic.length && !language.length) return null;
   return { english, academic, language };
+}
+
+function backgroundHasLegacyTestData(bg: LeadBackgroundState): boolean {
+  const byTest = getEnglishTestsByType(bg);
+  if (listEnglishTestNames(byTest).length > 0) return true;
+  if ((bg.other_tests ?? []).some((t) => t.type)) return true;
+  const lt = bg.language_tests ?? EMPTY_LANGUAGE_TESTS;
+  if (languageBlockToView(lt.french).status || languageBlockToView(lt.german).status) return true;
+  if (languageBlockToView(lt.french).cefr || languageBlockToView(lt.german).cefr) return true;
+  return false;
+}
+
+function backgroundHasAttemptTestData(bg: LeadBackgroundState): boolean {
+  return (bg.attempts ?? []).some((a) => !!a.status || !!a.overall_score || !!a.test_date);
+}
+
+/** After save, prefer local test payload when RPC did not persist attempts/legacy mirror yet. */
+export function reconcileBackgroundAfterSave(
+  local: LeadBackgroundState,
+  fromDb: LeadBackgroundState,
+): LeadBackgroundState {
+  const localTests = backgroundHasAttemptTestData(local) || backgroundHasLegacyTestData(local);
+  const dbTests = backgroundHasAttemptTestData(fromDb) || backgroundHasLegacyTestData(fromDb);
+  if (!localTests || dbTests) return fromDb;
+  return {
+    ...fromDb,
+    attempts: local.attempts,
+    active_attempt_ids: local.active_attempt_ids,
+    english_test: local.english_test,
+    english_test_status: local.english_test_status,
+    english_overall: local.english_overall,
+    english_test_date: local.english_test_date,
+    english_test_expiry: local.english_test_expiry,
+    english_sections: local.english_sections,
+    other_tests: local.other_tests,
+    language_tests: local.language_tests,
+    education_history:
+      (local.education_history?.length ?? 0) > (fromDb.education_history?.length ?? 0)
+        ? local.education_history
+        : fromDb.education_history,
+    work_experience:
+      (local.work_experience?.length ?? 0) > (fromDb.work_experience?.length ?? 0)
+        ? local.work_experience
+        : fromDb.work_experience,
+  };
 }
 
 function formatEnglishAttemptDetailLine(attempt: TestAttempt): string {
@@ -796,6 +842,14 @@ export function formatEducationLocation(e: EducationEntry): string | undefined {
   return parts.length ? parts.join(", ") : undefined;
 }
 
+function formatEducationLevelTitle(level?: string | null): string {
+  if (!level?.trim()) return "Qualification";
+  return level
+    .trim()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export function buildEducationDetailView(e: EducationEntry): EducationDetailView {
   const details: string[] = [];
   if (e.institution) details.push(e.institution);
@@ -807,7 +861,7 @@ export function buildEducationDetailView(e: EducationEntry): EducationDetailView
     details.push(/\d/.test(score) && !score.includes("%") ? `${score}% / CGPA` : score);
   }
   return {
-    title: e.level || "Qualification",
+    title: formatEducationLevelTitle(e.level),
     details,
     location: formatEducationLocation(e),
   };

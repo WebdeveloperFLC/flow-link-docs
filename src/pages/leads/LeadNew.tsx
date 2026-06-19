@@ -65,6 +65,7 @@ import {
   backgroundStateToLeadDraft,
   EMPTY_LEAD_BACKGROUND,
   leadToBackgroundState,
+  reconcileBackgroundAfterSave,
   mergeBackgroundIntoEducationHistory,
   syncLastEducationFromBackground,
   type LeadBackgroundState,
@@ -611,7 +612,7 @@ const LeadNew = () => {
       try {
         setSaving(true);
         const saved = await updateLead(currentLeadId, buildDraft());
-        setBackground(leadToBackgroundState(saved));
+        setBackground((prev) => reconcileBackgroundAfterSave(prev, leadToBackgroundState(saved)));
         toast.success("Background details saved");
       } catch (e) {
         toast.error(formatSupabaseError(e, "Could not save background details"));
@@ -624,7 +625,9 @@ const LeadNew = () => {
     if (id) {
       try {
         const refreshed = await fetchLead(id);
-        if (refreshed) setBackground(leadToBackgroundState(refreshed));
+        if (refreshed) {
+          setBackground((prev) => reconcileBackgroundAfterSave(prev, leadToBackgroundState(refreshed)));
+        }
       } catch {
         /* keep local state */
       }

@@ -1,5 +1,6 @@
 import {
   APTITUDE_TEST_IDS,
+  ENGLISH_TEST_IDS,
   LANGUAGE_TEST_IDS,
   testLabel,
 } from "@/lib/profile/profileTestCatalog";
@@ -47,9 +48,18 @@ export function formatActiveAttemptHighlight(attempt: TestAttempt): string | nul
 export function listActiveAttemptsForSummary(tests: ProfileTests): TestAttempt[] {
   const out: TestAttempt[] = [];
 
-  if (tests.active_english_test_id) {
-    const english = getActiveAttempt(tests.attempts, tests.active_attempt_ids, tests.active_english_test_id);
+  const englishTestId = tests.active_english_test_id;
+  if (englishTestId) {
+    const english = getActiveAttempt(tests.attempts, tests.active_attempt_ids, englishTestId);
     if (english && attemptHasData(english)) out.push(english);
+  } else {
+    for (const testId of ENGLISH_TEST_IDS) {
+      const english = getActiveAttempt(tests.attempts, tests.active_attempt_ids, testId);
+      if (english && attemptHasData(english)) {
+        out.push(english);
+        break;
+      }
+    }
   }
 
   for (const testId of APTITUDE_TEST_IDS) {
