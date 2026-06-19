@@ -1,14 +1,22 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrPolicies } from "../hooks/useHrRequests";
 import { HR_ORG_ID } from "../lib/constants";
+import LateSlabGridEditor from "../components/config/LateSlabGridEditor";
 import {
   DEFAULT_LATE_SLAB_TABLE,
   isValidLateSlabTable,
+  lateDeductionFormula,
   LATE_DEDUCTION_FORMULA_HINT,
 } from "../lib/leavePolicy";
+import {
+  gridRowsToSlabTable,
+  slabTableToGridRows,
+  validateLateSlabGrid,
+  type LateSlabGridRow,
+} from "../lib/lateSlabGrid";
 import { hrAudit, accrueLeaveBalances } from "../lib/hrApi";
 import type { PolicyRow } from "../lib/types";
 
@@ -38,7 +46,6 @@ const DEFAULT_CONFIG: Record<string, Record<string, string>> = {
     grace_until: "10:05",
     half_day_after_min: "60",
     full_day_after_min: "180",
-    slab_table_json: JSON.stringify(DEFAULT_LATE_SLAB_TABLE),
   },
   mispunch: { free_per_month: "2", beyond: "(n−2)×0.5", report_window: "Same day", approval: "Mgr → HR" },
   leave: {
@@ -81,21 +88,29 @@ function Fld({
   label,
   value,
   onChange,
+  disabled,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  disabled?: boolean;
 }) {
   return (
     <label className="fld">
       <span className="l">{label}</span>
-      <input className="input" value={value} onChange={(e) => onChange(e.target.value)} />
+      <input
+        className="input"
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </label>
   );
 }
 
 export default function HrConfigPage() {
   const { cycle, can, fire } = useHrAccess();
+  const canEditLate = can("configure");
   const qc = useQueryClient();
   const { data: policies = [] } = useHrPolicies();
   const [tab, setTab] = useState<Tab>("Payroll Cycle");
@@ -103,6 +118,10 @@ export default function HrConfigPage() {
   const [startDate, setStartDate] = useState(cycle?.start_date ?? "");
   const [endDate, setEndDate] = useState(cycle?.end_date ?? "");
   const [policyDraft, setPolicyDraft] = useState<Record<string, string>>({});
+  const [lateSlabRows, setLateSlabRows] = useState<LateSlabGridRow[]>(() =>
+    slabTableToGridRows(DEFAULT_LATE_SLAB_TABLE),
+  );
+  const [lateSlabErrors, setLateSlabErrors] = useState<string[]>([]);
 
   const domain = DOMAIN_MAP[tab] ?? null;
   const workflowPolicy = useMemo(() => {
@@ -118,7 +137,8 @@ export default function HrConfigPage() {
     return (policies as PolicyRow[]).find((p) => p.domain === "professional_tax");
   }, [policies]);
   const latePolicy = useMemo(() => {
-    return (policies as PolicyRow[]).find((p) => p.domain === "late");
+    const rows = (policies as PolicyRow[]).filter((p) => p.domain === "late");
+    return rows.sort((a, b) => b.version - a.version)[0];
   }, [policies]);
   const currentPolicy = useMemo(() => {
     if (!domain) return null;
@@ -134,6 +154,31 @@ export default function HrConfigPage() {
       value: String(policyDraft[k] ?? v),
     }));
   }, [domain, currentPolicy, policyDraft]);
+
+  useEffect(() => {
+    const raw = latePolicy?.config?.slab_table;
+    const slabs = isValidLateSlabTable(raw) ? raw : DEFAULT_LATE_SLAB_TABLE;
+    setLateSlabRows(slabTableToGridRows(slabs));
+    setLateSlabErrors([]);
+  }, [latePolicy?.version]);
+
+  const lateSlabJsonPreview = useMemo(
+    () => JSON.stringify(gridRowsToSlabTable(lateSlabRows), null, 2),
+    [lateSlabRows],
+  );
+
+  const lateFormulaExamples = useMemo(
+    () => [
+      { range: "28–30", deduction: lateDeductionFormula(28) },
+      { range: "31–33", deduction: lateDeductionFormula(31) },
+      { range: "34–36", deduction: lateDeductionFormula(34) },
+    ],
+    [],
+  );
+
+  const auditLateSlab = async (action: string, target: string, prev: string, next: string) => {
+    await hrAudit(action, target, prev, next);
+  };
 
   const saveCycle = async () => {
     if (!cycle) {
@@ -342,22 +387,20 @@ export default function HrConfigPage() {
   };
 
   const saveLatePolicy = async () => {
-    if (!can("configure")) return;
-    const rawSlab =
-      policyDraft.slab_table_json ??
-      JSON.stringify(latePolicy?.config?.slab_table ?? DEFAULT_LATE_SLAB_TABLE);
-    let slab_table: { max: number; deduction: number }[];
-    try {
-      slab_table = JSON.parse(String(rawSlab));
-    } catch {
-      fire("Invalid slab table JSON");
+    if (!canEditLate) return;
+    const validation = validateLateSlabGrid(lateSlabRows);
+    if (!validation.ok) {
+      setLateSlabErrors(validation.errors);
+      fire("Fix slab validation errors before saving.");
       return;
     }
-    let slabFallback = false;
-    if (!isValidLateSlabTable(slab_table)) {
-      slab_table = [...DEFAULT_LATE_SLAB_TABLE];
-      slabFallback = true;
-    }
+    setLateSlabErrors([]);
+    const slab_table = gridRowsToSlabTable(lateSlabRows);
+    const prevSlabJson = JSON.stringify(
+      isValidLateSlabTable(latePolicy?.config?.slab_table)
+        ? latePolicy!.config!.slab_table
+        : DEFAULT_LATE_SLAB_TABLE,
+    );
     const config: Record<string, unknown> = {
       report_time: String(policyDraft.report_time ?? latePolicy?.config?.report_time ?? "10:00"),
       grace_until: String(policyDraft.grace_until ?? latePolicy?.config?.grace_until ?? "10:05"),
@@ -382,17 +425,13 @@ export default function HrConfigPage() {
       return;
     }
     await hrAudit("Late Policy Saved", "slab_table", `v${latePolicy?.version ?? 0}`, `v${version}`);
-    if (slabFallback) {
-      await hrAudit(
-        "Late Policy Warning",
-        "slab_table",
-        "invalid/empty",
-        "default company slabs saved",
-      );
-      fire("Slab table empty or invalid — default company policy saved.");
-    } else {
-      fire("Late coming policy saved");
-    }
+    await hrAudit(
+      "Late Policy Updated",
+      "slab_table",
+      prevSlabJson,
+      JSON.stringify(slab_table),
+    );
+    fire("Late coming policy saved");
     setPolicyDraft({});
     await qc.invalidateQueries({ queryKey: ["hr-policies"] });
   };
@@ -674,11 +713,13 @@ export default function HrConfigPage() {
                 label="Report time"
                 value={String(policyDraft.report_time ?? latePolicy?.config?.report_time ?? "10:00")}
                 onChange={(v) => setPolicyDraft((prev) => ({ ...prev, report_time: v }))}
+                disabled={!canEditLate}
               />
               <Fld
                 label="Grace until"
                 value={String(policyDraft.grace_until ?? latePolicy?.config?.grace_until ?? "10:05")}
                 onChange={(v) => setPolicyDraft((prev) => ({ ...prev, grace_until: v }))}
+                disabled={!canEditLate}
               />
               <Fld
                 label="Half day after (minutes)"
@@ -686,6 +727,7 @@ export default function HrConfigPage() {
                   policyDraft.half_day_after_min ?? latePolicy?.config?.half_day_after_min ?? "60",
                 )}
                 onChange={(v) => setPolicyDraft((prev) => ({ ...prev, half_day_after_min: v }))}
+                disabled={!canEditLate}
               />
               <Fld
                 label="Full day after (minutes)"
@@ -693,34 +735,57 @@ export default function HrConfigPage() {
                   policyDraft.full_day_after_min ?? latePolicy?.config?.full_day_after_min ?? "180",
                 )}
                 onChange={(v) => setPolicyDraft((prev) => ({ ...prev, full_day_after_min: v }))}
+                disabled={!canEditLate}
               />
             </div>
-            <label className="fld" style={{ marginTop: 12 }}>
-              <span className="l">Late deduction slab (JSON: max late count → deduction days)</span>
-              <div className="muted" style={{ fontSize: 11.5, marginBottom: 6 }}>
-                Above the highest configured max, deductions continue using: {LATE_DEDUCTION_FORMULA_HINT}
-              </div>
-              <textarea
-                className="input mono"
-                rows={8}
-                value={String(
-                  policyDraft.slab_table_json ??
-                    JSON.stringify(
-                      latePolicy?.config?.slab_table ?? DEFAULT_LATE_SLAB_TABLE,
-                      null,
-                      2,
-                    ),
-                )}
-                onChange={(e) =>
-                  setPolicyDraft((prev) => ({ ...prev, slab_table_json: e.target.value }))
-                }
-              />
-            </label>
+            <LateSlabGridEditor
+              rows={lateSlabRows}
+              onChange={setLateSlabRows}
+              readOnly={!canEditLate}
+              errors={lateSlabErrors}
+              onAudit={canEditLate ? auditLateSlab : undefined}
+            />
+            <div className="muted" style={{ fontSize: 12, marginTop: 14 }}>
+              Late counts above the highest configured slab automatically continue using the approved
+              formula ({LATE_DEDUCTION_FORMULA_HINT}).
+            </div>
+            <table className="slabtable" style={{ marginTop: 8, maxWidth: 360 }}>
+              <thead>
+                <tr>
+                  <th>Late count (example)</th>
+                  <th>Deduction</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lateFormulaExamples.map((ex) => (
+                  <tr key={ex.range}>
+                    <td>{ex.range}</td>
+                    <td>{ex.deduction}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {canEditLate && (
+              <details className="fld" style={{ marginTop: 14 }}>
+                <summary className="l" style={{ cursor: "pointer", listStyle: "none" }}>
+                  View JSON (read-only)
+                </summary>
+                <div className="muted" style={{ fontSize: 11.5, margin: "6px 0" }}>
+                  For troubleshooting — edit slabs in the grid above.
+                </div>
+                <pre
+                  className="input mono"
+                  style={{ margin: 0, whiteSpace: "pre-wrap", maxHeight: 220, overflow: "auto" }}
+                >
+                  {lateSlabJsonPreview}
+                </pre>
+              </details>
+            )}
             <div className="row-flex" style={{ justifyContent: "flex-end" }}>
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={!can("configure")}
+                disabled={!canEditLate}
                 onClick={() => void saveLatePolicy()}
               >
                 Save Late Policy
