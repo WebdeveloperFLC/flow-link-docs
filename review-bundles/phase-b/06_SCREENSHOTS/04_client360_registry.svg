@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360">
+  <rect width="720" height="360" fill="#f8fafc"/>
+  <rect x="24" y="24" width="672" height="312" rx="8" fill="#fff" stroke="#cbd5e1" stroke-dasharray="6 4"/>
+  <text x="40" y="52" font-family="system-ui,sans-serif" font-size="14" font-weight="600" fill="#0f172a">Client 360 registry</text>
+  <text x="40" y="72" font-family="system-ui,sans-serif" font-size="11" fill="#64748b">Read-only executive summary shell  Phase C cutover</text>
+  <rect x="40" y="88" width="640" height="32" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="52" y="108" font-family="system-ui,sans-serif" font-size="11" fill="#334155">Profile</text>
+  <text x="580" y="108" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">Phase 1 · tab:profile</text>
+  <rect x="40" y="128" width="640" height="32" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="52" y="148" font-family="system-ui,sans-serif" font-size="11" fill="#334155">Client Services</text>
+  <text x="560" y="148" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">Phase 1 · tab:commercial</text>
+  <rect x="40" y="168" width="640" height="32" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="52" y="188" font-family="system-ui,sans-serif" font-size="11" fill="#334155">Documents</text>
+  <text x="560" y="188" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">Phase 1 · tab:documents</text>
+  <rect x="40" y="208" width="640" height="32" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="52" y="228" font-family="system-ui,sans-serif" font-size="11" fill="#334155">Forms &amp; Letters · Payments · Comms · Tasks · Team</text>
+  <rect x="40" y="248" width="640" height="32" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="52" y="268" font-family="system-ui,sans-serif" font-size="11" fill="#334155">Activity Log</text>
+  <text x="560" y="268" font-family="system-ui,sans-serif" font-size="9" fill="#64748b">Phase 1 · tab:activity</text>
+  <text x="24" y="352" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8">client360Sections.ts + Client360RegistryPanel  9 sections registered</text>
+</svg>

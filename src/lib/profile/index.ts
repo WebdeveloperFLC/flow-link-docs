@@ -9,6 +9,12 @@ export { summarizeProfile, summarizeProfileSection, summarizeProfileFor360 } fro
 export { buildProfileViewModelFromSources } from "@/lib/profile/normalizeProfile";
 export { buildProfileServicesSummary } from "@/lib/profile/profileServicesSummary";
 export {
+  CLIENT_360_SECTIONS,
+  getClient360Section,
+  getClient360Sections,
+} from "@/lib/profile/client360Sections";
+export type { Client360SectionDefinition, Client360SectionId } from "@/lib/profile/client360Sections";
+export {
   testLabel,
   legacyEnglishToTestId,
   testIdToLegacyEnglish,

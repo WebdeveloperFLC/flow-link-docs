@@ -1,0 +1,13 @@
+export { ProfileTabNav, PROFILE_TABS } from "@/components/profile/ProfileTabNav";
+export { ProfileCompletionBadge } from "@/components/profile/ProfileCompletionBadge";
+export { ProfileMetaBar } from "@/components/profile/ProfileMetaBar";
+export { ProfileViewSummaries } from "@/components/profile/ProfileViewSummaries";
+export { TestScoreBlock } from "@/components/profile/TestScoreBlock";
+export { LinkedDocumentsPanel } from "@/components/profile/LinkedDocumentsPanel";
+export type { LinkedDocumentOption } from "@/components/profile/LinkedDocumentsPanel";
+export { ProfileEducationPanel } from "@/components/profile/ProfileEducationPanel";
+export { ProfileExperiencePanel } from "@/components/profile/ProfileExperiencePanel";
+export { ProfileIdentityPanel, ProfileContactPanel } from "@/components/profile/ProfileIdentityContactPanels";
+export { ProfileServicesBlock } from "@/components/profile/ProfileServicesBlock";
+export { ProfileTestsPanel } from "@/components/profile/ProfileTestsPanel";
+export { Client360RegistryPanel } from "@/components/profile/Client360RegistryPanel";
