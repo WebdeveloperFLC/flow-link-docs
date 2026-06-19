@@ -16,6 +16,7 @@ import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LinkedDocumentsPanel, type LinkedDocumentOption } from "@/components/profile/LinkedDocumentsPanel";
 import { ProfileRecordCardHeader } from "@/components/profile/ProfileRecordCardHeader";
+import { educationCardPreview } from "@/lib/profile/recordCardPreview";
 
 interface Props {
   records: readonly ProfileEducationRecord[];
@@ -49,18 +50,6 @@ function normalizeYearInput(year?: string | null): string {
   const v = year.trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v.slice(0, 4);
   return v.replace(/\D/g, "").slice(0, 4);
-}
-
-function educationPreview(record: ProfileEducationRecord): string {
-  const parts: string[] = [];
-  if (record.institution_name?.trim()) parts.push(record.institution_name.trim());
-  const years = [normalizeYearInput(record.start_year), normalizeYearInput(record.end_year)]
-    .filter(Boolean)
-    .join(" – ");
-  if (years) parts.push(years);
-  const location = [record.city, record.state_province, record.country].filter(Boolean).join(", ");
-  if (location) parts.push(location);
-  return parts.slice(0, 2).join(" · ");
 }
 
 export function ProfileEducationPanel({
@@ -106,10 +95,15 @@ export function ProfileEducationPanel({
       )}
       {records.map((record, index) => {
         const expanded = expandedId === record.id;
+        const qualificationLabel = qualificationLevels.find(
+          (q) => q.code === record.qualification_type,
+        )?.label;
         const headline =
+          qualificationLabel ||
           record.qualification_type?.trim() ||
           record.institution_name?.trim() ||
           `Education ${index + 1}`;
+        const preview = educationCardPreview(record, qualificationLabel);
         const toggleExpand = () => onExpand?.(expanded ? null : record.id);
 
         if (mode === "view") {
@@ -117,7 +111,7 @@ export function ProfileEducationPanel({
             <div key={record.id} className="rounded-lg border p-3 space-y-1">
               <ProfileRecordCardHeader
                 headline={headline}
-                preview={educationPreview(record)}
+                preview={preview}
                 expanded={expanded}
                 onToggle={toggleExpand}
               />
@@ -163,7 +157,7 @@ export function ProfileEducationPanel({
           >
             <ProfileRecordCardHeader
               headline={headline}
-              preview={educationPreview(record)}
+              preview={preview}
               expanded={expanded}
               onToggle={toggleExpand}
               onRemove={onRemove ? () => onRemove(record.id) : undefined}

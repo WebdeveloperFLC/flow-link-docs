@@ -325,7 +325,7 @@ export function UnifiedProfileCard({
             selectedEnglishTestId={es.selectedEnglishTestId}
             selectedAptitudeTestId={es.selectedAptitudeTestId}
             selectedLanguageTestId={es.selectedLanguageTestId}
-            selectedAttemptId={es.selectedAttemptId}
+            expandedAttemptId={es.selectedAttemptId}
             availableDocuments={docOptions}
             onSelectEnglish={(id) =>
               editor.patchEditState({ selectedEnglishTestId: id, selectedAttemptId: null })
@@ -336,7 +336,7 @@ export function UnifiedProfileCard({
             onSelectLanguage={(id) =>
               editor.patchEditState({ selectedLanguageTestId: id, selectedAttemptId: null })
             }
-            onSelectAttempt={(id) => editor.patchEditState({ selectedAttemptId: id })}
+            onExpandAttempt={(id) => editor.patchEditState({ selectedAttemptId: id })}
             onAddAttempt={(testId) => {
               const empty = createEmptyAttempt(testId);
               editor.patchEditState((prev) => {

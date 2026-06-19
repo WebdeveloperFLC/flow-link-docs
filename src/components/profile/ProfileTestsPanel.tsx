@@ -2,17 +2,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { TestAttemptForm } from "@/components/profile/TestAttemptForm";
-import { TestAttemptList } from "@/components/profile/TestAttemptList";
+import { ProfileRecordCardHeader } from "@/components/profile/ProfileRecordCardHeader";
 import type { LinkedDocumentOption } from "@/components/profile/LinkedDocumentsPanel";
-import {
-  defaultAttemptIdForTest,
-} from "@/lib/profile/testAttempts";
 import {
   APTITUDE_TEST_IDS,
   ENGLISH_TEST_IDS,
   LANGUAGE_TEST_IDS,
   testLabel,
 } from "@/lib/profile/profileTestCatalog";
+import {
+  formatAttemptCardHeadline,
+  formatAttemptCardPreview,
+} from "@/lib/profile/recordCardPreview";
+import { attemptsForTestId, sortAttemptsChronologically } from "@/lib/profile/testAttempts";
+import { statusLabel } from "@/lib/profile/testAttemptFormRules";
 import type {
   ProfileAptitudeTestId,
   ProfileEnglishTestId,
@@ -32,11 +35,16 @@ interface Props {
   selectedEnglishTestId?: ProfileEnglishTestId | null;
   selectedAptitudeTestId?: ProfileAptitudeTestId | null;
   selectedLanguageTestId?: ProfileLanguageTestId | null;
+  /** Expanded attempt card (collapsible editor). Alias: selectedAttemptId. */
+  expandedAttemptId?: string | null;
+  /** @deprecated use expandedAttemptId */
   selectedAttemptId?: string | null;
   availableDocuments?: LinkedDocumentOption[];
   onSelectEnglish?: (testId: ProfileEnglishTestId) => void;
   onSelectAptitude?: (testId: ProfileAptitudeTestId) => void;
   onSelectLanguage?: (testId: ProfileLanguageTestId) => void;
+  onExpandAttempt?: (attemptId: string | null) => void;
+  /** @deprecated use onExpandAttempt */
   onSelectAttempt?: (attemptId: string) => void;
   onAddAttempt?: (testId: ProfileTestId) => void;
   onRemoveAttempt?: (attemptId: string) => void;
@@ -93,6 +101,124 @@ function TestPills<T extends string>({
   );
 }
 
+function TestAttemptCards({
+  testId,
+  category,
+  attempts,
+  activeAttemptIds,
+  activeEnglishTestId,
+  expandedAttemptId,
+  mode,
+  availableDocuments,
+  onExpandAttempt,
+  onRemoveAttempt,
+  onSetActiveAttempt,
+  onAttemptChange,
+  onLinkDocument,
+  onUnlinkDocument,
+  onUploadDocument,
+  documentsPlaceholder,
+}: {
+  testId: ProfileTestId;
+  category: ProfileTestCategory;
+  attempts: readonly TestAttempt[];
+  activeAttemptIds: Readonly<Partial<Record<ProfileTestId, string>>>;
+  activeEnglishTestId?: ProfileEnglishTestId | null;
+  expandedAttemptId: string | null;
+  mode: "view" | "edit";
+  availableDocuments?: LinkedDocumentOption[];
+  onExpandAttempt?: (attemptId: string | null) => void;
+  onRemoveAttempt?: (attemptId: string) => void;
+  onSetActiveAttempt?: (testId: ProfileTestId, attemptId: string) => void;
+  onAttemptChange?: (attemptId: string, patch: Partial<TestAttempt>) => void;
+  onLinkDocument?: (attemptId: string, testId: ProfileTestId, docId: string, slot: string) => void;
+  onUnlinkDocument?: (attemptId: string, testId: ProfileTestId, docId: string, slot: string) => void;
+  onUploadDocument?: (attemptId: string, testId: ProfileTestId, file: File, slot: string) => void;
+  documentsPlaceholder?: boolean;
+}) {
+  const activeAttemptId = activeAttemptIds?.[testId] ?? null;
+  const forType = sortAttemptsChronologically(attemptsForTestId(attempts, testId));
+
+  if (forType.length === 0) {
+    return (
+      <p className="text-xs text-muted-foreground rounded-lg border border-dashed p-3">
+        No attempts yet. {mode === "edit" ? "Click Add attempt to record a test." : ""}
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-2" data-testid={`attempt-list-${testId}`}>
+      {forType.map((attempt, index) => {
+        const expanded = expandedAttemptId === attempt.attempt_id;
+        const isActive = activeAttemptId === attempt.attempt_id;
+        const isPrimaryEnglish = category === "english" && activeEnglishTestId === testId;
+        const badges = [
+          attempt.status
+            ? { label: statusLabel(attempt.status), variant: "secondary" as const }
+            : null,
+          isPrimaryEnglish ? { label: "Primary", variant: "outline" as const } : null,
+          isActive ? { label: "Active", variant: "default" as const } : null,
+        ].filter(Boolean) as { label: string; variant: "default" | "secondary" | "outline" }[];
+
+        return (
+          <div
+            key={attempt.attempt_id}
+            className={cn(
+              "rounded-lg border bg-muted/10",
+              expanded ? "p-3 space-y-3" : "p-2.5",
+            )}
+          >
+            <ProfileRecordCardHeader
+              headline={formatAttemptCardHeadline(attempt, index)}
+              preview={formatAttemptCardPreview(attempt)}
+              expanded={expanded}
+              badges={badges}
+              onToggle={() => onExpandAttempt?.(expanded ? null : attempt.attempt_id)}
+              onRemove={
+                mode === "edit" && onRemoveAttempt
+                  ? () => onRemoveAttempt(attempt.attempt_id)
+                  : undefined
+              }
+            />
+            {expanded && (
+              <>
+                {mode === "edit" && !isActive && onSetActiveAttempt && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={() => onSetActiveAttempt(testId, attempt.attempt_id)}
+                  >
+                    Set active
+                  </Button>
+                )}
+                <TestAttemptForm
+                  attempt={attempt}
+                  mode={mode}
+                  availableDocuments={availableDocuments}
+                  onChange={(patch) => onAttemptChange?.(attempt.attempt_id, patch)}
+                  onLinkDocument={(docId, slot) =>
+                    onLinkDocument?.(attempt.attempt_id, testId, docId, slot)
+                  }
+                  onUnlinkDocument={(docId, slot) =>
+                    onUnlinkDocument?.(attempt.attempt_id, testId, docId, slot)
+                  }
+                  onUploadDocument={(file, slot) =>
+                    onUploadDocument?.(attempt.attempt_id, testId, file, slot)
+                  }
+                  documentsPlaceholder={documentsPlaceholder}
+                />
+              </>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function TestTypeSection({
   title,
   category,
@@ -101,11 +227,11 @@ function TestTypeSection({
   activeTypeId,
   attempts,
   activeAttemptIds,
-  selectedAttemptId,
+  expandedAttemptId,
   mode,
   availableDocuments,
   onSelectTestType,
-  onSelectAttempt,
+  onExpandAttempt,
   onAddAttempt,
   onRemoveAttempt,
   onSetActiveAttempt,
@@ -124,11 +250,11 @@ function TestTypeSection({
   activeTypeId?: ProfileTestId | null;
   attempts: readonly TestAttempt[];
   activeAttemptIds: Readonly<Partial<Record<ProfileTestId, string>>>;
-  selectedAttemptId: string | null;
+  expandedAttemptId: string | null;
   mode: "view" | "edit";
   availableDocuments?: LinkedDocumentOption[];
   onSelectTestType?: (testId: ProfileTestId) => void;
-  onSelectAttempt?: (attemptId: string) => void;
+  onExpandAttempt?: (attemptId: string | null) => void;
   onAddAttempt?: (testId: ProfileTestId) => void;
   onRemoveAttempt?: (attemptId: string) => void;
   onSetActiveAttempt?: (testId: ProfileTestId, attemptId: string) => void;
@@ -140,14 +266,6 @@ function TestTypeSection({
   documentsPlaceholder?: boolean;
   showPrimaryTypeButton?: boolean;
 }) {
-  const activeAttemptId = activeAttemptIds[selectedTestId] ?? null;
-  const resolvedAttemptId =
-    selectedAttemptId &&
-    attempts.some((a) => a.attempt_id === selectedAttemptId && a.test_id === selectedTestId)
-      ? selectedAttemptId
-      : defaultAttemptIdForTest(attempts, activeAttemptIds, selectedTestId);
-  const selectedAttempt = attempts.find((a) => a.attempt_id === resolvedAttemptId) ?? null;
-
   return (
     <section className="space-y-2">
       <div className="flex items-center justify-between gap-2">
@@ -186,42 +304,24 @@ function TestTypeSection({
         onSelect={onSelectTestType}
         labelFor={testLabel}
       />
-      <TestAttemptList
-        attempts={attempts}
+      <TestAttemptCards
         testId={selectedTestId}
-        selectedAttemptId={resolvedAttemptId}
-        activeAttemptId={activeAttemptId}
+        category={category}
+        attempts={attempts}
+        activeAttemptIds={activeAttemptIds}
+        activeEnglishTestId={activeTypeId as ProfileEnglishTestId | null}
+        expandedAttemptId={expandedAttemptId}
         mode={mode}
-        onSelect={onSelectAttempt}
-        onSetActive={
-          onSetActiveAttempt
-            ? (id) => onSetActiveAttempt(selectedTestId, id)
-            : undefined
-        }
-        onRemove={onRemoveAttempt}
+        availableDocuments={availableDocuments}
+        onExpandAttempt={onExpandAttempt}
+        onRemoveAttempt={onRemoveAttempt}
+        onSetActiveAttempt={onSetActiveAttempt}
+        onAttemptChange={onAttemptChange}
+        onLinkDocument={onLinkDocument}
+        onUnlinkDocument={onUnlinkDocument}
+        onUploadDocument={onUploadDocument}
+        documentsPlaceholder={documentsPlaceholder}
       />
-      {selectedAttempt ? (
-        <TestAttemptForm
-          attempt={selectedAttempt}
-          mode={mode}
-          availableDocuments={availableDocuments}
-          onChange={(patch) => onAttemptChange?.(selectedAttempt.attempt_id, patch)}
-          onLinkDocument={(docId, slot) =>
-            onLinkDocument?.(selectedAttempt.attempt_id, selectedTestId, docId, slot)
-          }
-          onUnlinkDocument={(docId, slot) =>
-            onUnlinkDocument?.(selectedAttempt.attempt_id, selectedTestId, docId, slot)
-          }
-          onUploadDocument={(file, slot) =>
-            onUploadDocument?.(selectedAttempt.attempt_id, selectedTestId, file, slot)
-          }
-          documentsPlaceholder={documentsPlaceholder}
-        />
-      ) : mode === "view" ? (
-        <p className="text-xs text-muted-foreground rounded-lg border border-dashed p-3">
-          No attempts for {testLabel(selectedTestId)} yet.
-        </p>
-      ) : null}
     </section>
   );
 }
@@ -229,16 +329,18 @@ function TestTypeSection({
 export function ProfileTestsPanel({
   mode,
   attempts,
-  activeAttemptIds,
+  activeAttemptIds = {},
   activeEnglishTestId,
   selectedEnglishTestId,
   selectedAptitudeTestId,
   selectedLanguageTestId,
+  expandedAttemptId = null,
   selectedAttemptId = null,
   availableDocuments,
   onSelectEnglish,
   onSelectAptitude,
   onSelectLanguage,
+  onExpandAttempt,
   onSelectAttempt,
   onAddAttempt,
   onRemoveAttempt,
@@ -251,6 +353,15 @@ export function ProfileTestsPanel({
   documentsPlaceholder,
   className,
 }: Props) {
+  const resolvedExpandedId = expandedAttemptId ?? selectedAttemptId ?? null;
+  const handleExpand =
+    onExpandAttempt ??
+    (onSelectAttempt
+      ? (id: string | null) => {
+          if (id) onSelectAttempt(id);
+        }
+      : undefined);
+
   const selEnglish =
     selectedEnglishTestId ?? activeEnglishTestId ?? ENGLISH_TEST_IDS[0];
   const selAptitude = selectedAptitudeTestId ?? APTITUDE_TEST_IDS[0];
@@ -270,11 +381,11 @@ export function ProfileTestsPanel({
         activeTypeId={activeEnglishTestId}
         attempts={attempts}
         activeAttemptIds={activeAttemptIds}
-        selectedAttemptId={selectedAttemptId}
+        expandedAttemptId={resolvedExpandedId}
         mode={mode}
         availableDocuments={availableDocuments}
         onSelectTestType={(id) => onSelectEnglish?.(id as ProfileEnglishTestId)}
-        onSelectAttempt={onSelectAttempt}
+        onExpandAttempt={handleExpand}
         onAddAttempt={onAddAttempt ? () => handleAdd(selEnglish) : undefined}
         onRemoveAttempt={onRemoveAttempt}
         onSetActiveAttempt={onSetActiveAttempt}
@@ -292,50 +403,50 @@ export function ProfileTestsPanel({
       />
 
       <div className="border-t pt-4">
-      <TestTypeSection
-        title="Aptitude tests"
-        category="aptitude"
-        testIds={APTITUDE_TEST_IDS}
-        selectedTestId={selAptitude}
-        attempts={attempts}
-        activeAttemptIds={activeAttemptIds}
-        selectedAttemptId={selectedAttemptId}
-        mode={mode}
-        availableDocuments={availableDocuments}
-        onSelectTestType={(id) => onSelectAptitude?.(id as ProfileAptitudeTestId)}
-        onSelectAttempt={onSelectAttempt}
-        onAddAttempt={onAddAttempt ? () => handleAdd(selAptitude) : undefined}
-        onRemoveAttempt={onRemoveAttempt}
-        onSetActiveAttempt={onSetActiveAttempt}
-        onAttemptChange={onAttemptChange}
-        onLinkDocument={onLinkAttemptDocument}
-        onUnlinkDocument={onUnlinkAttemptDocument}
-        onUploadDocument={onUploadAttemptDocument}
-        documentsPlaceholder={documentsPlaceholder}
-      />
+        <TestTypeSection
+          title="Aptitude tests"
+          category="aptitude"
+          testIds={APTITUDE_TEST_IDS}
+          selectedTestId={selAptitude}
+          attempts={attempts}
+          activeAttemptIds={activeAttemptIds}
+          expandedAttemptId={resolvedExpandedId}
+          mode={mode}
+          availableDocuments={availableDocuments}
+          onSelectTestType={(id) => onSelectAptitude?.(id as ProfileAptitudeTestId)}
+          onExpandAttempt={handleExpand}
+          onAddAttempt={onAddAttempt ? () => handleAdd(selAptitude) : undefined}
+          onRemoveAttempt={onRemoveAttempt}
+          onSetActiveAttempt={onSetActiveAttempt}
+          onAttemptChange={onAttemptChange}
+          onLinkDocument={onLinkAttemptDocument}
+          onUnlinkDocument={onUnlinkAttemptDocument}
+          onUploadDocument={onUploadAttemptDocument}
+          documentsPlaceholder={documentsPlaceholder}
+        />
       </div>
 
       <div className="border-t pt-4">
-      <TestTypeSection
-        title="Language tests"
-        category="language"
-        testIds={LANGUAGE_TEST_IDS}
-        selectedTestId={selLanguage}
-        attempts={attempts}
-        activeAttemptIds={activeAttemptIds}
-        selectedAttemptId={selectedAttemptId}
-        mode={mode}
-        availableDocuments={availableDocuments}
-        onSelectTestType={(id) => onSelectLanguage?.(id as ProfileLanguageTestId)}
-        onSelectAttempt={onSelectAttempt}
-        onAddAttempt={onAddAttempt ? () => handleAdd(selLanguage) : undefined}
-        onRemoveAttempt={onRemoveAttempt}
-        onSetActiveAttempt={onSetActiveAttempt}
-        onAttemptChange={onAttemptChange}
-        onLinkDocument={onLinkAttemptDocument}
-        onUnlinkDocument={onUnlinkAttemptDocument}
-        onUploadDocument={onUploadAttemptDocument}
-      />
+        <TestTypeSection
+          title="Language tests"
+          category="language"
+          testIds={LANGUAGE_TEST_IDS}
+          selectedTestId={selLanguage}
+          attempts={attempts}
+          activeAttemptIds={activeAttemptIds}
+          expandedAttemptId={resolvedExpandedId}
+          mode={mode}
+          availableDocuments={availableDocuments}
+          onSelectTestType={(id) => onSelectLanguage?.(id as ProfileLanguageTestId)}
+          onExpandAttempt={handleExpand}
+          onAddAttempt={onAddAttempt ? () => handleAdd(selLanguage) : undefined}
+          onRemoveAttempt={onRemoveAttempt}
+          onSetActiveAttempt={onSetActiveAttempt}
+          onAttemptChange={onAttemptChange}
+          onLinkDocument={onLinkAttemptDocument}
+          onUnlinkDocument={onUnlinkAttemptDocument}
+          onUploadDocument={onUploadAttemptDocument}
+        />
       </div>
     </div>
   );

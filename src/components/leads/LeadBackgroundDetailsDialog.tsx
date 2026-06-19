@@ -38,11 +38,13 @@ export function LeadBackgroundDetailsDialog({
   initialTab = "tests",
 }: Props) {
   const [tab, setTab] = useState<BackgroundDetailTab>(normalizeTab(initialTab));
+  const [editorResetKey, setEditorResetKey] = useState(0);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
       setTab(normalizeTab(initialTab));
+      setEditorResetKey((k) => k + 1);
       loadGeoModule().catch(() => {});
     }
   }, [open, initialTab]);
@@ -98,13 +100,31 @@ export function LeadBackgroundDetailsDialog({
             </TabsTrigger>
           </TabsList>
           <TabsContent value="tests" className="mt-4 focus-visible:outline-none">
-            <LeadProfileDetailsEditor value={value} onChange={onChange} activeTab="tests" />
+            <LeadProfileDetailsEditor
+              key={`tests-${editorResetKey}`}
+              value={value}
+              onChange={onChange}
+              activeTab="tests"
+              resetKey={editorResetKey}
+            />
           </TabsContent>
           <TabsContent value="education" className="mt-4 focus-visible:outline-none">
-            <LeadProfileDetailsEditor value={value} onChange={onChange} activeTab="education" />
+            <LeadProfileDetailsEditor
+              key={`education-${editorResetKey}`}
+              value={value}
+              onChange={onChange}
+              activeTab="education"
+              resetKey={editorResetKey}
+            />
           </TabsContent>
           <TabsContent value="experience" className="mt-4 focus-visible:outline-none">
-            <LeadProfileDetailsEditor value={value} onChange={onChange} activeTab="experience" />
+            <LeadProfileDetailsEditor
+              key={`experience-${editorResetKey}`}
+              value={value}
+              onChange={onChange}
+              activeTab="experience"
+              resetKey={editorResetKey}
+            />
           </TabsContent>
         </Tabs>
         <div className="flex justify-end pt-2">

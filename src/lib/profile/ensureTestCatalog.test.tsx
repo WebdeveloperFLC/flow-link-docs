@@ -6,6 +6,7 @@ import {
   ensureFullTestCatalog,
   resolveEnglishEntry,
 } from "@/lib/profile/ensureTestCatalog";
+import type { TestAttempt } from "@/lib/profile/types";
 
 describe("ensureTestCatalog", () => {
   it("fills all english/aptitude/language slots for edit grid", () => {
@@ -32,33 +33,46 @@ describe("ensureTestCatalog", () => {
 });
 
 describe("ProfileTestsPanel", () => {
-  it("shows edit block for selected english test even when VM is sparse", () => {
+  it("shows edit fields when attempt card is expanded", () => {
+    const attempt: TestAttempt = {
+      attempt_id: "a1",
+      test_id: "ielts",
+      category: "english",
+      status: "taken",
+      variant: "Academic",
+      ielts_test_type: "CBT",
+      sections: {},
+      linked_documents: [],
+    };
     render(
       <ProfileTestsPanel
         mode="edit"
-        activeEnglishTestId={null}
-        english={[emptyEnglishTestEntry("ielts")]}
-        aptitude={[]}
-        language={[]}
+        attempts={[attempt]}
+        activeAttemptIds={{ ielts: "a1" }}
+        activeEnglishTestId="ielts"
         selectedEnglishTestId="ielts"
-        onEnglishChange={() => {}}
+        expandedAttemptId="a1"
+        onAttemptChange={() => {}}
       />,
     );
     expect(screen.getByText("IELTS variant")).toBeInTheDocument();
-    expect(screen.getByText("Overall")).toBeInTheDocument();
+    expect(screen.getByText("Listening")).toBeInTheDocument();
   });
 
-  it("shows empty hint in view mode when test has no data", () => {
+  it("shows empty hint when test type has no attempts", () => {
     render(
       <ProfileTestsPanel
         mode="view"
+        attempts={[]}
+        activeAttemptIds={{}}
         activeEnglishTestId={null}
-        english={[]}
-        aptitude={[]}
-        language={[]}
         selectedEnglishTestId="pte"
       />,
     );
-    expect(screen.getByText(/No details captured for PTE yet/)).toBeInTheDocument();
+    expect(screen.getAllByText(/No attempts yet/).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("emptyEnglishTestEntry scaffold still works for catalog helpers", () => {
+    expect(emptyEnglishTestEntry("ielts").test_id).toBe("ielts");
   });
 });

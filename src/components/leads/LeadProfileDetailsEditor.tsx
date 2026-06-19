@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { ProfileEducationPanel } from "@/components/profile/ProfileEducationPanel";
 import { ProfileExperiencePanel } from "@/components/profile/ProfileExperiencePanel";
 import { ProfileTestsPanel } from "@/components/profile/ProfileTestsPanel";
@@ -26,9 +26,11 @@ interface Props {
   value: LeadBackgroundState;
   onChange: (patch: Partial<LeadBackgroundState>) => void;
   activeTab: BackgroundDetailTab;
+  /** Bump when dialog opens to collapse all record cards. */
+  resetKey?: number;
 }
 
-export function LeadProfileDetailsEditor({ value, onChange, activeTab }: Props) {
+export function LeadProfileDetailsEditor({ value, onChange, activeTab, resetKey = 0 }: Props) {
   const tests = useMemo(() => testsStateFromLeadBackground(value), [value]);
   const education = useMemo(() => educationRecordsFromLeadBackground(value), [value]);
   const experience = useMemo(() => experienceRecordsFromLeadBackground(value), [value]);
@@ -38,9 +40,15 @@ export function LeadProfileDetailsEditor({ value, onChange, activeTab }: Props) 
   );
   const [selectedAptitudeTestId, setSelectedAptitudeTestId] = useState<ProfileAptitudeTestId | null>("gre");
   const [selectedLanguageTestId, setSelectedLanguageTestId] = useState<ProfileLanguageTestId | null>("french");
-  const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
+  const [expandedAttemptId, setExpandedAttemptId] = useState<string | null>(null);
   const [expandedEducationId, setExpandedEducationId] = useState<string | null>(null);
   const [expandedExperienceId, setExpandedExperienceId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setExpandedAttemptId(null);
+    setExpandedEducationId(null);
+    setExpandedExperienceId(null);
+  }, [resetKey]);
 
   const patchTests = (next: {
     attempts: TestAttempt[];
@@ -77,21 +85,21 @@ export function LeadProfileDetailsEditor({ value, onChange, activeTab }: Props) 
         selectedEnglishTestId={selectedEnglishTestId ?? tests.active_english_test_id}
         selectedAptitudeTestId={selectedAptitudeTestId}
         selectedLanguageTestId={selectedLanguageTestId}
-        selectedAttemptId={selectedAttemptId}
+        expandedAttemptId={expandedAttemptId}
         documentsPlaceholder
         onSelectEnglish={(id) => {
           setSelectedEnglishTestId(id);
-          setSelectedAttemptId(null);
+          setExpandedAttemptId(null);
         }}
         onSelectAptitude={(id) => {
           setSelectedAptitudeTestId(id);
-          setSelectedAttemptId(null);
+          setExpandedAttemptId(null);
         }}
         onSelectLanguage={(id) => {
           setSelectedLanguageTestId(id);
-          setSelectedAttemptId(null);
+          setExpandedAttemptId(null);
         }}
-        onSelectAttempt={setSelectedAttemptId}
+        onExpandAttempt={setExpandedAttemptId}
         onAddAttempt={(testId) => {
           const empty = createEmptyAttempt(testId);
           const attempts = [...tests.attempts, empty];
@@ -102,7 +110,7 @@ export function LeadProfileDetailsEditor({ value, onChange, activeTab }: Props) 
           const isEnglish = (["ielts", "pte", "toefl", "celpip", "duolingo"] as const).includes(
             testId as ProfileEnglishTestId,
           );
-          setSelectedAttemptId(empty.attempt_id);
+          setExpandedAttemptId(empty.attempt_id);
           patchTests({
             attempts,
             active_attempt_ids,
@@ -123,7 +131,7 @@ export function LeadProfileDetailsEditor({ value, onChange, activeTab }: Props) 
               delete active_attempt_ids[removed.test_id];
             }
           }
-          if (selectedAttemptId === attemptId) setSelectedAttemptId(null);
+          if (expandedAttemptId === attemptId) setExpandedAttemptId(null);
           patchTests({
             attempts,
             active_attempt_ids,
@@ -182,6 +190,7 @@ export function LeadProfileDetailsEditor({ value, onChange, activeTab }: Props) 
           setExpandedEducationId(id);
         }}
         onRemove={(id) => {
+          if (expandedEducationId === id) setExpandedEducationId(null);
           onChange(
             applyEducationRecordsToLeadBackground(
               value,
@@ -229,6 +238,7 @@ export function LeadProfileDetailsEditor({ value, onChange, activeTab }: Props) 
         setExpandedExperienceId(id);
       }}
       onRemove={(id) => {
+        if (expandedExperienceId === id) setExpandedExperienceId(null);
         onChange(
           applyExperienceRecordsToLeadBackground(
             value,

@@ -1,5 +1,7 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { ReactNode } from "react";
+import { useState } from "react";
 import {
   buildBackgroundDetailView,
   type BackgroundDetailView,
@@ -21,6 +23,9 @@ interface Props {
   className?: string;
   compact?: boolean;
   onNavigate?: (target: BackgroundSummaryNavigateTarget) => void;
+  detailsExpanded?: boolean;
+  onDetailsExpandedChange?: (expanded: boolean) => void;
+  showDetailsToggle?: boolean;
 }
 
 function ScoreRow({ chips }: { chips: ScoreChip[] }) {
@@ -130,6 +135,64 @@ function SectionBlock({
         <span className="ml-1.5 font-normal normal-case tracking-normal">({count})</span>
       </Heading>
       <div className="space-y-2">{children}</div>
+    </div>
+  );
+}
+
+function CompactSummary({ view }: { view: BackgroundDetailView }) {
+  const line = (parts: (string | undefined)[]) => parts.filter(Boolean).join(" · ");
+
+  return (
+    <div className="space-y-3 text-sm">
+      {view.english.map((t) => (
+        <p key={`en-${t.test}-${t.testDate ?? ""}`} className="text-muted-foreground">
+          <span className="font-medium text-foreground">{t.test}</span>
+          {" — "}
+          {line([
+            t.status,
+            t.variant,
+            t.testType,
+            t.testDate ? `Test ${t.testDate}` : undefined,
+            t.overall ? `Overall ${t.overall}` : undefined,
+          ])}
+        </p>
+      ))}
+      {view.academic.map((t) => (
+        <p key={`ac-${t.type}-${t.testDate ?? ""}`} className="text-muted-foreground">
+          <span className="font-medium text-foreground">{t.type}</span>
+          {" — "}
+          {line([
+            t.testDate ? `Test ${t.testDate}` : undefined,
+            t.overall ? `Overall ${t.overall}` : undefined,
+          ])}
+        </p>
+      ))}
+      {view.language.map((t) => (
+        <p key={`lang-${t.language}-${t.testDate ?? ""}`} className="text-muted-foreground">
+          <span className="font-medium text-foreground">{t.language}</span>
+          {" — "}
+          {line([
+            t.status,
+            t.exam,
+            t.cefr,
+            t.testDate ? `Test ${t.testDate}` : undefined,
+            t.overall ? `Overall ${t.overall}` : undefined,
+          ])}
+        </p>
+      ))}
+      {view.education.map((entry, i) => (
+        <p key={`ed-${i}`} className="text-muted-foreground">
+          <span className="font-medium text-foreground">{entry.title}</span>
+          {entry.details.length ? ` — ${entry.details.join(" · ")}` : ""}
+        </p>
+      ))}
+      {view.experience.map((entry, i) => (
+        <p key={`ex-${i}`} className="text-muted-foreground">
+          <span className="font-medium text-foreground">{entry.title}</span>
+          {" — "}
+          {line([entry.dates, entry.location, entry.description])}
+        </p>
+      ))}
     </div>
   );
 }
@@ -256,7 +319,19 @@ function DetailContent({
   );
 }
 
-export function LeadBackgroundDetailPanel({ background, className, compact, onNavigate }: Props) {
+export function LeadBackgroundDetailPanel({
+  background,
+  className,
+  compact,
+  onNavigate,
+  detailsExpanded,
+  onDetailsExpandedChange,
+  showDetailsToggle = true,
+}: Props) {
+  const [internalDetailsOpen, setInternalDetailsOpen] = useState(false);
+  const showDetails = detailsExpanded ?? internalDetailsOpen;
+  const setShowDetails = onDetailsExpandedChange ?? setInternalDetailsOpen;
+
   const view = buildBackgroundDetailView(background);
   const hasAny =
     view.english.length > 0 ||
@@ -268,8 +343,25 @@ export function LeadBackgroundDetailPanel({ background, className, compact, onNa
   if (!hasAny) return null;
 
   return (
-    <div className={cn("rounded-lg border bg-muted/30 p-4", compact && "p-3", className)}>
-      <DetailContent view={view} interactive={!!onNavigate} onNavigate={onNavigate} />
+    <div className={cn("rounded-lg border bg-muted/30 p-4 space-y-3", compact && "p-3", className)}>
+      {showDetailsToggle && (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() => setShowDetails(!showDetails)}
+          >
+            {showDetails ? "Hide Details" : "View Details"}
+          </Button>
+        </div>
+      )}
+      {showDetails ? (
+        <DetailContent view={view} interactive={!!onNavigate} onNavigate={onNavigate} />
+      ) : (
+        <CompactSummary view={view} />
+      )}
     </div>
   );
 }
