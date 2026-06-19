@@ -8,8 +8,10 @@ import { formatSecurityChequeUploadedAt } from "../../lib/securityCheque";
 import { useSalaryRevisions } from "../../hooks/useSalaryRevisions";
 import type { EmployeeRow } from "../../lib/types";
 import { EmployeeDocumentsPanel } from "./EmployeeDocumentsPanel";
+import { EmployeeAssetsDetailTable } from "./EmployeeAssetsDetailTable";
+import { useEmployeeAssets } from "../../hooks/useEmployeeAssets";
 
-type Tab = "profile" | "employment" | "salary" | "statutory" | "bank" | "documents";
+type Tab = "profile" | "employment" | "salary" | "statutory" | "bank" | "assets" | "documents";
 
 export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClose: () => void }) {
   const { fire } = useHrAccess();
@@ -18,6 +20,7 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
   const { data: revisions = [] } = useSalaryRevisions(emp.id);
   const { data: crmStaff = [] } = useHrCrmStaff();
   const { data: linkedProfile } = useCrmProfile(emp.staff_id);
+  const { data: employeeAssets = [], isLoading: assetsLoading } = useEmployeeAssets(emp.id);
   const currency = emp.salary_currency ?? emp.companies?.currency ?? "INR";
   const money = (n: number) => formatMoney(n, currency);
   const contacts = parseEmergencyContacts(emp.emergency_contacts);
@@ -44,7 +47,7 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
     </div>
   );
 
-  const tabs: Tab[] = ["profile", "employment", "salary", "statutory", "bank", "documents"];
+  const tabs: Tab[] = ["profile", "employment", "salary", "statutory", "bank", "assets", "documents"];
   const displayName = displayEmployeeName(emp);
 
   const openCheque = async () => {
@@ -318,6 +321,13 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
                 </div>
               )}
             </div>
+          )}
+          {tab === "assets" && (
+            assetsLoading ? (
+              <div className="empty">Loading assets…</div>
+            ) : (
+              <EmployeeAssetsDetailTable assets={employeeAssets} />
+            )
           )}
           {tab === "documents" && <EmployeeDocumentsPanel emp={emp} />}
         </div>

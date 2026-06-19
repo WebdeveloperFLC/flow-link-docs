@@ -148,6 +148,34 @@ export type EmployeeRow = {
 
 export type EmergencyContact = { name: string; phone: string; relation: string };
 
+export type EmployeeAssetRow = {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  asset_type: string;
+  asset_type_other: string | null;
+  asset_name: string | null;
+  model_number: string | null;
+  serial_number: string | null;
+  asset_tag: string | null;
+  mac_address: string | null;
+  imei_number: string | null;
+  remarks: string | null;
+  issue_date: string;
+  issued_by_employee_id: string | null;
+  issued_by_label: string;
+  asset_status: string;
+  return_date: string | null;
+  collected_by_employee_id: string | null;
+  collected_by_label: string | null;
+  asset_condition: string | null;
+  return_remarks: string | null;
+  accessories: string[];
+  accessory_other: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type CompanyRow = {
   id: string;
   name: string;

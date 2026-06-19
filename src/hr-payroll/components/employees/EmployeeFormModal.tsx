@@ -19,13 +19,21 @@ import {
   type SecurityChequeStatus,
 } from "../../lib/securityCheque";
 import { EmployeeAvatar } from "../ui/EmployeeAvatar";
-import type { BranchRow, CompanyRow, EmergencyContact, EmployeeRow, ShiftRow, CrmStaffRow } from "../../lib/types";
+import { EmployeeAssetsSection } from "./EmployeeAssetsSection";
+import type { BranchRow, CompanyRow, EmergencyContact, EmployeeAssetRow, EmployeeRow, ShiftRow, CrmStaffRow } from "../../lib/types";
 import { fetchNextEmpCode, useHrEmployee, useHrEmployees } from "../../hooks/useHrEmployees";
+import { useEmployeeAssets } from "../../hooks/useEmployeeAssets";
+import {
+  assetRowToDraft,
+  syncEmployeeAssets,
+  validateEmployeeAssets,
+  type EmployeeAssetDraft,
+} from "../../lib/employeeAssets";
 import { useHrCrmStaff, useCrmProfile } from "../../hooks/useHrTeam";
 import { useHrPolicies } from "../../hooks/useHrRequests";
 import { useHrAccess } from "../../context/HrPayrollProvider";
 
-type FormTab = "basic" | "employment" | "shift" | "salary" | "statutory" | "bank";
+type FormTab = "basic" | "employment" | "shift" | "salary" | "statutory" | "bank" | "assets";
 
 type Props = {
   emp: EmployeeRow | null;
@@ -239,6 +247,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
   const { data: employees = [] } = useHrEmployees();
   const { data: liveEmp } = useHrEmployee(emp?.id);
   const sourceEmp = liveEmp ?? emp;
+  const { data: existingAssets = [], isSuccess: assetsLoaded } = useEmployeeAssets(sourceEmp?.id);
   const { data: crmStaff = [], isError: crmStaffError } = useHrCrmStaff();
   const [tab, setTab] = useState<FormTab>("basic");
   const [f, setF] = useState<FormState>(
@@ -265,6 +274,8 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
   const chequeFileRef = useRef<HTMLInputElement>(null);
   const [chequeFile, setChequeFile] = useState<File | null>(null);
   const [chequeRemoved, setChequeRemoved] = useState(false);
+  const [assetDrafts, setAssetDrafts] = useState<EmployeeAssetDraft[]>([]);
+  const [existingAssetRows, setExistingAssetRows] = useState<EmployeeAssetRow[]>([]);
 
   useEffect(() => {
     if (sourceEmp) {
@@ -274,8 +285,17 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
       if (chequeFileRef.current) chequeFileRef.current.value = "";
       const co = companies.find((c) => c.id === sourceEmp.company_id);
       setEntityRegion(defaultPayrollEntityRegion(sourceEmp.payroll_country, co));
+    } else {
+      setAssetDrafts([]);
+      setExistingAssetRows([]);
     }
   }, [sourceEmp?.id, sourceEmp?.staff_id, sourceEmp?.company_id, sourceEmp?.payroll_country, companies]);
+
+  useEffect(() => {
+    if (!sourceEmp?.id || !assetsLoaded) return;
+    setAssetDrafts(existingAssets.map(assetRowToDraft));
+    setExistingAssetRows(existingAssets);
+  }, [sourceEmp?.id, assetsLoaded, existingAssets]);
 
   useEffect(() => {
     if (payrollCompanies.some((c) => c.id === f.company_id)) return;
@@ -386,15 +406,21 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
       e.security_cheque_upload = "Allowed formats: JPG, JPEG, PNG, PDF";
     }
 
+    const assetErrors = validateEmployeeAssets(assetDrafts, employees);
+    Object.assign(e, assetErrors);
+
     setErr(e);
     if (Object.keys(e).length) {
       const bankErr = e.security_cheque_status || e.security_cheque_reason || e.security_cheque_upload;
+      const assetErr = Object.keys(e).some((k) => k.startsWith("asset_"));
       setTab(
-        bankErr
-          ? "bank"
-          : e.emp_code || e.name || e.lastName || e.desig
-            ? "basic"
-            : "salary",
+        assetErr
+          ? "assets"
+          : bankErr
+            ? "bank"
+            : e.emp_code || e.name || e.lastName || e.desig
+              ? "basic"
+              : "salary",
       );
       return;
     }
@@ -555,12 +581,25 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
         }
       }
 
+      if (employeeId && assetDrafts.length > 0) {
+        await syncEmployeeAssets(
+          employeeId,
+          assetDrafts,
+          existingAssetRows,
+          employees,
+          f.emp_code.trim(),
+          fullName,
+          actor,
+        );
+      }
+
       if (photoFile && employeeId) {
         await uploadEmployeePhoto(employeeId, photoFile);
         fire("Photo uploaded");
       }
       await qc.invalidateQueries({ queryKey: ["hr-employees"] });
       if (employeeId) await qc.invalidateQueries({ queryKey: ["hr-employee", HR_ORG_ID, employeeId] });
+      if (employeeId) await qc.invalidateQueries({ queryKey: ["hr-employee-assets", employeeId] });
       await qc.invalidateQueries({ queryKey: ["hr-crm-staff"] });
       onClose();
     } catch (ex) {
@@ -570,7 +609,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
     }
   };
 
-  const tabs: FormTab[] = ["basic", "employment", "shift", "salary", "statutory", "bank"];
+  const tabs: FormTab[] = ["basic", "employment", "shift", "salary", "statutory", "bank", "assets"];
   const fullName =
     [f.first_name, f.middle_name, f.last_name].filter(Boolean).join(" ").trim() || f.full_name;
   const selectedShift = shifts.find((s) => s.id === f.shift_id);
@@ -1138,6 +1177,14 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                 )}
               </label>
             </>
+          )}
+          {tab === "assets" && (
+            <EmployeeAssetsSection
+              assets={assetDrafts}
+              onChange={setAssetDrafts}
+              staffOptions={employees}
+              errors={err}
+            />
           )}
         </div>
         <div className="modal-f">
