@@ -80,6 +80,9 @@ export interface Lead {
   other_tests?: Array<{ type: string; score?: string; date?: string; sections?: Record<string, string> }>;
   work_experience?: ExperienceEntry[];
   language_tests?: LanguageTestsValue;
+  /** Phase E5 — multi-attempt tests (source of truth). */
+  test_attempts?: Array<Record<string, unknown>>;
+  active_attempt_ids?: Record<string, string>;
   priority?: string | null;
   source?: string | null;
   created_by?: string | null;

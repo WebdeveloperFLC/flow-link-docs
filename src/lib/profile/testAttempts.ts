@@ -4,7 +4,7 @@ import {
   hydrateScoresByTest,
   type EnglishScoresByTest,
 } from "@/lib/englishTestScores";
-import { leadToBackgroundState } from "@/lib/leadBackground";
+import { leadToBackgroundState, type LeadBackgroundState } from "@/lib/leadBackground";
 import { normalizeLanguageTests } from "@/lib/languageTests";
 import { slotLabel } from "@/lib/profile/profileDocumentSlots";
 import { ensureAttemptId, testAttemptRefKey } from "@/lib/profile/profileRecordIds";
@@ -201,6 +201,7 @@ function englishAttemptFromCache(
   sectionsRaw: Record<string, unknown>,
   isActive: boolean,
   refs: ClientDocumentRefRow[],
+  bgEnglishStatus?: string | null,
 ): TestAttempt {
   const attemptId = ensureAttemptId(`legacy_${testId}`);
   const legacy = testIdToLegacyEnglish(testId);
@@ -212,7 +213,9 @@ function englishAttemptFromCache(
     attempt_id: attemptId,
     test_id: testId,
     category: "english",
-    status: coerceAttemptStatus(entry.status),
+    status:
+      coerceAttemptStatus(entry.status) ??
+      (isActive ? coerceAttemptStatus(bgEnglishStatus) : null),
     variant: testId === "ielts" ? readIeltsVariant(sectionsRaw) : null,
     test_date: str(entry.test_date),
     expiry_date: str(entry.test_expiry),
@@ -230,8 +233,9 @@ function englishAttemptFromCache(
 export function migrateLegacyToAttempts(
   client: Partial<ClientRow>,
   refs: ClientDocumentRefRow[] = [],
+  prehydratedBg?: LeadBackgroundState,
 ): { attempts: TestAttempt[]; active_attempt_ids: Partial<Record<ProfileTestId, string>> } {
-  const bg = leadToBackgroundState(client);
+  const bg = prehydratedBg ?? leadToBackgroundState(client);
   const sectionsRaw = (client.english_sections ?? bg.english_sections ?? {}) as Record<string, unknown>;
   const byTest = hydrateScoresByTest({
     english_test: bg.english_test,
@@ -260,7 +264,7 @@ export function migrateLegacyToAttempts(
     const isActive = activeEnglishId === testId;
     if (!hasData && !isActive) continue;
 
-    const attempt = englishAttemptFromCache(testId, cached, sectionsRaw, isActive, refs);
+    const attempt = englishAttemptFromCache(testId, cached, sectionsRaw, isActive, refs, bg.english_test_status);
     if (attemptHasData(attempt)) {
       attempts.push(attempt);
       if (isActive) active_attempt_ids[testId] = attempt.attempt_id;
@@ -346,6 +350,7 @@ export function migrateLegacyToAttempts(
 export function parseTestAttemptsFromClient(
   client: Partial<ClientRow>,
   refs: ClientDocumentRefRow[] = [],
+  options?: { prehydratedBg?: LeadBackgroundState },
 ): { attempts: TestAttempt[]; active_attempt_ids: Partial<Record<ProfileTestId, string>> } {
   const rawAttempts = (client as { test_attempts?: unknown }).test_attempts;
   const rawActive = (client as { active_attempt_ids?: unknown }).active_attempt_ids;
@@ -366,7 +371,7 @@ export function parseTestAttemptsFromClient(
   }
 
   if (attempts.length === 0) {
-    return migrateLegacyToAttempts(client, refs);
+    return migrateLegacyToAttempts(client, refs, options?.prehydratedBg);
   }
 
   return { attempts, active_attempt_ids };

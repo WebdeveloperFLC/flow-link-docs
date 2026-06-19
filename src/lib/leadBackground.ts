@@ -1,4 +1,4 @@
-import type { EducationEntry, ExperienceEntry } from "@/lib/clientRegistration";
+import type { EducationEntry, ExperienceEntry, ClientRow } from "@/lib/clientRegistration";
 import type { EducationExperienceValue } from "@/components/clients/registration/EducationExperienceFields";
 import type { Lead, LeadDraft } from "@/lib/leads";
 import {
@@ -18,6 +18,28 @@ import {
   type LanguageTestBlock,
   type LanguageTestsValue,
 } from "@/lib/languageTests";
+import { legacyTestCatalogFromClient } from "@/lib/profile/normalizeProfile";
+import {
+  legacyEnglishToTestId,
+  testIdToLegacyAptitude,
+  testIdToLegacyEnglish,
+  testLabel,
+  type ProfileAptitudeTestId,
+  type ProfileEnglishTestId,
+  type ProfileTestId,
+} from "@/lib/profile/profileTestCatalog";
+import {
+  formatActiveAttemptLine,
+  listActiveAttemptsForSummary,
+} from "@/lib/profile/testAttemptSummary";
+import {
+  attemptsToLegacyMirror,
+  attemptsToStoragePayload,
+  mergeLegacyEditsIntoAttempts,
+  migrateLegacyToAttempts,
+  parseTestAttemptsFromClient,
+} from "@/lib/profile/testAttempts";
+import type { ProfileTests, ProfileTestStatus, TestAttempt } from "@/lib/profile/types";
 import { ENGLISH_SECTIONS, OTHER_TEST_SECTIONS } from "@/lib/testSections";
 
 export type EnglishTestStatus = "not_taken" | "scheduled" | "taken" | "waived";
@@ -25,6 +47,9 @@ export type EnglishTestStatus = "not_taken" | "scheduled" | "taken" | "waived";
 export interface LeadBackgroundState extends EducationExperienceValue {
   english_test_status?: EnglishTestStatus | null;
   language_tests?: LanguageTestsValue;
+  /** Phase E5 — multi-attempt source of truth (mirrors clients.test_attempts). */
+  attempts?: readonly TestAttempt[];
+  active_attempt_ids?: Readonly<Partial<Record<ProfileTestId, string>>>;
 }
 
 export const ENGLISH_TEST_STATUS_LABELS: Record<EnglishTestStatus, string> = {
@@ -45,6 +70,8 @@ export const EMPTY_LEAD_BACKGROUND: LeadBackgroundState = {
   other_tests: [],
   work_experience: [],
   language_tests: EMPTY_LANGUAGE_TESTS,
+  attempts: [],
+  active_attempt_ids: {},
 };
 
 function parseJsonArray<T>(raw: unknown): T[] {
@@ -160,7 +187,7 @@ export function leadToBackgroundState(lead: Partial<Lead>): LeadBackgroundState 
   }
   education_history = mergeLastEducationIntoHistory(education_history, lead.last_education);
   const english = hydrateEnglishFromSections(lead);
-  return {
+  const base: LeadBackgroundState = {
     education_history,
     english_test: lead.english_test ?? null,
     ...english,
@@ -168,20 +195,55 @@ export function leadToBackgroundState(lead: Partial<Lead>): LeadBackgroundState 
     work_experience: parseJsonArray<ExperienceEntry>(lead.work_experience),
     language_tests: absorbed.language_tests,
   };
+  const { attempts, active_attempt_ids } = parseTestAttemptsFromClient(
+    lead as Partial<ClientRow>,
+    [],
+    { prehydratedBg: base },
+  );
+  return {
+    ...base,
+    attempts: [...attempts],
+    active_attempt_ids: { ...active_attempt_ids },
+  };
+}
+
+function backgroundToClientShape(bg: LeadBackgroundState): Partial<ClientRow> {
+  return {
+    english_test: bg.english_test ?? undefined,
+    english_test_status: bg.english_test_status ?? undefined,
+    english_overall: bg.english_overall ?? undefined,
+    english_test_date: bg.english_test_date ?? undefined,
+    english_test_expiry: bg.english_test_expiry ?? undefined,
+    english_sections: bg.english_sections,
+    other_tests: bg.other_tests,
+    language_tests: bg.language_tests,
+  };
 }
 
 export function backgroundStateToLeadDraft(bg: LeadBackgroundState): LeadDraft {
+  const clientShape = backgroundToClientShape(bg);
+  const catalog = legacyTestCatalogFromClient(clientShape, []);
+  const baseAttempts = bg.attempts?.length
+    ? [...bg.attempts]
+    : migrateLegacyToAttempts(clientShape, [], bg).attempts;
+  const baseActive = { ...(bg.active_attempt_ids ?? {}) };
+  const merged = mergeLegacyEditsIntoAttempts(baseAttempts, baseActive, catalog);
+  const mirror = attemptsToLegacyMirror(merged.attempts, merged.active_attempt_ids);
+  const storage = attemptsToStoragePayload(merged.attempts, merged.active_attempt_ids);
+
   return {
     education_history: bg.education_history ?? [],
-    english_test: bg.english_test ?? null,
-    english_test_status: bg.english_test_status ?? null,
-    english_overall: bg.english_overall ?? null,
-    english_test_date: bg.english_test_date ?? null,
-    english_test_expiry: bg.english_test_expiry ?? null,
-    english_sections: bg.english_sections ?? {},
-    other_tests: bg.other_tests ?? [],
+    english_test: mirror.english_test ?? null,
+    english_test_status: mirror.english_test_status ?? null,
+    english_overall: mirror.english_overall ?? null,
+    english_test_date: mirror.english_test_date ?? null,
+    english_test_expiry: mirror.english_test_expiry ?? null,
+    english_sections: mirror.english_sections ?? {},
+    other_tests: mirror.other_tests ?? [],
     work_experience: bg.work_experience ?? [],
-    language_tests: bg.language_tests ?? EMPTY_LANGUAGE_TESTS,
+    language_tests: mirror.language_tests ?? EMPTY_LANGUAGE_TESTS,
+    test_attempts: storage.test_attempts,
+    active_attempt_ids: storage.active_attempt_ids,
   };
 }
 
@@ -289,6 +351,123 @@ export interface BackgroundDetailView {
   experience: ExperienceDetailView[];
 }
 
+const ATTEMPT_STATUS_LABEL: Record<ProfileTestStatus, string> = {
+  not_taken: "Not taken",
+  planned: "Planned",
+  scheduled: "Scheduled",
+  result_awaited: "Result awaited",
+  taken: "Taken",
+  expired: "Expired",
+  waived: "Waived",
+};
+
+function profileTestsFromBackground(bg: LeadBackgroundState): ProfileTests | null {
+  if (!bg.attempts?.length) return null;
+  return {
+    attempts: bg.attempts,
+    active_attempt_ids: bg.active_attempt_ids ?? {},
+    active_english_test_id: legacyEnglishToTestId(bg.english_test),
+    english: [],
+    aptitude: [],
+    language: [],
+  };
+}
+
+function englishViewFromAttempt(attempt: TestAttempt): EnglishTestDetailView {
+  const legacy = testIdToLegacyEnglish(attempt.test_id as ProfileEnglishTestId);
+  return {
+    test: testLabel(attempt.test_id),
+    status: attempt.status ? ATTEMPT_STATUS_LABEL[attempt.status] : undefined,
+    overall: attempt.overall_score?.trim() || undefined,
+    testDate: attempt.test_date ?? undefined,
+    expiry: attempt.expiry_date ?? undefined,
+    sections: sectionChips(
+      ENGLISH_SECTIONS[legacy] ?? Object.keys(attempt.sections ?? {}),
+      attempt.sections,
+    ),
+  };
+}
+
+function academicViewFromAttempt(attempt: TestAttempt): AcademicTestDetailView {
+  const legacyType = testIdToLegacyAptitude(attempt.test_id as ProfileAptitudeTestId);
+  return {
+    type: testLabel(attempt.test_id),
+    overall: attempt.overall_score?.trim() || undefined,
+    testDate: attempt.test_date ?? undefined,
+    sections: sectionChips(
+      OTHER_TEST_SECTIONS[legacyType] ?? Object.keys(attempt.sections ?? {}),
+      attempt.sections,
+    ),
+  };
+}
+
+function languageViewFromAttempt(attempt: TestAttempt): LanguageTestDetailView {
+  return {
+    language: testLabel(attempt.test_id),
+    status: attempt.status ? ATTEMPT_STATUS_LABEL[attempt.status] : undefined,
+    cefr: attempt.cefr_level ?? undefined,
+    exam: attempt.exam_type ?? undefined,
+    overall: attempt.overall_score?.trim() || undefined,
+    testDate: attempt.test_date ?? undefined,
+    expiry: attempt.expiry_date ?? undefined,
+    sections: sectionChips(
+      attempt.exam_type ? (OTHER_TEST_SECTIONS[attempt.exam_type] ?? []) : [],
+      attempt.sections,
+    ),
+  };
+}
+
+function activeAttemptDetailSlice(bg: LeadBackgroundState): Pick<
+  BackgroundDetailView,
+  "english" | "academic" | "language"
+> | null {
+  const tests = profileTestsFromBackground(bg);
+  if (!tests) return null;
+  const actives = listActiveAttemptsForSummary(tests);
+  const english: EnglishTestDetailView[] = [];
+  const academic: AcademicTestDetailView[] = [];
+  const language: LanguageTestDetailView[] = [];
+  for (const attempt of actives) {
+    if (attempt.category === "english") english.push(englishViewFromAttempt(attempt));
+    else if (attempt.category === "aptitude") academic.push(academicViewFromAttempt(attempt));
+    else language.push(languageViewFromAttempt(attempt));
+  }
+  return { english, academic, language };
+}
+
+function formatEnglishAttemptDetailLine(attempt: TestAttempt): string {
+  const view = englishViewFromAttempt(attempt);
+  const parts = [view.test];
+  if (view.status) parts.push(view.status);
+  if (view.overall) parts.push(`Overall ${view.overall}`);
+  if (view.testDate) parts.push(`Test ${view.testDate}`);
+  const sectionText = view.sections.map((s) => `${s.label} ${s.value}`).join(" · ");
+  if (sectionText) parts.push(sectionText);
+  return parts.join(" · ");
+}
+
+function formatAcademicAttemptDetailLine(attempt: TestAttempt): string {
+  const view = academicViewFromAttempt(attempt);
+  const parts = [view.type];
+  if (view.overall) parts.push(`Overall ${view.overall}`);
+  if (view.testDate) parts.push(`Test ${view.testDate}`);
+  const sectionText = view.sections.map((s) => `${s.label} ${s.value}`).join(" · ");
+  if (sectionText) parts.push(sectionText);
+  return parts.join(" · ");
+}
+
+function formatLanguageAttemptDetailLine(attempt: TestAttempt): string {
+  const view = languageViewFromAttempt(attempt);
+  const parts = [view.language];
+  if (view.status) parts.push(view.status);
+  if (view.cefr) parts.push(view.cefr);
+  if (view.exam) parts.push(view.exam);
+  if (view.overall) parts.push(`Overall ${view.overall}`);
+  const sectionText = view.sections.map((s) => `${s.label} ${s.value}`).join(" · ");
+  if (sectionText) parts.push(sectionText);
+  return parts.join(" · ");
+}
+
 function sectionChips(
   sectionKeys: string[],
   sections?: Record<string, string>,
@@ -392,6 +571,12 @@ function listEnglishTestNames(byTest: EnglishScoresByTest): string[] {
 }
 
 export function listEnglishTestDetails(bg: LeadBackgroundState): string[] {
+  const tests = profileTestsFromBackground(bg);
+  if (tests) {
+    return listActiveAttemptsForSummary(tests)
+      .filter((a) => a.category === "english")
+      .map(formatEnglishAttemptDetailLine);
+  }
   const byTest = getEnglishTestsByType(bg);
   const names = listEnglishTestNames(byTest);
   if (names.length) {
@@ -403,6 +588,19 @@ export function listEnglishTestDetails(bg: LeadBackgroundState): string[] {
 }
 
 export function buildBackgroundDetailView(bg: LeadBackgroundState): BackgroundDetailView {
+  const attemptSlice = activeAttemptDetailSlice(bg);
+  if (attemptSlice) {
+    return {
+      ...attemptSlice,
+      education: (bg.education_history ?? [])
+        .filter(educationEntryHasData)
+        .map(buildEducationDetailView),
+      experience: (bg.work_experience ?? [])
+        .filter(experienceEntryHasData)
+        .map(buildExperienceDetailView),
+    };
+  }
+
   const byTest = getEnglishTestsByType(bg);
   const englishNames = listEnglishTestNames(byTest);
   let english = englishNames.map((t) => buildEnglishTestDetailView(t, byTest[t]!, bg));
@@ -478,6 +676,12 @@ export function countBackgroundItems(bg: LeadBackgroundState): {
 }
 
 export function listAcademicTestDetails(bg: LeadBackgroundState): string[] {
+  const tests = profileTestsFromBackground(bg);
+  if (tests) {
+    return listActiveAttemptsForSummary(tests)
+      .filter((a) => a.category === "aptitude")
+      .map(formatAcademicAttemptDetailLine);
+  }
   return (bg.other_tests ?? [])
     .filter((t) => t.type)
     .map((t) => {
@@ -509,6 +713,12 @@ export function formatLanguageBlockDetail(label: string, block?: LanguageTestBlo
 }
 
 export function listLanguageTestDetails(bg: LeadBackgroundState): string[] {
+  const tests = profileTestsFromBackground(bg);
+  if (tests) {
+    return listActiveAttemptsForSummary(tests)
+      .filter((a) => a.category === "language")
+      .map(formatLanguageAttemptDetailLine);
+  }
   const lt = bg.language_tests ?? EMPTY_LANGUAGE_TESTS;
   return [
     formatLanguageBlockDetail("French", lt.french),
@@ -538,6 +748,12 @@ export function buildBackgroundDetailSections(bg: LeadBackgroundState): Backgrou
 }
 
 export function summarizeEnglishTests(bg: LeadBackgroundState): string {
+  const tests = profileTestsFromBackground(bg);
+  if (tests) {
+    const lines = listActiveAttemptsForSummary(tests).map(formatActiveAttemptLine);
+    if (lines.length) return lines.join(", ");
+  }
+
   const view = buildBackgroundDetailView(bg);
   const parts = view.english.map((t) => {
     const score = t.overall ? ` ${t.overall}` : "";

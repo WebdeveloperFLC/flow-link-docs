@@ -398,6 +398,25 @@ export interface BuildProfileViewModelInput {
   enrichment?: ProfileViewModelEnrichment;
 }
 
+/** Legacy test catalog from client/lead row — used by lead save merge and profile boundary. */
+export function legacyTestCatalogFromClient(
+  client: Partial<ClientRow>,
+  refs: ClientDocumentRefRow[] = [],
+): {
+  active_english_test_id: ProfileEnglishTestId | null;
+  english: ProfileEnglishTestEntry[];
+  aptitude: ProfileAptitudeTestEntry[];
+  language: ProfileLanguageTestEntry[];
+} {
+  const { active, entries } = buildEnglishEntries(client, refs);
+  return {
+    active_english_test_id: active,
+    english: entries,
+    aptitude: buildAptitudeEntries(client, refs),
+    language: buildLanguageEntries(client, refs),
+  };
+}
+
 /**
  * Pure normalization at the data boundary. Used by getProfileViewModel and unit tests.
  * UI must never parse raw jsonb — only consume ProfileViewModel.

@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Lead } from "@/lib/leads";
-import { leadToBackgroundState, yearOfPassingForDb } from "@/lib/leadBackground";
+import { leadToBackgroundState, backgroundStateToLeadDraft, yearOfPassingForDb } from "@/lib/leadBackground";
 import { EMPTY_LANGUAGE_TESTS, type LanguageTestsValue } from "@/lib/languageTests";
 import { ensureClientProfileSynced } from "@/lib/clientProfileSync";
 import { runWithAuthRetry } from "@/lib/supabaseSafeInsert";
@@ -155,6 +155,8 @@ const CLIENT_SCHEMA_OPTIONAL_FIELDS = [
   "work_experience",
   "english_sections",
   "other_tests",
+  "test_attempts",
+  "active_attempt_ids",
   "next_followup_at",
 ] as const;
 
@@ -202,6 +204,7 @@ async function writeClientRow(
 export function prefillFromLead(lead: Lead): ClientDraft {
   const visaCode = (lead.visa_services && lead.visa_services[0]) || "";
   const bg = leadToBackgroundState(lead);
+  const bgDraft = backgroundStateToLeadDraft(bg);
   let education_history = [...(bg.education_history ?? [])];
   if (!education_history.length && lead.last_education) {
     education_history = [{ level: lead.last_education }];
@@ -232,15 +235,17 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     year_of_passing: e0?.year ?? null,
     percentage_cgpa: e0?.percentage_cgpa ?? null,
     education_history,
-    english_test: bg.english_test ?? null,
-    english_test_status: bg.english_test_status ?? null,
-    english_overall: bg.english_overall ?? null,
-    english_test_date: bg.english_test_date ?? null,
-    english_test_expiry: bg.english_test_expiry ?? null,
-    english_sections: bg.english_sections ?? {},
-    other_tests: bg.other_tests ?? [],
+    english_test: bgDraft.english_test ?? null,
+    english_test_status: bgDraft.english_test_status ?? null,
+    english_overall: bgDraft.english_overall ?? null,
+    english_test_date: bgDraft.english_test_date ?? null,
+    english_test_expiry: bgDraft.english_test_expiry ?? null,
+    english_sections: bgDraft.english_sections ?? {},
+    other_tests: bgDraft.other_tests ?? [],
     work_experience: bg.work_experience ?? [],
-    language_tests: bg.language_tests ?? EMPTY_LANGUAGE_TESTS,
+    language_tests: bgDraft.language_tests ?? EMPTY_LANGUAGE_TESTS,
+    test_attempts: bgDraft.test_attempts,
+    active_attempt_ids: bgDraft.active_attempt_ids,
     interested_countries: interested,
     branch: lead.branch ?? null,
     department: lead.department ?? null,

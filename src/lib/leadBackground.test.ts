@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  backgroundStateToLeadDraft,
   buildBackgroundDetailSections,
   buildBackgroundDetailView,
   educationEntryHasData,
@@ -12,6 +13,7 @@ import {
   summarizeExperience,
   yearOfPassingForDb,
 } from "@/lib/leadBackground";
+import { ensureAttemptId } from "@/lib/profile/profileRecordIds";
 
 describe("leadBackground summaries", () => {
   it("shows compact English test summary", () => {
@@ -47,7 +49,7 @@ describe("leadBackground summaries", () => {
     } as never);
     expect(state.english_overall).toBe("7");
     expect(state.english_test_date).toBe("2026-06-17");
-    expect(summarizeEnglishTests(state)).toBe("IELTS 7");
+    expect(summarizeEnglishTests(state)).toBe("IELTS Taken 7");
   });
 
   it("merges last_education into empty education history", () => {
@@ -116,15 +118,13 @@ describe("leadBackground summaries", () => {
     } as never);
 
     const lines = listEnglishTestDetails(bg);
-    expect(lines).toHaveLength(2);
-    expect(lines[0]).toContain("IELTS");
-    expect(lines[0]).toContain("Scheduled");
-    expect(lines[1]).toContain("CELPIP");
-    expect(lines[1]).toContain("Taken");
-    expect(lines[1]).not.toContain("Scheduled");
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain("CELPIP");
+    expect(lines[0]).toContain("Taken");
+    expect(lines[0]).not.toContain("Scheduled");
 
     const summary = summarizeEnglishTests(bg);
-    expect(summary).toBe("IELTS 7, CELPIP 54");
+    expect(summary).toBe("CELPIP Taken 54");
   });
 
   it("ignores empty English test cache entries from tab switching", () => {
@@ -201,5 +201,77 @@ describe("yearOfPassingForDb", () => {
     expect(yearOfPassingForDb("2024")).toBe("2024-06-30");
     expect(yearOfPassingForDb("2024-06-30")).toBe("2024-06-30");
     expect(yearOfPassingForDb("")).toBeNull();
+  });
+});
+
+describe("leadBackground attempts (Phase E5)", () => {
+  it("hydrates attempts from stored test_attempts on lead", () => {
+    const state = leadToBackgroundState({
+      english_test: "IELTS",
+      test_attempts: [
+        {
+          attempt_id: "test_a1",
+          test_id: "ielts",
+          category: "english",
+          status: "taken",
+          overall_score: "7.5",
+          test_date: "2025-11-20",
+          sections: {},
+        },
+      ],
+      active_attempt_ids: { ielts: "test_a1" },
+    } as never);
+    expect(state.attempts).toHaveLength(1);
+    expect(state.attempts![0]!.overall_score).toBe("7.5");
+    expect(summarizeEnglishTests(state)).toContain("7.5");
+  });
+
+  it("shows active attempt only when multiple IELTS siblings exist", () => {
+    const oldId = ensureAttemptId("old");
+    const newId = ensureAttemptId("new");
+    const state = leadToBackgroundState({
+      english_test: "IELTS",
+      english_test_status: "taken",
+      english_overall: "7.5",
+      test_attempts: [
+        {
+          attempt_id: oldId,
+          test_id: "ielts",
+          category: "english",
+          status: "expired",
+          overall_score: "6",
+          test_date: "2020-01-01",
+          sections: {},
+        },
+        {
+          attempt_id: newId,
+          test_id: "ielts",
+          category: "english",
+          status: "taken",
+          overall_score: "7.5",
+          test_date: "2025-11-20",
+          sections: {},
+        },
+      ],
+      active_attempt_ids: { ielts: newId },
+    } as never);
+    const view = buildBackgroundDetailView(state);
+    expect(view.english).toHaveLength(1);
+    expect(view.english[0]?.overall).toBe("7.5");
+    expect(summarizeEnglishTests(state)).not.toContain("6");
+  });
+
+  it("backgroundStateToLeadDraft dual-writes test_attempts + legacy mirror", () => {
+    const state = leadToBackgroundState({
+      english_test: "IELTS",
+      english_test_status: "taken",
+      english_overall: "7",
+      english_test_date: "2025-06-01",
+      english_sections: { listening: "7" },
+    } as never);
+    const draft = backgroundStateToLeadDraft(state);
+    expect(draft.test_attempts?.length).toBeGreaterThan(0);
+    expect(draft.active_attempt_ids?.ielts).toBeTruthy();
+    expect(draft.english_overall).toBe("7");
   });
 });
