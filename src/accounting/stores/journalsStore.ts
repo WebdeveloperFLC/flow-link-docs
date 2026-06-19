@@ -57,6 +57,10 @@ function totalsFor(lines: JournalLine[]) {
 
 function headerToDb(j: Journal): Record<string, unknown> {
   const { td, tc, balanced } = totalsFor(j.lines || []);
+  // Journal contract (Phase 1): derive contract fields, defaulting from
+  // legacy fields so pre-Phase-1 callers keep working. branch_id falls back
+  // to the entity when a caller has not supplied a branch yet.
+  const entityId = j.entityId || j.entity || null;
   return {
     id: j.id,
     // Do NOT send journal_number — the DB trigger generates it.
@@ -73,10 +77,30 @@ function headerToDb(j: Journal): Record<string, unknown> {
     posted_at: j.postedAt || null,
     voided_at: j.voidedAt || null,
     void_reason: j.voidReason || null,
+    // ── contract columns ──
+    entity_id: entityId,
+    branch_id: j.branchId || entityId,
+    source_module: j.sourceModule || "MANUAL",
+    source_record_id: j.sourceRecordId || null,
+    posting_date: j.postingDate || j.entryDate,
+    is_reversal: j.isReversal ?? false,
+    reversal_of_journal_id: j.reversalOfJournalId || null,
+    reversed_by_journal_id: j.reversedByJournalId || null,
+    attachment_path: j.attachmentPath || null,
+    student_id: j.studentId || null,
+    application_id: j.applicationId || null,
+    institution_id: j.institutionId || null,
+    aggregator_id: j.aggregatorId || null,
   };
 }
 
-function lineToDb(journalId: string, line: JournalLine, idx: number): Record<string, unknown> {
+function lineToDb(
+  journalId: string,
+  line: JournalLine,
+  idx: number,
+  header?: Journal,
+): Record<string, unknown> {
+  const entityId = line.entityId || header?.entityId || header?.entity || null;
   return {
     id: isUuid(line.id) ? line.id : newUuid(),
     journal_id: journalId,
@@ -88,6 +112,10 @@ function lineToDb(journalId: string, line: JournalLine, idx: number): Record<str
     tax_code: line.taxCode || null,
     debit: Number(line.debit) || 0,
     credit: Number(line.credit) || 0,
+    // ── contract columns ──
+    entity_id: entityId,
+    branch_id: line.branchId || header?.branchId || entityId,
+    account_role: line.accountRole || null,
   };
 }
 
@@ -108,6 +136,9 @@ function lineFromDb(row: any): JournalLine {
     credit: Number(row.credit) || 0,
     description: row.description ?? "",
     taxCode: row.tax_code ?? "",
+    entityId: row.entity_id ?? undefined,
+    branchId: row.branch_id ?? row.branch ?? undefined,
+    accountRole: row.account_role ?? undefined,
   };
 }
 
@@ -131,6 +162,19 @@ function journalFromDb(row: any): Journal {
     postedAt: row.posted_at ?? undefined,
     voidedAt: row.voided_at ?? undefined,
     voidReason: row.void_reason ?? undefined,
+    entityId: row.entity_id ?? undefined,
+    branchId: row.branch_id ?? undefined,
+    sourceModule: row.source_module ?? undefined,
+    sourceRecordId: row.source_record_id ?? undefined,
+    postingDate: row.posting_date ?? undefined,
+    isReversal: row.is_reversal ?? undefined,
+    reversalOfJournalId: row.reversal_of_journal_id ?? undefined,
+    reversedByJournalId: row.reversed_by_journal_id ?? undefined,
+    attachmentPath: row.attachment_path ?? undefined,
+    studentId: row.student_id ?? undefined,
+    applicationId: row.application_id ?? undefined,
+    institutionId: row.institution_id ?? undefined,
+    aggregatorId: row.aggregator_id ?? undefined,
     lines,
   });
 }
@@ -191,10 +235,16 @@ export function addJournal(input: Omit<Journal, "id">): Journal {
   void (async () => {
     try {
       const { data: u } = await supabase.auth.getUser();
-      const headerPayload = { ...headerToDb(created), created_by: u?.user?.id ?? null };
-      if (created.status === "POSTED") {
-        (headerPayload as any).posted_by = u?.user?.id ?? null;
-      }
+      const finalStatus = created.status || "DRAFT";
+      // Posted journals are immutable and their lines cannot be inserted once
+      // POSTED (DB guard). So always insert as DRAFT, add lines, then promote
+      // to the requested status. This is the single, contract-compliant path.
+      const headerPayload = {
+        ...headerToDb(created),
+        status: "DRAFT",
+        posted_at: null,
+        created_by: u?.user?.id ?? null,
+      };
       const { data: hdr, error: hErr } = await supabase
         .from("accounting_journals")
         .insert(headerPayload as any)
@@ -202,7 +252,7 @@ export function addJournal(input: Omit<Journal, "id">): Journal {
         .single();
       if (hErr) throw hErr;
 
-      const lineRows = (created.lines || []).map((l, i) => lineToDb(id, l, i));
+      const lineRows = (created.lines || []).map((l, i) => lineToDb(id, l, i, created));
       if (lineRows.length) {
         const { error: lErr } = await supabase
           .from("accounting_journal_lines")
@@ -211,6 +261,23 @@ export function addJournal(input: Omit<Journal, "id">): Journal {
           // Atomic: roll back header, cascade removes any lines
           await supabase.from("accounting_journals").delete().eq("id", id);
           throw lErr;
+        }
+      }
+
+      // Promote to the requested status (e.g. POSTED) after lines exist.
+      if (finalStatus !== "DRAFT") {
+        const promote: Record<string, unknown> = { status: finalStatus };
+        if (finalStatus === "POSTED") {
+          promote.posted_at = created.postedAt || new Date().toISOString();
+          promote.posted_by = u?.user?.id ?? null;
+        }
+        const { error: pErr } = await supabase
+          .from("accounting_journals")
+          .update(promote as any)
+          .eq("id", id);
+        if (pErr) {
+          await supabase.from("accounting_journals").delete().eq("id", id);
+          throw pErr;
         }
       }
 
@@ -234,6 +301,11 @@ export function addJournal(input: Omit<Journal, "id">): Journal {
 export function updateJournal(id: string, patch: Partial<Journal>) {
   const prev = journals.find((j) => j.id === id);
   if (!prev) return;
+  // Posted journals are immutable — corrections must go through reverseJournal().
+  if (prev.status === "POSTED" && patch.status !== "VOIDED") {
+    toast.error("Posted journals are immutable. Create a reversal entry instead.");
+    return;
+  }
   const next: Journal = { ...prev, ...patch };
   journals = journals.map((j) => (j.id === id ? next : j));
   emit();
@@ -264,7 +336,7 @@ export function updateJournal(id: string, patch: Partial<Journal>) {
           .delete()
           .eq("journal_id", id);
         if (dErr) throw dErr;
-        const lineRows = (next.lines || []).map((l, i) => lineToDb(id, l, i));
+        const lineRows = (next.lines || []).map((l, i) => lineToDb(id, l, i, next));
         if (lineRows.length) {
           const { error: lErr } = await supabase
             .from("accounting_journal_lines")
@@ -296,6 +368,11 @@ export function updateJournal(id: string, patch: Partial<Journal>) {
 }
 
 export function deleteJournal(id: string) {
+  const target = journals.find((j) => j.id === id);
+  if (target?.status === "POSTED") {
+    toast.error("Posted journals cannot be deleted. Create a reversal entry instead.");
+    return;
+  }
   const prev = journals;
   journals = journals.filter((j) => j.id !== id);
   emit();
@@ -312,4 +389,81 @@ export function deleteJournal(id: string) {
       toast.error(`Failed to delete journal: ${e?.message ?? "unknown error"}`);
     }
   })();
+}
+
+/**
+ * Reverse a posted journal (the only correction path). Builds a mirror
+ * journal with debit/credit swapped, posts it in the current period, and
+ * links both directions. Returns the new reversal journal (optimistically).
+ */
+export function reverseJournal(
+  originalId: string,
+  opts?: { reason?: string; postingDate?: string; attachmentPath?: string },
+): Journal | undefined {
+  const original = journals.find((j) => j.id === originalId);
+  if (!original) {
+    toast.error("Cannot reverse: journal not found.");
+    return undefined;
+  }
+  if (original.status !== "POSTED") {
+    toast.error("Only posted journals can be reversed.");
+    return undefined;
+  }
+  if (original.reversedByJournalId) {
+    toast.error("This journal has already been reversed.");
+    return undefined;
+  }
+
+  const today = (opts?.postingDate || new Date().toISOString().slice(0, 10));
+  const reversalLines: JournalLine[] = (original.lines || []).map((l) => ({
+    ...l,
+    id: newUuid(),
+    debit: Number(l.credit) || 0,
+    credit: Number(l.debit) || 0,
+    description: `Reversal: ${l.description || ""}`.trim(),
+  }));
+
+  const reversal = addJournal({
+    entryNumber: "",
+    entryDate: today,
+    entity: original.entity,
+    narration: `Reversal of ${original.entryNumber || original.id}${opts?.reason ? ` — ${opts.reason}` : ""}`,
+    sourceType: original.sourceType,
+    reference: original.reference,
+    currency: original.currency,
+    status: "POSTED",
+    createdBy: "",
+    postedAt: new Date().toISOString(),
+    lines: reversalLines,
+    entityId: original.entityId || original.entity,
+    branchId: original.branchId,
+    sourceModule: original.sourceModule || "MANUAL",
+    sourceRecordId: original.sourceRecordId,
+    postingDate: today,
+    isReversal: true,
+    reversalOfJournalId: original.id,
+    attachmentPath: opts?.attachmentPath,
+    studentId: original.studentId,
+    applicationId: original.applicationId,
+    institutionId: original.institutionId,
+    aggregatorId: original.aggregatorId,
+  } as Omit<Journal, "id">);
+
+  // Link the original -> reversal (allowed mutation on a posted journal).
+  journals = journals.map((j) =>
+    j.id === originalId ? { ...j, reversedByJournalId: reversal.id } : j,
+  );
+  emit();
+  if (isUuid(originalId)) {
+    void supabase
+      .from("accounting_journals")
+      .update({ reversed_by_journal_id: reversal.id } as any)
+      .eq("id", originalId)
+      .then(({ error }) => {
+        if (error) console.warn("[journalsStore] reversal link failed", error);
+      });
+  }
+
+  toast.success("Reversal entry posted.");
+  return reversal;
 }

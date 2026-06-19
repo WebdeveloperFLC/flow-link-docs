@@ -3,6 +3,21 @@ export type SourceType = 'MANUAL' | 'OCR_UPLOAD' | 'AP' | 'AR';
 export type JournalStatus = 'DRAFT' | 'PENDING_REVIEW' | 'POSTED' | 'VOIDED';
 export type Currency = 'CAD' | 'USD' | 'INR';
 
+/**
+ * Originating workspace for a journal (Phase 1 journal contract).
+ * Distinct from the legacy `sourceType`; persisted to `source_module`.
+ */
+export type SourceModule =
+  | 'MANUAL'
+  | 'CRM_AR'
+  | 'TRUST'
+  | 'AP'
+  | 'PAYROLL'
+  | 'TAX'
+  | 'CLOSE'
+  | 'BANK_RECON'
+  | 'INTERCOMPANY';
+
 export interface Account {
   id: string;
   code: string;
@@ -21,6 +36,10 @@ export interface JournalLine {
   credit: number;
   description: string;
   taxCode: string;
+  /** Journal contract (Phase 1) — line-level entity/branch + symbolic role. */
+  entityId?: string;
+  branchId?: string;
+  accountRole?: string;
 }
 
 export interface Journal {
@@ -38,6 +57,21 @@ export interface Journal {
   voidedAt?: string;
   voidReason?: string;
   lines: JournalLine[];
+  /** ── Journal contract (Phase 1) ───────────────────────────────── */
+  entityId?: string;
+  branchId?: string;
+  sourceModule?: SourceModule;
+  sourceRecordId?: string;
+  postingDate?: string;
+  isReversal?: boolean;
+  reversalOfJournalId?: string;
+  reversedByJournalId?: string;
+  attachmentPath?: string;
+  /** Reserved nullable references for future commission integration. */
+  studentId?: string;
+  applicationId?: string;
+  institutionId?: string;
+  aggregatorId?: string;
 }
 
 export const MOCK_ACCOUNTS: Account[] = [];
