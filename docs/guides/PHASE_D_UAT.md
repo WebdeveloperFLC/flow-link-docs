@@ -14,6 +14,7 @@ Lead background uses the **same profile components** as the client Profile tab (
 | ID | Symptom | Fix migration |
 |----|---------|----------------|
 | D-BLK-001 | `infinite recursion detected in policy for relation "leads"` on New Lead → Follow-up save/history | `20260718120051_lead_rls_recursion_fix.sql` |
+| D-BLK-002 | `year_of_passing is of type date but expression is of type integer` on Register as Client | `20260718120053_convert_lead_year_of_passing_date.sql` |
 
 **Prerequisite migrations** (publish in Lovable before or with 051):
 
