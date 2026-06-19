@@ -1,0 +1,70 @@
+{
+  "meta": {
+    "client_id": "a3f8c2e1-9b4d-4a7e-8f12-6d5e4c3b2a10",
+    "loaded_at": "2026-06-18T14:30:00.000Z",
+    "source_client_updated_at": "2026-06-17T09:15:22.000Z",
+    "source_profile_updated_at": "2026-06-17T09:15:22.000Z",
+    "registration_number": "FL-2026-0042",
+    "branch": "Delhi — Saket",
+    "assigned_counselor_id": "c7b2e1a0-4f3d-4b2e-9a1c-8d7e6f5a4b3c",
+    "assigned_counselor_name": "Anita Verma",
+    "client_status": "in_progress",
+    "client_status_label": "In Progress",
+    "lead_source": "Walk-in",
+    "created_at": "2025-08-12T09:00:00.000Z"
+  },
+  "identity": {
+    "full_name": "Priya K. Sharma",
+    "passport_number": "Z1234567",
+    "nationality": "India"
+  },
+  "contact": {
+    "phone_primary": "+91 98765 43210",
+    "address_city": "New Delhi"
+  },
+  "services": {
+    "total_count": 2,
+    "primary_label": "Canada Student Visa",
+    "primary_service_code": "canada::student_visa",
+    "items": [
+      { "service_code": "canada::student_visa", "label": "Canada Student Visa", "category": "visa" },
+      { "service_code": "ielts_coaching", "label": "IELTS Coaching", "category": "coaching" }
+    ],
+    "pipeline": { "stage_label": "Document collection", "progress_percent": 35 }
+  },
+  "tests": {
+    "active_english_test_id": "ielts",
+    "english": [
+      {
+        "test_id": "ielts",
+        "status": "taken",
+        "overall": "7.5",
+        "ielts_variant": "Academic",
+        "sections": { "listening": "8.0", "reading": "7.5" },
+        "linked_documents": [{ "document_id": "doc-1", "slot": "trf", "label": "TRF" }]
+      },
+      { "test_id": "pte", "status": "planned", "overall": null, "ielts_variant": null, "linked_documents": [] }
+    ],
+    "aptitude": [
+      { "test_id": "gre", "status": "taken", "overall": "320", "linked_documents": [] },
+      { "test_id": "sat", "status": "planned", "overall": null, "linked_documents": [] }
+    ],
+    "language": [
+      { "test_id": "french", "status": "scheduled", "exam_type": "TEF", "linked_documents": [] },
+      { "test_id": "german", "status": "not_taken", "exam_type": "TestDaF", "linked_documents": [] }
+    ]
+  },
+  "education": [
+    {
+      "id": "edu_8a7f2b",
+      "qualification_type": "Bachelor's",
+      "institution_name": "University of Delhi",
+      "linked_documents": [
+        { "document_id": "doc-2", "slot": "degree_certificate", "label": "Degree Certificate" },
+        { "document_id": "doc-3", "slot": "transcript", "label": "Transcript" },
+        { "document_id": "doc-4", "slot": "marksheet", "label": "Marksheet" }
+      ]
+    }
+  ],
+  "experience": [{ "id": "exp_5d9b1c", "company": "TCS", "designation": "Business Analyst" }]
+}
