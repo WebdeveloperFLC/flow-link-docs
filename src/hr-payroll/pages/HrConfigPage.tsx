@@ -4,7 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrPolicies } from "../hooks/useHrRequests";
 import { HR_ORG_ID } from "../lib/constants";
-import { DEFAULT_LATE_SLAB_TABLE } from "../lib/leavePolicy";
+import {
+  DEFAULT_LATE_SLAB_TABLE,
+  isValidLateSlabTable,
+  LATE_DEDUCTION_FORMULA_HINT,
+} from "../lib/leavePolicy";
 import { hrAudit, accrueLeaveBalances } from "../lib/hrApi";
 import type { PolicyRow } from "../lib/types";
 
@@ -349,6 +353,11 @@ export default function HrConfigPage() {
       fire("Invalid slab table JSON");
       return;
     }
+    let slabFallback = false;
+    if (!isValidLateSlabTable(slab_table)) {
+      slab_table = [...DEFAULT_LATE_SLAB_TABLE];
+      slabFallback = true;
+    }
     const config: Record<string, unknown> = {
       report_time: String(policyDraft.report_time ?? latePolicy?.config?.report_time ?? "10:00"),
       grace_until: String(policyDraft.grace_until ?? latePolicy?.config?.grace_until ?? "10:05"),
@@ -373,7 +382,17 @@ export default function HrConfigPage() {
       return;
     }
     await hrAudit("Late Policy Saved", "slab_table", `v${latePolicy?.version ?? 0}`, `v${version}`);
-    fire("Late coming policy saved");
+    if (slabFallback) {
+      await hrAudit(
+        "Late Policy Warning",
+        "slab_table",
+        "invalid/empty",
+        "default company slabs saved",
+      );
+      fire("Slab table empty or invalid — default company policy saved.");
+    } else {
+      fire("Late coming policy saved");
+    }
     setPolicyDraft({});
     await qc.invalidateQueries({ queryKey: ["hr-policies"] });
   };
@@ -678,6 +697,9 @@ export default function HrConfigPage() {
             </div>
             <label className="fld" style={{ marginTop: 12 }}>
               <span className="l">Late deduction slab (JSON: max late count → deduction days)</span>
+              <div className="muted" style={{ fontSize: 11.5, marginBottom: 6 }}>
+                Above the highest configured max, deductions continue using: {LATE_DEDUCTION_FORMULA_HINT}
+              </div>
               <textarea
                 className="input mono"
                 rows={8}

@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
+import { useHrPolicies } from "../hooks/useHrRequests";
 import { rpcComputePayroll } from "../hooks/useHrPayroll";
 import { inr } from "../lib/format";
+import {
+  lateSlabDisplayRows,
+  resolveLateSlabTable,
+} from "../lib/leavePolicy";
 
 type Inputs = {
   payrollDays: number;
@@ -31,20 +36,25 @@ type ComputeOut = {
   net_salary: number;
 };
 
-const SLABS: [number, number][] = [
-  [3, 0],
-  [6, 0.5],
-  [9, 1],
-  [12, 1.5],
-  [15, 2],
-  [18, 2.5],
-  [21, 3],
-  [24, 3.5],
-  [27, 4],
-  [99, 5],
-];
-
 export default function HrCalculatorPage() {
+  const { data: policies = [] } = useHrPolicies();
+  const latePolicy = useMemo(
+    () =>
+      [...policies]
+        .filter((p) => p.domain === "late")
+        .sort((a, b) => b.version - a.version)[0],
+    [policies],
+  );
+
+  const { resolvedLatePolicy, slabWarn } = useMemo(() => {
+    const warnings: string[] = [];
+    const slab_table = resolveLateSlabTable(latePolicy?.config, (msg) => warnings.push(msg));
+    return {
+      resolvedLatePolicy: { ...(latePolicy?.config ?? {}), slab_table },
+      slabWarn: warnings[0] ?? null,
+    };
+  }, [latePolicy]);
+
   const [inputs, setInputs] = useState<Inputs>({
     payrollDays: 30,
     monthly: 42000,
@@ -85,6 +95,7 @@ export default function HrCalculatorPage() {
           p_mispunch: inputs.mispunch,
           p_compoff: inputs.compoff,
           p_unpaid_training: inputs.trainingUnpaid,
+          p_late_policy: resolvedLatePolicy,
         })) as ComputeOut;
         if (!cancelled) {
           setOut(data);
@@ -97,25 +108,16 @@ export default function HrCalculatorPage() {
     return () => {
       cancelled = true;
     };
-  }, [inputs]);
+  }, [inputs, resolvedLatePolicy]);
 
   const setNum = (k: keyof Inputs, v: string) => {
     setInputs((prev) => ({ ...prev, [k]: v === "" ? 0 : parseFloat(v) }));
   };
 
-  const slabRows = useMemo(() => {
-    let prev = 0;
-    return SLABS.map(([hi, d]) => {
-      const lo = prev + 1;
-      prev = hi;
-      return {
-        range: hi === 99 ? "28+" : `${lo}–${hi}`,
-        d,
-        active:
-          (inputs.late >= lo && inputs.late <= hi) || (hi === 99 && inputs.late >= 28),
-      };
-    });
-  }, [inputs.late]);
+  const slabRows = useMemo(
+    () => lateSlabDisplayRows(inputs.late, resolvedLatePolicy),
+    [inputs.late, resolvedLatePolicy],
+  );
 
   const NumRow = ({
     k,
@@ -202,6 +204,11 @@ export default function HrCalculatorPage() {
             <h3 style={{ fontSize: 15 }}>Late slab</h3>
             <span className="tag">live</span>
           </div>
+          {slabWarn && (
+            <div className="muted" style={{ fontSize: 12, marginBottom: 8, color: "var(--amber)" }}>
+              {slabWarn}
+            </div>
+          )}
           <table className="slabtable">
             <thead>
               <tr>
@@ -213,7 +220,7 @@ export default function HrCalculatorPage() {
               {slabRows.map((s) => (
                 <tr key={s.range} className={s.active ? "hl" : ""}>
                   <td>{s.range}</td>
-                  <td>{s.d}</td>
+                  <td>{s.deduction}</td>
                 </tr>
               ))}
             </tbody>

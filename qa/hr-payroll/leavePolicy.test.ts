@@ -1,9 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   computeInclusiveLeaveDays,
   isFiveDayNightEst,
   isLeaveEligible,
   lateDeductionFromSlab,
+  lateDeductionFromPolicy,
+  lateDeductionFormula,
+  resolveLateSlabTable,
   LEAVE_DURATION_HALF,
   LEAVE_ENTITLED,
   LEAVE_ENTITLED_5DAY_NIGHT,
@@ -135,8 +138,32 @@ describe("leavePolicy", () => {
   });
 
   it("late slab: 1-3 late = 1 day deduction", () => {
+    expect(lateDeductionFromSlab(0)).toBe(0);
     expect(lateDeductionFromSlab(2)).toBe(1.0);
     expect(lateDeductionFromSlab(5)).toBe(1.5);
+    expect(lateDeductionFromSlab(8)).toBe(2.0);
+  });
+
+  it("late slab: continues uncapped via formula above highest configured max", () => {
+    expect(lateDeductionFromSlab(28)).toBe(5.5);
+    expect(lateDeductionFromSlab(31)).toBe(6.0);
+    expect(lateDeductionFromSlab(34)).toBe(6.5);
+    expect(lateDeductionFromSlab(37)).toBe(7.0);
+    expect(lateDeductionFromSlab(99)).toBe(17.0);
+  });
+
+  it("late formula matches policy helper", () => {
+    expect(lateDeductionFormula(99)).toBe(17.0);
+    expect(lateDeductionFromPolicy(31)).toBe(6.0);
+  });
+
+  it("empty or invalid slab_table falls back to default company policy", () => {
+    const warn = vi.fn();
+    expect(lateDeductionFromPolicy(5, { slab_table: [] }, warn)).toBe(1.5);
+    expect(warn).toHaveBeenCalled();
+    expect(lateDeductionFromPolicy(31, { slab_table: [{ max: "x", deduction: 1 }] }, warn)).toBe(6.0);
+    const slabs = resolveLateSlabTable({ slab_table: [] }, warn);
+    expect(slabs).toHaveLength(9);
   });
 
   it("5-day night EST gets 7+3 = 10 annual entitlement", () => {

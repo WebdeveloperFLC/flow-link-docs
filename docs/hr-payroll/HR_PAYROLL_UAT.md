@@ -655,7 +655,7 @@
 |-------|-------|
 | **Test Case ID** | HR-UAT-STAT-004 |
 | **Preconditions** | Calculator. |
-| **Steps** | 1. late=4 → deduction 0.5; late=10 → 1.5 (Excel nested-IF slab). |
+| **Steps** | 1. late=2 → deduction 1.0; late=5 → 1.5; late=31 → 6.0 (formula above highest slab). |
 | **Expected Result** | Matches `fn_late_deduction` outputs exactly. |
 | **Screenshot Required** | No |
 | **Pass / Fail** | ☐ Pass ☐ Fail |

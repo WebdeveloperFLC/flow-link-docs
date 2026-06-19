@@ -3,6 +3,8 @@
  * Source of truth remains fn_compute_payroll in Supabase — this module is for CI only.
  */
 
+import { lateDeductionFromSlab } from "./leavePolicy";
+
 export type PayrollEngineInput = {
   payrollDays: number;
   monthly: number;
@@ -48,16 +50,7 @@ export type PayrollEngineResult = {
 };
 
 export function lateDeductionDays(late: number): number {
-  if (late <= 3) return 0;
-  if (late <= 6) return 0.5;
-  if (late <= 9) return 1;
-  if (late <= 12) return 1.5;
-  if (late <= 15) return 2;
-  if (late <= 18) return 2.5;
-  if (late <= 21) return 3;
-  if (late <= 24) return 3.5;
-  if (late <= 27) return 4;
-  return 5;
+  return lateDeductionFromSlab(late);
 }
 
 export function mispunchDeductionDays(mispunch: number, freePerMonth = 2): number {
@@ -176,13 +169,13 @@ export const PAYROLL_TEST_VECTORS: PayrollTestVector[] = [
   { id: "TV01", input: { payrollDays: 30, monthly: 42000, basic: 21000 }, expected: { payableDays: 30, dailyRate: 1400, grossEarned: 42000, pfEmployee: 1800, netSalary: 40200 } },
   { id: "TV02", input: { payrollDays: 30, monthly: 42000, basic: 21000, mispunch: 3 }, expected: { payableDays: 29.5, mispunchDeduction: 0.5, grossEarned: 41300, netSalary: 39500 } },
   { id: "TV02A", input: { payrollDays: 30, monthly: 42000, basic: 21000, mispunch: 3, ptApplicable: true, professionalTax: 200 }, expected: { payableDays: 29.5, ptEmployee: 200, netSalary: 39300 } },
-  { id: "TV03", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 3 }, expected: { payableDays: 30, netSalary: 28200 } },
-  { id: "TV04", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 4 }, expected: { payableDays: 29.5, lateDeduction: 0.5, netSalary: 27700 } },
-  { id: "TV05", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 6 }, expected: { payableDays: 29.5, netSalary: 27700 } },
-  { id: "TV06", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 7 }, expected: { payableDays: 29, lateDeduction: 1, netSalary: 27200 } },
-  { id: "TV07", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 27 }, expected: { payableDays: 26, lateDeduction: 4, netSalary: 24200 } },
-  { id: "TV08", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 28 }, expected: { payableDays: 25, lateDeduction: 5, netSalary: 23200 } },
-  { id: "TV09", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 45 }, expected: { payableDays: 25, lateDeduction: 5, netSalary: 23200 } },
+  { id: "TV03", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 3 }, expected: { payableDays: 29, lateDeduction: 1, netSalary: 27200 } },
+  { id: "TV04", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 4 }, expected: { payableDays: 28.5, lateDeduction: 1.5, netSalary: 26700 } },
+  { id: "TV05", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 6 }, expected: { payableDays: 28.5, lateDeduction: 1.5, netSalary: 26700 } },
+  { id: "TV06", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 7 }, expected: { payableDays: 28, lateDeduction: 2, netSalary: 26200 } },
+  { id: "TV07", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 27 }, expected: { payableDays: 25, lateDeduction: 5, netSalary: 23200 } },
+  { id: "TV08", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 28 }, expected: { payableDays: 24.5, lateDeduction: 5.5, netSalary: 22700 } },
+  { id: "TV09", input: { payrollDays: 30, monthly: 30000, basic: 15000, late: 45 }, expected: { payableDays: 22, lateDeduction: 8, netSalary: 20200 } },
   { id: "TV10", input: { payrollDays: 30, monthly: 36000, basic: 18000, mispunch: 2 }, expected: { payableDays: 30, netSalary: 34200 } },
   { id: "TV11", input: { payrollDays: 30, monthly: 36000, basic: 18000, mispunch: 3 }, expected: { payableDays: 29.5, netSalary: 33600 } },
   { id: "TV12", input: { payrollDays: 30, monthly: 36000, basic: 18000, mispunch: 5 }, expected: { payableDays: 28.5, netSalary: 32400 } },
@@ -195,15 +188,15 @@ export const PAYROLL_TEST_VECTORS: PayrollTestVector[] = [
   { id: "TV19", input: { payrollDays: 30, monthly: 40000, basic: 20000, compoff: 1 }, expected: { payableDays: 31, netSalary: 39533 } },
   { id: "TV20", input: { payrollDays: 30, monthly: 40000, basic: 20000, leaves: 1, compoff: 2 }, expected: { payableDays: 31, netSalary: 39533 } },
   { id: "TV21", input: { payrollDays: 30, monthly: 40000, basic: 20000, unpaidTraining: 7 }, expected: { payableDays: 23, netSalary: 28867 } },
-  { id: "TV22", input: { payrollDays: 30, monthly: 42000, basic: 21000, late: 7, mispunch: 3, ul: 1, sandwich: 1 }, expected: { payableDays: 25.5, netSalary: 33900 } },
+  { id: "TV22", input: { payrollDays: 30, monthly: 42000, basic: 21000, late: 7, mispunch: 3, ul: 1, sandwich: 1 }, expected: { payableDays: 24.5, netSalary: 32500 } },
   { id: "TV23", input: { payrollDays: 30, monthly: 18000, basic: 9000, esicApplicable: true }, expected: { esicEmployee: 135, pfEmployee: 1080, netSalary: 16785 } },
   { id: "TV24", input: { payrollDays: 30, monthly: 42000, basic: 21000, esicApplicable: true }, expected: { esicEmployee: 0, netSalary: 40200 } },
   { id: "TV25", input: { payrollDays: 30, monthly: 60000, basic: 30000 }, expected: { pfEmployee: 1800, netSalary: 58200 } },
   { id: "TV26", input: { payrollDays: 30, monthly: 42000, basic: 21000, pfApplicable: false }, expected: { pfEmployee: 0, netSalary: 42000 } },
   { id: "TV27", input: { payrollDays: 30, monthly: 40000, basic: 20000, incentive: 5000, bonus: 2000, ptApplicable: false }, expected: { netSalary: 45200 } },
   { id: "TV28", input: { payrollDays: 28, monthly: 42000, basic: 21000 }, expected: { payableDays: 28, dailyRate: 1500, grossEarned: 42000, netSalary: 40200 } },
-  { id: "TV29", input: { payrollDays: 31, monthly: 46500, basic: 23250, late: 10, mispunch: 4 }, expected: { payableDays: 28.5, grossEarned: 42750, netSalary: 40950 } },
-  { id: "TV30", input: { payrollDays: 30, monthly: 50000, basic: 25000, leaves: 3, paidLeaves: 2, late: 13, mispunch: 6, ul: 1, sandwich: 2, compoff: 1, unpaidTraining: 2, incentive: 4500 }, expected: { payableDays: 20, grossEarned: 33333, netSalary: 36033 } },
+  { id: "TV29", input: { payrollDays: 31, monthly: 46500, basic: 23250, late: 10, mispunch: 4 }, expected: { payableDays: 27.5, grossEarned: 41250, netSalary: 39450 } },
+  { id: "TV30", input: { payrollDays: 30, monthly: 50000, basic: 25000, leaves: 3, paidLeaves: 2, late: 13, mispunch: 6, ul: 1, sandwich: 2, compoff: 1, unpaidTraining: 2, incentive: 4500 }, expected: { payableDays: 19, grossEarned: 31667, netSalary: 34367 } },
   { id: "TV31", input: { payrollDays: 30, monthly: 4500, basic: 2250, payrollCountry: "CA" }, expected: { payableDays: 30, grossEarned: 4500, pfEmployee: 268, esicEmployee: 75, ptEmployee: 0, netSalary: 4157 } },
   { id: "TV32", input: { payrollDays: 30, monthly: 4500, basic: 2250, payrollCountry: "CA", mispunch: 3 }, expected: { payableDays: 29.5, grossEarned: 4425, pfEmployee: 263, esicEmployee: 73, netSalary: 4089 } },
   {

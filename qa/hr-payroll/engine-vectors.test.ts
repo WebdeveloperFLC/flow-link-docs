@@ -53,9 +53,11 @@ describe("HR Payroll engine — slab boundaries", () => {
     expect(r.netSalary).toBe(39300);
   });
 
-  it("late slab caps at 5 days for 28+", () => {
-    expect(lateDeductionDays(28)).toBe(5);
-    expect(lateDeductionDays(99)).toBe(5);
+  it("late slab continues uncapped above configured max", () => {
+    expect(lateDeductionDays(0)).toBe(0);
+    expect(lateDeductionDays(28)).toBe(5.5);
+    expect(lateDeductionDays(31)).toBe(6.0);
+    expect(lateDeductionDays(99)).toBe(17.0);
   });
 
   it("mispunch 2 free per month", () => {
