@@ -19,6 +19,7 @@ export const OTHER_TEST_SECTIONS: Record<string, string[]> = {
   GRE: ["verbal", "quant", "awa"],
   GMAT: ["verbal", "quant", "ir", "awa"],
   SAT: ["math", "ebrw"],
+  ACT: ["english", "math", "reading", "science"],
   DELF: ["listening", "reading", "writing", "speaking"],
   TestDaF: ["listening", "reading", "writing", "speaking"],
   Goethe: ["listening", "reading", "writing", "speaking"],

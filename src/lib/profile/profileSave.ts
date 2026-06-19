@@ -20,7 +20,7 @@ import {
   languageTestRefKey,
 } from "@/lib/profile/profileRecordIds";
 import type { ProfileEditState, ProfileSectionId, ProfileViewModel } from "@/lib/profile/types";
-import { syncLastEducationFromBackground } from "@/lib/leadBackground";
+import { syncLastEducationFromBackground, yearOfPassingForDb } from "@/lib/leadBackground";
 
 type ProfileField = (typeof PROFILE_FIELDS)[number];
 
@@ -226,7 +226,7 @@ export async function profileSave(
     if (eduJson[0]) {
       clientPatch.institution_name = eduJson[0].institution_name ?? eduJson[0].institution ?? null;
       clientPatch.percentage_cgpa = eduJson[0].percentage_cgpa ?? eduJson[0].score ?? null;
-      if (eduJson[0].year) clientPatch.year_of_passing = eduJson[0].year;
+      if (eduJson[0].year) clientPatch.year_of_passing = yearOfPassingForDb(String(eduJson[0].year));
     }
   }
 

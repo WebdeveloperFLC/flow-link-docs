@@ -45,24 +45,47 @@ describe("TestScoreBlock", () => {
     expect(screen.getByText("320")).toBeInTheDocument();
   });
 
-  it("renders language exam type in view mode", () => {
+  it("renders sectional score inputs in english edit mode", () => {
     render(
       <TestScoreBlock
-        mode="view"
-        language={{
-          test_id: "french",
-          status: "scheduled",
-          cefr_level: null,
-          exam_type: "TEF",
-          overall_score: null,
+        mode="edit"
+        english={{
+          test_id: "ielts",
+          status: null,
+          overall: null,
           test_date: null,
-          expiry_date: null,
+          test_expiry: null,
+          sections: {},
+          ielts_variant: null,
+          country: null,
+          linked_documents: [],
+        }}
+        onEnglishChange={() => {}}
+      />,
+    );
+    expect(screen.getByText("Listening")).toBeInTheDocument();
+    expect(screen.getByText("Reading")).toBeInTheDocument();
+    expect(screen.getByText("Writing")).toBeInTheDocument();
+    expect(screen.getByText("Speaking")).toBeInTheDocument();
+  });
+
+  it("renders GRE sectional inputs in aptitude edit mode", () => {
+    render(
+      <TestScoreBlock
+        mode="edit"
+        aptitude={{
+          test_id: "gre",
+          status: null,
+          overall: null,
+          test_date: null,
           sections: {},
           linked_documents: [],
         }}
+        onAptitudeChange={() => {}}
       />,
     );
-    expect(screen.getByText("French")).toBeInTheDocument();
-    expect(screen.getByText("TEF")).toBeInTheDocument();
+    expect(screen.getByText("Verbal")).toBeInTheDocument();
+    expect(screen.getByText("Quant")).toBeInTheDocument();
+    expect(screen.getByText("AWA")).toBeInTheDocument();
   });
 });

@@ -8,7 +8,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { testLabel } from "@/lib/profile/profileTestCatalog";
+import {
+  testIdToLegacyAptitude,
+  testIdToLegacyEnglish,
+  testLabel,
+} from "@/lib/profile/profileTestCatalog";
+import { ENGLISH_SECTIONS, OTHER_TEST_SECTIONS, SectionalInputs } from "@/lib/testSections";
 import type {
   IeltsVariant,
   ProfileAptitudeTestEntry,
@@ -69,6 +74,9 @@ export function TestScoreBlock({
 }: Props) {
   if (english) {
     const label = testLabel(english.test_id);
+    const legacyKey = testIdToLegacyEnglish(english.test_id);
+    const sectionKeys = ENGLISH_SECTIONS[legacyKey] ?? [];
+
     if (mode === "view") {
       return (
         <div className={cn("rounded-lg border p-3", className)}>
@@ -138,13 +146,41 @@ export function TestScoreBlock({
               onChange={(e) => onEnglishChange?.({ overall: e.target.value || null })}
             />
           </div>
+          <div className="space-y-1">
+            <Label>Test date</Label>
+            <Input
+              type="date"
+              className="h-8 w-36"
+              value={english.test_date ?? ""}
+              onChange={(e) => onEnglishChange?.({ test_date: e.target.value || null })}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>Expiry</Label>
+            <Input
+              type="date"
+              className="h-8 w-36"
+              value={english.test_expiry ?? ""}
+              onChange={(e) => onEnglishChange?.({ test_expiry: e.target.value || null })}
+            />
+          </div>
         </div>
+        {sectionKeys.length > 0 && (
+          <SectionalInputs
+            sections={sectionKeys}
+            values={english.sections}
+            onChange={(next) => onEnglishChange?.({ sections: next })}
+          />
+        )}
       </div>
     );
   }
 
   if (aptitude) {
     const label = testLabel(aptitude.test_id);
+    const legacyKey = testIdToLegacyAptitude(aptitude.test_id);
+    const sectionKeys = OTHER_TEST_SECTIONS[legacyKey] ?? [];
+
     if (mode === "view") {
       return (
         <div className={cn("rounded-lg border p-3", className)}>
@@ -160,13 +196,51 @@ export function TestScoreBlock({
       );
     }
     return (
-      <div className={cn("rounded-lg border p-3 space-y-2", className)}>
-        <Label>{label} overall</Label>
-        <Input
-          className="h-8 max-w-xs"
-          value={aptitude.overall ?? ""}
-          onChange={(e) => onAptitudeChange?.({ overall: e.target.value || null })}
-        />
+      <div className={cn("rounded-lg border p-3 space-y-3", className)}>
+        <div className="flex flex-wrap gap-3">
+          <div className="space-y-1">
+            <Label>Status</Label>
+            <Select
+              value={aptitude.status ?? ""}
+              onValueChange={(v) => onAptitudeChange?.({ status: v as ProfileTestStatus })}
+            >
+              <SelectTrigger className="h-8 w-40">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s.replace(/_/g, " ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>{label} overall</Label>
+            <Input
+              className="h-8 w-24"
+              value={aptitude.overall ?? ""}
+              onChange={(e) => onAptitudeChange?.({ overall: e.target.value || null })}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>Test date</Label>
+            <Input
+              type="date"
+              className="h-8 w-36"
+              value={aptitude.test_date ?? ""}
+              onChange={(e) => onAptitudeChange?.({ test_date: e.target.value || null })}
+            />
+          </div>
+        </div>
+        {sectionKeys.length > 0 && (
+          <SectionalInputs
+            sections={sectionKeys}
+            values={aptitude.sections}
+            onChange={(next) => onAptitudeChange?.({ sections: next })}
+          />
+        )}
       </div>
     );
   }
@@ -181,17 +255,38 @@ export function TestScoreBlock({
             {language.exam_type && <Badge variant="outline">{language.exam_type}</Badge>}
             {language.status && <Badge variant="secondary">{language.status}</Badge>}
           </div>
+          <ScoreChips sections={language.sections} />
         </div>
       );
     }
     return (
-      <div className={cn("rounded-lg border p-3 space-y-2", className)}>
-        <Label>{label} exam</Label>
-        <Input
-          className="h-8 max-w-xs"
-          value={language.exam_type ?? ""}
-          onChange={(e) => onLanguageChange?.({ exam_type: e.target.value || null })}
-        />
+      <div className={cn("rounded-lg border p-3 space-y-3", className)}>
+        <div className="flex flex-wrap gap-3">
+          <div className="space-y-1">
+            <Label>Exam type</Label>
+            <Input
+              className="h-8 max-w-xs"
+              value={language.exam_type ?? ""}
+              onChange={(e) => onLanguageChange?.({ exam_type: e.target.value || null })}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>CEFR level</Label>
+            <Input
+              className="h-8 w-24"
+              value={language.cefr_level ?? ""}
+              onChange={(e) => onLanguageChange?.({ cefr_level: e.target.value || null })}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>Overall score</Label>
+            <Input
+              className="h-8 w-24"
+              value={language.overall_score ?? ""}
+              onChange={(e) => onLanguageChange?.({ overall_score: e.target.value || null })}
+            />
+          </div>
+        </div>
       </div>
     );
   }

@@ -33,7 +33,16 @@ describe("profileSaveError", () => {
   });
 });
 
-describe("experienceRecordsToJson — clients.work_experience payload", () => {
+import { yearOfPassingForDb } from "@/lib/leadBackground";
+
+describe("education year_of_passing serialization", () => {
+  it("converts bare year to date for clients.year_of_passing column", () => {
+    expect(yearOfPassingForDb("2030")).toBe("2030-06-30");
+    expect(yearOfPassingForDb("2024")).toBe("2024-06-30");
+  });
+});
+
+describe("experienceRecordsToJson", () => {
   it("maps unified experience fields to legacy-compatible JSON", () => {
     const records: ProfileExperienceRecord[] = [
       {
