@@ -105,6 +105,8 @@ import AccountingNewInvoicePage from "./accounting/pages/ar/AccountingNewInvoice
 import AccountingInvoiceDetailPage from "./accounting/pages/ar/AccountingInvoiceDetailPage";
 import AccountingVerificationQueuePage from "./accounting/pages/ar/AccountingVerificationQueuePage";
 import AccountingReceiptsPage from "./accounting/pages/ar/AccountingReceiptsPage";
+import AccountingTrustPage from "./accounting/pages/trust/AccountingTrustPage";
+import AccountingTrustDisbursementPage from "./accounting/pages/trust/AccountingTrustDisbursementPage";
 import AccountingVendorsPage from "./accounting/pages/vendors/AccountingVendorsPage";
 import AccountingVendorDetailPage from "./accounting/pages/vendors/AccountingVendorDetailPage";
 import AccountingClientsPage from "./accounting/pages/clients/AccountingClientsPage";
@@ -1179,6 +1181,22 @@ const App = () => (
                     element={
                       <AccountingSectionRoute section="ar">
                         <AccountingInvoiceDetailPage />
+                      </AccountingSectionRoute>
+                    }
+                  />
+                  <Route
+                    path="/accounting/trust"
+                    element={
+                      <AccountingSectionRoute section="trust">
+                        <AccountingTrustPage />
+                      </AccountingSectionRoute>
+                    }
+                  />
+                  <Route
+                    path="/accounting/trust/disburse"
+                    element={
+                      <AccountingSectionRoute section="trust" level="edit">
+                        <AccountingTrustDisbursementPage />
                       </AccountingSectionRoute>
                     }
                   />
