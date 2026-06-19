@@ -108,8 +108,8 @@ export function TestAttemptForm({
   const isEnglish = attempt.category === "english";
   const hasStoredScores = attemptHasStoredScores(attempt);
   const sectionalKeys = sectionKeysForAttempt(attempt);
-  const usesGroupedLrwsLayout =
-    isEnglish && STANDARD_LRWS_SECTIONS.every((key) => sectionalKeys.includes(key));
+  const hasLrwsSectionals = STANDARD_LRWS_SECTIONS.every((key) => sectionalKeys.includes(key));
+  const usesGroupedLrwsLayout = (isEnglish || isLanguage) && hasLrwsSectionals;
   const usesGroupedGmatLayout = attempt.test_id === "gmat";
   const usesGroupedScoreLayout = usesGroupedLrwsLayout || usesGroupedGmatLayout;
   const groupedScoreSections = usesGroupedGmatLayout ? GMAT_SCORE_SECTIONS : STANDARD_LRWS_SECTIONS;

@@ -22,6 +22,7 @@ export const OTHER_TEST_SECTIONS: Record<string, string[]> = {
   SAT: ["math", "ebrw"],
   ACT: ["english", "math", "reading", "science"],
   DELF: ["listening", "reading", "writing", "speaking"],
+  DALF: ["listening", "reading", "writing", "speaking"],
   TestDaF: ["listening", "reading", "writing", "speaking"],
   Goethe: ["listening", "reading", "writing", "speaking"],
   TCF: ["listening", "reading", "writing", "speaking"],

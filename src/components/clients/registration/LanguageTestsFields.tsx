@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { OTHER_TEST_SECTIONS, SectionalInputs } from "@/lib/testSections";
+import { OTHER_TEST_SECTIONS, LrwsScoreInputs, SectionalInputs } from "@/lib/testSections";
+import { STANDARD_LRWS_SECTIONS } from "@/lib/profile/types";
 import {
   CEFR_LEVELS,
   FRENCH_EXAMS,
@@ -149,15 +150,7 @@ function LanguageBlock({
 
       {!hideScores && exam && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="space-y-1">
-              <Label className="text-xs">Overall score</Label>
-              <Input
-                value={b.overall_score ?? ""}
-                onChange={(e) => patch({ overall_score: e.target.value })}
-                onBlur={commit}
-              />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label className="text-xs">Test date</Label>
               <Input
@@ -177,13 +170,35 @@ function LanguageBlock({
               />
             </div>
           </div>
-          {sections.length > 0 && (
-            <SectionalInputs
+          {STANDARD_LRWS_SECTIONS.every((key) => sections.includes(key)) ? (
+            <LrwsScoreInputs
+              showOverall
+              overall={b.overall_score}
+              onOverallChange={(value) => patch({ overall_score: value })}
               sections={sections}
               values={b.sections}
-              onChange={(next) => patch({ sections: next })}
+              onSectionsChange={(next) => patch({ sections: next })}
               onBlur={commit}
             />
+          ) : (
+            <>
+              <div className="space-y-1 max-w-xs">
+                <Label className="text-xs">Overall score</Label>
+                <Input
+                  value={b.overall_score ?? ""}
+                  onChange={(e) => patch({ overall_score: e.target.value })}
+                  onBlur={commit}
+                />
+              </div>
+              {sections.length > 0 && (
+                <SectionalInputs
+                  sections={sections}
+                  values={b.sections}
+                  onChange={(next) => patch({ sections: next })}
+                  onBlur={commit}
+                />
+              )}
+            </>
           )}
         </>
       )}

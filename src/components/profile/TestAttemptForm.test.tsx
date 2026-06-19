@@ -207,6 +207,40 @@ describe("TestAttemptForm", () => {
     expect(screen.getByText("CEFR level")).toBeInTheDocument();
   });
 
+  it("renders DALF LRWS scores in order for French taken", () => {
+    render(
+      <TestAttemptForm
+        attempt={{
+          attempt_id: "test_dalf1",
+          test_id: "french",
+          category: "language",
+          status: "taken",
+          exam_type: "DALF",
+          cefr_level: "B1",
+          overall_score: "72",
+          test_date: "2025-11-20",
+          sections: { listening: "18", reading: "19", writing: "17", speaking: "18" },
+          linked_documents: [],
+        }}
+        mode="edit"
+        onChange={() => {}}
+      />,
+    );
+    expect(screen.getByText("Overall score")).toBeInTheDocument();
+    expect(screen.getByText("Listening")).toBeInTheDocument();
+    expect(screen.getByText("Reading")).toBeInTheDocument();
+    expect(screen.getByText("Writing")).toBeInTheDocument();
+    expect(screen.getByText("Speaking")).toBeInTheDocument();
+    const labels = screen.getAllByText(/Overall score|Listening|Reading|Writing|Speaking/);
+    expect(labels.map((el) => el.textContent)).toEqual([
+      "Overall score",
+      "Listening",
+      "Reading",
+      "Writing",
+      "Speaking",
+    ]);
+  });
+
   it("hides overall when status is scheduled and no stored scores", () => {
     render(
       <TestAttemptForm
