@@ -22,7 +22,9 @@ export function formatActiveAttemptLine(attempt: TestAttempt): string {
   const name = testLabel(attempt.test_id);
   const variant =
     attempt.variant &&
-    (attempt.test_id === "ielts" || attempt.test_id === "pte")
+    (attempt.test_id === "ielts" ||
+      attempt.test_id === "pte" ||
+      attempt.test_id === "toefl")
       ? ` (${attempt.variant})`
       : "";
   const statusKey = attempt.status ?? "not_taken";

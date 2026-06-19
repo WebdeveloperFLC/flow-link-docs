@@ -35,6 +35,16 @@ export const PTE_VARIANTS = [
 
 export type PteVariant = (typeof PTE_VARIANTS)[number];
 
+export const TOEFL_VARIANTS = ["TOEFL iBT", "TOEFL Home"] as const;
+
+export type ToeflVariant = (typeof TOEFL_VARIANTS)[number];
+
+/** L/R/W/S english tests — overall renders before sectionals in the attempt form. */
+export const STANDARD_LRWS_SECTIONS = ["listening", "reading", "writing", "speaking"] as const;
+
+/** GMAT Focus — overall then Quant, Verbal, Data Insights (replaces legacy IR/AWA). */
+export const GMAT_SCORE_SECTIONS = ["quant", "verbal", "data_insights"] as const;
+
 /** Stable slot id from profileDocumentSlots registry. */
 export type ProfileDocumentSlotId = string;
 

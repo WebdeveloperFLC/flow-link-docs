@@ -94,8 +94,59 @@ describe("TestAttemptForm", () => {
       />,
     );
     expect(screen.getByText("PTE variant")).toBeInTheDocument();
-    expect(screen.getByText("Overall")).toBeInTheDocument();
+    expect(screen.getByText("Overall score")).toBeInTheDocument();
     expect(screen.getByText("Listening")).toBeInTheDocument();
+  });
+
+  it("renders TOEFL variant and LRWS scores in order for taken", () => {
+    render(
+      <TestAttemptForm
+        attempt={{
+          attempt_id: "test_toefl1",
+          test_id: "toefl",
+          category: "english",
+          status: "taken",
+          variant: "TOEFL iBT",
+          overall_score: "95",
+          test_date: "2025-11-20",
+          sections: { listening: "24", reading: "25", writing: "23", speaking: "23" },
+          linked_documents: [],
+        }}
+        mode="edit"
+        onChange={() => {}}
+      />,
+    );
+    expect(screen.getByText("TOEFL variant")).toBeInTheDocument();
+    expect(screen.getByText("Overall score")).toBeInTheDocument();
+    expect(screen.getByText("Listening")).toBeInTheDocument();
+    expect(screen.getByText("Reading")).toBeInTheDocument();
+    expect(screen.getByText("Writing")).toBeInTheDocument();
+    expect(screen.getByText("Speaking")).toBeInTheDocument();
+  });
+
+  it("renders GMAT Focus scores without IR or AWA", () => {
+    render(
+      <TestAttemptForm
+        attempt={{
+          attempt_id: "test_gmat1",
+          test_id: "gmat",
+          category: "aptitude",
+          status: "taken",
+          overall_score: "645",
+          test_date: "2025-11-20",
+          sections: { quant: "82", verbal: "78", data_insights: "85", ir: "6", awa: "5" },
+          linked_documents: [],
+        }}
+        mode="edit"
+        onChange={() => {}}
+      />,
+    );
+    expect(screen.getByText("Overall score")).toBeInTheDocument();
+    expect(screen.getByText("Quant")).toBeInTheDocument();
+    expect(screen.getByText("Verbal")).toBeInTheDocument();
+    expect(screen.getByText("Data Insights")).toBeInTheDocument();
+    expect(screen.queryByText("IR")).not.toBeInTheDocument();
+    expect(screen.queryByText("AWA")).not.toBeInTheDocument();
   });
 
   it("keeps IELTS variant editable when status is not_taken", () => {
@@ -112,7 +163,7 @@ describe("TestAttemptForm", () => {
     );
     expect(screen.getByText("IELTS variant")).toBeInTheDocument();
     expect(screen.getByText("Listening")).toBeInTheDocument();
-    expect(screen.getByText("Overall")).toBeInTheDocument();
+    expect(screen.getByText("Overall score")).toBeInTheDocument();
   });
 
   it("shows CEFR in view when set", () => {

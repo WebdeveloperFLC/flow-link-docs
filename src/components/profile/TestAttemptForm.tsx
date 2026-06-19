@@ -23,13 +23,17 @@ import {
   testLabel,
 } from "@/lib/profile/profileTestCatalog";
 import {
+  GMAT_SCORE_SECTIONS,
   PTE_VARIANTS,
+  STANDARD_LRWS_SECTIONS,
+  TOEFL_VARIANTS,
   type IeltsVariant,
   type ProfileTestStatus,
   type PteVariant,
   type TestAttempt,
+  type ToeflVariant,
 } from "@/lib/profile/types";
-import { ENGLISH_SECTIONS, OTHER_TEST_SECTIONS, SectionalInputs } from "@/lib/testSections";
+import { ENGLISH_SECTIONS, LrwsScoreInputs, OTHER_TEST_SECTIONS, SectionalInputs } from "@/lib/testSections";
 import { cn } from "@/lib/utils";
 import { AlertTriangle } from "lucide-react";
 
@@ -100,9 +104,18 @@ export function TestAttemptForm({
   const isLanguage = attempt.category === "language";
   const isIelts = attempt.test_id === "ielts";
   const isPte = attempt.test_id === "pte";
+  const isToefl = attempt.test_id === "toefl";
   const isEnglish = attempt.category === "english";
   const hasStoredScores = attemptHasStoredScores(attempt);
   const sectionalKeys = sectionKeysForAttempt(attempt);
+  const usesGroupedLrwsLayout =
+    isEnglish && STANDARD_LRWS_SECTIONS.every((key) => sectionalKeys.includes(key));
+  const usesGroupedGmatLayout = attempt.test_id === "gmat";
+  const usesGroupedScoreLayout = usesGroupedLrwsLayout || usesGroupedGmatLayout;
+  const groupedScoreSections = usesGroupedGmatLayout ? GMAT_SCORE_SECTIONS : STANDARD_LRWS_SECTIONS;
+  const displaySections = Object.fromEntries(
+    Object.entries(attempt.sections).filter(([key]) => sectionalKeys.includes(key)),
+  );
 
   if (mode === "view") {
     return (
@@ -142,7 +155,7 @@ export function TestAttemptForm({
             <AlertDescription className="text-xs">Result expired — retest required</AlertDescription>
           </Alert>
         )}
-        <ScoreChips sections={attempt.sections} />
+        <ScoreChips sections={displaySections} />
         {attempt.waiver_reason && (
           <p className="text-xs text-muted-foreground">Waiver: {attempt.waiver_reason}</p>
         )}
@@ -227,6 +240,27 @@ export function TestAttemptForm({
               </SelectTrigger>
               <SelectContent>
                 {PTE_VARIANTS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {isToefl && (
+          <div className="space-y-1">
+            <Label>TOEFL variant</Label>
+            <Select
+              value={attempt.variant ?? ""}
+              onValueChange={(v) => onChange?.({ variant: (v || null) as ToeflVariant | null })}
+            >
+              <SelectTrigger className="h-8 w-44">
+                <SelectValue placeholder="Select variant" />
+              </SelectTrigger>
+              <SelectContent>
+                {TOEFL_VARIANTS.map((option) => (
                   <SelectItem key={option} value={option}>
                     {option}
                   </SelectItem>
@@ -325,7 +359,7 @@ export function TestAttemptForm({
           </div>
         )}
 
-        {showOverallField && (
+        {showOverallField && !usesGroupedScoreLayout && (
           <div className="space-y-1">
             <Label>Overall</Label>
             <Input
@@ -371,7 +405,18 @@ export function TestAttemptForm({
         )}
       </div>
 
-      {showSectionalFields && (
+      {usesGroupedScoreLayout && (showOverallField || showSectionalFields) && (
+        <LrwsScoreInputs
+          showOverall={showOverallField}
+          overall={attempt.overall_score}
+          onOverallChange={(value) => onChange?.({ overall_score: value })}
+          sections={groupedScoreSections}
+          values={attempt.sections}
+          onSectionsChange={(next) => onChange?.({ sections: next })}
+        />
+      )}
+
+      {showSectionalFields && !usesGroupedScoreLayout && (
         <SectionalInputs
           sections={sectionalKeys}
           values={attempt.sections}

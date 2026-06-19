@@ -309,6 +309,7 @@ const SECTION_LABEL: Record<string, string> = {
   quant: "Quant",
   awa: "AWA",
   ir: "IR",
+  data_insights: "DI",
   math: "Math",
   ebrw: "EBRW",
 };

@@ -20,11 +20,12 @@ import {
   type ProfileLanguageTestId,
   type ProfileTestId,
 } from "@/lib/profile/profileTestCatalog";
-import { PTE_VARIANTS } from "@/lib/profile/types";
+import { PTE_VARIANTS, TOEFL_VARIANTS } from "@/lib/profile/types";
 import type {
   ClientDocumentRefRow,
   IeltsVariant,
   PteVariant,
+  ToeflVariant,
   ProfileAptitudeTestEntry,
   ProfileEnglishTestEntry,
   ProfileLanguageTestEntry,
@@ -84,6 +85,13 @@ function readPteVariant(sections: Record<string, unknown>, topLevel?: unknown): 
   return hit ?? null;
 }
 
+function readToeflVariant(sections: Record<string, unknown>, topLevel?: unknown): ToeflVariant | null {
+  const v = str(topLevel) ?? str(sections.toefl_variant) ?? str(sections.variant);
+  if (!v) return null;
+  const hit = TOEFL_VARIANTS.find((option) => option.toLowerCase() === v.toLowerCase());
+  return hit ?? null;
+}
+
 function readVariantForEnglishTest(
   testId: ProfileEnglishTestId,
   sections: Record<string, unknown>,
@@ -91,6 +99,7 @@ function readVariantForEnglishTest(
 ): string | null {
   if (testId === "ielts") return readIeltsVariant(sections, entryVariant);
   if (testId === "pte") return readPteVariant(sections, entryVariant);
+  if (testId === "toefl") return readToeflVariant(sections, entryVariant);
   return str(entryVariant);
 }
 
@@ -668,6 +677,9 @@ export function attemptsToLegacyMirror(
   }
   if (activeAttempt?.variant && activeEnglish === "pte") {
     sections.pte_variant = activeAttempt.variant;
+  }
+  if (activeAttempt?.variant && activeEnglish === "toefl") {
+    sections.toefl_variant = activeAttempt.variant;
   }
   if (activeAttempt?.country) sections.test_country = activeAttempt.country;
   if (activeAttempt?.linked_documents.length) {
