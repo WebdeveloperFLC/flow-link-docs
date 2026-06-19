@@ -235,6 +235,8 @@ export interface ProfileEditState {
   selectedEnglishTestId: ProfileEnglishTestId | null;
   selectedAptitudeTestId: ProfileAptitudeTestId | null;
   selectedLanguageTestId: ProfileLanguageTestId | null;
+  /** Phase E — selected attempt within current test type pill. */
+  selectedAttemptId: string | null;
   expandedEducationId: string | null;
   expandedExperienceId: string | null;
   identity: ProfileIdentity;

@@ -12,14 +12,10 @@ import {
 import {
   attemptsToLegacyMirror,
   attemptsToStoragePayload,
-  mergeLegacyEditsIntoAttempts,
 } from "@/lib/profile/testAttempts";
 import {
-  aptitudeTestRefKey,
   educationRefKey,
-  englishTestRefKey,
   experienceRefKey,
-  languageTestRefKey,
   testAttemptRefKey,
 } from "@/lib/profile/profileRecordIds";
 import type { ProfileEditState, ProfileSectionId, ProfileViewModel } from "@/lib/profile/types";
@@ -83,40 +79,6 @@ function collectRefSyncEntriesForSections(
     entries.push({
       ref_key: testAttemptRefKey(a.test_id, a.attempt_id),
       linked_documents: a.linked_documents.map((d) => ({
-        document_id: d.document_id,
-        slot: d.slot,
-        label: d.label,
-        linked_at: d.linked_at,
-      })),
-    });
-  }
-  // Legacy ref keys for attempts not yet migrated in document_refs table
-  for (const e of state.tests.english) {
-    entries.push({
-      ref_key: englishTestRefKey(e.test_id),
-      linked_documents: e.linked_documents.map((d) => ({
-        document_id: d.document_id,
-        slot: d.slot,
-        label: d.label,
-        linked_at: d.linked_at,
-      })),
-    });
-  }
-  for (const a of state.tests.aptitude) {
-    entries.push({
-      ref_key: aptitudeTestRefKey(a.test_id),
-      linked_documents: a.linked_documents.map((d) => ({
-        document_id: d.document_id,
-        slot: d.slot,
-        label: d.label,
-        linked_at: d.linked_at,
-      })),
-    });
-  }
-  for (const l of state.tests.language) {
-    entries.push({
-      ref_key: languageTestRefKey(l.test_id),
-      linked_documents: l.linked_documents.map((d) => ({
         document_id: d.document_id,
         slot: d.slot,
         label: d.label,
@@ -222,18 +184,14 @@ export async function profileSave(
   }
 
   if (sections.has("tests")) {
-    const merged = mergeLegacyEditsIntoAttempts(
+    const storage = attemptsToStoragePayload(
       state.tests.attempts,
       state.tests.active_attempt_ids,
-      {
-        active_english_test_id: state.tests.active_english_test_id,
-        english: state.tests.english,
-        aptitude: state.tests.aptitude,
-        language: state.tests.language,
-      },
     );
-    const storage = attemptsToStoragePayload(merged.attempts, merged.active_attempt_ids);
-    const legacyMirror = attemptsToLegacyMirror(merged.attempts, merged.active_attempt_ids);
+    const legacyMirror = attemptsToLegacyMirror(
+      state.tests.attempts,
+      state.tests.active_attempt_ids,
+    );
 
     clientPatch.test_attempts = storage.test_attempts;
     clientPatch.active_attempt_ids = storage.active_attempt_ids;

@@ -20,7 +20,8 @@ import {
 import type { LinkedDocumentOption } from "@/components/profile/LinkedDocumentsPanel";
 import { summarizeProfile } from "@/lib/profile/summarizeProfile";
 import { computeCompletion } from "@/lib/profile/profileCompletion";
-import { ensureEducationId, ensureExperienceId, educationRefKey, experienceRefKey, englishTestRefKey } from "@/lib/profile/profileRecordIds";
+import { ensureEducationId, ensureExperienceId, educationRefKey, experienceRefKey, testAttemptRefKey } from "@/lib/profile/profileRecordIds";
+import { createEmptyAttempt, deriveLegacyTestsFromAttempts } from "@/lib/profile/testAttempts";
 import { slotLabel } from "@/lib/profile/profileDocumentSlots";
 import type {
   ProfileEducationRecord,
@@ -29,7 +30,9 @@ import type {
   ProfileLinkedDocument,
   ProfileSectionId,
   ProfileTabId,
+  ProfileTestId,
   ProfileViewModel,
+  TestAttempt,
 } from "@/lib/profile/types";
 import { cn } from "@/lib/utils";
 
@@ -107,15 +110,44 @@ export function UnifiedProfileCard({
           e.id === id ? { ...e, linked_documents: updater([...e.linked_documents]) } : e,
         );
       } else if (refKey.startsWith("tests:")) {
-        const testId = refKey.split(":")[1] as ProfileEnglishTestId;
-        next.tests = {
-          ...prev.tests,
-          english: prev.tests.english.map((e) =>
-            e.test_id === testId ? { ...e, linked_documents: updater([...e.linked_documents]) } : e,
-          ),
-        };
+        const parts = refKey.split(":");
+        const attemptId = parts.length >= 3 ? parts.slice(2).join(":") : null;
+        if (attemptId) {
+          const attempts = prev.tests.attempts.map((a) =>
+            a.attempt_id === attemptId
+              ? { ...a, linked_documents: updater([...a.linked_documents]) }
+              : a,
+          );
+          next.tests = {
+            ...prev.tests,
+            attempts,
+            ...deriveLegacyTestsFromAttempts(attempts, prev.tests.active_attempt_ids),
+          };
+        }
       }
       return next;
+    });
+  };
+
+  const patchAttempt = (attemptId: string, patch: Partial<TestAttempt>) => {
+    editor.patchEditState((prev) => {
+      const attempts = prev.tests.attempts.map((a) =>
+        a.attempt_id === attemptId
+          ? {
+              ...a,
+              ...patch,
+              sections: { ...a.sections, ...(patch.sections ?? {}) },
+            }
+          : a,
+      );
+      return {
+        ...prev,
+        tests: {
+          ...prev.tests,
+          attempts,
+          ...deriveLegacyTestsFromAttempts(attempts, prev.tests.active_attempt_ids),
+        },
+      };
     });
   };
 
@@ -285,61 +317,117 @@ export function UnifiedProfileCard({
         <div data-testid="profile-section-tests">
           <ProfileTestsPanel
             mode={modeFor("tests")}
+            attempts={isEditing("tests") ? es.tests.attempts : viewModel.tests.attempts}
+            activeAttemptIds={
+              isEditing("tests") ? es.tests.active_attempt_ids : viewModel.tests.active_attempt_ids
+            }
             activeEnglishTestId={es.tests.active_english_test_id}
-            english={isEditing("tests") ? es.tests.english : viewModel.tests.english}
-            aptitude={isEditing("tests") ? es.tests.aptitude : viewModel.tests.aptitude}
-            language={isEditing("tests") ? es.tests.language : viewModel.tests.language}
             selectedEnglishTestId={es.selectedEnglishTestId}
             selectedAptitudeTestId={es.selectedAptitudeTestId}
             selectedLanguageTestId={es.selectedLanguageTestId}
+            selectedAttemptId={es.selectedAttemptId}
             availableDocuments={docOptions}
-            onSelectEnglish={(id) => editor.patchEditState({ selectedEnglishTestId: id })}
-            onSelectAptitude={(id) => editor.patchEditState({ selectedAptitudeTestId: id })}
-            onSelectLanguage={(id) => editor.patchEditState({ selectedLanguageTestId: id })}
-            onSetActiveEnglish={(id) =>
+            onSelectEnglish={(id) =>
+              editor.patchEditState({ selectedEnglishTestId: id, selectedAttemptId: null })
+            }
+            onSelectAptitude={(id) =>
+              editor.patchEditState({ selectedAptitudeTestId: id, selectedAttemptId: null })
+            }
+            onSelectLanguage={(id) =>
+              editor.patchEditState({ selectedLanguageTestId: id, selectedAttemptId: null })
+            }
+            onSelectAttempt={(id) => editor.patchEditState({ selectedAttemptId: id })}
+            onAddAttempt={(testId) => {
+              const empty = createEmptyAttempt(testId);
+              editor.patchEditState((prev) => {
+                const attempts = [...prev.tests.attempts, empty];
+                const active_attempt_ids = {
+                  ...prev.tests.active_attempt_ids,
+                  ...(prev.tests.active_attempt_ids[testId]
+                    ? {}
+                    : { [testId]: empty.attempt_id }),
+                };
+                const isEnglish = (["ielts", "pte", "toefl", "celpip", "duolingo"] as const).includes(
+                  testId as ProfileEnglishTestId,
+                );
+                return {
+                  ...prev,
+                  selectedAttemptId: empty.attempt_id,
+                  tests: {
+                    ...prev.tests,
+                    attempts,
+                    active_attempt_ids,
+                    active_english_test_id: isEnglish
+                      ? (testId as ProfileEnglishTestId)
+                      : prev.tests.active_english_test_id,
+                    ...deriveLegacyTestsFromAttempts(attempts, active_attempt_ids),
+                  },
+                };
+              });
+            }}
+            onRemoveAttempt={(attemptId) => {
+              editor.patchEditState((prev) => {
+                const removed = prev.tests.attempts.find((a) => a.attempt_id === attemptId);
+                const attempts = prev.tests.attempts.filter((a) => a.attempt_id !== attemptId);
+                const active_attempt_ids = { ...prev.tests.active_attempt_ids };
+                if (removed && active_attempt_ids[removed.test_id] === attemptId) {
+                  const remaining = attempts.filter((a) => a.test_id === removed.test_id);
+                  if (remaining.length) {
+                    active_attempt_ids[removed.test_id] = remaining[remaining.length - 1]!.attempt_id;
+                  } else {
+                    delete active_attempt_ids[removed.test_id];
+                  }
+                }
+                return {
+                  ...prev,
+                  selectedAttemptId:
+                    prev.selectedAttemptId === attemptId ? null : prev.selectedAttemptId,
+                  tests: {
+                    ...prev.tests,
+                    attempts,
+                    active_attempt_ids,
+                    ...deriveLegacyTestsFromAttempts(attempts, active_attempt_ids),
+                  },
+                };
+              });
+            }}
+            onSetActiveAttempt={(testId, attemptId) => {
+              editor.patchEditState((prev) => {
+                const active_attempt_ids = {
+                  ...prev.tests.active_attempt_ids,
+                  [testId]: attemptId,
+                };
+                const isEnglish = (["ielts", "pte", "toefl", "celpip", "duolingo"] as const).includes(
+                  testId as ProfileEnglishTestId,
+                );
+                return {
+                  ...prev,
+                  tests: {
+                    ...prev.tests,
+                    active_attempt_ids,
+                    active_english_test_id: isEnglish
+                      ? (testId as ProfileEnglishTestId)
+                      : prev.tests.active_english_test_id,
+                    ...deriveLegacyTestsFromAttempts(prev.tests.attempts, active_attempt_ids),
+                  },
+                };
+              });
+            }}
+            onSetActiveEnglishType={(id) =>
               editor.patchEditState({
                 tests: { ...es.tests, active_english_test_id: id },
                 selectedEnglishTestId: id,
               })
             }
-            onEnglishChange={(testId, patch) =>
-              editor.patchEditState({
-                tests: {
-                  ...es.tests,
-                  english: es.tests.english.map((e) =>
-                    e.test_id === testId ? { ...e, ...patch, sections: { ...e.sections, ...(patch.sections ?? {}) } } : e,
-                  ),
-                },
-              })
+            onAttemptChange={(attemptId, patch) => patchAttempt(attemptId, patch)}
+            onLinkAttemptDocument={(attemptId, testId, docId, slot) =>
+              linkDocument(testAttemptRefKey(testId, attemptId), docId, slot)
             }
-            onAptitudeChange={(testId, patch) =>
-              editor.patchEditState({
-                tests: {
-                  ...es.tests,
-                  aptitude: es.tests.aptitude.map((a) =>
-                    a.test_id === testId ? { ...a, ...patch } : a,
-                  ),
-                },
-              })
+            onUnlinkAttemptDocument={(attemptId, testId, docId, slot) =>
+              unlinkDocument(testAttemptRefKey(testId, attemptId), docId, slot)
             }
-            onLanguageChange={(testId, patch) =>
-              editor.patchEditState({
-                tests: {
-                  ...es.tests,
-                  language: es.tests.language.map((l) =>
-                    l.test_id === testId ? { ...l, ...patch } : l,
-                  ),
-                },
-              })
-            }
-            onLinkEnglishDocument={(testId, docId, slot) =>
-              linkDocument(englishTestRefKey(testId), docId, slot)
-            }
-            onUnlinkEnglishDocument={(testId, docId, slot) =>
-              unlinkDocument(englishTestRefKey(testId), docId, slot)
-            }
-            onUploadEnglishDocument={(testId, file, slot) =>
-              void uploadDocument(englishTestRefKey(testId), file, slot)
+            onUploadAttemptDocument={(attemptId, testId, file, slot) =>
+              void uploadDocument(testAttemptRefKey(testId, attemptId), file, slot)
             }
           />
         </div>

@@ -65,6 +65,7 @@ export function toEditState(vm: ProfileViewModel, options: ToEditStateOptions = 
     selectedEnglishTestId: vm.tests.active_english_test_id,
     selectedAptitudeTestId: vm.tests.aptitude[0]?.test_id ?? null,
     selectedLanguageTestId: vm.tests.language[0]?.test_id ?? null,
+    selectedAttemptId: null,
     expandedEducationId: vm.education[0]?.id ?? null,
     expandedExperienceId: vm.experience[0]?.id ?? null,
     identity: cloneIdentity(vm),

@@ -46,5 +46,10 @@ export {
   attemptsToStoragePayload,
   buildProfileTests,
   deriveLegacyTestsFromAttempts,
+  createEmptyAttempt,
+  attemptsForTestId,
+  formatAttemptSummary,
+  defaultAttemptIdForTest,
 } from "@/lib/profile/testAttempts";
+export { visibilityForAttemptStatus, statusLabel } from "@/lib/profile/testAttemptFormRules";
 export { ensureAttemptId, testAttemptRefKey } from "@/lib/profile/profileRecordIds";

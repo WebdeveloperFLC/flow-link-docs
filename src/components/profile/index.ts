@@ -3,6 +3,8 @@ export { ProfileCompletionBadge } from "@/components/profile/ProfileCompletionBa
 export { ProfileMetaBar } from "@/components/profile/ProfileMetaBar";
 export { ProfileViewSummaries } from "@/components/profile/ProfileViewSummaries";
 export { TestScoreBlock } from "@/components/profile/TestScoreBlock";
+export { TestAttemptForm } from "@/components/profile/TestAttemptForm";
+export { TestAttemptList } from "@/components/profile/TestAttemptList";
 export { LinkedDocumentsPanel } from "@/components/profile/LinkedDocumentsPanel";
 export type { LinkedDocumentOption } from "@/components/profile/LinkedDocumentsPanel";
 export { ProfileEducationPanel } from "@/components/profile/ProfileEducationPanel";

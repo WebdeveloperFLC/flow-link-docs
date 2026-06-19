@@ -723,3 +723,55 @@ export function buildProfileTests(
     ...legacy,
   };
 }
+
+/** New empty attempt for + Add attempt UI. */
+export function createEmptyAttempt(testId: ProfileTestId): TestAttempt {
+  return {
+    attempt_id: ensureAttemptId(),
+    test_id: testId,
+    category: testCategory(testId),
+    status: "not_taken",
+    sections: {},
+    linked_documents: [],
+  };
+}
+
+export function attemptsForTestId(
+  attempts: readonly TestAttempt[],
+  testId: ProfileTestId,
+): TestAttempt[] {
+  return attempts.filter((a) => a.test_id === testId);
+}
+
+export function sortAttemptsChronologically(attempts: readonly TestAttempt[]): TestAttempt[] {
+  return [...attempts].sort((a, b) => {
+    const da = a.test_date ?? "";
+    const db = b.test_date ?? "";
+    if (da && db) return db.localeCompare(da);
+    if (db) return 1;
+    if (da) return -1;
+    return a.attempt_id.localeCompare(b.attempt_id);
+  });
+}
+
+/** One-line summary for attempt list rows. */
+export function formatAttemptSummary(attempt: TestAttempt): string {
+  const parts: string[] = [];
+  if (attempt.variant) parts.push(attempt.variant);
+  if (attempt.status) parts.push(attempt.status.replace(/_/g, " "));
+  if (attempt.test_date) parts.push(attempt.test_date);
+  if (attempt.overall_score) parts.push(`Overall ${attempt.overall_score}`);
+  else if (attempt.exam_type) parts.push(attempt.exam_type);
+  return parts.join(" · ") || "New attempt";
+}
+
+export function defaultAttemptIdForTest(
+  attempts: readonly TestAttempt[],
+  activeIds: Readonly<Partial<Record<ProfileTestId, string>>>,
+  testId: ProfileTestId,
+): string | null {
+  const active = activeIds[testId];
+  if (active && attempts.some((a) => a.attempt_id === active)) return active;
+  const forType = attemptsForTestId(attempts, testId);
+  return forType[forType.length - 1]?.attempt_id ?? null;
+}
