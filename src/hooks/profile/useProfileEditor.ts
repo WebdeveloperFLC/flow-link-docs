@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { appendClientActivityLog } from "@/lib/clientActivityLog";
+import { ensureFullTestCatalog } from "@/lib/profile/ensureTestCatalog";
 import { profileSave } from "@/lib/profile/profileSave";
 import { formatProfileSaveError } from "@/lib/profile/profileSaveError";
 import { toEditState } from "@/lib/profile/toEditState";
@@ -50,8 +51,16 @@ export function useProfileEditor(
 
   const startEdit = useCallback((section: ProfileSectionId) => {
     setEditingSection(section);
+    if (section === "tests" && editState) {
+      patchEditState({
+        activeSection: section,
+        editingSection: section,
+        tests: ensureFullTestCatalog(editState.tests),
+      });
+      return;
+    }
     patchEditState({ activeSection: section, editingSection: section });
-  }, [patchEditState]);
+  }, [patchEditState, editState]);
 
   const cancelEdit = useCallback(() => {
     if (viewModel) {

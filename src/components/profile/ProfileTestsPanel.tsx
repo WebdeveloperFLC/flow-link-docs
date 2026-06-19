@@ -16,6 +16,11 @@ import {
   LANGUAGE_TEST_IDS,
   testLabel,
 } from "@/lib/profile/profileTestCatalog";
+import {
+  resolveAptitudeEntry,
+  resolveEnglishEntry,
+  resolveLanguageEntry,
+} from "@/lib/profile/ensureTestCatalog";
 import type {
   ProfileAptitudeTestEntry,
   ProfileEnglishTestEntry,
@@ -118,9 +123,15 @@ export function ProfileTestsPanel({
   const selAptitude = selectedAptitudeTestId ?? aptitude[0]?.test_id ?? APTITUDE_TEST_IDS[0];
   const selLanguage = selectedLanguageTestId ?? language[0]?.test_id ?? LANGUAGE_TEST_IDS[0];
 
-  const englishEntry = english.find((e) => e.test_id === selEnglish) ?? null;
-  const aptitudeEntry = aptitude.find((a) => a.test_id === selAptitude) ?? null;
-  const languageEntry = language.find((l) => l.test_id === selLanguage) ?? null;
+  const englishEntry = resolveEnglishEntry(english, selEnglish, mode);
+  const aptitudeEntry = resolveAptitudeEntry(aptitude, selAptitude, mode);
+  const languageEntry = resolveLanguageEntry(language, selLanguage, mode);
+
+  const emptyHint = (
+    <p className="text-xs text-muted-foreground rounded-lg border border-dashed p-3">
+      No details captured for {testLabel(selEnglish)} yet. Click Edit to add scores.
+    </p>
+  );
 
   return (
     <div className={cn("space-y-5", className)}>
@@ -152,6 +163,7 @@ export function ProfileTestsPanel({
           english={englishEntry}
           onEnglishChange={(patch) => selEnglish && onEnglishChange?.(selEnglish, patch)}
         />
+        {!englishEntry && mode === "view" && emptyHint}
         {englishEntry && (
           <LinkedDocumentsPanel
             linkedDocuments={englishEntry.linked_documents}
@@ -184,6 +196,11 @@ export function ProfileTestsPanel({
           aptitude={aptitudeEntry}
           onAptitudeChange={(patch) => selAptitude && onAptitudeChange?.(selAptitude, patch)}
         />
+        {!aptitudeEntry && mode === "view" && (
+          <p className="text-xs text-muted-foreground rounded-lg border border-dashed p-3">
+            No details captured for {testLabel(selAptitude)} yet. Click Edit to add scores.
+          </p>
+        )}
       </section>
 
       <section className="space-y-2 border-t pt-4">
@@ -199,6 +216,11 @@ export function ProfileTestsPanel({
           language={languageEntry}
           onLanguageChange={(patch) => selLanguage && onLanguageChange?.(selLanguage, patch)}
         />
+        {!languageEntry && mode === "view" && (
+          <p className="text-xs text-muted-foreground rounded-lg border border-dashed p-3">
+            No details captured for {testLabel(selLanguage)} yet. Click Edit to add scores.
+          </p>
+        )}
       </section>
     </div>
   );
