@@ -207,7 +207,7 @@ export function leadToBackgroundState(lead: Partial<Lead>): LeadBackgroundState 
   };
 }
 
-function backgroundToClientShape(bg: LeadBackgroundState): Partial<ClientRow> {
+export function backgroundToClientShape(bg: LeadBackgroundState): Partial<ClientRow> {
   return {
     english_test: bg.english_test ?? undefined,
     english_test_status: bg.english_test_status ?? undefined,

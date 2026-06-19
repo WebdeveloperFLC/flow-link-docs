@@ -10,18 +10,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  EducationExperienceFields,
-} from "@/components/clients/registration/EducationExperienceFields";
-import { LanguageTestsFields } from "@/components/clients/registration/LanguageTestsFields";
-import {
   LeadBackgroundDetailPanel,
   type BackgroundSummaryNavigateTarget,
 } from "@/components/leads/LeadBackgroundDetailPanel";
+import { LeadProfileDetailsEditor } from "@/components/leads/LeadProfileDetailsEditor";
 import { countBackgroundItems, hasBackgroundData, type LeadBackgroundState } from "@/lib/leadBackground";
-import { buildEnglishTestSwitchPatch } from "@/lib/englishTestScores";
 import { loadGeoModule } from "@/lib/geoLocations";
 import { preventDialogDismissOnNestedOverlay } from "@/lib/dialogOverlayGuard";
-import { EMPTY_LANGUAGE_TESTS, type BackgroundDetailTab } from "@/lib/languageTests";
+import type { BackgroundDetailTab } from "@/lib/languageTests";
 
 interface Props {
   open: boolean;
@@ -33,10 +29,14 @@ interface Props {
 }
 
 function navigateTargetToTab(target: BackgroundSummaryNavigateTarget): BackgroundDetailTab {
-  if (target.section === "language") return "language";
   if (target.section === "education") return "education";
   if (target.section === "experience") return "experience";
-  return "english";
+  return "tests";
+}
+
+function normalizeTab(tab: BackgroundDetailTab): BackgroundDetailTab {
+  if (tab === "english" || tab === "language") return "tests";
+  return tab;
 }
 
 export function LeadBackgroundDetailsDialog({
@@ -45,35 +45,21 @@ export function LeadBackgroundDetailsDialog({
   value,
   onChange,
   onCommit,
-  initialTab = "english",
+  initialTab = "tests",
 }: Props) {
-  const [tab, setTab] = useState<BackgroundDetailTab>(initialTab);
+  const [tab, setTab] = useState<BackgroundDetailTab>(normalizeTab(initialTab));
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
-      setTab(initialTab);
+      setTab(normalizeTab(initialTab));
       loadGeoModule().catch(() => {});
     }
   }, [open, initialTab]);
 
-  const handleSummaryNavigate = useCallback(
-    (target: BackgroundSummaryNavigateTarget) => {
-      setTab(navigateTargetToTab(target));
-      if (target.section === "english" && target.test) {
-        const patch = buildEnglishTestSwitchPatch(value, target.test);
-        onChange({
-          english_test: patch.english_test ?? null,
-          english_test_status: patch.english_test_status ?? null,
-          english_overall: patch.english_overall ?? null,
-          english_test_date: patch.english_test_date ?? null,
-          english_test_expiry: patch.english_test_expiry ?? null,
-          english_sections: patch.english_sections ?? {},
-        });
-      }
-    },
-    [onChange, value],
-  );
+  const handleSummaryNavigate = useCallback((target: BackgroundSummaryNavigateTarget) => {
+    setTab(navigateTargetToTab(target));
+  }, []);
 
   const handleDone = async () => {
     setSaving(true);
@@ -87,6 +73,7 @@ export function LeadBackgroundDetailsDialog({
 
   const counts = countBackgroundItems(value);
   const showSummary = hasBackgroundData(value);
+  const testsCount = counts.english + counts.academic + counts.language;
 
   const tabBadge = (count: number) =>
     count > 0 ? (
@@ -106,7 +93,7 @@ export function LeadBackgroundDetailsDialog({
         <DialogHeader>
           <DialogTitle>Background details</DialogTitle>
           <DialogDescription>
-            Saved summary below — edit in tabs. Changes apply when you click Done.
+            Same fields as client profile — document linking unlocks after registration.
           </DialogDescription>
         </DialogHeader>
 
@@ -119,14 +106,10 @@ export function LeadBackgroundDetailsDialog({
         )}
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as BackgroundDetailTab)}>
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
-            <TabsTrigger value="english">
-              English
-              {tabBadge(counts.english + counts.academic)}
-            </TabsTrigger>
-            <TabsTrigger value="language">
-              Language
-              {tabBadge(counts.language)}
+          <TabsList className="grid w-full grid-cols-3 h-auto">
+            <TabsTrigger value="tests">
+              Tests
+              {tabBadge(testsCount)}
             </TabsTrigger>
             <TabsTrigger value="education">
               Education
@@ -137,42 +120,14 @@ export function LeadBackgroundDetailsDialog({
               {tabBadge(counts.experience)}
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="english" className="mt-4 focus-visible:outline-none">
-            <EducationExperienceFields
-              value={value}
-              onChange={onChange}
-              compact
-              visibleSections={["english", "academic"]}
-            />
-          </TabsContent>
-          <TabsContent value="language" className="mt-4 focus-visible:outline-none">
-            <LanguageTestsFields
-              value={value.language_tests ?? EMPTY_LANGUAGE_TESTS}
-              onChange={(patch) =>
-                onChange({
-                  language_tests: {
-                    ...(value.language_tests ?? EMPTY_LANGUAGE_TESTS),
-                    ...patch,
-                  },
-                })
-              }
-            />
+          <TabsContent value="tests" className="mt-4 focus-visible:outline-none">
+            <LeadProfileDetailsEditor value={value} onChange={onChange} activeTab="tests" />
           </TabsContent>
           <TabsContent value="education" className="mt-4 focus-visible:outline-none">
-            <EducationExperienceFields
-              value={value}
-              onChange={onChange}
-              compact
-              visibleSections={["education"]}
-            />
+            <LeadProfileDetailsEditor value={value} onChange={onChange} activeTab="education" />
           </TabsContent>
           <TabsContent value="experience" className="mt-4 focus-visible:outline-none">
-            <EducationExperienceFields
-              value={value}
-              onChange={onChange}
-              compact
-              visibleSections={["experience"]}
-            />
+            <LeadProfileDetailsEditor value={value} onChange={onChange} activeTab="experience" />
           </TabsContent>
         </Tabs>
         <div className="flex justify-end pt-2">

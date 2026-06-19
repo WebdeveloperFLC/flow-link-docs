@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LeadDocumentPlaceholder } from "@/components/leads/LeadDocumentPlaceholder";
 import { getSlotsForScope, slotLabel, type SlotScope } from "@/lib/profile/profileDocumentSlots";
 import type { ProfileLinkedDocument } from "@/lib/profile/types";
 import { FileText, Link2, Plus, Trash2, Upload } from "lucide-react";
@@ -32,6 +33,8 @@ interface Props {
   onLinkExisting?: (documentId: string, slot: string) => void;
   onUnlink?: (documentId: string, slot: string) => void;
   onUpload?: (file: File, slot: string) => void;
+  /** Phase D — leads show placeholder instead of link/upload controls. */
+  documentsPlaceholder?: boolean;
   className?: string;
 }
 
@@ -44,10 +47,15 @@ export function LinkedDocumentsPanel({
   onLinkExisting,
   onUnlink,
   onUpload,
+  documentsPlaceholder,
   className,
 }: Props) {
   const slots = getSlotsForScope(scope);
   const linkedBySlot = new Map(linkedDocuments.map((d) => [d.slot, d]));
+
+  if (documentsPlaceholder && mode === "edit") {
+    return <LeadDocumentPlaceholder className={className} />;
+  }
 
   if (mode === "view") {
     if (linkedDocuments.length === 0) {

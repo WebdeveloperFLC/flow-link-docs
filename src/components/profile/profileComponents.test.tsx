@@ -48,6 +48,13 @@ describe("LinkedDocumentsPanel", () => {
     expect(screen.getByText("No linked documents")).toBeInTheDocument();
   });
 
+  it("shows lead placeholder in edit mode when documentsPlaceholder", () => {
+    render(
+      <LinkedDocumentsPanel linkedDocuments={[]} scope="education" mode="edit" documentsPlaceholder />,
+    );
+    expect(screen.getByTestId("lead-document-placeholder")).toBeInTheDocument();
+  });
+
   it("lists linked documents in view mode", () => {
     render(
       <LinkedDocumentsPanel

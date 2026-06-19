@@ -28,6 +28,7 @@ interface Props {
   onLinkDocument?: (recordId: string, documentId: string, slot: string) => void;
   onUnlinkDocument?: (recordId: string, documentId: string, slot: string) => void;
   onUploadDocument?: (recordId: string, file: File, slot: string) => void;
+  documentsPlaceholder?: boolean;
   className?: string;
 }
 
@@ -61,6 +62,7 @@ export function ProfileEducationPanel({
   onLinkDocument,
   onUnlinkDocument,
   onUploadDocument,
+  documentsPlaceholder,
   className,
 }: Props) {
   const qualificationLevels = useMasterItems("qualification_levels");
@@ -252,6 +254,7 @@ export function ProfileEducationPanel({
               scope="education"
               mode="edit"
               availableDocuments={availableDocuments}
+              documentsPlaceholder={documentsPlaceholder}
               onLinkExisting={(docId, slot) => onLinkDocument?.(record.id, docId, slot)}
               onUnlink={(docId, slot) => onUnlinkDocument?.(record.id, docId, slot)}
               onUpload={(file, slot) => onUploadDocument?.(record.id, file, slot)}

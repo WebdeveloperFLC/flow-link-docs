@@ -132,4 +132,4 @@ export function hasLanguageTestData(lt: LanguageTestsValue): boolean {
   return summarizeLanguageTests(lt) !== "Not added";
 }
 
-export type BackgroundDetailTab = "english" | "language" | "education" | "experience";
+export type BackgroundDetailTab = "tests" | "education" | "experience" | "english" | "language";

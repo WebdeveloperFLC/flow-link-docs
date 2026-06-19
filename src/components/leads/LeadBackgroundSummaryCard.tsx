@@ -20,7 +20,7 @@ interface Props {
 
 export function LeadBackgroundSummaryCard({ value, onChange, onCommit }: Props) {
   const [open, setOpen] = useState(false);
-  const [initialTab, setInitialTab] = useState<BackgroundDetailTab>("english");
+  const [initialTab, setInitialTab] = useState<BackgroundDetailTab>("tests");
   const hasData = hasBackgroundData(value);
   const counts = countBackgroundItems(value);
 
@@ -30,12 +30,11 @@ export function LeadBackgroundSummaryCard({ value, onChange, onCommit }: Props) 
   };
 
   const badges = [
-    counts.english + counts.academic > 0 && {
+    counts.english + counts.academic + counts.language > 0 && {
       label: "Tests",
-      count: counts.english + counts.academic,
-      tab: "english" as const,
+      count: counts.english + counts.academic + counts.language,
+      tab: "tests" as const,
     },
-    counts.language > 0 && { label: "Language", count: counts.language, tab: "language" as const },
     counts.education > 0 && { label: "Education", count: counts.education, tab: "education" as const },
     counts.experience > 0 && { label: "Experience", count: counts.experience, tab: "experience" as const },
   ].filter(Boolean) as { label: string; count: number; tab: BackgroundDetailTab }[];
@@ -48,7 +47,7 @@ export function LeadBackgroundSummaryCard({ value, onChange, onCommit }: Props) 
             <h3 className="font-semibold">3.5 Background details</h3>
             <p className="text-xs text-muted-foreground mt-0.5">Optional — English, language, education, experience</p>
           </div>
-          <Button type="button" size="sm" variant="outline" onClick={() => openDialog("english")}>
+          <Button type="button" size="sm" variant="outline" onClick={() => openDialog("tests")}>
             <Pencil className="h-3.5 w-3.5 mr-1" />
             Edit details
           </Button>

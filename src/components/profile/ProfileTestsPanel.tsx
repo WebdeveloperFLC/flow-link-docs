@@ -46,6 +46,7 @@ interface Props {
   onLinkAttemptDocument?: (attemptId: string, testId: ProfileTestId, docId: string, slot: string) => void;
   onUnlinkAttemptDocument?: (attemptId: string, testId: ProfileTestId, docId: string, slot: string) => void;
   onUploadAttemptDocument?: (attemptId: string, testId: ProfileTestId, file: File, slot: string) => void;
+  documentsPlaceholder?: boolean;
   className?: string;
 }
 
@@ -113,6 +114,7 @@ function TestTypeSection({
   onLinkDocument,
   onUnlinkDocument,
   onUploadDocument,
+  documentsPlaceholder,
   showPrimaryTypeButton,
 }: {
   title: string;
@@ -135,6 +137,7 @@ function TestTypeSection({
   onLinkDocument?: (attemptId: string, testId: ProfileTestId, docId: string, slot: string) => void;
   onUnlinkDocument?: (attemptId: string, testId: ProfileTestId, docId: string, slot: string) => void;
   onUploadDocument?: (attemptId: string, testId: ProfileTestId, file: File, slot: string) => void;
+  documentsPlaceholder?: boolean;
   showPrimaryTypeButton?: boolean;
 }) {
   const activeAttemptId = activeAttemptIds[selectedTestId] ?? null;
@@ -212,6 +215,7 @@ function TestTypeSection({
           onUploadDocument={(file, slot) =>
             onUploadDocument?.(selectedAttempt.attempt_id, selectedTestId, file, slot)
           }
+          documentsPlaceholder={documentsPlaceholder}
         />
       ) : mode === "view" ? (
         <p className="text-xs text-muted-foreground rounded-lg border border-dashed p-3">
@@ -244,6 +248,7 @@ export function ProfileTestsPanel({
   onLinkAttemptDocument,
   onUnlinkAttemptDocument,
   onUploadAttemptDocument,
+  documentsPlaceholder,
   className,
 }: Props) {
   const selEnglish =
@@ -282,6 +287,7 @@ export function ProfileTestsPanel({
         onLinkDocument={onLinkAttemptDocument}
         onUnlinkDocument={onUnlinkAttemptDocument}
         onUploadDocument={onUploadAttemptDocument}
+        documentsPlaceholder={documentsPlaceholder}
         showPrimaryTypeButton
       />
 
@@ -305,6 +311,7 @@ export function ProfileTestsPanel({
         onLinkDocument={onLinkAttemptDocument}
         onUnlinkDocument={onUnlinkAttemptDocument}
         onUploadDocument={onUploadAttemptDocument}
+        documentsPlaceholder={documentsPlaceholder}
       />
       </div>
 

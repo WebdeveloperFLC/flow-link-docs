@@ -21,6 +21,7 @@ interface Props {
   onLinkDocument?: (recordId: string, documentId: string, slot: string) => void;
   onUnlinkDocument?: (recordId: string, documentId: string, slot: string) => void;
   onUploadDocument?: (recordId: string, file: File, slot: string) => void;
+  documentsPlaceholder?: boolean;
   className?: string;
 }
 
@@ -47,6 +48,7 @@ export function ProfileExperiencePanel({
   onLinkDocument,
   onUnlinkDocument,
   onUploadDocument,
+  documentsPlaceholder,
   className,
 }: Props) {
   if (records.length === 0) {
@@ -206,6 +208,7 @@ export function ProfileExperiencePanel({
               scope="experience"
               mode="edit"
               availableDocuments={availableDocuments}
+              documentsPlaceholder={documentsPlaceholder}
               onLinkExisting={(docId, slot) => onLinkDocument?.(record.id, docId, slot)}
               onUnlink={(docId, slot) => onUnlinkDocument?.(record.id, docId, slot)}
               onUpload={(file, slot) => onUploadDocument?.(record.id, file, slot)}
