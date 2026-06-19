@@ -194,6 +194,7 @@ const accountingNav: NavItem[] = [
   { to: "/accounting/ap", icon: ArrowDownCircle, label: "AP — Bills", section: "ap" },
   { to: "/accounting/ar", icon: ArrowUpCircle, label: "AR — Invoices", section: "ar" },
   { to: "/accounting/trust", icon: Wallet, label: "Student Trust", section: "trust" },
+  { to: "/accounting/payroll", icon: Users, label: "Payroll accounting", section: "payroll" },
   { to: "/accounting/vendors", icon: Truck, label: "Vendors", section: "vendors" },
   { to: "/accounting/clients", icon: Briefcase, label: "Clients", section: "clients_link" },
   { to: "/accounting/documents", icon: ScanLine, label: "Documents & OCR", section: "documents" },

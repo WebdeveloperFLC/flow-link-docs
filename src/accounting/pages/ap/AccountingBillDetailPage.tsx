@@ -22,14 +22,15 @@ import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
 import DeleteRecordDialog from "../../components/shared/DeleteRecordDialog";
 import { fmtMoney } from "../../components/ap-ar/money";
 import { EXPENSE_CATEGORY_LABELS, type VendorBill } from "../../data/mockAP";
-import { useApBills, updateApBill, deleteApBill } from "../../stores/apBillsStore";
+import { useApBills, updateApBill, deleteApBill, recordApBillPayment } from "../../stores/apBillsStore";
 import { useBankAccounts } from "../../stores/bankAccountsStore";
 import { supabase } from "@/integrations/supabase/client";
 import { getEntities } from "../../stores/accountingEntitiesStore";
 import { appendPaymentProofPath, getMaxPaymentProofs, serializePaymentProofPaths } from "../../lib/apPaymentProofs";
 
 const TODAY = new Date();
-TODAY.setHours(0, 0, 0, 0); // always today
+TODAY.setHours(0, 0, 0, 0);
+const round2 = (n: number) => Math.round(n * 100) / 100;
 
 const PAYMENT_METHODS = [
   { value: "BANK_TRANSFER", label: "Bank transfer" },
@@ -85,6 +86,10 @@ export default function AccountingBillDetailPage() {
   const [payBusy, setPayBusy] = useState(false);
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofUploading, setProofUploading] = useState(false);
+  const [payAmount, setPayAmount] = useState(0);
+  const outstanding = bill
+    ? round2(bill.outstandingBalance ?? Math.max(0, bill.totalAmount - (bill.paidAmount ?? 0)))
+    : 0;
 
   const bank = useMemo(
     () => (bill?.linkedBankAccountId ? bankAccounts.find((b) => b.id === bill.linkedBankAccountId) : null),
@@ -161,6 +166,7 @@ export default function AccountingBillDetailPage() {
     setPayRef("");
     setPayNotes("");
     setProofFile(null);
+    setPayAmount(outstanding);
     setShowPayDialog(true);
   };
 
@@ -181,11 +187,16 @@ export default function AccountingBillDetailPage() {
       toast.error("Reference / transaction ID is required for reconciliation");
       return;
     }
+    if (payAmount <= 0) {
+      toast.error("Payment amount must be positive");
+      return;
+    }
+    if (payAmount > outstanding + 0.005) {
+      toast.error(`Amount exceeds outstanding ${outstanding.toFixed(2)}`);
+      return;
+    }
     setPayBusy(true);
     try {
-      const selectedBank = bankAccounts.find((b) => b.id === payBank);
-
-      // Upload payment proof if provided
       let proofPath: string | undefined;
       if (proofFile) {
         if (proofPaths.length >= getMaxPaymentProofs()) {
@@ -217,22 +228,18 @@ export default function AccountingBillDetailPage() {
           .eq("id", bill.id);
       }
 
-      updateApBill(
-        bill.id,
-        buildPaidBillPatch({
-          payDate,
-          payMethod: payMethod as NonNullable<VendorBill["paymentMethod"]>,
-          payRef,
-          payBank,
-          payNotes,
-          existingNotes: bill.notes,
-          uploadedProofPath: proofPath,
-          existingProofPaths: proofPaths,
-        }),
-      );
-      toast.success(
-        `Marked as paid · ${selectedBank?.nickname ?? "Bank"} · Ref: ${payRef.trim()}${proofPath ? " · Proof uploaded ✓" : ""}`,
-      );
+      await recordApBillPayment(bill.id, {
+        amount: payAmount,
+        postingDate: payDate,
+        paymentMethod: payMethod,
+        reference: payRef.trim(),
+        linkedBankAccountId: payBank,
+        attachmentPath: proofPath,
+      });
+      if (proofPath) {
+        const nextProofPaths = appendPaymentProofPath(proofPaths, proofPath);
+        updateApBill(bill.id, { paymentProofPath: nextProofPaths[0], paymentProofPaths: nextProofPaths });
+      }
       setShowPayDialog(false);
       setProofFile(null);
     } finally {
@@ -262,8 +269,8 @@ export default function AccountingBillDetailPage() {
                     Approve
                   </Button>
                 )}
-                {(bill.status === "APPROVED" || bill.status === "OVERDUE") && (
-                  <Button onClick={openPayDialog}>Mark as paid</Button>
+                {(bill.status === "APPROVED" || bill.status === "OVERDUE" || bill.status === "PARTIALLY_PAID") && (
+                  <Button onClick={openPayDialog}>Record payment</Button>
                 )}
                 {bill.status === "DRAFT" && (
                   <>
@@ -367,9 +374,11 @@ export default function AccountingBillDetailPage() {
             <CardTitle>Financial summary</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <Row label="Subtotal" v={fmtMoney(bill.subtotal, bill.currency)} />
               <Row label={`Tax (${bill.taxCode || "—"})`} v={fmtMoney(bill.taxAmount, bill.currency)} />
+              <Row label="Paid" v={fmtMoney(bill.paidAmount ?? 0, bill.currency)} />
+              <Row label="Outstanding" v={fmtMoney(outstanding, bill.currency)} />
               <Row
                 label="Total"
                 v={<span className="font-semibold text-base">{fmtMoney(bill.totalAmount, bill.currency)}</span>}
@@ -441,9 +450,22 @@ export default function AccountingBillDetailPage() {
 
           <div className="space-y-4 py-2">
             {/* Amount reminder */}
-            <div className="rounded-lg bg-muted px-4 py-3 flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Amount to mark paid</span>
-              <span className="font-semibold">{fmtMoney(bill.totalAmount, bill.currency)}</span>
+            <div className="rounded-lg bg-muted px-4 py-3 space-y-2">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">Outstanding</span>
+                <span className="font-semibold">{fmtMoney(outstanding, bill.currency)}</span>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="pay-amount">Payment amount (cash) *</Label>
+                <Input
+                  id="pay-amount"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={payAmount}
+                  onChange={(e) => setPayAmount(Number(e.target.value) || 0)}
+                />
+              </div>
             </div>
 
             {/* Payment date */}

@@ -1,4 +1,4 @@
-export type BillStatus = "DRAFT" | "PENDING_REVIEW" | "APPROVED" | "PAID" | "OVERDUE" | "VOID";
+export type BillStatus = "DRAFT" | "PENDING_REVIEW" | "APPROVED" | "PARTIALLY_PAID" | "PAID" | "OVERDUE" | "VOID";
 
 export type ExpenseCategory =
   | "RENT_UTILITIES"
@@ -38,6 +38,8 @@ export interface VendorBill {
   taxCode: string;
   taxAmount: number;
   totalAmount: number;
+  paidAmount?: number;
+  outstandingBalance?: number;
   status: BillStatus;
   linkedDocumentId?: string;
   linkedJournalId?: string;

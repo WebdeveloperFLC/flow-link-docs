@@ -40,6 +40,9 @@ import { useGroups } from "../../stores/coaMasterStore";
 import { useJournals } from "../../stores/journalsStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
 import { cn } from "@/lib/utils";
+import { computeProfitLoss, ENTITY_ALL } from "../../lib/financialReports";
+
+const ALL = ENTITY_ALL;
 
 type PLLine = { code: string; name: string; current: number; prior: number };
 type DrillTxn = {
@@ -50,11 +53,9 @@ type DrillTxn = {
   entity: string;
   debit: number;
   credit: number;
-  amount: number; // signed contribution (dr - cr); flipped for revenue accounts below
+  amount: number;
 };
 type DrillState = { code: string; name: string; current: number } | null;
-
-const ALL = "__all__";
 
 function periodRange(period: string): { from: string; to: string; priorFrom: string; priorTo: string } {
   const today = new Date();
@@ -93,61 +94,30 @@ export default function AccountingPLPage() {
   const range = useMemo(() => periodRange(period), [period]);
 
   const data = useMemo(() => {
-    const groupBy = new Map(groups.map((g) => [g.code, g]));
-    const filteredAccounts = accounts.filter((a) =>
-      entity === ALL ? true : a.entityId === entity
+    const pl = computeProfitLoss(
+      range.from,
+      range.to,
+      range.priorFrom,
+      range.priorTo,
+      accounts,
+      groups,
+      journals,
+      entities,
+      entity,
     );
-
-    // activity per account in [from,to] — sign positive on the natural side
-    function activity(accId: string, nature: "DEBIT" | "CREDIT", from: string, to: string): number {
-      let dr = 0, cr = 0;
-      for (const j of journals) {
-        if (j.status !== "POSTED") continue;
-        if (j.entryDate < from || j.entryDate > to) continue;
-        for (const l of j.lines) {
-          if (l.accountId !== accId) continue;
-          dr += Number(l.debit) || 0;
-          cr += Number(l.credit) || 0;
-        }
-      }
-      return nature === "CREDIT" ? cr - dr : dr - cr;
-    }
-
-    const bucket = {
-      revenue: [] as PLLine[],
-      costOfRevenue: [] as PLLine[],
-      operatingExpenses: [] as PLLine[],
-      taxCurrent: 0,
-      taxPrior: 0,
-    };
-
-    for (const a of filteredAccounts) {
-      const g = groupBy.get(a.groupCode);
-      if (!g) continue;
-      const isTax = a.code === "9000" || a.typeCode === "TAXES";
-      let targetKey: "revenue" | "costOfRevenue" | "operatingExpenses" | null = null;
-      if (g.code === "REVENUE" || g.code === "OTHER_INCOME") targetKey = "revenue";
-      else if (g.code === "COGS") targetKey = "costOfRevenue";
-      else if ((g.code === "EXPENSE" || g.code === "OTHER_EXPENSE") && !isTax) targetKey = "operatingExpenses";
-
-      const cur = activity(a.id, g.nature, range.from, range.to);
-      const pri = activity(a.id, g.nature, range.priorFrom, range.priorTo);
-
-      if (isTax) {
-        bucket.taxCurrent += cur;
-        bucket.taxPrior += pri;
-        continue;
-      }
-      if (!targetKey) continue;
-      if (Math.abs(cur) < 0.005 && Math.abs(pri) < 0.005) continue;
-      bucket[targetKey].push({ code: a.code, name: a.name, current: cur, prior: pri });
-    }
-
+    const taxPrior = pl.tax.reduce((s, l) => s + l.prior, 0);
     const sortL = (xs: PLLine[]) => xs.sort((a, b) => a.code.localeCompare(b.code));
-    sortL(bucket.revenue); sortL(bucket.costOfRevenue); sortL(bucket.operatingExpenses);
-
-    return bucket;
-  }, [accounts, groups, journals, entity, range]);
+    sortL(pl.revenue);
+    sortL(pl.cogs);
+    sortL(pl.opex);
+    return {
+      revenue: pl.revenue,
+      costOfRevenue: pl.cogs,
+      operatingExpenses: pl.opex,
+      taxCurrent: pl.totalTax,
+      taxPrior,
+    };
+  }, [accounts, groups, journals, entities, entity, range]);
 
   const totals = useMemo(() => {
     const sum = (rows: PLLine[], k: "current" | "prior") => rows.reduce((s, r) => s + r[k], 0);

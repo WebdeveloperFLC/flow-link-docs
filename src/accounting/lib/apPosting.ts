@@ -193,7 +193,7 @@ export async function postApPayment(input: PostApPaymentInput): Promise<{ journa
     const total = round2(Number(bill?.total_amount) || 0);
     const paid = round2((Number(bill?.paid_amount) || 0) + round2(a.amount));
     const outstanding = round2(total - paid);
-    const status = outstanding <= 0.005 ? "PAID" : "PARTIAL";
+    const status = outstanding <= 0.005 ? "PAID" : "PARTIALLY_PAID";
     await supabase
       .from("accounting_ap_bills")
       .update({ paid_amount: paid, outstanding, status } as any)

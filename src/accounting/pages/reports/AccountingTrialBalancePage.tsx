@@ -20,83 +20,10 @@ import { useJournals } from "../../stores/journalsStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useEntities } from "../../stores/accountingEntitiesStore";
 import { formatCurrency } from "../../lib/format";
+import { computeTrialBalanceRows, ENTITY_ALL, ENTITY_NONE } from "../../lib/financialReports";
 
-const ALL = "__all__";
+const ALL = ENTITY_ALL;
 const todayStr = () => new Date().toISOString().slice(0, 10);
-
-interface Row {
-  accountId: string;
-  code: string;
-  name: string;
-  parentId: string | null;
-  entityLabel: string;
-  groupCode: string;
-  groupLabel: string;
-  nature: "DEBIT" | "CREDIT";
-  debitCol: Decimal; // positive value to display in DR column (0 if none)
-  creditCol: Decimal;
-  signedClosing: Decimal; // for sign awareness (negative = opposite side)
-  oppositeSide: boolean;
-}
-
-function computeRows(
-  asOf: string,
-  accounts: ReturnType<typeof useAccounts>,
-  groups: ReturnType<typeof useGroups>,
-  journals: ReturnType<typeof useJournals>,
-  entities: ReturnType<typeof useEntities>,
-  entityFilter: string,
-): Row[] {
-  const groupBy = new Map(groups.map((g) => [g.code, g]));
-  const entityNameById = new Map(entities.map((e) => [e.id, e.name]));
-
-  return accounts
-    .filter((a) => entityFilter === ALL
-      || (entityFilter === "__none__" ? a.entityId === null : a.entityId === entityFilter))
-    .map((a) => {
-      const g = groupBy.get(a.groupCode);
-      const nature: "DEBIT" | "CREDIT" = g?.nature ?? "DEBIT";
-      let dr = new Decimal(0);
-      let cr = new Decimal(0);
-      journals.forEach((j) => {
-        if (j.status !== "POSTED") return;
-        if (j.entryDate > asOf) return;
-        j.lines.forEach((l) => {
-          if (l.accountId !== a.id) return;
-          dr = dr.plus(new Decimal(l.debit || 0));
-          cr = cr.plus(new Decimal(l.credit || 0));
-        });
-      });
-      const opening = new Decimal(a.openingBalance || 0);
-      const closing = nature === "DEBIT"
-        ? opening.plus(dr).minus(cr)
-        : opening.plus(cr).minus(dr);
-      const isNeg = closing.lt(0);
-      const abs = closing.abs();
-      let debitCol = new Decimal(0);
-      let creditCol = new Decimal(0);
-      if (!closing.eq(0)) {
-        const showOn = isNeg
-          ? (nature === "DEBIT" ? "CR" : "DR")
-          : (nature === "DEBIT" ? "DR" : "CR");
-        if (showOn === "DR") debitCol = abs; else creditCol = abs;
-      }
-      return {
-        accountId: a.id,
-        code: a.code,
-        name: a.name,
-        parentId: a.parentId,
-        entityLabel: a.entityId ? (entityNameById.get(a.entityId) ?? "—") : "All",
-        groupCode: a.groupCode,
-        groupLabel: g?.label ?? a.groupCode,
-        nature,
-        debitCol,
-        creditCol,
-        signedClosing: closing,
-        oppositeSide: isNeg,
-      };
-    });
-}
 
 function downloadCsv(filename: string, rows: string[][]) {
   const csv = rows
@@ -127,11 +54,11 @@ export default function AccountingTrialBalancePage() {
   const [comparative, setComparative] = useState(false);
 
   const rows = useMemo(
-    () => computeRows(asOf, accounts, groups, journals, entities, entityFilter),
+    () => computeTrialBalanceRows(asOf, accounts, groups, journals, entities, entityFilter),
     [asOf, accounts, groups, journals, entities, entityFilter],
   );
   const rows2 = useMemo(
-    () => comparative ? computeRows(asOf2, accounts, groups, journals, entities, entityFilter) : [],
+    () => comparative ? computeTrialBalanceRows(asOf2, accounts, groups, journals, entities, entityFilter) : [],
     [comparative, asOf2, accounts, groups, journals, entities, entityFilter],
   );
   const rows2ById = useMemo(() => new Map(rows2.map((r) => [r.accountId, r])), [rows2]);

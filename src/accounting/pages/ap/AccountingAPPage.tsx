@@ -53,7 +53,10 @@ import AccountingTableSkeleton from "../../components/shared/AccountingTableSkel
 import FreeCombobox from "../../components/ap-ar/FreeCombobox";
 import { fmtMoney } from "../../components/ap-ar/money";
 import { EXPENSE_CATEGORY_LABELS, type VendorBill, type BillStatus } from "../../data/mockAP";
-import { useApBills, updateApBill, deleteApBill } from "../../stores/apBillsStore";
+import { useApBills, updateApBill, deleteApBill, recordApBillPayment } from "../../stores/apBillsStore";
+import ApRecordPaymentDialog from "../../components/ap/ApRecordPaymentDialog";
+import { useBankAccounts } from "../../stores/bankAccountsStore";
+import { getEntities } from "../../stores/accountingEntitiesStore";
 import { supabase } from "@/integrations/supabase/client";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 import { cn } from "@/lib/utils";
@@ -74,6 +77,8 @@ function daysFromToday(dateStr: string): number {
 export default function AccountingAPPage() {
   const navigate = useNavigate();
   const bills = useApBills();
+  const bankAccounts = useBankAccounts();
+  const [payBusy, setPayBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 400);
@@ -266,7 +271,7 @@ export default function AccountingAPPage() {
             label="Status"
             value={statusFilter}
             onChange={setStatusFilter}
-            options={["DRAFT", "PENDING_REVIEW", "APPROVED", "PAID", "OVERDUE", "VOID"]}
+            options={["DRAFT", "PENDING_REVIEW", "APPROVED", "PARTIALLY_PAID", "PAID", "OVERDUE", "VOID"]}
             width="w-[140px]"
           />
           <div className="flex flex-col gap-1">
@@ -402,8 +407,8 @@ export default function AccountingAPPage() {
                           {b.status === "PENDING_REVIEW" && (
                             <DropdownMenuItem onClick={() => approveBill(b)}>Approve</DropdownMenuItem>
                           )}
-                          {(b.status === "APPROVED" || b.status === "OVERDUE") && (
-                            <DropdownMenuItem onClick={() => setPayDialog(b)}>Mark as paid</DropdownMenuItem>
+                          {(b.status === "APPROVED" || b.status === "OVERDUE" || b.status === "PARTIALLY_PAID") && (
+                            <DropdownMenuItem onClick={() => setPayDialog(b)}>Record payment</DropdownMenuItem>
                           )}
                           <DropdownMenuItem
                             onClick={() =>
@@ -463,13 +468,37 @@ export default function AccountingAPPage() {
         <AgingAnalysis bills={bills} />
 
         {payDialog && (
-          <RecordPaymentDialog
+          <ApRecordPaymentDialog
             bill={payDialog}
+            banks={bankAccounts.filter((ba) => {
+              const entityUuid = payDialog.entity
+                ? (getEntities().find((e) => e.name === payDialog.entity)?.id ?? null)
+                : null;
+              return (
+                ba.status === "ACTIVE" &&
+                ba.currency === payDialog.currency &&
+                (!entityUuid || ba.entityId === entityUuid)
+              );
+            })}
+            busy={payBusy}
             onClose={() => setPayDialog(null)}
-            onConfirm={(patch) => {
-              updateApBill(payDialog.id, { status: "PAID", ...patch });
-              toast.success(`${payDialog.billNumber} marked as paid`);
-              setPayDialog(null);
+            onConfirm={async (values) => {
+              setPayBusy(true);
+              try {
+                await recordApBillPayment(payDialog.id, {
+                  amount: values.amount,
+                  postingDate: values.postingDate,
+                  paymentMethod: values.paymentMethod,
+                  reference: values.reference,
+                  linkedBankAccountId: values.linkedBankAccountId,
+                  tdsAmount: values.tdsAmount,
+                });
+                setPayDialog(null);
+              } catch (e: any) {
+                toast.error(e?.message ?? "Payment failed");
+              } finally {
+                setPayBusy(false);
+              }
             }}
           />
         )}
@@ -715,81 +744,5 @@ function AgingAnalysis({ bills }: { bills: VendorBill[] }) {
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function RecordPaymentDialog({
-  bill,
-  onClose,
-  onConfirm,
-}: {
-  bill: VendorBill;
-  onClose: () => void;
-  onConfirm: (patch: Partial<VendorBill>) => void;
-}) {
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
-  const [paymentReference, setPaymentReference] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("Bank Transfer");
-  const [bankId, setBankId] = useState<string>("");
-  const banks = SEED_BANK_ACCOUNTS.filter((b) => b.currency === bill.currency);
-  return (
-    <AlertDialog open onOpenChange={(o) => !o && onClose()}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Mark {bill.billNumber} as paid</AlertDialogTitle>
-          <AlertDialogDescription>
-            {bill.vendor} — {fmtMoney(bill.totalAmount, bill.currency)}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <div className="grid gap-3 py-2">
-          <div className="grid gap-1.5">
-            <Label>Payment reference</Label>
-            <Input
-              value={paymentReference}
-              onChange={(e) => setPaymentReference(e.target.value)}
-              placeholder="Optional reference"
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>Payment date</Label>
-            <Input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>Payment method</Label>
-            <FreeCombobox value={paymentMethod} onChange={setPaymentMethod} options={PAYMENT_METHODS} />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>Bank account used</Label>
-            <Select value={bankId} onValueChange={setBankId}>
-              <SelectTrigger>
-                <SelectValue placeholder={banks.length ? "Select bank" : `No ${bill.currency} bank accounts`} />
-              </SelectTrigger>
-              <SelectContent>
-                {banks.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.nickname} · ••••{b.accountNumber.slice(-4)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() =>
-              onConfirm({
-                paymentDate,
-                paymentReference,
-                paymentMethod: paymentMethod.toUpperCase().replace(/ /g, "_") as VendorBill["paymentMethod"],
-                linkedBankAccountId: bankId || bill.linkedBankAccountId,
-              })
-            }
-          >
-            Confirm payment
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
   );
 }

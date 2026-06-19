@@ -9,6 +9,10 @@ import { getBankAccounts } from "./bankAccountsStore";
 import { toAccountType, nextJournalNumber } from "../lib/journalHelpers";
 import type { JournalLine } from "../data/mockJournals";
 import { parsePaymentProofPaths, serializePaymentProofPaths } from "../lib/apPaymentProofs";
+import { postApPayment } from "../lib/apPosting";
+import { getEntities } from "./accountingEntitiesStore";
+
+const round2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
 
 const STORAGE_KEY = "accounting:ap-bills:v3";
 const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -49,8 +53,10 @@ function emit() {
 // linkedBankAccountId, linkedCOACode, paymentDate, paymentReference, daysOverdue,
 // createdBy, approvedBy, tags) are preserved on hydrate via mergeFromDb.
 function mapToDb(b: VendorBill): Record<string, unknown> {
-  const paid = +(b.totalAmount - 0).toFixed(2); // outstanding calc handled below
-  const isPaid = b.status === "PAID";
+  const paid = round2(b.paidAmount ?? (b.status === "PAID" ? b.totalAmount : 0));
+  const outstanding = round2(
+    b.outstandingBalance ?? Math.max(0, (b.totalAmount ?? 0) - paid),
+  );
   const proofPaths = (b.paymentProofPaths?.length ? b.paymentProofPaths : b.paymentProofPath ? [b.paymentProofPath] : []).filter(
     Boolean,
   ) as string[];
@@ -61,12 +67,14 @@ function mapToDb(b: VendorBill): Record<string, unknown> {
     bill_date: b.billDate,
     due_date: b.dueDate || null,
     entity: b.entity || null,
+    entity_id: getEntities().find((e) => e.name === b.entity)?.id ?? b.entity ?? null,
+    branch_id: b.branch || getEntities().find((e) => e.name === b.entity)?.id ?? b.entity ?? null,
     currency: b.currency || "INR",
     subtotal: b.subtotal ?? 0,
     tax_amount: b.taxAmount ?? 0,
     total_amount: b.totalAmount ?? 0,
-    paid_amount: isPaid ? b.totalAmount : 0,
-    outstanding: isPaid ? 0 : (b.totalAmount ?? 0),
+    paid_amount: paid,
+    outstanding,
     status: b.status || "DRAFT",
     payment_terms: b.notes && b.notes.startsWith("Payment terms:") ? b.notes : null,
     payment_method: b.paymentMethod || null,
@@ -111,6 +119,10 @@ function mergeFromDb(local: VendorBill | undefined, row: any): VendorBill {
     subtotal: Number(row.subtotal ?? local?.subtotal ?? 0),
     taxAmount: Number(row.tax_amount ?? local?.taxAmount ?? 0),
     totalAmount: Number(row.total_amount ?? local?.totalAmount ?? 0),
+    paidAmount: Number(row.paid_amount ?? local?.paidAmount ?? 0),
+    outstandingBalance: Number(
+      row.outstanding ?? local?.outstandingBalance ?? Math.max(0, Number(row.total_amount ?? 0) - Number(row.paid_amount ?? 0)),
+    ),
     status: (row.status ?? local?.status ?? "DRAFT") as BillStatus,
     linkedDocumentId: local?.linkedDocumentId,
     linkedJournalId: row.journal_id ?? local?.linkedJournalId,
@@ -193,7 +205,7 @@ export function updateApBill(id: string, patch: Partial<VendorBill>) {
     if (prev.status !== "APPROVED" && next.status === "APPROVED" && !next.linkedJournalId) {
       autoPostAccrual(next);
     }
-    if (prev.status !== "PAID" && next.status === "PAID" && !next.linkedPaymentJournalId) {
+    if (prev.status !== "PAID" && next.status === "PAID" && !next.linkedPaymentJournalId && !next.paidAmount) {
       autoPostPayment(next);
     }
   };
@@ -419,4 +431,68 @@ function autoPostPayment(bill: VendorBill) {
     console.warn("[apBillsStore] autoPostPayment failed", e);
     toast.error("Could not auto-post payment journal — payment journal pending");
   }
+}
+
+/** Record a partial or full vendor payment through the journal engine + allocation tables. */
+export async function recordApBillPayment(
+  billId: string,
+  input: {
+    amount: number;
+    postingDate: string;
+    paymentMethod?: string;
+    reference?: string;
+    linkedBankAccountId?: string;
+    tdsAmount?: number;
+    attachmentPath?: string;
+  },
+): Promise<void> {
+  const bill = bills.find((b) => b.id === billId);
+  if (!bill) throw new Error("Bill not found");
+
+  const outstanding = round2(
+    bill.outstandingBalance ?? Math.max(0, bill.totalAmount - (bill.paidAmount ?? 0)),
+  );
+  const cash = round2(input.amount);
+  const tds = round2(input.tdsAmount ?? 0);
+  const gross = round2(cash + tds);
+  if (cash <= 0) throw new Error("Payment amount must be positive.");
+  if (gross > outstanding + 0.005) {
+    throw new Error(`Payment of ${gross.toFixed(2)} exceeds outstanding ${outstanding.toFixed(2)}.`);
+  }
+
+  const entityRow = getEntities().find((e) => e.name === bill.entity);
+  const entityId = entityRow?.id ?? bill.entity;
+  const branchId = bill.branch || entityId;
+
+  const { journal } = await postApPayment({
+    vendorName: bill.vendor,
+    entityId,
+    branchId,
+    currency: bill.currency,
+    amount: cash,
+    tdsAmount: tds,
+    postingDate: input.postingDate,
+    paymentMethod: input.paymentMethod,
+    reference: input.reference,
+    attachmentPath: input.attachmentPath,
+    bankRoleKey: "BANK_OPERATING",
+    allocations: [{ billId, amount: gross }],
+  });
+
+  const paid = round2((bill.paidAmount ?? 0) + gross);
+  const out = round2(Math.max(0, bill.totalAmount - paid));
+  const status: BillStatus = out <= 0.005 ? "PAID" : "PARTIALLY_PAID";
+
+  patchLocal(billId, {
+    paidAmount: paid,
+    outstandingBalance: out,
+    status,
+    paymentDate: input.postingDate,
+    paymentReference: input.reference,
+    paymentMethod: (input.paymentMethod as VendorBill["paymentMethod"]) ?? bill.paymentMethod,
+    linkedBankAccountId: input.linkedBankAccountId ?? bill.linkedBankAccountId,
+    linkedPaymentJournalId: journal.id,
+  });
+
+  toast.success(`Payment of ${cash.toFixed(2)} ${bill.currency} posted.`);
 }

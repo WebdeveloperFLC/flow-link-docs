@@ -107,6 +107,8 @@ import AccountingVerificationQueuePage from "./accounting/pages/ar/AccountingVer
 import AccountingReceiptsPage from "./accounting/pages/ar/AccountingReceiptsPage";
 import AccountingTrustPage from "./accounting/pages/trust/AccountingTrustPage";
 import AccountingTrustDisbursementPage from "./accounting/pages/trust/AccountingTrustDisbursementPage";
+import AccountingPayrollPage from "./accounting/pages/payroll/AccountingPayrollPage";
+import AccountingPayrollDetailPage from "./accounting/pages/payroll/AccountingPayrollDetailPage";
 import AccountingVendorsPage from "./accounting/pages/vendors/AccountingVendorsPage";
 import AccountingVendorDetailPage from "./accounting/pages/vendors/AccountingVendorDetailPage";
 import AccountingClientsPage from "./accounting/pages/clients/AccountingClientsPage";
@@ -1197,6 +1199,22 @@ const App = () => (
                     element={
                       <AccountingSectionRoute section="trust" level="edit">
                         <AccountingTrustDisbursementPage />
+                      </AccountingSectionRoute>
+                    }
+                  />
+                  <Route
+                    path="/accounting/payroll"
+                    element={
+                      <AccountingSectionRoute section="payroll">
+                        <AccountingPayrollPage />
+                      </AccountingSectionRoute>
+                    }
+                  />
+                  <Route
+                    path="/accounting/payroll/:id"
+                    element={
+                      <AccountingSectionRoute section="payroll">
+                        <AccountingPayrollDetailPage />
                       </AccountingSectionRoute>
                     }
                   />
