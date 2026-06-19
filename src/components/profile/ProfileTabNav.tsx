@@ -1,9 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { ProfileCompletionSection, ProfileSectionId } from "@/lib/profile/types";
+import type { ProfileCompletionSection, ProfileTabId } from "@/lib/profile/types";
 
 export interface ProfileTabDef {
-  id: ProfileSectionId;
+  id: ProfileTabId;
   label: string;
   shortLabel?: string;
 }
@@ -14,20 +14,27 @@ export const PROFILE_TABS: ProfileTabDef[] = [
   { id: "tests", label: "Tests", shortLabel: "Tests" },
   { id: "education", label: "Education", shortLabel: "Education" },
   { id: "experience", label: "Experience", shortLabel: "Experience" },
+  { id: "client360", label: "Client 360", shortLabel: "Client 360" },
 ];
 
+export function sectionTitle(section: ProfileTabId): string {
+  if (section === "client360") return "Client 360";
+  return section.charAt(0).toUpperCase() + section.slice(1);
+}
+
 interface Props {
-  activeSection: ProfileSectionId;
+  activeSection: ProfileTabId;
   sections?: ProfileCompletionSection[];
-  onChange: (section: ProfileSectionId) => void;
+  onChange: (section: ProfileTabId) => void;
   className?: string;
 }
 
 export function ProfileTabNav({ activeSection, sections, onChange, className }: Props) {
-  const badgeFor = (id: ProfileSectionId) => sections?.find((s) => s.section === id);
+  const badgeFor = (id: ProfileTabId) =>
+    id === "client360" ? undefined : sections?.find((s) => s.section === id);
 
   return (
-    <div className={cn("flex flex-wrap gap-1.5", className)}>
+    <div className={cn("flex flex-wrap gap-1.5", className)} data-testid="profile-tab-nav">
       {PROFILE_TABS.map((tab) => {
         const badge = badgeFor(tab.id);
         const active = activeSection === tab.id;
@@ -35,6 +42,7 @@ export function ProfileTabNav({ activeSection, sections, onChange, className }: 
           <button
             key={tab.id}
             type="button"
+            data-testid={`profile-tab-${tab.id}`}
             onClick={() => onChange(tab.id)}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",

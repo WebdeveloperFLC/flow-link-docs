@@ -1,4 +1,4 @@
-export { ProfileTabNav, PROFILE_TABS } from "@/components/profile/ProfileTabNav";
+export { ProfileTabNav, PROFILE_TABS, sectionTitle } from "@/components/profile/ProfileTabNav";
 export { ProfileCompletionBadge } from "@/components/profile/ProfileCompletionBadge";
 export { ProfileMetaBar } from "@/components/profile/ProfileMetaBar";
 export { ProfileViewSummaries } from "@/components/profile/ProfileViewSummaries";
@@ -10,4 +10,5 @@ export { ProfileExperiencePanel } from "@/components/profile/ProfileExperiencePa
 export { ProfileIdentityPanel, ProfileContactPanel } from "@/components/profile/ProfileIdentityContactPanels";
 export { ProfileServicesBlock } from "@/components/profile/ProfileServicesBlock";
 export { ProfileTestsPanel } from "@/components/profile/ProfileTestsPanel";
+export { Client360ExecutivePanel } from "@/components/profile/Client360ExecutivePanel";
 export { Client360RegistryPanel } from "@/components/profile/Client360RegistryPanel";

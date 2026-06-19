@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { appendClientActivityLog } from "@/lib/clientActivityLog";
 import { profileSave } from "@/lib/profile/profileSave";
 import { toEditState } from "@/lib/profile/toEditState";
-import type { ProfileEditState, ProfileSectionId, ProfileViewModel } from "@/lib/profile/types";
+import type { ProfileEditState, ProfileSectionId, ProfileTabId, ProfileViewModel } from "@/lib/profile/types";
 
 export interface UseProfileEditorResult {
   editState: ProfileEditState | null;
@@ -11,7 +11,7 @@ export interface UseProfileEditorResult {
   saving: boolean;
   startEdit: (section: ProfileSectionId) => void;
   cancelEdit: () => void;
-  setActiveSection: (section: ProfileSectionId) => void;
+  setActiveSection: (section: ProfileTabId) => void;
   patchEditState: (patch: Partial<ProfileEditState> | ((prev: ProfileEditState) => ProfileEditState)) => void;
   saveSection: (section: ProfileSectionId) => Promise<boolean>;
   saveAll: () => Promise<boolean>;
@@ -56,7 +56,7 @@ export function useProfileEditor(
     patchEditState({ editingSection: null });
   }, [viewModel, editState?.activeSection, patchEditState]);
 
-  const setActiveSection = useCallback((section: ProfileSectionId) => {
+  const setActiveSection = useCallback((section: ProfileTabId) => {
     patchEditState({ activeSection: section });
   }, [patchEditState]);
 

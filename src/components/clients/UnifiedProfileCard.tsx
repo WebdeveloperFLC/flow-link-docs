@@ -14,20 +14,22 @@ import {
   ProfileTestsPanel,
   ProfileEducationPanel,
   ProfileExperiencePanel,
-  Client360RegistryPanel,
+  Client360ExecutivePanel,
+  sectionTitle,
 } from "@/components/profile";
-import { CLIENT_360_SECTIONS } from "@/lib/profile/client360Sections";
+import type { LinkedDocumentOption } from "@/components/profile/LinkedDocumentsPanel";
 import { summarizeProfile } from "@/lib/profile/summarizeProfile";
+import { computeCompletion } from "@/lib/profile/profileCompletion";
 import { ensureEducationId, ensureExperienceId, educationRefKey, experienceRefKey, englishTestRefKey } from "@/lib/profile/profileRecordIds";
 import { slotLabel } from "@/lib/profile/profileDocumentSlots";
 import type {
-  ProfileAptitudeTestId,
   ProfileEducationRecord,
   ProfileEnglishTestId,
   ProfileExperienceRecord,
-  ProfileLanguageTestId,
   ProfileLinkedDocument,
   ProfileSectionId,
+  ProfileTabId,
+  ProfileViewModel,
 } from "@/lib/profile/types";
 import { cn } from "@/lib/utils";
 
@@ -36,12 +38,46 @@ interface Props {
   canEdit?: boolean;
   refreshKey?: number;
   className?: string;
+  onSaved?: () => void;
+  /** Dev preview only — bypasses Supabase loaders */
+  previewViewModel?: ProfileViewModel;
+  previewDocuments?: LinkedDocumentOption[];
 }
 
-export function UnifiedProfileCard({ clientId, canEdit = false, refreshKey = 0, className }: Props) {
-  const { viewModel, completion, loading, error, reload } = useProfileViewModel(clientId, refreshKey);
-  const editor = useProfileEditor(viewModel, { clientId, onSaved: reload });
-  const documents = useProfileDocuments(clientId);
+export function UnifiedProfileCard({
+  clientId,
+  canEdit = false,
+  refreshKey = 0,
+  className,
+  onSaved,
+  previewViewModel,
+  previewDocuments,
+}: Props) {
+  const isPreview = !!previewViewModel;
+
+  const loaded = useProfileViewModel(isPreview ? null : clientId, refreshKey);
+  const viewModel = isPreview ? previewViewModel : loaded.viewModel;
+  const previewCompletion = useMemo(
+    () => (isPreview && viewModel ? computeCompletion(viewModel) : null),
+    [isPreview, viewModel],
+  );
+  const completion = isPreview ? previewCompletion : loaded.completion;
+  const loading = isPreview ? false : loaded.loading;
+  const error = isPreview ? null : loaded.error;
+  const reload = isPreview ? async () => {} : loaded.reload;
+
+  const editor = useProfileEditor(viewModel, {
+    clientId,
+    onSaved: async () => {
+      await reload();
+      onSaved?.();
+    },
+  });
+
+  const liveDocs = useProfileDocuments(isPreview ? null : clientId);
+  const documents = isPreview
+    ? { documents: previewDocuments ?? [], loading: false, reload: async () => {}, uploadAndLink: async () => null }
+    : liveDocs;
 
   const summaries = useMemo(
     () => (viewModel ? summarizeProfile(viewModel) : []),
@@ -50,6 +86,7 @@ export function UnifiedProfileCard({ clientId, canEdit = false, refreshKey = 0, 
 
   const activeSection = editor.editState?.activeSection ?? "identity";
   const editingSection = editor.editingSection;
+  const isClient360 = activeSection === "client360";
   const isEditing = (section: ProfileSectionId) => editingSection === section;
   const modeFor = (section: ProfileSectionId): "view" | "edit" =>
     isEditing(section) ? "edit" : "view";
@@ -118,8 +155,8 @@ export function UnifiedProfileCard({ clientId, canEdit = false, refreshKey = 0, 
     }
   };
 
-  const renderSectionActions = (section: ProfileSectionId) => {
-    if (!canEdit) return null;
+  const renderSectionActions = (section: ProfileTabId) => {
+    if (section === "client360" || !canEdit) return null;
     if (isEditing(section)) {
       return (
         <div className="flex gap-2">
@@ -155,9 +192,14 @@ export function UnifiedProfileCard({ clientId, canEdit = false, refreshKey = 0, 
     );
   };
 
+  const handleTabChange = (section: ProfileTabId) => {
+    if (editingSection) editor.cancelEdit();
+    editor.setActiveSection(section);
+  };
+
   if (loading && !viewModel) {
     return (
-      <Card className={cn("p-8 flex items-center justify-center text-muted-foreground", className)}>
+      <Card className={cn("p-8 flex items-center justify-center text-muted-foreground", className)} data-testid="unified-profile-card">
         <Loader2 className="size-5 mr-2 animate-spin" /> Loading profile…
       </Card>
     );
@@ -165,7 +207,7 @@ export function UnifiedProfileCard({ clientId, canEdit = false, refreshKey = 0, 
 
   if (error || !viewModel || !editor.editState) {
     return (
-      <Card className={cn("p-6 text-sm text-destructive", className)}>
+      <Card className={cn("p-6 text-sm text-destructive", className)} data-testid="unified-profile-card">
         {error ?? "Profile unavailable"}
       </Card>
     );
@@ -179,7 +221,7 @@ export function UnifiedProfileCard({ clientId, canEdit = false, refreshKey = 0, 
   }));
 
   return (
-    <Card className={cn("p-4 md:p-6 space-y-4", className)}>
+    <Card className={cn("p-4 md:p-6 space-y-4", className)} data-testid="unified-profile-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1 min-w-0">
           <h3 className="text-lg font-semibold truncate">
@@ -196,19 +238,18 @@ export function UnifiedProfileCard({ clientId, canEdit = false, refreshKey = 0, 
         )}
       </div>
 
-      <ProfileServicesBlock services={viewModel.services} />
+      <div data-testid="profile-services-block">
+        <ProfileServicesBlock services={viewModel.services} />
+      </div>
 
       <ProfileTabNav
         activeSection={activeSection}
         sections={completion?.sections}
-        onChange={(section) => {
-          if (editingSection && editingSection !== section) editor.cancelEdit();
-          editor.setActiveSection(section);
-        }}
+        onChange={handleTabChange}
       />
 
       <div className="flex items-center justify-between gap-2">
-        <h4 className="text-sm font-semibold capitalize">{activeSection}</h4>
+        <h4 className="text-sm font-semibold">{sectionTitle(activeSection)}</h4>
         {renderSectionActions(activeSection)}
       </div>
 
@@ -243,119 +284,123 @@ export function UnifiedProfileCard({ clientId, canEdit = false, refreshKey = 0, 
       )}
 
       {activeSection === "tests" && (
-        <ProfileTestsPanel
-          mode={modeFor("tests")}
-          activeEnglishTestId={es.tests.active_english_test_id}
-          english={isEditing("tests") ? es.tests.english : viewModel.tests.english}
-          aptitude={isEditing("tests") ? es.tests.aptitude : viewModel.tests.aptitude}
-          language={isEditing("tests") ? es.tests.language : viewModel.tests.language}
-          selectedEnglishTestId={es.selectedEnglishTestId}
-          selectedAptitudeTestId={es.selectedAptitudeTestId}
-          selectedLanguageTestId={es.selectedLanguageTestId}
-          availableDocuments={docOptions}
-          onSelectEnglish={(id) => editor.patchEditState({ selectedEnglishTestId: id })}
-          onSelectAptitude={(id) => editor.patchEditState({ selectedAptitudeTestId: id })}
-          onSelectLanguage={(id) => editor.patchEditState({ selectedLanguageTestId: id })}
-          onSetActiveEnglish={(id) =>
-            editor.patchEditState({
-              tests: { ...es.tests, active_english_test_id: id },
-              selectedEnglishTestId: id,
-            })
-          }
-          onEnglishChange={(testId, patch) =>
-            editor.patchEditState({
-              tests: {
-                ...es.tests,
-                english: es.tests.english.map((e) =>
-                  e.test_id === testId ? { ...e, ...patch, sections: { ...e.sections, ...(patch.sections ?? {}) } } : e,
-                ),
-              },
-            })
-          }
-          onAptitudeChange={(testId, patch) =>
-            editor.patchEditState({
-              tests: {
-                ...es.tests,
-                aptitude: es.tests.aptitude.map((a) =>
-                  a.test_id === testId ? { ...a, ...patch } : a,
-                ),
-              },
-            })
-          }
-          onLanguageChange={(testId, patch) =>
-            editor.patchEditState({
-              tests: {
-                ...es.tests,
-                language: es.tests.language.map((l) =>
-                  l.test_id === testId ? { ...l, ...patch } : l,
-                ),
-              },
-            })
-          }
-          onLinkEnglishDocument={(testId, docId, slot) =>
-            linkDocument(englishTestRefKey(testId), docId, slot)
-          }
-          onUnlinkEnglishDocument={(testId, docId, slot) =>
-            unlinkDocument(englishTestRefKey(testId), docId, slot)
-          }
-          onUploadEnglishDocument={(testId, file, slot) =>
-            void uploadDocument(englishTestRefKey(testId), file, slot)
-          }
-        />
+        <div data-testid="profile-section-tests">
+          <ProfileTestsPanel
+            mode={modeFor("tests")}
+            activeEnglishTestId={es.tests.active_english_test_id}
+            english={isEditing("tests") ? es.tests.english : viewModel.tests.english}
+            aptitude={isEditing("tests") ? es.tests.aptitude : viewModel.tests.aptitude}
+            language={isEditing("tests") ? es.tests.language : viewModel.tests.language}
+            selectedEnglishTestId={es.selectedEnglishTestId}
+            selectedAptitudeTestId={es.selectedAptitudeTestId}
+            selectedLanguageTestId={es.selectedLanguageTestId}
+            availableDocuments={docOptions}
+            onSelectEnglish={(id) => editor.patchEditState({ selectedEnglishTestId: id })}
+            onSelectAptitude={(id) => editor.patchEditState({ selectedAptitudeTestId: id })}
+            onSelectLanguage={(id) => editor.patchEditState({ selectedLanguageTestId: id })}
+            onSetActiveEnglish={(id) =>
+              editor.patchEditState({
+                tests: { ...es.tests, active_english_test_id: id },
+                selectedEnglishTestId: id,
+              })
+            }
+            onEnglishChange={(testId, patch) =>
+              editor.patchEditState({
+                tests: {
+                  ...es.tests,
+                  english: es.tests.english.map((e) =>
+                    e.test_id === testId ? { ...e, ...patch, sections: { ...e.sections, ...(patch.sections ?? {}) } } : e,
+                  ),
+                },
+              })
+            }
+            onAptitudeChange={(testId, patch) =>
+              editor.patchEditState({
+                tests: {
+                  ...es.tests,
+                  aptitude: es.tests.aptitude.map((a) =>
+                    a.test_id === testId ? { ...a, ...patch } : a,
+                  ),
+                },
+              })
+            }
+            onLanguageChange={(testId, patch) =>
+              editor.patchEditState({
+                tests: {
+                  ...es.tests,
+                  language: es.tests.language.map((l) =>
+                    l.test_id === testId ? { ...l, ...patch } : l,
+                  ),
+                },
+              })
+            }
+            onLinkEnglishDocument={(testId, docId, slot) =>
+              linkDocument(englishTestRefKey(testId), docId, slot)
+            }
+            onUnlinkEnglishDocument={(testId, docId, slot) =>
+              unlinkDocument(englishTestRefKey(testId), docId, slot)
+            }
+            onUploadEnglishDocument={(testId, file, slot) =>
+              void uploadDocument(englishTestRefKey(testId), file, slot)
+            }
+          />
+        </div>
       )}
 
       {activeSection === "education" && (
-        <ProfileEducationPanel
-          records={isEditing("education") ? es.education : viewModel.education}
-          mode={modeFor("education")}
-          expandedId={es.expandedEducationId}
-          availableDocuments={docOptions}
-          onExpand={(id) => editor.patchEditState({ expandedEducationId: id })}
-          onAdd={() => {
-            const id = ensureEducationId();
-            const record: ProfileEducationRecord = {
-              id,
-              qualification_type: null,
-              institution_name: null,
-              country: null,
-              state_province: null,
-              city: null,
-              field_of_study: null,
-              major: null,
-              start_year: null,
-              end_year: null,
-              status: null,
-              grade_type: null,
-              score: null,
-              backlogs: null,
-              notes: null,
-              linked_documents: [],
-            };
-            editor.patchEditState({
-              education: [...es.education, record],
-              expandedEducationId: id,
-            });
-          }}
-          onRemove={(id) =>
-            editor.patchEditState({
-              education: es.education.filter((e) => e.id !== id),
-            })
-          }
-          onPatch={(id, patch) =>
-            editor.patchEditState({
-              education: es.education.map((e) => (e.id === id ? { ...e, ...patch } : e)),
-            })
-          }
-          onLinkDocument={(recordId, docId, slot) =>
-            linkDocument(educationRefKey(recordId), docId, slot)
-          }
-          onUnlinkDocument={(recordId, docId, slot) =>
-            unlinkDocument(educationRefKey(recordId), docId, slot)
-          }
-          onUploadDocument={(recordId, file, slot) =>
-            void uploadDocument(educationRefKey(recordId), file, slot)
-          }
-        />
+        <div data-testid="profile-section-education">
+          <ProfileEducationPanel
+            records={isEditing("education") ? es.education : viewModel.education}
+            mode={modeFor("education")}
+            expandedId={es.expandedEducationId}
+            availableDocuments={docOptions}
+            onExpand={(id) => editor.patchEditState({ expandedEducationId: id })}
+            onAdd={() => {
+              const id = ensureEducationId();
+              const record: ProfileEducationRecord = {
+                id,
+                qualification_type: null,
+                institution_name: null,
+                country: null,
+                state_province: null,
+                city: null,
+                field_of_study: null,
+                major: null,
+                start_year: null,
+                end_year: null,
+                status: null,
+                grade_type: null,
+                score: null,
+                backlogs: null,
+                notes: null,
+                linked_documents: [],
+              };
+              editor.patchEditState({
+                education: [...es.education, record],
+                expandedEducationId: id,
+              });
+            }}
+            onRemove={(id) =>
+              editor.patchEditState({
+                education: es.education.filter((e) => e.id !== id),
+              })
+            }
+            onPatch={(id, patch) =>
+              editor.patchEditState({
+                education: es.education.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+              })
+            }
+            onLinkDocument={(recordId, docId, slot) =>
+              linkDocument(educationRefKey(recordId), docId, slot)
+            }
+            onUnlinkDocument={(recordId, docId, slot) =>
+              unlinkDocument(educationRefKey(recordId), docId, slot)
+            }
+            onUploadDocument={(recordId, file, slot) =>
+              void uploadDocument(educationRefKey(recordId), file, slot)
+            }
+          />
+        </div>
       )}
 
       {activeSection === "experience" && (
@@ -409,7 +454,7 @@ export function UnifiedProfileCard({ clientId, canEdit = false, refreshKey = 0, 
         />
       )}
 
-      <Client360RegistryPanel sections={CLIENT_360_SECTIONS} />
+      {isClient360 && <Client360ExecutivePanel viewModel={viewModel} />}
     </Card>
   );
 }

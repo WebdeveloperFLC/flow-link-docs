@@ -1,4 +1,4 @@
-import type { ProfileEditState, ProfileSectionId, ProfileViewModel } from "@/lib/profile/types";
+import type { ProfileEditState, ProfileTabId, ProfileViewModel } from "@/lib/profile/types";
 
 function cloneIdentity(vm: ProfileViewModel): ProfileEditState["identity"] {
   return { ...vm.identity };
@@ -44,7 +44,7 @@ function cloneExperience(vm: ProfileViewModel): ProfileEditState["experience"] {
 }
 
 export interface ToEditStateOptions {
-  activeSection?: ProfileSectionId;
+  activeSection?: ProfileTabId;
 }
 
 /**

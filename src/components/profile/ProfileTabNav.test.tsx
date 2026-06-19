@@ -1,19 +1,30 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { ProfileTabNav } from "@/components/profile/ProfileTabNav";
-import type { ProfileSectionId } from "@/lib/profile/types";
+import { ProfileTabNav, PROFILE_TABS } from "@/components/profile/ProfileTabNav";
 
 describe("ProfileTabNav", () => {
-  it("renders all profile section pills", () => {
+  it("renders all six profile section pills including Client 360", () => {
     render(<ProfileTabNav activeSection="identity" onChange={() => {}} />);
     expect(screen.getByRole("button", { name: /Identity/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Contact/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Tests/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Education/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Experience/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Client 360/i })).toBeInTheDocument();
   });
 
-  it("shows completion badges when sections provided", () => {
+  it("PROFILE_TABS order is Identity through Client 360", () => {
+    expect(PROFILE_TABS.map((t) => t.id)).toEqual([
+      "identity",
+      "contact",
+      "tests",
+      "education",
+      "experience",
+      "client360",
+    ]);
+  });
+
+  it("shows completion badges when sections provided (not on client360)", () => {
     render(
       <ProfileTabNav
         activeSection="tests"
@@ -32,6 +43,6 @@ describe("ProfileTabNav", () => {
     const onChange = vi.fn();
     render(<ProfileTabNav activeSection="identity" onChange={onChange} />);
     fireEvent.click(screen.getByRole("button", { name: /Education/i }));
-    expect(onChange).toHaveBeenCalledWith("education" satisfies ProfileSectionId);
+    expect(onChange).toHaveBeenCalledWith("education");
   });
 });

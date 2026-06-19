@@ -1,0 +1,210 @@
+import type { ProfileViewModel } from "@/lib/profile/types";
+
+/** Stable mock client id for /dev/profile-preview — no Supabase. */
+export const MOCK_PROFILE_PREVIEW_CLIENT_ID = "a3f8c2e1-9b4d-4a7e-8f12-6d5e4c3b2a10";
+
+/**
+ * Full mock ProfileViewModel for dev preview and screenshot capture.
+ * Mirrors approved contract sample with complete field coverage.
+ */
+export function createMockProfileViewModel(): ProfileViewModel {
+  return {
+    meta: {
+      client_id: MOCK_PROFILE_PREVIEW_CLIENT_ID,
+      loaded_at: "2026-06-18T14:30:00.000Z",
+      source_client_updated_at: "2026-06-17T09:15:22.000Z",
+      source_profile_updated_at: "2026-06-17T09:15:22.000Z",
+      registration_number: "FL-2026-0042",
+      branch: "Delhi — Saket",
+      assigned_counselor_id: "c7b2e1a0-4f3d-4b2e-9a1c-8d7e6f5a4b3c",
+      assigned_counselor_name: "Anita Verma",
+      client_status: "in_progress",
+      client_status_label: "In Progress",
+      lead_source: "Walk-in",
+      created_at: "2025-08-12T09:00:00.000Z",
+    },
+    identity: {
+      first_name: "Priya",
+      middle_name: "K.",
+      last_name: "Sharma",
+      full_name: "Priya K. Sharma",
+      date_of_birth: "1998-03-15",
+      gender: "Female",
+      nationality: "India",
+      place_of_birth: "New Delhi",
+      marital_status: "Single",
+      spouse_name: null,
+      passport_number: "Z1234567",
+      passport_country: "India",
+      passport_issue_date: "2020-01-15",
+      passport_expiry: "2030-01-01",
+    },
+    contact: {
+      phone_primary: "+91 98765 43210",
+      phone_alt: null,
+      email_primary: "priya@example.com",
+      email_alt: null,
+      address_line1: "12 Saket Lane",
+      address_city: "New Delhi",
+      address_state: "Delhi",
+      address_country: "India",
+      address_postal: "110017",
+      country_code: "IN",
+      emergency_contact_name: "Raj Sharma",
+      emergency_contact_phone: "+91 98765 00000",
+    },
+    services: {
+      total_count: 2,
+      primary_label: "Canada Student Visa",
+      primary_service_code: "canada::student_visa",
+      items: [
+        { service_code: "canada::student_visa", label: "Canada Student Visa", category: "visa" },
+        { service_code: "ielts_coaching", label: "IELTS Coaching", category: "coaching" },
+      ],
+      pipeline: { stage_label: "Document collection", progress_percent: 35 },
+    },
+    tests: {
+      active_english_test_id: "ielts",
+      english: [
+        {
+          test_id: "ielts",
+          status: "taken",
+          overall: "7.5",
+          test_date: "2025-11-20",
+          test_expiry: "2027-11-20",
+          sections: { listening: "8.0", reading: "7.5", writing: "7.0", speaking: "7.5" },
+          ielts_variant: "Academic",
+          country: "India",
+          linked_documents: [
+            {
+              document_id: "doc-1",
+              slot: "trf",
+              label: "TRF",
+              file_name: "IELTS_TRF.pdf",
+              linked_at: "2025-11-21T10:00:00.000Z",
+            },
+          ],
+        },
+        {
+          test_id: "pte",
+          status: "planned",
+          overall: null,
+          test_date: null,
+          test_expiry: null,
+          sections: {},
+          ielts_variant: null,
+          country: null,
+          linked_documents: [],
+        },
+      ],
+      aptitude: [
+        {
+          test_id: "gre",
+          status: "taken",
+          overall: "320",
+          test_date: "2024-06-01",
+          sections: { quant: "165", verbal: "155" },
+          linked_documents: [],
+        },
+        {
+          test_id: "sat",
+          status: "planned",
+          overall: null,
+          test_date: null,
+          sections: {},
+          linked_documents: [],
+        },
+      ],
+      language: [
+        {
+          test_id: "french",
+          status: "scheduled",
+          cefr_level: null,
+          exam_type: "TEF",
+          overall_score: null,
+          test_date: "2026-09-15",
+          expiry_date: null,
+          sections: {},
+          linked_documents: [],
+        },
+        {
+          test_id: "german",
+          status: "not_taken",
+          cefr_level: null,
+          exam_type: "TestDaF",
+          overall_score: null,
+          test_date: null,
+          expiry_date: null,
+          sections: {},
+          linked_documents: [],
+        },
+      ],
+    },
+    education: [
+      {
+        id: "edu_8a7f2b",
+        qualification_type: "Bachelor's",
+        institution_name: "University of Delhi",
+        country: "India",
+        state_province: "Delhi",
+        city: "New Delhi",
+        field_of_study: "Commerce",
+        major: "Accounting",
+        start_year: "2016",
+        end_year: "2020",
+        status: "Completed",
+        grade_type: "Percentage",
+        score: "78%",
+        backlogs: "0",
+        notes: null,
+        linked_documents: [
+          {
+            document_id: "doc-2",
+            slot: "degree_certificate",
+            label: "Degree Certificate",
+            file_name: "degree.pdf",
+            linked_at: "2025-01-10T10:00:00.000Z",
+          },
+          {
+            document_id: "doc-3",
+            slot: "transcript",
+            label: "Transcript",
+            file_name: "transcript.pdf",
+            linked_at: "2025-01-10T10:00:00.000Z",
+          },
+          {
+            document_id: "doc-4",
+            slot: "marksheet",
+            label: "Marksheet",
+            file_name: "marksheet.pdf",
+            linked_at: "2025-01-10T10:00:00.000Z",
+          },
+        ],
+      },
+    ],
+    experience: [
+      {
+        id: "exp_5d9b1c",
+        company: "TCS",
+        country: "India",
+        state_province: "Delhi",
+        city: "New Delhi",
+        designation: "Business Analyst",
+        department: "Operations",
+        employment_type: "Full-time",
+        start_date: "2021-01-01",
+        end_date: "2023-06-30",
+        currently_working: false,
+        notes: null,
+        linked_documents: [],
+      },
+    ],
+  };
+}
+
+export const MOCK_PROFILE_PREVIEW_DOCUMENTS = [
+  { id: "doc-1", file_name: "IELTS_TRF.pdf", document_type: "profile_attachment" },
+  { id: "doc-2", file_name: "degree.pdf", document_type: "profile_attachment" },
+  { id: "doc-3", file_name: "transcript.pdf", document_type: "profile_attachment" },
+  { id: "doc-4", file_name: "marksheet.pdf", document_type: "profile_attachment" },
+];

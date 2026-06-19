@@ -31,7 +31,7 @@ import type { Template, TemplateItem, TemplateGroup } from "@/pages/Templates";
 import { ShareLinkDialog } from "@/components/documents/ShareLinkDialog";
 import { BINDER_GROUPS, groupForType } from "@/lib/binderGroups";
 import { AddDocTypeDialog, type ExtraItem } from "@/components/clients/AddDocTypeDialog";
-import { ClientProfileCard } from "@/components/clients/ClientProfileCard";
+import { UnifiedProfileCard } from "@/components/clients/UnifiedProfileCard";
 import { ClientServicesTabContent } from "@/components/clients/ClientServicesTabContent";
 import { ClientJourneyProfileSection } from "@/components/clients/ClientJourneyProfileSection";
 import { ClientActivityLogCard } from "@/components/clients/ClientActivityLogCard";
@@ -41,7 +41,6 @@ import { LetterCard } from "@/components/letters/LetterCard";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { CasePeopleCard } from "@/components/clients/CasePeopleCard";
-import { ClientBackgroundProfileSection } from "@/components/clients/ClientBackgroundProfileSection";
 import { ClientFormsCard } from "@/components/clients/ClientFormsCard";
 import { SectionBuilderCard, type SectionDoc } from "@/components/clients/SectionBuilderCard";
 import { CustomBindersPanel } from "@/components/clients/CustomBindersPanel";
@@ -1224,16 +1223,7 @@ const ClientDetail = () => {
           </TabsContent>
 
           <TabsContent value="profile" className="mt-0 space-y-6">
-            <ClientProfileCard
-              clientId={client.id}
-              canEdit={canUpload}
-              onReExtract={onReExtract}
-              reExtracting={reExtracting}
-              onSyncOdoo={onSyncOdoo}
-              syncingOdoo={syncingOdoo}
-              refreshKey={profileRefreshKey}
-            />
-            <ClientBackgroundProfileSection
+            <UnifiedProfileCard
               clientId={client.id}
               canEdit={canUpload}
               refreshKey={profileRefreshKey}

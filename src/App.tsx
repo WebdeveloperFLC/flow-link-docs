@@ -44,6 +44,9 @@ import Messages from "./pages/Messages";
 import WhatsAppInbox from "./pages/WhatsAppInbox";
 const ServiceLibrary = lazy(() => import("./pages/ServiceLibrary"));
 const ServiceLibraryAdmin = lazy(() => import("./pages/ServiceLibraryAdmin"));
+const ProfilePreviewDevPage = import.meta.env.DEV
+  ? lazy(() => import("./pages/dev/ProfilePreviewDevPage"))
+  : () => null;
 import { ServiceLibraryProtectedRoute } from "@/components/service-library/ServiceLibraryProtectedRoute";
 import Telecaller from "./pages/Telecaller";
 import Reports from "./pages/Reports";
@@ -241,6 +244,16 @@ const App = () => (
                   <Route path="/a/:token" element={<VisitorActionPage />} />
                   <Route path="/questionnaire/:token" element={<Questionnaire />} />
                   <Route path="/course-finder" element={<CourseFinder />} />
+                  {import.meta.env.DEV && (
+                    <Route
+                      path="/dev/profile-preview"
+                      element={
+                        <Suspense fallback={<RouteFallback />}>
+                          <ProfilePreviewDevPage />
+                        </Suspense>
+                      }
+                    />
+                  )}
                   <Route
                     path="/service-library"
                     element={

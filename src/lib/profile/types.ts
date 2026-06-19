@@ -8,6 +8,9 @@ import type {
 /** Profile tab sections (Client 360 profile block uses same section ids). */
 export type ProfileSectionId = "identity" | "contact" | "tests" | "education" | "experience";
 
+/** Profile tab nav includes Client 360 pill (read-only executive summary; not saved via profileSave). */
+export type ProfileTabId = ProfileSectionId | "client360";
+
 /** Extended test lifecycle — superset of legacy english/language status values. */
 export type ProfileTestStatus =
   | "not_taken"
@@ -195,7 +198,7 @@ export type ProfileViewModel = Readonly<{
 /** Mutable write model — includes UI-only state; never used for summaries or completion. */
 export interface ProfileEditState {
   clientId: string;
-  activeSection: ProfileSectionId;
+  activeSection: ProfileTabId;
   editingSection: ProfileSectionId | null;
   selectedEnglishTestId: ProfileEnglishTestId | null;
   selectedAptitudeTestId: ProfileAptitudeTestId | null;
