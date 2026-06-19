@@ -333,6 +333,46 @@ const LeadNew = () => {
 
   autosaveFnRef.current = autosave;
 
+  /** Create a DB row with first/last name only — background & follow-up can save before full warm/hot validation. */
+  const ensureLeadDraftStub = async (): Promise<string | null> => {
+    if (leadIdRef.current) return leadIdRef.current;
+    const fn = (f.first_name as string)?.trim();
+    const ln = (f.last_name as string)?.trim();
+    if (!fn || !ln) return null;
+    const email = (f.email as string)?.trim();
+    const phone = (f.phone as string)?.trim();
+    if (email || phone) {
+      const dups = await findDuplicateLeads({ email, phone }).catch(() => []);
+      if (dups.length) {
+        toast.error(`Duplicate lead: ${dups[0].lead_number} already uses this email or phone`);
+        return null;
+      }
+    }
+    const isColdLead = mode === "cold";
+    try {
+      const saved = await createLead({
+        first_name: fn,
+        last_name: ln,
+        middle_name: (f.middle_name as string) || null,
+        lead_type: isColdLead ? "cold" : ((f.lead_temperature as string) === "hot" ? "hot" : "warm"),
+        lead_temperature: (isColdLead ? "cold" : ((f.lead_temperature as string) || "warm")) as LeadTemperature,
+        is_cold_pool: isColdLead,
+        email: email || null,
+        phone: phone || null,
+        phone_country_code: (f.phone_country_code as string) || null,
+      });
+      leadIdRef.current = saved.id;
+      setLeadId(saved.id);
+      setLeadNumber(saved.lead_number);
+      lastAssignedCounselorRef.current =
+        (saved.assigned_counselor_id as string | null | undefined) ?? null;
+      return saved.id;
+    } catch (e) {
+      toast.error(formatSupabaseError(e, "Could not create lead draft"));
+      return null;
+    }
+  };
+
   const ensureLeadIdForFollowup = async (): Promise<string | null> => {
     if (leadIdRef.current) return leadIdRef.current;
     const fn = (f.first_name as string)?.trim();
@@ -341,26 +381,7 @@ const LeadNew = () => {
       toast.error("Enter first and last name once — then follow-up saves on its own");
       return null;
     }
-    const isCold = mode === "cold";
-    try {
-      const saved = await createLead({
-        first_name: fn,
-        last_name: ln,
-        middle_name: (f.middle_name as string) || null,
-        lead_type: isCold ? "cold" : ((f.lead_temperature as string) === "hot" ? "hot" : "warm"),
-        lead_temperature: (isCold ? "cold" : ((f.lead_temperature as string) || "warm")) as LeadTemperature,
-        is_cold_pool: isCold,
-        email: (f.email as string) || null,
-        phone: (f.phone as string) || null,
-      });
-      leadIdRef.current = saved.id;
-      setLeadId(saved.id);
-      setLeadNumber(saved.lead_number);
-      return saved.id;
-    } catch (e) {
-      toast.error(formatSupabaseError(e, "Could not create lead draft"));
-      return null;
-    }
+    return ensureLeadDraftStub();
   };
 
   const saveFollowupOnly = useCallback(async (): Promise<boolean> => {
@@ -621,25 +642,23 @@ const LeadNew = () => {
       }
       return;
     }
-    const id = await autosave();
-    if (id) {
-      try {
-        const refreshed = await fetchLead(id);
-        if (refreshed) {
-          setBackground((prev) => reconcileBackgroundAfterSave(prev, leadToBackgroundState(refreshed)));
-        }
-      } catch {
-        /* keep local state */
-      }
-      toast.success("Background details saved");
-      return;
-    }
     const fn = (f.first_name as string)?.trim();
     const ln = (f.last_name as string)?.trim();
-    if (fn && ln) {
-      toast.message("Background kept on this form — complete required lead fields so it saves to the database");
-    } else {
+    if (!fn || !ln) {
       toast.message("Enter first and last name — background is kept on this form until the lead saves");
+      return;
+    }
+    const id = await ensureLeadDraftStub();
+    if (!id) return;
+    try {
+      setSaving(true);
+      const saved = await updateLead(id, buildDraft());
+      setBackground((prev) => reconcileBackgroundAfterSave(prev, leadToBackgroundState(saved)));
+      toast.success("Background details saved");
+    } catch (e) {
+      toast.error(formatSupabaseError(e, "Could not save background details"));
+    } finally {
+      setSaving(false);
     }
   };
 
