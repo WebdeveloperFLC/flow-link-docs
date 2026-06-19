@@ -83,7 +83,7 @@ export function educationRecordsFromLeadBackground(bg: LeadBackgroundState): Pro
 
 export function experienceRecordsFromLeadBackground(bg: LeadBackgroundState): ProfileExperienceRecord[] {
   return (bg.work_experience ?? []).map((raw, index) => {
-    const e = raw as ExperienceEntry & { id?: string };
+    const e = raw as ExperienceEntry & { id?: string; designation?: string };
     const id = ensureExperienceId(e.id ?? `lead_${index}`);
     return {
       id,
@@ -91,9 +91,9 @@ export function experienceRecordsFromLeadBackground(bg: LeadBackgroundState): Pr
       country: e.country?.trim() || null,
       state_province: e.state_province?.trim() || null,
       city: e.city?.trim() || null,
-      designation: e.role?.trim() || null,
-      department: null,
-      employment_type: null,
+      designation: e.role?.trim() || e.designation?.trim() || null,
+      department: e.department?.trim() || null,
+      employment_type: e.employment_type?.trim() || null,
       start_date: e.start_date ?? null,
       end_date: e.end_date ?? null,
       currently_working: !!e.currently_working,
@@ -129,6 +129,8 @@ export function applyExperienceRecordsToLeadBackground(
     id: r.id,
     company: r.company ?? undefined,
     role: r.designation ?? undefined,
+    department: r.department ?? undefined,
+    employment_type: r.employment_type ?? undefined,
     country: r.country ?? undefined,
     state_province: r.state_province ?? undefined,
     city: r.city ?? undefined,

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   applyEducationRecordsToLeadBackground,
+  applyExperienceRecordsToLeadBackground,
   applyTestsPatchToLeadBackground,
   educationRecordsFromLeadBackground,
+  experienceRecordsFromLeadBackground,
   testsStateFromLeadBackground,
 } from "@/lib/leadBackgroundProfileBridge";
 import { leadToBackgroundState } from "@/lib/leadBackground";
@@ -48,5 +50,33 @@ describe("leadBackgroundProfileBridge", () => {
     const id = ensureEducationId();
     const bg = leadToBackgroundState({ education_history: [{ level: "PG", id }] } as never);
     expect(educationRecordsFromLeadBackground(bg)[0]?.id).toBe(id);
+  });
+
+  it("round-trips experience department and employment type on lead background", () => {
+    const bg = leadToBackgroundState({
+      work_experience: [
+        {
+          company: "ABC limited",
+          role: "manager",
+          department: "Operations",
+          employment_type: "Full-time",
+        },
+      ],
+    } as never);
+    const records = experienceRecordsFromLeadBackground(bg);
+    expect(records[0]?.department).toBe("Operations");
+    expect(records[0]?.employment_type).toBe("Full-time");
+
+    const patched = applyExperienceRecordsToLeadBackground(bg, [
+      {
+        ...records[0]!,
+        department: "Sales",
+        employment_type: "Contract",
+      },
+    ]);
+    const roundTrip = experienceRecordsFromLeadBackground(patched);
+    expect(roundTrip[0]?.department).toBe("Sales");
+    expect(roundTrip[0]?.employment_type).toBe("Contract");
+    expect(patched.work_experience[0]?.department).toBe("Sales");
   });
 });

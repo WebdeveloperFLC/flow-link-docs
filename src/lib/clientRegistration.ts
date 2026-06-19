@@ -35,8 +35,11 @@ export interface EducationEntry {
 }
 
 export interface ExperienceEntry {
+  id?: string;
   company?: string;
   role?: string;
+  department?: string;
+  employment_type?: string;
   start_date?: string | null;
   end_date?: string | null;
   currently_working?: boolean;

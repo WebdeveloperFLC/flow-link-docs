@@ -103,7 +103,17 @@ export function educationEntryHasData(e: EducationEntry | undefined): boolean {
 
 export function experienceEntryHasData(e: ExperienceEntry | undefined): boolean {
   if (!e) return false;
-  return !!(e.company || e.role || e.city || e.country || e.state_province || e.start_date || e.description);
+  return !!(
+    e.company ||
+    e.role ||
+    e.department ||
+    e.employment_type ||
+    e.city ||
+    e.country ||
+    e.state_province ||
+    e.start_date ||
+    e.description
+  );
 }
 
 function mergeLastEducationIntoHistory(
