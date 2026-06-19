@@ -27,6 +27,8 @@ export function formatActiveAttemptLine(attempt: TestAttempt): string {
       attempt.test_id === "toefl")
       ? ` (${attempt.variant})`
       : "";
+  const testType =
+    attempt.test_id === "ielts" && attempt.ielts_test_type ? ` ${attempt.ielts_test_type}` : "";
   const statusKey = attempt.status ?? "not_taken";
   const status = STATUS_DISPLAY[statusKey] ?? statusKey;
 
@@ -39,7 +41,7 @@ export function formatActiveAttemptLine(attempt: TestAttempt): string {
     else if (attempt.planned_month) suffix = ` ${attempt.planned_month}`;
   }
 
-  return `${name}${variant} ${status}${suffix}`.trim();
+  return `${name}${variant}${testType} ${status}${suffix}`.trim();
 }
 
 /** Highlight chip when active english (or any taken test) has an overall score. */

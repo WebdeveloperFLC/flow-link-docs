@@ -72,6 +72,16 @@ function EnglishCard({
             {test.status}
           </Badge>
         )}
+        {test.variant && (
+          <Badge variant="outline" className="text-[10px] font-normal">
+            {test.variant}
+          </Badge>
+        )}
+        {test.testType && (
+          <Badge variant="outline" className="text-[10px] font-normal">
+            {test.testType}
+          </Badge>
+        )}
         {test.overall && (
           <span className="text-sm">
             Overall <span className="font-semibold tabular-nums">{test.overall}</span>

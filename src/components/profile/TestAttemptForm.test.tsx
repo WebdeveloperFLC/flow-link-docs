@@ -45,6 +45,14 @@ describe("TestAttemptForm", () => {
     render(<TestAttemptForm attempt={IELTS_TAKEN} mode="edit" onChange={() => {}} />);
     expect(screen.getByText("Listening")).toBeInTheDocument();
     expect(screen.getByText("IELTS variant")).toBeInTheDocument();
+    expect(screen.getByText("Test Type")).toBeInTheDocument();
+  });
+
+  it("orders IELTS overall score before sectional inputs", () => {
+    render(<TestAttemptForm attempt={IELTS_TAKEN} mode="edit" onChange={() => {}} />);
+    const overall = screen.getByText("Overall score");
+    const listening = screen.getByText("Listening");
+    expect(overall.compareDocumentPosition(listening) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("renders DET subscores for Duolingo taken in edit mode", () => {

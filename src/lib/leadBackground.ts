@@ -4,6 +4,7 @@ import type { Lead, LeadDraft } from "@/lib/leads";
 import {
   ENGLISH_SCORES_BY_TEST_KEY,
   hydrateScoresByTest,
+  readEnglishSectionMetadata,
   scoresForTest,
   sectionalScoresOnly,
   type EnglishScoresByTest,
@@ -179,8 +180,12 @@ function hydrateEnglishFromSections(
   }
   const activeEntry = scoresForTest(byTest, lead.english_test);
   const flatSections = sectionalScoresOnly(sections);
+  const metadata = readEnglishSectionMetadata(sections);
   const mergedSections: Record<string, unknown> = {
     ...flatSections,
+    ...(metadata.ielts_variant ? { ielts_variant: metadata.ielts_variant } : {}),
+    ...(metadata.ielts_test_type ? { ielts_test_type: metadata.ielts_test_type } : {}),
+    ...(metadata.test_country ? { test_country: metadata.test_country } : {}),
     ...(Object.keys(byTest).length ? { [ENGLISH_SCORES_BY_TEST_KEY]: byTest } : {}),
   };
   return {
@@ -330,6 +335,8 @@ export interface ScoreChip {
 export interface EnglishTestDetailView {
   test: string;
   status?: string;
+  variant?: string;
+  testType?: string;
   overall?: string;
   testDate?: string;
   expiry?: string;
@@ -402,6 +409,8 @@ function englishViewFromAttempt(attempt: TestAttempt): EnglishTestDetailView {
   return {
     test: testLabel(attempt.test_id),
     status: attempt.status ? ATTEMPT_STATUS_LABEL[attempt.status] : undefined,
+    variant: attempt.test_id === "ielts" ? attempt.variant ?? undefined : undefined,
+    testType: attempt.test_id === "ielts" ? attempt.ielts_test_type ?? undefined : undefined,
     overall: attempt.overall_score?.trim() || undefined,
     testDate: attempt.test_date ?? undefined,
     expiry: attempt.expiry_date ?? undefined,
@@ -508,6 +517,8 @@ export function reconcileBackgroundAfterSave(
 function formatEnglishAttemptDetailLine(attempt: TestAttempt): string {
   const view = englishViewFromAttempt(attempt);
   const parts = [view.test];
+  if (view.variant) parts.push(view.variant);
+  if (view.testType) parts.push(view.testType);
   if (view.status) parts.push(view.status);
   if (view.overall) parts.push(`Overall ${view.overall}`);
   if (view.testDate) parts.push(`Test ${view.testDate}`);
@@ -593,6 +604,8 @@ export function formatEnglishTestDetail(
 ): string {
   const view = buildEnglishTestDetailView(testName, entry, bg);
   const parts = [view.test];
+  if (view.variant) parts.push(view.variant);
+  if (view.testType) parts.push(view.testType);
   if (view.status) parts.push(view.status);
   if (view.overall) parts.push(`Overall ${view.overall}`);
   if (view.testDate) parts.push(`Test ${view.testDate}`);
@@ -610,9 +623,14 @@ export function buildEnglishTestDetailView(
   const isActive = testName === bg.english_test;
   const statusKey =
     entry.status ?? (isActive ? bg.english_test_status : null);
+  const metadata = isActive && testName === "IELTS"
+    ? readEnglishSectionMetadata(bg.english_sections as Record<string, unknown> | undefined)
+    : {};
   return {
     test: testName,
     status: statusKey ? ENGLISH_TEST_STATUS_LABELS[statusKey as EnglishTestStatus] : undefined,
+    variant: testName === "IELTS" ? metadata.ielts_variant ?? undefined : undefined,
+    testType: testName === "IELTS" ? metadata.ielts_test_type ?? undefined : undefined,
     overall: entry.overall?.trim() || undefined,
     testDate: entry.test_date ?? undefined,
     expiry: entry.test_expiry ?? undefined,

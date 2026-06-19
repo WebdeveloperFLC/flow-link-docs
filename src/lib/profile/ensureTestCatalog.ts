@@ -22,6 +22,7 @@ export function emptyEnglishTestEntry(testId: ProfileEnglishTestId): ProfileEngl
     test_expiry: null,
     sections: {},
     ielts_variant: null,
+    ielts_test_type: null,
     country: null,
     linked_documents: [],
   };

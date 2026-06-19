@@ -39,6 +39,9 @@ export const TOEFL_VARIANTS = ["TOEFL iBT", "TOEFL Home"] as const;
 
 export type ToeflVariant = (typeof TOEFL_VARIANTS)[number];
 
+/** IELTS delivery format — distinct from Academic/General variant. */
+export type IeltsTestType = "CBT" | "PBT";
+
 /** L/R/W/S english tests — overall renders before sectionals in the attempt form. */
 export const STANDARD_LRWS_SECTIONS = ["listening", "reading", "writing", "speaking"] as const;
 
@@ -97,6 +100,7 @@ export interface ProfileEnglishTestEntry {
   readonly test_expiry: string | null;
   readonly sections: Readonly<Record<string, string>>;
   readonly ielts_variant: IeltsVariant | null;
+  readonly ielts_test_type: IeltsTestType | null;
   readonly country: string | null;
   readonly linked_documents: readonly ProfileLinkedDocument[];
 }
@@ -132,6 +136,8 @@ export interface TestAttempt {
   readonly category: ProfileTestCategory;
   readonly status: ProfileTestStatus | null;
   readonly variant?: string | null;
+  /** IELTS only — CBT or PBT delivery format. */
+  readonly ielts_test_type?: IeltsTestType | null;
   readonly test_date?: string | null;
   readonly result_date?: string | null;
   readonly expiry_date?: string | null;

@@ -27,6 +27,7 @@ import {
   PTE_VARIANTS,
   STANDARD_LRWS_SECTIONS,
   TOEFL_VARIANTS,
+  type IeltsTestType,
   type IeltsVariant,
   type ProfileTestStatus,
   type PteVariant,
@@ -127,13 +128,13 @@ export function TestAttemptForm({
               {attempt.variant}
             </Badge>
           )}
+          {attempt.ielts_test_type && (
+            <Badge variant="outline" className="text-[10px]">
+              {attempt.ielts_test_type}
+            </Badge>
+          )}
           {attempt.exam_type && <Badge variant="outline">{attempt.exam_type}</Badge>}
           {attempt.status && <Badge variant="secondary">{statusLabel(attempt.status)}</Badge>}
-          {attempt.overall_score && (
-            <span className="text-sm">
-              Overall <span className="font-semibold tabular-nums">{attempt.overall_score}</span>
-            </span>
-          )}
           {attempt.cefr_level && (
             <Badge variant="outline" className="text-[10px]">
               CEFR {attempt.cefr_level}
@@ -154,6 +155,11 @@ export function TestAttemptForm({
             <AlertTriangle className="size-4" />
             <AlertDescription className="text-xs">Result expired — retest required</AlertDescription>
           </Alert>
+        )}
+        {attempt.overall_score && (
+          <p className="text-xs">
+            Overall <span className="font-semibold tabular-nums">{attempt.overall_score}</span>
+          </p>
         )}
         <ScoreChips sections={displaySections} />
         {attempt.waiver_reason && (
@@ -265,6 +271,26 @@ export function TestAttemptForm({
                     {option}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {isIelts && (
+          <div className="space-y-1">
+            <Label>Test Type</Label>
+            <Select
+              value={attempt.ielts_test_type ?? ""}
+              onValueChange={(v) =>
+                onChange?.({ ielts_test_type: (v || null) as IeltsTestType | null })
+              }
+            >
+              <SelectTrigger className="h-8 w-52">
+                <SelectValue placeholder="Select test type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="CBT">CBT (Computer-Based Test)</SelectItem>
+                <SelectItem value="PBT">PBT (Paper-Based Test)</SelectItem>
               </SelectContent>
             </Select>
           </div>

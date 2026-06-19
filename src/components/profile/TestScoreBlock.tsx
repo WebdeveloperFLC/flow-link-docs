@@ -15,6 +15,7 @@ import {
 } from "@/lib/profile/profileTestCatalog";
 import { ENGLISH_SECTIONS, OTHER_TEST_SECTIONS, SectionalInputs } from "@/lib/testSections";
 import type {
+  IeltsTestType,
   IeltsVariant,
   ProfileAptitudeTestEntry,
   ProfileEnglishTestEntry,
@@ -76,6 +77,7 @@ export function TestScoreBlock({
     const label = testLabel(english.test_id);
     const legacyKey = testIdToLegacyEnglish(english.test_id);
     const sectionKeys = ENGLISH_SECTIONS[legacyKey] ?? [];
+    const isIelts = english.test_id === "ielts";
 
     if (mode === "view") {
       return (
@@ -85,6 +87,11 @@ export function TestScoreBlock({
             {english.ielts_variant && (
               <Badge variant="outline" className="text-[10px]">
                 {english.ielts_variant}
+              </Badge>
+            )}
+            {english.ielts_test_type && (
+              <Badge variant="outline" className="text-[10px]">
+                {english.ielts_test_type}
               </Badge>
             )}
             {english.status && <Badge variant="secondary">{english.status}</Badge>}
@@ -138,14 +145,35 @@ export function TestScoreBlock({
               </Select>
             </div>
           )}
-          <div className="space-y-1">
-            <Label>Overall</Label>
-            <Input
-              className="h-8 w-24"
-              value={english.overall ?? ""}
-              onChange={(e) => onEnglishChange?.({ overall: e.target.value || null })}
-            />
-          </div>
+          {english.test_id === "ielts" && (
+            <div className="space-y-1">
+              <Label>Test Type</Label>
+              <Select
+                value={english.ielts_test_type ?? ""}
+                onValueChange={(v) =>
+                  onEnglishChange?.({ ielts_test_type: (v || null) as IeltsTestType | null })
+                }
+              >
+                <SelectTrigger className="h-8 w-52">
+                  <SelectValue placeholder="Select test type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CBT">CBT (Computer-Based Test)</SelectItem>
+                  <SelectItem value="PBT">PBT (Paper-Based Test)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {!isIelts && (
+            <div className="space-y-1">
+              <Label>Overall</Label>
+              <Input
+                className="h-8 w-24"
+                value={english.overall ?? ""}
+                onChange={(e) => onEnglishChange?.({ overall: e.target.value || null })}
+              />
+            </div>
+          )}
           <div className="space-y-1">
             <Label>Test date</Label>
             <Input
@@ -165,12 +193,32 @@ export function TestScoreBlock({
             />
           </div>
         </div>
-        {sectionKeys.length > 0 && (
-          <SectionalInputs
-            sections={sectionKeys}
-            values={english.sections}
-            onChange={(next) => onEnglishChange?.({ sections: next })}
-          />
+        {isIelts ? (
+          <div className="space-y-3" data-testid="ielts-scores-block">
+            <div className="space-y-1">
+              <Label>Overall Score</Label>
+              <Input
+                className="h-8 w-24"
+                value={english.overall ?? ""}
+                onChange={(e) => onEnglishChange?.({ overall: e.target.value || null })}
+              />
+            </div>
+            {sectionKeys.length > 0 && (
+              <SectionalInputs
+                sections={sectionKeys}
+                values={english.sections}
+                onChange={(next) => onEnglishChange?.({ sections: next })}
+              />
+            )}
+          </div>
+        ) : (
+          sectionKeys.length > 0 && (
+            <SectionalInputs
+              sections={sectionKeys}
+              values={english.sections}
+              onChange={(next) => onEnglishChange?.({ sections: next })}
+            />
+          )
         )}
       </div>
     );

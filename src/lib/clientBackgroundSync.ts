@@ -60,12 +60,41 @@ export async function syncEducationHistoryToClientEducation(
   if (insErr) console.warn("[clientBackgroundSync] insert education failed", insErr);
 }
 
-/** After lead conversion: clients JSON → client_profile + client_education. */
+/** After lead conversion: clients JSON → client_profile + client_education + test_attempts from source lead. */
 export async function syncClientBackgroundAfterConversion(clientId: string): Promise<void> {
   const { data: client, error } = await supabase.from("clients").select("*").eq("id", clientId).maybeSingle();
   if (error || !client) {
     console.warn("[clientBackgroundSync] client read failed", error);
     return;
+  }
+
+  const sourceLeadId = (client as { source_lead_id?: string | null }).source_lead_id;
+  if (sourceLeadId) {
+    const { data: lead, error: leadErr } = await supabase
+      .from("leads")
+      .select("test_attempts, active_attempt_ids")
+      .eq("id", sourceLeadId)
+      .maybeSingle();
+    if (!leadErr && lead) {
+      const leadAttempts = (lead as { test_attempts?: unknown }).test_attempts;
+      const leadActive = (lead as { active_attempt_ids?: unknown }).active_attempt_ids;
+      const clientAttempts = (client as { test_attempts?: unknown }).test_attempts;
+      const hasLeadAttempts = Array.isArray(leadAttempts) && leadAttempts.length > 0;
+      const clientMissingAttempts =
+        !Array.isArray(clientAttempts) || clientAttempts.length === 0;
+      if (hasLeadAttempts && clientMissingAttempts) {
+        const { error: updErr } = await supabase
+          .from("clients")
+          .update({
+            test_attempts: leadAttempts,
+            active_attempt_ids: leadActive ?? {},
+          } as never)
+          .eq("id", clientId);
+        if (updErr) {
+          console.warn("[clientBackgroundSync] test_attempts copy failed", updErr);
+        }
+      }
+    }
   }
 
   await syncEducationHistoryToClientEducation(

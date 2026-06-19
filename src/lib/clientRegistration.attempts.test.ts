@@ -37,4 +37,47 @@ describe("prefillFromLead attempts (Phase E5)", () => {
     } as never);
     expect(reloaded.attempts?.some((a) => a.test_id === "gre")).toBe(true);
   });
+
+  it("preserves IELTS variant and test type via prefillFromLead", () => {
+    const attemptId = ensureAttemptId("ielts_conv");
+    const lead = {
+      id: "lead-ielts",
+      first_name: "A",
+      last_name: "B",
+      english_test: "IELTS",
+      english_test_status: "taken",
+      english_overall: "7.5",
+      english_sections: {
+        listening: "8",
+        reading: "7.5",
+        writing: "7",
+        speaking: "7.5",
+        ielts_variant: "Academic",
+        ielts_test_type: "CBT",
+      },
+      test_attempts: [
+        {
+          attempt_id: attemptId,
+          test_id: "ielts",
+          category: "english",
+          status: "taken",
+          variant: "Academic",
+          ielts_test_type: "CBT",
+          overall_score: "7.5",
+          sections: { listening: "8", reading: "7.5", writing: "7", speaking: "7.5" },
+        },
+      ],
+      active_attempt_ids: { ielts: attemptId },
+    } as never;
+
+    const draft = prefillFromLead(lead);
+    expect(draft.english_sections?.ielts_variant).toBe("Academic");
+    expect(draft.english_sections?.ielts_test_type).toBe("CBT");
+    const stored = draft.test_attempts?.find((a) => a.test_id === "ielts") as {
+      variant?: string;
+      ielts_test_type?: string;
+    };
+    expect(stored?.variant).toBe("Academic");
+    expect(stored?.ielts_test_type).toBe("CBT");
+  });
 });

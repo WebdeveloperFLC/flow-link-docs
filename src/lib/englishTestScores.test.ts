@@ -133,4 +133,23 @@ describe("englishTestScores", () => {
     expect(byTest.IELTS?.overall).toBe("6.5");
     expect(switched.english_sections?.[ENGLISH_SCORES_BY_TEST_KEY]).toBeTruthy();
   });
+
+  it("preserves ielts_variant and ielts_test_type when patching sectional scores", () => {
+    const withMeta = buildEnglishScorePatch(
+      {
+        english_test: "IELTS",
+        english_overall: "7",
+        english_sections: {
+          listening: "7",
+          ielts_variant: "General",
+          ielts_test_type: "PBT",
+        },
+      },
+      { english_sections: { listening: "7.5", reading: "7" } },
+    );
+    const sections = withMeta.english_sections as Record<string, unknown>;
+    expect(sections.ielts_variant).toBe("General");
+    expect(sections.ielts_test_type).toBe("PBT");
+    expect(sections.listening).toBe("7.5");
+  });
 });

@@ -1,6 +1,21 @@
 /** Reserved key inside `english_sections` jsonb — stores scores per test type. */
 export const ENGLISH_SCORES_BY_TEST_KEY = "__by_test__";
 
+/** Top-level english_sections keys — not sectional scores. */
+export const ENGLISH_SECTIONS_METADATA_KEYS = [
+  "ielts_variant",
+  "ielts_test_type",
+  "test_country",
+] as const;
+
+export type EnglishSectionMetadataKey = (typeof ENGLISH_SECTIONS_METADATA_KEYS)[number];
+
+export interface EnglishSectionMetadata {
+  ielts_variant?: string | null;
+  ielts_test_type?: string | null;
+  test_country?: string | null;
+}
+
 export type EnglishTestStatusValue = "not_taken" | "scheduled" | "taken" | "waived";
 
 export interface EnglishTestScoreEntry {
@@ -27,14 +42,45 @@ function isScoreEntry(value: unknown): value is EnglishTestScoreEntry {
   return value != null && typeof value === "object" && !Array.isArray(value);
 }
 
-/** Strip reserved cache key; return sectional scores only. */
+function isMetadataKey(k: string): boolean {
+  if (k === ENGLISH_SCORES_BY_TEST_KEY) return true;
+  if (k.startsWith("linked_documents")) return true;
+  return (ENGLISH_SECTIONS_METADATA_KEYS as readonly string[]).includes(k);
+}
+
+/** Strip reserved cache key and metadata; return sectional scores only. */
 export function sectionalScoresOnly(sections: Record<string, unknown> | undefined): Record<string, string> {
   const out: Record<string, string> = {};
   if (!sections) return out;
   for (const [k, v] of Object.entries(sections)) {
-    if (k === ENGLISH_SCORES_BY_TEST_KEY) continue;
+    if (isMetadataKey(k)) continue;
     if (typeof v === "string") out[k] = v;
   }
+  return out;
+}
+
+export function readEnglishSectionMetadata(
+  sections: Record<string, unknown> | undefined,
+): EnglishSectionMetadata {
+  if (!sections) return {};
+  return {
+    ielts_variant: typeof sections.ielts_variant === "string" ? sections.ielts_variant : null,
+    ielts_test_type: typeof sections.ielts_test_type === "string" ? sections.ielts_test_type : null,
+    test_country: typeof sections.test_country === "string" ? sections.test_country : null,
+  };
+}
+
+export function mergeEnglishSectionMetadata(
+  sections: Record<string, unknown>,
+  metadata: EnglishSectionMetadata,
+): Record<string, unknown> {
+  const out = { ...sections };
+  if (metadata.ielts_variant) out.ielts_variant = metadata.ielts_variant;
+  else delete out.ielts_variant;
+  if (metadata.ielts_test_type) out.ielts_test_type = metadata.ielts_test_type;
+  else delete out.ielts_test_type;
+  if (metadata.test_country) out.test_country = metadata.test_country;
+  else delete out.test_country;
   return out;
 }
 
@@ -85,12 +131,16 @@ export function scoresForTest(byTest: EnglishScoresByTest, testType: string | nu
 export function encodeEnglishSections(
   byTest: EnglishScoresByTest,
   activeTest: string | null | undefined,
+  metadata?: EnglishSectionMetadata,
 ): Record<string, unknown> {
   const active = activeTest && activeTest !== "None" ? byTest[activeTest] : undefined;
-  return {
-    ...(active?.sections ?? {}),
-    [ENGLISH_SCORES_BY_TEST_KEY]: byTest,
-  };
+  return mergeEnglishSectionMetadata(
+    {
+      ...(active?.sections ?? {}),
+      [ENGLISH_SCORES_BY_TEST_KEY]: byTest,
+    },
+    metadata ?? {},
+  );
 }
 
 function snapshotCurrentTest(fields: EnglishScoreFields, byTest: EnglishScoresByTest): EnglishScoresByTest {
@@ -116,6 +166,7 @@ export function buildEnglishTestSwitchPatch(
 ): Partial<EnglishScoreFields> {
   let byTest = hydrateScoresByTest(fields);
   byTest = snapshotCurrentTest(fields, byTest);
+  const metadata = readEnglishSectionMetadata(fields.english_sections);
 
   if (!nextTest || nextTest === "None") {
     return {
@@ -124,7 +175,7 @@ export function buildEnglishTestSwitchPatch(
       english_overall: null,
       english_test_date: null,
       english_test_expiry: null,
-      english_sections: encodeEnglishSections(byTest, null),
+      english_sections: encodeEnglishSections(byTest, null, metadata),
     };
   }
 
@@ -135,7 +186,7 @@ export function buildEnglishTestSwitchPatch(
     english_overall: loaded.overall ?? null,
     english_test_date: loaded.test_date ?? null,
     english_test_expiry: loaded.test_expiry ?? null,
-    english_sections: encodeEnglishSections(byTest, nextTest),
+    english_sections: encodeEnglishSections(byTest, nextTest, metadata),
   };
 }
 
@@ -162,7 +213,7 @@ export function buildEnglishStatusPatch(
 
   return {
     english_test_status: status,
-    english_sections: encodeEnglishSections(byTest, test),
+    english_sections: encodeEnglishSections(byTest, test, readEnglishSectionMetadata(fields.english_sections)),
   };
 }
 
@@ -205,6 +256,10 @@ export function buildEnglishScorePatch(
 
   return {
     ...merged,
-    english_sections: encodeEnglishSections(byTest, test),
+    english_sections: encodeEnglishSections(
+      byTest,
+      test,
+      readEnglishSectionMetadata(fields.english_sections),
+    ),
   };
 }
