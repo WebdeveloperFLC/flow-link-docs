@@ -102,6 +102,26 @@ describe("CRM-R-007 lead conversion trigger timing", () => {
   });
 });
 
+describe("CRM-R-008 call queue status on lead conversion", () => {
+  it("migration 20400 uses enrolled not done for call_queue_items", () => {
+    const sql = readFileSync(
+      join(process.cwd(), "supabase/migrations/20260719120400_fix_convert_lead_call_queue_enrolled.sql"),
+      "utf8",
+    );
+    const rpc = sql.match(/CREATE OR REPLACE FUNCTION public\.convert_lead_to_client\([\s\S]*?END;\s*\$\$;/)?.[0];
+    expect(rpc).toBeTruthy();
+    expect(rpc).toMatch(/SET status = 'enrolled'/);
+    expect(rpc).not.toMatch(/SET status = 'done'/);
+  });
+
+  it("telecallerQueue markDone uses enrolled status", () => {
+    const src = readFileSync(join(process.cwd(), "src/lib/telecallerQueue.ts"), "utf8");
+    expect(src).toMatch(/status: "enrolled"/);
+    expect(src).not.toMatch(/call_queue_items[\s\S]*status: "done"/);
+    expect(src).not.toMatch(/updateQueueItem\(id, \{ status: "done"/);
+  });
+});
+
 describe("CRM-R-007 year_of_passing parsing (053 + end_year merge)", () => {
   it("uses end_year only", () => {
     expect(yearOfPassingFromEducationEntry({ end_year: "2025" })).toBe("2025-06-30");

@@ -125,7 +125,7 @@ export async function rescheduleItem(id: string, atIso: string) {
 }
 
 export async function markDone(id: string, lead_status?: LeadStatus) {
-  await updateQueueItem(id, { status: "done", lead_status: lead_status ?? "converted" });
+  await updateQueueItem(id, { status: "enrolled", lead_status: lead_status ?? "converted" });
 }
 
 export async function listCampaigns() {
