@@ -160,6 +160,9 @@ export type EmployeeAssetRow = {
   asset_tag: string | null;
   mac_address: string | null;
   imei_number: string | null;
+  service_provider: string | null;
+  mobile_number: string | null;
+  sim_number: string | null;
   remarks: string | null;
   issue_date: string;
   issued_by_employee_id: string | null;

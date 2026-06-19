@@ -1,10 +1,6 @@
 import { useState } from "react";
 import type { EmployeeAssetRow } from "../../lib/types";
-
-function displayAssetType(row: EmployeeAssetRow): string {
-  if (row.asset_type === "Other" && row.asset_type_other) return row.asset_type_other;
-  return row.asset_type;
-}
+import { assetSummaryIdentifier, displayAssetTypeLabel, formatAssetIssueDate } from "../../lib/employeeAssets";
 
 function AssetViewModal({ row, onClose }: { row: EmployeeAssetRow; onClose: () => void }) {
   const accessories = Array.isArray(row.accessories) ? row.accessories : [];
@@ -13,13 +9,16 @@ function AssetViewModal({ row, onClose }: { row: EmployeeAssetRow; onClose: () =
     .join(", ");
 
   const fields: [string, string | null | undefined][] = [
-    ["Asset Type", displayAssetType(row)],
+    ["Asset Type", displayAssetTypeLabel(row.asset_type, row.asset_type_other)],
     ["Asset Name / Brand", row.asset_name],
     ["Model Number", row.model_number],
     ["Serial Number", row.serial_number],
     ["Asset Tag / Company Asset ID", row.asset_tag],
     ["MAC Address", row.mac_address],
     ["IMEI Number", row.imei_number],
+    ["Service Provider", row.service_provider],
+    ["Mobile Number", row.mobile_number],
+    ["SIM Number", row.sim_number],
     ["Remarks", row.remarks],
     ["Issue Date", row.issue_date],
     ["Issued By", row.issued_by_label],
@@ -92,7 +91,7 @@ export function EmployeeAssetsDetailTable({ assets }: { assets: EmployeeAssetRow
               <th>Asset Type</th>
               <th>Asset Name / Brand</th>
               <th>Model Number</th>
-              <th>Serial Number</th>
+              <th>Serial/IMEI</th>
               <th>Issue Date</th>
               <th>Issued By</th>
               <th>Status</th>
@@ -104,11 +103,11 @@ export function EmployeeAssetsDetailTable({ assets }: { assets: EmployeeAssetRow
           <tbody>
             {assets.map((a) => (
               <tr key={a.id}>
-                <td>{displayAssetType(a)}</td>
+                <td>{displayAssetTypeLabel(a.asset_type, a.asset_type_other)}</td>
                 <td>{a.asset_name || "—"}</td>
                 <td className="mono">{a.model_number || "—"}</td>
-                <td className="mono">{a.serial_number || "—"}</td>
-                <td className="mono">{a.issue_date}</td>
+                <td className="mono">{assetSummaryIdentifier(a)}</td>
+                <td className="mono">{formatAssetIssueDate(a.issue_date)}</td>
                 <td>{a.issued_by_label}</td>
                 <td>
                   <span className="tag">{a.asset_status}</span>

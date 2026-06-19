@@ -60,6 +60,9 @@ export type EmployeeAssetDraft = {
   asset_tag: string;
   mac_address: string;
   imei_number: string;
+  service_provider: string;
+  mobile_number: string;
+  sim_number: string;
   remarks: string;
   issue_date: string;
   issued_by_employee_id: string;
@@ -74,6 +77,129 @@ export type EmployeeAssetDraft = {
 
 const MAC_TYPES = new Set(["Laptop", "Desktop"]);
 const IMEI_TYPES = new Set(["Mobile", "Tablet"]);
+
+export const ACCESSORY_ASSET_TYPES = new Set([
+  "Mouse",
+  "Keyboard",
+  "Headphone",
+  "Charger",
+  "Pen Drive",
+  "Monitor",
+]);
+
+export type AssetFieldKey =
+  | "asset_type_other"
+  | "asset_name"
+  | "model_number"
+  | "serial_number"
+  | "asset_tag"
+  | "mac_address"
+  | "imei_number"
+  | "service_provider"
+  | "mobile_number"
+  | "sim_number"
+  | "accessories"
+  | "remarks";
+
+export type AssetFieldVisibility = Record<AssetFieldKey, boolean>;
+
+export function displayAssetTypeLabel(type: string, typeOther?: string | null): string {
+  if (type === "Other" && typeOther?.trim()) return typeOther.trim();
+  return type;
+}
+
+export function formatAssetIssueDate(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(`${iso}T12:00:00`);
+  const day = d.toLocaleDateString("en-GB", { day: "2-digit" });
+  const month = d.toLocaleDateString("en-GB", { month: "short" });
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
+export function assetSummaryIdentifier(a: Pick<EmployeeAssetDraft, "serial_number" | "imei_number" | "asset_tag">): string {
+  return a.serial_number || a.imei_number || a.asset_tag || "—";
+}
+
+export function assetFieldVisibility(type: string): AssetFieldVisibility {
+  const none: AssetFieldVisibility = {
+    asset_type_other: false,
+    asset_name: false,
+    model_number: false,
+    serial_number: false,
+    asset_tag: false,
+    mac_address: false,
+    imei_number: false,
+    service_provider: false,
+    mobile_number: false,
+    sim_number: false,
+    accessories: false,
+    remarks: true,
+  };
+
+  if (type === "Laptop" || type === "Desktop") {
+    return {
+      ...none,
+      asset_name: true,
+      model_number: true,
+      serial_number: true,
+      asset_tag: true,
+      mac_address: true,
+      accessories: true,
+    };
+  }
+  if (type === "Mobile" || type === "Tablet") {
+    return {
+      ...none,
+      asset_name: true,
+      model_number: true,
+      imei_number: true,
+      accessories: true,
+    };
+  }
+  if (type === "SIM Card") {
+    return {
+      ...none,
+      service_provider: true,
+      mobile_number: true,
+      sim_number: true,
+    };
+  }
+  if (type === "WiFi Dongle") {
+    return {
+      ...none,
+      service_provider: true,
+      mobile_number: true,
+      model_number: true,
+      serial_number: true,
+    };
+  }
+  if (ACCESSORY_ASSET_TYPES.has(type)) {
+    return {
+      ...none,
+      asset_name: true,
+      serial_number: true,
+    };
+  }
+  if (type === "Other") {
+    return {
+      ...none,
+      asset_type_other: true,
+      asset_name: true,
+      model_number: true,
+      serial_number: true,
+    };
+  }
+  return { ...none, asset_name: true, model_number: true, serial_number: true };
+}
+
+export function firstAssetErrorIndex(errors: Record<string, string>): number | null {
+  for (const k of Object.keys(errors)) {
+    const m = k.match(/^asset_(\d+)_/);
+    if (m) return parseInt(m[1], 10);
+  }
+  return null;
+}
 
 export function isActiveAsset(status: string): boolean {
   return (ACTIVE_ASSET_STATUSES as readonly string[]).includes(status);
@@ -98,6 +224,9 @@ export function newAssetDraft(): EmployeeAssetDraft {
     asset_tag: "",
     mac_address: "",
     imei_number: "",
+    service_provider: "",
+    mobile_number: "",
+    sim_number: "",
     remarks: "",
     issue_date: "",
     issued_by_employee_id: "",
@@ -124,6 +253,9 @@ export function assetRowToDraft(row: EmployeeAssetRow): EmployeeAssetDraft {
     asset_tag: row.asset_tag ?? "",
     mac_address: row.mac_address ?? "",
     imei_number: row.imei_number ?? "",
+    service_provider: row.service_provider ?? "",
+    mobile_number: row.mobile_number ?? "",
+    sim_number: row.sim_number ?? "",
     remarks: row.remarks ?? "",
     issue_date: row.issue_date ?? "",
     issued_by_employee_id: row.issued_by_employee_id ?? "",
@@ -161,8 +293,10 @@ export function validateEmployeeAssets(
     }
     if (!a.issue_date) errors[`${p}_issue_date`] = "Issue Date is required";
     if (!a.issued_by_employee_id) errors[`${p}_issued_by`] = "Issued By is required";
-    if (a.accessories.includes("Other") && !a.accessory_other.trim()) {
-      errors[`${p}_accessory_other`] = "Specify Other Accessory is required";
+
+    const vis = assetFieldVisibility(a.asset_type);
+    if (vis.accessories && a.accessories.includes("Other") && !a.accessory_other.trim()) {
+      errors[`${p}_accessory_other`] = "Specify Other Accessory is mandatory";
     }
 
     if (a.asset_status === "Returned") {
@@ -172,13 +306,6 @@ export function validateEmployeeAssets(
       if (a.return_date && a.issue_date && a.return_date < a.issue_date) {
         errors[`${p}_return_date`] = "Return Date cannot be earlier than Issue Date";
       }
-    }
-
-    if (a.imei_number.trim() && !assetSupportsImei(a.asset_type)) {
-      errors[`${p}_imei`] = "IMEI applies to Mobile/Tablet only";
-    }
-    if (a.mac_address.trim() && !assetSupportsMac(a.asset_type)) {
-      errors[`${p}_mac`] = "MAC Address applies to Laptop/Desktop only";
     }
 
     if (a.issued_by_employee_id && !employees.some((e) => e.id === a.issued_by_employee_id)) {
@@ -207,8 +334,11 @@ function draftToPayload(draft: EmployeeAssetDraft, employeeId: string, employees
     model_number: draft.model_number.trim() || null,
     serial_number: draft.serial_number.trim() || null,
     asset_tag: draft.asset_tag.trim() || null,
-    mac_address: assetSupportsMac(draft.asset_type) ? draft.mac_address.trim() || null : null,
-    imei_number: assetSupportsImei(draft.asset_type) ? draft.imei_number.trim() || null : null,
+    mac_address: draft.mac_address.trim() || null,
+    imei_number: draft.imei_number.trim() || null,
+    service_provider: draft.service_provider.trim() || null,
+    mobile_number: draft.mobile_number.trim() || null,
+    sim_number: draft.sim_number.trim() || null,
     remarks: draft.remarks.trim() || null,
     issue_date: draft.issue_date,
     issued_by_employee_id: draft.issued_by_employee_id || null,
@@ -305,6 +435,9 @@ async function auditAssetChanges(
     prev.asset_tag !== next.asset_tag ||
     prev.mac_address !== next.mac_address ||
     prev.imei_number !== next.imei_number ||
+    prev.service_provider !== next.service_provider ||
+    prev.mobile_number !== next.mobile_number ||
+    prev.sim_number !== next.sim_number ||
     prev.remarks !== next.remarks ||
     JSON.stringify(prev.accessories) !== JSON.stringify(next.accessories);
 

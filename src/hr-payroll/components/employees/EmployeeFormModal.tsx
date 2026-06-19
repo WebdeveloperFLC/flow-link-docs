@@ -25,6 +25,7 @@ import { fetchNextEmpCode, useHrEmployee, useHrEmployees } from "../../hooks/use
 import { useEmployeeAssets } from "../../hooks/useEmployeeAssets";
 import {
   assetRowToDraft,
+  firstAssetErrorIndex,
   syncEmployeeAssets,
   validateEmployeeAssets,
   type EmployeeAssetDraft,
@@ -276,6 +277,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
   const [chequeRemoved, setChequeRemoved] = useState(false);
   const [assetDrafts, setAssetDrafts] = useState<EmployeeAssetDraft[]>([]);
   const [existingAssetRows, setExistingAssetRows] = useState<EmployeeAssetRow[]>([]);
+  const [assetFocusIndex, setAssetFocusIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (sourceEmp) {
@@ -413,6 +415,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
     if (Object.keys(e).length) {
       const bankErr = e.security_cheque_status || e.security_cheque_reason || e.security_cheque_upload;
       const assetErr = Object.keys(e).some((k) => k.startsWith("asset_"));
+      if (assetErr) setAssetFocusIndex(firstAssetErrorIndex(e));
       setTab(
         assetErr
           ? "assets"
@@ -1184,6 +1187,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
               onChange={setAssetDrafts}
               staffOptions={employees}
               errors={err}
+              focusIndex={assetFocusIndex}
             />
           )}
         </div>
