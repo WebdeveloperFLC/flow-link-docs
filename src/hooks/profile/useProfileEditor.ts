@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { appendClientActivityLog } from "@/lib/clientActivityLog";
 import { profileSave } from "@/lib/profile/profileSave";
+import { formatProfileSaveError } from "@/lib/profile/profileSaveError";
 import { toEditState } from "@/lib/profile/toEditState";
 import type { ProfileEditState, ProfileSectionId, ProfileTabId, ProfileViewModel } from "@/lib/profile/types";
 
@@ -19,7 +20,11 @@ export interface UseProfileEditorResult {
 
 export function useProfileEditor(
   viewModel: ProfileViewModel | null,
-  options: { clientId: string; onSaved?: () => void },
+  options: {
+    clientId: string;
+    onSaved?: () => void;
+    onViewModelSaved?: (vm: ProfileViewModel) => void;
+  },
 ): UseProfileEditorResult {
   const [editState, setEditState] = useState<ProfileEditState | null>(null);
   const [editingSection, setEditingSection] = useState<ProfileSectionId | null>(null);
@@ -65,16 +70,17 @@ export function useProfileEditor(
       if (!editState || saving) return false;
       setSaving(true);
       try {
-        await profileSave(editState, { sections });
-        await appendClientActivityLog({
+        const { viewModel: savedVm } = await profileSave(editState, { sections });
+        options.onViewModelSaved?.(savedVm);
+        void appendClientActivityLog({
           clientId: options.clientId,
           action: "profile_updated",
           summary: `Profile updated (${sections.join(", ")})`,
-        });
+        }).catch((e) => console.warn("[useProfileEditor] activity log failed", e));
         toast.success("Profile saved");
         setEditingSection(null);
         patchEditState({ editingSection: null });
-        await options.onSaved?.();
+        options.onSaved?.();
         return true;
       } catch (e) {
         console.error("[useProfileEditor] save failed", e);

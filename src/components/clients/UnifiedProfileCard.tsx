@@ -57,6 +57,7 @@ export function UnifiedProfileCard({
 
   const loaded = useProfileViewModel(isPreview ? null : clientId, refreshKey);
   const viewModel = isPreview ? previewViewModel : loaded.viewModel;
+  const applyViewModel = loaded.applyViewModel;
   const previewCompletion = useMemo(
     () => (isPreview && viewModel ? computeCompletion(viewModel) : null),
     [isPreview, viewModel],
@@ -64,14 +65,11 @@ export function UnifiedProfileCard({
   const completion = isPreview ? previewCompletion : loaded.completion;
   const loading = isPreview ? false : loaded.loading;
   const error = isPreview ? null : loaded.error;
-  const reload = isPreview ? async () => {} : loaded.reload;
 
   const editor = useProfileEditor(viewModel, {
     clientId,
-    onSaved: async () => {
-      await reload();
-      onSaved?.();
-    },
+    onViewModelSaved: applyViewModel,
+    onSaved,
   });
 
   const liveDocs = useProfileDocuments(isPreview ? null : clientId);

@@ -1227,7 +1227,6 @@ const ClientDetail = () => {
               clientId={client.id}
               canEdit={canUpload}
               refreshKey={profileRefreshKey}
-              onSaved={() => setProfileRefreshKey((k) => k + 1)}
             />
             <CasePeopleCard
               clientId={client.id}

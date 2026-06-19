@@ -241,7 +241,7 @@ export async function profileSave(
 
   if (sections.has("education")) {
     const eduJson = educationRecordsToJson(state.education);
-    await syncEducationHistoryToClientEducation(clientId, eduJson).catch((e) =>
+    void syncEducationHistoryToClientEducation(clientId, eduJson).catch((e) =>
       console.warn("[profileSave] client_education sync failed", e),
     );
   }
@@ -257,9 +257,12 @@ export async function profileSave(
     }
   }
 
-  await ensureClientProfileSynced(clientId).catch((e) =>
-    console.warn("[profileSave] profile sync failed", e),
-  );
+  const needsProfileSync = sections.has("identity") || sections.has("contact");
+  if (needsProfileSync) {
+    await ensureClientProfileSynced(clientId).catch((e) =>
+      console.warn("[profileSave] profile sync failed", e),
+    );
+  }
 
   const viewModel = await getProfileViewModel(clientId);
   return { viewModel };

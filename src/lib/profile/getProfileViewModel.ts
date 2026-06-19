@@ -7,6 +7,29 @@ import { listDocumentRefsForClient } from "@/lib/profile/clientDocumentRefs";
 import { buildProfileViewModelFromSources } from "@/lib/profile/normalizeProfile";
 import type { ProfileViewModel } from "@/lib/profile/types";
 
+import type { ServiceCatalogueItem } from "@/lib/leads";
+import type { MasterItem } from "@/lib/masters";
+
+const ENRICHMENT_CACHE_MS = 5 * 60 * 1000;
+let catalogueCache: { data: ServiceCatalogueItem[]; at: number } | null = null;
+let statusItemsCache: { data: MasterItem[]; at: number } | null = null;
+
+async function getCachedCatalogue(): Promise<ServiceCatalogueItem[]> {
+  const now = Date.now();
+  if (catalogueCache && now - catalogueCache.at < ENRICHMENT_CACHE_MS) return catalogueCache.data;
+  const data = await fetchAllServiceCatalogue().catch(() => []);
+  catalogueCache = { data, at: now };
+  return data;
+}
+
+async function getCachedStatusItems(): Promise<MasterItem[]> {
+  const now = Date.now();
+  if (statusItemsCache && now - statusItemsCache.at < ENRICHMENT_CACHE_MS) return statusItemsCache.data;
+  const data = await fetchMasterItemsAll("client_statuses").catch(() => []);
+  statusItemsCache = { data, at: now };
+  return data;
+}
+
 /**
  * Single public loader for profile read model.
  * Normalizes legacy jsonb once, merges client_profile + clients + document refs + services snapshot.
@@ -21,8 +44,8 @@ export async function getProfileViewModel(clientId: string): Promise<ProfileView
       .select("stage_label, progress_percent")
       .eq("client_id", clientId)
       .maybeSingle(),
-    fetchMasterItemsAll("client_statuses").catch(() => []),
-    fetchAllServiceCatalogue().catch(() => []),
+    getCachedStatusItems(),
+    getCachedCatalogue(),
   ]);
 
   if (clientRes.error) throw clientRes.error;
