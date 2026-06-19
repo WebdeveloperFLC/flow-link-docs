@@ -1,7 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PROFILE_FIELDS } from "@/lib/extractedFields";
 import { ensureClientProfileSynced } from "@/lib/clientProfileSync";
-import { syncAllProfileDocumentRefs } from "@/lib/profile/clientDocumentRefs";
+import { syncAllProfileDocumentRefsIfAvailable } from "@/lib/profile/clientDocumentRefs";
+import { formatProfileSaveError } from "@/lib/profile/profileSaveError";
+import { syncEducationHistoryToClientEducation } from "@/lib/clientBackgroundSync";
 import { getProfileViewModel } from "@/lib/profile/getProfileViewModel";
 import {
   aptitudeEntriesToOtherTests,
@@ -62,9 +64,18 @@ function pickProfilePatch(
   return patch;
 }
 
-function collectRefSyncEntries(state: ProfileEditState): { ref_key: string; linked_documents: { document_id: string; slot: string; label: string; linked_at?: string | null }[] }[] {
-  const entries: { ref_key: string; linked_documents: { document_id: string; slot: string; label: string; linked_at?: string | null }[] }[] = [];
+type RefSyncEntry = {
+  ref_key: string;
+  linked_documents: { document_id: string; slot: string; label: string; linked_at?: string | null }[];
+};
 
+function collectRefSyncEntriesForSections(
+  state: ProfileEditState,
+  sections: Set<ProfileSectionId>,
+): RefSyncEntry[] {
+  const entries: RefSyncEntry[] = [];
+
+  if (sections.has("tests")) {
   for (const e of state.tests.english) {
     entries.push({
       ref_key: englishTestRefKey(e.test_id),
@@ -98,6 +109,9 @@ function collectRefSyncEntries(state: ProfileEditState): { ref_key: string; link
       })),
     });
   }
+  }
+
+  if (sections.has("education")) {
   for (const edu of state.education) {
     entries.push({
       ref_key: educationRefKey(edu.id),
@@ -109,6 +123,9 @@ function collectRefSyncEntries(state: ProfileEditState): { ref_key: string; link
       })),
     });
   }
+  }
+
+  if (sections.has("experience")) {
   for (const exp of state.experience) {
     entries.push({
       ref_key: experienceRefKey(exp.id),
@@ -120,7 +137,13 @@ function collectRefSyncEntries(state: ProfileEditState): { ref_key: string; link
       })),
     });
   }
+  }
+
   return entries;
+}
+
+function throwSaveError(step: string, error: unknown): never {
+  throw new Error(formatProfileSaveError(error, step));
 }
 
 export interface ProfileSaveOptions {
@@ -151,7 +174,7 @@ export async function profileSave(
     const { error: profileErr } = await supabase
       .from("client_profile")
       .upsert({ client_id: clientId, ...profilePatch }, { onConflict: "client_id" });
-    if (profileErr) throw profileErr;
+    if (profileErr) throwSaveError("client_profile", profileErr);
   }
 
   const clientPatch: Record<string, unknown> = {};
@@ -213,12 +236,25 @@ export async function profileSave(
 
   if (Object.keys(clientPatch).length > 0) {
     const { error: clientErr } = await supabase.from("clients").update(clientPatch).eq("id", clientId);
-    if (clientErr) throw clientErr;
+    if (clientErr) throwSaveError("clients", clientErr);
   }
 
-  const refSections = ["tests", "education", "experience"].filter((s) => sections.has(s as ProfileSectionId));
+  if (sections.has("education")) {
+    const eduJson = educationRecordsToJson(state.education);
+    await syncEducationHistoryToClientEducation(clientId, eduJson).catch((e) =>
+      console.warn("[profileSave] client_education sync failed", e),
+    );
+  }
+
+  const refSections = (["tests", "education", "experience"] as ProfileSectionId[]).filter((s) =>
+    sections.has(s),
+  );
   if (refSections.length > 0) {
-    await syncAllProfileDocumentRefs(clientId, collectRefSyncEntries(state));
+    const refEntries = collectRefSyncEntriesForSections(state, sections);
+    const refResult = await syncAllProfileDocumentRefsIfAvailable(clientId, refEntries);
+    if (!refResult.synced && refResult.skippedReason) {
+      console.warn("[profileSave] document ref sync skipped:", refResult.skippedReason);
+    }
   }
 
   await ensureClientProfileSynced(clientId).catch((e) =>

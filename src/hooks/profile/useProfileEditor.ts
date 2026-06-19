@@ -78,7 +78,7 @@ export function useProfileEditor(
         return true;
       } catch (e) {
         console.error("[useProfileEditor] save failed", e);
-        toast.error(e instanceof Error ? e.message : "Failed to save profile");
+        toast.error(formatProfileSaveError(e, "Profile save"));
         return false;
       } finally {
         setSaving(false);

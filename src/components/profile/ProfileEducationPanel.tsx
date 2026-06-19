@@ -42,6 +42,13 @@ function viewLine(label: string, value: string | null | undefined) {
   );
 }
 
+function normalizeYearInput(year?: string | null): string {
+  if (!year?.trim()) return "";
+  const v = year.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v.slice(0, 4);
+  return v.replace(/\D/g, "").slice(0, 4);
+}
+
 export function ProfileEducationPanel({
   records,
   mode,
@@ -166,15 +173,27 @@ export function ProfileEducationPanel({
               <div className="space-y-1">
                 <Label className="text-xs">Start year</Label>
                 <Input
-                  value={record.start_year ?? ""}
-                  onChange={(e) => onPatch?.(record.id, { start_year: e.target.value || null })}
+                  type="number"
+                  min={1950}
+                  max={2100}
+                  placeholder="e.g. 2020"
+                  value={normalizeYearInput(record.start_year)}
+                  onChange={(e) =>
+                    onPatch?.(record.id, { start_year: e.target.value ? String(e.target.value) : null })
+                  }
                 />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">End year</Label>
                 <Input
-                  value={record.end_year ?? ""}
-                  onChange={(e) => onPatch?.(record.id, { end_year: e.target.value || null })}
+                  type="number"
+                  min={1950}
+                  max={2100}
+                  placeholder="e.g. 2024"
+                  value={normalizeYearInput(record.end_year)}
+                  onChange={(e) =>
+                    onPatch?.(record.id, { end_year: e.target.value ? String(e.target.value) : null })
+                  }
                 />
               </div>
               <div className="space-y-1">

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { isDocumentRefsUnavailableError } from "@/lib/profile/profileSaveError";
 import type { ClientDocumentRefRow } from "@/lib/profile/types";
 import { slotLabel } from "@/lib/profile/profileDocumentSlots";
 
@@ -120,4 +121,38 @@ export async function syncAllProfileDocumentRefs(
   for (const entry of entries) {
     await syncDocumentRefsForKey(clientId, entry.ref_key, entry.linked_documents);
   }
+}
+
+/**
+ * Sync document refs when the table exists; skip gracefully when migration is not published.
+ * Returns false when skipped (clients JSON still saved).
+ */
+export async function syncAllProfileDocumentRefsIfAvailable(
+  clientId: string,
+  entries: { ref_key: string; linked_documents: LinkedDocSyncItem[] }[],
+): Promise<{ synced: boolean; skippedReason?: string }> {
+  if (entries.length === 0) return { synced: true };
+
+  const { error: probeErr } = await supabase
+    .from("client_document_refs")
+    .select("id")
+    .eq("client_id", clientId)
+    .limit(1);
+
+  if (probeErr) {
+    if (isDocumentRefsUnavailableError(probeErr)) {
+      console.warn(
+        "[profileSave] client_document_refs unavailable — profile JSON saved, doc links skipped. Publish migration 20260718120049_client_document_refs.sql",
+        probeErr,
+      );
+      return {
+        synced: false,
+        skippedReason: "client_document_refs table not available",
+      };
+    }
+    throw probeErr;
+  }
+
+  await syncAllProfileDocumentRefs(clientId, entries);
+  return { synced: true };
 }
