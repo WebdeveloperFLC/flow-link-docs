@@ -68,7 +68,7 @@ function mapToDb(b: VendorBill): Record<string, unknown> {
     due_date: b.dueDate || null,
     entity: b.entity || null,
     entity_id: getEntities().find((e) => e.name === b.entity)?.id ?? b.entity ?? null,
-    branch_id: b.branch || getEntities().find((e) => e.name === b.entity)?.id ?? b.entity ?? null,
+    branch_id: b.branch || (getEntities().find((e) => e.name === b.entity)?.id ?? b.entity ?? null),
     currency: b.currency || "INR",
     subtotal: b.subtotal ?? 0,
     tax_amount: b.taxAmount ?? 0,

@@ -342,4 +342,37 @@ export async function postPaymentJournal(paymentId: string): Promise<Journal | n
   return journal;
 }
 
+// ── CRM client lookup (link accounting profile → CRM client) ─────────
+
+export type CRMClient = {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  country: string | null;
+};
+
+type CRMClientRow = {
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  country: string | null;
+};
+
+export async function getCRMClients(): Promise<CRMClient[]> {
+  const { data, error } = await supabase
+    .from("clients")
+    .select("id,full_name,email,phone,country")
+    .order("created_at", { ascending: false });
+  if (error || !data) return [];
+  return (data as CRMClientRow[]).map((c) => ({
+    id: c.id,
+    name: c.full_name,
+    email: c.email ?? null,
+    phone: c.phone ?? null,
+    country: c.country ?? null,
+  }));
+}
+
 export { calcTax, getEntityTaxConfigSafe, postTrustReceipt };
