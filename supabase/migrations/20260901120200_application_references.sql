@@ -19,6 +19,10 @@ CREATE INDEX IF NOT EXISTS idx_qualification_application_references_qual
 CREATE INDEX IF NOT EXISTS idx_qualification_application_references_client
   ON public.qualification_application_references (client_id);
 
+-- One row per reference type per application (case-insensitive, trimmed).
+CREATE UNIQUE INDEX IF NOT EXISTS idx_qualification_application_references_type_unique
+  ON public.qualification_application_references (qualification_id, lower(trim(reference_type)));
+
 CREATE TRIGGER qualification_application_references_touch
   BEFORE UPDATE ON public.qualification_application_references
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
@@ -53,6 +57,7 @@ DECLARE
   v_reference_number text;
   v_notes text;
   v_existing_type text;
+  v_duplicate_type text;
 BEGIN
   v_id := NULLIF(p_payload->>'id', '')::uuid;
   v_qualification_id := (p_payload->>'qualification_id')::uuid;
@@ -83,6 +88,18 @@ BEGIN
 
   IF public.fn_qualification_is_terminal(v_lifecycle) THEN
     RAISE EXCEPTION 'Cannot edit references on a closed application';
+  END IF;
+
+  SELECT r.reference_type
+  INTO v_duplicate_type
+  FROM public.qualification_application_references r
+  WHERE r.qualification_id = v_qualification_id
+    AND lower(trim(r.reference_type)) = lower(trim(v_reference_type))
+    AND (v_id IS NULL OR r.id <> v_id)
+  LIMIT 1;
+
+  IF v_duplicate_type IS NOT NULL THEN
+    RAISE EXCEPTION 'This application already has a reference of type %', v_duplicate_type;
   END IF;
 
   IF v_id IS NULL THEN

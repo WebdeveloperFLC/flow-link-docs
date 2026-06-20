@@ -25,7 +25,12 @@
 | AF-14 | On Hold → Active | ☐ |
 | AF-15 | Reassign **Application Owner** | ☐ |
 | AF-16 | **Admissions Stage** change — lifecycle unchanged | ☐ |
-| AF-17 | **Application References** — add country default + custom type; edit; remove; timeline event | ☐ |
+| AF-17 | **Application References** — add country default + custom type; edit number/notes; remove; timeline event | ☐ |
+| AF-17a | Duplicate reference type rejected (e.g. second Student ID) | ☐ |
+| AF-17b | Case-insensitive duplicate rejected (`Student ID` then `student id`) | ☐ |
+| AF-17c | Same reference number under different types allowed (e.g. Application ID and Portal ID both `APP12345`) | ☐ |
+| AF-17d | Edit existing reference number/notes on same type allowed | ☐ |
+| AF-17e | Edit reference type to an existing type rejected (e.g. rename to CAS when CAS exists) | ☐ |
 | AF-18 | Re-create application after Cancelled/Refused on same intake | ☐ |
 
 **Owner:** Balveer + Engineering

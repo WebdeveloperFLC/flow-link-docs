@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getDefaultReferenceTypes } from "./applicationReferenceDefaults";
+import {
+  findDuplicateReferenceType,
+  getDefaultReferenceTypes,
+  normalizeReferenceType,
+} from "./applicationReferenceDefaults";
 
 describe("getDefaultReferenceTypes", () => {
   it("returns Canada defaults", () => {
@@ -51,5 +55,17 @@ describe("getDefaultReferenceTypes", () => {
       "Student ID",
       "Portal ID",
     ]);
+  });
+});
+
+describe("reference type normalization", () => {
+  it("normalizes case and whitespace", () => {
+    expect(normalizeReferenceType("  Student ID  ")).toBe("student id");
+  });
+
+  it("detects duplicate types case-insensitively", () => {
+    const refs = [{ id: "a", referenceType: "Student ID" }];
+    expect(findDuplicateReferenceType(refs, "student id")).toEqual(refs[0]);
+    expect(findDuplicateReferenceType(refs, "Student ID", "a")).toBeUndefined();
   });
 });

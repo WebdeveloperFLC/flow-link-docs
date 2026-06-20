@@ -56,3 +56,22 @@ export function formatReferenceDefaultsCountry(countryName: string | null | unde
   const trimmed = (countryName ?? "").trim();
   return trimmed || null;
 }
+
+/** Normalize reference type for duplicate checks (matches DB unique index). */
+export function normalizeReferenceType(referenceType: string): string {
+  return referenceType.trim().toLowerCase();
+}
+
+type ReferenceTypeRow = { id: string; referenceType: string };
+
+/** Find another row with the same normalized type (exclude current row on edit). */
+export function findDuplicateReferenceType<T extends ReferenceTypeRow>(
+  references: T[],
+  referenceType: string,
+  excludeId?: string,
+): T | undefined {
+  const normalized = normalizeReferenceType(referenceType);
+  return references.find(
+    (r) => r.id !== excludeId && normalizeReferenceType(r.referenceType) === normalized,
+  );
+}

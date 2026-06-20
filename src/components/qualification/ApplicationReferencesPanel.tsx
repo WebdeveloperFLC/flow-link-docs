@@ -25,8 +25,10 @@ import {
   upsertApplicationReference,
 } from "@/lib/qualification/qualificationApi";
 import {
+  findDuplicateReferenceType,
   formatReferenceDefaultsCountry,
   getDefaultReferenceTypes,
+  normalizeReferenceType,
 } from "@/lib/qualification/applicationReferenceDefaults";
 import type { ApplicationReference } from "@/lib/qualification/types";
 
@@ -73,8 +75,8 @@ export function ApplicationReferencesPanel({
   const countryLabel = formatReferenceDefaultsCountry(institutionCountryName);
 
   const unusedDefaults = useMemo(() => {
-    const used = new Set(references.map((r) => r.referenceType.toLowerCase()));
-    return defaultTypes.filter((type) => !used.has(type.toLowerCase()));
+    const used = new Set(references.map((r) => normalizeReferenceType(r.referenceType)));
+    return defaultTypes.filter((type) => !used.has(normalizeReferenceType(type)));
   }, [defaultTypes, references]);
 
   const openCreate = (referenceType = "") => {
@@ -101,6 +103,12 @@ export function ApplicationReferencesPanel({
     }
     if (!referenceNumber) {
       toast.error("Reference number is required");
+      return;
+    }
+
+    const duplicate = findDuplicateReferenceType(references, referenceType, form.id);
+    if (duplicate) {
+      toast.error(`This application already has a "${duplicate.referenceType}" reference`);
       return;
     }
 
@@ -150,7 +158,7 @@ export function ApplicationReferencesPanel({
             <p className="text-xs text-muted-foreground mt-1">
               Institution reference numbers for this application
               {countryLabel ? ` (${countryLabel} defaults available)` : ""}.
-              Add custom types anytime — no master list required.
+              One reference per type per application. Custom types allowed.
             </p>
           </div>
           {canEdit && (
