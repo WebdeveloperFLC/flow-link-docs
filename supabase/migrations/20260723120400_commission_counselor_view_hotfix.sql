@@ -1,5 +1,5 @@
--- Counselor-safe commission status view (definer rights — status columns only, no amounts in view)
--- Ensures lifecycle columns exist (20100 may not have run yet if migrations applied out of order).
+-- Hotfix: counselor view requires Phase 1 lifecycle columns on upi_commission_students.
+-- Safe if 20100 already applied; required when 20300 ran before 20100 or was pasted alone.
 
 ALTER TABLE public.upi_commission_students
   ADD COLUMN IF NOT EXISTS eligibility_status text DEFAULT 'pending',
