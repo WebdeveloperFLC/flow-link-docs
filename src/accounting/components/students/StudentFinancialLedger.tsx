@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, Wallet, RefreshCw, ArrowRightLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -10,7 +10,8 @@ import {
 import { fetchStudentFinancialSummary } from "@/accounting/stores/collectionCategoriesStore";
 import type { StudentFinancialSummary, ServiceCollectionStatus } from "@/accounting/types/collectionCategory";
 import { TREATMENT_LABELS } from "@/accounting/lib/collectionCategories";
-import { formatCurrency } from "@/accounting/lib/format";
+import { billingTriggerLabel } from "@/lib/serviceBilling";
+import BillingStageBadge from "@/components/invoices/BillingStageBadge";
 
 function collectionStatusLabel(s: ServiceCollectionStatus): string {
   switch (s) {
@@ -143,31 +144,84 @@ export default function StudentFinancialLedger({
               <TableRow>
                 <TableHead>Service</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead>Collection status</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Requested</TableHead>
                 <TableHead className="text-right">Invoiced</TableHead>
                 <TableHead className="text-right">Collected</TableHead>
-                <TableHead className="text-right">Outstanding</TableHead>
+                <TableHead className="text-right">Remaining billable</TableHead>
+                <TableHead className="text-right">Outstanding AR</TableHead>
                 <TableHead className="text-right">Trust held</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {s.services.map((svc) => (
-                <TableRow key={svc.serviceId}>
-                  <TableCell>
-                    <div className="font-medium">{svc.serviceName}</div>
-                    {svc.serviceCode && <div className="text-xs text-muted-foreground">{svc.serviceCode}</div>}
-                  </TableCell>
-                  <TableCell className="text-xs">{svc.categoryName ?? "—"}</TableCell>
-                  <TableCell>
-                    <Badge variant={collectionStatusVariant(svc.collectionStatus)} className="text-[10px]">
-                      {collectionStatusLabel(svc.collectionStatus)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">{money(svc.invoiced, svc.currency)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{money(svc.collected, svc.currency)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{money(svc.outstanding, svc.currency)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{money(svc.trustHeld, svc.currency)}</TableCell>
-                </TableRow>
+                <Fragment key={svc.serviceId}>
+                  <TableRow>
+                    <TableCell>
+                      <div className="font-medium">{svc.serviceName}</div>
+                      {svc.serviceCode && <div className="text-xs text-muted-foreground">{svc.serviceCode}</div>}
+                      {svc.billingTrigger && (
+                        <div className="text-[10px] text-muted-foreground mt-0.5">
+                          Trigger: {billingTriggerLabel(svc.billingTrigger)}
+                        </div>
+                      )}
+                      {svc.institutionDepositReference && (
+                        <div className="text-[10px] text-muted-foreground">
+                          Ref: {svc.institutionDepositReference}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-xs">{svc.categoryName ?? "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant={collectionStatusVariant(svc.collectionStatus)} className="text-[10px]">
+                        {collectionStatusLabel(svc.collectionStatus)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {svc.requested != null ? money(svc.requested, svc.currency) : "—"}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{money(svc.invoiced, svc.currency)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{money(svc.collected, svc.currency)}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {svc.remainingBillable != null ? money(svc.remainingBillable, svc.currency) : "—"}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{money(svc.outstanding, svc.currency)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{money(svc.trustHeld, svc.currency)}</TableCell>
+                  </TableRow>
+                  {svc.invoicesByStage.length > 0 && (
+                    <TableRow key={`${svc.serviceId}-stages`} className="bg-muted/10">
+                      <TableCell colSpan={9} className="py-2">
+                        <div className="text-[10px] uppercase text-muted-foreground mb-1">Invoice breakdown</div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="text-muted-foreground">
+                                <th className="text-left py-1">Invoice</th>
+                                <th className="text-left py-1">Stage</th>
+                                <th className="text-right py-1">Amount</th>
+                                <th className="text-right py-1">Collected</th>
+                                <th className="text-right py-1">Outstanding AR</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {svc.invoicesByStage.map((row) => (
+                                <tr key={row.invoiceId} className="border-t border-muted/30">
+                                  <td className="py-1">{row.invoiceNumber}</td>
+                                  <td className="py-1">
+                                    <BillingStageBadge stage={row.billingStage} />
+                                  </td>
+                                  <td className="py-1 text-right tabular-nums">{money(row.amount, svc.currency)}</td>
+                                  <td className="py-1 text-right tabular-nums">{money(row.collected, svc.currency)}</td>
+                                  <td className="py-1 text-right tabular-nums">{money(row.outstanding, svc.currency)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
               ))}
             </TableBody>
           </Table>

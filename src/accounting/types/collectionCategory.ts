@@ -106,17 +106,35 @@ export type ServiceCollectionStatus =
   | "TRUST_HELD";
 
 export interface StudentServiceBalance {
+  caseId: string | null;
   serviceId: string;
   serviceCode: string | null;
   serviceName: string;
   collectionCategoryId: string | null;
   categoryName: string | null;
+  requested: number | null;
+  requestedCurrency: string | null;
+  institutionRequiredDeposit: number | null;
+  billingTrigger: string | null;
+  institutionDepositReference: string | null;
   invoiced: number;
   collected: number;
   outstanding: number;
+  remainingBillable: number | null;
   trustHeld: number;
   collectionStatus: ServiceCollectionStatus;
   currency: string;
+  invoicesByStage: ServiceInvoiceStageRow[];
+}
+
+export interface ServiceInvoiceStageRow {
+  invoiceId: string;
+  invoiceNumber: string;
+  billingStage: string;
+  amount: number;
+  collected: number;
+  outstanding: number;
+  status: string;
 }
 
 export interface StudentCategoryBreakdown {

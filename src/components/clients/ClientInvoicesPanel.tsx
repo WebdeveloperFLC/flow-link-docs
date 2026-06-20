@@ -57,17 +57,24 @@ import {
 import InvoiceClientContextHeader from "@/components/invoices/InvoiceClientContextHeader";
 import ServiceLibraryPickerDialog from "@/components/invoices/ServiceLibraryPickerDialog";
 import DuplicateServiceWarningDialog from "@/components/invoices/DuplicateServiceWarningDialog";
+import ServiceBillingMetricsBar from "@/components/invoices/ServiceBillingMetricsBar";
+import ServiceBillingProfileEditor from "@/components/invoices/ServiceBillingProfileEditor";
+import BillingStageBadge from "@/components/invoices/BillingStageBadge";
 import { useArInvoicePermissions } from "@/lib/arInvoicePermissions";
+import { updateCaseBillingProfile, ensureCaseRequestedFromCatalogue } from "@/lib/clientServiceCase";
 import {
   loadInvoiceClientContext,
   loadEligibleServiceRequests,
   checkServiceDuplicate,
   addServiceFromLibrary,
   validateInvoiceDraft,
+  enrichInvoiceLinesWithBilling,
+  classifyBillingStage,
   type InvoiceClientContext,
   type DuplicateServiceCheck,
   type EligibleServiceRequest,
 } from "@/lib/arInvoiceWorkflow";
+import type { BillingTrigger } from "@/lib/serviceBilling";
 import type { ServiceCatalogueItem } from "@/lib/leads";
 import {
   allocationServiceUuidFromLineRef,
@@ -158,12 +165,19 @@ function money(amt: number, cur: string) {
   }
 }
 
+function primaryBillingStageFromLineItems(lineItems: unknown): string | null {
+  const lines = Array.isArray(lineItems) ? (lineItems as { billing_stage?: string; service_id?: string }[]) : [];
+  const billable = lines.filter(
+    (li) => li.service_id && li.service_id !== CHECKOUT_DISCOUNT_META_ID && li.billing_stage,
+  );
+  return billable[0]?.billing_stage ?? null;
+}
+
 function formatDiscountCell(amt: number, cur: string) {
   if (amt <= 0.005) return "—";
   return `−${money(amt, cur)}`;
 }
 
-/** Safe due-date formatter — never returns "NaN". */
 function formatDue(dueIso: string | null | undefined, fallbackIso?: string | null): string {
   const iso = dueIso || fallbackIso || null;
   if (!iso) return "No due date";
@@ -490,7 +504,12 @@ export function ClientInvoicesPanel({
                     onClick={() => openInvoiceDetail(r)}
                   >
                     <td className="px-3 py-2 font-medium">
-                      {r.invoice_number}
+                      <div className="flex flex-wrap items-center gap-1">
+                        {r.invoice_number}
+                        {primaryBillingStageFromLineItems(r.line_items) && (
+                          <BillingStageBadge stage={primaryBillingStageFromLineItems(r.line_items)} />
+                        )}
+                      </div>
                       {r.invoice_locked_for_edit && <Lock className="inline size-3 ml-1 text-muted-foreground" />}
                     </td>
                     <td className="px-3 py-2">
@@ -884,6 +903,14 @@ function InvoiceEditorDialog({
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [duplicateCheck, setDuplicateCheck] = useState<DuplicateServiceCheck | null>(null);
   const [pendingLibraryItem, setPendingLibraryItem] = useState<ServiceCatalogueItem | null>(null);
+  const [capOverride, setCapOverride] = useState(false);
+  const [capOverrideReason, setCapOverrideReason] = useState("");
+  const [billingProfileDraft, setBillingProfileDraft] = useState({
+    requestedAmount: "",
+    institutionRequiredDeposit: "",
+    billingTrigger: "" as BillingTrigger | "",
+    institutionDepositReference: "",
+  });
   const [customUnitPrices, setCustomUnitPrices] = useState<Record<string, number>>({});
   const [loadingServices, setLoadingServices] = useState(true);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -1087,6 +1114,44 @@ function InvoiceEditorDialog({
     [eligibleRequests],
   );
 
+  const activeBillingRequest = useMemo(() => {
+    const pickedIds = Object.keys(picked).filter((id) => (picked[id] ?? 0) > 0);
+    if (pickedIds.length === 1) return eligibleById.get(pickedIds[0]) ?? null;
+    if (displayServices.length === 1 && getPickedQty(displayServices[0], picked) > 0) {
+      return eligibleById.get(displayServices[0].id) ?? null;
+    }
+    return null;
+  }, [picked, eligibleById, displayServices]);
+
+  useEffect(() => {
+    const req = activeBillingRequest;
+    if (!req) return;
+    setBillingProfileDraft({
+      requestedAmount: req.requestedAmount != null ? String(req.requestedAmount) : "",
+      institutionRequiredDeposit:
+        req.institutionRequiredDeposit != null ? String(req.institutionRequiredDeposit) : "",
+      billingTrigger: req.billingTrigger ?? "",
+      institutionDepositReference: req.institutionDepositReference ?? "",
+    });
+  }, [activeBillingRequest?.caseId, activeBillingRequest?.requestedAmount]);
+
+  useEffect(() => {
+    (async () => {
+      const req = activeBillingRequest;
+      if (!req?.caseId || req.requestedAmount != null) return;
+      const svc = services.find((s) => s.id === req.id);
+      if (!svc) return;
+      await ensureCaseRequestedFromCatalogue({
+        caseId: req.caseId,
+        feeCad: svc.fee_cad ?? null,
+        feeInr: svc.fee_inr ?? null,
+        currency,
+      }).catch(() => null);
+      const { requests } = await loadEligibleServiceRequests(clientId);
+      setEligibleRequests(requests);
+    })();
+  }, [activeBillingRequest?.caseId, activeBillingRequest?.requestedAmount, currency, clientId]);
+
   const unmappedCategoryLines = useMemo(
     () => services.filter((s) => (getPickedQty(s, picked) ?? 0) > 0 && !s.collection_category_id),
     [services, picked],
@@ -1128,7 +1193,11 @@ function InvoiceEditorDialog({
           const req = eligibleById.get(s.id);
           const defaultUnit = currency === "CAD" ? Number(s.fee_cad ?? 0) : Number(s.fee_inr ?? 0);
           const onRequest = req?.pricingType === "ON_REQUEST";
-          const unit = customUnitPrices[s.id] ?? (onRequest && defaultUnit <= 0 ? 0 : defaultUnit);
+          const cappedDefault =
+            req?.remainingBillable != null && defaultUnit > 0
+              ? Math.min(defaultUnit, req.remainingBillable)
+              : defaultUnit;
+          const unit = customUnitPrices[s.id] ?? (onRequest && cappedDefault <= 0 ? 0 : cappedDefault);
           return {
             id: s.id,
             svc: s,
@@ -1166,6 +1235,31 @@ function InvoiceEditorDialog({
       ),
     [pricingInputs, offerDiscountPreview, gstEnabled, gstRate, checkoutDiscount, gstBasis],
   );
+
+  const previewLineTotal = useMemo(() => {
+    if (!activeBillingRequest) return 0;
+    const idx = pricingInputs.findIndex((r) => r.id === activeBillingRequest.id);
+    return idx >= 0 ? (priced.lines[idx]?.total ?? 0) : 0;
+  }, [activeBillingRequest, pricingInputs, priced.lines]);
+
+  const previewBillingStage = useMemo(() => {
+    if (!activeBillingRequest || previewLineTotal <= 0) return null;
+    return classifyBillingStage({
+      invoicedBefore: activeBillingRequest.invoicedAmount,
+      proposedLineTotal: previewLineTotal,
+      requestedAmount: activeBillingRequest.requestedAmount,
+      remainingBillable: activeBillingRequest.remainingBillable,
+      isCapOverride: capOverride,
+    });
+  }, [activeBillingRequest, previewLineTotal, capOverride]);
+
+  const previewAfterRemaining = useMemo(() => {
+    if (activeBillingRequest?.requestedAmount == null) return null;
+    return Math.max(
+      activeBillingRequest.requestedAmount - activeBillingRequest.invoicedAmount - previewLineTotal,
+      0,
+    );
+  }, [activeBillingRequest, previewLineTotal]);
 
   const lineItems = useMemo(() => {
     const rows = pricingInputs
@@ -1234,12 +1328,34 @@ function InvoiceEditorDialog({
     return paidByLineKey[key] ?? paidByServiceId[s.id] ?? 0;
   };
 
+  const saveBillingProfileIfNeeded = async () => {
+    const req = activeBillingRequest;
+    if (!req?.caseId || !perms.canSetRequestedAmount) return;
+    const requested = billingProfileDraft.requestedAmount.trim()
+      ? Number(billingProfileDraft.requestedAmount)
+      : null;
+    const instDep = billingProfileDraft.institutionRequiredDeposit.trim()
+      ? Number(billingProfileDraft.institutionRequiredDeposit)
+      : null;
+    await updateCaseBillingProfile({
+      caseId: req.caseId,
+      requestedAmount: requested,
+      requestedCurrency: currency,
+      institutionRequiredDeposit: instDep,
+      billingTrigger: billingProfileDraft.billingTrigger || null,
+      institutionDepositReference: billingProfileDraft.institutionDepositReference.trim() || null,
+    });
+  };
+
   const save = async () => {
+    const allowCapOverride = capOverride && perms.canOverrideBillingCap && capOverrideReason.trim().length > 0;
     const validation = validateInvoiceDraft({
       lineItems: lineItems as InvoiceLineLike[],
       pickedServiceIds: Object.keys(picked).filter((id) => (picked[id] ?? 0) > 0),
       services,
       mode: "draft",
+      eligible: eligibleRequests,
+      allowCapOverride,
     });
     if (!validation.ok) {
       toast.error(validation.errors[0] ?? "Validation failed");
@@ -1252,7 +1368,51 @@ function InvoiceEditorDialog({
       toast.error("Set quantity to at least 1 for a service");
       return;
     }
+
+    const { lines: enrichedLines, capErrors } = enrichInvoiceLinesWithBilling({
+      lineItems: lineItems as InvoiceLineLike[],
+      eligible: eligibleRequests,
+      allowCapOverride,
+    });
+    if (capErrors.length && !allowCapOverride) {
+      toast.error(capErrors[0]);
+      return;
+    }
+
+    for (const req of eligibleRequests) {
+      if (!req.caseId) continue;
+      const lineTotal = enrichedLines
+        .filter((li) => li.service_id === req.id)
+        .reduce((s, li) => s + Number(li.total ?? 0), 0);
+      if (lineTotal <= 0) continue;
+      const { data: capResult, error: capErr } = await supabase.rpc(
+        "fn_validate_service_billing_cap" as never,
+        {
+          p_case_id: req.caseId,
+          p_exclude_invoice_id: existingInvoice?.id ?? null,
+          p_proposed_lines: enrichedLines.filter((li) => li.service_id === req.id),
+          p_allow_override: allowCapOverride,
+        } as never,
+      );
+      if (capErr) {
+        toast.error(capErr.message);
+        return;
+      }
+      const cap = capResult as { ok?: boolean; errors?: string[] };
+      if (cap?.ok === false && !allowCapOverride) {
+        toast.error((cap.errors as string[])?.[0] ?? "Billing cap exceeded");
+        return;
+      }
+    }
+
     setSaving(true);
+    try {
+      await saveBillingProfileIfNeeded();
+    } catch (e: any) {
+      setSaving(false);
+      toast.error(e?.message ?? "Could not save billing profile");
+      return;
+    }
 
     const contextSnapshot = clientContext
       ? { ...clientContext, ...contextOverrides, savedAt: new Date().toISOString() }
@@ -1261,7 +1421,7 @@ function InvoiceEditorDialog({
     const payload = {
       amount: netTotal,
       currency,
-      line_items: lineItems,
+      line_items: enrichedLines,
       due_date: dueDate || null,
       branch_id: branchId ?? null,
       firm_entity_id: firmId ?? null,
@@ -1374,6 +1534,57 @@ function InvoiceEditorDialog({
               {unmappedCategoryLines.length} service(s) lack a collection category — draft OK; sending will be blocked until mapped in Collection Categories admin.
             </span>
           </div>
+        )}
+
+        {activeBillingRequest && (
+          <>
+            <ServiceBillingMetricsBar
+              currency={currency}
+              requested={activeBillingRequest.requestedAmount}
+              invoiced={activeBillingRequest.invoicedAmount}
+              collected={activeBillingRequest.collectedAmount}
+              remainingBillable={activeBillingRequest.remainingBillable}
+              outstandingAr={activeBillingRequest.outstandingAr}
+              billingStage={previewBillingStage}
+              institutionRequiredDeposit={activeBillingRequest.institutionRequiredDeposit}
+              afterSaveRemaining={previewAfterRemaining}
+            />
+            {activeBillingRequest.caseId && (
+              <ServiceBillingProfileEditor
+                currency={currency}
+                requestedAmount={billingProfileDraft.requestedAmount}
+                institutionRequiredDeposit={billingProfileDraft.institutionRequiredDeposit}
+                billingTrigger={billingProfileDraft.billingTrigger}
+                institutionDepositReference={billingProfileDraft.institutionDepositReference}
+                canEdit={perms.canSetRequestedAmount}
+                onRequestedChange={(v) => setBillingProfileDraft((p) => ({ ...p, requestedAmount: v }))}
+                onInstitutionDepositChange={(v) =>
+                  setBillingProfileDraft((p) => ({ ...p, institutionRequiredDeposit: v }))
+                }
+                onTriggerChange={(v) => setBillingProfileDraft((p) => ({ ...p, billingTrigger: v }))}
+                onReferenceChange={(v) =>
+                  setBillingProfileDraft((p) => ({ ...p, institutionDepositReference: v }))
+                }
+              />
+            )}
+            {previewBillingStage === "TOP_UP" && perms.canOverrideBillingCap && (
+              <div className="rounded-md border border-amber-500/40 px-3 py-2 space-y-2 text-xs">
+                <Label className="text-xs">Finance cap override (one-time)</Label>
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={capOverride} onCheckedChange={(c) => setCapOverride(!!c)} />
+                  <span>Allow this invoice to exceed remaining billable</span>
+                </div>
+                {capOverride && (
+                  <Input
+                    placeholder="Override reason (required)"
+                    value={capOverrideReason}
+                    onChange={(e) => setCapOverrideReason(e.target.value)}
+                    className="h-8 text-xs"
+                  />
+                )}
+              </div>
+            )}
+          </>
         )}
 
         {loadingServices ? (
@@ -1499,6 +1710,9 @@ function InvoiceEditorDialog({
                               <Badge variant="outline" className="text-[9px] px-1 py-0">
                                 {eligibleById.get(s.id)!.collectionStatus.replace(/_/g, " ")}
                               </Badge>
+                              {previewBillingStage && qty > 0 && s.id === activeBillingRequest?.id && (
+                                <BillingStageBadge stage={previewBillingStage} />
+                              )}
                               {eligibleById.get(s.id)!.categoryUnmapped && (
                                 <Badge variant="outline" className="text-[9px] px-1 py-0 border-amber-500 text-amber-700">
                                   No category
@@ -1516,7 +1730,12 @@ function InvoiceEditorDialog({
                           )}
                         </td>
                         <td className="px-3 py-2 text-right tabular-nums">
-                          {req?.pricingType === "ON_REQUEST" && perms.canOnRequestPricing ? (
+                          {(req?.pricingType === "ON_REQUEST" ||
+                            (req?.remainingBillable != null &&
+                              req.remainingBillable <
+                                (currency === "CAD" ? Number(s.fee_cad ?? 0) : Number(s.fee_inr ?? 0))) ||
+                            (req?.invoicedAmount ?? 0) > 0) &&
+                          perms.canOnRequestPricing ? (
                             <Input
                               type="number"
                               min={0}
@@ -1782,19 +2001,19 @@ function InvoiceEditorDialog({
         onOpenDraftInvoice?.(id);
         onClose();
       }}
+      onCreateDeposit={() => void confirmDuplicateUseExisting()}
+      onCreateInstallment={() => void confirmDuplicateUseExisting()}
       onForceContinue={async () => {
-        if (pendingLibraryItem && duplicateCheck?.kind === "outstanding" && perms.canForceDuplicate) {
-          try {
-            const { billable } = await reloadWorkflow();
-            setServices(billable);
-            const match = billable.find((s) => s.id === pendingLibraryItem.id);
-            if (match) setPicked((p) => ({ ...p, [match.id]: 1 }));
-          } catch { /* ignore */ }
+        if (pendingLibraryItem && duplicateCheck?.kind === "top_up" && perms.canOverrideBillingCap) {
+          setCapOverride(true);
+          await confirmDuplicateUseExisting();
+        } else if (pendingLibraryItem && perms.canForceDuplicate) {
+          await confirmDuplicateUseExisting();
         }
         setDuplicateCheck(null);
         setPendingLibraryItem(null);
       }}
-      canForce={perms.canForceDuplicate}
+      canForce={perms.canOverrideBillingCap || perms.canForceDuplicate}
     />
     </>
   );

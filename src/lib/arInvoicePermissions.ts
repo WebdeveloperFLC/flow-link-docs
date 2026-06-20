@@ -5,6 +5,7 @@ export function useArInvoicePermissions() {
   const canAddService = isAdmin || hasRole(["administrator", "finance", "accounting"]);
   const canContextOverride = isAdmin || hasRole(["administrator", "finance"]);
   const canForceDuplicate = canContextOverride;
-  const canOnRequestPricing = canAddService;
-  return { canAddService, canContextOverride, canForceDuplicate, canOnRequestPricing };
+  const canOverrideBillingCap = canContextOverride;
+  const canSetRequestedAmount = canAddService;
+  return { canAddService, canContextOverride, canForceDuplicate, canOnRequestPricing, canOverrideBillingCap, canSetRequestedAmount };
 }

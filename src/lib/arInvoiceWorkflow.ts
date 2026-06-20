@@ -14,7 +14,21 @@ import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads
 import { collectClientServices } from "@/lib/clientActiveService";
 import { findCatalogueItemForStoredCode } from "@/lib/service-library/resolveServiceLabel";
 import { completeClientServiceEnrollment } from "@/lib/service-library/completeClientServiceEnrollment";
-import { createServiceCase, fetchCasesForClient, type ClientServiceCase } from "@/lib/clientServiceCase";
+import {
+  createServiceCase,
+  ensureCaseRequestedFromCatalogue,
+  fetchCasesForClient,
+  type ClientServiceCase,
+} from "@/lib/clientServiceCase";
+import {
+  classifyBillingStage,
+  resolveBillingIntent,
+  validateBillingCap,
+  type BillingIntentCheck,
+  type BillingIntentKind,
+  type BillingStage,
+  type BillingTrigger,
+} from "@/lib/serviceBilling";
 import { listClientPrograms, type ClientProgramEnriched } from "@/lib/clientPrograms";
 import { resolvePipelineForServiceCode } from "@/lib/clientActiveService";
 import {
@@ -23,6 +37,7 @@ import {
   type BillableClientService,
   type InvoiceLineLike,
 } from "@/lib/clientInvoiceServices";
+import { CHECKOUT_DISCOUNT_META_ID } from "@/lib/invoiceLinePricing";
 import { parseLibraryIdFromServiceCode } from "@/lib/service-library/serviceCodes";
 
 export type ServiceCollectionStatus =
@@ -56,21 +71,35 @@ export interface EligibleServiceRequest extends BillableClientService {
   invoicedAmount: number;
   collectedAmount: number;
   outstandingAmount: number;
+  outstandingAr: number;
+  remainingBillable: number | null;
+  requestedAmount: number | null;
+  requestedCurrency: string | null;
+  institutionRequiredDeposit: number | null;
+  billingTrigger: BillingTrigger | null;
+  institutionDepositReference: string | null;
   categoryName: string | null;
   categoryUnmapped: boolean;
   pricingType: ServiceCatalogueItem["pricing_type"];
   onRequestFee?: number | null;
 }
 
+/** @deprecated Use BillingIntentCheck — kept for dialog compat */
 export interface DuplicateServiceCheck {
-  kind: "none" | "enrolled" | "draft" | "outstanding";
+  kind: BillingIntentKind | "enrolled" | "draft" | "outstanding";
   serviceCode: string;
   serviceName: string;
   draftInvoiceId?: string;
   draftInvoiceNumber?: string;
   caseId?: string;
+  billingStage?: BillingStage | null;
+  requestedAmount?: number | null;
+  remainingBillable?: number | null;
   message: string;
 }
+
+export type { BillingIntentCheck, BillingIntentKind, BillingStage, BillingTrigger };
+export { classifyBillingStage, resolveBillingIntent, validateBillingCap, billingStageLabel, billingTriggerLabel } from "@/lib/serviceBilling";
 
 const TERMINAL_INVOICE = new Set(["cancelled", "void"]);
 
@@ -211,19 +240,38 @@ export async function loadEligibleServiceRequests(clientId: string): Promise<{
 
     let invoiced = 0;
     let hasDraft = false;
+    let draftId: string | undefined;
+    let draftNumber: string | undefined;
     for (const inv of invoices) {
       const lines = Array.isArray(inv.line_items) ? (inv.line_items as InvoiceLineLike[]) : [];
       for (const li of lines) {
-        if (!invoiceLineMatchesServiceCode(li, storedCode, catalogue) && !invoiceLineMatchesServiceCode(li, code, catalogue)) continue;
+        const lineCaseId = (li as { case_id?: string }).case_id;
+        const matchesCase =
+          svcCase?.id && lineCaseId === svcCase.id;
+        const matchesService =
+          invoiceLineMatchesServiceCode(li, storedCode, catalogue) ||
+          invoiceLineMatchesServiceCode(li, code, catalogue);
+        if (!matchesCase && !(matchesService && !lineCaseId)) continue;
         invoiced += Number(li.total ?? 0);
       }
-      if (inv.status === "draft" && lines.some((li) => invoiceLineMatchesServiceCode(li, storedCode, catalogue) || invoiceLineMatchesServiceCode(li, code, catalogue))) {
+      const hasServiceLine = lines.some(
+        (li) =>
+          (svcCase?.id && (li as { case_id?: string }).case_id === svcCase.id) ||
+          invoiceLineMatchesServiceCode(li, storedCode, catalogue) ||
+          invoiceLineMatchesServiceCode(li, code, catalogue),
+      );
+      if (inv.status === "draft" && hasServiceLine) {
         hasDraft = true;
+        draftId = inv.id;
+        draftNumber = (inv as { invoice_number?: string }).invoice_number;
       }
     }
 
     const collected = collectedByService.get(canonicalId) ?? collectedByService.get(storedCode) ?? 0;
     const catId = item.collection_category_id ?? null;
+    const requestedAmount = svcCase?.requestedAmount ?? null;
+    const remainingBillable =
+      requestedAmount != null ? Math.max(requestedAmount - invoiced, 0) : null;
 
     requests.push({
       id: canonicalId,
@@ -241,6 +289,13 @@ export async function loadEligibleServiceRequests(clientId: string): Promise<{
       invoicedAmount: invoiced,
       collectedAmount: collected,
       outstandingAmount: Math.max(0, invoiced - collected),
+      outstandingAr: Math.max(0, invoiced - collected),
+      remainingBillable,
+      requestedAmount,
+      requestedCurrency: svcCase?.requestedCurrency ?? null,
+      institutionRequiredDeposit: svcCase?.institutionRequiredDeposit ?? null,
+      billingTrigger: svcCase?.billingTrigger ?? null,
+      institutionDepositReference: svcCase?.institutionDepositReference ?? null,
       categoryName: catId ? catNameById.get(catId) ?? null : null,
       categoryUnmapped: !catId,
       pricingType: item.pricing_type,
@@ -260,15 +315,9 @@ export async function checkServiceDuplicate(
   const item = findCatalogueItemForStoredCode(serviceCode, catalogue);
   const name = item?.service_name ?? serviceCode;
 
-  const { data: client } = await supabase
-    .from("clients")
-    .select("visa_services,coaching_services,admission_services,allied_services,travel_financial_services")
-    .eq("id", clientId)
-    .maybeSingle();
-
-  const enrolled = collectClientServices(client ?? {});
-  const alreadyEnrolled = enrolled.some(
-    (c) => c === serviceCode || invoiceLineMatchesServiceCode({ service_code: c }, serviceCode, catalogue),
+  const { requests } = await loadEligibleServiceRequests(clientId);
+  const req = requests.find(
+    (r) => r.serviceCode === serviceCode || r.service_code === serviceCode || r.id === item?.id,
   );
 
   const { data: invoices } = await supabase
@@ -281,12 +330,38 @@ export async function checkServiceDuplicate(
   const draft = findPendingDraftInvoice(drafts, [serviceCode], catalogue, serviceCode);
   if (draft) {
     return {
-      kind: "draft",
+      kind: "duplicate_draft",
       serviceCode,
       serviceName: name,
       draftInvoiceId: draft.id,
       draftInvoiceNumber: (draft as { invoice_number?: string }).invoice_number,
+      caseId: req?.caseId ?? undefined,
+      requestedAmount: req?.requestedAmount,
+      remainingBillable: req?.remainingBillable,
       message: `Draft invoice ${(draft as { invoice_number?: string }).invoice_number} already includes this service.`,
+    };
+  }
+
+  const { data: client } = await supabase
+    .from("clients")
+    .select("visa_services,coaching_services,admission_services,allied_services,travel_financial_services")
+    .eq("id", clientId)
+    .maybeSingle();
+
+  const enrolled = collectClientServices(client ?? {});
+  const alreadyEnrolled = enrolled.some(
+    (c) => c === serviceCode || invoiceLineMatchesServiceCode({ service_code: c }, serviceCode, catalogue),
+  );
+
+  if (alreadyEnrolled && req) {
+    return {
+      kind: "duplicate_service",
+      serviceCode,
+      serviceName: name,
+      caseId: req.caseId ?? undefined,
+      requestedAmount: req.requestedAmount,
+      remainingBillable: req.remainingBillable,
+      message: `"${name}" is already on this student. Use the existing service request to invoice.`,
     };
   }
 
@@ -297,10 +372,13 @@ export async function checkServiceDuplicate(
     const outstanding = Math.max(0, Number(inv.amount ?? 0) - Number(inv.amount_paid ?? 0));
     if (outstanding > 0.01) {
       return {
-        kind: "outstanding",
+        kind: "outstanding_collect_first",
         serviceCode,
         serviceName: name,
-        message: `Outstanding invoice ${inv.invoice_number} includes this service (₹${outstanding.toFixed(2)} due). Top-up or collect first.`,
+        caseId: req?.caseId ?? undefined,
+        requestedAmount: req?.requestedAmount,
+        remainingBillable: req?.remainingBillable,
+        message: `Outstanding invoice ${inv.invoice_number} includes this service (${outstanding.toFixed(2)} AR due). Collect or proceed with installment.`,
       };
     }
   }
@@ -309,7 +387,7 @@ export async function checkServiceDuplicate(
     const cases = await fetchCasesForClient(clientId);
     const c = cases.find((x) => x.serviceCode === serviceCode);
     return {
-      kind: "enrolled",
+      kind: "duplicate_service",
       serviceCode,
       serviceName: name,
       caseId: c?.id,
@@ -318,6 +396,58 @@ export async function checkServiceDuplicate(
   }
 
   return { kind: "none", serviceCode, serviceName: name, message: "" };
+}
+
+/** Attach case_id + billing_stage to billable lines before save. */
+export function enrichInvoiceLinesWithBilling(params: {
+  lineItems: InvoiceLineLike[];
+  eligible: EligibleServiceRequest[];
+  excludeInvoicedOnInvoiceId?: string;
+  allowCapOverride?: boolean;
+}): { lines: InvoiceLineLike[]; capErrors: string[]; intents: BillingIntentCheck[] } {
+  const capErrors: string[] = [];
+  const intents: BillingIntentCheck[] = [];
+  const lines = params.lineItems.map((li) => ({ ...li }));
+
+  for (const li of lines) {
+    if (!li.service_id || li.service_id === CHECKOUT_DISCOUNT_META_ID) continue;
+    const req = params.eligible.find((r) => r.id === li.service_id);
+    if (!req?.caseId) continue;
+
+    const lineTotal = Number(li.total ?? 0);
+    const invoicedBefore = req.invoicedAmount;
+    const cap = validateBillingCap({
+      requestedAmount: req.requestedAmount,
+      invoicedBefore,
+      proposedLineTotal: lineTotal,
+      allowOverride: params.allowCapOverride,
+    });
+    if (!cap.ok && cap.error) capErrors.push(`${req.service_name}: ${cap.error}`);
+
+    const intent = resolveBillingIntent({
+      serviceCode: req.serviceCode,
+      serviceName: req.service_name,
+      caseId: req.caseId,
+      requestedAmount: req.requestedAmount,
+      invoicedBefore,
+      remainingBillable: req.remainingBillable,
+      proposedLineTotal: lineTotal,
+    });
+
+    const billingStage = classifyBillingStage({
+      invoicedBefore,
+      proposedLineTotal: lineTotal,
+      requestedAmount: req.requestedAmount,
+      remainingBillable: req.remainingBillable,
+      isCapOverride: Boolean(params.allowCapOverride && !cap.ok),
+    });
+
+    (li as InvoiceLineLike & { case_id?: string; billing_stage?: BillingStage }).case_id = req.caseId;
+    (li as InvoiceLineLike & { billing_stage?: BillingStage }).billing_stage = billingStage;
+    intents.push(intent);
+  }
+
+  return { lines, capErrors, intents };
 }
 
 /** Scenario B — add service from library (enrollment + service case). */
@@ -352,6 +482,12 @@ export async function addServiceFromLibrary(params: {
       attemptNumber: 1,
     });
     caseId = svcCase.id;
+    await ensureCaseRequestedFromCatalogue({
+      caseId: svcCase.id,
+      feeCad: params.catalogueItem.fee_cad ?? null,
+      feeInr: params.catalogueItem.fee_inr ?? null,
+      currency: params.country === "Canada" || params.catalogueItem.country_tag === "Canada" ? "CAD" : "INR",
+    }).catch(() => null);
   } catch {
     // Case may already exist — non-fatal
   }
@@ -366,13 +502,13 @@ export interface InvoiceValidationResult {
   blockSend: boolean;
 }
 
-import { CHECKOUT_DISCOUNT_META_ID } from "@/lib/invoiceLinePricing";
-
 export function validateInvoiceDraft(params: {
   lineItems: InvoiceLineLike[];
   pickedServiceIds: string[];
   services: BillableClientService[];
   mode: "draft" | "send";
+  eligible?: EligibleServiceRequest[];
+  allowCapOverride?: boolean;
 }): InvoiceValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -399,6 +535,28 @@ export function validateInvoiceDraft(params: {
     }
     if (!li.collection_category_id) {
       warnings.push(`"${li.service_name}" has no collection category mapped.`);
+    }
+  }
+
+  if (params.eligible?.length) {
+    const { capErrors } = enrichInvoiceLinesWithBilling({
+      lineItems: billableLines,
+      eligible: params.eligible,
+      allowCapOverride: params.allowCapOverride,
+    });
+    for (const e of capErrors) {
+      if (params.allowCapOverride) warnings.push(e.replace("Finance override required.", "Override active."));
+      else errors.push(e);
+    }
+    for (const req of params.eligible) {
+      if (
+        params.mode === "send" &&
+        req.pricingType === "ON_REQUEST" &&
+        req.requestedAmount == null &&
+        billableLines.some((li) => li.service_id === req.id)
+      ) {
+        errors.push(`Set requested amount for "${req.service_name}" before sending.`);
+      }
     }
   }
 
