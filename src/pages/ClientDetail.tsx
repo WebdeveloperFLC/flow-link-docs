@@ -91,6 +91,7 @@ import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitche
 import { ClientOverviewDashboard } from "@/components/clients/ClientOverviewDashboard";
 import { CaseOutcomeDialog } from "@/components/clients/CaseOutcomeDialog";
 import { useActiveServiceCase } from "@/hooks/useActiveServiceCase";
+import { QualificationTabContent } from "@/components/qualification";
 
 /** Re-enable when client AI summaries are ready for production. */
 const CLIENT_AI_SUMMARY_ENABLED = false;
@@ -177,7 +178,7 @@ const ClientDetail = () => {
 
   useEffect(() => {
     if (!tabParam || tabParam === activeTab) return;
-    const legacy = ["qualification", "family", "services", "setup", "programs"];
+    const legacy = ["family", "services", "setup", "programs"];
     if (legacy.includes(tabParam)) {
       setSearchParams(
         (prev) => {
@@ -1196,9 +1197,6 @@ const ClientDetail = () => {
               serviceCtx={serviceCtx}
               onOpenTab={(tab) => {
                 const resolved = resolveClientDetailTab(tab);
-                if (tab === "qualification") {
-                  setAssessmentOpen(true);
-                }
                 setActiveTab(resolved);
               }}
             />
@@ -1253,6 +1251,15 @@ const ClientDetail = () => {
                 allied_services: client.allied_services ?? [],
                 travel_services: client.travel_financial_services ?? [],
               }}
+            />
+          </TabsContent>
+
+          <TabsContent value="qualification" className="mt-0 space-y-6">
+            <QualificationTabContent
+              clientId={client.id}
+              caseId={serviceCase?.id}
+              canEdit={canUpload}
+              refreshKey={stageRefreshKey}
             />
           </TabsContent>
 

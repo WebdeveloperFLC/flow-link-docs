@@ -9,6 +9,7 @@ import {
   ListTodo,
   Users,
   ScrollText,
+  GraduationCap,
 } from "lucide-react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ export const CLIENT_DETAIL_TABS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "profile", label: "Profile", icon: UserCircle },
   { id: "client-services", label: "Client Services", icon: Layers },
+  { id: "qualification", label: "Qualification", icon: GraduationCap },
   { id: "documents", label: "Documents", icon: FolderOpen },
   { id: "forms", label: "Forms & Letters", icon: FileText },
   { id: "commercial", label: "Payments", icon: Receipt },
@@ -28,7 +30,6 @@ export const CLIENT_DETAIL_TABS = [
 
 /** @deprecated Removed tabs — kept for URL redirects. */
 export const LEGACY_CLIENT_DETAIL_TABS = [
-  "qualification",
   "family",
   "services",
   "setup",
@@ -44,7 +45,6 @@ export function isClientDetailTabId(value: string | null): value is ClientDetail
 /** Map old tab URLs to current tabs (e.g. ?tab=family → profile). */
 export function resolveClientDetailTab(value: string | null): ClientDetailTabId {
   if (!value) return "overview";
-  if (value === "qualification") return "overview";
   if (value === "setup" || value === "staging") return "overview";
   if (value === "family") return "team";
   if (value === "services" || value === "programs") return "client-services";
@@ -52,8 +52,8 @@ export function resolveClientDetailTab(value: string | null): ClientDetailTabId 
   return "overview";
 }
 
-export function shouldOpenAssessmentFromTab(value: string | null): boolean {
-  return value === "qualification";
+export function shouldOpenAssessmentFromTab(_value: string | null): boolean {
+  return false;
 }
 
 type Props = {
