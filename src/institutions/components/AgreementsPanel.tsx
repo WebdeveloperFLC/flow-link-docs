@@ -1,11 +1,14 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useCallback } from "react";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, AlertTriangle, Trash2 } from "lucide-react";
+import { MoreHorizontal, AlertTriangle, Trash2, Save } from "lucide-react";
 import { DynamicFieldGroup } from "./DynamicFieldGroup";
 import { useAgreements, useRenewalCountdown, renewalThreshold } from "../hooks/useInstitutionData";
 import { ALLOW_TEST_DELETIONS } from "../config";
@@ -151,17 +154,136 @@ export function AgreementsPanel({ institutionId }: { institutionId: string }) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!versions} onOpenChange={(v) => !v && setVersions(null)}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Version history — {versions?.title}</DialogTitle></DialogHeader>
-          <ul className="text-sm space-y-1">
-            <li className="flex justify-between"><span>v1 — initial upload</span><span className="text-muted-foreground text-xs">{versions?.valid_from ?? "—"}</span></li>
-            <li className="flex justify-between"><span>v2 — AI extraction</span><span className="text-muted-foreground text-xs">auto</span></li>
-            <li className="flex justify-between"><span>v3 — current</span><span className="text-muted-foreground text-xs">latest</span></li>
-          </ul>
-        </DialogContent>
-      </Dialog>
+      <AgreementVersionsDialog agreement={versions} onClose={() => setVersions(null)} />
     </div>
+  );
+}
+
+type AgreementVersionRow = {
+  id: string;
+  version_number: number;
+  change_summary: string | null;
+  effective_from: string | null;
+  effective_to: string | null;
+  status: string | null;
+  created_at: string | null;
+};
+
+function AgreementVersionsDialog({ agreement, onClose }: { agreement: any | null; onClose: () => void }) {
+  const [rows, setRows] = useState<AgreementVersionRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!agreement?.id) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("upi_agreement_versions")
+      .select("id, version_number, change_summary, effective_from, effective_to, status, created_at")
+      .eq("agreement_id", agreement.id)
+      .order("version_number", { ascending: false });
+    if (error) toast.error(error.message);
+    else setRows((data ?? []) as AgreementVersionRow[]);
+    setLoading(false);
+  }, [agreement?.id]);
+
+  useEffect(() => {
+    if (agreement) load();
+    else setRows([]);
+  }, [agreement, load]);
+
+  const updateRow = (id: string, patch: Partial<AgreementVersionRow>) => {
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  };
+
+  const saveRow = async (row: AgreementVersionRow) => {
+    setSavingId(row.id);
+    const { error } = await supabase.from("upi_agreement_versions").update({
+      effective_from: row.effective_from || null,
+      effective_to: row.effective_to || null,
+      status: row.status || "draft",
+      change_summary: row.change_summary,
+    }).eq("id", row.id);
+    if (error) toast.error(error.message);
+    else toast.success(`Version ${row.version_number} saved`);
+    setSavingId(null);
+  };
+
+  return (
+    <Dialog open={!!agreement} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Agreement versions — {agreement?.title}</DialogTitle>
+        </DialogHeader>
+        <p className="text-xs text-muted-foreground">
+          Effective dates drive commission agreement_version_id resolution and eligibility config versioning.
+        </p>
+        {loading ? (
+          <div className="text-sm text-muted-foreground py-6 text-center">Loading versions…</div>
+        ) : rows.length === 0 ? (
+          <div className="text-sm text-muted-foreground py-6 text-center">
+            No version rows yet. Upload a new agreement document to create v1.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {rows.map((row) => (
+              <Card key={row.id} className="p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-medium">v{row.version_number}</div>
+                  <Badge variant={row.status === "published" ? "default" : "secondary"}>{row.status ?? "draft"}</Badge>
+                </div>
+                <div className="grid md:grid-cols-3 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Effective from</Label>
+                    <Input
+                      type="date"
+                      value={row.effective_from ?? ""}
+                      onChange={(e) => updateRow(row.id, { effective_from: e.target.value || null })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Effective to</Label>
+                    <Input
+                      type="date"
+                      value={row.effective_to ?? ""}
+                      onChange={(e) => updateRow(row.id, { effective_to: e.target.value || null })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Status</Label>
+                    <Select value={row.status ?? "draft"} onValueChange={(v) => updateRow(row.id, { status: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="published">Published</SelectItem>
+                        <SelectItem value="superseded">Superseded</SelectItem>
+                        <SelectItem value="archived">Archived</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Change summary</Label>
+                  <Input
+                    value={row.change_summary ?? ""}
+                    onChange={(e) => updateRow(row.id, { change_summary: e.target.value })}
+                  />
+                </div>
+                <div className="flex justify-between items-center text-xs text-muted-foreground">
+                  <span>Created {row.created_at ? new Date(row.created_at).toLocaleDateString() : "—"}</span>
+                  <Button size="sm" variant="outline" disabled={savingId === row.id} onClick={() => saveRow(row)}>
+                    <Save className="size-3.5 mr-1" /> Save
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -36,6 +36,7 @@ import { ClientServicesTabContent } from "@/components/clients/ClientServicesTab
 import { ClientJourneyProfileSection } from "@/components/clients/ClientJourneyProfileSection";
 import { ClientActivityLogCard } from "@/components/clients/ClientActivityLogCard";
 import { ClientPaymentsCard } from "@/components/clients/ClientPaymentsCard";
+import { ClientCommissionStatusPanel } from "@/components/clients/ClientCommissionStatusPanel";
 import { ClientPromotionsStrip } from "@/components/clients/ClientPromotionsStrip";
 import { LetterCard } from "@/components/letters/LetterCard";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
@@ -1259,6 +1260,7 @@ const ClientDetail = () => {
               clientPhone={(client as Client & { phone?: string | null }).phone ?? null}
             />
             <ClientPaymentsCard clientId={client.id} activeServiceCode={serviceCtx.activeServiceCode} />
+            <ClientCommissionStatusPanel clientId={client.id} />
           </TabsContent>
 
           <TabsContent value="forms" className="mt-0 space-y-6">

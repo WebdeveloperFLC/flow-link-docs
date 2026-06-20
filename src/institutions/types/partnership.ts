@@ -56,6 +56,7 @@ export interface UpiPartnershipRoute {
   application_fee_waiver_from: string | null;
   application_fee_waiver_to: string | null;
   notes: string | null;
+  default_commission_id?: string | null;
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;

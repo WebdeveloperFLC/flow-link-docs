@@ -61,6 +61,7 @@ type RouteForm = {
   application_fee_waiver_to: string;
   is_default_route: boolean;
   notes: string;
+  default_commission_id: string;
 };
 
 const defaultSlabRows = (): SlabRow[] => [
@@ -92,6 +93,7 @@ const emptyRouteForm = (): RouteForm => ({
   application_fee_waiver_to: "",
   is_default_route: false,
   notes: "",
+  default_commission_id: "",
 });
 
 function slabsFromRoute(route: UpiPartnershipRoute): SlabRow[] {
@@ -129,6 +131,7 @@ export function PartnershipRoutesPanel({
 }) {
   const [routes, setRoutes] = useState<UpiPartnershipRoute[]>([]);
   const [aggregators, setAggregators] = useState<UpiAggregator[]>([]);
+  const [commissions, setCommissions] = useState<{ id: string; name: string; is_active: boolean }[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
@@ -139,7 +142,7 @@ export function PartnershipRoutesPanel({
   const load = async () => {
     setLoading(true);
     await expireStaleFeeWaivers((fn) => supabase.rpc(fn));
-    const [r, a] = await Promise.all([
+    const [r, a, c] = await Promise.all([
       supabase
         .from("upi_partnership_routes")
         .select("*, upi_aggregators(id, name, short_code)")
@@ -147,6 +150,7 @@ export function PartnershipRoutesPanel({
         .order("priority_rank")
         .order("display_name"),
       supabase.from("upi_aggregators").select("*").eq("is_active", true).order("name"),
+      supabase.from("upi_commissions").select("id, name, is_active").eq("institution_id", institutionId).order("name"),
     ]);
     if (r.error) toast.error(r.error.message);
     const mapped = (r.data ?? []).map((row: Record<string, unknown>) => {
@@ -156,6 +160,7 @@ export function PartnershipRoutesPanel({
     });
     setRoutes(mapped);
     setAggregators((a.data ?? []) as UpiAggregator[]);
+    setCommissions((c.data ?? []) as any[]);
     setLoading(false);
   };
 
@@ -204,6 +209,7 @@ export function PartnershipRoutesPanel({
       application_fee_waiver_to: route.application_fee_waiver_to ?? "",
       is_default_route: route.is_default_route,
       notes: route.notes ?? "",
+      default_commission_id: route.default_commission_id ?? "",
     });
     setOpen(true);
   };
@@ -255,6 +261,7 @@ export function PartnershipRoutesPanel({
       application_fee_waiver_to: form.application_fee_waiver ? form.application_fee_waiver_to : null,
       is_default_route: form.is_default_route,
       notes: form.notes.trim() || null,
+      default_commission_id: form.default_commission_id || null,
     };
 
     const { error } = editingId
@@ -393,6 +400,11 @@ export function PartnershipRoutesPanel({
                   {route.valid_to && <span>Valid until {route.valid_to}</span>}
                   {route.estimated_payout_days != null && <span>Payout ~{route.estimated_payout_days}d</span>}
                   {route.processing_sla_days != null && <span>SLA {route.processing_sla_days}d</span>}
+                  {(route.default_commission_id) && (
+                    <span>
+                      Commission: {commissions.find((c) => c.id === route.default_commission_id)?.name ?? "Linked"}
+                    </span>
+                  )}
                 </div>
               </div>
               {canEdit && (
@@ -672,6 +684,26 @@ export function PartnershipRoutesPanel({
             <div className="space-y-1">
               <Label>Bonus / offer notes</Label>
               <Textarea value={form.bonus_notes} onChange={(e) => setForm({ ...form, bonus_notes: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label>Default commission (Claims resolver)</Label>
+              <Select
+                value={form.default_commission_id || "__none__"}
+                onValueChange={(v) => setForm({ ...form, default_commission_id: v === "__none__" ? "" : v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Institution default (no route override)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Institution default</SelectItem>
+                  {commissions.filter((c) => c.is_active).map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Used by Claims recalculate and rule resolver for students on this route.
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <Switch

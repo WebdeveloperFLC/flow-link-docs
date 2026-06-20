@@ -11,8 +11,15 @@ import { toast } from "sonner";
 import {
   AlertTriangle, CalendarClock, ChevronDown, FileText, Printer, Send,
   ArrowRightCircle, Eye, CheckCircle2, Ban, Clock, FilePlus2,
-  Download, FileDown, Link2, Calculator,
+  Download, FileDown, Link2, Calculator, PauseCircle, PlayCircle, ArrowRightLeft,
 } from "lucide-react";
+import {
+  CommissionLifecycleDialog,
+  LifecycleBadges,
+  isReadyForClaim,
+  canMarkEligible,
+  type LifecycleStudent,
+} from "./CommissionLifecycleDialog";
 import { useClaimCycles, useInvoices } from "../hooks/useInstitutionData";
 import {
   FLC_AGENCY, buildClaimCsv, downloadCsv, filenameForClaim, printWithRoot,
@@ -61,6 +68,18 @@ interface Student {
   invoice_id: string | null;
   submitted_by_agency_date: string | null;
   institution_validation_notes: string | null;
+  partnership_route_id?: string | null;
+  commission_snapshot_id?: string | null;
+  eligibility_status?: string | null;
+  claim_status?: string | null;
+  payment_status?: string | null;
+  hold_status?: string | null;
+  hold_reason?: string | null;
+  hold_notes?: string | null;
+  expected_claim_date?: string | null;
+  commission_period_code?: string | null;
+  tuition_paid_date?: string | null;
+  enrollment_confirmed_date?: string | null;
 }
 
 interface Invoice {
@@ -148,6 +167,11 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewStudent, setViewStudent] = useState<Student | null>(null);
+  const [lifecycleStudent, setLifecycleStudent] = useState<LifecycleStudent | null>(null);
+  const [lifecycleMode, setLifecycleMode] = useState<"eligible" | "hold" | "release" | "transfer" | "transfer_outcome" | null>(null);
+  const [lifecycleTransferEventId, setLifecycleTransferEventId] = useState<string | null>(null);
+  const [routes, setRoutes] = useState<{ id: string; display_name: string }[]>([]);
+  const [openTransfers, setOpenTransfers] = useState<{ id: string; source_student_commission_id: string; transfer_reason: string | null }[]>([]);
   const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
   const [submitFor, setSubmitFor] = useState<{ cycleId: string; cycleLabel: string } | null>(null);
   const [printCycle, setPrintCycle] = useState<{ cycle: any; students: Student[]; invoice: Invoice | null } | null>(null);
@@ -155,12 +179,16 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
 
   const loadAll = async () => {
     setLoading(true);
-    const [s, i] = await Promise.all([
+    const [s, i, r, t] = await Promise.all([
       supabase.from("upi_commission_students").select("*").eq("institution_id", institutionId).order("student_name"),
       supabase.from("upi_commission_invoices").select("*").eq("institution_id", institutionId).order("invoice_date", { ascending: false }),
+      supabase.from("upi_partnership_routes").select("id, display_name").eq("institution_id", institutionId).order("display_name"),
+      supabase.from("upi_commission_transfer_events" as any).select("id, source_student_commission_id, transfer_reason").eq("institution_id", institutionId).eq("event_status", "open"),
     ]);
     setStudents((s.data ?? []) as any);
     setInvoices((i.data ?? []) as any);
+    setRoutes((r.data ?? []) as any);
+    setOpenTransfers((t.data ?? []) as any);
     setLoading(false);
   };
   useEffect(() => { loadAll(); }, [institutionId]);
@@ -309,6 +337,22 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
     }
   };
 
+  const openLifecycle = (
+    s: Student,
+    mode: typeof lifecycleMode,
+    transferEventId?: string | null,
+  ) => {
+    setLifecycleStudent(s);
+    setLifecycleMode(mode);
+    setLifecycleTransferEventId(transferEventId ?? null);
+  };
+
+  const transferByStudent = useMemo(() => {
+    const m = new Map<string, { id: string; transfer_reason: string | null }>();
+    for (const t of openTransfers) m.set(t.source_student_commission_id, t);
+    return m;
+  }, [openTransfers]);
+
   const byCycle = useMemo(() => {
     const m = new Map<string, Student[]>();
     for (const s of students) {
@@ -342,7 +386,11 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
       .update({ status: "paid", paid_date: new Date().toISOString().slice(0, 10), payment_received_amount: inv.total_amount, payment_received_date: new Date().toISOString().slice(0, 10) } as any)
       .eq("id", inv.id);
     if (error) return toast.error(error.message);
-    await supabase.from("upi_commission_students").update({ commission_status: "paid", commission_paid_date: new Date().toISOString().slice(0, 10) } as any).eq("invoice_id", inv.id).eq("commission_status", "eligible");
+    await supabase.from("upi_commission_students").update({
+      commission_status: "paid",
+      commission_paid_date: new Date().toISOString().slice(0, 10),
+      payment_status: "paid",
+    } as any).eq("invoice_id", inv.id).in("commission_status", ["eligible"]);
     toast.success("Invoice marked paid");
     loadAll();
   };
@@ -357,11 +405,14 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
 
   const submitClaim = async () => {
     if (!submitFor) return;
-    const eligible = (byCycle.get(submitFor.cycleId) ?? []).filter((s) => s.commission_status === "eligible");
+    const eligible = (byCycle.get(submitFor.cycleId) ?? []).filter((s) => isReadyForClaim(s) && s.claim_status !== "submitted");
     const ids = eligible.map((s) => s.id);
     if (ids.length === 0) return toast.error("No eligible students");
     const today = new Date().toISOString().slice(0, 10);
-    const { error } = await supabase.from("upi_commission_students").update({ submitted_by_agency_date: today } as any).in("id", ids);
+    const { error } = await supabase.from("upi_commission_students").update({
+      submitted_by_agency_date: today,
+      claim_status: "submitted",
+    } as any).in("id", ids);
     if (error) return toast.error(error.message);
     toast.success(`Submitted ${ids.length} students to institution`);
     setSubmitFor(null);
@@ -369,7 +420,7 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
   };
 
   const generateInvoice = async (cycleId: string) => {
-    const list = (byCycle.get(cycleId) ?? []).filter((s) => s.commission_status === "eligible" && !s.invoice_id);
+    const list = (byCycle.get(cycleId) ?? []).filter((s) => isReadyForClaim(s) && !s.invoice_id);
     if (list.length === 0) return toast.error("No eligible un-invoiced students in this cycle");
     const cycle = cycles.find((c: any) => c.id === cycleId);
     const subtotal = list.reduce((sum, s) => sum + Number(s.commission_amount ?? 0), 0);
@@ -455,6 +506,13 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
           </Card>
         </div>
 
+        {openTransfers.length > 0 && (
+          <Card className="p-3 border-amber-300 bg-amber-50 text-sm flex items-center gap-2">
+            <ArrowRightLeft className="size-4 text-amber-800 shrink-0" />
+            <span>{openTransfers.length} open transfer(s) — use the transfer icon on each student row to resolve.</span>
+          </Card>
+        )}
+
         {cycles.length === 0 && (
           <Card className="p-8 text-center text-sm text-muted-foreground">No claim cycles for this institution.</Card>
         )}
@@ -463,7 +521,7 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
         <div className="space-y-3">
           {cycles.map((c: any) => {
             const rows = byCycle.get(c.id) ?? [];
-            const eligible = rows.filter((r) => r.commission_status === "eligible" || r.commission_status === "paid");
+            const eligible = rows.filter((r) => isReadyForClaim(r));
             const blocked = rows.filter((r) => r.commission_status === "blocked");
             const carried = rows.filter((r) => r.commission_status === "carried_forward");
             const pending = rows.filter((r) => r.commission_status === "pending");
@@ -589,11 +647,17 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
                                     </Tooltip>
                                   )}
                                 </div>
+                                <LifecycleBadges s={s} />
                               </TableCell>
                               <TableCell className="text-right">
-                                <div className="flex justify-end gap-1">
+                                <div className="flex justify-end gap-1 flex-wrap">
                                   <Button size="sm" variant="ghost" onClick={() => setViewStudent(s)}><Eye className="size-3.5" /></Button>
-                                  {(s.commission_status === "eligible" || s.commission_status === "pending") && (
+                                  {canMarkEligible(s) && (
+                                    <Button size="sm" variant="ghost" onClick={() => openLifecycle(s, "eligible")} title="Mark eligible & snapshot">
+                                      <CheckCircle2 className="size-3.5 text-green-600" />
+                                    </Button>
+                                  )}
+                                  {(s.commission_status === "eligible" || s.commission_status === "pending" || s.eligibility_status === "eligible") && (
                                     <Button
                                       size="sm"
                                       variant="ghost"
@@ -602,6 +666,31 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
                                       title="Recalculate commission"
                                     >
                                       <Calculator className="size-3.5" />
+                                    </Button>
+                                  )}
+                                  {s.hold_status !== "active" && s.eligibility_status !== "cancelled" && (
+                                    <Button size="sm" variant="ghost" onClick={() => openLifecycle(s, "hold")} title="Apply hold">
+                                      <PauseCircle className="size-3.5" />
+                                    </Button>
+                                  )}
+                                  {s.hold_status === "active" && (
+                                    <Button size="sm" variant="ghost" onClick={() => openLifecycle(s, "release")} title="Release hold">
+                                      <PlayCircle className="size-3.5 text-blue-600" />
+                                    </Button>
+                                  )}
+                                  {!transferByStudent.has(s.id) && s.eligibility_status !== "cancelled" && (
+                                    <Button size="sm" variant="ghost" onClick={() => openLifecycle(s, "transfer")} title="Initiate transfer">
+                                      <ArrowRightLeft className="size-3.5" />
+                                    </Button>
+                                  )}
+                                  {transferByStudent.has(s.id) && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => openLifecycle(s, "transfer_outcome", transferByStudent.get(s.id)!.id)}
+                                      title="Resolve transfer"
+                                    >
+                                      <ArrowRightLeft className="size-3.5 text-amber-600" />
                                     </Button>
                                   )}
                                   <Tooltip>
@@ -777,7 +866,7 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
           <DialogContent>
             <DialogHeader><DialogTitle>Submit claim — {submitFor?.cycleLabel}</DialogTitle></DialogHeader>
             {submitFor && (() => {
-              const list = (byCycle.get(submitFor.cycleId) ?? []).filter((s) => s.commission_status === "eligible");
+              const list = (byCycle.get(submitFor.cycleId) ?? []).filter((s) => isReadyForClaim(s));
               return (
                 <div className="space-y-2">
                   <div className="text-sm text-muted-foreground">
@@ -816,6 +905,17 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
             <PrintableInvoice invoice={printInvoice.invoice} items={printInvoice.items} />
           </div>
         )}
+
+        <CommissionLifecycleDialog
+          institutionId={institutionId}
+          student={lifecycleStudent}
+          mode={lifecycleMode}
+          onClose={() => { setLifecycleMode(null); setLifecycleStudent(null); setLifecycleTransferEventId(null); }}
+          onUpdated={loadAll}
+          routes={routes}
+          cycles={cycles.map((c: any) => ({ id: c.id, period_label: c.period_label }))}
+          transferEventId={lifecycleTransferEventId}
+        />
       </div>
     </TooltipProvider>
   );
@@ -860,7 +960,12 @@ function StudentDetail({ s }: { s: Student }) {
         <Field label="Payment plan" value={s.tuition_payment_plan} />
       </Section>
       <Section title="Commission">
-        <Field label="Status" value={s.commission_status} />
+        <Field label="Legacy status" value={s.commission_status} />
+        <Field label="Eligibility" value={(s as any).eligibility_status} />
+        <Field label="Claim" value={(s as any).claim_status} />
+        <Field label="Payment" value={(s as any).payment_status} />
+        <Field label="Hold" value={(s as any).hold_status === "active" ? (s as any).hold_reason : null} />
+        <Field label="Snapshot" value={(s as any).commission_snapshot_id ? "Created (immutable)" : null} />
         <Field label="Rate" value={s.commission_rate_applied ? `${s.commission_rate_applied}%` : null} />
         <Field label="Amount" value={fmt(s.commission_amount)} />
         <Field label="Paid on" value={s.commission_paid_date} />
