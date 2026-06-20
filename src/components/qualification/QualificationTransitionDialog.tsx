@@ -19,11 +19,14 @@ import {
 } from "@/components/ui/select";
 import { transitionQualificationStatus } from "@/lib/qualification/qualificationApi";
 import {
-  QUALIFICATION_HOLD_REASON_CODES,
   HOLD_REASON_LABELS,
   QUALIFICATION_STATUS_LABELS,
 } from "@/lib/qualification/constants";
-import type { QualificationLifecycleStatus, QualificationRecord } from "@/lib/qualification/types";
+import {
+  QUALIFICATION_HOLD_REASON_CODES,
+  type QualificationLifecycleStatus,
+  type QualificationRecord,
+} from "@/lib/qualification/types";
 import { toast } from "sonner";
 
 type Props = {
