@@ -2,14 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import {
   fetchQualificationBundle,
   fetchQualificationsForCase,
-  type QualificationRecord,
-} from "./qualificationApi";
+} from "@/lib/qualification/qualificationApi";
 import type {
   QualificationDepositTrack,
   QualificationEvent,
   QualificationFundingPlan,
+  QualificationRecord,
   QualificationTuitionTrack,
-} from "./types";
+} from "@/lib/qualification/types";
 
 export function useClientQualification(
   clientId: string | undefined,
