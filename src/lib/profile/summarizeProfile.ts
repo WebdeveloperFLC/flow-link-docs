@@ -27,6 +27,7 @@ export function summarizeProfileSection(vm: ProfileViewModel, section: ProfileSe
           line("DOB", vm.identity.date_of_birth),
           line("Nationality", vm.identity.nationality),
           line("Passport", vm.identity.passport_number),
+          line("Intended intake", vm.identity.intake),
           line("Marital", vm.identity.marital_status),
         ],
         4,

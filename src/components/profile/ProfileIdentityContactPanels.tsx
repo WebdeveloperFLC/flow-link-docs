@@ -7,6 +7,7 @@ type FieldDef = {
   key: keyof ProfileIdentity;
   label: string;
   type?: "date" | "text";
+  placeholder?: string;
 };
 
 const IDENTITY_FIELDS: FieldDef[] = [
@@ -23,6 +24,7 @@ const IDENTITY_FIELDS: FieldDef[] = [
   { key: "passport_country", label: "Passport country" },
   { key: "passport_issue_date", label: "Passport issue date", type: "date" },
   { key: "passport_expiry", label: "Passport expiry", type: "date" },
+  { key: "intake", label: "Intended intake", placeholder: "e.g. Sep 2026" },
 ];
 
 interface Props {
@@ -58,6 +60,7 @@ export function ProfileIdentityPanel({ identity, mode, onPatch, className }: Pro
           <Label className="text-xs">{f.label}</Label>
           <Input
             type={f.type ?? "text"}
+            placeholder={f.placeholder}
             value={(identity[f.key] ?? "") as string}
             onChange={(e) => onPatch?.({ [f.key]: e.target.value || null } as Partial<ProfileIdentity>)}
           />

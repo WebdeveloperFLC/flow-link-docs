@@ -154,6 +154,7 @@ function normalizeIdentity(client: Partial<ClientRow>, profile: ProfileRow): Pro
     passport_country: str(profile.passport_country) ?? fb.passport_country ?? null,
     passport_issue_date: str(profile.passport_issue_date) ?? fb.passport_issue_date ?? null,
     passport_expiry: str(profile.passport_expiry) ?? str(client.passport_expiry) ?? fb.passport_expiry ?? null,
+    intake: str(client.intake) ?? null,
   };
 }
 

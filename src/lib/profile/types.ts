@@ -75,6 +75,8 @@ export interface ProfileIdentity {
   readonly passport_country: string | null;
   readonly passport_issue_date: string | null;
   readonly passport_expiry: string | null;
+  /** Client-level intended intake — stored on clients.intake (single free-text value). */
+  readonly intake: string | null;
 }
 
 export interface ProfileContact {

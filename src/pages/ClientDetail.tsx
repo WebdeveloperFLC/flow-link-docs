@@ -1228,6 +1228,9 @@ const ClientDetail = () => {
               clientId={client.id}
               canEdit={canUpload}
               refreshKey={profileRefreshKey}
+              onProfileSaved={(vm) =>
+                setClient((c) => (c ? { ...c, intake: vm.identity.intake ?? null } : c))
+              }
             />
             <CasePeopleCard
               clientId={client.id}

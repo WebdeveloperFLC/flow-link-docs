@@ -260,6 +260,22 @@ describe("buildProfileViewModelFromSources", () => {
     expect(vm.education).toHaveLength(1);
     expect(vm.education[0].qualification_type).toBe("Master's");
   });
+
+  it("maps clients.intake to identity.intake", () => {
+    const vm = buildProfileViewModelFromSources({
+      client: { ...LEGACY_CLIENT, intake: "Sep 2026" },
+      profile: LEGACY_PROFILE,
+    });
+    expect(vm.identity.intake).toBe("Sep 2026");
+  });
+
+  it("returns null identity.intake when client intake is empty", () => {
+    const vm = buildProfileViewModelFromSources({
+      client: { ...LEGACY_CLIENT, intake: "  " },
+      profile: LEGACY_PROFILE,
+    });
+    expect(vm.identity.intake).toBeNull();
+  });
 });
 
 describe("buildProfileServicesSummaryFromCodes", () => {

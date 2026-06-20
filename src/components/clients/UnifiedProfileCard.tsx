@@ -42,6 +42,8 @@ interface Props {
   refreshKey?: number;
   className?: string;
   onSaved?: () => void;
+  /** Called with refreshed view model after a successful save (e.g. sync Overview tab client fields). */
+  onProfileSaved?: (viewModel: ProfileViewModel) => void;
   /** Dev preview only — bypasses Supabase loaders */
   previewViewModel?: ProfileViewModel;
   previewDocuments?: LinkedDocumentOption[];
@@ -53,6 +55,7 @@ export function UnifiedProfileCard({
   refreshKey = 0,
   className,
   onSaved,
+  onProfileSaved,
   previewViewModel,
   previewDocuments,
 }: Props) {
@@ -71,7 +74,10 @@ export function UnifiedProfileCard({
 
   const editor = useProfileEditor(viewModel, {
     clientId,
-    onViewModelSaved: applyViewModel,
+    onViewModelSaved: (vm) => {
+      applyViewModel(vm);
+      onProfileSaved?.(vm);
+    },
     onSaved,
   });
 

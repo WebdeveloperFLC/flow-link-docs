@@ -30,6 +30,7 @@ const IDENTITY_KEYS: (keyof ProfileViewModel["identity"])[] = [
   "passport_country",
   "passport_issue_date",
   "passport_expiry",
+  "intake",
 ];
 
 const CONTACT_KEYS: (keyof ProfileViewModel["contact"])[] = [

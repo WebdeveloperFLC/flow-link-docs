@@ -172,6 +172,7 @@ export async function profileSave(
     clientPatch.marital_status = state.identity.marital_status;
     clientPatch.passport_number = state.identity.passport_number;
     clientPatch.passport_expiry = state.identity.passport_expiry;
+    clientPatch.intake = state.identity.intake;
   }
 
   if (sections.has("contact")) {

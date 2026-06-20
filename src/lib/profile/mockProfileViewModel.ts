@@ -38,6 +38,7 @@ export function createMockProfileViewModel(): ProfileViewModel {
       passport_country: "India",
       passport_issue_date: "2020-01-15",
       passport_expiry: "2030-01-01",
+      intake: "Sep 2026",
     },
     contact: {
       phone_primary: "+91 98765 43210",
