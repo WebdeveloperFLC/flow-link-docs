@@ -94,6 +94,29 @@ export interface StudentFinancialSummary {
   recoverable: number;
   reimbursable: number;
   categories: StudentCategoryBreakdown[];
+  services: StudentServiceBalance[];
+}
+
+export type ServiceCollectionStatus =
+  | "NOT_INVOICED"
+  | "DRAFT"
+  | "OUTSTANDING"
+  | "PARTIAL"
+  | "COLLECTED"
+  | "TRUST_HELD";
+
+export interface StudentServiceBalance {
+  serviceId: string;
+  serviceCode: string | null;
+  serviceName: string;
+  collectionCategoryId: string | null;
+  categoryName: string | null;
+  invoiced: number;
+  collected: number;
+  outstanding: number;
+  trustHeld: number;
+  collectionStatus: ServiceCollectionStatus;
+  currency: string;
 }
 
 export interface StudentCategoryBreakdown {

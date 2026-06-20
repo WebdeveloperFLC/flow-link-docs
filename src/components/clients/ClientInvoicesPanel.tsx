@@ -32,7 +32,6 @@ import { checkPaymentPermissions, paymentStatusLabel } from "@/lib/paymentApprov
 import { appendTimeline } from "@/lib/timeline";
 import { buildCatalogueLookup, fetchAllServiceCatalogue } from "@/lib/leads";
 import {
-  loadClientBillableServices,
   resolvePreselectedServiceId,
   resolveBillableServiceForLine,
   normalizeInvoicePickedState,
@@ -55,6 +54,21 @@ import {
   type LineDiscountInput,
   type TaxBasis,
 } from "@/lib/invoiceLinePricing";
+import InvoiceClientContextHeader from "@/components/invoices/InvoiceClientContextHeader";
+import ServiceLibraryPickerDialog from "@/components/invoices/ServiceLibraryPickerDialog";
+import DuplicateServiceWarningDialog from "@/components/invoices/DuplicateServiceWarningDialog";
+import { useArInvoicePermissions } from "@/lib/arInvoicePermissions";
+import {
+  loadInvoiceClientContext,
+  loadEligibleServiceRequests,
+  checkServiceDuplicate,
+  addServiceFromLibrary,
+  validateInvoiceDraft,
+  type InvoiceClientContext,
+  type DuplicateServiceCheck,
+  type EligibleServiceRequest,
+} from "@/lib/arInvoiceWorkflow";
+import type { ServiceCatalogueItem } from "@/lib/leads";
 import {
   allocationServiceUuidFromLineRef,
   distributeLumpSumAcrossLines,
@@ -577,6 +591,13 @@ export function ClientInvoicesPanel({
           clientId={clientId}
           activeServiceCode={activeServiceCode}
           onClose={closeInvoiceEditor}
+          onOpenDraftInvoice={(id) => {
+            const inv = rows.find((r) => r.id === id);
+            if (inv) {
+              setCreateOpen(false);
+              setEditInvoice(inv);
+            }
+          }}
         />
       )}
       {editInvoice && (
@@ -845,15 +866,25 @@ function InvoiceEditorDialog({
   activeServiceCode,
   existingInvoice,
   onClose,
+  onOpenDraftInvoice,
 }: {
   clientId: string;
   activeServiceCode?: string | null;
   existingInvoice?: Invoice | null;
   onClose: () => void;
+  onOpenDraftInvoice?: (invoiceId: string) => void;
 }) {
   const isEdit = !!existingInvoice;
+  const perms = useArInvoicePermissions();
   const [services, setServices] = useState<BillableClientService[]>([]);
-  const [, setCatalogue] = useState<Awaited<ReturnType<typeof loadClientBillableServices>>["catalogue"]>([]);
+  const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
+  const [eligibleRequests, setEligibleRequests] = useState<EligibleServiceRequest[]>([]);
+  const [clientContext, setClientContext] = useState<InvoiceClientContext | null>(null);
+  const [contextOverrides, setContextOverrides] = useState<Partial<InvoiceClientContext>>({});
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [duplicateCheck, setDuplicateCheck] = useState<DuplicateServiceCheck | null>(null);
+  const [pendingLibraryItem, setPendingLibraryItem] = useState<ServiceCatalogueItem | null>(null);
+  const [customUnitPrices, setCustomUnitPrices] = useState<Record<string, number>>({});
   const [loadingServices, setLoadingServices] = useState(true);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [entities, setEntities] = useState<FirmEntity[]>([]);
@@ -887,17 +918,29 @@ function InvoiceEditorDialog({
     existingInvoice?.applied_offer_id ?? "none",
   );
 
+  const reloadWorkflow = async () => {
+    const [ctx, { requests, catalogue: cat }] = await Promise.all([
+      loadInvoiceClientContext(clientId, contextOverrides),
+      loadEligibleServiceRequests(clientId),
+    ]);
+    setClientContext(ctx);
+    setCatalogue(cat);
+    setEligibleRequests(requests);
+    const billable = requests.map(({ serviceCode, caseId, caseAttempt, caseStatus, pipelineStage, collectionStatus, invoicedAmount, collectedAmount, outstandingAmount, categoryName, categoryUnmapped, pricingType, onRequestFee, ...rest }) => rest);
+    return { billable, cat, requests };
+  };
+
   useEffect(() => {
     (async () => {
       setLoadingServices(true);
       try {
-        const [{ services: clientServices, catalogue: cat }, b, f] = await Promise.all([
-          loadClientBillableServices(clientId),
+        const [workflow, b, f] = await Promise.all([
+          reloadWorkflow(),
           supabase.from("branches").select("id,name").eq("is_active", true).order("name"),
           supabase.from("firm_profile").select("id,firm_name").order("firm_name"),
         ]);
+        const { billable: clientServices, cat } = workflow;
         setServices(clientServices);
-        setCatalogue(cat);
         setBranches((b.data ?? []) as Branch[]);
         setEntities((f.data ?? []) as FirmEntity[]);
 
@@ -971,10 +1014,10 @@ function InvoiceEditorDialog({
           }
         } else {
           const allPicked: Record<string, number> = {};
-          for (const s of clientServices) allPicked[s.id] = 1;
-          setPicked(allPicked);
+          for (const s of clientServices) allPicked[s.id] = 0;
           const preId = resolvePreselectedServiceId(clientServices, cat, activeServiceCode);
-          if (preId && !allPicked[preId]) setPicked({ ...allPicked, [preId]: 1 });
+          if (preId) allPicked[preId] = 1;
+          setPicked(allPicked);
         }
       } catch (e) {
         console.warn("[invoice] load client services failed", e);
@@ -1039,18 +1082,64 @@ function InvoiceEditorDialog({
     return services;
   }, [services, picked, isEdit, activeServiceCode]);
 
+  const eligibleById = useMemo(
+    () => new Map(eligibleRequests.map((r) => [r.id, r])),
+    [eligibleRequests],
+  );
+
+  const unmappedCategoryLines = useMemo(
+    () => services.filter((s) => (getPickedQty(s, picked) ?? 0) > 0 && !s.collection_category_id),
+    [services, picked],
+  );
+
+  const handleLibrarySelect = async (item: ServiceCatalogueItem) => {
+    const dup = await checkServiceDuplicate(clientId, item.service_code ?? item.id, catalogue, existingInvoice?.id);
+    if (dup.kind !== "none") {
+      setPendingLibraryItem(item);
+      setDuplicateCheck(dup);
+      return;
+    }
+    try {
+      await addServiceFromLibrary({ clientId, catalogueItem: item, country: item.country_tag });
+      toast.success(`Added ${item.service_name}`);
+      const { billable } = await reloadWorkflow();
+      setServices(billable);
+      setPicked((p) => ({ ...p, [item.id]: 1 }));
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not add service");
+    }
+  };
+
+  const confirmDuplicateUseExisting = async () => {
+    if (pendingLibraryItem) {
+      const { billable } = await reloadWorkflow();
+      setServices(billable);
+      const match = billable.find((s) => s.id === pendingLibraryItem.id || s.service_code === pendingLibraryItem.service_code);
+      if (match) setPicked((p) => ({ ...p, [match.id]: 1 }));
+    }
+    setDuplicateCheck(null);
+    setPendingLibraryItem(null);
+  };
+
   const pricingInputs = useMemo(
     () =>
       displayServices
-        .map((s) => ({
-          id: s.id,
-          svc: s,
-          unit: currency === "CAD" ? Number(s.fee_cad ?? 0) : Number(s.fee_inr ?? 0),
-          qty: getPickedQty(s, picked),
-          discount: getLineDiscount(s, lineDiscounts),
-        }))
+        .map((s) => {
+          const req = eligibleById.get(s.id);
+          const defaultUnit = currency === "CAD" ? Number(s.fee_cad ?? 0) : Number(s.fee_inr ?? 0);
+          const onRequest = req?.pricingType === "ON_REQUEST";
+          const unit = customUnitPrices[s.id] ?? (onRequest && defaultUnit <= 0 ? 0 : defaultUnit);
+          return {
+            id: s.id,
+            svc: s,
+            unit,
+            qty: getPickedQty(s, picked),
+            discount: getLineDiscount(s, lineDiscounts),
+            onRequest,
+          };
+        })
         .filter((row) => row.qty > 0),
-    [displayServices, picked, lineDiscounts, currency],
+    [displayServices, picked, lineDiscounts, currency, customUnitPrices, eligibleById],
   );
 
   const offerDiscountPreview = useMemo(() => {
@@ -1146,11 +1235,28 @@ function InvoiceEditorDialog({
   };
 
   const save = async () => {
-    if (lineItems.length === 0) {
+    const validation = validateInvoiceDraft({
+      lineItems: lineItems as InvoiceLineLike[],
+      pickedServiceIds: Object.keys(picked).filter((id) => (picked[id] ?? 0) > 0),
+      services,
+      mode: "draft",
+    });
+    if (!validation.ok) {
+      toast.error(validation.errors[0] ?? "Validation failed");
+      return;
+    }
+    if (validation.warnings.length) {
+      validation.warnings.forEach((w) => toast.warning(w));
+    }
+    if (lineItems.filter((li) => li.service_id !== CHECKOUT_DISCOUNT_META_ID).length === 0) {
       toast.error("Set quantity to at least 1 for a service");
       return;
     }
     setSaving(true);
+
+    const contextSnapshot = clientContext
+      ? { ...clientContext, ...contextOverrides, savedAt: new Date().toISOString() }
+      : null;
 
     const payload = {
       amount: netTotal,
@@ -1165,6 +1271,7 @@ function InvoiceEditorDialog({
       subtotal_in_inr: netTotal,
       subtotal_in_cad: netTotal,
       subtotal_in_usd: netTotal,
+      invoice_context_json: contextSnapshot,
     };
 
     if (isEdit && existingInvoice) {
@@ -1245,27 +1352,52 @@ function InvoiceEditorDialog({
   const primaryService = displayServices.length === 1 ? displayServices[0] : null;
 
   return (
+    <>
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit draft invoice" : "Create invoice"}</DialogTitle>
         </DialogHeader>
 
+        {clientContext && (
+          <InvoiceClientContextHeader
+            context={{ ...clientContext, ...contextOverrides }}
+            editable={perms.canContextOverride}
+            onChange={(patch) => setContextOverrides((c) => ({ ...c, ...patch }))}
+          />
+        )}
+
+        {unmappedCategoryLines.length > 0 && (
+          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs flex items-start gap-2">
+            <AlertTriangle className="size-4 text-amber-600 shrink-0 mt-0.5" />
+            <span>
+              {unmappedCategoryLines.length} service(s) lack a collection category — draft OK; sending will be blocked until mapped in Collection Categories admin.
+            </span>
+          </div>
+        )}
+
         {loadingServices ? (
           <div className="py-8 flex items-center justify-center text-sm text-muted-foreground">
             <Loader2 className="size-4 animate-spin mr-2" /> Loading client services…
           </div>
         ) : services.length === 0 ? (
-          <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-            No billable services on this client yet. Add a service under <b>Client services</b> first — a draft
-            invoice is created automatically when fees apply.
+          <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground space-y-3">
+            <p>No billable service requests on this client yet.</p>
+            {perms.canAddService && (
+              <Button size="sm" onClick={() => setLibraryOpen(true)}>
+                <Plus className="size-3.5 mr-1" /> Add service from library
+              </Button>
+            )}
           </div>
         ) : (
           <>
             <p className="text-xs text-muted-foreground rounded-md border bg-muted/20 px-3 py-2">
-              {isEdit
-                ? "All client services appear here. Qty 0 = not on this invoice yet. Partial payments are tracked per service — unpaid services stay on the draft."
-                : "Set qty to 1 for each service to include on this draft. Clients can pay selected services or a lump sum later."}
+              Select services from active CRM service requests. Names come from the Service Library only — no free text.
+              {perms.canAddService && (
+                <Button variant="link" className="h-auto p-0 ml-1 text-xs" onClick={() => setLibraryOpen(true)}>
+                  Add missing service
+                </Button>
+              )}
             </p>
             {primaryService && !isEdit && (
               <div className="rounded-md border bg-muted/20 px-3 py-2 text-sm">
@@ -1345,7 +1477,9 @@ function InvoiceEditorDialog({
                 </thead>
                 <tbody>
                   {displayServices.map((s) => {
-                    const unit = currency === "CAD" ? Number(s.fee_cad ?? 0) : Number(s.fee_inr ?? 0);
+                    const req = eligibleById.get(s.id);
+                    const defaultUnit = currency === "CAD" ? Number(s.fee_cad ?? 0) : Number(s.fee_inr ?? 0);
+                    const unit = customUnitPrices[s.id] ?? defaultUnit;
                     const qty = getPickedQty(s, picked);
                     const discount = getLineDiscount(s, lineDiscounts);
                     const gross = unit * qty;
@@ -1360,6 +1494,18 @@ function InvoiceEditorDialog({
                       <tr key={s.id} className={`border-t align-top ${qty <= 0 ? "opacity-60" : ""}`}>
                         <td className="px-3 py-2">
                           <div className="font-medium leading-snug">{s.service_name}</div>
+                          {eligibleById.get(s.id) && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              <Badge variant="outline" className="text-[9px] px-1 py-0">
+                                {eligibleById.get(s.id)!.collectionStatus.replace(/_/g, " ")}
+                              </Badge>
+                              {eligibleById.get(s.id)!.categoryUnmapped && (
+                                <Badge variant="outline" className="text-[9px] px-1 py-0 border-amber-500 text-amber-700">
+                                  No category
+                                </Badge>
+                              )}
+                            </div>
+                          )}
                           {lineDiscountAmt > 0 && qty > 0 && (
                             <div className="text-[11px] text-muted-foreground mt-0.5">
                               −{money(lineDiscountAmt, currency)}
@@ -1369,7 +1515,25 @@ function InvoiceEditorDialog({
                             </div>
                           )}
                         </td>
-                        <td className="px-3 py-2 text-right tabular-nums">{money(unit, currency)}</td>
+                        <td className="px-3 py-2 text-right tabular-nums">
+                          {req?.pricingType === "ON_REQUEST" && perms.canOnRequestPricing ? (
+                            <Input
+                              type="number"
+                              min={0}
+                              step={0.01}
+                              className="h-8 w-24 ml-auto text-right"
+                              value={customUnitPrices[s.id] ?? unit}
+                              onChange={(e) =>
+                                setCustomUnitPrices((p) => ({
+                                  ...p,
+                                  [s.id]: Math.max(0, Number(e.target.value) || 0),
+                                }))
+                              }
+                            />
+                          ) : (
+                            money(unit, currency)
+                          )}
+                        </td>
                         <td className="px-3 py-2">
                           <input
                             type="number"
@@ -1597,6 +1761,42 @@ function InvoiceEditorDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <ServiceLibraryPickerDialog
+      open={libraryOpen}
+      onOpenChange={setLibraryOpen}
+      catalogue={catalogue}
+      excludeIds={new Set(services.map((s) => s.id))}
+      onSelect={(item) => void handleLibrarySelect(item)}
+    />
+
+    <DuplicateServiceWarningDialog
+      check={duplicateCheck}
+      onClose={() => {
+        setDuplicateCheck(null);
+        setPendingLibraryItem(null);
+      }}
+      onUseExisting={() => void confirmDuplicateUseExisting()}
+      onOpenDraft={(id) => {
+        setDuplicateCheck(null);
+        onOpenDraftInvoice?.(id);
+        onClose();
+      }}
+      onForceContinue={async () => {
+        if (pendingLibraryItem && duplicateCheck?.kind === "outstanding" && perms.canForceDuplicate) {
+          try {
+            const { billable } = await reloadWorkflow();
+            setServices(billable);
+            const match = billable.find((s) => s.id === pendingLibraryItem.id);
+            if (match) setPicked((p) => ({ ...p, [match.id]: 1 }));
+          } catch { /* ignore */ }
+        }
+        setDuplicateCheck(null);
+        setPendingLibraryItem(null);
+      }}
+      canForce={perms.canForceDuplicate}
+    />
+    </>
   );
 }
 

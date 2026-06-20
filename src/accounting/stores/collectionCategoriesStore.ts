@@ -246,6 +246,19 @@ export async function fetchStudentFinancialSummary(clientId: string): Promise<St
       disbursed: Number(c.disbursed) || 0,
       currency: c.currency || "INR",
     })),
+    services: (d.services ?? []).map((s: any) => ({
+      serviceId: s.service_id,
+      serviceCode: s.service_code ?? null,
+      serviceName: s.service_name || "Service",
+      collectionCategoryId: s.collection_category_id ?? null,
+      categoryName: s.category_name ?? null,
+      invoiced: Number(s.invoiced) || 0,
+      collected: Number(s.collected) || 0,
+      outstanding: Number(s.outstanding) || 0,
+      trustHeld: Number(s.trust_held) || 0,
+      collectionStatus: s.collection_status || "NOT_INVOICED",
+      currency: s.currency || "INR",
+    })),
   };
 }
 

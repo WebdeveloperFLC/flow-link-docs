@@ -8,10 +8,28 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { fetchStudentFinancialSummary } from "@/accounting/stores/collectionCategoriesStore";
-import type { StudentFinancialSummary } from "@/accounting/types/collectionCategory";
+import type { StudentFinancialSummary, ServiceCollectionStatus } from "@/accounting/types/collectionCategory";
 import { TREATMENT_LABELS } from "@/accounting/lib/collectionCategories";
 import { formatCurrency } from "@/accounting/lib/format";
 
+function collectionStatusLabel(s: ServiceCollectionStatus): string {
+  switch (s) {
+    case "NOT_INVOICED": return "Not invoiced";
+    case "DRAFT": return "Draft";
+    case "OUTSTANDING": return "Outstanding";
+    case "PARTIAL": return "Partial";
+    case "COLLECTED": return "Collected";
+    case "TRUST_HELD": return "Trust held";
+    default: return s;
+  }
+}
+
+function collectionStatusVariant(s: ServiceCollectionStatus): "outline" | "secondary" | "default" | "destructive" {
+  if (s === "COLLECTED") return "default";
+  if (s === "TRUST_HELD" || s === "PARTIAL") return "secondary";
+  if (s === "OUTSTANDING") return "destructive";
+  return "outline";
+}
 function money(amount: number, currency: string) {
   try {
     return formatCurrency(amount, currency as "INR" | "CAD" | "USD");
@@ -111,6 +129,49 @@ export default function StudentFinancialLedger({
             </div>
           ))}
         </div>
+      </Card>
+
+      <Card className="p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <h3 className="font-medium">Service balances</h3>
+        </div>
+        {!s?.services.length ? (
+          <p className="text-sm text-muted-foreground">No invoiced services yet.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Service</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Collection status</TableHead>
+                <TableHead className="text-right">Invoiced</TableHead>
+                <TableHead className="text-right">Collected</TableHead>
+                <TableHead className="text-right">Outstanding</TableHead>
+                <TableHead className="text-right">Trust held</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {s.services.map((svc) => (
+                <TableRow key={svc.serviceId}>
+                  <TableCell>
+                    <div className="font-medium">{svc.serviceName}</div>
+                    {svc.serviceCode && <div className="text-xs text-muted-foreground">{svc.serviceCode}</div>}
+                  </TableCell>
+                  <TableCell className="text-xs">{svc.categoryName ?? "—"}</TableCell>
+                  <TableCell>
+                    <Badge variant={collectionStatusVariant(svc.collectionStatus)} className="text-[10px]">
+                      {collectionStatusLabel(svc.collectionStatus)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">{money(svc.invoiced, svc.currency)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{money(svc.collected, svc.currency)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{money(svc.outstanding, svc.currency)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{money(svc.trustHeld, svc.currency)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </Card>
 
       <Card className="p-4">
