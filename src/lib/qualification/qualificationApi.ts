@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type {
+  ApplicationReference,
   InstitutionApplicationStatus,
   QualificationDepositTrack,
   QualificationEvent,
@@ -7,11 +8,12 @@ import type {
   QualificationRecord,
   QualificationTuitionTrack,
   TransitionQualificationPayload,
+  UpsertApplicationReferencePayload,
   UpsertQualificationPayload,
 } from "./types";
 
 function mapQualification(row: Record<string, unknown>): QualificationRecord {
-  const institution = row.upi_institutions as { name?: string } | null | undefined;
+  const institution = row.upi_institutions as { name?: string; country_name?: string } | null | undefined;
   return {
     id: row.id as string,
     clientId: row.client_id as string,
@@ -31,7 +33,20 @@ function mapQualification(row: Record<string, unknown>): QualificationRecord {
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     institutionName: institution?.name ?? null,
+    institutionCountryName: institution?.country_name ?? null,
     ownerName: null,
+  };
+}
+
+function mapApplicationReference(row: Record<string, unknown>): ApplicationReference {
+  return {
+    id: row.id as string,
+    qualificationId: row.qualification_id as string,
+    referenceType: row.reference_type as string,
+    referenceNumber: row.reference_number as string,
+    notes: (row.notes as string | null) ?? null,
+    createdAt: row.created_at as string,
+    createdBy: (row.created_by as string | null) ?? null,
   };
 }
 
@@ -66,7 +81,7 @@ export async function fetchQualificationsForCase(
 ): Promise<QualificationRecord[]> {
   const { data, error } = await supabase
     .from("client_institution_qualifications" as never)
-    .select("*, upi_institutions ( name )" as never)
+    .select("*, upi_institutions ( name, country_name )" as never)
     .eq("client_id", clientId)
     .eq("client_service_case_id", caseId)
     .order("created_at", { ascending: false });
@@ -76,10 +91,10 @@ export async function fetchQualificationsForCase(
 }
 
 export async function fetchQualificationBundle(qualificationId: string) {
-  const [qualRes, depositRes, tuitionRes, eventsRes] = await Promise.all([
+  const [qualRes, depositRes, tuitionRes, eventsRes, referencesRes] = await Promise.all([
     supabase
       .from("client_institution_qualifications" as never)
-      .select("*, upi_institutions ( name )" as never)
+      .select("*, upi_institutions ( name, country_name )" as never)
       .eq("id", qualificationId)
       .maybeSingle(),
     supabase
@@ -98,6 +113,11 @@ export async function fetchQualificationBundle(qualificationId: string) {
       .eq("qualification_id", qualificationId)
       .order("created_at", { ascending: false })
       .limit(25),
+    supabase
+      .from("qualification_application_references" as never)
+      .select("*")
+      .eq("qualification_id", qualificationId)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (qualRes.error) throw qualRes.error;
@@ -121,6 +141,7 @@ export async function fetchQualificationBundle(qualificationId: string) {
         createdAt: row.created_at as string,
       }),
     ),
+    references: ((referencesRes.data ?? []) as Record<string, unknown>[]).map(mapApplicationReference),
   };
 }
 
@@ -180,6 +201,30 @@ export async function updateApplicationStatus(
   const { error } = await supabase.rpc("fn_update_application_status" as never, {
     p_qualification_id: qualificationId,
     p_application_status: applicationStatus,
+  } as never);
+  if (error) throw error;
+}
+
+export async function upsertApplicationReference(
+  payload: UpsertApplicationReferencePayload,
+): Promise<string> {
+  const { data, error } = await supabase.rpc("fn_upsert_application_reference" as never, {
+    p_payload: {
+      id: payload.id,
+      qualification_id: payload.qualificationId,
+      reference_type: payload.referenceType.trim(),
+      reference_number: payload.referenceNumber.trim(),
+      notes: payload.notes?.trim() || null,
+    },
+  } as never);
+
+  if (error) throw error;
+  return data as string;
+}
+
+export async function deleteApplicationReference(referenceId: string): Promise<void> {
+  const { error } = await supabase.rpc("fn_delete_application_reference" as never, {
+    p_reference_id: referenceId,
   } as never);
   if (error) throw error;
 }

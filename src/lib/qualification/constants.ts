@@ -66,6 +66,9 @@ export const APPLICATION_EVENT_LABELS: Record<string, string> = {
   QUALIFICATION_OWNER_CHANGED: "Application owner changed",
   APPLICATION_STATUS_UPDATED: "Admissions stage changed",
   TRACK_AMOUNT_UPDATED: "Deposit or tuition amounts updated",
+  APPLICATION_REFERENCE_ADDED: "Application reference added",
+  APPLICATION_REFERENCE_UPDATED: "Application reference updated",
+  APPLICATION_REFERENCE_REMOVED: "Application reference removed",
 };
 
 export function formatApplicationEventType(eventType: string): string {

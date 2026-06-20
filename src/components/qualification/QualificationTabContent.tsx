@@ -21,6 +21,7 @@ import { useClientQualification } from "@/hooks/useClientQualification";
 import { QualificationLifecycleBadge } from "./QualificationLifecycleBadge";
 import { QualificationCreateDialog } from "./QualificationCreateDialog";
 import { QualificationTransitionDialog } from "./QualificationTransitionDialog";
+import { ApplicationReferencesPanel } from "./ApplicationReferencesPanel";
 import {
   availableQualificationTransitions,
   isQualificationEditable,
@@ -60,6 +61,7 @@ export function QualificationTabContent({ clientId, caseId, canEdit, refreshKey 
     depositTrack,
     tuitionTrack,
     events,
+    references,
     loading,
     detailLoading,
     reload,
@@ -337,6 +339,15 @@ export function QualificationTabContent({ clientId, caseId, canEdit, refreshKey 
                   </div>
                 )}
               </Card>
+
+              <ApplicationReferencesPanel
+                qualificationId={selected.id}
+                references={references}
+                institutionCountryName={selected.institutionCountryName}
+                canEdit={canEdit && isQualificationEditable(selected.status)}
+                loading={detailLoading}
+                onChanged={reload}
+              />
 
               <Card className="p-5 space-y-3">
                 <div className="font-medium">Application Timeline</div>

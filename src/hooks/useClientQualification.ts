@@ -4,6 +4,7 @@ import {
   fetchQualificationsForCase,
 } from "@/lib/qualification/qualificationApi";
 import type {
+  ApplicationReference,
   QualificationDepositTrack,
   QualificationEvent,
   QualificationRecord,
@@ -20,6 +21,7 @@ export function useClientQualification(
   const [depositTrack, setDepositTrack] = useState<QualificationDepositTrack | null>(null);
   const [tuitionTrack, setTuitionTrack] = useState<QualificationTuitionTrack | null>(null);
   const [events, setEvents] = useState<QualificationEvent[]>([]);
+  const [references, setReferences] = useState<ApplicationReference[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
 
@@ -47,6 +49,7 @@ export function useClientQualification(
       setDepositTrack(null);
       setTuitionTrack(null);
       setEvents([]);
+      setReferences([]);
       return;
     }
     setDetailLoading(true);
@@ -56,6 +59,7 @@ export function useClientQualification(
       setDepositTrack(bundle.depositTrack);
       setTuitionTrack(bundle.tuitionTrack);
       setEvents(bundle.events);
+      setReferences(bundle.references);
       setQualifications((prev) =>
         prev.map((q) => (q.id === bundle.qualification.id ? bundle.qualification : q)),
       );
@@ -87,6 +91,7 @@ export function useClientQualification(
     depositTrack,
     tuitionTrack,
     events,
+    references,
     loading,
     detailLoading,
     reload,

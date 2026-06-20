@@ -9,7 +9,7 @@
 - Client with an open service case
 - Editor user with `can_edit_client`
 - View-only user for AF-07
-- Migrations published: `20260901120000`, `20260901120100`
+- Migrations published: `20260901120000`, `20260901120100`, `20260901120200`
 
 | ID | Scenario | Pass |
 |----|----------|------|
@@ -25,6 +25,7 @@
 | AF-14 | On Hold → Active | ☐ |
 | AF-15 | Reassign **Application Owner** | ☐ |
 | AF-16 | **Admissions Stage** change — lifecycle unchanged | ☐ |
+| AF-17 | **Application References** — add country default + custom type; edit; remove; timeline event | ☐ |
 | AF-18 | Re-create application after Cancelled/Refused on same intake | ☐ |
 
 **Owner:** Balveer + Engineering

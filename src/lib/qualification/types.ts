@@ -67,7 +67,26 @@ export type QualificationRecord = {
   createdAt: string;
   updatedAt: string;
   institutionName?: string | null;
+  institutionCountryName?: string | null;
   ownerName?: string | null;
+};
+
+export type ApplicationReference = {
+  id: string;
+  qualificationId: string;
+  referenceType: string;
+  referenceNumber: string;
+  notes: string | null;
+  createdAt: string;
+  createdBy: string | null;
+};
+
+export type UpsertApplicationReferencePayload = {
+  id?: string;
+  qualificationId: string;
+  referenceType: string;
+  referenceNumber: string;
+  notes?: string | null;
 };
 
 export type QualificationDepositTrack = {
