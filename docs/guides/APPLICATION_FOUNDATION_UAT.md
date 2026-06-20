@@ -1,6 +1,6 @@
 # Application Foundation — Internal UAT
 
-**Scope:** Q1 Application Foundation only (lean)  
+**Scope:** Q1 Application Foundation Step 0 (lean)  
 **Tab route (unchanged):** `?tab=qualification`  
 **User-facing tab:** Applications
 
@@ -9,14 +9,30 @@
 - Client with an open service case
 - Editor user with `can_edit_client`
 - View-only user for AF-07
-- Migrations published: `20260901120000`, `20260901120100`, `20260901120200`
+- Migrations published: `20260901120000`, `20260901120100`, `20260901120200`, **`20260901120300`**, **`20260901120400`**
+
+## Tab section order (Step 0)
+
+1. Student Application  
+2. Offer Information  
+3. Application References  
+4. Application Milestones  
+5. Financial Requirements (placeholder — Q2)  
+6. Application Timeline  
 
 | ID | Scenario | Pass |
 |----|----------|------|
 | AF-01 | Open **Applications** tab on client with service case | ☐ |
-| AF-02 | **Create Application** — owner set; identity = institution + program + intake; deposit/tuition tracks created | ☐ |
-| AF-03 | **Deposit Tracking / Tuition Tracking** — required/total, paid = 0, outstanding shown; no FLC AR/trust/GL posting from tab | ☐ |
-| AF-06 | **Application Timeline** — create event; lifecycle/owner/admissions changes append events | ☐ |
+| AF-02 | **Create Application** — owner set; identity = institution + program + intake; **offer row (status NONE) + milestones row created**; **no deposit/tuition track rows** | ☐ |
+| AF-02a | Create captures **institution_name_snapshot**, **institution_city_snapshot**, **destination_country** from institution master | ☐ |
+| AF-02b | Optional snapshot fields on create (program code, campus, intake year, study level, duration, tuition fee/currency) persist on anchor | ☐ |
+| AF-OFF-01 | **Offer Information** — set offer type and offer status independently; save | ☐ |
+| AF-OFF-02 | Set offer status to **Received** or **Accepted** — **offer_received_at** milestone auto-set if empty | ☐ |
+| AF-OFF-03 | Offer save appends **APPLICATION_OFFER_UPDATED** timeline event | ☐ |
+| AF-MS-01 | **Record submission** — sets submitted date + submitted_by; rejects duplicate submit | ☐ |
+| AF-MS-02 | Edit visa/enrollment milestone dates; save appends **MILESTONE_UPDATED** | ☐ |
+| AF-FIN-01 | **Financial Requirements** shows Q2 placeholder only (no inputs, no DB writes) | ☐ |
+| AF-06 | **Application Timeline** — create event; lifecycle/owner/admissions/offer/milestone changes append events | ☐ |
 | AF-07 | View-only user — read all cards; no create/edit actions | ☐ |
 | AF-08 | Commission regression — Mark Eligible unchanged | ☐ |
 | AF-11 | **Application Lifecycle:** Draft → Active | ☐ |
@@ -35,4 +51,4 @@
 
 **Owner:** Balveer + Engineering
 
-**Out of scope (Q2+):** funding plans, external events, TRANSFERRED, qualification source, payment recording, commission integration.
+**Out of scope (Q2+):** funding plans, external events, TRANSFERRED, qualification source, payment recording, commission integration, Phase A catalog, Phase B Mark Final, Phase C auto-create.

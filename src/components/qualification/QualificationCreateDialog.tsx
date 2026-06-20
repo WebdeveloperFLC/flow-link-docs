@@ -40,10 +40,14 @@ export function QualificationCreateDialog({
   const [institutions, setInstitutions] = useState<InstitutionOption[]>([]);
   const [institutionId, setInstitutionId] = useState("");
   const [programName, setProgramName] = useState("");
+  const [programCode, setProgramCode] = useState("");
+  const [campusName, setCampusName] = useState("");
   const [intakeTerm, setIntakeTerm] = useState("");
-  const [depositRequired, setDepositRequired] = useState("");
-  const [tuitionTotal, setTuitionTotal] = useState("");
-  const [currency, setCurrency] = useState("CAD");
+  const [intakeYear, setIntakeYear] = useState("");
+  const [studyLevel, setStudyLevel] = useState("");
+  const [durationMonths, setDurationMonths] = useState("");
+  const [tuitionFee, setTuitionFee] = useState("");
+  const [tuitionCurrency, setTuitionCurrency] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -54,6 +58,19 @@ export function QualificationCreateDialog({
       .order("name")
       .then(({ data }) => setInstitutions((data ?? []) as InstitutionOption[]));
   }, [open]);
+
+  const resetForm = () => {
+    setInstitutionId("");
+    setProgramName("");
+    setProgramCode("");
+    setCampusName("");
+    setIntakeTerm("");
+    setIntakeYear("");
+    setStudyLevel("");
+    setDurationMonths("");
+    setTuitionFee("");
+    setTuitionCurrency("");
+  };
 
   const handleSubmit = async () => {
     if (!institutionId || !intakeTerm.trim()) {
@@ -68,18 +85,18 @@ export function QualificationCreateDialog({
         institutionId,
         intakeTerm: intakeTerm.trim(),
         programName: programName.trim() || null,
-        depositRequired: Number(depositRequired) || 0,
-        tuitionTotal: Number(tuitionTotal) || 0,
-        currency,
+        programCode: programCode.trim() || null,
+        campusName: campusName.trim() || null,
+        intakeYear: intakeYear ? Number(intakeYear) : null,
+        studyLevel: studyLevel.trim() || null,
+        durationMonths: durationMonths ? Number(durationMonths) : null,
+        tuitionFee: tuitionFee ? Number(tuitionFee) : null,
+        tuitionCurrency: tuitionCurrency.trim() || null,
       });
       toast.success("Application created");
       onCreated(id);
       onOpenChange(false);
-      setInstitutionId("");
-      setProgramName("");
-      setIntakeTerm("");
-      setDepositRequired("");
-      setTuitionTotal("");
+      resetForm();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not create application");
     } finally {
@@ -89,7 +106,7 @@ export function QualificationCreateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Student Application</DialogTitle>
         </DialogHeader>
@@ -113,49 +130,86 @@ export function QualificationCreateDialog({
             <Label>Program</Label>
             <Input value={programName} onChange={(e) => setProgramName(e.target.value)} />
           </div>
-          <div className="space-y-2">
-            <Label>Intake term</Label>
-            <Input
-              placeholder="e.g. Fall 2026"
-              value={intakeTerm}
-              onChange={(e) => setIntakeTerm(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Program code (optional)</Label>
+              <Input value={programCode} onChange={(e) => setProgramCode(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Campus (optional)</Label>
+              <Input value={campusName} onChange={(e) => setCampusName(e.target.value)} />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Deposit required</Label>
+              <Label>Intake term</Label>
               <Input
-                type="number"
-                min={0}
-                value={depositRequired}
-                onChange={(e) => setDepositRequired(e.target.value)}
+                placeholder="e.g. Fall 2026"
+                value={intakeTerm}
+                onChange={(e) => setIntakeTerm(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label>Total tuition</Label>
+              <Label>Intake year (optional)</Label>
               <Input
                 type="number"
-                min={0}
-                value={tuitionTotal}
-                onChange={(e) => setTuitionTotal(e.target.value)}
+                min={2000}
+                max={2100}
+                value={intakeYear}
+                onChange={(e) => setIntakeYear(e.target.value)}
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label>Currency</Label>
-            <Select value={currency} onValueChange={setCurrency}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {["CAD", "USD", "GBP", "AUD", "INR"].map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Study level (optional)</Label>
+              <Input
+                placeholder="e.g. PG Diploma"
+                value={studyLevel}
+                onChange={(e) => setStudyLevel(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Duration months (optional)</Label>
+              <Input
+                type="number"
+                min={1}
+                value={durationMonths}
+                onChange={(e) => setDurationMonths(e.target.value)}
+              />
+            </div>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Tuition fee snapshot (optional)</Label>
+              <Input
+                type="number"
+                min={0}
+                value={tuitionFee}
+                onChange={(e) => setTuitionFee(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Currency (optional)</Label>
+              <Select value={tuitionCurrency || "__none__"} onValueChange={(v) => setTuitionCurrency(v === "__none__" ? "" : v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Not set</SelectItem>
+                  {["CAD", "USD", "GBP", "AUD", "INR"].map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Institution name, city, and destination country are captured automatically from the
+            institution master. Deposit and tuition payment tracking are not created at this step.
+          </p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

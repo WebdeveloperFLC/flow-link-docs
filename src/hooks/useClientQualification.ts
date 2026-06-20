@@ -4,11 +4,11 @@ import {
   fetchQualificationsForCase,
 } from "@/lib/qualification/qualificationApi";
 import type {
+  ApplicationMilestones,
+  ApplicationOffer,
   ApplicationReference,
-  QualificationDepositTrack,
   QualificationEvent,
   QualificationRecord,
-  QualificationTuitionTrack,
 } from "@/lib/qualification/types";
 
 export function useClientQualification(
@@ -18,8 +18,8 @@ export function useClientQualification(
 ) {
   const [qualifications, setQualifications] = useState<QualificationRecord[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [depositTrack, setDepositTrack] = useState<QualificationDepositTrack | null>(null);
-  const [tuitionTrack, setTuitionTrack] = useState<QualificationTuitionTrack | null>(null);
+  const [offer, setOffer] = useState<ApplicationOffer | null>(null);
+  const [milestones, setMilestones] = useState<ApplicationMilestones | null>(null);
   const [events, setEvents] = useState<QualificationEvent[]>([]);
   const [references, setReferences] = useState<ApplicationReference[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,8 +46,8 @@ export function useClientQualification(
 
   const loadDetail = useCallback(async (qualificationId: string | null) => {
     if (!qualificationId) {
-      setDepositTrack(null);
-      setTuitionTrack(null);
+      setOffer(null);
+      setMilestones(null);
       setEvents([]);
       setReferences([]);
       return;
@@ -56,8 +56,8 @@ export function useClientQualification(
     try {
       const bundle = await fetchQualificationBundle(qualificationId);
       if (!bundle) return;
-      setDepositTrack(bundle.depositTrack);
-      setTuitionTrack(bundle.tuitionTrack);
+      setOffer(bundle.offer);
+      setMilestones(bundle.milestones);
       setEvents(bundle.events);
       setReferences(bundle.references);
       setQualifications((prev) =>
@@ -88,8 +88,8 @@ export function useClientQualification(
     selected,
     selectedId,
     setSelectedId,
-    depositTrack,
-    tuitionTrack,
+    offer,
+    milestones,
     events,
     references,
     loading,

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -22,6 +21,9 @@ import { QualificationLifecycleBadge } from "./QualificationLifecycleBadge";
 import { QualificationCreateDialog } from "./QualificationCreateDialog";
 import { QualificationTransitionDialog } from "./QualificationTransitionDialog";
 import { ApplicationReferencesPanel } from "./ApplicationReferencesPanel";
+import { ApplicationOfferPanel } from "./ApplicationOfferPanel";
+import { ApplicationMilestonesPanel } from "./ApplicationMilestonesPanel";
+import { FinancialRequirementsPlaceholder } from "./FinancialRequirementsPlaceholder";
 import {
   availableQualificationTransitions,
   isQualificationEditable,
@@ -30,7 +32,6 @@ import {
   APPLICATION_STATUS_LABELS,
   formatApplicationEventType,
   QUALIFICATION_STATUS_LABELS,
-  TRACK_STATUS_LABELS,
 } from "@/lib/qualification/constants";
 import { reassignQualificationOwner, updateApplicationStatus } from "@/lib/qualification/qualificationApi";
 import type { InstitutionApplicationStatus, QualificationLifecycleStatus } from "@/lib/qualification/types";
@@ -52,14 +53,24 @@ function formatMoney(amount: number, currency: string) {
   }
 }
 
+function SnapshotRow({ label, value }: { label: string; value: string | null | undefined }) {
+  if (!value) return null;
+  return (
+    <div>
+      <span className="text-muted-foreground">{label}: </span>
+      <span>{value}</span>
+    </div>
+  );
+}
+
 export function QualificationTabContent({ clientId, caseId, canEdit, refreshKey = 0 }: Props) {
   const {
     qualifications,
     selected,
     selectedId,
     setSelectedId,
-    depositTrack,
-    tuitionTrack,
+    offer,
+    milestones,
     events,
     references,
     loading,
@@ -147,6 +158,11 @@ export function QualificationTabContent({ clientId, caseId, canEdit, refreshKey 
     }
   };
 
+  const tuitionSnapshot =
+    selected?.tuitionFee != null && selected.tuitionCurrency
+      ? formatMoney(selected.tuitionFee, selected.tuitionCurrency)
+      : null;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -156,7 +172,7 @@ export function QualificationTabContent({ clientId, caseId, canEdit, refreshKey 
             Student Application
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Deposit and tuition tracking to the institution — not FLC accounting.
+            Application identity, offer, milestones, and references — not FLC accounting or payments.
           </p>
         </div>
         {canEdit && (
@@ -188,7 +204,7 @@ export function QualificationTabContent({ clientId, caseId, canEdit, refreshKey 
                 <SelectContent>
                   {qualifications.map((q) => (
                     <SelectItem key={q.id} value={q.id}>
-                      {q.institutionName ?? "Institution"} — {q.intakeTerm}
+                      {q.institutionName ?? q.institutionNameSnapshot ?? "Institution"} — {q.intakeTerm}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -201,11 +217,32 @@ export function QualificationTabContent({ clientId, caseId, canEdit, refreshKey 
               <Card className="p-5 space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="space-y-1">
-                    <div className="font-medium text-base">{selected.institutionName ?? "Institution"}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {selected.programName || "Program TBD"} · Intake {selected.intakeTerm}
+                    <div className="font-medium text-base">
+                      {selected.institutionName ?? selected.institutionNameSnapshot ?? "Institution"}
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="text-sm text-muted-foreground">
+                      {selected.programName || "Program TBD"}
+                      {selected.programCode ? ` (${selected.programCode})` : ""} · Intake {selected.intakeTerm}
+                    </div>
+                    <div className="text-xs text-muted-foreground space-y-0.5 pt-1">
+                      <SnapshotRow
+                        label="Location"
+                        value={
+                          [selected.institutionCitySnapshot, selected.destinationCountry ?? selected.institutionCountryName]
+                            .filter(Boolean)
+                            .join(", ") || null
+                        }
+                      />
+                      <SnapshotRow label="Campus" value={selected.campusName} />
+                      <SnapshotRow label="Study level" value={selected.studyLevel} />
+                      <SnapshotRow
+                        label="Duration"
+                        value={selected.durationMonths != null ? `${selected.durationMonths} months` : null}
+                      />
+                      <SnapshotRow label="Tuition snapshot" value={tuitionSnapshot} />
+                      <SnapshotRow label="Source" value={selected.applicationSource} />
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
                       <UserCircle className="size-3.5" />
                       Application owner: {ownerName ?? "Unassigned"}
                     </div>
@@ -282,72 +319,32 @@ export function QualificationTabContent({ clientId, caseId, canEdit, refreshKey 
                 </div>
               </Card>
 
-              <Card className="p-5 space-y-4">
-                <div>
-                  <div className="font-medium">Deposit Tracking · Tuition Tracking</div>
-                  <p className="text-xs text-muted-foreground">
-                    Amounts owed to the institution — paid amounts stay at zero until payment integration.
-                  </p>
-                </div>
-                {detailLoading ? (
-                  <div className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Loader2 className="size-4 animate-spin" />
-                    Loading tracks…
-                  </div>
-                ) : (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="rounded-lg border p-4 space-y-2">
-                      <div className="text-sm font-medium">Deposit Tracking</div>
-                      {depositTrack ? (
-                        <>
-                          <div className="text-xs text-muted-foreground">
-                            Required: {formatMoney(depositTrack.requiredAmount, depositTrack.currency)}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Paid: {formatMoney(depositTrack.paidAmount, depositTrack.currency)}
-                          </div>
-                          <div className="text-sm font-medium">
-                            Outstanding:{" "}
-                            {formatMoney(depositTrack.outstandingAmount, depositTrack.currency)}
-                          </div>
-                          <Badge variant="outline">{TRACK_STATUS_LABELS[depositTrack.status]}</Badge>
-                        </>
-                      ) : (
-                        <div className="text-xs text-muted-foreground">No deposit track</div>
-                      )}
-                    </div>
-                    <div className="rounded-lg border p-4 space-y-2">
-                      <div className="text-sm font-medium">Tuition Tracking</div>
-                      {tuitionTrack ? (
-                        <>
-                          <div className="text-xs text-muted-foreground">
-                            Total: {formatMoney(tuitionTrack.totalTuition, tuitionTrack.currency)}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Paid: {formatMoney(tuitionTrack.paidAmount, tuitionTrack.currency)}
-                          </div>
-                          <div className="text-sm font-medium">
-                            Outstanding:{" "}
-                            {formatMoney(tuitionTrack.outstandingAmount, tuitionTrack.currency)}
-                          </div>
-                          <Badge variant="outline">{TRACK_STATUS_LABELS[tuitionTrack.status]}</Badge>
-                        </>
-                      ) : (
-                        <div className="text-xs text-muted-foreground">No tuition track</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </Card>
-
-              <ApplicationReferencesPanel
+              <ApplicationOfferPanel
                 qualificationId={selected.id}
-                references={references}
-                institutionCountryName={selected.institutionCountryName}
+                offer={offer}
                 canEdit={canEdit && isQualificationEditable(selected.status)}
                 loading={detailLoading}
                 onChanged={reload}
               />
+
+              <ApplicationReferencesPanel
+                qualificationId={selected.id}
+                references={references}
+                institutionCountryName={selected.institutionCountryName ?? selected.destinationCountry}
+                canEdit={canEdit && isQualificationEditable(selected.status)}
+                loading={detailLoading}
+                onChanged={reload}
+              />
+
+              <ApplicationMilestonesPanel
+                qualificationId={selected.id}
+                milestones={milestones}
+                canEdit={canEdit && isQualificationEditable(selected.status)}
+                loading={detailLoading}
+                onChanged={reload}
+              />
+
+              <FinancialRequirementsPlaceholder />
 
               <Card className="p-5 space-y-3">
                 <div className="font-medium">Application Timeline</div>

@@ -1,4 +1,6 @@
 import type {
+  ApplicationOfferStatus,
+  ApplicationOfferType,
   InstitutionApplicationStatus,
   QualificationHoldReasonCode,
   QualificationLifecycleStatus,
@@ -52,11 +54,24 @@ export const HOLD_REASON_LABELS: Record<QualificationHoldReasonCode, string> = {
   OTHER_OPERATIONAL: "Other operational blocker",
 };
 
-export const TRACK_STATUS_LABELS = {
-  NOT_STARTED: "Not started",
-  PARTIAL: "Partial",
-  SATISFIED: "Satisfied",
-} as const;
+export const OFFER_TYPE_LABELS: Record<ApplicationOfferType, string> = {
+  CONDITIONAL_OFFER: "Conditional offer",
+  UNCONDITIONAL_OFFER: "Unconditional offer",
+  LOA: "LOA",
+  I20: "I-20",
+  CAS: "CAS",
+  COE: "CoE",
+  OTHER: "Other",
+};
+
+export const OFFER_STATUS_LABELS: Record<ApplicationOfferStatus, string> = {
+  NONE: "None",
+  PENDING: "Pending",
+  RECEIVED: "Received",
+  ACCEPTED: "Accepted",
+  DECLINED: "Declined",
+  EXPIRED: "Expired",
+};
 
 /** Application Timeline event labels (internal event_type codes unchanged) */
 export const APPLICATION_EVENT_LABELS: Record<string, string> = {
@@ -65,7 +80,9 @@ export const APPLICATION_EVENT_LABELS: Record<string, string> = {
   QUALIFICATION_STATUS_CHANGED: "Application lifecycle changed",
   QUALIFICATION_OWNER_CHANGED: "Application owner changed",
   APPLICATION_STATUS_UPDATED: "Admissions stage changed",
-  TRACK_AMOUNT_UPDATED: "Deposit or tuition amounts updated",
+  APPLICATION_OFFER_UPDATED: "Offer information updated",
+  APPLICATION_SUBMITTED: "Application submitted to institution",
+  MILESTONE_UPDATED: "Milestone dates updated",
   APPLICATION_REFERENCE_ADDED: "Application reference added",
   APPLICATION_REFERENCE_UPDATED: "Application reference updated",
   APPLICATION_REFERENCE_REMOVED: "Application reference removed",

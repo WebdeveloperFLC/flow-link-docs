@@ -33,6 +33,33 @@ export const INSTITUTION_APPLICATION_STATUSES = [
 
 export type InstitutionApplicationStatus = (typeof INSTITUTION_APPLICATION_STATUSES)[number];
 
+export const APPLICATION_OFFER_TYPES = [
+  "CONDITIONAL_OFFER",
+  "UNCONDITIONAL_OFFER",
+  "LOA",
+  "I20",
+  "CAS",
+  "COE",
+  "OTHER",
+] as const;
+
+export type ApplicationOfferType = (typeof APPLICATION_OFFER_TYPES)[number];
+
+export const APPLICATION_OFFER_STATUSES = [
+  "NONE",
+  "PENDING",
+  "RECEIVED",
+  "ACCEPTED",
+  "DECLINED",
+  "EXPIRED",
+] as const;
+
+export type ApplicationOfferStatus = (typeof APPLICATION_OFFER_STATUSES)[number];
+
+export const APPLICATION_SOURCES = ["MANUAL", "MARK_FINAL", "IMPORT", "OTHER"] as const;
+
+export type ApplicationSource = (typeof APPLICATION_SOURCES)[number];
+
 export const QUALIFICATION_HOLD_REASON_CODES = [
   "WAITING_TUITION_PAYMENT",
   "WAITING_LOAN_APPROVAL",
@@ -54,8 +81,21 @@ export type QualificationRecord = {
   clientServiceCaseId: string;
   institutionId: string;
   programName: string | null;
+  programCode: string | null;
+  campusName: string | null;
   intakeTerm: string;
   intakeDate: string | null;
+  intakeYear: number | null;
+  studyLevel: string | null;
+  durationMonths: number | null;
+  tuitionFee: number | null;
+  tuitionCurrency: string | null;
+  destinationCountry: string | null;
+  institutionNameSnapshot: string | null;
+  institutionCitySnapshot: string | null;
+  cfClientProgramId: string | null;
+  cfCourseId: string | null;
+  applicationSource: ApplicationSource;
   status: QualificationLifecycleStatus;
   statusReasonCode: string | null;
   statusReasonNotes: string | null;
@@ -69,6 +109,27 @@ export type QualificationRecord = {
   institutionName?: string | null;
   institutionCountryName?: string | null;
   ownerName?: string | null;
+};
+
+export type ApplicationOffer = {
+  qualificationId: string;
+  offerType: ApplicationOfferType | null;
+  offerStatus: ApplicationOfferStatus;
+  offerNumber: string | null;
+  offerDate: string | null;
+  offerExpiryDate: string | null;
+  notes: string | null;
+};
+
+export type ApplicationMilestones = {
+  qualificationId: string;
+  applicationCreatedAt: string;
+  applicationSubmittedDate: string | null;
+  submittedByUserId: string | null;
+  offerReceivedAt: string | null;
+  visaFiledAt: string | null;
+  visaApprovedAt: string | null;
+  enrollmentAt: string | null;
 };
 
 export type ApplicationReference = {
@@ -89,27 +150,6 @@ export type UpsertApplicationReferencePayload = {
   notes?: string | null;
 };
 
-export type QualificationDepositTrack = {
-  id: string;
-  qualificationId: string;
-  requiredAmount: number;
-  dueDate: string | null;
-  paidAmount: number;
-  outstandingAmount: number;
-  currency: string;
-  status: QualificationTrackStatus;
-};
-
-export type QualificationTuitionTrack = {
-  id: string;
-  qualificationId: string;
-  totalTuition: number;
-  paidAmount: number;
-  outstandingAmount: number;
-  currency: string;
-  status: QualificationTrackStatus;
-};
-
 export type QualificationEvent = {
   id: string;
   qualificationId: string;
@@ -126,11 +166,34 @@ export type UpsertQualificationPayload = {
   institutionId: string;
   intakeTerm: string;
   programName?: string | null;
+  programCode?: string | null;
+  campusName?: string | null;
   intakeDate?: string | null;
-  depositRequired?: number;
-  tuitionTotal?: number;
-  currency?: string;
+  intakeYear?: number | null;
+  studyLevel?: string | null;
+  durationMonths?: number | null;
+  tuitionFee?: number | null;
+  tuitionCurrency?: string | null;
+  destinationCountry?: string | null;
   institutionApplicationStatus?: InstitutionApplicationStatus;
+};
+
+export type UpdateApplicationOfferPayload = {
+  qualificationId: string;
+  offerType?: ApplicationOfferType | null;
+  offerStatus: ApplicationOfferStatus;
+  offerNumber?: string | null;
+  offerDate?: string | null;
+  offerExpiryDate?: string | null;
+  notes?: string | null;
+};
+
+export type UpdateApplicationMilestonesPayload = {
+  qualificationId: string;
+  offerReceivedAt?: string | null;
+  visaFiledAt?: string | null;
+  visaApprovedAt?: string | null;
+  enrollmentAt?: string | null;
 };
 
 export type TransitionQualificationPayload = {
