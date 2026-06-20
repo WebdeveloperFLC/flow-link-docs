@@ -30,6 +30,7 @@ interface OpenInvoice {
   amount_outstanding: number;
   currency: string;
   status: string;
+  institution_name?: string | null;
 }
 
 interface InvoiceStudent {
@@ -76,18 +77,28 @@ export function CommissionReceiptWizard({
   onOpenChange,
   institutionId,
   institutionName,
+  aggregatorId,
+  aggregatorName,
+  remittanceBatchId,
   receiptId: initialReceiptId,
   prefillInvoiceId,
   onSaved,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  institutionId: string;
+  institutionId?: string;
   institutionName?: string;
+  aggregatorId?: string;
+  aggregatorName?: string;
+  remittanceBatchId?: string | null;
   receiptId?: string | null;
   prefillInvoiceId?: string | null;
   onSaved?: () => void;
 }) {
+  const isAggregator = !!aggregatorId;
+  const payerId = isAggregator ? aggregatorId! : institutionId!;
+  const payerName = isAggregator ? aggregatorName : institutionName;
+  const storagePrefix = isAggregator ? `agg/${aggregatorId}` : institutionId!;
   const [stepIdx, setStepIdx] = useState(0);
   const [receiptId, setReceiptId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -137,14 +148,52 @@ export function CommissionReceiptWizard({
     setAttachments([]);
   }, []);
 
+  const [aggregatorRef, setAggregatorRef] = useState("");
+
   const loadOpenInvoices = useCallback(async () => {
+    if (isAggregator) {
+      const { data: stRows, error: stErr } = await supabase
+        .from("upi_commission_students" as any)
+        .select("invoice_id")
+        .eq("aggregator_id", aggregatorId)
+        .not("invoice_id", "is", null);
+      if (stErr) return toast.error(stErr.message);
+      const ids = [...new Set((stRows ?? []).map((r: any) => r.invoice_id).filter(Boolean))];
+      if (ids.length === 0) {
+        setOpenInvoices([]);
+        return;
+      }
+      const { data, error } = await supabase
+        .from("upi_commission_invoices" as any)
+        .select("id, invoice_number, total_amount, amount_outstanding, amount_received, currency, status, institution_id, upi_institutions(name)")
+        .in("id", ids);
+      if (error) toast.error(error.message);
+      else {
+        setOpenInvoices(
+          (data ?? [])
+            .map((row: any) => ({
+              invoice_id: row.id,
+              invoice_number: row.invoice_number,
+              total_amount: Number(row.total_amount),
+              amount_outstanding: Number(
+                row.amount_outstanding ?? row.total_amount - (row.amount_received ?? 0),
+              ),
+              currency: row.currency ?? "CAD",
+              status: row.status,
+              institution_name: row.upi_institutions?.name ?? null,
+            }))
+            .filter((inv) => inv.amount_outstanding > 0.001),
+        );
+      }
+      return;
+    }
     const { data, error } = await supabase
       .from("v_commission_receipt_open_items" as any)
       .select("*")
       .eq("institution_id", institutionId);
     if (error) toast.error(error.message);
     else setOpenInvoices((data ?? []) as OpenInvoice[]);
-  }, [institutionId]);
+  }, [institutionId, aggregatorId, isAggregator]);
 
   const loadStudents = useCallback(async (invoiceIds: string[]) => {
     if (invoiceIds.length === 0) {
@@ -273,8 +322,8 @@ export function CommissionReceiptWizard({
       if (error) throw new Error(error.message);
     } else {
       const { data, error } = await supabase.rpc("fn_create_commission_receipt" as any, {
-        p_payer_type: "institution",
-        p_payer_id: institutionId,
+        p_payer_type: isAggregator ? "aggregator" : "institution",
+        p_payer_id: payerId,
         p_receipt_amount: Number(receiptAmount),
         p_receipt_currency: receiptCurrency,
         p_exchange_rate: Number(exchangeRate) || 1,
@@ -282,9 +331,10 @@ export function CommissionReceiptWizard({
         p_remittance_reference: remittanceRef || null,
         p_bank_reference: bankRef || null,
         p_payment_method: paymentMethod || null,
-        p_context_institution_id: institutionId,
+        p_context_institution_id: isAggregator ? null : institutionId,
+        p_remittance_batch_id: remittanceBatchId || null,
         p_notes: notes || null,
-        p_metadata: metadata,
+        p_metadata: { ...metadata, aggregator_reference_number: aggregatorRef || null },
       });
       if (error || !data) throw new Error(error?.message ?? "Create failed");
       setReceiptId(data as string);
@@ -376,6 +426,7 @@ export function CommissionReceiptWizard({
   const goNext = async () => {
     if (step === "Header") {
       if (!receiptAmount || Number(receiptAmount) <= 0) return toast.error("Receipt amount required");
+      if (isAggregator && !remittanceBatchId) return toast.error("Select a remittance batch before recording receipt");
       setBusy(true);
       try {
         await persistStep(1);
@@ -480,7 +531,7 @@ export function CommissionReceiptWizard({
 
   const uploadAttachment = async (file: File) => {
     if (!receiptId) return toast.error("Save header first");
-    const path = `${institutionId}/${receiptId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
+    const path = `${storagePrefix}/${receiptId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
     const { error: upErr } = await supabase.storage
       .from("upi-commission-receipts")
       .upload(path, file, { contentType: file.type });
@@ -527,8 +578,11 @@ export function CommissionReceiptWizard({
         <DialogHeader>
           <DialogTitle>
             {receiptNumber ? `Receipt ${receiptNumber}` : "New commission receipt"}
-            {institutionName && (
-              <span className="block text-sm font-normal text-muted-foreground">{institutionName}</span>
+            {payerName && (
+              <span className="block text-sm font-normal text-muted-foreground">{payerName}</span>
+            )}
+            {isAggregator && remittanceBatchId && (
+              <span className="block text-xs text-muted-foreground">Linked to remittance batch</span>
             )}
           </DialogTitle>
         </DialogHeader>
@@ -575,6 +629,12 @@ export function CommissionReceiptWizard({
               <Label>Remittance reference</Label>
               <Input value={remittanceRef} onChange={(e) => setRemittanceRef(e.target.value)} />
             </div>
+            {isAggregator && (
+              <div className="space-y-1 sm:col-span-2">
+                <Label>Aggregator reference number</Label>
+                <Input value={aggregatorRef} onChange={(e) => setAggregatorRef(e.target.value)} placeholder="Payment advice ref from aggregator" />
+              </div>
+            )}
             <div className="space-y-1">
               <Label>Bank reference</Label>
               <Input value={bankRef} onChange={(e) => setBankRef(e.target.value)} />
@@ -596,14 +656,19 @@ export function CommissionReceiptWizard({
               Allocate cash received to open invoices. Short-pay is allowed — allocate the actual remittance amount.
             </p>
             {openInvoices.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No open invoices for this institution.</p>
+              <p className="text-sm text-muted-foreground">No open invoices{isAggregator ? " for this aggregator" : " for this institution"}.</p>
             ) : (
               openInvoices.map((inv) => {
                 const alloc = invoiceAllocs.find((a) => a.invoice_id === inv.invoice_id)?.amount_allocated ?? 0;
                 return (
                   <div key={inv.invoice_id} className="flex items-center gap-3 flex-wrap border rounded-md p-3">
                     <div className="flex-1 min-w-[140px]">
-                      <div className="font-medium text-sm">{inv.invoice_number}</div>
+                      <div className="font-medium text-sm">
+                        {inv.invoice_number}
+                        {inv.institution_name && (
+                          <span className="text-muted-foreground font-normal"> · {inv.institution_name}</span>
+                        )}
+                      </div>
                       <div className="text-xs text-muted-foreground">
                         Outstanding {fmt(inv.amount_outstanding, inv.currency)} of {fmt(inv.total_amount, inv.currency)}
                       </div>
@@ -705,7 +770,7 @@ export function CommissionReceiptWizard({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>Payer</div>
-              <div>{institutionName ?? institutionId}</div>
+              <div>{payerName ?? payerId}</div>
               <div>Amount</div>
               <div>{fmt(Number(receiptAmount), receiptCurrency)}</div>
               <div>Allocated</div>

@@ -159,6 +159,7 @@ import AccountingCardReconciliationPage from "./accounting/pages/card-reconcilia
 import AccountingCardReconciliationNewPage from "./accounting/pages/card-reconciliation/AccountingCardReconciliationNewPage";
 import InstitutionsListPage from "./institutions/pages/InstitutionsListPage";
 import InstitutionDetailPage from "./institutions/pages/InstitutionDetailPage";
+import AggregatorWorkbenchPage from "./institutions/pages/AggregatorWorkbenchPage";
 import CourseReviewPage from "./institutions/pages/CourseReviewPage";
 import AiSuggestionsPage from "./institutions/pages/AiSuggestionsPage";
 import { InstitutionsProtectedRoute } from "./institutions/components/InstitutionsProtectedRoute";
@@ -557,6 +558,14 @@ const App = () => (
                       <InstitutionsProtectedRoute>
                         <AiSuggestionsPage />
                       </InstitutionsProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/institutions/aggregators/:aggregatorId/workbench"
+                    element={
+                      <CommissionsProtectedRoute>
+                        <AggregatorWorkbenchPage />
+                      </CommissionsProtectedRoute>
                     }
                   />
                   <Route

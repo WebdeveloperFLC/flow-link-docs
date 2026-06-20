@@ -48,11 +48,17 @@ function fmt(amount: number, currency: string) {
 export function CommissionReceiptsPanel({
   institutionId,
   institutionName,
+  aggregatorId,
+  aggregatorName,
+  remittanceBatchId,
   initialInvoiceId,
   onInitialInvoiceConsumed,
 }: {
-  institutionId: string;
+  institutionId?: string;
   institutionName?: string;
+  aggregatorId?: string;
+  aggregatorName?: string;
+  remittanceBatchId?: string | null;
   initialInvoiceId?: string | null;
   onInitialInvoiceConsumed?: () => void;
 }) {
@@ -67,17 +73,18 @@ export function CommissionReceiptsPanel({
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    let q = supabase
       .from("upi_commission_receipts" as any)
       .select(
         "id, receipt_number, status, payer_type, payer_id, payer_name_snapshot, receipt_date, receipt_currency, receipt_amount, amount_allocated, unallocated_amount, fx_review_status, remittance_reference, metadata",
-      )
-      .eq("context_institution_id", institutionId)
-      .order("created_at", { ascending: false });
+      );
+    if (aggregatorId) q = q.eq("aggregator_id", aggregatorId);
+    else if (institutionId) q = q.eq("context_institution_id", institutionId);
+    const { data, error } = await q.order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     else setReceipts((data ?? []) as CommissionReceiptRow[]);
     setLoading(false);
-  }, [institutionId]);
+  }, [institutionId, aggregatorId]);
 
   useEffect(() => {
     load();
@@ -246,6 +253,9 @@ export function CommissionReceiptsPanel({
         onOpenChange={setWizardOpen}
         institutionId={institutionId}
         institutionName={institutionName}
+        aggregatorId={aggregatorId}
+        aggregatorName={aggregatorName}
+        remittanceBatchId={remittanceBatchId}
         receiptId={editReceiptId}
         prefillInvoiceId={prefillInvoiceId}
         onSaved={() => {

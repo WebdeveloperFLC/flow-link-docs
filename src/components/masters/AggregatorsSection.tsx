@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, LayoutDashboard } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import type { UpiAggregator } from "@/institutions/types/partnership";
 
@@ -147,6 +148,11 @@ export function AggregatorsSection() {
                 <Switch checked={row.is_active} onCheckedChange={() => toggleActive(row)} />
               </div>
               <div className="col-span-1 flex justify-end gap-1">
+                <Button size="icon" variant="ghost" asChild title="Aggregator Workbench">
+                  <Link to={`/institutions/aggregators/${row.id}/workbench`}>
+                    <LayoutDashboard className="size-4" />
+                  </Link>
+                </Button>
                 <Button size="icon" variant="ghost" onClick={() => openEdit(row)}>
                   <Pencil className="size-4" />
                 </Button>
