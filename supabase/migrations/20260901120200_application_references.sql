@@ -23,6 +23,7 @@ CREATE INDEX IF NOT EXISTS idx_qualification_application_references_client
 CREATE UNIQUE INDEX IF NOT EXISTS idx_qualification_application_references_type_unique
   ON public.qualification_application_references (qualification_id, lower(trim(reference_type)));
 
+DROP TRIGGER IF EXISTS qualification_application_references_touch ON public.qualification_application_references;
 CREATE TRIGGER qualification_application_references_touch
   BEFORE UPDATE ON public.qualification_application_references
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
