@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useAccountingAccess } from "@/accounting/hooks/useAccountingAccess";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { STAFF_GUIDES } from "../lib/guideRegistry";
 import type { GuideRelatedModule, StaffGuideDef } from "../lib/guideTypes";
@@ -11,6 +12,7 @@ export function useVisibleGuides(): { guides: StaffGuideDef[]; loading: boolean 
   const dsh = useModulePermission("digital_success_hub");
   const incentives = useModulePermission("incentives");
   const hrPayroll = useModulePermission("hr_payroll");
+  const accounting = useAccountingAccess();
 
   const loading =
     !isAdmin &&
@@ -19,7 +21,8 @@ export function useVisibleGuides(): { guides: StaffGuideDef[]; loading: boolean 
       clients.loading ||
       dsh.loading ||
       incentives.loading ||
-      hrPayroll.loading);
+      hrPayroll.loading ||
+      accounting.loading);
 
   const canViewModule = (module: GuideRelatedModule | undefined): boolean => {
     if (!module) return true;
@@ -37,6 +40,8 @@ export function useVisibleGuides(): { guides: StaffGuideDef[]; loading: boolean 
         return incentives.canView;
       case "hr_payroll":
         return hrPayroll.canView;
+      case "accounting":
+        return accounting.hasAccess;
       default:
         return true;
     }

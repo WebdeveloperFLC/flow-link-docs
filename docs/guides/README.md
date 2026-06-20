@@ -63,4 +63,25 @@ Guides
 2. Register in `src/guides/lib/guideRegistry.ts`
 3. Sidebar and `/guides` index update automatically
 
+**UAT scripts:** Every new `*UAT*.md` under `docs/guides/` must be registered in
+`guideRegistry.ts` (use category `UAT / …` and `relatedModule` for access control).
+Do not leave UAT as GitHub-only — Finance and ops run checklists from **Guide** in the CRM.
+
 Do **not** register files from `docs/governance/` in the Guides module.
+
+## UAT guides (in-app)
+
+| Guide | Route | Access |
+|---|---|---|
+| Commission UAT Readiness | `/guides/commission-uat-readiness` | Commissions module |
+| Commission Phase 1 UAT | `/guides/commission-phase1-uat` | Commissions module |
+| Commission Phase 2A UAT | `/guides/commission-phase2a-uat` | Commissions module |
+| Commission Phase 2B UAT | `/guides/commission-phase2b-uat` | Commissions module |
+| Accounting Phase 1 UAT | `/guides/accounting-phase1-uat` | Accounting user |
+| Accounting R1 UAT | `/guides/accounting-r1-collection-categories-uat` | Accounting user |
+| AR Invoice Workflow UAT | `/guides/accounting-ar-invoice-workflow-uat` | Accounting user |
+| Installment Billing UAT | `/guides/accounting-installment-billing-uat` | Accounting user |
+| Profile Phase E UAT | `/guides/profile-phase-e-uat` | Clients module |
+| Profile Phase D UAT | `/guides/profile-phase-d-uat` | Clients module |
+| Performance Hub UAT | `/guides/performance-hub-uat` | Incentives module |
+| HR Payroll UAT | `/guides/hr-payroll-uat` | HR Payroll module |

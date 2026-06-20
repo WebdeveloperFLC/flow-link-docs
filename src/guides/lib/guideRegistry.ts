@@ -9,6 +9,10 @@ import type { StaffGuideDef } from "./guideTypes";
  * module. Staff guides are SOPs, training, workflows, and process documentation only.
  *
  * Index: docs/guides/README.md | Governance: docs/governance/GOVERNANCE_INDEX.md
+ *
+ * **UAT policy:** Every module UAT script under `docs/guides/*UAT*.md` must be
+ * registered here (category `UAT / …`) so Finance and ops can run checklists in-app
+ * at `/guides/<slug>` — do not leave UAT as GitHub-only links.
  */
 
 /** Filenames that must never be registered or loaded via the Guides UI. */
@@ -168,7 +172,7 @@ export const STAFF_GUIDES: StaffGuideDef[] = [
     navLabel: "Performance Hub UAT",
     description:
       "Complete UAT handoff: migrations, 7 demo users, demo seed, smoke gate, 51 test cases, defect tracker, and sign-off.",
-    category: "Product / Finance",
+    category: "UAT / Performance Hub",
     contentFile: "performance-hub-uat-guide.md",
     relatedModule: "incentives",
   },
@@ -178,9 +182,112 @@ export const STAFF_GUIDES: StaffGuideDef[] = [
     navLabel: "HR Payroll UAT",
     description:
       "Complete UAT handoff: migrations 00–22, demo seed, TV02 anchor, verify SQL, smoke gate, 61 test cases, progress tracker, and sign-off.",
-    category: "Product / HR",
+    category: "UAT / HR Payroll",
     contentFile: "hr-payroll-uat-guide.md",
     relatedModule: "hr_payroll",
+  },
+  // —— UAT / Commissions ——
+  {
+    slug: "commission-uat-readiness",
+    title: "Commission Phase 1 — UAT Readiness Pack",
+    navLabel: "Commission UAT Readiness",
+    description:
+      "Pre-flight architecture map, migration list, test data index, and sign-off gates before Commission Phase 1 scenarios.",
+    category: "UAT / Commissions",
+    contentFile: "PHASE1_COMMISSION_UAT_READINESS.md",
+    relatedModule: "commissions",
+  },
+  {
+    slug: "commission-phase1-uat",
+    title: "Commission Phase 1 — Official UAT Script",
+    navLabel: "Commission Phase 1 UAT",
+    description:
+      "Six end-to-end commission scenarios: billing profiles, eligibility, holds, claims, transfers, and counselor views.",
+    category: "UAT / Commissions",
+    contentFile: "PHASE1_COMMISSION_UAT.md",
+    relatedModule: "commissions",
+  },
+  {
+    slug: "commission-phase2a-uat",
+    title: "Commission Phase 2A — Receipt & Allocation UAT",
+    navLabel: "Commission Phase 2A UAT",
+    description:
+      "Receipt lifecycle, invoice/student allocation, short-pay, FX review, attachments, and posted immutability.",
+    category: "UAT / Commissions",
+    contentFile: "PHASE2A_COMMISSION_UAT.md",
+    relatedModule: "commissions",
+  },
+  {
+    slug: "commission-phase2b-uat",
+    title: "Commission Phase 2B — Aggregator Billing UAT",
+    navLabel: "Commission Phase 2B UAT",
+    description:
+      "Aggregator workbench, remittance batches, statements, partial wires, disputes, and held KPI reconciliation.",
+    category: "UAT / Commissions",
+    contentFile: "PHASE2B_COMMISSION_UAT.md",
+    relatedModule: "commissions",
+  },
+  // —— UAT / Accounting ——
+  {
+    slug: "accounting-phase1-uat",
+    title: "Accounting Phase 1 — UAT Checklist",
+    navLabel: "Accounting Phase 1 UAT",
+    description:
+      "Full Phase 1 accounting UAT: AR/AP bridge, trust, payroll, journals, entity-scoped reports, and posting immutability.",
+    category: "UAT / Accounting",
+    contentFile: "PHASE1_ACCOUNTING_UAT.md",
+    relatedModule: "accounting",
+  },
+  {
+    slug: "accounting-r1-collection-categories-uat",
+    title: "Accounting R1 — Collection Category Master UAT",
+    navLabel: "Accounting R1 UAT",
+    description:
+      "Collection category master, payment allocation, trust subledger, disbursements, and payment-purpose reporting.",
+    category: "UAT / Accounting",
+    contentFile: "PHASE1_R1_COLLECTION_CATEGORIES_UAT.md",
+    relatedModule: "accounting",
+  },
+  {
+    slug: "accounting-ar-invoice-workflow-uat",
+    title: "AR Invoice Hybrid Workflow UAT",
+    navLabel: "AR Invoice Workflow UAT",
+    description:
+      "CRM-driven and corporate AR invoice workflows, service enrollment, collection categories, and ledger sync.",
+    category: "UAT / Accounting",
+    contentFile: "PHASE1_AR_INVOICE_WORKFLOW_UAT.md",
+    relatedModule: "accounting",
+  },
+  {
+    slug: "accounting-installment-billing-uat",
+    title: "Installment & Deposit Billing UAT",
+    navLabel: "Installment Billing UAT",
+    description:
+      "Deposit, installment, and balance billing controls, over-invoicing guards, and service-case billing profiles.",
+    category: "UAT / Accounting",
+    contentFile: "PHASE1_1_INSTALLMENT_BILLING_UAT.md",
+    relatedModule: "accounting",
+  },
+  // —— UAT / CRM Profile ——
+  {
+    slug: "profile-phase-e-uat",
+    title: "Profile Phase E — Tests Module UAT",
+    navLabel: "Profile Phase E UAT",
+    description:
+      "Multi-attempt Tests module: dual-write migration, attempt UI, active attempt, status rules, and Client 360 summary.",
+    category: "UAT / CRM Profile",
+    contentFile: "PHASE_E_UAT.md",
+    relatedModule: "clients",
+  },
+  {
+    slug: "profile-phase-d-uat",
+    title: "Profile Phase D — Lead Profile Parity UAT",
+    navLabel: "Profile Phase D UAT",
+    description:
+      "Lead background profile parity with client Profile tab, follow-up log, register-as-client, and document placeholders.",
+    category: "UAT / CRM Profile",
+    contentFile: "PHASE_D_UAT.md",
+    relatedModule: "clients",
   },
 ];
 

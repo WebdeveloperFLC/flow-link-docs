@@ -5,7 +5,8 @@ export type GuideRelatedModule =
   | "clients"
   | "digital_success_hub"
   | "incentives"
-  | "hr_payroll";
+  | "hr_payroll"
+  | "accounting";
 
 export interface StaffGuideDef {
   /** URL segment, e.g. `/guides/institutions-module` */
