@@ -4,10 +4,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRightLeft, Users, Combine, Scissors, Trash2, Upload, Eye } from "lucide-react";
-import { sanitizeName, buildPreservedDocumentName, sanitizeOriginalStem } from "@/lib/constants";
+import { sanitizeName, buildClassifiedDocumentName, countStemCollisions } from "@/lib/constants";
 import { useMasterLabels } from "@/lib/masters";
 import { processToPdf } from "@/lib/processFile";
-import { classifyDocument, displayTitleFor } from "@/lib/classifyDocument";
+import { classifyDocument } from "@/lib/classifyDocument";
+import { fetchList } from "@/lib/masters";
 import { markChecklistItemReady } from "@/lib/checklist";
 import { matchPersonRoster } from "@/lib/matchPersonRoster";
 import { renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
@@ -17,7 +18,7 @@ import { ROLE_SHORT, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { inferSectionId } from "@/lib/sections";
 import {
   isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages,
-  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText, looksLikeBinderName,
+  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText, inferTypeFromPageTextWithMaster, looksLikeBinderName,
   pageSnippetsLookLikeMixedBinder, splitFileIntoPageSegments,
   type BinderSegment,
 } from "@/lib/binderSplit";
@@ -43,6 +44,8 @@ interface QueueItem {
   status: ItemStatus;
   predictedType?: string;
   customType?: string;
+  displayLabel?: string;
+  masterLabel?: string;
   confidence?: number;
   source?: "filename" | "ai" | "fallback";
   finalName?: string;
@@ -74,14 +77,27 @@ function _isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[])
   return (only.start_page ?? 1) <= 1 && (only.end_page ?? 0) >= pageCount;
 }
 
-function buildPageReviewSegments(pageCount: number, pageSnippets: string[], allowedTypes: string[], reason: string): BinderSegment[] {
-  return Array.from({ length: pageCount }, (_, i) => ({
-    start_page: i + 1,
-    end_page: i + 1,
-    ...inferTypeFromPageText(pageSnippets[i] ?? "", allowedTypes),
-    confidence: 0.35,
-    reason,
-  }));
+function buildPageReviewSegments(
+  pageCount: number,
+  pageSnippets: string[],
+  allowedTypes: string[],
+  reason: string,
+  masterItems: Awaited<ReturnType<typeof fetchList>> = [],
+  sourceFilename = "",
+): BinderSegment[] {
+  return Array.from({ length: pageCount }, (_, i) => {
+    const inferred = masterItems.length
+      ? inferTypeFromPageTextWithMaster(pageSnippets[i] ?? "", allowedTypes, masterItems, sourceFilename)
+      : inferTypeFromPageText(pageSnippets[i] ?? "", allowedTypes);
+    return {
+      start_page: i + 1,
+      end_page: i + 1,
+      type: inferred.type,
+      suggested_label: inferred.suggested_label,
+      confidence: 0.35,
+      reason,
+    };
+  });
 }
 
 export const SmartUploadZone = ({
@@ -149,6 +165,8 @@ export const SmartUploadZone = ({
         const baseUpdate: Partial<QueueItem> = {
           predictedType: c.type,
           customType: c.customType,
+          displayLabel: c.displayLabel ?? c.masterLabel,
+          masterLabel: c.masterLabel ?? c.displayLabel,
           confidence: c.confidence,
           source: c.source,
           ownerName: c.ownerName ?? null,
@@ -286,41 +304,38 @@ export const SmartUploadZone = ({
       // We also look at file_name collisions for the SAME original stem so
       // re-uploading "Passport.pdf" twice yields Passport.pdf and
       // Passport_v2.pdf instead of silently overwriting display identity.
+      const masterLabel =
+        item.displayLabel ??
+        item.masterLabel ??
+        (type === "Other" ? customType?.trim() : type) ??
+        effectiveType;
       const { data: existing } = await supabase
         .from("client_documents")
         .select("version,document_type,custom_type,person_id,is_shared,file_name")
         .eq("client_id", targetClient.id);
       const sameSlot = (existing ?? []).filter((d) => {
-        const sameType = (d.document_type === "Other" ? d.custom_type : d.document_type) === effectiveType;
+        const sameType = (d.document_type === "Other" ? d.custom_type : d.document_type) === effectiveType
+          || d.custom_type === masterLabel;
         if (!sameType) return false;
         if (isShared) return d.is_shared === true;
         return d.person_id === (ownerPerson?.id ?? null);
       });
       const slotVersion = (sameSlot.reduce((m, d) => Math.max(m, d.version), 0) || 0) + 1;
-      // Original-name collisions across the WHOLE case (not just same slot) —
-      // guarantees uniqueness when users upload differently-named docs that
-      // happen to land in different slots, and avoids overwrites for the
-      // same name in the same slot.
-      const originalStem = sanitizeOriginalStem(item.file.name);
-      const nameCollisions = (existing ?? []).filter((d) => {
-        const stem = sanitizeOriginalStem(d.file_name ?? "");
-        return stem === originalStem || stem.startsWith(`${originalStem}_v`);
-      }).length;
-      const nameVersion = nameCollisions + 1;
-      const nextVersion = Math.max(slotVersion, nameVersion);
+      const classifiedStem = buildClassifiedDocumentName(masterLabel, item.file.name, 1);
+      const nameCollisions = countStemCollisions(
+        (existing ?? []).map((d) => d.file_name ?? ""),
+        classifiedStem,
+      );
+      const nextVersion = Math.max(slotVersion, nameCollisions + 1);
 
       patch(idx, { status: "processing" });
 
-      // Preserve the original uploaded filename as the document's primary
-      // identity. We no longer overwrite it with generic section/template
-      // names like "VisaForms_Document" — multiple distinct files were
-      // collapsing into the same title.
-      const baseName = buildPreservedDocumentName(item.file.name, nextVersion);
+      const baseName = buildClassifiedDocumentName(masterLabel, item.file.name, nextVersion);
       console.debug("[doc-debug] upload_received", { original: item.file.name });
       console.debug("[doc-debug] original_filename", item.file.name);
-      console.debug("[doc-debug] classified_type", effectiveType, "owner", ownerPerson?.full_name ?? (isShared ? "shared" : "unassigned"));
+      console.debug("[doc-debug] classified_type", effectiveType, "master_label", masterLabel, "owner", ownerPerson?.full_name ?? (isShared ? "shared" : "unassigned"));
       console.debug("[doc-debug] generated_title", `${baseName}.pdf`, "version", nextVersion);
-      if (nameCollisions > 0) console.debug("[doc-debug] duplicate_name_detected", { stem: originalStem, collisions: nameCollisions });
+      if (nameCollisions > 0) console.debug("[doc-debug] duplicate_name_detected", { stem: classifiedStem, collisions: nameCollisions });
 
       const processed = await processToPdf(item.file, baseName);
 
@@ -341,7 +356,7 @@ export const SmartUploadZone = ({
           person_id: ownerPerson?.id ?? null,
           is_shared: isShared,
           document_type: type,
-          custom_type: type === "Other" ? customType?.trim() || null : null,
+          custom_type: masterLabel,
           file_name: processed.name,
           storage_path: path,
           mime_type: "application/pdf",
@@ -375,8 +390,8 @@ export const SmartUploadZone = ({
           ins.id,
           targetClient.id,
           type,
-          type === "Other" ? customType?.trim() ?? null : null,
-          item.customType ?? null,
+          masterLabel,
+          masterLabel,
         );
         console.debug("[doc-debug] checklist_match", matched ?? null);
         if (matched) console.debug("[doc-debug] mapped_to_checklist", matched);
@@ -390,7 +405,7 @@ export const SmartUploadZone = ({
         documentId: ins.id,
         file: processed,
         documentType: effectiveType,
-        customType: type === "Other" ? customType?.trim() || null : null,
+        customType: masterLabel,
         fileName: processed.name,
         personId: ownerPerson?.id ?? null,
         classifyConfidence: typeof item.confidence === "number" ? item.confidence : 0,
@@ -1268,6 +1283,7 @@ async function expandBinders(
   allowedTypes: string[],
 ): Promise<ExpandedItem[]> {
   const out: ExpandedItem[] = [];
+  const masterItems = await fetchList("document_types").catch(() => []);
   for (const file of files) {
     if (!isPdfFile(file)) {
       out.push({ file });
@@ -1317,13 +1333,15 @@ async function expandBinders(
         const start = Math.max(1, Math.min(pageCount, s.start_page ?? 1));
         const end = Math.max(start, Math.min(pageCount, s.end_page ?? start));
         const joined = pageSnippets.slice(start - 1, end).join(" \n ");
-        const guess = inferTypeFromPageText(joined, allowedTypes);
-        if (guess.type !== "Other") return { ...s, type: guess.type, suggested_label: null };
-        return { ...s, suggested_label: guess.suggested_label ?? s.suggested_label ?? null };
+        const guess = masterItems.length
+          ? inferTypeFromPageTextWithMaster(joined, allowedTypes, masterItems, file.name)
+          : inferTypeFromPageText(joined, allowedTypes);
+        if (guess.type !== "Other") return { ...s, type: guess.type, suggested_label: guess.masterLabel ?? null };
+        return { ...s, suggested_label: guess.suggested_label ?? guess.masterLabel ?? s.suggested_label ?? null };
       });
       const isBinderName = looksLikeBinderName(file.name);
       if (isBinderName && shouldFallbackToPageRanges(file.name, pageCount, segments)) {
-        segments = buildPageReviewSegments(pageCount, pageSnippets, allowedTypes, "fallback_page_range");
+        segments = buildPageReviewSegments(pageCount, pageSnippets, allowedTypes, "fallback_page_range", masterItems, file.name);
         toast.message(`Binder splitter was unsure, so "${file.name}" was prepared as page-by-page segments for review.`);
       }
       // Any likely binder that the AI returns as 1 segment must be exploded
@@ -1332,7 +1350,7 @@ async function expandBinders(
       if (segments.length < 2) {
         const isLikelyBinder = isBinderName || pageSnippetsLookLikeMixedBinder(pageSnippets);
         if (isLikelyBinder) {
-          segments = buildPageReviewSegments(pageCount, pageSnippets, allowedTypes, "binder_single_segment_forced_split");
+          segments = buildPageReviewSegments(pageCount, pageSnippets, allowedTypes, "binder_single_segment_forced_split", masterItems, file.name);
           toast.message(`AI couldn't find boundaries in "${file.name}" — split page-by-page for review. Use Merge to combine related pages.`);
         } else {
           out.push({ file });
@@ -1364,7 +1382,7 @@ async function expandBinders(
             endPage: s.end_page,
             totalSourcePages: pageCount,
             type: s.type,
-            customType: s.type === "Other" && s.suggested_label ? s.suggested_label : undefined,
+            customType: s.suggested_label ?? (s.type === "Other" ? undefined : s.type),
           });
         } catch (e) {
           console.warn("split-binder: failed to extract pages", s, e);
@@ -1377,12 +1395,16 @@ async function expandBinders(
         const binderId = `bndr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
         const baseStem = file.name.replace(/\.pdf$/i, "");
         for (let i = 1; i <= pageCount; i++) {
-          const guessed = inferTypeFromPageText(pageSnippets[i - 1] ?? "", allowedTypes);
-          const label = guessed.type === "Other" && guessed.suggested_label ? guessed.suggested_label : guessed.type;
+          const guessed = masterItems.length
+            ? inferTypeFromPageTextWithMaster(pageSnippets[i - 1] ?? "", allowedTypes, masterItems, file.name)
+            : inferTypeFromPageText(pageSnippets[i - 1] ?? "", allowedTypes);
+          const label = guessed.type === "Other" && guessed.suggested_label
+            ? guessed.suggested_label
+            : ("masterLabel" in guessed ? guessed.masterLabel : guessed.type);
           const safeLabel = String(label || "Segment").replace(/[^\w\- ]+/g, "").slice(0, 40) || "Segment";
           try {
             const segFile = await extractPagesAsPdfFile(file, i, i, `${baseStem}__${String(i).padStart(2, "0")}_${safeLabel}_p${i}-${i}.pdf`);
-            out.push({ file: segFile, binderId, binderSource: file, binderSourceName: file.name, segIndex: i - 1, startPage: i, endPage: i, totalSourcePages: pageCount, type: guessed.type, customType: guessed.type === "Other" ? guessed.suggested_label ?? undefined : undefined });
+            out.push({ file: segFile, binderId, binderSource: file, binderSourceName: file.name, segIndex: i - 1, startPage: i, endPage: i, totalSourcePages: pageCount, type: guessed.type, customType: ("masterLabel" in guessed ? guessed.masterLabel : guessed.suggested_label) ?? undefined });
           } catch (fallbackError) {
             console.warn("split-binder: fallback page extract failed", i, fallbackError);
           }

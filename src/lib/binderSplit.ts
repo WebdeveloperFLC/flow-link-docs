@@ -1,4 +1,5 @@
-import { PDFDocument } from "pdf-lib";
+import { resolveDocumentMasterLabel } from "@/lib/documentMasterMatch";
+import type { MasterItem } from "@/lib/masters";
 import { renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
 import { DOCUMENT_TYPES as DEFAULT_DOCUMENT_TYPES } from "@/lib/constants";
 
@@ -143,6 +144,34 @@ export function inferTypeFromPageText(text: string, allowedTypes: string[]): { t
     return { type: "Other", suggested_label: preferred === "English Language Proficiency Test" ? (langBrand ?? preferred) : preferred };
   }
   return { type: "Other", suggested_label: null };
+}
+
+/** Resolve binder page type through Document Master for specific labels. */
+export function inferTypeFromPageTextWithMaster(
+  text: string,
+  allowedTypes: string[],
+  masterItems: readonly MasterItem[],
+  filename = "",
+): { type: string; suggested_label?: string | null; masterLabel: string } {
+  const coarse = inferTypeFromPageText(text, allowedTypes);
+  if (!masterItems.length) {
+    return {
+      ...coarse,
+      masterLabel: coarse.type === "Other" ? (coarse.suggested_label ?? "Other") : coarse.type,
+    };
+  }
+  const resolved = resolveDocumentMasterLabel({
+    masterItems,
+    filename,
+    snippet: text,
+    coarseType: coarse.type,
+    coarseCustomType: coarse.type === "Other" ? coarse.suggested_label ?? undefined : undefined,
+  });
+  return {
+    type: resolved.documentType,
+    suggested_label: resolved.customType,
+    masterLabel: resolved.displayLabel,
+  };
 }
 
 /** Get the page count of a PDF File. Returns 0 on failure or non-PDF. */

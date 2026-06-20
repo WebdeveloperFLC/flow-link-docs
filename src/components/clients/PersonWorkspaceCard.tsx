@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { processToPdf } from "@/lib/processFile";
-import { buildPreservedDocumentName, DOCUMENT_TYPES, sanitizeName, sanitizeOriginalStem } from "@/lib/constants";
+import { buildClassifiedDocumentName, countStemCollisions, DOCUMENT_TYPES, sanitizeName } from "@/lib/constants";
 import { getAllowedDocumentTypes } from "@/lib/binderSplit";
 import { classifyDocument } from "@/lib/classifyDocument";
 import { runDocumentFieldExtraction } from "@/lib/runDocumentFieldExtraction";
@@ -196,34 +196,35 @@ export const PersonWorkspaceCard = ({ client, person, canEdit, isAdmin, onChange
       for (const file of Array.from(files)) {
         let docType = "Other";
         let customType: string | null = null;
+        let masterLabel = "Other";
         try {
           const c = await classifyDocument(file, allowedDocumentTypes);
           if (c?.type) {
             docType = c.type;
-            customType = c.type === "Other" ? (c.customType ?? prettyTitle(file.name)) : null;
+            customType = c.customType ?? c.displayLabel ?? null;
+            masterLabel = c.displayLabel ?? c.masterLabel ?? customType ?? docType;
           }
         } catch (e) {
           console.warn("person upload classify failed", e);
         }
         if (docType === "Other" && !customType) customType = prettyTitle(file.name);
-        const effectiveType = docType === "Other" ? (customType || "Other") : docType;
+        if (masterLabel === "Other" || !masterLabel) masterLabel = customType ?? prettyTitle(file.name);
+        const effectiveType = masterLabel;
 
         const { data: existingDocs } = await supabase
           .from("client_documents")
           .select("file_name")
           .eq("client_id", client.id);
-        const stem = sanitizeOriginalStem(file.name);
-        const collisions = (existingDocs ?? []).filter((d) => {
-          const s = sanitizeOriginalStem(d.file_name ?? "");
-          return s === stem || s.startsWith(`${stem}_v`);
-        }).length;
+        const priorNames = (existingDocs ?? []).map((d) => d.file_name ?? "");
+        const classifiedStem = buildClassifiedDocumentName(masterLabel, file.name, 1);
+        const collisions = countStemCollisions(priorNames, classifiedStem);
         const version = collisions + 1;
-        const baseName = buildPreservedDocumentName(file.name, version);
+        const baseName = buildClassifiedDocumentName(masterLabel, file.name, version);
         console.debug("[doc-debug] upload_received", file.name, "person", person.full_name);
         console.debug("[doc-debug] original_filename", file.name);
-        console.debug("[doc-debug] classified_type", effectiveType);
+        console.debug("[doc-debug] classified_type", docType, "master_label", masterLabel);
         console.debug("[doc-debug] generated_title", `${baseName}.pdf`, "version", version);
-        if (collisions > 0) console.debug("[doc-debug] duplicate_name_detected", { stem, collisions });
+        if (collisions > 0) console.debug("[doc-debug] duplicate_name_detected", { stem: classifiedStem, collisions });
         const processed = await processToPdf(file, baseName);
         const path = `${client.id}/${person.id}/${sanitizeName(docType)}/${Date.now()}_${processed.name}`;
         const { error: upErr } = await supabase.storage
@@ -238,7 +239,7 @@ export const PersonWorkspaceCard = ({ client, person, canEdit, isAdmin, onChange
             person_id: person.id,
             is_shared: false,
             document_type: docType,
-            custom_type: customType,
+            custom_type: masterLabel,
             file_name: processed.name,
             storage_path: path,
             mime_type: "application/pdf",
@@ -255,8 +256,8 @@ export const PersonWorkspaceCard = ({ client, person, canEdit, isAdmin, onChange
             ins.id,
             client.id,
             docType,
-            customType,
-            processed.name,
+            masterLabel,
+            masterLabel,
           );
           console.debug("[doc-debug] checklist_match", matched ?? null);
           if (matched) console.debug("[doc-debug] mapped_to_checklist", matched);

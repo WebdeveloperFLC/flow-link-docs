@@ -1,10 +1,15 @@
 import { supabase } from "@/integrations/supabase/client";
 import { DOCUMENT_TYPES } from "@/lib/constants";
+import { resolveDocumentMasterLabel } from "@/lib/documentMasterMatch";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
+import { fetchList } from "@/lib/masters";
 
 export interface Classification {
   type: string;       // one of DOCUMENT_TYPES, or "Other"
   customType?: string; // when type === "Other"
+  /** Exact Document Master label for display + rename. */
+  displayLabel?: string;
+  masterLabel?: string;
   confidence: number; // 0..1
   source: "filename" | "ai" | "fallback";
   ownerName?: string | null;
@@ -158,7 +163,26 @@ export function displayTitleFor(
   customType: string | null | undefined,
   snippet: string,
   filename: string,
+  masterLabels?: string[],
 ): string | null {
+  if (masterLabels?.length) {
+    const resolved = resolveDocumentMasterLabel({
+      masterItems: masterLabels.map((label, i) => ({
+        id: `dt-${i}`,
+        list_key: "document_types",
+        code: label.toLowerCase().replace(/\s+/g, "_"),
+        label,
+        metadata: {},
+        is_active: true,
+        sort_order: i * 10,
+      })),
+      filename,
+      snippet,
+      coarseType: documentType,
+      coarseCustomType: customType,
+    });
+    if (resolved.label !== "Other") return resolved.displayLabel;
+  }
   if (documentType === "English Language Proficiency Test") {
     const brand = detectLanguageTestBrand(snippet, filename);
     return brand ? `${brand} Result` : "English Proficiency Test";
@@ -167,6 +191,61 @@ export function displayTitleFor(
     return "PAL Letter";
   }
   return customType?.trim() || null;
+}
+
+function applyMasterNaming(
+  coarse: {
+    type: string;
+    customType?: string;
+    confidence: number;
+    source: Classification["source"];
+  },
+): Pick<Classification, "type" | "customType" | "displayLabel" | "masterLabel" | "confidence"> {
+  const label = coarse.customType?.trim() || coarse.type;
+  return {
+    type: coarse.type,
+    customType: label,
+    displayLabel: label,
+    masterLabel: label,
+    confidence: coarse.confidence,
+  };
+}
+
+async function resolveWithDocumentMaster(
+  coarse: {
+    type: string;
+    customType?: string;
+    confidence: number;
+    source: Classification["source"];
+  },
+  input: {
+    filename: string;
+    snippet: string;
+    aiSuggestedLabel?: string | null;
+    aiType?: string | null;
+  },
+): Promise<Pick<Classification, "type" | "customType" | "displayLabel" | "masterLabel" | "confidence">> {
+  try {
+    const masterItems = await fetchList("document_types");
+    const resolved = resolveDocumentMasterLabel({
+      masterItems,
+      filename: input.filename,
+      snippet: input.snippet,
+      coarseType: coarse.type,
+      coarseCustomType: coarse.type === "Other" ? coarse.customType : undefined,
+      aiSuggestedLabel: input.aiSuggestedLabel,
+      aiType: input.aiType,
+    });
+    return {
+      type: resolved.documentType,
+      customType: resolved.customType,
+      displayLabel: resolved.displayLabel,
+      masterLabel: resolved.label,
+      confidence: Math.max(coarse.confidence, resolved.confidence),
+    };
+  } catch {
+    return applyMasterNaming(coarse);
+  }
 }
 
 async function imageFileToJpegDataUrl(file: File, maxSide = 1800, quality = 0.82): Promise<string> {
@@ -281,6 +360,18 @@ export async function classifyDocument(
     // anything that landed as "Other", but the rest of the pipeline (rename,
     // upload, CRM extraction, verification) must always run.
     const needsManualType = false;
+    const coarse = {
+      type,
+      customType: type === "Other" ? (textGuess?.customType ?? (data?.suggested_label as string | undefined)) : undefined,
+      confidence,
+      source: (useTextType ? "fallback" : useFilenameType ? "filename" : "ai") as Classification["source"],
+    };
+    const master = await resolveWithDocumentMaster(coarse, {
+      filename: file.name,
+      snippet,
+      aiSuggestedLabel: data?.suggested_label as string | undefined,
+      aiType: rawAiType,
+    });
     if (typeof console !== "undefined") {
       try {
         console.info("[classifyDocument]", {
@@ -292,17 +383,16 @@ export async function classifyDocument(
           rawAiType,
           aiType,
           aiConfidence,
-          finalType: type,
-          source: useTextType ? "fallback" : useFilenameType ? "filename" : "ai",
+          finalType: master.type,
+          masterLabel: master.masterLabel,
+          source: coarse.source,
           needsManualType,
         });
       } catch { /* ignore */ }
     }
     return {
-      type,
-      customType: type === "Other" ? (textGuess?.customType ?? data?.suggested_label as string | undefined) : undefined,
-      confidence,
-      source: useTextType ? "fallback" : useFilenameType ? "filename" : "ai",
+      ...master,
+      source: coarse.source,
       ownerName: (data?.owner_name as string | null) ?? null,
       ownerConfidence: typeof data?.owner_confidence === "number" ? data.owner_confidence : 0,
       ownerEvidence: (data?.owner_evidence as string | null) ?? null,
@@ -311,7 +401,25 @@ export async function classifyDocument(
       isScanned,
     };
   } catch {
-    return fallbackTextGuess ?? fn ?? { type: "Other", confidence: 0.1, source: "fallback", needsManualType: true };
+    const coarse = fallbackTextGuess ?? fn ?? {
+      type: "Other",
+      confidence: 0.1,
+      source: "fallback" as const,
+    };
+    const master = await resolveWithDocumentMaster(
+      {
+        type: coarse.type,
+        customType: coarse.type === "Other" ? coarse.customType : undefined,
+        confidence: coarse.confidence,
+        source: coarse.source,
+      },
+      { filename: file.name, snippet: "" },
+    );
+    return {
+      ...master,
+      source: coarse.source,
+      needsManualType: true,
+    };
   }
 }
 

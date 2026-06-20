@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { UploadCloud, Loader2, CheckCircle2, AlertTriangle, Eye, Trash2, Upload } from "lucide-react";
-import { buildPreservedDocumentName, sanitizeName, sanitizeOriginalStem } from "@/lib/constants";
+import { buildClassifiedDocumentName, countStemCollisions, sanitizeName } from "@/lib/constants";
 import { useMasterLabels } from "@/lib/masters";
 import { processToPdf } from "@/lib/processFile";
 import { logActivity } from "@/lib/activity";
@@ -74,18 +74,18 @@ export const UploadZone = ({ client, onUploaded }: { client: Client; onUploaded:
         updateItem(i, { status: "processing" });
         // Preserve original filename identity; bump version if the same
         // original name already exists for this client.
-        const stem = sanitizeOriginalStem(f.name);
-        const nameCollisions = (existing ?? []).filter((d) => {
-          const s = sanitizeOriginalStem(d.file_name ?? "");
-          return s === stem || s.startsWith(`${stem}_v`);
-        }).length;
+        const classifiedStem = buildClassifiedDocumentName(effectiveType, f.name, 1);
+        const nameCollisions = countStemCollisions(
+          (existing ?? []).map((d) => d.file_name ?? ""),
+          classifiedStem,
+        );
         const effectiveVersion = Math.max(nextVersion, nameCollisions + 1);
-        const baseName = buildPreservedDocumentName(f.name, effectiveVersion);
+        const baseName = buildClassifiedDocumentName(effectiveType, f.name, effectiveVersion);
         console.debug("[doc-debug] upload_received", f.name);
         console.debug("[doc-debug] original_filename", f.name);
-        console.debug("[doc-debug] classified_type", effectiveType);
+        console.debug("[doc-debug] classified_type", effectiveType, "master_label", effectiveType);
         console.debug("[doc-debug] generated_title", `${baseName}.pdf`, "version", effectiveVersion);
-        if (nameCollisions > 0) console.debug("[doc-debug] duplicate_name_detected", { stem, collisions: nameCollisions });
+        if (nameCollisions > 0) console.debug("[doc-debug] duplicate_name_detected", { stem: classifiedStem, collisions: nameCollisions });
         const processed = await processToPdf(f, baseName);
         updateItem(i, { status: "uploading", finalName: processed.name });
         const path = `${client.id}/${sanitizeName(effectiveType)}/${Date.now()}_${processed.name}`;
@@ -94,7 +94,7 @@ export const UploadZone = ({ client, onUploaded }: { client: Client; onUploaded:
         const { data: ins, error: insErr } = await supabase.from("client_documents").insert({
           client_id: client.id,
           document_type: docType,
-          custom_type: docType === "Other" ? customType.trim() : null,
+          custom_type: effectiveType,
           file_name: processed.name,
           storage_path: path,
           mime_type: "application/pdf",

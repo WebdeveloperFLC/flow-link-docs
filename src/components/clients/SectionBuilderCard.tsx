@@ -27,12 +27,12 @@ import { combinePdfsFromStorage } from "@/lib/combinePdfs";
 import { logActivity } from "@/lib/activity";
 import {
   isPdfFile, getPdfPageCount, extractPerPageText, getBinderPageImages, extractPagesAsPdfFile,
-  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText, looksLikeBinderName,
+  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText, inferTypeFromPageTextWithMaster, looksLikeBinderName,
   type BinderSegment,
 } from "@/lib/binderSplit";
 import { classifyDocument } from "@/lib/classifyDocument";
 import { markChecklistItemReady } from "@/lib/checklist";
-import { useMasterLabels } from "@/lib/masters";
+import { useMasterLabels, fetchList } from "@/lib/masters";
 import { openClientDocument } from "@/lib/documentPreview";
 import { processToPdf } from "@/lib/processFile";
 import { buildClassifiedDocumentName, countStemCollisions } from "@/lib/constants";
@@ -44,14 +44,27 @@ function isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[]):
   return (only.start_page ?? 1) <= 1 && (only.end_page ?? 0) >= pageCount;
 }
 
-function buildPageSegments(pageCount: number, pageSnippets: string[], allowedTypes: string[], reason: string): BinderSegment[] {
-  return Array.from({ length: pageCount }, (_, pageIdx) => ({
-    start_page: pageIdx + 1,
-    end_page: pageIdx + 1,
-    ...inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedTypes),
-    confidence: 0.35,
-    reason,
-  }));
+function buildPageSegments(
+  pageCount: number,
+  pageSnippets: string[],
+  allowedTypes: string[],
+  reason: string,
+  masterItems: Awaited<ReturnType<typeof fetchList>> = [],
+  sourceFilename = "",
+): BinderSegment[] {
+  return Array.from({ length: pageCount }, (_, pageIdx) => {
+    const inferred = masterItems.length
+      ? inferTypeFromPageTextWithMaster(pageSnippets[pageIdx] ?? "", allowedTypes, masterItems, sourceFilename)
+      : inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedTypes);
+    return {
+      start_page: pageIdx + 1,
+      end_page: pageIdx + 1,
+      type: inferred.type,
+      suggested_label: inferred.suggested_label,
+      confidence: 0.35,
+      reason,
+    };
+  });
 }
 
 /** Convert a file name like `B.Tech_Year_2_Marksheet.pdf` → `B.Tech Year 2 Marksheet`. */
@@ -190,6 +203,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
     if (!files || files.length === 0) return;
     setUploading(true);
     try {
+      const masterItems = await fetchList("document_types").catch(() => []);
       // Section-first upload: every file (and every binder segment) is forced
       // to stay in THIS section. The classifier still runs to label the doc,
       // but it is never used to move the document to a different section.
@@ -226,19 +240,21 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
             const start = Math.max(1, Math.min(pageCount, s.start_page ?? 1));
             const end = Math.max(start, Math.min(pageCount, s.end_page ?? start));
             const joined = pageSnippets.slice(start - 1, end).join(" \n ");
-            const guess = inferTypeFromPageText(joined, allowedDocumentTypes);
-            if (guess.type !== "Other") return { ...s, type: guess.type, suggested_label: null };
-            return { ...s, suggested_label: guess.suggested_label ?? s.suggested_label ?? null };
+            const guess = masterItems.length
+              ? inferTypeFromPageTextWithMaster(joined, allowedDocumentTypes, masterItems, f.name)
+              : inferTypeFromPageText(joined, allowedDocumentTypes);
+            if (guess.type !== "Other") return { ...s, type: guess.type, suggested_label: guess.masterLabel ?? null };
+            return { ...s, suggested_label: guess.suggested_label ?? guess.masterLabel ?? s.suggested_label ?? null };
           });
           const isBinderName = looksLikeBinderName(f.name);
           if (isBinderName && shouldFallbackToPageRanges(f.name, pageCount, segs)) {
-            segs = buildPageSegments(pageCount, pageSnippets, allowedDocumentTypes, "fallback_page_range");
+            segs = buildPageSegments(pageCount, pageSnippets, allowedDocumentTypes, "fallback_page_range", masterItems, f.name);
             toast.message(`Binder splitter was unsure, so "${f.name}" was split page-by-page.`);
           }
           // A normal multi-page PDF may be one valid document. Only binder-named
           // PDFs are exploded when AI returns one full-document segment.
           if (isBinderName && isOneFullDocumentSegment(pageCount, segs)) {
-            segs = buildPageSegments(pageCount, pageSnippets, allowedDocumentTypes, "binder_single_segment_forced_split");
+            segs = buildPageSegments(pageCount, pageSnippets, allowedDocumentTypes, "binder_single_segment_forced_split", masterItems, f.name);
             toast.message(`"${f.name}" was split page-by-page for routing.`);
           }
           const baseStem = f.name.replace(/\.pdf$/i, "");
@@ -258,12 +274,16 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           if (looksLikeBinderName(f.name) && shouldFallbackToPageRanges(f.name, pageCount, [])) {
             const baseStem = f.name.replace(/\.pdf$/i, "");
             for (let pageIdx = 0; pageIdx < pageCount; pageIdx++) {
-              const guessed = inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes);
-              const label = guessed.type === "Other" && guessed.suggested_label ? guessed.suggested_label : guessed.type;
+              const guessed = masterItems.length
+                ? inferTypeFromPageTextWithMaster(pageSnippets[pageIdx] ?? "", allowedDocumentTypes, masterItems, f.name)
+                : inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes);
+              const label = guessed.type === "Other" && guessed.suggested_label
+                ? guessed.suggested_label
+                : ("masterLabel" in guessed ? guessed.masterLabel : guessed.type);
               const safeLabel = String(label || "Segment").replace(/[^\w\- ]+/g, "").slice(0, 40) || "Segment";
               try {
                 const segFile = await extractPagesAsPdfFile(f, pageIdx + 1, pageIdx + 1, `${baseStem}__${String(pageIdx + 1).padStart(2, "0")}_${safeLabel}_p${pageIdx + 1}-${pageIdx + 1}.pdf`);
-                segments.push({ file: segFile, preType: guessed.type, preLabel: guessed.type === "Other" ? guessed.suggested_label ?? null : null });
+                segments.push({ file: segFile, preType: guessed.type, preLabel: ("masterLabel" in guessed ? guessed.masterLabel : null) ?? guessed.suggested_label ?? null });
               } catch (fallbackError) {
                 console.warn("split-binder: fallback page extract failed", pageIdx + 1, fallbackError);
               }
@@ -282,6 +302,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         // Classify (filename + content) to determine document type and target section.
         let docType = seg.preType ?? "Other";
         let customType: string | null = seg.preLabel ?? null;
+        let masterLabel = customType ?? docType;
         try {
           const c = await classifyDocument(f, allowedDocumentTypes);
           if (c?.type) {
@@ -289,11 +310,13 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
             // determined during binder splitting or deterministic text rules.
             if (c.type !== "Other" || docType === "Other") {
               docType = c.type;
-              customType = c.type === "Other" ? (c.customType ?? customType ?? prettyTitle(f.name)) : null;
+              customType = c.customType ?? c.displayLabel ?? customType;
+              masterLabel = c.displayLabel ?? c.masterLabel ?? customType ?? docType;
             }
           }
         } catch (e) { console.warn("classify failed", e); }
         if (docType === "Other" && !customType) customType = prettyTitle(f.name);
+        if (masterLabel === "Other" || !masterLabel) masterLabel = customType ?? prettyTitle(f.name);
 
         // SECTION-FIRST: file always stays in the section it was uploaded into.
         const targetSectionId = section.id;
@@ -304,10 +327,8 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         //   pdf-lib re-save)
         // - images and oversize PDFs are converted/compressed to a PDF that
         //   the browser can render reliably
-        // - the resulting filename uses the structured naming convention so
-        //   files are consistent across upload surfaces
-        const effectiveType = docType === "Other" ? (customType || "Other") : docType;
-        const displayLabel = effectiveType;
+        // - the resulting filename uses the Document Master label
+        const displayLabel = masterLabel;
         const { data: priorDocs } = await supabase
           .from("client_documents")
           .select("file_name")
@@ -318,7 +339,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         const baseName = buildClassifiedDocumentName(displayLabel, f.name, collisions + 1);
         console.debug("[doc-debug] upload_received", f.name, "section", section.key);
         console.debug("[doc-debug] original_filename", f.name);
-        console.debug("[doc-debug] classified_type", effectiveType);
+        console.debug("[doc-debug] classified_type", docType, "master_label", displayLabel);
         console.debug("[doc-debug] generated_title", `${baseName}.pdf`, "version", collisions + 1);
         if (collisions > 0) console.debug("[doc-debug] duplicate_name_detected", { stem: classifiedStem, collisions });
         let processed: File;
@@ -335,7 +356,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         if (upErr) { toast.error(upErr.message); continue; }
 
         const docVersion = collisions + 1;
-        const customTypeForRow = docType === "Other" ? (customType ?? prettyTitle(f.name)) : null;
+        const customTypeForRow = displayLabel;
         const { data: insRow, error: insErr } = await supabase.from("client_documents").insert({
           client_id: clientId,
           document_type: docType,
@@ -361,7 +382,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
               clientId,
               docType,
               customTypeForRow,
-              processed.name,
+              displayLabel,
             );
           }
         } catch { /* best effort */ }
@@ -376,8 +397,8 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
             clientId,
             documentId: insertedId,
             file: processed,
-            documentType: effectiveType,
-            customType: docType === "Other" ? (customType ?? null) : null,
+            documentType: docType,
+            customType: customTypeForRow,
             fileName: processed.name,
             sectionKey: section.key,
             onFieldsWritten: () => onChanged(),
