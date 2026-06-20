@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS public.qualification_events (
   client_id uuid NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
   event_type text NOT NULL,
   actor_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
-  payload_jsonb NOT NULL DEFAULT '{}'::jsonb,
+  payload_jsonb jsonb NOT NULL DEFAULT '{}'::jsonb,
   idempotency_key text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS public.qualification_external_events (
   qualification_id uuid REFERENCES public.client_institution_qualifications(id) ON DELETE SET NULL,
   client_id uuid REFERENCES public.clients(id) ON DELETE SET NULL,
   institution_id uuid REFERENCES public.upi_institutions(id) ON DELETE SET NULL,
-  payload_jsonb NOT NULL DEFAULT '{}'::jsonb,
+  payload_jsonb jsonb NOT NULL DEFAULT '{}'::jsonb,
   processing_status text NOT NULL DEFAULT 'received'
     CHECK (processing_status IN ('received', 'matched', 'ignored', 'failed')),
   matched_payment_record_id uuid,
