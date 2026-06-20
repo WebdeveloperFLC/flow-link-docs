@@ -1,15 +1,12 @@
--- Q1 RLS + RPCs (no commission integration)
+-- Application Foundation (Q1): RLS + RPCs — no commission, funding, or external integrations
 
 -- ---------------------------------------------------------------------------
--- M1f: RLS
+-- RLS
 -- ---------------------------------------------------------------------------
 ALTER TABLE public.client_institution_qualifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.qualification_deposit_track ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.qualification_tuition_track ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.qualification_funding_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.qualification_events ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.qualification_adjustment_events ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.qualification_external_events ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS client_institution_qualifications_select ON public.client_institution_qualifications;
 CREATE POLICY client_institution_qualifications_select ON public.client_institution_qualifications
@@ -26,40 +23,15 @@ CREATE POLICY qualification_tuition_track_select ON public.qualification_tuition
   FOR SELECT TO authenticated
   USING (public.can_view_client(auth.uid(), client_id));
 
-DROP POLICY IF EXISTS qualification_funding_plans_select ON public.qualification_funding_plans;
-CREATE POLICY qualification_funding_plans_select ON public.qualification_funding_plans
-  FOR SELECT TO authenticated
-  USING (public.can_view_client(auth.uid(), client_id));
-
 DROP POLICY IF EXISTS qualification_events_select ON public.qualification_events;
 CREATE POLICY qualification_events_select ON public.qualification_events
   FOR SELECT TO authenticated
   USING (public.can_view_client(auth.uid(), client_id));
 
-DROP POLICY IF EXISTS qualification_adjustment_events_select ON public.qualification_adjustment_events;
-CREATE POLICY qualification_adjustment_events_select ON public.qualification_adjustment_events
-  FOR SELECT TO authenticated
-  USING (public.can_view_client(auth.uid(), client_id));
-
-DROP POLICY IF EXISTS qualification_external_events_select ON public.qualification_external_events;
-CREATE POLICY qualification_external_events_select ON public.qualification_external_events
-  FOR SELECT TO authenticated
-  USING (
-    public.has_role(auth.uid(), 'admin'::public.app_role)
-    OR public.has_role(auth.uid(), 'administrator'::public.app_role)
-    OR EXISTS (
-      SELECT 1 FROM public.accounting_users au
-      WHERE au.auth_user_id = auth.uid() AND au.role IN ('FINANCE_ADMIN', 'SUPER_ADMIN')
-    )
-  );
-
 GRANT SELECT ON public.client_institution_qualifications TO authenticated;
 GRANT SELECT ON public.qualification_deposit_track TO authenticated;
 GRANT SELECT ON public.qualification_tuition_track TO authenticated;
-GRANT SELECT ON public.qualification_funding_plans TO authenticated;
 GRANT SELECT ON public.qualification_events TO authenticated;
-GRANT SELECT ON public.qualification_adjustment_events TO authenticated;
-GRANT SELECT ON public.qualification_external_events TO authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Helpers
@@ -86,7 +58,7 @@ RETURNS boolean
 LANGUAGE sql
 IMMUTABLE
 AS $$
-  SELECT p_status IN ('CLOSED', 'CANCELLED', 'REFUSED', 'TRANSFERRED');
+  SELECT p_status IN ('CLOSED', 'CANCELLED', 'REFUSED');
 $$;
 
 CREATE OR REPLACE FUNCTION public.fn_qualification_transition_allowed(
@@ -99,9 +71,9 @@ IMMUTABLE
 AS $$
   SELECT CASE
     WHEN public.fn_qualification_is_terminal(p_from) THEN false
-    WHEN p_from = 'DRAFT' AND p_to IN ('ACTIVE', 'CANCELLED', 'REFUSED', 'TRANSFERRED') THEN true
-    WHEN p_from = 'ACTIVE' AND p_to IN ('ON_HOLD', 'COMPLETED', 'CANCELLED', 'REFUSED', 'TRANSFERRED') THEN true
-    WHEN p_from = 'ON_HOLD' AND p_to IN ('ACTIVE', 'CANCELLED', 'REFUSED', 'TRANSFERRED') THEN true
+    WHEN p_from = 'DRAFT' AND p_to IN ('ACTIVE', 'CANCELLED', 'REFUSED') THEN true
+    WHEN p_from = 'ACTIVE' AND p_to IN ('ON_HOLD', 'COMPLETED', 'CANCELLED', 'REFUSED') THEN true
+    WHEN p_from = 'ON_HOLD' AND p_to IN ('ACTIVE', 'CANCELLED', 'REFUSED') THEN true
     WHEN p_from = 'COMPLETED' AND p_to = 'CLOSED' THEN true
     ELSE false
   END;
@@ -127,7 +99,7 @@ BEGIN
   WHERE q.id = p_qualification_id;
 
   IF v_client_id IS NULL THEN
-    RAISE EXCEPTION 'Qualification not found';
+    RAISE EXCEPTION 'Application not found';
   END IF;
 
   IF NOT public.can_edit_client(auth.uid(), v_client_id) AND auth.uid() IS NOT NULL THEN
@@ -280,11 +252,11 @@ BEGIN
     WHERE q.id = v_id AND q.client_id = v_client_id;
 
     IF v_existing_status IS NULL THEN
-      RAISE EXCEPTION 'Qualification not found';
+      RAISE EXCEPTION 'Application not found';
     END IF;
 
     IF public.fn_qualification_is_terminal(v_existing_status) THEN
-      RAISE EXCEPTION 'Cannot update terminal qualification';
+      RAISE EXCEPTION 'Cannot update terminal application';
     END IF;
 
     IF v_existing_status <> 'DRAFT'::public.qualification_lifecycle_status
@@ -356,7 +328,7 @@ BEGIN
   FOR UPDATE;
 
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'Qualification not found';
+    RAISE EXCEPTION 'Application not found';
   END IF;
 
   IF NOT public.can_edit_client(auth.uid(), v_row.client_id) THEN
@@ -376,15 +348,9 @@ BEGIN
     RAISE EXCEPTION 'reason_notes required for OTHER_OPERATIONAL hold';
   END IF;
 
-  IF p_to_status IN ('CANCELLED', 'REFUSED', 'CLOSED', 'TRANSFERRED')
+  IF p_to_status IN ('CANCELLED', 'REFUSED', 'CLOSED')
      AND COALESCE(trim(p_reason_code), '') = '' THEN
     RAISE EXCEPTION 'reason_code is required for this transition';
-  END IF;
-
-  IF p_to_status = 'TRANSFERRED' THEN
-    IF p_transfer_target_case_id IS NULL OR p_transfer_target_institution_id IS NULL THEN
-      RAISE EXCEPTION 'transfer targets are required for TRANSFERRED';
-    END IF;
   END IF;
 
   UPDATE public.client_institution_qualifications SET
@@ -392,8 +358,6 @@ BEGIN
     status_reason_code = p_reason_code,
     status_reason_notes = p_reason_notes,
     hold_reason_code = CASE WHEN p_to_status = 'ON_HOLD' THEN p_hold_reason_code ELSE NULL END,
-    transfer_target_case_id = CASE WHEN p_to_status = 'TRANSFERRED' THEN p_transfer_target_case_id ELSE transfer_target_case_id END,
-    transfer_target_institution_id = CASE WHEN p_to_status = 'TRANSFERRED' THEN p_transfer_target_institution_id ELSE transfer_target_institution_id END,
     status_changed_at = now(),
     status_changed_by = auth.uid(),
     updated_at = now()
@@ -408,8 +372,6 @@ BEGIN
       'reason_code', p_reason_code,
       'reason_notes', p_reason_notes,
       'hold_reason_code', p_hold_reason_code,
-      'transfer_target_case_id', p_transfer_target_case_id,
-      'transfer_target_institution_id', p_transfer_target_institution_id,
       'actor_id', auth.uid(),
       'transitioned_at', now()
     ),
@@ -440,7 +402,7 @@ BEGIN
   WHERE q.id = p_qualification_id;
 
   IF v_client_id IS NULL THEN
-    RAISE EXCEPTION 'Qualification not found';
+    RAISE EXCEPTION 'Application not found';
   END IF;
 
   IF NOT public.can_edit_client(auth.uid(), v_client_id) THEN
@@ -491,7 +453,7 @@ BEGIN
   WHERE q.id = p_qualification_id;
 
   IF v_client_id IS NULL THEN
-    RAISE EXCEPTION 'Qualification not found';
+    RAISE EXCEPTION 'Application not found';
   END IF;
 
   IF NOT public.can_edit_client(auth.uid(), v_client_id) THEN
@@ -518,118 +480,8 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.fn_upsert_qualification_funding_plan(
-  p_qualification_id uuid,
-  p_deposit_sources text[] DEFAULT '{}',
-  p_tuition_sources text[] DEFAULT '{}',
-  p_notes text DEFAULT NULL
-)
-RETURNS uuid
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_client_id uuid;
-  v_plan_id uuid;
-  v_next_version int;
-BEGIN
-  SELECT q.client_id INTO v_client_id
-  FROM public.client_institution_qualifications q
-  WHERE q.id = p_qualification_id;
-
-  IF v_client_id IS NULL THEN
-    RAISE EXCEPTION 'Qualification not found';
-  END IF;
-
-  IF NOT public.can_edit_client(auth.uid(), v_client_id) THEN
-    RAISE EXCEPTION 'Permission denied';
-  END IF;
-
-  UPDATE public.qualification_funding_plans SET is_active = false
-  WHERE qualification_id = p_qualification_id AND is_active = true;
-
-  SELECT COALESCE(MAX(version), 0) + 1 INTO v_next_version
-  FROM public.qualification_funding_plans
-  WHERE qualification_id = p_qualification_id;
-
-  INSERT INTO public.qualification_funding_plans (
-    qualification_id, client_id, version, is_active, deposit_sources, tuition_sources, notes, created_by
-  ) VALUES (
-    p_qualification_id, v_client_id, v_next_version, true, COALESCE(p_deposit_sources, '{}'), COALESCE(p_tuition_sources, '{}'), p_notes, auth.uid()
-  )
-  RETURNING id INTO v_plan_id;
-
-  PERFORM public.fn_qualification_ingest_event(
-    p_qualification_id,
-    'FUNDING_PLAN_CREATED',
-    jsonb_build_object('version', v_next_version, 'deposit_sources', p_deposit_sources, 'tuition_sources', p_tuition_sources),
-    'qual:funding:' || p_qualification_id::text || ':v' || v_next_version::text
-  );
-
-  RETURN v_plan_id;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.fn_ingest_external_event(
-  p_payload jsonb
-)
-RETURNS uuid
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_provider text;
-  v_event_type text;
-  v_external_ref text;
-  v_idempotency text;
-  v_id uuid;
-BEGIN
-  v_provider := upper(COALESCE(p_payload->>'provider_code', 'OTHER'));
-  v_event_type := upper(COALESCE(p_payload->>'event_type', 'UNKNOWN'));
-  v_external_ref := COALESCE(p_payload->>'external_reference', '');
-  v_idempotency := COALESCE(
-    p_payload->>'idempotency_key',
-    v_provider || ':' || v_external_ref || ':' || v_event_type
-  );
-
-  IF v_external_ref = '' THEN
-    RAISE EXCEPTION 'external_reference is required';
-  END IF;
-
-  SELECT e.id INTO v_id
-  FROM public.qualification_external_events e
-  WHERE e.idempotency_key = v_idempotency;
-
-  IF v_id IS NOT NULL THEN
-    RETURN v_id;
-  END IF;
-
-  INSERT INTO public.qualification_external_events (
-    provider_code, event_type, external_reference, qualification_id, client_id, institution_id,
-    payload_jsonb, processing_status, idempotency_key
-  ) VALUES (
-    v_provider,
-    v_event_type,
-    v_external_ref,
-    NULLIF(p_payload->>'qualification_id', '')::uuid,
-    NULLIF(p_payload->>'client_id', '')::uuid,
-    NULLIF(p_payload->>'institution_id', '')::uuid,
-    COALESCE(p_payload->'payload_jsonb', p_payload, '{}'::jsonb),
-    'received',
-    v_idempotency
-  )
-  RETURNING id INTO v_id;
-
-  RETURN v_id;
-END;
-$$;
-
 GRANT EXECUTE ON FUNCTION public.fn_upsert_client_qualification(jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_transition_qualification_status(uuid, public.qualification_lifecycle_status, text, text, public.qualification_hold_reason_code, uuid, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_reassign_qualification_owner(uuid, uuid, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_update_application_status(uuid, public.institution_application_status) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fn_qualification_ingest_event(uuid, text, jsonb, text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.fn_upsert_qualification_funding_plan(uuid, text[], text[], text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.fn_ingest_external_event(jsonb) TO authenticated;

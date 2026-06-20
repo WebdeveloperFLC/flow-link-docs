@@ -6,7 +6,6 @@ export const QUALIFICATION_LIFECYCLE_STATUSES = [
   "CLOSED",
   "CANCELLED",
   "REFUSED",
-  "TRANSFERRED",
 ] as const;
 
 export type QualificationLifecycleStatus = (typeof QUALIFICATION_LIFECYCLE_STATUSES)[number];
@@ -15,7 +14,6 @@ export const TERMINAL_QUALIFICATION_STATUSES: QualificationLifecycleStatus[] = [
   "CLOSED",
   "CANCELLED",
   "REFUSED",
-  "TRANSFERRED",
 ];
 
 export const INSTITUTION_APPLICATION_STATUSES = [
@@ -64,8 +62,6 @@ export type QualificationRecord = {
   holdReasonCode: QualificationHoldReasonCode | null;
   statusChangedAt: string | null;
   statusChangedBy: string | null;
-  transferTargetCaseId: string | null;
-  transferTargetInstitutionId: string | null;
   ownerUserId: string | null;
   applicationStatus: InstitutionApplicationStatus | null;
   createdAt: string;
@@ -93,17 +89,6 @@ export type QualificationTuitionTrack = {
   outstandingAmount: number;
   currency: string;
   status: QualificationTrackStatus;
-};
-
-export type QualificationFundingPlan = {
-  id: string;
-  qualificationId: string;
-  version: number;
-  isActive: boolean;
-  depositSources: string[];
-  tuitionSources: string[];
-  notes: string | null;
-  createdAt: string;
 };
 
 export type QualificationEvent = {
@@ -135,6 +120,4 @@ export type TransitionQualificationPayload = {
   reasonCode?: string | null;
   reasonNotes?: string | null;
   holdReasonCode?: QualificationHoldReasonCode | null;
-  transferTargetCaseId?: string | null;
-  transferTargetInstitutionId?: string | null;
 };

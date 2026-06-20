@@ -3,7 +3,6 @@ import type {
   InstitutionApplicationStatus,
   QualificationDepositTrack,
   QualificationEvent,
-  QualificationFundingPlan,
   QualificationLifecycleStatus,
   QualificationRecord,
   QualificationTuitionTrack,
@@ -27,8 +26,6 @@ function mapQualification(row: Record<string, unknown>): QualificationRecord {
     holdReasonCode: (row.hold_reason_code as QualificationRecord["holdReasonCode"]) ?? null,
     statusChangedAt: (row.status_changed_at as string | null) ?? null,
     statusChangedBy: (row.status_changed_by as string | null) ?? null,
-    transferTargetCaseId: (row.transfer_target_case_id as string | null) ?? null,
-    transferTargetInstitutionId: (row.transfer_target_institution_id as string | null) ?? null,
     ownerUserId: (row.qualification_owner_user_id as string | null) ?? null,
     applicationStatus: (row.institution_application_status as InstitutionApplicationStatus | null) ?? null,
     createdAt: row.created_at as string,
@@ -79,7 +76,7 @@ export async function fetchQualificationsForCase(
 }
 
 export async function fetchQualificationBundle(qualificationId: string) {
-  const [qualRes, depositRes, tuitionRes, planRes, eventsRes] = await Promise.all([
+  const [qualRes, depositRes, tuitionRes, eventsRes] = await Promise.all([
     supabase
       .from("client_institution_qualifications" as never)
       .select("*, upi_institutions ( name )" as never)
@@ -94,12 +91,6 @@ export async function fetchQualificationBundle(qualificationId: string) {
       .from("qualification_tuition_track" as never)
       .select("*")
       .eq("qualification_id", qualificationId)
-      .maybeSingle(),
-    supabase
-      .from("qualification_funding_plans" as never)
-      .select("*")
-      .eq("qualification_id", qualificationId)
-      .eq("is_active", true)
       .maybeSingle(),
     supabase
       .from("qualification_events" as never)
@@ -119,18 +110,6 @@ export async function fetchQualificationBundle(qualificationId: string) {
       : null,
     tuitionTrack: tuitionRes.data
       ? mapTuitionTrack(tuitionRes.data as Record<string, unknown>)
-      : null,
-    fundingPlan: planRes.data
-      ? {
-          id: (planRes.data as Record<string, unknown>).id as string,
-          qualificationId: (planRes.data as Record<string, unknown>).qualification_id as string,
-          version: (planRes.data as Record<string, unknown>).version as number,
-          isActive: Boolean((planRes.data as Record<string, unknown>).is_active),
-          depositSources: ((planRes.data as Record<string, unknown>).deposit_sources as string[]) ?? [],
-          tuitionSources: ((planRes.data as Record<string, unknown>).tuition_sources as string[]) ?? [],
-          notes: ((planRes.data as Record<string, unknown>).notes as string | null) ?? null,
-          createdAt: (planRes.data as Record<string, unknown>).created_at as string,
-        }
       : null,
     events: ((eventsRes.data ?? []) as Record<string, unknown>[]).map(
       (row): QualificationEvent => ({
@@ -175,8 +154,8 @@ export async function transitionQualificationStatus(
     p_reason_code: payload.reasonCode ?? null,
     p_reason_notes: payload.reasonNotes ?? null,
     p_hold_reason_code: payload.holdReasonCode ?? null,
-    p_transfer_target_case_id: payload.transferTargetCaseId ?? null,
-    p_transfer_target_institution_id: payload.transferTargetInstitutionId ?? null,
+    p_transfer_target_case_id: null,
+    p_transfer_target_institution_id: null,
   } as never);
   if (error) throw error;
 }
@@ -201,21 +180,6 @@ export async function updateApplicationStatus(
   const { error } = await supabase.rpc("fn_update_application_status" as never, {
     p_qualification_id: qualificationId,
     p_application_status: applicationStatus,
-  } as never);
-  if (error) throw error;
-}
-
-export async function upsertQualificationFundingPlan(
-  qualificationId: string,
-  depositSources: string[],
-  tuitionSources: string[],
-  notes?: string,
-): Promise<void> {
-  const { error } = await supabase.rpc("fn_upsert_qualification_funding_plan" as never, {
-    p_qualification_id: qualificationId,
-    p_deposit_sources: depositSources,
-    p_tuition_sources: tuitionSources,
-    p_notes: notes ?? null,
   } as never);
   if (error) throw error;
 }

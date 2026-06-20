@@ -4,6 +4,7 @@ import type {
   QualificationLifecycleStatus,
 } from "./types";
 
+/** Application Lifecycle status labels (internal enum: qualification_lifecycle_status) */
 export const QUALIFICATION_STATUS_LABELS: Record<QualificationLifecycleStatus, string> = {
   DRAFT: "Draft",
   ACTIVE: "Active",
@@ -12,7 +13,6 @@ export const QUALIFICATION_STATUS_LABELS: Record<QualificationLifecycleStatus, s
   CLOSED: "Closed",
   CANCELLED: "Cancelled",
   REFUSED: "Refused",
-  TRANSFERRED: "Transferred",
 };
 
 export const QUALIFICATION_STATUS_BADGE_CLASS: Record<QualificationLifecycleStatus, string> = {
@@ -23,9 +23,9 @@ export const QUALIFICATION_STATUS_BADGE_CLASS: Record<QualificationLifecycleStat
   CLOSED: "bg-slate-100 text-slate-700 border-slate-300",
   CANCELLED: "bg-red-100 text-red-800 border-red-300",
   REFUSED: "bg-red-100 text-red-800 border-red-300",
-  TRANSFERRED: "bg-purple-100 text-purple-800 border-purple-300",
 };
 
+/** Admissions Stage labels (internal enum: institution_application_status) */
 export const APPLICATION_STATUS_LABELS: Record<InstitutionApplicationStatus, string> = {
   APPLIED: "Applied",
   OFFER_RECEIVED: "Offer Received",
@@ -52,10 +52,22 @@ export const HOLD_REASON_LABELS: Record<QualificationHoldReasonCode, string> = {
   OTHER_OPERATIONAL: "Other operational blocker",
 };
 
-export const FUNDING_SOURCE_OPTIONS = [
-  { value: "personal", label: "Personal / family funds" },
-  { value: "loan", label: "Education loan" },
-  { value: "sponsor", label: "Sponsor" },
-  { value: "forex", label: "Future Link forex" },
-  { value: "scholarship", label: "Scholarship / bursary" },
-] as const;
+export const TRACK_STATUS_LABELS = {
+  NOT_STARTED: "Not started",
+  PARTIAL: "Partial",
+  SATISFIED: "Satisfied",
+} as const;
+
+/** Application Timeline event labels (internal event_type codes unchanged) */
+export const APPLICATION_EVENT_LABELS: Record<string, string> = {
+  QUALIFICATION_CREATED: "Application created",
+  QUALIFICATION_UPDATED: "Application updated",
+  QUALIFICATION_STATUS_CHANGED: "Application lifecycle changed",
+  QUALIFICATION_OWNER_CHANGED: "Application owner changed",
+  APPLICATION_STATUS_UPDATED: "Admissions stage changed",
+  TRACK_AMOUNT_UPDATED: "Deposit or tuition amounts updated",
+};
+
+export function formatApplicationEventType(eventType: string): string {
+  return APPLICATION_EVENT_LABELS[eventType] ?? eventType.replace(/_/g, " ");
+}

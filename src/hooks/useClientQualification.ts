@@ -6,7 +6,6 @@ import {
 import type {
   QualificationDepositTrack,
   QualificationEvent,
-  QualificationFundingPlan,
   QualificationRecord,
   QualificationTuitionTrack,
 } from "@/lib/qualification/types";
@@ -20,7 +19,6 @@ export function useClientQualification(
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [depositTrack, setDepositTrack] = useState<QualificationDepositTrack | null>(null);
   const [tuitionTrack, setTuitionTrack] = useState<QualificationTuitionTrack | null>(null);
-  const [fundingPlan, setFundingPlan] = useState<QualificationFundingPlan | null>(null);
   const [events, setEvents] = useState<QualificationEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -48,7 +46,6 @@ export function useClientQualification(
     if (!qualificationId) {
       setDepositTrack(null);
       setTuitionTrack(null);
-      setFundingPlan(null);
       setEvents([]);
       return;
     }
@@ -58,7 +55,6 @@ export function useClientQualification(
       if (!bundle) return;
       setDepositTrack(bundle.depositTrack);
       setTuitionTrack(bundle.tuitionTrack);
-      setFundingPlan(bundle.fundingPlan);
       setEvents(bundle.events);
       setQualifications((prev) =>
         prev.map((q) => (q.id === bundle.qualification.id ? bundle.qualification : q)),
@@ -90,7 +86,6 @@ export function useClientQualification(
     setSelectedId,
     depositTrack,
     tuitionTrack,
-    fundingPlan,
     events,
     loading,
     detailLoading,

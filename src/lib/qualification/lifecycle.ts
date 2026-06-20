@@ -10,11 +10,11 @@ export function isQualificationTransitionAllowed(
   to: QualificationLifecycleStatus,
 ): boolean {
   if (isTerminalQualificationStatus(from)) return false;
-  if (from === "DRAFT" && ["ACTIVE", "CANCELLED", "REFUSED", "TRANSFERRED"].includes(to)) return true;
-  if (from === "ACTIVE" && ["ON_HOLD", "COMPLETED", "CANCELLED", "REFUSED", "TRANSFERRED"].includes(to)) {
+  if (from === "DRAFT" && ["ACTIVE", "CANCELLED", "REFUSED"].includes(to)) return true;
+  if (from === "ACTIVE" && ["ON_HOLD", "COMPLETED", "CANCELLED", "REFUSED"].includes(to)) {
     return true;
   }
-  if (from === "ON_HOLD" && ["ACTIVE", "CANCELLED", "REFUSED", "TRANSFERRED"].includes(to)) return true;
+  if (from === "ON_HOLD" && ["ACTIVE", "CANCELLED", "REFUSED"].includes(to)) return true;
   if (from === "COMPLETED" && to === "CLOSED") return true;
   return false;
 }
@@ -30,7 +30,6 @@ export function availableQualificationTransitions(
     "CLOSED",
     "CANCELLED",
     "REFUSED",
-    "TRANSFERRED",
   ] as const satisfies readonly QualificationLifecycleStatus[];
   return all.filter((to) => to !== status && isQualificationTransitionAllowed(status, to));
 }

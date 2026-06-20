@@ -18,7 +18,7 @@ export const CLIENT_DETAIL_TABS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "profile", label: "Profile", icon: UserCircle },
   { id: "client-services", label: "Client Services", icon: Layers },
-  { id: "qualification", label: "Qualification", icon: GraduationCap },
+  { id: "qualification", label: "Applications", icon: GraduationCap },
   { id: "documents", label: "Documents", icon: FolderOpen },
   { id: "forms", label: "Forms & Letters", icon: FileText },
   { id: "commercial", label: "Payments", icon: Receipt },

@@ -47,12 +47,10 @@ export function QualificationTransitionDialog({
   const [reasonCode, setReasonCode] = useState("");
   const [reasonNotes, setReasonNotes] = useState("");
   const [holdReasonCode, setHoldReasonCode] = useState("");
-  const [transferInstitutionId, setTransferInstitutionId] = useState("");
   const [saving, setSaving] = useState(false);
 
   const needsHoldReason = toStatus === "ON_HOLD";
-  const needsReason = ["CANCELLED", "REFUSED", "CLOSED", "TRANSFERRED"].includes(toStatus);
-  const needsTransfer = toStatus === "TRANSFERRED";
+  const needsReason = ["CANCELLED", "REFUSED", "CLOSED"].includes(toStatus);
 
   const handleSubmit = async () => {
     if (needsHoldReason && !holdReasonCode) {
@@ -71,10 +69,6 @@ export function QualificationTransitionDialog({
       toast.error("Reason code is required");
       return;
     }
-    if (needsTransfer && !transferInstitutionId.trim()) {
-      toast.error("Transfer target institution id is required");
-      return;
-    }
 
     setSaving(true);
     try {
@@ -84,10 +78,8 @@ export function QualificationTransitionDialog({
         reasonCode: reasonCode.trim() || null,
         reasonNotes: reasonNotes.trim() || null,
         holdReasonCode: holdReasonCode as QualificationRecord["holdReasonCode"],
-        transferTargetInstitutionId: transferInstitutionId.trim() || null,
-        transferTargetCaseId: null,
       });
-      toast.success(`Status updated to ${QUALIFICATION_STATUS_LABELS[toStatus]}`);
+      toast.success(`Application lifecycle updated to ${QUALIFICATION_STATUS_LABELS[toStatus]}`);
       onComplete();
       onOpenChange(false);
     } catch (e) {
@@ -101,7 +93,9 @@ export function QualificationTransitionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Move to {QUALIFICATION_STATUS_LABELS[toStatus]}</DialogTitle>
+          <DialogTitle>
+            Move application lifecycle to {QUALIFICATION_STATUS_LABELS[toStatus]}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
           {needsHoldReason && (
@@ -125,16 +119,6 @@ export function QualificationTransitionDialog({
             <div className="space-y-2">
               <Label>Reason code</Label>
               <Input value={reasonCode} onChange={(e) => setReasonCode(e.target.value)} />
-            </div>
-          )}
-          {needsTransfer && (
-            <div className="space-y-2">
-              <Label>Target institution ID</Label>
-              <Input
-                value={transferInstitutionId}
-                onChange={(e) => setTransferInstitutionId(e.target.value)}
-                placeholder="UUID of target institution"
-              />
             </div>
           )}
           <div className="space-y-2">

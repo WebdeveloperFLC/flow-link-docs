@@ -72,7 +72,7 @@ export function QualificationCreateDialog({
         tuitionTotal: Number(tuitionTotal) || 0,
         currency,
       });
-      toast.success("Qualification created");
+      toast.success("Application created");
       onCreated(id);
       onOpenChange(false);
       setInstitutionId("");
@@ -81,7 +81,7 @@ export function QualificationCreateDialog({
       setDepositRequired("");
       setTuitionTotal("");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to create qualification");
+      toast.error(e instanceof Error ? e.message : "Could not create application");
     } finally {
       setSaving(false);
     }
@@ -91,7 +91,7 @@ export function QualificationCreateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Create institution qualification</DialogTitle>
+          <DialogTitle>Create Student Application</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2">
@@ -162,7 +162,7 @@ export function QualificationCreateDialog({
             Cancel
           </Button>
           <Button onClick={() => void handleSubmit()} disabled={saving}>
-            {saving ? "Creating…" : "Create"}
+            {saving ? "Creating…" : "Create Application"}
           </Button>
         </DialogFooter>
       </DialogContent>
