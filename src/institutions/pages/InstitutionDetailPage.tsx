@@ -18,6 +18,7 @@ import { RunCampaignDialog } from "../components/RunCampaignDialog";
 import { AgreementsPanel } from "../components/AgreementsPanel";
 import { CommissionsPanel } from "../components/CommissionsPanel";
 import { ClaimsPanel } from "../components/ClaimsPanel";
+import { CommissionReceiptsPanel } from "../components/CommissionReceiptsPanel";
 import { BillingProfilesPanel } from "../components/BillingProfilesPanel";
 import { EligibilityConfigPanel } from "../components/EligibilityConfigPanel";
 import { AiReviewPanel } from "../components/AiReviewPanel";
@@ -80,6 +81,8 @@ export default function InstitutionDetailPage() {
   const [campaignChannel, setCampaignChannel] = useState("email");
   const [generated, setGenerated] = useState("");
   const [busy, setBusy] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [receiptInvoiceId, setReceiptInvoiceId] = useState<string | null>(null);
   const { isCommissionAdmin, isAccountingMember } = useAuth();
   const { canEdit } = useModulePermission("institutions");
   const canSeeCommissions = isCommissionAdmin || isAccountingMember;
@@ -485,7 +488,7 @@ export default function InstitutionDetailPage() {
       />
       <div className="p-8">
         {!canEdit && <div className="mb-6"><ViewOnlyNotice /></div>}
-        <Tabs defaultValue="overview">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="sources">Sources</TabsTrigger>
@@ -495,6 +498,7 @@ export default function InstitutionDetailPage() {
             {canSeeCommissions && <TabsTrigger value="agreements">Agreements</TabsTrigger>}
             {canSeeCommissions && <TabsTrigger value="commissions">Commissions</TabsTrigger>}
             {canSeeCommissions && <TabsTrigger value="claims">Claims</TabsTrigger>}
+            {canSeeCommissions && <TabsTrigger value="receipts">Receipts</TabsTrigger>}
             <TabsTrigger value="promotions">Promotions</TabsTrigger>
             <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
             <TabsTrigger value="suggestions">AI Suggestions</TabsTrigger>
@@ -814,7 +818,30 @@ export default function InstitutionDetailPage() {
           </TabsContent>
 
           <TabsContent value="claims">
-            {canSeeCommissions ? <ClaimsPanel institutionId={id} /> : <LockedPanel label="Claims" />}
+            {canSeeCommissions ? (
+              <ClaimsPanel
+                institutionId={id}
+                onRecordReceipt={(invoiceId) => {
+                  setReceiptInvoiceId(invoiceId);
+                  setActiveTab("receipts");
+                }}
+              />
+            ) : (
+              <LockedPanel label="Claims" />
+            )}
+          </TabsContent>
+
+          <TabsContent value="receipts">
+            {canSeeCommissions ? (
+              <CommissionReceiptsPanel
+                institutionId={id}
+                institutionName={inst.name}
+                initialInvoiceId={receiptInvoiceId}
+                onInitialInvoiceConsumed={() => setReceiptInvoiceId(null)}
+              />
+            ) : (
+              <LockedPanel label="Receipts" />
+            )}
           </TabsContent>
 
           <TabsContent value="promotions">

@@ -160,7 +160,13 @@ const fmt = (n: number | null | undefined, ccy = "CAD") =>
 const daysUntil = (d?: string | null) => (d ? Math.ceil((new Date(d).getTime() - Date.now()) / 86400000) : null);
 
 // ---------- main panel ----------
-export function ClaimsPanel({ institutionId }: { institutionId: string }) {
+export function ClaimsPanel({
+  institutionId,
+  onRecordReceipt,
+}: {
+  institutionId: string;
+  onRecordReceipt?: (invoiceId: string) => void;
+}) {
   const { data: cycles, loading: lc, reload: rc } = useClaimCycles(institutionId);
   const { data: legacyInvoices } = useInvoices(institutionId);
   const [students, setStudents] = useState<Student[]>([]);
@@ -381,18 +387,8 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
   }, [students]);
 
   const markInvoicePaid = async (inv: Invoice) => {
-    const { error } = await supabase
-      .from("upi_commission_invoices")
-      .update({ status: "paid", paid_date: new Date().toISOString().slice(0, 10), payment_received_amount: inv.total_amount, payment_received_date: new Date().toISOString().slice(0, 10) } as any)
-      .eq("id", inv.id);
-    if (error) return toast.error(error.message);
-    await supabase.from("upi_commission_students").update({
-      commission_status: "paid",
-      commission_paid_date: new Date().toISOString().slice(0, 10),
-      payment_status: "paid",
-    } as any).eq("invoice_id", inv.id).in("commission_status", ["eligible"]);
-    toast.success("Invoice marked paid");
-    loadAll();
+    // Legacy direct mark-paid removed in Phase 2A — use receipt workflow.
+    onRecordReceipt?.(inv.id);
   };
 
   const moveToNextCycle = async (s: Student) => {
@@ -798,9 +794,9 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
                         <Button size="sm" variant="outline" onClick={() => downloadInvoicePdf(inv)}>
                           <FileDown className="size-3.5 mr-1" /> Download PDF
                         </Button>
-                        {["sent", "submitted", "approved"].includes(inv.status) && (
+                        {["sent", "submitted", "approved", "partially_paid"].includes(inv.status) && (
                           <Button size="sm" onClick={() => markInvoicePaid(inv)}>
-                            <CheckCircle2 className="size-3.5 mr-1" /> Mark as Paid
+                            <CheckCircle2 className="size-3.5 mr-1" /> Record receipt
                           </Button>
                         )}
                       </div>
