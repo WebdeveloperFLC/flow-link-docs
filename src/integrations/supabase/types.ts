@@ -2809,10 +2809,13 @@ export type Database = {
           check_out: string | null
           created_at: string
           employee_id: string
+          ess_unavailable: boolean
           id: string
           is_mispunch: boolean
           note: string | null
+          off_shift_min: number
           org_id: string
+          shift_work_min: number
           source: string
           status: Database["public"]["Enums"]["att_status"]
           updated_at: string
@@ -2826,10 +2829,13 @@ export type Database = {
           check_out?: string | null
           created_at?: string
           employee_id: string
+          ess_unavailable?: boolean
           id?: string
           is_mispunch?: boolean
           note?: string | null
+          off_shift_min?: number
           org_id: string
+          shift_work_min?: number
           source?: string
           status?: Database["public"]["Enums"]["att_status"]
           updated_at?: string
@@ -2843,10 +2849,13 @@ export type Database = {
           check_out?: string | null
           created_at?: string
           employee_id?: string
+          ess_unavailable?: boolean
           id?: string
           is_mispunch?: boolean
           note?: string | null
+          off_shift_min?: number
           org_id?: string
+          shift_work_min?: number
           source?: string
           status?: Database["public"]["Enums"]["att_status"]
           updated_at?: string
@@ -4897,6 +4906,90 @@ export type Database = {
           },
         ]
       }
+      client_activity_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_role: string | null
+          client_id: string
+          created_at: string
+          id: string
+          lead_id: string | null
+          metadata: Json
+          new_value: string | null
+          previous_value: string | null
+          source_id: string | null
+          source_table: string | null
+          summary: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_role?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json
+          new_value?: string | null
+          previous_value?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          summary?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_role?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json
+          new_value?: string | null
+          previous_value?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_activity_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_activity_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_activity_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_activity_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_activity_log_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_appointments: {
         Row: {
           client_id: string
@@ -4968,6 +5061,85 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
+          },
+        ]
+      }
+      client_case_outcome_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          case_id: string
+          client_id: string
+          created_at: string
+          document_id: string | null
+          id: string
+          metadata: Json
+          note: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          case_id: string
+          client_id: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          metadata?: Json
+          note?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          case_id?: string
+          client_id?: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          metadata?: Json
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_case_outcome_log_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "client_service_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_case_outcome_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_case_outcome_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_case_outcome_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_case_outcome_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_case_outcome_log_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "client_documents"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -5154,6 +5326,7 @@ export type Database = {
       }
       client_documents: {
         Row: {
+          case_id: string | null
           client_id: string
           custom_type: string | null
           deleted_at: string | null
@@ -5174,6 +5347,7 @@ export type Database = {
           version: number
         }
         Insert: {
+          case_id?: string | null
           client_id: string
           custom_type?: string | null
           deleted_at?: string | null
@@ -5194,6 +5368,7 @@ export type Database = {
           version?: number
         }
         Update: {
+          case_id?: string | null
           client_id?: string
           custom_type?: string | null
           deleted_at?: string | null
@@ -5214,6 +5389,13 @@ export type Database = {
           version?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "client_documents_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "client_service_cases"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "client_documents_client_id_fkey"
             columns: ["client_id"]
@@ -5558,6 +5740,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      client_file_sequences: {
+        Row: {
+          last_number: number
+          year: number
+        }
+        Insert: {
+          last_number?: number
+          year: number
+        }
+        Update: {
+          last_number?: number
+          year?: number
+        }
+        Relationships: []
       }
       client_files: {
         Row: {
@@ -5924,6 +6121,8 @@ export type Database = {
           id: string
           invoice_id: string
           is_refund: boolean | null
+          last_modified_at: string | null
+          last_modified_by: string | null
           method: string
           notes: string | null
           paid_at: string
@@ -5961,6 +6160,8 @@ export type Database = {
           id?: string
           invoice_id: string
           is_refund?: boolean | null
+          last_modified_at?: string | null
+          last_modified_by?: string | null
           method: string
           notes?: string | null
           paid_at?: string
@@ -5998,6 +6199,8 @@ export type Database = {
           id?: string
           invoice_id?: string
           is_refund?: boolean | null
+          last_modified_at?: string | null
+          last_modified_by?: string | null
           method?: string
           notes?: string | null
           paid_at?: string
@@ -6082,6 +6285,7 @@ export type Database = {
           receipt_sequence: number | null
           receipt_snapshot_jsonb: Json | null
           receipt_snapshot_taken_at: string | null
+          receipt_status: string
           receipt_void_reason: string | null
           receipt_voided: boolean | null
           receipt_voided_at: string | null
@@ -6106,6 +6310,7 @@ export type Database = {
           receipt_sequence?: number | null
           receipt_snapshot_jsonb?: Json | null
           receipt_snapshot_taken_at?: string | null
+          receipt_status?: string
           receipt_void_reason?: string | null
           receipt_voided?: boolean | null
           receipt_voided_at?: string | null
@@ -6130,6 +6335,7 @@ export type Database = {
           receipt_sequence?: number | null
           receipt_snapshot_jsonb?: Json | null
           receipt_snapshot_taken_at?: string | null
+          receipt_status?: string
           receipt_void_reason?: string | null
           receipt_voided?: boolean | null
           receipt_voided_at?: string | null
@@ -6749,6 +6955,74 @@ export type Database = {
           },
         ]
       }
+      client_location_preferences: {
+        Row: {
+          city: string
+          client_id: string
+          country: string
+          created_at: string
+          id: string
+          notes: string | null
+          province_code: string | null
+          province_state: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          city: string
+          client_id: string
+          country: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          province_code?: string | null
+          province_state: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          city?: string
+          client_id?: string
+          country?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          province_code?: string | null
+          province_state?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_location_preferences_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_location_preferences_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_location_preferences_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_location_preferences_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
       client_notification_prefs: {
         Row: {
           client_id: string
@@ -7143,7 +7417,11 @@ export type Database = {
           address_state: string | null
           annual_income: number | null
           bank_name: string | null
+          budget_currency: string | null
+          budget_max: number | null
+          budget_min: number | null
           client_id: string
+          counselor_notes: string | null
           created_at: string
           currency: string | null
           date_of_birth: string | null
@@ -7159,6 +7437,7 @@ export type Database = {
           gpa_or_percentage: string | null
           graduation_year: number | null
           gre_score: number | null
+          has_budget: string | null
           highest_qualification: string | null
           ielts_listening: number | null
           ielts_overall: number | null
@@ -7167,8 +7446,10 @@ export type Database = {
           ielts_test_date: string | null
           ielts_writing: number | null
           institution_name: string | null
+          interested_countries: string[] | null
           job_title: string | null
           last_extracted_at: string | null
+          lead_source: string | null
           marital_status: string | null
           nationality: string | null
           notes_extracted: string | null
@@ -7182,7 +7463,10 @@ export type Database = {
           place_of_birth: string | null
           pte_score: number | null
           source_documents: Json
+          sponsor: string | null
+          sponsor_other: string | null
           spouse_name: string | null
+          start_timeline: string | null
           toefl_score: number | null
           tuition_paid: number | null
           updated_at: string
@@ -7198,7 +7482,11 @@ export type Database = {
           address_state?: string | null
           annual_income?: number | null
           bank_name?: string | null
+          budget_currency?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
           client_id: string
+          counselor_notes?: string | null
           created_at?: string
           currency?: string | null
           date_of_birth?: string | null
@@ -7214,6 +7502,7 @@ export type Database = {
           gpa_or_percentage?: string | null
           graduation_year?: number | null
           gre_score?: number | null
+          has_budget?: string | null
           highest_qualification?: string | null
           ielts_listening?: number | null
           ielts_overall?: number | null
@@ -7222,8 +7511,10 @@ export type Database = {
           ielts_test_date?: string | null
           ielts_writing?: number | null
           institution_name?: string | null
+          interested_countries?: string[] | null
           job_title?: string | null
           last_extracted_at?: string | null
+          lead_source?: string | null
           marital_status?: string | null
           nationality?: string | null
           notes_extracted?: string | null
@@ -7237,7 +7528,10 @@ export type Database = {
           place_of_birth?: string | null
           pte_score?: number | null
           source_documents?: Json
+          sponsor?: string | null
+          sponsor_other?: string | null
           spouse_name?: string | null
+          start_timeline?: string | null
           toefl_score?: number | null
           tuition_paid?: number | null
           updated_at?: string
@@ -7253,7 +7547,11 @@ export type Database = {
           address_state?: string | null
           annual_income?: number | null
           bank_name?: string | null
+          budget_currency?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
           client_id?: string
+          counselor_notes?: string | null
           created_at?: string
           currency?: string | null
           date_of_birth?: string | null
@@ -7269,6 +7567,7 @@ export type Database = {
           gpa_or_percentage?: string | null
           graduation_year?: number | null
           gre_score?: number | null
+          has_budget?: string | null
           highest_qualification?: string | null
           ielts_listening?: number | null
           ielts_overall?: number | null
@@ -7277,8 +7576,10 @@ export type Database = {
           ielts_test_date?: string | null
           ielts_writing?: number | null
           institution_name?: string | null
+          interested_countries?: string[] | null
           job_title?: string | null
           last_extracted_at?: string | null
+          lead_source?: string | null
           marital_status?: string | null
           nationality?: string | null
           notes_extracted?: string | null
@@ -7292,7 +7593,10 @@ export type Database = {
           place_of_birth?: string | null
           pte_score?: number | null
           source_documents?: Json
+          sponsor?: string | null
+          sponsor_other?: string | null
           spouse_name?: string | null
+          start_timeline?: string | null
           toefl_score?: number | null
           tuition_paid?: number | null
           updated_at?: string
@@ -7308,6 +7612,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      client_registration_sequences: {
+        Row: {
+          last_number: number
+          year: number
+        }
+        Insert: {
+          last_number?: number
+          year: number
+        }
+        Update: {
+          last_number?: number
+          year?: number
+        }
+        Relationships: []
       }
       client_section_settings: {
         Row: {
@@ -7341,13 +7660,89 @@ export type Database = {
           },
         ]
       }
+      client_service_billing_events: {
+        Row: {
+          actor_id: string | null
+          amount: number | null
+          case_id: string
+          client_id: string
+          created_at: string
+          currency: string | null
+          event_type: string
+          id: string
+          metadata: Json
+        }
+        Insert: {
+          actor_id?: string | null
+          amount?: number | null
+          case_id: string
+          client_id: string
+          created_at?: string
+          currency?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json
+        }
+        Update: {
+          actor_id?: string | null
+          amount?: number | null
+          case_id?: string
+          client_id?: string
+          created_at?: string
+          currency?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_service_billing_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "client_service_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_billing_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_billing_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_billing_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_billing_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
       client_service_cases: {
         Row: {
           attempt_number: number
+          billing_cap_override_reason: string | null
+          billing_trigger: string | null
           client_id: string
           closed_at: string | null
           created_at: string
           id: string
+          institution_deposit_reference: string | null
+          institution_required_deposit: number | null
           outcome: string | null
           outcome_at: string | null
           outcome_by: string | null
@@ -7355,15 +7750,24 @@ export type Database = {
           pipeline_id: string | null
           reapplication_of: string | null
           refusal_doc_pending: boolean
+          requested_amount: number | null
+          requested_currency: string | null
+          requested_set_at: string | null
+          requested_set_by: string | null
+          requested_source: string | null
           service_code: string
           status: string
         }
         Insert: {
           attempt_number?: number
+          billing_cap_override_reason?: string | null
+          billing_trigger?: string | null
           client_id: string
           closed_at?: string | null
           created_at?: string
           id?: string
+          institution_deposit_reference?: string | null
+          institution_required_deposit?: number | null
           outcome?: string | null
           outcome_at?: string | null
           outcome_by?: string | null
@@ -7371,15 +7775,24 @@ export type Database = {
           pipeline_id?: string | null
           reapplication_of?: string | null
           refusal_doc_pending?: boolean
+          requested_amount?: number | null
+          requested_currency?: string | null
+          requested_set_at?: string | null
+          requested_set_by?: string | null
+          requested_source?: string | null
           service_code: string
           status?: string
         }
         Update: {
           attempt_number?: number
+          billing_cap_override_reason?: string | null
+          billing_trigger?: string | null
           client_id?: string
           closed_at?: string | null
           created_at?: string
           id?: string
+          institution_deposit_reference?: string | null
+          institution_required_deposit?: number | null
           outcome?: string | null
           outcome_at?: string | null
           outcome_by?: string | null
@@ -7387,46 +7800,248 @@ export type Database = {
           pipeline_id?: string | null
           reapplication_of?: string | null
           refusal_doc_pending?: boolean
+          requested_amount?: number | null
+          requested_currency?: string | null
+          requested_set_at?: string | null
+          requested_set_by?: string | null
+          requested_source?: string | null
           service_code?: string
           status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "client_service_cases_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_cases_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_cases_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_cases_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_service_cases_outcome_document_id_fkey"
+            columns: ["outcome_document_id"]
+            isOneToOne: false
+            referencedRelation: "client_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_cases_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "stage_pipelines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_cases_reapplication_of_fkey"
+            columns: ["reapplication_of"]
+            isOneToOne: false
+            referencedRelation: "client_service_cases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      client_case_outcome_log: {
+      client_stage_completion_log: {
         Row: {
           action: string
           actor_id: string | null
-          case_id: string
+          case_id: string | null
           client_id: string
           created_at: string
-          document_id: string | null
           id: string
-          metadata: Json
           note: string | null
+          pipeline_id: string
+          stage_id: string
         }
         Insert: {
           action: string
           actor_id?: string | null
-          case_id: string
+          case_id?: string | null
           client_id: string
           created_at?: string
-          document_id?: string | null
           id?: string
-          metadata?: Json
           note?: string | null
+          pipeline_id: string
+          stage_id: string
         }
         Update: {
           action?: string
           actor_id?: string | null
-          case_id?: string
+          case_id?: string | null
           client_id?: string
           created_at?: string
-          document_id?: string | null
           id?: string
-          metadata?: Json
           note?: string | null
+          pipeline_id?: string
+          stage_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "client_stage_completion_log_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "client_service_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completion_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completion_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completion_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completion_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_stage_completion_log_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "stage_pipelines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completion_log_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completion_log_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "vw_portal_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_stage_completions: {
+        Row: {
+          case_id: string | null
+          client_id: string
+          completed_at: string
+          completed_by: string | null
+          id: string
+          note: string | null
+          pipeline_id: string
+          stage_id: string
+        }
+        Insert: {
+          case_id?: string | null
+          client_id: string
+          completed_at?: string
+          completed_by?: string | null
+          id?: string
+          note?: string | null
+          pipeline_id: string
+          stage_id: string
+        }
+        Update: {
+          case_id?: string | null
+          client_id?: string
+          completed_at?: string
+          completed_by?: string | null
+          id?: string
+          note?: string | null
+          pipeline_id?: string
+          stage_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_stage_completions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "client_service_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_stage_completions_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "stage_pipelines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completions_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_stage_completions_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "vw_portal_stages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       client_stage_history: {
         Row: {
@@ -7507,113 +8122,6 @@ export type Database = {
             columns: ["stage_id"]
             isOneToOne: false
             referencedRelation: "vw_portal_stages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      client_stage_completion_log: {
-        Row: {
-          action: string
-          actor_id: string | null
-          client_id: string
-          created_at: string
-          id: string
-          note: string | null
-          pipeline_id: string
-          stage_id: string
-        }
-        Insert: {
-          action: string
-          actor_id?: string | null
-          client_id: string
-          created_at?: string
-          id?: string
-          note?: string | null
-          pipeline_id: string
-          stage_id: string
-        }
-        Update: {
-          action?: string
-          actor_id?: string | null
-          client_id?: string
-          created_at?: string
-          id?: string
-          note?: string | null
-          pipeline_id?: string
-          stage_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_stage_completion_log_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_stage_completion_log_pipeline_id_fkey"
-            columns: ["pipeline_id"]
-            isOneToOne: false
-            referencedRelation: "stage_pipelines"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_stage_completion_log_stage_id_fkey"
-            columns: ["stage_id"]
-            isOneToOne: false
-            referencedRelation: "pipeline_stages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      client_stage_completions: {
-        Row: {
-          client_id: string
-          completed_at: string
-          completed_by: string | null
-          id: string
-          note: string | null
-          pipeline_id: string
-          stage_id: string
-        }
-        Insert: {
-          client_id: string
-          completed_at?: string
-          completed_by?: string | null
-          id?: string
-          note?: string | null
-          pipeline_id: string
-          stage_id: string
-        }
-        Update: {
-          client_id?: string
-          completed_at?: string
-          completed_by?: string | null
-          id?: string
-          note?: string | null
-          pipeline_id?: string
-          stage_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_stage_completions_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_stage_completions_pipeline_id_fkey"
-            columns: ["pipeline_id"]
-            isOneToOne: false
-            referencedRelation: "stage_pipelines"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_stage_completions_stage_id_fkey"
-            columns: ["stage_id"]
-            isOneToOne: false
-            referencedRelation: "pipeline_stages"
             referencedColumns: ["id"]
           },
         ]
@@ -7735,6 +8243,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          active_attempt_ids: Json
           admission_services: string[]
           allied_services: string[]
           alternate_phone: string | null
@@ -7745,6 +8254,9 @@ export type Database = {
           branch: string | null
           branch_id: string | null
           budget: number | null
+          budget_currency: string | null
+          budget_max: number | null
+          budget_min: number | null
           client_rating: number | null
           client_type: string | null
           closing_at: string | null
@@ -7776,11 +8288,13 @@ export type Database = {
           english_test: string | null
           english_test_date: string | null
           english_test_expiry: string | null
+          english_test_status: string | null
           enrollment_probability: number | null
           extra_items: Json
           first_name: string | null
           full_name: string
           gender: string | null
+          has_budget: string | null
           id: string
           incentive_attribution_locked: boolean
           institution_name: string | null
@@ -7791,6 +8305,7 @@ export type Database = {
           interested_course: string | null
           internal_sub_status: string | null
           internal_sub_status_note: string | null
+          language_tests: Json
           last_education: string | null
           last_education_other: string | null
           last_name: string | null
@@ -7819,14 +8334,20 @@ export type Database = {
           percentage_cgpa: string | null
           phone: string | null
           phone_alternate: string | null
+          phone_alternate_country_code: string | null
           phone_country_code: string | null
           pipeline_id: string | null
           preferred_contact_time: string | null
           preferred_language: string | null
           priority: string | null
+          registered_at: string | null
           registration_number: string | null
           service_fees: Json
           source_lead_id: string | null
+          source_lead_number: string | null
+          sponsor: string | null
+          sponsor_other: string | null
+          start_timeline: string | null
           status: string
           study_permit_approved_date: string | null
           study_permit_expiry: string | null
@@ -7835,6 +8356,7 @@ export type Database = {
           tags: string[]
           tax_id: string | null
           template_id: string | null
+          test_attempts: Json
           timezone: string | null
           travel_financial_services: string[]
           updated_at: string
@@ -7842,19 +8364,23 @@ export type Database = {
           whatsapp: string | null
           work_experience: Json
           workflow_template_id: string | null
-          year_of_passing: number | null
+          year_of_passing: string | null
         }
         Insert: {
+          active_attempt_ids?: Json
           admission_services?: string[]
           allied_services?: string[]
           alternate_phone?: string | null
-          application_id?: string
+          application_id: string
           application_type: string
           assigned_counselor_id?: string | null
           billing_entity?: string | null
           branch?: string | null
           branch_id?: string | null
           budget?: number | null
+          budget_currency?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
           client_rating?: number | null
           client_type?: string | null
           closing_at?: string | null
@@ -7886,11 +8412,13 @@ export type Database = {
           english_test?: string | null
           english_test_date?: string | null
           english_test_expiry?: string | null
+          english_test_status?: string | null
           enrollment_probability?: number | null
           extra_items?: Json
           first_name?: string | null
           full_name: string
           gender?: string | null
+          has_budget?: string | null
           id?: string
           incentive_attribution_locked?: boolean
           institution_name?: string | null
@@ -7901,6 +8429,7 @@ export type Database = {
           interested_course?: string | null
           internal_sub_status?: string | null
           internal_sub_status_note?: string | null
+          language_tests?: Json
           last_education?: string | null
           last_education_other?: string | null
           last_name?: string | null
@@ -7929,14 +8458,20 @@ export type Database = {
           percentage_cgpa?: string | null
           phone?: string | null
           phone_alternate?: string | null
+          phone_alternate_country_code?: string | null
           phone_country_code?: string | null
           pipeline_id?: string | null
           preferred_contact_time?: string | null
           preferred_language?: string | null
           priority?: string | null
+          registered_at?: string | null
           registration_number?: string | null
           service_fees?: Json
           source_lead_id?: string | null
+          source_lead_number?: string | null
+          sponsor?: string | null
+          sponsor_other?: string | null
+          start_timeline?: string | null
           status?: string
           study_permit_approved_date?: string | null
           study_permit_expiry?: string | null
@@ -7945,6 +8480,7 @@ export type Database = {
           tags?: string[]
           tax_id?: string | null
           template_id?: string | null
+          test_attempts?: Json
           timezone?: string | null
           travel_financial_services?: string[]
           updated_at?: string
@@ -7952,9 +8488,10 @@ export type Database = {
           whatsapp?: string | null
           work_experience?: Json
           workflow_template_id?: string | null
-          year_of_passing?: number | null
+          year_of_passing?: string | null
         }
         Update: {
+          active_attempt_ids?: Json
           admission_services?: string[]
           allied_services?: string[]
           alternate_phone?: string | null
@@ -7965,6 +8502,9 @@ export type Database = {
           branch?: string | null
           branch_id?: string | null
           budget?: number | null
+          budget_currency?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
           client_rating?: number | null
           client_type?: string | null
           closing_at?: string | null
@@ -7996,11 +8536,13 @@ export type Database = {
           english_test?: string | null
           english_test_date?: string | null
           english_test_expiry?: string | null
+          english_test_status?: string | null
           enrollment_probability?: number | null
           extra_items?: Json
           first_name?: string | null
           full_name?: string
           gender?: string | null
+          has_budget?: string | null
           id?: string
           incentive_attribution_locked?: boolean
           institution_name?: string | null
@@ -8011,6 +8553,7 @@ export type Database = {
           interested_course?: string | null
           internal_sub_status?: string | null
           internal_sub_status_note?: string | null
+          language_tests?: Json
           last_education?: string | null
           last_education_other?: string | null
           last_name?: string | null
@@ -8039,14 +8582,20 @@ export type Database = {
           percentage_cgpa?: string | null
           phone?: string | null
           phone_alternate?: string | null
+          phone_alternate_country_code?: string | null
           phone_country_code?: string | null
           pipeline_id?: string | null
           preferred_contact_time?: string | null
           preferred_language?: string | null
           priority?: string | null
+          registered_at?: string | null
           registration_number?: string | null
           service_fees?: Json
           source_lead_id?: string | null
+          source_lead_number?: string | null
+          sponsor?: string | null
+          sponsor_other?: string | null
+          start_timeline?: string | null
           status?: string
           study_permit_approved_date?: string | null
           study_permit_expiry?: string | null
@@ -8055,6 +8604,7 @@ export type Database = {
           tags?: string[]
           tax_id?: string | null
           template_id?: string | null
+          test_attempts?: Json
           timezone?: string | null
           travel_financial_services?: string[]
           updated_at?: string
@@ -8062,9 +8612,16 @@ export type Database = {
           whatsapp?: string | null
           work_experience?: Json
           workflow_template_id?: string | null
-          year_of_passing?: number | null
+          year_of_passing?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "clients_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clients_converted_by_fkey"
             columns: ["converted_by"]
@@ -8108,6 +8665,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "clients_linked_student_record_id_fkey"
+            columns: ["linked_student_record_id"]
+            isOneToOne: false
+            referencedRelation: "v_client_commission_status"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "clients_linked_student_record_id_fkey"
+            columns: ["linked_student_record_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_student_receipt_ledger"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
             foreignKeyName: "clients_pipeline_id_fkey"
             columns: ["pipeline_id"]
             isOneToOne: false
@@ -8136,6 +8707,7 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          is_active: boolean
           legal_name: string | null
           name: string
           org_id: string
@@ -8145,6 +8717,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          is_active?: boolean
           legal_name?: string | null
           name: string
           org_id: string
@@ -8154,6 +8727,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          is_active?: boolean
           legal_name?: string | null
           name?: string
           org_id?: string
@@ -8162,31 +8736,46 @@ export type Database = {
       }
       compoff_requests: {
         Row: {
+          comp_off_leave_date: string | null
           created_at: string
+          document_path: string | null
+          duration_type: string
           employee_id: string
           id: string
           occasion: string | null
           org_id: string
+          partial_end: string | null
+          partial_start: string | null
           reason: string | null
           status: Database["public"]["Enums"]["request_status"]
           worked_date: string
         }
         Insert: {
+          comp_off_leave_date?: string | null
           created_at?: string
+          document_path?: string | null
+          duration_type?: string
           employee_id: string
           id?: string
           occasion?: string | null
           org_id: string
+          partial_end?: string | null
+          partial_start?: string | null
           reason?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           worked_date: string
         }
         Update: {
+          comp_off_leave_date?: string | null
           created_at?: string
+          document_path?: string | null
+          duration_type?: string
           employee_id?: string
           id?: string
           occasion?: string | null
           org_id?: string
+          partial_end?: string | null
+          partial_start?: string | null
           reason?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           worked_date?: string
@@ -9739,8 +10328,12 @@ export type Database = {
           id: string
           mime: string | null
           org_id: string
+          remarks: string | null
           storage_path: string | null
           uploaded_by: string | null
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           created_at?: string
@@ -9750,8 +10343,12 @@ export type Database = {
           id?: string
           mime?: string | null
           org_id: string
+          remarks?: string | null
           storage_path?: string | null
           uploaded_by?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           created_at?: string
@@ -9761,8 +10358,12 @@ export type Database = {
           id?: string
           mime?: string | null
           org_id?: string
+          remarks?: string | null
           storage_path?: string | null
           uploaded_by?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {
@@ -9786,7 +10387,10 @@ export type Database = {
           bank_ifsc: string | null
           bank_name: string | null
           bank_verified: boolean
+          bank_verified_at: string | null
+          bank_verified_by: string | null
           basic: number
+          blood_group: string | null
           bonus: number
           branch_id: string | null
           company_id: string | null
@@ -9798,31 +10402,53 @@ export type Database = {
           dob: string | null
           email: string | null
           emergency: string | null
+          emergency_contacts: Json
           emp_code: string
-          employment_type: Database["public"]["Enums"]["employment_type"]
+          employment_type: string
           esic_applicable: boolean
           esic_number: string | null
+          exit_date: string | null
+          exit_reason: string | null
           first_name: string | null
           full_name: string
           gender: string | null
+          has_esic_account: boolean
           has_pf_account: boolean
           hra: number
           id: string
           incentive: number
           last_name: string | null
+          lwf_applicable: boolean
+          marital_status: string | null
+          middle_name: string | null
           mobile: string | null
           monthly_gross: number
+          nationality: string | null
           notice_period: string | null
           org_id: string
+          other_deductions: number
+          payroll_country: string
           pf_applicable: boolean
           pf_number: string | null
           photo_url: string | null
+          probation_end_date: string | null
+          probation_start_date: string | null
           pt_applicable: boolean
+          rehire_eligible: boolean | null
           reporting_mgr_id: string | null
+          salary_currency: string
+          security_cheque_file_name: string | null
+          security_cheque_reason: string | null
+          security_cheque_status: string
+          security_cheque_storage_path: string | null
+          security_cheque_uploaded_at: string | null
+          security_cheque_uploaded_by: string | null
+          security_cheque_uploaded_by_label: string | null
           shift_id: string | null
           special_allow: number
           staff_id: string | null
           status: Database["public"]["Enums"]["emp_status"]
+          tds_applicable: boolean
           uan: string | null
           updated_at: string
           work_week: Database["public"]["Enums"]["work_week"]
@@ -9838,7 +10464,10 @@ export type Database = {
           bank_ifsc?: string | null
           bank_name?: string | null
           bank_verified?: boolean
+          bank_verified_at?: string | null
+          bank_verified_by?: string | null
           basic?: number
+          blood_group?: string | null
           bonus?: number
           branch_id?: string | null
           company_id?: string | null
@@ -9850,31 +10479,53 @@ export type Database = {
           dob?: string | null
           email?: string | null
           emergency?: string | null
+          emergency_contacts?: Json
           emp_code: string
-          employment_type?: Database["public"]["Enums"]["employment_type"]
+          employment_type?: string
           esic_applicable?: boolean
           esic_number?: string | null
+          exit_date?: string | null
+          exit_reason?: string | null
           first_name?: string | null
           full_name: string
           gender?: string | null
+          has_esic_account?: boolean
           has_pf_account?: boolean
           hra?: number
           id?: string
           incentive?: number
           last_name?: string | null
+          lwf_applicable?: boolean
+          marital_status?: string | null
+          middle_name?: string | null
           mobile?: string | null
           monthly_gross?: number
+          nationality?: string | null
           notice_period?: string | null
           org_id: string
+          other_deductions?: number
+          payroll_country?: string
           pf_applicable?: boolean
           pf_number?: string | null
           photo_url?: string | null
+          probation_end_date?: string | null
+          probation_start_date?: string | null
           pt_applicable?: boolean
+          rehire_eligible?: boolean | null
           reporting_mgr_id?: string | null
+          salary_currency?: string
+          security_cheque_file_name?: string | null
+          security_cheque_reason?: string | null
+          security_cheque_status?: string
+          security_cheque_storage_path?: string | null
+          security_cheque_uploaded_at?: string | null
+          security_cheque_uploaded_by?: string | null
+          security_cheque_uploaded_by_label?: string | null
           shift_id?: string | null
           special_allow?: number
           staff_id?: string | null
           status?: Database["public"]["Enums"]["emp_status"]
+          tds_applicable?: boolean
           uan?: string | null
           updated_at?: string
           work_week?: Database["public"]["Enums"]["work_week"]
@@ -9890,7 +10541,10 @@ export type Database = {
           bank_ifsc?: string | null
           bank_name?: string | null
           bank_verified?: boolean
+          bank_verified_at?: string | null
+          bank_verified_by?: string | null
           basic?: number
+          blood_group?: string | null
           bonus?: number
           branch_id?: string | null
           company_id?: string | null
@@ -9902,31 +10556,53 @@ export type Database = {
           dob?: string | null
           email?: string | null
           emergency?: string | null
+          emergency_contacts?: Json
           emp_code?: string
-          employment_type?: Database["public"]["Enums"]["employment_type"]
+          employment_type?: string
           esic_applicable?: boolean
           esic_number?: string | null
+          exit_date?: string | null
+          exit_reason?: string | null
           first_name?: string | null
           full_name?: string
           gender?: string | null
+          has_esic_account?: boolean
           has_pf_account?: boolean
           hra?: number
           id?: string
           incentive?: number
           last_name?: string | null
+          lwf_applicable?: boolean
+          marital_status?: string | null
+          middle_name?: string | null
           mobile?: string | null
           monthly_gross?: number
+          nationality?: string | null
           notice_period?: string | null
           org_id?: string
+          other_deductions?: number
+          payroll_country?: string
           pf_applicable?: boolean
           pf_number?: string | null
           photo_url?: string | null
+          probation_end_date?: string | null
+          probation_start_date?: string | null
           pt_applicable?: boolean
+          rehire_eligible?: boolean | null
           reporting_mgr_id?: string | null
+          salary_currency?: string
+          security_cheque_file_name?: string | null
+          security_cheque_reason?: string | null
+          security_cheque_status?: string
+          security_cheque_storage_path?: string | null
+          security_cheque_uploaded_at?: string | null
+          security_cheque_uploaded_by?: string | null
+          security_cheque_uploaded_by_label?: string | null
           shift_id?: string | null
           special_allow?: number
           staff_id?: string | null
           status?: Database["public"]["Enums"]["emp_status"]
+          tds_applicable?: boolean
           uan?: string | null
           updated_at?: string
           work_week?: Database["public"]["Enums"]["work_week"]
@@ -10338,6 +11014,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      hr_crm_role_map: {
+        Row: {
+          crm_role: string
+          hr_role: Database["public"]["Enums"]["hr_role"]
+          org_id: string
+        }
+        Insert: {
+          crm_role: string
+          hr_role: Database["public"]["Enums"]["hr_role"]
+          org_id: string
+        }
+        Update: {
+          crm_role?: string
+          hr_role?: Database["public"]["Enums"]["hr_role"]
+          org_id?: string
+        }
+        Relationships: []
+      }
+      hr_document_types: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          org_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       incentive_adjustments: {
         Row: {
@@ -11798,6 +12525,56 @@ export type Database = {
           },
         ]
       }
+      lead_followup_log: {
+        Row: {
+          channel: string | null
+          completed_at: string | null
+          completed_by: string | null
+          completion_note: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          lead_id: string
+          note: string | null
+          scheduled_at: string
+          status: string
+        }
+        Insert: {
+          channel?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_note?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lead_id: string
+          note?: string | null
+          scheduled_at: string
+          status?: string
+        }
+        Update: {
+          channel?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_note?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lead_id?: string
+          note?: string | null
+          scheduled_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_followup_log_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_handoffs: {
         Row: {
           client_id: string
@@ -11938,29 +12715,33 @@ export type Database = {
             referencedColumns: ["client_id"]
           },
           {
-            foreignKeyName: "lead_remarks_queue_item_id_fkey"
-            columns: ["queue_item_id"]
-            isOneToOne: false
-            referencedRelation: "call_queue_items"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "lead_remarks_lead_id_fkey"
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lead_remarks_queue_item_id_fkey"
+            columns: ["queue_item_id"]
+            isOneToOne: false
+            referencedRelation: "call_queue_items"
+            referencedColumns: ["id"]
+          },
         ]
       }
       leads: {
         Row: {
+          active_attempt_ids: Json
           admission_services: string[] | null
           allied_services: string[] | null
           assigned_counselor_id: string | null
           b2b_partner_id: string | null
           branch: string | null
           branch_id: string | null
+          budget_currency: string | null
+          budget_max: number | null
+          budget_min: number | null
           coaching_services: string[] | null
           cold_pool_campaign: string | null
           converted_at: string | null
@@ -11970,12 +12751,23 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           department: string | null
+          education_history: Json
           email: string | null
+          english_overall: string | null
+          english_sections: Json
+          english_test: string | null
+          english_test_date: string | null
+          english_test_expiry: string | null
+          english_test_status: string | null
           first_name: string
+          followup_channel: string | null
+          followup_note: string | null
           gender: string | null
+          has_budget: string | null
           id: string
           interested_countries: string[] | null
           is_cold_pool: boolean | null
+          language_tests: Json
           last_education: string | null
           last_education_other: string | null
           last_name: string
@@ -11985,30 +12777,39 @@ export type Database = {
           lead_type: string
           marital_status: string | null
           middle_name: string | null
+          next_followup_at: string | null
           notes: string | null
           notes_locked: boolean | null
           notes_locked_at: string | null
           notes_locked_by: string | null
-          next_followup_at: string | null
-          followup_channel: string | null
-          followup_note: string | null
+          other_tests: Json
           phone: string | null
           phone_country_code: string | null
           priority: string | null
           source: string | null
+          sponsor: string | null
+          sponsor_other: string | null
           start_timeline: string | null
           status: string
+          test_attempts: Json
+          travel_financial_services: string[]
           updated_at: string | null
           visa_lock_reason: string | null
           visa_locked: boolean | null
           visa_services: string[] | null
+          work_experience: Json
         }
         Insert: {
+          active_attempt_ids?: Json
           admission_services?: string[] | null
           allied_services?: string[] | null
           assigned_counselor_id?: string | null
           b2b_partner_id?: string | null
           branch?: string | null
+          branch_id?: string | null
+          budget_currency?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
           coaching_services?: string[] | null
           cold_pool_campaign?: string | null
           converted_at?: string | null
@@ -12018,12 +12819,23 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           department?: string | null
+          education_history?: Json
           email?: string | null
+          english_overall?: string | null
+          english_sections?: Json
+          english_test?: string | null
+          english_test_date?: string | null
+          english_test_expiry?: string | null
+          english_test_status?: string | null
           first_name: string
+          followup_channel?: string | null
+          followup_note?: string | null
           gender?: string | null
+          has_budget?: string | null
           id?: string
           interested_countries?: string[] | null
           is_cold_pool?: boolean | null
+          language_tests?: Json
           last_education?: string | null
           last_education_other?: string | null
           last_name: string
@@ -12033,30 +12845,39 @@ export type Database = {
           lead_type: string
           marital_status?: string | null
           middle_name?: string | null
+          next_followup_at?: string | null
           notes?: string | null
           notes_locked?: boolean | null
           notes_locked_at?: string | null
           notes_locked_by?: string | null
-          next_followup_at?: string | null
-          followup_channel?: string | null
-          followup_note?: string | null
+          other_tests?: Json
           phone?: string | null
           phone_country_code?: string | null
           priority?: string | null
           source?: string | null
+          sponsor?: string | null
+          sponsor_other?: string | null
           start_timeline?: string | null
           status?: string
+          test_attempts?: Json
+          travel_financial_services?: string[]
           updated_at?: string | null
           visa_lock_reason?: string | null
           visa_locked?: boolean | null
           visa_services?: string[] | null
+          work_experience?: Json
         }
         Update: {
+          active_attempt_ids?: Json
           admission_services?: string[] | null
           allied_services?: string[] | null
           assigned_counselor_id?: string | null
           b2b_partner_id?: string | null
           branch?: string | null
+          branch_id?: string | null
+          budget_currency?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
           coaching_services?: string[] | null
           cold_pool_campaign?: string | null
           converted_at?: string | null
@@ -12066,12 +12887,23 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           department?: string | null
+          education_history?: Json
           email?: string | null
+          english_overall?: string | null
+          english_sections?: Json
+          english_test?: string | null
+          english_test_date?: string | null
+          english_test_expiry?: string | null
+          english_test_status?: string | null
           first_name?: string
+          followup_channel?: string | null
+          followup_note?: string | null
           gender?: string | null
+          has_budget?: string | null
           id?: string
           interested_countries?: string[] | null
           is_cold_pool?: boolean | null
+          language_tests?: Json
           last_education?: string | null
           last_education_other?: string | null
           last_name?: string
@@ -12081,25 +12913,65 @@ export type Database = {
           lead_type?: string
           marital_status?: string | null
           middle_name?: string | null
+          next_followup_at?: string | null
           notes?: string | null
           notes_locked?: boolean | null
           notes_locked_at?: string | null
           notes_locked_by?: string | null
-          next_followup_at?: string | null
-          followup_channel?: string | null
-          followup_note?: string | null
+          other_tests?: Json
           phone?: string | null
           phone_country_code?: string | null
           priority?: string | null
           source?: string | null
+          sponsor?: string | null
+          sponsor_other?: string | null
           start_timeline?: string | null
           status?: string
+          test_attempts?: Json
+          travel_financial_services?: string[]
           updated_at?: string | null
           visa_lock_reason?: string | null
           visa_locked?: boolean | null
           visa_services?: string[] | null
+          work_experience?: Json
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "leads_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_converted_to_client_id_fkey"
+            columns: ["converted_to_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_converted_to_client_id_fkey"
+            columns: ["converted_to_client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_converted_to_client_id_fkey"
+            columns: ["converted_to_client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_converted_to_client_id_fkey"
+            columns: ["converted_to_client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+        ]
       }
       leave_balances: {
         Row: {
@@ -12150,46 +13022,58 @@ export type Database = {
       }
       leave_requests: {
         Row: {
+          cancelled_at: string | null
           created_at: string
           days: number
           document_id: string | null
+          duration_type: string
           employee_id: string
           from_date: string
+          half_day_part: string | null
           has_document: boolean
           id: string
           is_sandwich: boolean
           org_id: string
           reason: string | null
+          rejection_reason: string | null
           status: Database["public"]["Enums"]["request_status"]
           to_date: string
           type: Database["public"]["Enums"]["leave_type"]
         }
         Insert: {
+          cancelled_at?: string | null
           created_at?: string
           days: number
           document_id?: string | null
+          duration_type?: string
           employee_id: string
           from_date: string
+          half_day_part?: string | null
           has_document?: boolean
           id?: string
           is_sandwich?: boolean
           org_id: string
           reason?: string | null
+          rejection_reason?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           to_date: string
           type: Database["public"]["Enums"]["leave_type"]
         }
         Update: {
+          cancelled_at?: string | null
           created_at?: string
           days?: number
           document_id?: string | null
+          duration_type?: string
           employee_id?: string
           from_date?: string
+          half_day_part?: string | null
           has_document?: boolean
           id?: string
           is_sandwich?: boolean
           org_id?: string
           reason?: string | null
+          rejection_reason?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           to_date?: string
           type?: Database["public"]["Enums"]["leave_type"]
@@ -12306,18 +13190,21 @@ export type Database = {
           description: string | null
           key: string
           label: string
+          metadata: Json
         }
         Insert: {
           created_at?: string
           description?: string | null
           key: string
           label: string
+          metadata?: Json
         }
         Update: {
           created_at?: string
           description?: string | null
           key?: string
           label?: string
+          metadata?: Json
         }
         Relationships: []
       }
@@ -13777,6 +14664,47 @@ export type Database = {
         }
         Relationships: []
       }
+      payroll_cycle_snapshots: {
+        Row: {
+          captured_at: string
+          captured_by: string | null
+          cycle_id: string
+          id: string
+          meta_json: Json
+          org_id: string
+          policies_json: Json
+          snapshot_stage: string
+        }
+        Insert: {
+          captured_at?: string
+          captured_by?: string | null
+          cycle_id: string
+          id?: string
+          meta_json?: Json
+          org_id: string
+          policies_json?: Json
+          snapshot_stage: string
+        }
+        Update: {
+          captured_at?: string
+          captured_by?: string | null
+          cycle_id?: string
+          id?: string
+          meta_json?: Json
+          org_id?: string
+          policies_json?: Json
+          snapshot_stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_cycle_snapshots_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payroll_cycles: {
         Row: {
           approved_at: string | null
@@ -13786,7 +14714,11 @@ export type Database = {
           id: string
           label: string
           org_id: string
+          paid_at: string | null
+          paid_by: string | null
           payroll_days: number
+          processed_at: string | null
+          processed_by: string | null
           start_date: string
           status: Database["public"]["Enums"]["payroll_status"]
         }
@@ -13798,7 +14730,11 @@ export type Database = {
           id?: string
           label: string
           org_id: string
+          paid_at?: string | null
+          paid_by?: string | null
           payroll_days: number
+          processed_at?: string | null
+          processed_by?: string | null
           start_date: string
           status?: Database["public"]["Enums"]["payroll_status"]
         }
@@ -13810,11 +14746,66 @@ export type Database = {
           id?: string
           label?: string
           org_id?: string
+          paid_at?: string | null
+          paid_by?: string | null
           payroll_days?: number
+          processed_at?: string | null
+          processed_by?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["payroll_status"]
         }
         Relationships: []
+      }
+      payroll_line_snapshots: {
+        Row: {
+          cycle_id: string
+          detail_json: Json | null
+          employee_id: string
+          id: string
+          input_snapshot: Json | null
+          line_json: Json
+          locked_at: string
+          org_id: string
+          snapshot_stage: string
+        }
+        Insert: {
+          cycle_id: string
+          detail_json?: Json | null
+          employee_id: string
+          id?: string
+          input_snapshot?: Json | null
+          line_json: Json
+          locked_at?: string
+          org_id: string
+          snapshot_stage?: string
+        }
+        Update: {
+          cycle_id?: string
+          detail_json?: Json | null
+          employee_id?: string
+          id?: string
+          input_snapshot?: Json | null
+          line_json?: Json
+          locked_at?: string
+          org_id?: string
+          snapshot_stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_line_snapshots_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_line_snapshots_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payroll_lines: {
         Row: {
@@ -13838,6 +14829,7 @@ export type Database = {
           mispunch_deduction: number
           monthly_gross: number
           net_salary: number
+          off_shift_minutes: number
           org_id: string
           ot_minutes: number
           ot_pay: number
@@ -13873,6 +14865,7 @@ export type Database = {
           mispunch_deduction?: number
           monthly_gross: number
           net_salary: number
+          off_shift_minutes?: number
           org_id: string
           ot_minutes?: number
           ot_pay?: number
@@ -13908,6 +14901,7 @@ export type Database = {
           mispunch_deduction?: number
           monthly_gross?: number
           net_salary?: number
+          off_shift_minutes?: number
           org_id?: string
           ot_minutes?: number
           ot_pay?: number
@@ -14188,6 +15182,7 @@ export type Database = {
       profiles: {
         Row: {
           branch_id: string | null
+          can_approve_payments: boolean
           created_at: string
           deleted_at: string | null
           department_id: string | null
@@ -14203,6 +15198,7 @@ export type Database = {
         }
         Insert: {
           branch_id?: string | null
+          can_approve_payments?: boolean
           created_at?: string
           deleted_at?: string | null
           department_id?: string | null
@@ -14218,6 +15214,7 @@ export type Database = {
         }
         Update: {
           branch_id?: string | null
+          can_approve_payments?: boolean
           created_at?: string
           deleted_at?: string | null
           department_id?: string | null
@@ -14779,6 +15776,50 @@ export type Database = {
           screens?: Json
         }
         Relationships: []
+      }
+      salary_revision_history: {
+        Row: {
+          created_at: string
+          effective_date: string
+          employee_id: string
+          id: string
+          new_salary: number
+          old_salary: number
+          org_id: string
+          remarks: string | null
+          revised_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          effective_date: string
+          employee_id: string
+          id?: string
+          new_salary: number
+          old_salary: number
+          org_id: string
+          remarks?: string | null
+          revised_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          effective_date?: string
+          employee_id?: string
+          id?: string
+          new_salary?: number
+          old_salary?: number
+          org_id?: string
+          remarks?: string | null
+          revised_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_revision_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       salary_slips: {
         Row: {
@@ -15710,45 +16751,60 @@ export type Database = {
       shifts: {
         Row: {
           break_min: number
+          break_window_end: string | null
+          break_window_start: string | null
           created_at: string
+          full_day_after_min: number
           grace_min: number
           half_day_after_min: number
           id: string
           login_time: string
           logout_time: string
+          max_break_min: number
           name: string
           org_id: string
           ot_eligible: boolean
+          timezone: string
           type: Database["public"]["Enums"]["shift_type"]
           work_hours: number
           working_days_per_week: number
         }
         Insert: {
           break_min?: number
+          break_window_end?: string | null
+          break_window_start?: string | null
           created_at?: string
+          full_day_after_min?: number
           grace_min?: number
           half_day_after_min?: number
           id?: string
           login_time: string
           logout_time: string
+          max_break_min?: number
           name: string
           org_id: string
           ot_eligible?: boolean
+          timezone?: string
           type?: Database["public"]["Enums"]["shift_type"]
           work_hours?: number
           working_days_per_week?: number
         }
         Update: {
           break_min?: number
+          break_window_end?: string | null
+          break_window_start?: string | null
           created_at?: string
+          full_day_after_min?: number
           grace_min?: number
           half_day_after_min?: number
           id?: string
           login_time?: string
           logout_time?: string
+          max_break_min?: number
           name?: string
           org_id?: string
           ot_eligible?: boolean
+          timezone?: string
           type?: Database["public"]["Enums"]["shift_type"]
           work_hours?: number
           working_days_per_week?: number
@@ -15825,6 +16881,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          library_id: string | null
           name: string
           service_category: string
           updated_at: string
@@ -15835,6 +16892,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          library_id?: string | null
           name: string
           service_category: string
           updated_at?: string
@@ -15845,11 +16903,27 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          library_id?: string | null
           name?: string
           service_category?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stage_pipelines_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_pipelines_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "v_visa_content_health"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppressed_emails: {
         Row: {
@@ -16226,8 +17300,11 @@ export type Database = {
           change_summary: string | null
           created_at: string | null
           created_by: string | null
+          effective_from: string | null
+          effective_to: string | null
           file_path: string | null
           id: string
+          status: string | null
           version_number: number
         }
         Insert: {
@@ -16235,8 +17312,11 @@ export type Database = {
           change_summary?: string | null
           created_at?: string | null
           created_by?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
           file_path?: string | null
           id?: string
+          status?: string | null
           version_number: number
         }
         Update: {
@@ -16244,8 +17324,11 @@ export type Database = {
           change_summary?: string | null
           created_at?: string | null
           created_by?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
           file_path?: string | null
           id?: string
+          status?: string | null
           version_number?: number
         }
         Relationships: [
@@ -16444,6 +17527,84 @@ export type Database = {
         }
         Relationships: []
       }
+      upi_billing_profiles: {
+        Row: {
+          aggregator_id: string | null
+          billing_address: string | null
+          billing_email: string | null
+          billing_phone: string | null
+          created_at: string
+          default_invoice_currency: string
+          default_receipt_currency: string
+          id: string
+          institution_id: string
+          is_default: boolean
+          legal_entity_name: string | null
+          metadata: Json
+          payment_terms_days: number | null
+          profile_name: string
+          remittance_instructions: string | null
+          status: string
+          tax_registration_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          aggregator_id?: string | null
+          billing_address?: string | null
+          billing_email?: string | null
+          billing_phone?: string | null
+          created_at?: string
+          default_invoice_currency?: string
+          default_receipt_currency?: string
+          id?: string
+          institution_id: string
+          is_default?: boolean
+          legal_entity_name?: string | null
+          metadata?: Json
+          payment_terms_days?: number | null
+          profile_name: string
+          remittance_instructions?: string | null
+          status?: string
+          tax_registration_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          aggregator_id?: string | null
+          billing_address?: string | null
+          billing_email?: string | null
+          billing_phone?: string | null
+          created_at?: string
+          default_invoice_currency?: string
+          default_receipt_currency?: string
+          id?: string
+          institution_id?: string
+          is_default?: boolean
+          legal_entity_name?: string | null
+          metadata?: Json
+          payment_terms_days?: number | null
+          profile_name?: string
+          remittance_instructions?: string | null
+          status?: string
+          tax_registration_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_billing_profiles_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_billing_profiles_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upi_campuses: {
         Row: {
           address: string | null
@@ -16513,9 +17674,11 @@ export type Database = {
       upi_claim_cycles: {
         Row: {
           aggregator_id: string | null
+          aggregator_scope: boolean
           claim_due_date: string | null
           created_at: string
           currency: string | null
+          cycle_label: string | null
           id: string
           institution_id: string
           intake: string | null
@@ -16532,9 +17695,11 @@ export type Database = {
         }
         Insert: {
           aggregator_id?: string | null
+          aggregator_scope?: boolean
           claim_due_date?: string | null
           created_at?: string
           currency?: string | null
+          cycle_label?: string | null
           id?: string
           institution_id: string
           intake?: string | null
@@ -16551,9 +17716,11 @@ export type Database = {
         }
         Update: {
           aggregator_id?: string | null
+          aggregator_scope?: boolean
           claim_due_date?: string | null
           created_at?: string
           currency?: string | null
+          cycle_label?: string | null
           id?: string
           institution_id?: string
           intake?: string | null
@@ -16592,6 +17759,119 @@ export type Database = {
           },
         ]
       }
+      upi_commission_eligibility_configs: {
+        Row: {
+          aggregator_id: string | null
+          agreement_version_id: string | null
+          config_name: string
+          created_at: string
+          effective_from: string | null
+          effective_to: string | null
+          id: string
+          institution_id: string
+          metadata: Json
+          notes: string | null
+          partnership_route_id: string | null
+          status: string
+          trigger_params: Json
+          trigger_type: string
+          updated_at: string
+          version_number: number
+        }
+        Insert: {
+          aggregator_id?: string | null
+          agreement_version_id?: string | null
+          config_name: string
+          created_at?: string
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          institution_id: string
+          metadata?: Json
+          notes?: string | null
+          partnership_route_id?: string | null
+          status?: string
+          trigger_params?: Json
+          trigger_type?: string
+          updated_at?: string
+          version_number?: number
+        }
+        Update: {
+          aggregator_id?: string | null
+          agreement_version_id?: string | null
+          config_name?: string
+          created_at?: string
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          institution_id?: string
+          metadata?: Json
+          notes?: string | null
+          partnership_route_id?: string | null
+          status?: string
+          trigger_params?: Json
+          trigger_type?: string
+          updated_at?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_eligibility_configs_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_eligibility_configs_agreement_version_id_fkey"
+            columns: ["agreement_version_id"]
+            isOneToOne: false
+            referencedRelation: "upi_agreement_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_eligibility_configs_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_eligibility_configs_partnership_route_id_fkey"
+            columns: ["partnership_route_id"]
+            isOneToOne: false
+            referencedRelation: "upi_partnership_routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_commission_hold_reasons: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          is_active: boolean
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          is_active?: boolean
+          label: string
+          sort_order?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          is_active?: boolean
+          label?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       upi_commission_invoices: {
         Row: {
           agency_address: string | null
@@ -16599,7 +17879,11 @@ export type Database = {
           agency_gst_hst_number: string | null
           agency_name: string | null
           agency_phone: string | null
+          amount_outstanding: number | null
+          amount_received: number
           approved_date: string | null
+          base_currency: string | null
+          billing_profile_id: string | null
           claim_cycle_id: string | null
           commission_id: string | null
           created_at: string | null
@@ -16613,8 +17897,10 @@ export type Database = {
           institution_id: string | null
           institution_name: string | null
           internal_notes: string | null
+          invoice_currency: string | null
           invoice_date: string
           invoice_number: string
+          last_receipt_id: string | null
           metadata: Json | null
           notes: string | null
           overdue_since: string | null
@@ -16623,6 +17909,8 @@ export type Database = {
           payment_received_amount: number | null
           payment_received_date: string | null
           payment_reference: string | null
+          receipt_currency: string | null
+          short_paid: boolean
           status: string | null
           submitted_date: string | null
           subtotal: number
@@ -16638,7 +17926,11 @@ export type Database = {
           agency_gst_hst_number?: string | null
           agency_name?: string | null
           agency_phone?: string | null
+          amount_outstanding?: number | null
+          amount_received?: number
           approved_date?: string | null
+          base_currency?: string | null
+          billing_profile_id?: string | null
           claim_cycle_id?: string | null
           commission_id?: string | null
           created_at?: string | null
@@ -16652,8 +17944,10 @@ export type Database = {
           institution_id?: string | null
           institution_name?: string | null
           internal_notes?: string | null
+          invoice_currency?: string | null
           invoice_date: string
           invoice_number: string
+          last_receipt_id?: string | null
           metadata?: Json | null
           notes?: string | null
           overdue_since?: string | null
@@ -16662,6 +17956,8 @@ export type Database = {
           payment_received_amount?: number | null
           payment_received_date?: string | null
           payment_reference?: string | null
+          receipt_currency?: string | null
+          short_paid?: boolean
           status?: string | null
           submitted_date?: string | null
           subtotal?: number
@@ -16677,7 +17973,11 @@ export type Database = {
           agency_gst_hst_number?: string | null
           agency_name?: string | null
           agency_phone?: string | null
+          amount_outstanding?: number | null
+          amount_received?: number
           approved_date?: string | null
+          base_currency?: string | null
+          billing_profile_id?: string | null
           claim_cycle_id?: string | null
           commission_id?: string | null
           created_at?: string | null
@@ -16691,8 +17991,10 @@ export type Database = {
           institution_id?: string | null
           institution_name?: string | null
           internal_notes?: string | null
+          invoice_currency?: string | null
           invoice_date?: string
           invoice_number?: string
+          last_receipt_id?: string | null
           metadata?: Json | null
           notes?: string | null
           overdue_since?: string | null
@@ -16701,6 +18003,8 @@ export type Database = {
           payment_received_amount?: number | null
           payment_received_date?: string | null
           payment_reference?: string | null
+          receipt_currency?: string | null
+          short_paid?: boolean
           status?: string | null
           submitted_date?: string | null
           subtotal?: number
@@ -16711,6 +18015,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "upi_commission_invoices_billing_profile_id_fkey"
+            columns: ["billing_profile_id"]
+            isOneToOne: false
+            referencedRelation: "upi_billing_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "upi_commission_invoices_claim_cycle_id_fkey"
             columns: ["claim_cycle_id"]
@@ -16727,6 +18038,468 @@ export type Database = {
           },
           {
             foreignKeyName: "upi_commission_invoices_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_invoices_last_receipt_id_fkey"
+            columns: ["last_receipt_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_receipts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_invoices_last_receipt_id_fkey"
+            columns: ["last_receipt_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_receipts_in_progress"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_commission_periods: {
+        Row: {
+          code: string
+          description: string | null
+          is_active: boolean
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          code: string
+          description?: string | null
+          is_active?: boolean
+          label: string
+          sort_order?: number
+        }
+        Update: {
+          code?: string
+          description?: string | null
+          is_active?: boolean
+          label?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      upi_commission_receipt_attachments: {
+        Row: {
+          attachment_type: string
+          created_at: string
+          file_name: string
+          file_size_bytes: number | null
+          id: string
+          mime_type: string | null
+          receipt_id: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          attachment_type: string
+          created_at?: string
+          file_name: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          receipt_id: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          attachment_type?: string
+          created_at?: string
+          file_name?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          receipt_id?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_receipt_attachments_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_receipts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipt_attachments_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_receipts_in_progress"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_commission_receipt_invoice_allocations: {
+        Row: {
+          allocated_at: string
+          allocated_by: string | null
+          amount_allocated: number
+          currency: string
+          id: string
+          invoice_id: string
+          receipt_id: string
+        }
+        Insert: {
+          allocated_at?: string
+          allocated_by?: string | null
+          amount_allocated: number
+          currency?: string
+          id?: string
+          invoice_id: string
+          receipt_id: string
+        }
+        Update: {
+          allocated_at?: string
+          allocated_by?: string | null
+          amount_allocated?: number
+          currency?: string
+          id?: string
+          invoice_id?: string
+          receipt_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_receipt_invoice_allocations_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipt_invoice_allocations_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_receipt_open_items"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipt_invoice_allocations_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_receipts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipt_invoice_allocations_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_receipts_in_progress"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_commission_receipt_student_allocations: {
+        Row: {
+          allocated_at: string
+          allocated_by: string | null
+          allocation_method: string
+          amount_allocated: number
+          currency: string
+          id: string
+          invoice_allocation_id: string
+          invoice_line_item_id: string | null
+          receipt_id: string
+          snapshot_id: string | null
+          student_commission_id: string
+        }
+        Insert: {
+          allocated_at?: string
+          allocated_by?: string | null
+          allocation_method?: string
+          amount_allocated: number
+          currency?: string
+          id?: string
+          invoice_allocation_id: string
+          invoice_line_item_id?: string | null
+          receipt_id: string
+          snapshot_id?: string | null
+          student_commission_id: string
+        }
+        Update: {
+          allocated_at?: string
+          allocated_by?: string | null
+          allocation_method?: string
+          amount_allocated?: number
+          currency?: string
+          id?: string
+          invoice_allocation_id?: string
+          invoice_line_item_id?: string | null
+          receipt_id?: string
+          snapshot_id?: string | null
+          student_commission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_receipt_student_alloc_invoice_allocation_id_fkey"
+            columns: ["invoice_allocation_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_receipt_invoice_allocations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipt_student_alloc_student_commission_id_fkey"
+            columns: ["student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipt_student_alloc_student_commission_id_fkey"
+            columns: ["student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "v_client_commission_status"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipt_student_alloc_student_commission_id_fkey"
+            columns: ["student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_student_receipt_ledger"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipt_student_alloca_invoice_line_item_id_fkey"
+            columns: ["invoice_line_item_id"]
+            isOneToOne: false
+            referencedRelation: "upi_invoice_line_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipt_student_allocations_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_receipts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipt_student_allocations_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_receipts_in_progress"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipt_student_allocations_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_commission_receipts: {
+        Row: {
+          accounting_journal_id: string | null
+          aggregator_id: string | null
+          amount_allocated: number
+          bank_reference: string | null
+          base_amount: number | null
+          base_currency: string
+          context_institution_id: string | null
+          created_at: string
+          created_by: string | null
+          exchange_rate: number
+          fx_review_notes: string | null
+          fx_review_status: string
+          fx_reviewed_at: string | null
+          fx_reviewed_by: string | null
+          id: string
+          institution_id: string | null
+          metadata: Json
+          notes: string | null
+          payer_id: string
+          payer_name_snapshot: string
+          payer_type: string
+          payment_method: string | null
+          posted_at: string | null
+          posted_by: string | null
+          posting_date: string | null
+          ready_at: string | null
+          ready_by: string | null
+          receipt_amount: number
+          receipt_currency: string
+          receipt_date: string
+          receipt_number: string
+          remittance_batch_id: string | null
+          remittance_reference: string | null
+          status: string
+          unallocated_amount: number
+          updated_at: string
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          accounting_journal_id?: string | null
+          aggregator_id?: string | null
+          amount_allocated?: number
+          bank_reference?: string | null
+          base_amount?: number | null
+          base_currency?: string
+          context_institution_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          exchange_rate?: number
+          fx_review_notes?: string | null
+          fx_review_status?: string
+          fx_reviewed_at?: string | null
+          fx_reviewed_by?: string | null
+          id?: string
+          institution_id?: string | null
+          metadata?: Json
+          notes?: string | null
+          payer_id: string
+          payer_name_snapshot: string
+          payer_type: string
+          payment_method?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string | null
+          ready_at?: string | null
+          ready_by?: string | null
+          receipt_amount: number
+          receipt_currency?: string
+          receipt_date?: string
+          receipt_number: string
+          remittance_batch_id?: string | null
+          remittance_reference?: string | null
+          status?: string
+          unallocated_amount?: number
+          updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          accounting_journal_id?: string | null
+          aggregator_id?: string | null
+          amount_allocated?: number
+          bank_reference?: string | null
+          base_amount?: number | null
+          base_currency?: string
+          context_institution_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          exchange_rate?: number
+          fx_review_notes?: string | null
+          fx_review_status?: string
+          fx_reviewed_at?: string | null
+          fx_reviewed_by?: string | null
+          id?: string
+          institution_id?: string | null
+          metadata?: Json
+          notes?: string | null
+          payer_id?: string
+          payer_name_snapshot?: string
+          payer_type?: string
+          payment_method?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string | null
+          ready_at?: string | null
+          ready_by?: string | null
+          receipt_amount?: number
+          receipt_currency?: string
+          receipt_date?: string
+          receipt_number?: string
+          remittance_batch_id?: string | null
+          remittance_reference?: string | null
+          status?: string
+          unallocated_amount?: number
+          updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_receipts_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_context_institution_id_fkey"
+            columns: ["context_institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_remittance_batch_id_fkey"
+            columns: ["remittance_batch_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_remittance_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_commission_remittance_batches: {
+        Row: {
+          aggregator_id: string | null
+          batch_reference: string
+          created_at: string
+          currency: string
+          id: string
+          institution_id: string | null
+          notes: string | null
+          payer_type: string
+          received_date: string | null
+          status: string
+          total_amount: number | null
+          updated_at: string
+        }
+        Insert: {
+          aggregator_id?: string | null
+          batch_reference: string
+          created_at?: string
+          currency?: string
+          id?: string
+          institution_id?: string | null
+          notes?: string | null
+          payer_type: string
+          received_date?: string | null
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
+        }
+        Update: {
+          aggregator_id?: string | null
+          batch_reference?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          institution_id?: string | null
+          notes?: string | null
+          payer_type?: string
+          received_date?: string | null
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_remittance_batches_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_remittance_batches_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
@@ -16751,8 +18524,15 @@ export type Database = {
           payout_amount: number | null
           payout_currency: string | null
           payout_type: string | null
+          precedence_rank: number | null
           rule_name: string | null
           rule_type: string | null
+          scope_campus: string | null
+          scope_country: string | null
+          scope_intake: string | null
+          scope_program_category: string | null
+          scope_program_code: string | null
+          scope_promotion_id: string | null
           sort_order: number | null
         }
         Insert: {
@@ -16771,8 +18551,15 @@ export type Database = {
           payout_amount?: number | null
           payout_currency?: string | null
           payout_type?: string | null
+          precedence_rank?: number | null
           rule_name?: string | null
           rule_type?: string | null
+          scope_campus?: string | null
+          scope_country?: string | null
+          scope_intake?: string | null
+          scope_program_category?: string | null
+          scope_program_code?: string | null
+          scope_promotion_id?: string | null
           sort_order?: number | null
         }
         Update: {
@@ -16791,8 +18578,15 @@ export type Database = {
           payout_amount?: number | null
           payout_currency?: string | null
           payout_type?: string | null
+          precedence_rank?: number | null
           rule_name?: string | null
           rule_type?: string | null
+          scope_campus?: string | null
+          scope_country?: string | null
+          scope_intake?: string | null
+          scope_program_category?: string | null
+          scope_program_code?: string | null
+          scope_promotion_id?: string | null
           sort_order?: number | null
         }
         Relationships: [
@@ -16808,47 +18602,80 @@ export type Database = {
       upi_commission_snapshots: {
         Row: {
           aggregator_id: string | null
+          agreement_version_id: string | null
           breakdown_json: Json
           calculated_at: string
+          campus: string | null
           channel_type: string | null
           commission_id: string | null
+          country: string | null
           currency: string | null
+          eligibility_date: string | null
+          expected_amount: number | null
           id: string
           input_json: Json
           institution_id: string | null
+          intake_term: string | null
+          matched_rule_id: string | null
           metadata: Json
           partnership_route_id: string | null
+          program_category: string | null
+          program_name: string | null
           rules_json: Json
+          snapshot_payload: Json
+          student_commission_id: string | null
           total_amount: number | null
         }
         Insert: {
           aggregator_id?: string | null
+          agreement_version_id?: string | null
           breakdown_json?: Json
           calculated_at?: string
+          campus?: string | null
           channel_type?: string | null
           commission_id?: string | null
+          country?: string | null
           currency?: string | null
+          eligibility_date?: string | null
+          expected_amount?: number | null
           id?: string
           input_json?: Json
           institution_id?: string | null
+          intake_term?: string | null
+          matched_rule_id?: string | null
           metadata?: Json
           partnership_route_id?: string | null
+          program_category?: string | null
+          program_name?: string | null
           rules_json?: Json
+          snapshot_payload?: Json
+          student_commission_id?: string | null
           total_amount?: number | null
         }
         Update: {
           aggregator_id?: string | null
+          agreement_version_id?: string | null
           breakdown_json?: Json
           calculated_at?: string
+          campus?: string | null
           channel_type?: string | null
           commission_id?: string | null
+          country?: string | null
           currency?: string | null
+          eligibility_date?: string | null
+          expected_amount?: number | null
           id?: string
           input_json?: Json
           institution_id?: string | null
+          intake_term?: string | null
+          matched_rule_id?: string | null
           metadata?: Json
           partnership_route_id?: string | null
+          program_category?: string | null
+          program_name?: string | null
           rules_json?: Json
+          snapshot_payload?: Json
+          student_commission_id?: string | null
           total_amount?: number | null
         }
         Relationships: [
@@ -16857,6 +18684,13 @@ export type Database = {
             columns: ["aggregator_id"]
             isOneToOne: false
             referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_snapshots_agreement_version_id_fkey"
+            columns: ["agreement_version_id"]
+            isOneToOne: false
+            referencedRelation: "upi_agreement_versions"
             referencedColumns: ["id"]
           },
           {
@@ -16874,17 +18708,52 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "upi_commission_snapshots_matched_rule_id_fkey"
+            columns: ["matched_rule_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_rules"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_commission_snapshots_partnership_route_id_fkey"
             columns: ["partnership_route_id"]
             isOneToOne: false
             referencedRelation: "upi_partnership_routes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "upi_commission_snapshots_student_commission_id_fkey"
+            columns: ["student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_snapshots_student_commission_id_fkey"
+            columns: ["student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "v_client_commission_status"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_snapshots_student_commission_id_fkey"
+            columns: ["student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_student_receipt_ledger"
+            referencedColumns: ["student_commission_id"]
+          },
         ]
       }
       upi_commission_students: {
         Row: {
           aggregator_id: string | null
+          agreement_version_id: string | null
+          amended_expected_amount: number | null
+          amount_outstanding: number | null
+          amount_received: number
+          approved_amount: number | null
+          base_currency: string | null
+          billing_profile_id: string | null
           block_notes: string | null
           block_reason: string | null
           campus: string | null
@@ -16894,11 +18763,16 @@ export type Database = {
           cas_issued_date: string | null
           channel_type: string | null
           claim_cycle_id: string
+          claim_status: string | null
+          clawback_amount: number | null
+          clawback_status: string | null
           client_id: string | null
           commission_amount: number | null
           commission_calculated_date: string | null
           commission_id: string | null
           commission_paid_date: string | null
+          commission_period_code: string | null
+          commission_period_label: string | null
           commission_rate_applied: number | null
           commission_snapshot_id: string | null
           commission_status: string | null
@@ -16909,25 +18783,41 @@ export type Database = {
           consent_withdrawal_date: string | null
           country_of_origin: string | null
           created_at: string | null
+          eligibility_config_id: string | null
+          eligibility_date: string | null
+          eligibility_status: string | null
           enrollment_confirmed_date: string | null
           enrollment_status: string | null
+          expected_amount: number | null
+          expected_claim_date: string | null
+          hold_notes: string | null
+          hold_reason: string | null
+          hold_status: string | null
           id: string
           institution_id: string | null
+          institution_reference_number: string | null
           institution_validation_notes: string | null
           intake_month: string | null
           intake_term: string | null
           intake_year: number | null
+          invoice_currency: string | null
           invoice_id: string | null
           is_carried_forward: boolean | null
           is_full_time: boolean | null
+          last_receipt_id: string | null
+          matched_rule_id: string | null
           metadata: Json | null
           nationality: string | null
           partnership_route_id: string | null
           passport_number: string | null
+          payment_status: string | null
           program_duration: string | null
           program_level: string | null
           program_name: string
+          receipt_currency: string | null
           registered_credits: number | null
+          remittance_reference_number: string | null
+          snapshot_currency: string | null
           student_email: string | null
           student_id_at_institution: string | null
           student_name: string
@@ -16946,6 +18836,13 @@ export type Database = {
         }
         Insert: {
           aggregator_id?: string | null
+          agreement_version_id?: string | null
+          amended_expected_amount?: number | null
+          amount_outstanding?: number | null
+          amount_received?: number
+          approved_amount?: number | null
+          base_currency?: string | null
+          billing_profile_id?: string | null
           block_notes?: string | null
           block_reason?: string | null
           campus?: string | null
@@ -16955,11 +18852,16 @@ export type Database = {
           cas_issued_date?: string | null
           channel_type?: string | null
           claim_cycle_id: string
+          claim_status?: string | null
+          clawback_amount?: number | null
+          clawback_status?: string | null
           client_id?: string | null
           commission_amount?: number | null
           commission_calculated_date?: string | null
           commission_id?: string | null
           commission_paid_date?: string | null
+          commission_period_code?: string | null
+          commission_period_label?: string | null
           commission_rate_applied?: number | null
           commission_snapshot_id?: string | null
           commission_status?: string | null
@@ -16970,25 +18872,41 @@ export type Database = {
           consent_withdrawal_date?: string | null
           country_of_origin?: string | null
           created_at?: string | null
+          eligibility_config_id?: string | null
+          eligibility_date?: string | null
+          eligibility_status?: string | null
           enrollment_confirmed_date?: string | null
           enrollment_status?: string | null
+          expected_amount?: number | null
+          expected_claim_date?: string | null
+          hold_notes?: string | null
+          hold_reason?: string | null
+          hold_status?: string | null
           id?: string
           institution_id?: string | null
+          institution_reference_number?: string | null
           institution_validation_notes?: string | null
           intake_month?: string | null
           intake_term?: string | null
           intake_year?: number | null
+          invoice_currency?: string | null
           invoice_id?: string | null
           is_carried_forward?: boolean | null
           is_full_time?: boolean | null
+          last_receipt_id?: string | null
+          matched_rule_id?: string | null
           metadata?: Json | null
           nationality?: string | null
           partnership_route_id?: string | null
           passport_number?: string | null
+          payment_status?: string | null
           program_duration?: string | null
           program_level?: string | null
           program_name: string
+          receipt_currency?: string | null
           registered_credits?: number | null
+          remittance_reference_number?: string | null
+          snapshot_currency?: string | null
           student_email?: string | null
           student_id_at_institution?: string | null
           student_name: string
@@ -17007,6 +18925,13 @@ export type Database = {
         }
         Update: {
           aggregator_id?: string | null
+          agreement_version_id?: string | null
+          amended_expected_amount?: number | null
+          amount_outstanding?: number | null
+          amount_received?: number
+          approved_amount?: number | null
+          base_currency?: string | null
+          billing_profile_id?: string | null
           block_notes?: string | null
           block_reason?: string | null
           campus?: string | null
@@ -17016,11 +18941,16 @@ export type Database = {
           cas_issued_date?: string | null
           channel_type?: string | null
           claim_cycle_id?: string
+          claim_status?: string | null
+          clawback_amount?: number | null
+          clawback_status?: string | null
           client_id?: string | null
           commission_amount?: number | null
           commission_calculated_date?: string | null
           commission_id?: string | null
           commission_paid_date?: string | null
+          commission_period_code?: string | null
+          commission_period_label?: string | null
           commission_rate_applied?: number | null
           commission_snapshot_id?: string | null
           commission_status?: string | null
@@ -17031,25 +18961,41 @@ export type Database = {
           consent_withdrawal_date?: string | null
           country_of_origin?: string | null
           created_at?: string | null
+          eligibility_config_id?: string | null
+          eligibility_date?: string | null
+          eligibility_status?: string | null
           enrollment_confirmed_date?: string | null
           enrollment_status?: string | null
+          expected_amount?: number | null
+          expected_claim_date?: string | null
+          hold_notes?: string | null
+          hold_reason?: string | null
+          hold_status?: string | null
           id?: string
           institution_id?: string | null
+          institution_reference_number?: string | null
           institution_validation_notes?: string | null
           intake_month?: string | null
           intake_term?: string | null
           intake_year?: number | null
+          invoice_currency?: string | null
           invoice_id?: string | null
           is_carried_forward?: boolean | null
           is_full_time?: boolean | null
+          last_receipt_id?: string | null
+          matched_rule_id?: string | null
           metadata?: Json | null
           nationality?: string | null
           partnership_route_id?: string | null
           passport_number?: string | null
+          payment_status?: string | null
           program_duration?: string | null
           program_level?: string | null
           program_name?: string
+          receipt_currency?: string | null
           registered_credits?: number | null
+          remittance_reference_number?: string | null
+          snapshot_currency?: string | null
           student_email?: string | null
           student_id_at_institution?: string | null
           student_name?: string
@@ -17075,6 +19021,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "upi_commission_students_agreement_version_id_fkey"
+            columns: ["agreement_version_id"]
+            isOneToOne: false
+            referencedRelation: "upi_agreement_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_billing_profile_id_fkey"
+            columns: ["billing_profile_id"]
+            isOneToOne: false
+            referencedRelation: "upi_billing_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_commission_students_claim_cycle_id_fkey"
             columns: ["claim_cycle_id"]
             isOneToOne: false
@@ -17096,10 +19056,38 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "upi_commission_students_eligibility_config_id_fkey"
+            columns: ["eligibility_config_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_eligibility_configs"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_commission_students_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_last_receipt_id_fkey"
+            columns: ["last_receipt_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_receipts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_last_receipt_id_fkey"
+            columns: ["last_receipt_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_receipts_in_progress"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_matched_rule_id_fkey"
+            columns: ["matched_rule_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_rules"
             referencedColumns: ["id"]
           },
           {
@@ -17111,10 +19099,153 @@ export type Database = {
           },
         ]
       }
+      upi_commission_transfer_events: {
+        Row: {
+          created_at: string
+          event_status: string
+          from_institution_id: string | null
+          from_route_id: string | null
+          id: string
+          initiated_at: string
+          initiated_by: string | null
+          institution_id: string
+          metadata: Json
+          notes: string | null
+          outcome: string | null
+          replacement_student_commission_id: string | null
+          resolved_at: string | null
+          source_student_commission_id: string
+          to_institution_id: string | null
+          to_route_id: string | null
+          transfer_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_status?: string
+          from_institution_id?: string | null
+          from_route_id?: string | null
+          id?: string
+          initiated_at?: string
+          initiated_by?: string | null
+          institution_id: string
+          metadata?: Json
+          notes?: string | null
+          outcome?: string | null
+          replacement_student_commission_id?: string | null
+          resolved_at?: string | null
+          source_student_commission_id: string
+          to_institution_id?: string | null
+          to_route_id?: string | null
+          transfer_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_status?: string
+          from_institution_id?: string | null
+          from_route_id?: string | null
+          id?: string
+          initiated_at?: string
+          initiated_by?: string | null
+          institution_id?: string
+          metadata?: Json
+          notes?: string | null
+          outcome?: string | null
+          replacement_student_commission_id?: string | null
+          resolved_at?: string | null
+          source_student_commission_id?: string
+          to_institution_id?: string | null
+          to_route_id?: string | null
+          transfer_reason?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_transfer_event_replacement_student_commissi_fkey"
+            columns: ["replacement_student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_event_replacement_student_commissi_fkey"
+            columns: ["replacement_student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "v_client_commission_status"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_event_replacement_student_commissi_fkey"
+            columns: ["replacement_student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_student_receipt_ledger"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_event_source_student_commission_id_fkey"
+            columns: ["source_student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_event_source_student_commission_id_fkey"
+            columns: ["source_student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "v_client_commission_status"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_event_source_student_commission_id_fkey"
+            columns: ["source_student_commission_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_student_receipt_ledger"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_events_from_institution_id_fkey"
+            columns: ["from_institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_events_from_route_id_fkey"
+            columns: ["from_route_id"]
+            isOneToOne: false
+            referencedRelation: "upi_partnership_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_events_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_events_to_institution_id_fkey"
+            columns: ["to_institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_events_to_route_id_fkey"
+            columns: ["to_route_id"]
+            isOneToOne: false
+            referencedRelation: "upi_partnership_routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upi_commissions: {
         Row: {
           aggregator_id: string | null
           agreement_id: string | null
+          agreement_version_id: string | null
+          base_rate_percent: number | null
           created_at: string | null
           currency: string | null
           description: string | null
@@ -17129,6 +19260,8 @@ export type Database = {
           name: string
           notes: string | null
           partnership_route_id: string | null
+          published_at: string | null
+          published_by: string | null
           source: string | null
           updated_at: string | null
           version: number | null
@@ -17136,6 +19269,8 @@ export type Database = {
         Insert: {
           aggregator_id?: string | null
           agreement_id?: string | null
+          agreement_version_id?: string | null
+          base_rate_percent?: number | null
           created_at?: string | null
           currency?: string | null
           description?: string | null
@@ -17150,6 +19285,8 @@ export type Database = {
           name: string
           notes?: string | null
           partnership_route_id?: string | null
+          published_at?: string | null
+          published_by?: string | null
           source?: string | null
           updated_at?: string | null
           version?: number | null
@@ -17157,6 +19294,8 @@ export type Database = {
         Update: {
           aggregator_id?: string | null
           agreement_id?: string | null
+          agreement_version_id?: string | null
+          base_rate_percent?: number | null
           created_at?: string | null
           currency?: string | null
           description?: string | null
@@ -17171,6 +19310,8 @@ export type Database = {
           name?: string
           notes?: string | null
           partnership_route_id?: string | null
+          published_at?: string | null
+          published_by?: string | null
           source?: string | null
           updated_at?: string | null
           version?: number | null
@@ -17188,6 +19329,13 @@ export type Database = {
             columns: ["agreement_id"]
             isOneToOne: false
             referencedRelation: "upi_agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commissions_agreement_version_id_fkey"
+            columns: ["agreement_version_id"]
+            isOneToOne: false
+            referencedRelation: "upi_agreement_versions"
             referencedColumns: ["id"]
           },
           {
@@ -17919,48 +20067,67 @@ export type Database = {
       }
       upi_invoice_line_items: {
         Row: {
+          amount_received: number
+          commission_period_code: string | null
           commission_rate: number | null
           description: string
           id: string
           intake_term: string | null
           invoice_id: string
           line_amount: number
+          line_outstanding: number | null
           notes: string | null
           program_name: string | null
+          snapshot_id: string | null
           sort_order: number | null
           student_id: string | null
           student_name: string | null
           tuition_amount: number | null
         }
         Insert: {
+          amount_received?: number
+          commission_period_code?: string | null
           commission_rate?: number | null
           description: string
           id?: string
           intake_term?: string | null
           invoice_id: string
           line_amount: number
+          line_outstanding?: number | null
           notes?: string | null
           program_name?: string | null
+          snapshot_id?: string | null
           sort_order?: number | null
           student_id?: string | null
           student_name?: string | null
           tuition_amount?: number | null
         }
         Update: {
+          amount_received?: number
+          commission_period_code?: string | null
           commission_rate?: number | null
           description?: string
           id?: string
           intake_term?: string | null
           invoice_id?: string
           line_amount?: number
+          line_outstanding?: number | null
           notes?: string | null
           program_name?: string | null
+          snapshot_id?: string | null
           sort_order?: number | null
           student_id?: string | null
           student_name?: string | null
           tuition_amount?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "upi_invoice_line_items_commission_period_code_fkey"
+            columns: ["commission_period_code"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_periods"
+            referencedColumns: ["code"]
+          },
           {
             foreignKeyName: "upi_invoice_line_items_invoice_id_fkey"
             columns: ["invoice_id"]
@@ -17969,11 +20136,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "upi_invoice_line_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_receipt_open_items"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "upi_invoice_line_items_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_snapshots"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_invoice_line_items_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "upi_commission_students"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_invoice_line_items_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_client_commission_status"
+            referencedColumns: ["student_commission_id"]
+          },
+          {
+            foreignKeyName: "upi_invoice_line_items_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_student_receipt_ledger"
+            referencedColumns: ["student_commission_id"]
           },
         ]
       }
@@ -18160,6 +20355,7 @@ export type Database = {
           commission_model: string | null
           commission_rate: number | null
           created_at: string
+          default_commission_id: string | null
           display_name: string
           estimated_payout_days: number | null
           id: string
@@ -18190,6 +20386,7 @@ export type Database = {
           commission_model?: string | null
           commission_rate?: number | null
           created_at?: string
+          default_commission_id?: string | null
           display_name: string
           estimated_payout_days?: number | null
           id?: string
@@ -18220,6 +20417,7 @@ export type Database = {
           commission_model?: string | null
           commission_rate?: number | null
           created_at?: string
+          default_commission_id?: string | null
           display_name?: string
           estimated_payout_days?: number | null
           id?: string
@@ -18251,6 +20449,13 @@ export type Database = {
             columns: ["agreement_id"]
             isOneToOne: false
             referencedRelation: "upi_agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_partnership_routes_default_commission_id_fkey"
+            columns: ["default_commission_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commissions"
             referencedColumns: ["id"]
           },
           {
@@ -20141,6 +22346,34 @@ export type Database = {
           },
         ]
       }
+      v_client_commission_status: {
+        Row: {
+          claim_status: string | null
+          client_id: string | null
+          commission_period_code: string | null
+          eligibility_date: string | null
+          eligibility_status: string | null
+          expected_claim_date: string | null
+          hold_reason: string | null
+          hold_status: string | null
+          institution_id: string | null
+          institution_name: string | null
+          intake_term: string | null
+          legacy_status: string | null
+          payment_status: string | null
+          program_name: string | null
+          student_commission_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_clients_masked: {
         Row: {
           application_id: string | null
@@ -20221,6 +22454,246 @@ export type Database = {
           },
         ]
       }
+      v_commission_receipt_open_items: {
+        Row: {
+          amount_outstanding: number | null
+          amount_received: number | null
+          currency: string | null
+          institution_id: string | null
+          invoice_id: string | null
+          invoice_number: string | null
+          status: string | null
+          total_amount: number | null
+        }
+        Insert: {
+          amount_outstanding?: never
+          amount_received?: number | null
+          currency?: string | null
+          institution_id?: string | null
+          invoice_id?: string | null
+          invoice_number?: string | null
+          status?: string | null
+          total_amount?: number | null
+        }
+        Update: {
+          amount_outstanding?: never
+          amount_received?: number | null
+          currency?: string | null
+          institution_id?: string | null
+          invoice_id?: string | null
+          invoice_number?: string | null
+          status?: string | null
+          total_amount?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_invoices_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_commission_receipts_in_progress: {
+        Row: {
+          accounting_journal_id: string | null
+          aggregator_id: string | null
+          amount_allocated: number | null
+          bank_reference: string | null
+          base_amount: number | null
+          base_currency: string | null
+          context_institution_id: string | null
+          created_at: string | null
+          created_by: string | null
+          exchange_rate: number | null
+          fx_review_notes: string | null
+          fx_review_status: string | null
+          fx_reviewed_at: string | null
+          fx_reviewed_by: string | null
+          id: string | null
+          institution_id: string | null
+          metadata: Json | null
+          notes: string | null
+          payer_id: string | null
+          payer_name_snapshot: string | null
+          payer_type: string | null
+          payment_method: string | null
+          posted_at: string | null
+          posted_by: string | null
+          posting_date: string | null
+          ready_at: string | null
+          ready_by: string | null
+          receipt_amount: number | null
+          receipt_currency: string | null
+          receipt_date: string | null
+          receipt_number: string | null
+          remittance_batch_id: string | null
+          remittance_reference: string | null
+          status: string | null
+          unallocated_amount: number | null
+          updated_at: string | null
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          accounting_journal_id?: string | null
+          aggregator_id?: string | null
+          amount_allocated?: number | null
+          bank_reference?: string | null
+          base_amount?: number | null
+          base_currency?: string | null
+          context_institution_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          exchange_rate?: number | null
+          fx_review_notes?: string | null
+          fx_review_status?: string | null
+          fx_reviewed_at?: string | null
+          fx_reviewed_by?: string | null
+          id?: string | null
+          institution_id?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          payer_id?: string | null
+          payer_name_snapshot?: string | null
+          payer_type?: string | null
+          payment_method?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string | null
+          ready_at?: string | null
+          ready_by?: string | null
+          receipt_amount?: number | null
+          receipt_currency?: string | null
+          receipt_date?: string | null
+          receipt_number?: string | null
+          remittance_batch_id?: string | null
+          remittance_reference?: string | null
+          status?: string | null
+          unallocated_amount?: number | null
+          updated_at?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          accounting_journal_id?: string | null
+          aggregator_id?: string | null
+          amount_allocated?: number | null
+          bank_reference?: string | null
+          base_amount?: number | null
+          base_currency?: string | null
+          context_institution_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          exchange_rate?: number | null
+          fx_review_notes?: string | null
+          fx_review_status?: string | null
+          fx_reviewed_at?: string | null
+          fx_reviewed_by?: string | null
+          id?: string | null
+          institution_id?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          payer_id?: string | null
+          payer_name_snapshot?: string | null
+          payer_type?: string | null
+          payment_method?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string | null
+          ready_at?: string | null
+          ready_by?: string | null
+          receipt_amount?: number | null
+          receipt_currency?: string | null
+          receipt_date?: string | null
+          receipt_number?: string | null
+          remittance_batch_id?: string | null
+          remittance_reference?: string | null
+          status?: string | null
+          unallocated_amount?: number | null
+          updated_at?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_receipts_aggregator_id_fkey"
+            columns: ["aggregator_id"]
+            isOneToOne: false
+            referencedRelation: "upi_aggregators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_context_institution_id_fkey"
+            columns: ["context_institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_remittance_batch_id_fkey"
+            columns: ["remittance_batch_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_remittance_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_commission_student_receipt_ledger: {
+        Row: {
+          amount_outstanding: number | null
+          amount_received: number | null
+          claim_status: string | null
+          eligibility_status: string | null
+          expected_amount: number | null
+          institution_id: string | null
+          payment_status: string | null
+          student_commission_id: string | null
+          student_name: string | null
+        }
+        Insert: {
+          amount_outstanding?: never
+          amount_received?: number | null
+          claim_status?: string | null
+          eligibility_status?: string | null
+          expected_amount?: never
+          institution_id?: string | null
+          payment_status?: string | null
+          student_commission_id?: string | null
+          student_name?: string | null
+        }
+        Update: {
+          amount_outstanding?: never
+          amount_received?: number | null
+          claim_status?: string | null
+          eligibility_status?: string | null
+          expected_amount?: never
+          institution_id?: string | null
+          payment_status?: string | null
+          student_commission_id?: string | null
+          student_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_payroll_preview: {
         Row: {
           basic: number | null
@@ -20259,6 +22732,7 @@ export type Database = {
           payable_days: number | null
           payroll_days: number | null
           pf_employee: number | null
+          pt_employee: number | null
           sandwich_count: number | null
           ul_count: number | null
           unpaid_training: number | null
@@ -20446,11 +22920,20 @@ export type Database = {
       }
     }
     Functions: {
+      _assert_can_edit_lead: {
+        Args: { _lead_id: string; _uid: string }
+        Returns: undefined
+      }
+      _assert_can_manage_leads: { Args: { _uid: string }; Returns: undefined }
       _canonical_study_library_id: {
         Args: { _dest_country: string }
         Returns: string
       }
       _first_pipeline_stage: { Args: { _pipeline_id: string }; Returns: string }
+      _lead_json_text_array: {
+        Args: { _data: Json; _key: string }
+        Returns: string[]
+      }
       _legacy_client_dest_country: {
         Args: {
           _application_type: string
@@ -20478,6 +22961,139 @@ export type Database = {
       assessment_lead_has_creator: {
         Args: { _lead_id: string; _uid: string }
         Returns: boolean
+      }
+      assign_client_registration_number: {
+        Args: { _client_id: string }
+        Returns: {
+          active_attempt_ids: Json
+          admission_services: string[]
+          allied_services: string[]
+          alternate_phone: string | null
+          application_id: string
+          application_type: string
+          assigned_counselor_id: string | null
+          billing_entity: string | null
+          branch: string | null
+          branch_id: string | null
+          budget: number | null
+          budget_currency: string | null
+          budget_max: number | null
+          budget_min: number | null
+          client_rating: number | null
+          client_type: string | null
+          closing_at: string | null
+          closing_branch_id: string | null
+          closing_counselor_id: string | null
+          coaching_services: string[]
+          consent_form_date: string | null
+          consent_form_submitted: boolean | null
+          converted_at: string | null
+          converted_by: string | null
+          counselor_notes: string | null
+          counselor_notes_locked: boolean
+          counselor_notes_locked_at: string | null
+          counselor_notes_unlock_reason: string | null
+          country: string
+          country_code: string | null
+          country_of_citizenship: string | null
+          country_of_residence: string | null
+          created_at: string
+          created_by: string | null
+          current_stage_id: string | null
+          date_of_birth: string | null
+          department: string | null
+          education_history: Json
+          email: string | null
+          email_alternate: string | null
+          english_overall: string | null
+          english_sections: Json
+          english_test: string | null
+          english_test_date: string | null
+          english_test_expiry: string | null
+          english_test_status: string | null
+          enrollment_probability: number | null
+          extra_items: Json
+          first_name: string | null
+          full_name: string
+          gender: string | null
+          has_budget: string | null
+          id: string
+          incentive_attribution_locked: boolean
+          institution_name: string | null
+          institution_student_id: string | null
+          intake: string | null
+          interested_countries: string[]
+          interested_country: string | null
+          interested_course: string | null
+          internal_sub_status: string | null
+          internal_sub_status_note: string | null
+          language_tests: Json
+          last_education: string | null
+          last_education_other: string | null
+          last_name: string | null
+          lead_score: number
+          lead_score_reasons: Json
+          lead_source: string | null
+          lead_stage: string | null
+          lead_temperature: string | null
+          linked_institution_id: string | null
+          linked_student_record_id: string | null
+          marital_status: string | null
+          middle_name: string | null
+          national_id_last4: string | null
+          next_followup_at: string | null
+          notes: string | null
+          odoo_lead_id: number | null
+          odoo_partner_id: number | null
+          odoo_synced_at: string | null
+          other_tests: Json
+          owner_id: string | null
+          pan_number: string | null
+          parent_contact: string | null
+          passport_expiry: string | null
+          passport_number: string | null
+          payment_terms: string | null
+          percentage_cgpa: string | null
+          phone: string | null
+          phone_alternate: string | null
+          phone_alternate_country_code: string | null
+          phone_country_code: string | null
+          pipeline_id: string | null
+          preferred_contact_time: string | null
+          preferred_language: string | null
+          priority: string | null
+          registered_at: string | null
+          registration_number: string | null
+          service_fees: Json
+          source_lead_id: string | null
+          source_lead_number: string | null
+          sponsor: string | null
+          sponsor_other: string | null
+          start_timeline: string | null
+          status: string
+          study_permit_approved_date: string | null
+          study_permit_expiry: string | null
+          study_permit_number: string | null
+          suppressed_template_items: string[]
+          tags: string[]
+          tax_id: string | null
+          template_id: string | null
+          test_attempts: Json
+          timezone: string | null
+          travel_financial_services: string[]
+          updated_at: string
+          visa_services: string[]
+          whatsapp: string | null
+          work_experience: Json
+          workflow_template_id: string | null
+          year_of_passing: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clients"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       calendar_available_slots: {
         Args: { _date: string; _meeting_type_id: string; _slug: string }
@@ -20535,6 +23151,7 @@ export type Database = {
       calendar_generate_slug: { Args: { _base: string }; Returns: string }
       calendar_resolve_profile: { Args: { _slug: string }; Returns: Json }
       calendar_validate_token: { Args: { _token: string }; Returns: string }
+      can_approve_payment: { Args: { _uid: string }; Returns: boolean }
       can_edit_client: {
         Args: { _cid: string; _uid: string }
         Returns: boolean
@@ -20565,10 +23182,11 @@ export type Database = {
         Returns: {
           assigned_agent_id: string | null
           campaign_id: string | null
-          client_id: string
+          client_id: string | null
           created_at: string
           id: string
           last_called_at: string | null
+          lead_id: string | null
           lead_status: string | null
           next_call_at: string | null
           notes: string | null
@@ -20599,8 +23217,34 @@ export type Database = {
         }
         Returns: boolean
       }
+      complete_lead_followup: {
+        Args: { _completion_note?: string; _lead_id: string }
+        Returns: {
+          channel: string | null
+          completed_at: string | null
+          completed_by: string | null
+          completion_note: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          lead_id: string
+          note: string | null
+          scheduled_at: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lead_followup_log"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       convert_assessment_to_client: {
         Args: { _session_id: string }
+        Returns: Json
+      }
+      convert_lead_to_client: {
+        Args: { _lead_id: string; _opts?: Json }
         Returns: Json
       }
       counselor_offer_stats: {
@@ -20623,6 +23267,7 @@ export type Database = {
           _template_id?: string
         }
         Returns: {
+          active_attempt_ids: Json
           admission_services: string[]
           allied_services: string[]
           alternate_phone: string | null
@@ -20633,6 +23278,9 @@ export type Database = {
           branch: string | null
           branch_id: string | null
           budget: number | null
+          budget_currency: string | null
+          budget_max: number | null
+          budget_min: number | null
           client_rating: number | null
           client_type: string | null
           closing_at: string | null
@@ -20664,11 +23312,13 @@ export type Database = {
           english_test: string | null
           english_test_date: string | null
           english_test_expiry: string | null
+          english_test_status: string | null
           enrollment_probability: number | null
           extra_items: Json
           first_name: string | null
           full_name: string
           gender: string | null
+          has_budget: string | null
           id: string
           incentive_attribution_locked: boolean
           institution_name: string | null
@@ -20679,6 +23329,7 @@ export type Database = {
           interested_course: string | null
           internal_sub_status: string | null
           internal_sub_status_note: string | null
+          language_tests: Json
           last_education: string | null
           last_education_other: string | null
           last_name: string | null
@@ -20707,14 +23358,20 @@ export type Database = {
           percentage_cgpa: string | null
           phone: string | null
           phone_alternate: string | null
+          phone_alternate_country_code: string | null
           phone_country_code: string | null
           pipeline_id: string | null
           preferred_contact_time: string | null
           preferred_language: string | null
           priority: string | null
+          registered_at: string | null
           registration_number: string | null
           service_fees: Json
           source_lead_id: string | null
+          source_lead_number: string | null
+          sponsor: string | null
+          sponsor_other: string | null
+          start_timeline: string | null
           status: string
           study_permit_approved_date: string | null
           study_permit_expiry: string | null
@@ -20723,6 +23380,7 @@ export type Database = {
           tags: string[]
           tax_id: string | null
           template_id: string | null
+          test_attempts: Json
           timezone: string | null
           travel_financial_services: string[]
           updated_at: string
@@ -20730,7 +23388,7 @@ export type Database = {
           whatsapp: string | null
           work_experience: Json
           workflow_template_id: string | null
-          year_of_passing: number | null
+          year_of_passing: string | null
         }
         SetofOptions: {
           from: "*"
@@ -20739,15 +23397,19 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      create_lead_from_family_member: {
-        Args: { _family_member_id: string }
+      create_lead_draft: {
+        Args: { _data: Json }
         Returns: {
+          active_attempt_ids: Json
           admission_services: string[] | null
           allied_services: string[] | null
           assigned_counselor_id: string | null
           b2b_partner_id: string | null
           branch: string | null
           branch_id: string | null
+          budget_currency: string | null
+          budget_max: number | null
+          budget_min: number | null
           coaching_services: string[] | null
           cold_pool_campaign: string | null
           converted_at: string | null
@@ -20757,12 +23419,23 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           department: string | null
+          education_history: Json
           email: string | null
+          english_overall: string | null
+          english_sections: Json
+          english_test: string | null
+          english_test_date: string | null
+          english_test_expiry: string | null
+          english_test_status: string | null
           first_name: string
+          followup_channel: string | null
+          followup_note: string | null
           gender: string | null
+          has_budget: string | null
           id: string
           interested_countries: string[] | null
           is_cold_pool: boolean | null
+          language_tests: Json
           last_education: string | null
           last_education_other: string | null
           last_name: string
@@ -20772,23 +23445,104 @@ export type Database = {
           lead_type: string
           marital_status: string | null
           middle_name: string | null
+          next_followup_at: string | null
           notes: string | null
           notes_locked: boolean | null
           notes_locked_at: string | null
           notes_locked_by: string | null
-          next_followup_at: string | null
-          followup_channel: string | null
-          followup_note: string | null
+          other_tests: Json
           phone: string | null
           phone_country_code: string | null
           priority: string | null
           source: string | null
+          sponsor: string | null
+          sponsor_other: string | null
           start_timeline: string | null
           status: string
+          test_attempts: Json
+          travel_financial_services: string[]
           updated_at: string | null
           visa_lock_reason: string | null
           visa_locked: boolean | null
           visa_services: string[] | null
+          work_experience: Json
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_lead_from_family_member: {
+        Args: { _family_member_id: string }
+        Returns: {
+          active_attempt_ids: Json
+          admission_services: string[] | null
+          allied_services: string[] | null
+          assigned_counselor_id: string | null
+          b2b_partner_id: string | null
+          branch: string | null
+          branch_id: string | null
+          budget_currency: string | null
+          budget_max: number | null
+          budget_min: number | null
+          coaching_services: string[] | null
+          cold_pool_campaign: string | null
+          converted_at: string | null
+          converted_to_client_id: string | null
+          country_of_citizenship: string | null
+          country_of_residence: string | null
+          created_at: string | null
+          created_by: string | null
+          department: string | null
+          education_history: Json
+          email: string | null
+          english_overall: string | null
+          english_sections: Json
+          english_test: string | null
+          english_test_date: string | null
+          english_test_expiry: string | null
+          english_test_status: string | null
+          first_name: string
+          followup_channel: string | null
+          followup_note: string | null
+          gender: string | null
+          has_budget: string | null
+          id: string
+          interested_countries: string[] | null
+          is_cold_pool: boolean | null
+          language_tests: Json
+          last_education: string | null
+          last_education_other: string | null
+          last_name: string
+          lead_number: string
+          lead_source: string | null
+          lead_temperature: string
+          lead_type: string
+          marital_status: string | null
+          middle_name: string | null
+          next_followup_at: string | null
+          notes: string | null
+          notes_locked: boolean | null
+          notes_locked_at: string | null
+          notes_locked_by: string | null
+          other_tests: Json
+          phone: string | null
+          phone_country_code: string | null
+          priority: string | null
+          source: string | null
+          sponsor: string | null
+          sponsor_other: string | null
+          start_timeline: string | null
+          status: string
+          test_attempts: Json
+          travel_financial_services: string[]
+          updated_at: string | null
+          visa_lock_reason: string | null
+          visa_locked: boolean | null
+          visa_services: string[] | null
+          work_experience: Json
         }
         SetofOptions: {
           from: "*"
@@ -20815,9 +23569,28 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      enqueue_formal_lead_for_call_queue: {
+        Args: {
+          _agent_id?: string
+          _campaign_id?: string
+          _lead_id: string
+          _lead_status?: string
+          _notes?: string
+          _priority?: number
+          _source?: string
+        }
+        Returns: string
+      }
       fn_accrue_leave_balances: {
         Args: { p_org: string; p_year?: number }
         Returns: number
+      }
+      fn_add_invoices_to_aggregator_invoice: {
+        Args: {
+          p_aggregator_invoice_id: string
+          p_institution_invoice_ids: string[]
+        }
+        Returns: undefined
       }
       fn_admin_unlock_incentive_run: {
         Args: { _reason: string; _run_id: string }
@@ -20836,6 +23609,19 @@ export type Database = {
           _reason?: string
         }
         Returns: Json
+      }
+      fn_apply_commission_hold: {
+        Args: {
+          p_expected_claim_date?: string
+          p_hold_notes?: string
+          p_hold_reason: string
+          p_student_commission_id: string
+        }
+        Returns: undefined
+      }
+      fn_apply_holidays_for_date: {
+        Args: { p_date: string; p_org: string }
+        Returns: number
       }
       fn_apply_offer_discount:
         | {
@@ -20882,6 +23668,7 @@ export type Database = {
           mispunch_deduction: number
           monthly_gross: number
           net_salary: number
+          off_shift_minutes: number
           org_id: string
           ot_minutes: number
           ot_pay: number
@@ -20903,10 +23690,48 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_approve_payroll_cycle: {
+        Args: { p_cycle: string }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          end_date: string
+          id: string
+          label: string
+          org_id: string
+          paid_at: string | null
+          paid_by: string | null
+          payroll_days: number
+          processed_at: string | null
+          processed_by: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["payroll_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payroll_cycles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_approve_receipt_fx_review: {
+        Args: { p_notes?: string; p_receipt_id: string }
+        Returns: undefined
+      }
+      fn_assert_commission_aggregator_actor: { Args: never; Returns: undefined }
+      fn_assert_commission_receipt_actor: { Args: never; Returns: undefined }
       fn_assert_not_director_read_only: { Args: never; Returns: undefined }
       fn_assign_offer_ab_variant: {
         Args: { _client_id?: string; _experiment_id: string; _lead_id?: string }
         Returns: Json
+      }
+      fn_attendance_close_only_update: {
+        Args: {
+          p_new: Database["public"]["Tables"]["attendance"]["Row"]
+          p_old: Database["public"]["Tables"]["attendance"]["Row"]
+        }
+        Returns: boolean
       }
       fn_attendance_cycle_locked: {
         Args: { p_org: string; p_work_date: string }
@@ -20915,6 +23740,14 @@ export type Database = {
       fn_auto_fund_wallet: { Args: { _wallet_id: string }; Returns: Json }
       fn_auto_fund_wallets_for_period: {
         Args: { _period_key: string }
+        Returns: Json
+      }
+      fn_branch_record_visible: {
+        Args: { _branch_id: string; _branch_text?: string; _uid: string }
+        Returns: boolean
+      }
+      fn_build_employee_snapshot_detail: {
+        Args: { p_cycle: string; p_employee: string }
         Returns: Json
       }
       fn_build_payroll_line: {
@@ -20940,6 +23773,7 @@ export type Database = {
           mispunch_deduction: number
           monthly_gross: number
           net_salary: number
+          off_shift_minutes: number
           org_id: string
           ot_minutes: number
           ot_pay: number
@@ -20961,6 +23795,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_bypass_branch_scope: { Args: { _uid: string }; Returns: boolean }
       fn_calc_day_ot_minutes: {
         Args: {
           p_break_min: number
@@ -20973,7 +23808,21 @@ export type Database = {
         }
         Returns: number
       }
+      fn_calc_shift_hour_split: {
+        Args: {
+          p_break_min: number
+          p_check_in: string
+          p_check_out: string
+          p_login: string
+          p_logout: string
+        }
+        Returns: Json
+      }
       fn_calendar_days_in_month: { Args: { p_date?: string }; Returns: number }
+      fn_can_access_lead_followup_rls: {
+        Args: { _lead_id: string; _uid: string }
+        Returns: boolean
+      }
       fn_can_admin_incentive_runs: {
         Args: { _user_id?: string }
         Returns: boolean
@@ -20984,6 +23833,10 @@ export type Database = {
           p_org: string
           p_stage: Database["public"]["Enums"]["approval_stage"]
         }
+        Returns: boolean
+      }
+      fn_can_edit_lead_rls: {
+        Args: { _lead_id: string; _uid: string }
         Returns: boolean
       }
       fn_can_manage_offers_studio: {
@@ -21001,6 +23854,22 @@ export type Database = {
       fn_can_use_offer_ai_studio: {
         Args: { _user_id?: string }
         Returns: boolean
+      }
+      fn_can_view_lead_rls: {
+        Args: { _lead_id: string; _uid: string }
+        Returns: boolean
+      }
+      fn_canada_income_tax: {
+        Args: { p_gross: number; p_policy: Json; p_tds_applicable: boolean }
+        Returns: number
+      }
+      fn_capture_payroll_snapshots: {
+        Args: { p_cycle: string; p_stage: string }
+        Returns: number
+      }
+      fn_case_invoiced_amount: {
+        Args: { p_case_id: string; p_exclude_invoice_id?: string }
+        Returns: number
       }
       fn_classify_payment_service: {
         Args: { _payment_id: string; _service_library_id: string }
@@ -21033,6 +23902,7 @@ export type Database = {
           mispunch_deduction: number
           monthly_gross: number
           net_salary: number
+          off_shift_minutes: number
           org_id: string
           ot_minutes: number
           ot_pay: number
@@ -21054,6 +23924,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_client_activity_actor_role: { Args: { _uid: string }; Returns: string }
       fn_client_cross_sell_profile: {
         Args: { _client_id: string }
         Returns: Json
@@ -21069,6 +23940,14 @@ export type Database = {
       }
       fn_close_due_wallets: { Args: never; Returns: number }
       fn_close_wallet: { Args: { _wallet_id: string }; Returns: string }
+      fn_collect_cycle_policies: {
+        Args: { p_as_of: string; p_org: string }
+        Returns: Json
+      }
+      fn_commit_leave_approval: {
+        Args: { p_request: string }
+        Returns: undefined
+      }
       fn_compute_payroll:
         | {
             Args: {
@@ -21132,6 +24011,37 @@ export type Database = {
               p_payroll_days: number
               p_pf_applicable?: boolean
               p_sandwich?: number
+              p_ul?: number
+              p_ul_mult?: number
+              p_unpaid_training?: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_basic: number
+              p_bonus?: number
+              p_canada_policy?: Json
+              p_compoff?: number
+              p_esic_applicable?: boolean
+              p_incentive?: number
+              p_late?: number
+              p_late_policy?: Json
+              p_leaves?: number
+              p_mispunch?: number
+              p_mispunch_policy?: Json
+              p_monthly: number
+              p_ot_minutes?: number
+              p_ot_policy?: Json
+              p_other_deductions?: number
+              p_paid_leaves?: number
+              p_payroll_country?: string
+              p_payroll_days: number
+              p_pf_applicable?: boolean
+              p_pt_amount?: number
+              p_pt_applicable?: boolean
+              p_sandwich?: number
+              p_tds_applicable?: boolean
               p_ul?: number
               p_ul_mult?: number
               p_unpaid_training?: number
@@ -21290,6 +24200,44 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      fn_create_aggregator_invoice: {
+        Args: {
+          p_aggregator_id: string
+          p_commission_period_code?: string
+          p_invoice_date?: string
+          p_invoice_number: string
+          p_notes?: string
+        }
+        Returns: string
+      }
+      fn_create_commission_receipt: {
+        Args: {
+          p_bank_reference?: string
+          p_context_institution_id?: string
+          p_exchange_rate?: number
+          p_metadata?: Json
+          p_notes?: string
+          p_payer_id: string
+          p_payer_type: string
+          p_payment_method?: string
+          p_receipt_amount: number
+          p_receipt_currency?: string
+          p_receipt_date?: string
+          p_remittance_batch_id?: string
+          p_remittance_reference?: string
+        }
+        Returns: string
+      }
+      fn_create_commission_snapshot: {
+        Args: {
+          p_breakdown?: Json
+          p_expected_amount?: number
+          p_input?: Json
+          p_rules?: Json
+          p_student_commission_id: string
+        }
+        Returns: string
+      }
       fn_create_offer_ab_experiment: {
         Args: {
           _description?: string
@@ -21309,17 +24257,65 @@ export type Database = {
         }
         Returns: string
       }
-      fn_derive_status: {
+      fn_create_remittance_batch: {
         Args: {
-          p_half_after: number
-          p_in: string
-          p_is_mispunch: boolean
-          p_login: string
-          p_out: string
-          p_status: Database["public"]["Enums"]["att_status"]
+          p_aggregator_id: string
+          p_aggregator_reference_number?: string
+          p_amount_expected?: number
+          p_batch_reference: string
+          p_commission_period_code?: string
+          p_currency?: string
+          p_notes?: string
+          p_received_date?: string
         }
-        Returns: Json
+        Returns: string
       }
+      fn_create_replacement_commission: {
+        Args: {
+          p_claim_cycle_id: string
+          p_commission_period_code?: string
+          p_partnership_route_id?: string
+          p_source_student_commission_id: string
+        }
+        Returns: string
+      }
+      fn_derive_status:
+        | {
+            Args: {
+              p_half_after: number
+              p_in: string
+              p_is_mispunch: boolean
+              p_login: string
+              p_out: string
+              p_status: Database["public"]["Enums"]["att_status"]
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_full_after: number
+              p_half_after: number
+              p_in: string
+              p_is_mispunch: boolean
+              p_login: string
+              p_logout: string
+              p_out: string
+              p_status: Database["public"]["Enums"]["att_status"]
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_half_after: number
+              p_in: string
+              p_is_mispunch: boolean
+              p_login: string
+              p_logout: string
+              p_out: string
+              p_status: Database["public"]["Enums"]["att_status"]
+            }
+            Returns: Json
+          }
       fn_detect_sandwich_for_leave: {
         Args: { p_request: string }
         Returns: number
@@ -21336,6 +24332,14 @@ export type Database = {
       fn_dismiss_client_offer_suggestion: {
         Args: { _client_id: string; _days?: number; _reason?: string }
         Returns: Json
+      }
+      fn_dispute_remittance_batch: {
+        Args: {
+          p_batch_id: string
+          p_dispute_notes?: string
+          p_dispute_reason: string
+        }
+        Returns: undefined
       }
       fn_effective_fx_rate_to_inr:
         | { Args: { _currency: string; _period_key?: string }; Returns: number }
@@ -21360,7 +24364,10 @@ export type Database = {
           bank_ifsc: string | null
           bank_name: string | null
           bank_verified: boolean
+          bank_verified_at: string | null
+          bank_verified_by: string | null
           basic: number
+          blood_group: string | null
           bonus: number
           branch_id: string | null
           company_id: string | null
@@ -21372,31 +24379,53 @@ export type Database = {
           dob: string | null
           email: string | null
           emergency: string | null
+          emergency_contacts: Json
           emp_code: string
-          employment_type: Database["public"]["Enums"]["employment_type"]
+          employment_type: string
           esic_applicable: boolean
           esic_number: string | null
+          exit_date: string | null
+          exit_reason: string | null
           first_name: string | null
           full_name: string
           gender: string | null
+          has_esic_account: boolean
           has_pf_account: boolean
           hra: number
           id: string
           incentive: number
           last_name: string | null
+          lwf_applicable: boolean
+          marital_status: string | null
+          middle_name: string | null
           mobile: string | null
           monthly_gross: number
+          nationality: string | null
           notice_period: string | null
           org_id: string
+          other_deductions: number
+          payroll_country: string
           pf_applicable: boolean
           pf_number: string | null
           photo_url: string | null
+          probation_end_date: string | null
+          probation_start_date: string | null
           pt_applicable: boolean
+          rehire_eligible: boolean | null
           reporting_mgr_id: string | null
+          salary_currency: string
+          security_cheque_file_name: string | null
+          security_cheque_reason: string | null
+          security_cheque_status: string
+          security_cheque_storage_path: string | null
+          security_cheque_uploaded_at: string | null
+          security_cheque_uploaded_by: string | null
+          security_cheque_uploaded_by_label: string | null
           shift_id: string | null
           special_allow: number
           staff_id: string | null
           status: Database["public"]["Enums"]["emp_status"]
+          tds_applicable: boolean
           uan: string | null
           updated_at: string
           work_week: Database["public"]["Enums"]["work_week"]
@@ -21418,9 +24447,17 @@ export type Database = {
         }
         Returns: Json
       }
+      fn_evaluate_eligibility: {
+        Args: { p_student_commission_id: string }
+        Returns: Json
+      }
       fn_execute_journey_step: {
         Args: { _enrollment_id: string; _step_id: string }
         Returns: Json
+      }
+      fn_expire_monthly_leave_quota: {
+        Args: { p_month?: string; p_org: string }
+        Returns: number
       }
       fn_export_accounting_batch: { Args: { p_cycle: string }; Returns: string }
       fn_export_payroll_register: {
@@ -21430,16 +24467,20 @@ export type Database = {
       fn_finalize_leave_on_approve: {
         Args: { p_request: string }
         Returns: {
+          cancelled_at: string | null
           created_at: string
           days: number
           document_id: string | null
+          duration_type: string
           employee_id: string
           from_date: string
+          half_day_part: string | null
           has_document: boolean
           id: string
           is_sandwich: boolean
           org_id: string
           reason: string | null
+          rejection_reason: string | null
           status: Database["public"]["Enums"]["request_status"]
           to_date: string
           type: Database["public"]["Enums"]["leave_type"]
@@ -21454,6 +24495,18 @@ export type Database = {
       fn_fx_rate: {
         Args: { _ccy: string; _period_key: string }
         Returns: number
+      }
+      fn_get_aggregator_workbench_summary: {
+        Args: { p_aggregator_id: string; p_commission_period_code?: string }
+        Returns: Json
+      }
+      fn_get_crm_profile: {
+        Args: { p_staff_id: string }
+        Returns: {
+          email: string
+          full_name: string
+          staff_id: string
+        }[]
       }
       fn_get_discount_margin_floor_policy: {
         Args: never
@@ -21486,6 +24539,11 @@ export type Database = {
           _max_pct: number
           _period: string
         }
+        Returns: string
+      }
+      fn_hr_can_access_crm: { Args: { p_org: string }; Returns: boolean }
+      fn_import_crm_staff_as_employee: {
+        Args: { p_org: string; p_staff_id: string }
         Returns: string
       }
       fn_incentive_append_client_timeline: {
@@ -21569,10 +24627,38 @@ export type Database = {
         }
         Returns: undefined
       }
+      fn_initiate_commission_transfer: {
+        Args: {
+          p_notes?: string
+          p_source_student_commission_id: string
+          p_to_institution_id?: string
+          p_to_route_id?: string
+          p_transfer_reason?: string
+        }
+        Returns: string
+      }
       fn_is_director_only: { Args: { _user_id: string }; Returns: boolean }
+      fn_is_five_day_night_est: {
+        Args: { p_employee: string }
+        Returns: boolean
+      }
+      fn_is_late_check_in: {
+        Args: {
+          p_check_in: string
+          p_grace: number
+          p_login: string
+          p_logout: string
+        }
+        Returns: boolean
+      }
+      fn_is_leave_eligible: { Args: { p_employee: string }; Returns: boolean }
       fn_late_deduction:
         | { Args: { p_late: number }; Returns: number }
         | { Args: { p_late: number; p_policy?: Json }; Returns: number }
+      fn_lead_in_user_call_queue: {
+        Args: { _lead_id: string; _uid: string }
+        Returns: boolean
+      }
       fn_leave_balance_remaining: {
         Args: {
           p_employee: string
@@ -21580,6 +24666,40 @@ export type Database = {
           p_year?: number
         }
         Returns: number
+      }
+      fn_leave_entitlement_for_employee: {
+        Args: {
+          p_cfg?: Json
+          p_employee: string
+          p_leave_type: Database["public"]["Enums"]["leave_type"]
+        }
+        Returns: number
+      }
+      fn_leave_policy_config: {
+        Args: { p_as_of?: string; p_org: string }
+        Returns: Json
+      }
+      fn_link_employee_staff: {
+        Args: { p_employee_id: string; p_staff_id: string }
+        Returns: undefined
+      }
+      fn_list_crm_staff: {
+        Args: { p_org: string }
+        Returns: {
+          branch_name: string
+          crm_roles: string[]
+          email: string
+          emp_code: string
+          employee_id: string
+          employee_name: string
+          full_name: string
+          hr_assignment_id: string
+          hr_role: Database["public"]["Enums"]["hr_role"]
+          profile_branch_id: string
+          profile_status: string
+          scope_branch_id: string
+          staff_id: string
+        }[]
       }
       fn_list_discount_margin_floor_policies: {
         Args: never
@@ -21610,7 +24730,11 @@ export type Database = {
           id: string
           label: string
           org_id: string
+          paid_at: string | null
+          paid_by: string | null
           payroll_days: number
+          processed_at: string | null
+          processed_by: string | null
           start_date: string
           status: Database["public"]["Enums"]["payroll_status"]
         }
@@ -21621,9 +24745,46 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_map_crm_role_to_hr: {
+        Args: { p_crm_role: string; p_org: string }
+        Returns: Database["public"]["Enums"]["hr_role"]
+      }
       fn_mark_payouts_payroll_sent: {
         Args: { _batch_ref?: string; _payout_ids: string[] }
         Returns: Json
+      }
+      fn_mark_payroll_paid: {
+        Args: { p_cycle: string }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          end_date: string
+          id: string
+          label: string
+          org_id: string
+          paid_at: string | null
+          paid_by: string | null
+          payroll_days: number
+          processed_at: string | null
+          processed_by: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["payroll_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payroll_cycles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_mark_receipt_ready: {
+        Args: { p_receipt_id: string }
+        Returns: undefined
+      }
+      fn_mark_student_eligible: {
+        Args: { p_eligibility_date?: string; p_student_commission_id: string }
+        Returns: string
       }
       fn_mispunch_deduction:
         | { Args: { p_mis: number }; Returns: number }
@@ -21784,6 +24945,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_post_commission_receipt: {
+        Args: { p_receipt_id: string }
+        Returns: undefined
+      }
       fn_preview_next_period_wallets: {
         Args: { _period_key: string }
         Returns: Json
@@ -21808,16 +24973,20 @@ export type Database = {
           p_request: string
         }
         Returns: {
+          cancelled_at: string | null
           created_at: string
           days: number
           document_id: string | null
+          duration_type: string
           employee_id: string
           from_date: string
+          half_day_part: string | null
           has_document: boolean
           id: string
           is_sandwich: boolean
           org_id: string
           reason: string | null
+          rejection_reason: string | null
           status: Database["public"]["Enums"]["request_status"]
           to_date: string
           type: Database["public"]["Enums"]["leave_type"]
@@ -21829,16 +24998,60 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_process_payroll_cycle: {
+        Args: { p_cycle: string }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          end_date: string
+          id: string
+          label: string
+          org_id: string
+          paid_at: string | null
+          paid_by: string | null
+          payroll_days: number
+          processed_at: string | null
+          processed_by: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["payroll_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payroll_cycles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_process_transfer_outcome: {
+        Args: {
+          p_amended_amount?: number
+          p_event_id: string
+          p_outcome: string
+          p_replacement_student_commission_id?: string
+        }
+        Returns: undefined
+      }
       fn_promote_offer_ab_winner: {
         Args: { _experiment_id: string }
         Returns: Json
+      }
+      fn_publish_commission_rules: {
+        Args: { p_commission_id: string; p_published_by?: string }
+        Returns: undefined
       }
       fn_publish_promotion_from_request: {
         Args: { _request_id: string }
         Returns: Json
       }
       fn_pull_incentives: { Args: { p_cycle: string }; Returns: number }
+      fn_punch_on_timeline: {
+        Args: { p_login: number; p_logout: number; p_min: number }
+        Returns: number
+      }
       fn_rebind_ph_demo_wallets: { Args: never; Returns: undefined }
+      fn_rebuild_cycle_lines: { Args: { p_cycle: string }; Returns: number }
+      fn_receipt_summary: { Args: { p_receipt_id: string }; Returns: Json }
       fn_record_punch: {
         Args: { p_attendance: string; p_field: string; p_time?: string }
         Returns: {
@@ -21849,10 +25062,13 @@ export type Database = {
           check_out: string | null
           created_at: string
           employee_id: string
+          ess_unavailable: boolean
           id: string
           is_mispunch: boolean
           note: string | null
+          off_shift_min: number
           org_id: string
+          shift_work_min: number
           source: string
           status: Database["public"]["Enums"]["att_status"]
           updated_at: string
@@ -21865,9 +25081,42 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_refresh_receipt_allocation_totals: {
+        Args: { p_receipt_id: string }
+        Returns: undefined
+      }
+      fn_refresh_receipt_fx_review: {
+        Args: { p_receipt_id: string }
+        Returns: undefined
+      }
+      fn_register_batch_statement: {
+        Args: {
+          p_batch_id: string
+          p_file_name: string
+          p_file_size_bytes?: number
+          p_mime_type?: string
+          p_storage_path: string
+        }
+        Returns: string
+      }
+      fn_register_receipt_attachment: {
+        Args: {
+          p_attachment_type: string
+          p_file_name: string
+          p_file_size_bytes?: number
+          p_mime_type?: string
+          p_receipt_id: string
+          p_storage_path: string
+        }
+        Returns: string
+      }
       fn_reinstate_wallet: {
         Args: { _to_period?: string; _wallet_id: string }
         Returns: string
+      }
+      fn_release_commission_hold: {
+        Args: { p_student_commission_id: string }
+        Returns: undefined
       }
       fn_release_expired_reservations: { Args: never; Returns: number }
       fn_remove_counselor_plan_assignment: {
@@ -21890,7 +25139,11 @@ export type Database = {
               id: string
               label: string
               org_id: string
+              paid_at: string | null
+              paid_by: string | null
               payroll_days: number
+              processed_at: string | null
+              processed_by: string | null
               start_date: string
               status: Database["public"]["Enums"]["payroll_status"]
             }
@@ -21911,7 +25164,11 @@ export type Database = {
               id: string
               label: string
               org_id: string
+              paid_at: string | null
+              paid_by: string | null
               payroll_days: number
+              processed_at: string | null
+              processed_by: string | null
               start_date: string
               status: Database["public"]["Enums"]["payroll_status"]
             }
@@ -21922,17 +25179,44 @@ export type Database = {
               isSetofReturn: false
             }
           }
+      fn_reopen_receipt: { Args: { p_receipt_id: string }; Returns: undefined }
       fn_reply_run_item_dispute: {
         Args: { _body: string; _dispute_id: string }
         Returns: string
       }
       fn_reset_hr_role_permissions: { Args: { p_org: string }; Returns: number }
+      fn_resolve_batch_dispute: {
+        Args: { p_batch_id: string }
+        Returns: undefined
+      }
       fn_resolve_client_incentive_attribution: {
         Args: { _client_id: string }
         Returns: {
           counselor_id: string
           share_pct: number
           share_ratio: number
+        }[]
+      }
+      fn_resolve_commission_rule: {
+        Args: {
+          p_as_of?: string
+          p_campus?: string
+          p_country?: string
+          p_institution_id: string
+          p_intake?: string
+          p_partnership_route_id?: string
+          p_program_category?: string
+          p_program_code?: string
+          p_promotion_id?: string
+        }
+        Returns: {
+          agreement_version_id: string
+          base_rate_percent: number
+          commission_id: string
+          commission_name: string
+          currency: string
+          match_level: string
+          matched_rule_id: string
         }[]
       }
       fn_resolve_discount_margin_floor: {
@@ -21972,6 +25256,10 @@ export type Database = {
       fn_rollup_inputs: {
         Args: { p_cycle: string; p_employee: string }
         Returns: Json
+      }
+      fn_sandwich_half_day_exception: {
+        Args: { p_employee: string; p_off_date: string }
+        Returns: boolean
       }
       fn_save_plan_as_scheme_template: {
         Args: {
@@ -22020,6 +25308,39 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      fn_set_ess_unavailable: {
+        Args: { p_attendance: string; p_unavailable: boolean }
+        Returns: {
+          break_end: string | null
+          break_min: number | null
+          break_start: string | null
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          employee_id: string
+          ess_unavailable: boolean
+          id: string
+          is_mispunch: boolean
+          note: string | null
+          off_shift_min: number
+          org_id: string
+          shift_work_min: number
+          source: string
+          status: Database["public"]["Enums"]["att_status"]
+          updated_at: string
+          work_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_shift_logout_effective: {
+        Args: { p_login: number; p_logout: number }
+        Returns: number
       }
       fn_size_wallet: {
         Args: { _wallet_id: string }
@@ -22084,10 +25405,13 @@ export type Database = {
               check_out: string | null
               created_at: string
               employee_id: string
+              ess_unavailable: boolean
               id: string
               is_mispunch: boolean
               note: string | null
+              off_shift_min: number
               org_id: string
+              shift_work_min: number
               source: string
               status: Database["public"]["Enums"]["att_status"]
               updated_at: string
@@ -22114,10 +25438,13 @@ export type Database = {
               check_out: string | null
               created_at: string
               employee_id: string
+              ess_unavailable: boolean
               id: string
               is_mispunch: boolean
               note: string | null
+              off_shift_min: number
               org_id: string
+              shift_work_min: number
               source: string
               status: Database["public"]["Enums"]["att_status"]
               updated_at: string
@@ -22133,6 +25460,18 @@ export type Database = {
       fn_start_offer_ab_experiment: {
         Args: { _experiment_id: string }
         Returns: Json
+      }
+      fn_student_commission_expected: {
+        Args: { p_student_id: string }
+        Returns: number
+      }
+      fn_student_financial_summary: {
+        Args: { p_client_id: string }
+        Returns: Json
+      }
+      fn_submit_aggregator_invoice: {
+        Args: { p_aggregator_invoice_id: string }
+        Returns: undefined
       }
       fn_submit_discount_request: {
         Args: {
@@ -22181,9 +25520,22 @@ export type Database = {
         Returns: Json
       }
       fn_suggest_profile_slug: { Args: { _base: string }; Returns: string }
+      fn_sync_all_crm_hr_roles: { Args: { p_org: string }; Returns: number }
+      fn_sync_hr_role_from_crm: {
+        Args: { p_org: string; p_staff_id: string }
+        Returns: Database["public"]["Enums"]["hr_role"]
+      }
+      fn_sync_invoice_from_receipts: {
+        Args: { p_invoice_id: string }
+        Returns: undefined
+      }
       fn_sync_performance_scores_for_period: {
         Args: { _period_key: string }
         Returns: number
+      }
+      fn_sync_student_from_receipts: {
+        Args: { p_student_id: string }
+        Returns: undefined
       }
       fn_sync_wallet_metrics: {
         Args: { _wallet_id: string }
@@ -22233,6 +25585,10 @@ export type Database = {
         Args: { _period_key?: string; _user_id?: string }
         Returns: Json
       }
+      fn_time_minutes_span: {
+        Args: { p_in: string; p_out: string }
+        Returns: Json
+      }
       fn_unclassified_payment_count: {
         Args: { _period_key: string }
         Returns: number
@@ -22250,6 +25606,21 @@ export type Database = {
           paid_at: string
           payment_id: string
         }[]
+      }
+      fn_update_commission_receipt: {
+        Args: {
+          p_bank_reference?: string
+          p_exchange_rate?: number
+          p_metadata?: Json
+          p_notes?: string
+          p_payment_method?: string
+          p_receipt_amount?: number
+          p_receipt_currency?: string
+          p_receipt_date?: string
+          p_receipt_id: string
+          p_remittance_reference?: string
+        }
+        Returns: undefined
       }
       fn_upsert_discount_margin_floor_policy: {
         Args: {
@@ -22273,9 +25644,61 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_upsert_receipt_invoice_allocations: {
+        Args: { p_allocations: Json; p_receipt_id: string }
+        Returns: undefined
+      }
+      fn_upsert_receipt_student_allocations: {
+        Args: { p_allocations: Json; p_receipt_id: string }
+        Returns: undefined
+      }
+      fn_user_branch_id: { Args: { _uid: string }; Returns: string }
       fn_user_manages_user: {
         Args: { _manager: string; _target: string }
         Returns: boolean
+      }
+      fn_validate_leave_notice: {
+        Args: { p_applied_at?: string; p_days: number; p_from_date: string }
+        Returns: Json
+      }
+      fn_validate_leave_rules: {
+        Args: {
+          p_applied_at?: string
+          p_days: number
+          p_employee: string
+          p_exclude?: string
+          p_from_date: string
+          p_has_document: boolean
+          p_type: Database["public"]["Enums"]["leave_type"]
+        }
+        Returns: Json
+      }
+      fn_validate_receipt_allocations: {
+        Args: { p_receipt_id: string }
+        Returns: undefined
+      }
+      fn_validate_service_billing_cap: {
+        Args: {
+          p_allow_override?: boolean
+          p_case_id: string
+          p_exclude_invoice_id?: string
+          p_proposed_lines?: Json
+        }
+        Returns: Json
+      }
+      fn_validate_sick_leave_rules: {
+        Args: {
+          p_applied_at?: string
+          p_days: number
+          p_employee: string
+          p_from_date: string
+          p_has_document: boolean
+        }
+        Returns: Json
+      }
+      fn_void_commission_receipt: {
+        Args: { p_reason?: string; p_receipt_id: string }
+        Returns: undefined
       }
       fn_wallet_base_from_rules: {
         Args: {
@@ -22316,6 +25739,7 @@ export type Database = {
         Args: { p_as_of?: string; p_org: string }
         Returns: Json
       }
+      generate_client_file_number: { Args: never; Returns: string }
       generate_client_registration_number: { Args: never; Returns: string }
       generate_invoice_number: {
         Args: { p_branch_code: string; p_entity_code: string }
@@ -22520,6 +25944,83 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      patch_lead_draft: {
+        Args: { _data: Json; _id: string }
+        Returns: {
+          active_attempt_ids: Json
+          admission_services: string[] | null
+          allied_services: string[] | null
+          assigned_counselor_id: string | null
+          b2b_partner_id: string | null
+          branch: string | null
+          branch_id: string | null
+          budget_currency: string | null
+          budget_max: number | null
+          budget_min: number | null
+          coaching_services: string[] | null
+          cold_pool_campaign: string | null
+          converted_at: string | null
+          converted_to_client_id: string | null
+          country_of_citizenship: string | null
+          country_of_residence: string | null
+          created_at: string | null
+          created_by: string | null
+          department: string | null
+          education_history: Json
+          email: string | null
+          english_overall: string | null
+          english_sections: Json
+          english_test: string | null
+          english_test_date: string | null
+          english_test_expiry: string | null
+          english_test_status: string | null
+          first_name: string
+          followup_channel: string | null
+          followup_note: string | null
+          gender: string | null
+          has_budget: string | null
+          id: string
+          interested_countries: string[] | null
+          is_cold_pool: boolean | null
+          language_tests: Json
+          last_education: string | null
+          last_education_other: string | null
+          last_name: string
+          lead_number: string
+          lead_source: string | null
+          lead_temperature: string
+          lead_type: string
+          marital_status: string | null
+          middle_name: string | null
+          next_followup_at: string | null
+          notes: string | null
+          notes_locked: boolean | null
+          notes_locked_at: string | null
+          notes_locked_by: string | null
+          other_tests: Json
+          phone: string | null
+          phone_country_code: string | null
+          priority: string | null
+          source: string | null
+          sponsor: string | null
+          sponsor_other: string | null
+          start_timeline: string | null
+          status: string
+          test_attempts: Json
+          travel_financial_services: string[]
+          updated_at: string | null
+          visa_lock_reason: string | null
+          visa_locked: boolean | null
+          visa_services: string[] | null
+          work_experience: Json
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       phone_digits_match: { Args: { a: string; b: string }; Returns: boolean }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
@@ -22540,6 +26041,41 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      sync_client_profile_from_client: {
+        Args: { _client_id: string }
+        Returns: undefined
+      }
+      sync_lead_followup_log: {
+        Args: {
+          _channel: string
+          _lead_id: string
+          _note: string
+          _scheduled_at: string
+        }
+        Returns: {
+          channel: string | null
+          completed_at: string | null
+          completed_by: string | null
+          completion_note: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          lead_id: string
+          note: string | null
+          scheduled_at: string
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lead_followup_log"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      update_client_rating: {
+        Args: { _client_id: string; _rating: number }
+        Returns: undefined
+      }
       upi_canonical_course_title: {
         Args: { level?: string; title: string }
         Returns: string
@@ -22726,12 +26262,6 @@ export type Database = {
         | "Resigned"
         | "Terminated"
         | "On Notice"
-      employment_type:
-        | "Full-Time"
-        | "Part-Time"
-        | "Intern"
-        | "Temporary"
-        | "Contract"
       holiday_type: "National" | "Festival" | "Company" | "Optional"
       hr_role:
         | "Super Admin"
@@ -22772,7 +26302,7 @@ export type Database = {
         | "expired"
         | "archived"
       payout_status: "pending" | "approved" | "processed" | "paid" | "cancelled"
-      payroll_status: "Draft" | "Locked" | "Paid"
+      payroll_status: "Draft" | "Locked" | "Paid" | "Processed" | "Approved"
       person_role:
         | "applicant"
         | "co_applicant"
@@ -23047,13 +26577,6 @@ export const Constants = {
         "Terminated",
         "On Notice",
       ],
-      employment_type: [
-        "Full-Time",
-        "Part-Time",
-        "Intern",
-        "Temporary",
-        "Contract",
-      ],
       holiday_type: ["National", "Festival", "Company", "Optional"],
       hr_role: [
         "Super Admin",
@@ -23099,7 +26622,7 @@ export const Constants = {
         "archived",
       ],
       payout_status: ["pending", "approved", "processed", "paid", "cancelled"],
-      payroll_status: ["Draft", "Locked", "Paid"],
+      payroll_status: ["Draft", "Locked", "Paid", "Processed", "Approved"],
       person_role: [
         "applicant",
         "co_applicant",
