@@ -28,7 +28,7 @@ const cache = new Map<string, MasterItem[]>();
 const subs = new Map<string, Set<(items: MasterItem[]) => void>>();
 const inflight = new Map<string, Promise<MasterItem[]>>();
 
-async function fetchList(key: MasterListKey): Promise<MasterItem[]> {
+export async function fetchList(key: MasterListKey): Promise<MasterItem[]> {
   if (inflight.has(key)) return inflight.get(key)!;
   const p = (async () => {
     const { data, error } = await supabase
