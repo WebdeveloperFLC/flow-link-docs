@@ -22,6 +22,7 @@ export interface TrustAccount {
   entityId: string;
   branchId: string;
   roleKey: string;
+  collectionCategoryId?: string | null;
   currency: string;
   balance: number;
   updatedAt: string;
@@ -83,6 +84,7 @@ function accountFromDb(row: any): TrustAccount {
     entityId: row.entity_id,
     branchId: row.branch_id,
     roleKey: row.role_key,
+    collectionCategoryId: row.collection_category_id ?? null,
     currency: row.currency,
     balance: Number(row.balance) || 0,
     updatedAt: row.updated_at,
@@ -176,6 +178,7 @@ export async function createTrustDisbursement(
       entity_id: input.entityId,
       branch_id: input.branchId,
       role_key: input.roleKey,
+      collection_category_id: input.collectionCategoryId ?? null,
       payee_type: input.payeeType,
       payee_name: input.payeeName,
       amount: input.amount,

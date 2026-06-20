@@ -10,6 +10,7 @@ export type BillableClientService = {
   service_name: string;
   fee_inr: number | null;
   fee_cad: number | null;
+  collection_category_id?: string | null;
 };
 
 export type InvoiceLineLike = {
@@ -120,6 +121,7 @@ export async function loadClientBillableServices(clientId: string): Promise<{
       service_name: item.service_name,
       fee_inr: item.fee_inr ?? null,
       fee_cad: item.fee_cad ?? null,
+      collection_category_id: (item as { collection_category_id?: string | null }).collection_category_id ?? null,
     });
   }
 

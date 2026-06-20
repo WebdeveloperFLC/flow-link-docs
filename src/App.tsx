@@ -137,6 +137,8 @@ import AccountingReconciliationPage from "./accounting/pages/reconciliation/Acco
 import AccountingAIPage from "./accounting/pages/ai/AccountingAIPage";
 import AccountingUsersPage from "./accounting/pages/settings/AccountingUsersPage";
 import AccountingEntitiesPage from "./accounting/pages/settings/AccountingEntitiesPage";
+import AccountingCollectionCategoriesPage from "./accounting/pages/settings/AccountingCollectionCategoriesPage";
+import AccountingPaymentPurposePage from "./accounting/pages/reports/AccountingPaymentPurposePage";
 import { AccountingProtectedRoute } from "./accounting/components/AccountingProtectedRoute";
 import AccountingSectionRoute from "./accounting/components/AccountingSectionRoute";
 import AccountingAccessAdminPage from "./accounting/pages/settings/AccountingAccessAdminPage";
@@ -1455,6 +1457,22 @@ const App = () => (
                     element={
                       <AccountingSectionRoute section="entities">
                         <AccountingEntitiesPage />
+                      </AccountingSectionRoute>
+                    }
+                  />
+                  <Route
+                    path="/accounting/settings/collection-categories"
+                    element={
+                      <AccountingSectionRoute section="collection_categories" level="edit">
+                        <AccountingCollectionCategoriesPage />
+                      </AccountingSectionRoute>
+                    }
+                  />
+                  <Route
+                    path="/accounting/reports/payment-purpose"
+                    element={
+                      <AccountingSectionRoute section="payment_purpose_report">
+                        <AccountingPaymentPurposePage />
                       </AccountingSectionRoute>
                     }
                   />

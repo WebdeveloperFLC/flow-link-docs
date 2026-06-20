@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -13,6 +13,10 @@ import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import { useTrustState, createTrustDisbursement } from "../../stores/trustStore";
 import { trustBucketLabel } from "../../lib/trustBuckets";
 import { uploadAccountingAttachment } from "../../lib/accountingAttachments";
+import {
+  getCollectionCategoriesSync,
+  hydrateCollectionCategories,
+} from "../../stores/collectionCategoriesStore";
 
 type PayeeType = "INSTITUTION" | "VENDOR" | "STUDENT_REFUND" | "THIRD_PARTY";
 
@@ -30,7 +34,7 @@ export default function AccountingTrustDisbursementPage() {
   const { accounts } = useTrustState();
 
   const [clientId, setClientId] = useState(params.get("client") ?? "");
-  const [roleKey, setRoleKey] = useState(params.get("role") ?? "");
+  const [accountId, setAccountId] = useState(params.get("account") ?? "");
   const [amount, setAmount] = useState("");
   const [payeeType, setPayeeType] = useState<PayeeType>("INSTITUTION");
   const [payeeName, setPayeeName] = useState("");
@@ -40,6 +44,10 @@ export default function AccountingTrustDisbursementPage() {
   const [memo, setMemo] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    void hydrateCollectionCategories();
+  }, []);
 
   const clients = useMemo(() => {
     const m = new Map<string, string>();
@@ -53,9 +61,28 @@ export default function AccountingTrustDisbursementPage() {
   );
 
   const selectedAccount = useMemo(
-    () => clientBuckets.find((a) => a.roleKey === roleKey),
-    [clientBuckets, roleKey],
+    () => clientBuckets.find((a) => a.id === accountId),
+    [clientBuckets, accountId],
   );
+
+  useEffect(() => {
+    if (!selectedAccount) return;
+    const cat = selectedAccount.collectionCategoryId
+      ? getCollectionCategoriesSync().find((c) => c.id === selectedAccount.collectionCategoryId)
+      : undefined;
+    setPayeeName(cat?.expectedPayeeName ?? "");
+    if (cat?.defaultPayeeType) {
+      const map: Record<string, PayeeType> = {
+        INSTITUTION: "INSTITUTION",
+        VENDOR: "VENDOR",
+        GOVERNMENT: "THIRD_PARTY",
+        INSURER: "VENDOR",
+        OTHER: "THIRD_PARTY",
+      };
+      const mapped = map[cat.defaultPayeeType];
+      if (mapped) setPayeeType(mapped);
+    }
+  }, [selectedAccount?.id, selectedAccount?.collectionCategoryId]);
 
   const available = selectedAccount?.balance ?? 0;
   const amt = Number(amount) || 0;
@@ -72,7 +99,8 @@ export default function AccountingTrustDisbursementPage() {
       }
       await createTrustDisbursement({
         clientId,
-        roleKey,
+        roleKey: selectedAccount.roleKey,
+        collectionCategoryId: selectedAccount.collectionCategoryId ?? undefined,
         entityId: selectedAccount.entityId,
         branchId: selectedAccount.branchId,
         currency: selectedAccount.currency,
@@ -114,7 +142,7 @@ export default function AccountingTrustDisbursementPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Client</Label>
-              <Select value={clientId} onValueChange={(v) => { setClientId(v); setRoleKey(""); }}>
+              <Select value={clientId} onValueChange={(v) => { setClientId(v); setAccountId(""); }}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Select client" /></SelectTrigger>
                 <SelectContent>
                   {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -122,13 +150,13 @@ export default function AccountingTrustDisbursementPage() {
               </Select>
             </div>
             <div>
-              <Label>Trust bucket</Label>
-              <Select value={roleKey} onValueChange={setRoleKey} disabled={!clientId}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Select bucket" /></SelectTrigger>
+              <Label>Payment purpose (category)</Label>
+              <Select value={accountId} onValueChange={setAccountId} disabled={!clientId}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select category balance" /></SelectTrigger>
                 <SelectContent>
                   {clientBuckets.map((a) => (
-                    <SelectItem key={a.id} value={a.roleKey}>
-                      {trustBucketLabel(a.roleKey)} — {fmt(a.balance, a.currency)}
+                    <SelectItem key={a.id} value={a.id}>
+                      {trustBucketLabel(a.roleKey, a.collectionCategoryId)} — {fmt(a.balance, a.currency)}
                     </SelectItem>
                   ))}
                 </SelectContent>

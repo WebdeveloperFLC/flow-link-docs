@@ -3,75 +3,78 @@ import { postJournal, type PostingLeg } from "./journalEngine";
 import { calcTax, getEntityTaxConfigSafe, splitTaxTotalLegs } from "./taxEngine";
 import { postTrustReceipt } from "./trustPosting";
 import type { Journal } from "../data/mockJournals";
+import type { CollectionCategory } from "../types/collectionCategory";
+import {
+  categoryMapById,
+  categoryMapByRoleKey,
+  resolveLineClassification,
+  type ClassifiedLineMeta,
+} from "./collectionCategories";
+import { getCollectionCategoriesSync, hydrateCollectionCategories } from "../stores/collectionCategoriesStore";
 
 /**
- * CRM → Accounting Bridge (Phase 1).
+ * CRM → Accounting Bridge (Phase 1 + R1 Collection Categories).
  *
- * CRM client_invoices / client_invoice_payments are the SOLE source of
- * truth for student money (decision #1). This bridge journalizes them:
- *
- *  Invoice (accrual of what FL earns):
- *    DR AR (revenue net + tax)   CR revenue (per line)   CR output tax
- *    — trust (pass-through) lines are classified but NOT booked here; the
- *      liability is recognized on cash receipt so held funds reflect real
- *      money (decision #3 + #6).
- *
- *  Payment (cash receipt, split proportionally by the invoice composition):
- *    DR bank (amount)
- *    CR AR (revenue/tax share)            — clears the receivable
- *    CR student trust liability (trust share, per bucket)  + subledger receipt
- *
- * All journals carry entity_id (firm) + branch_id (decision #4).
+ * Line classification uses the Collection Category Master — not hardcoded buckets.
  */
 
 const round2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
 const UNASSIGNED = "UNASSIGNED";
 
-export type LineClassification = "REVENUE" | "TRUST" | "DEPOSIT";
+export type LineClassification = "REVENUE" | "TRUST" | "DEPOSIT" | "INSTITUTION" | "RECOVERABLE" | "REIMBURSEMENT";
 
 export interface InvoiceLineClass {
   lineIndex: number;
   label: string;
   classification: LineClassification;
   roleKey: string;
-  gross: number; // total incl tax
-  net: number;   // ex tax
+  collectionCategoryId?: string | null;
+  categoryCode?: string | null;
+  expectedPayeeName?: string | null;
+  gross: number;
+  net: number;
   tax: number;
   taxCode?: string | null;
 }
 
-// ── Default classifier (keyword based; overridable later via the bridge) ──
-const TRUST_RULES: Array<[RegExp, string]> = [
-  [/tuition|college fee|university fee|semester|program fee|course fee/i, "TRUST_TUITION"],
-  [/embassy|visa fee|ircc|vfs|consulate|sevis|study permit fee/i, "TRUST_EMBASSY"],
-  [/application fee|app fee/i, "TRUST_APPLICATION"],
-  [/\bgic\b/i, "TRUST_GIC"],
-  [/biometric/i, "TRUST_BIOMETRICS"],
-  [/medical|police|\bpcc\b/i, "TRUST_MEDICAL"],
-  [/\bwes\b|credential eval|notar|courier|dispatch|loan processing/i, "TRUST_OTHER"],
-];
-
-const REVENUE_RULES: Array<[RegExp, string]> = [
-  [/coaching|ielts|pte|toefl|language|mock test/i, "REVENUE_COACHING"],
-  [/visa|immigration|study abroad|consult/i, "REVENUE_VISA"],
-];
-
-function classifyLabel(label: string): { classification: LineClassification; roleKey: string } {
-  for (const [rx, role] of TRUST_RULES) if (rx.test(label)) return { classification: "TRUST", roleKey: role };
-  for (const [rx, role] of REVENUE_RULES) if (rx.test(label)) return { classification: "REVENUE", roleKey: role };
-  return { classification: "REVENUE", roleKey: "REVENUE_SERVICE" };
+function isRevenueClassification(c: LineClassification): boolean {
+  return c === "REVENUE";
 }
 
-/** Build a classification for each CRM invoice line. */
-export function classifyInvoiceLines(lineItems: any[]): InvoiceLineClass[] {
+function isTrustLikeClassification(c: LineClassification): boolean {
+  return c === "TRUST" || c === "INSTITUTION" || c === "RECOVERABLE" || c === "REIMBURSEMENT";
+}
+
+/** Build a classification for each CRM invoice line using category master. */
+export function classifyInvoiceLines(
+  lineItems: any[],
+  categories?: CollectionCategory[],
+): InvoiceLineClass[] {
+  const cats = categories ?? getCollectionCategoriesSync();
+  const byId = categoryMapById(cats);
+  const byRole = categoryMapByRoleKey(cats);
+
   return (lineItems || [])
     .map((li, i) => {
       const label = String(li?.service_name ?? li?.description ?? li?.service_code ?? `Line ${i + 1}`);
       const gross = round2(Number(li?.total ?? li?.amount ?? 0));
       const tax = round2(Number(li?.tax ?? 0));
       const net = round2(gross - tax);
-      const { classification, roleKey } = classifyLabel(label);
-      return { lineIndex: i, label, classification, roleKey, gross, net, tax, taxCode: li?.tax_code ?? null };
+      const meta: ClassifiedLineMeta = resolveLineClassification(li ?? {}, i, byId, byRole);
+      const classification = meta.classification as LineClassification;
+      return {
+        lineIndex: i,
+        label,
+        classification,
+        roleKey: meta.roleKey,
+        collectionCategoryId: meta.collectionCategoryId ?? null,
+        categoryCode: meta.categoryCode ?? null,
+        expectedPayeeName: meta.expectedPayeeName ?? null,
+        gross,
+        net,
+        tax,
+        taxCode: li?.tax_code ?? meta.defaultTaxCode ?? null,
+      };
     })
     .filter((l) => l.gross !== 0);
 }
@@ -86,6 +89,9 @@ interface InvoiceMeta {
 }
 
 async function loadInvoice(invoiceId: string): Promise<InvoiceMeta> {
+  if (!getCollectionCategoriesSync().length) {
+    await hydrateCollectionCategories();
+  }
   const { data, error } = await supabase
     .from("client_invoices")
     .select("id, client_id, firm_entity_id, branch_id, currency, line_items")
@@ -99,8 +105,8 @@ async function loadInvoice(invoiceId: string): Promise<InvoiceMeta> {
 }
 
 function totals(lines: InvoiceLineClass[]) {
-  const revenueNet = round2(lines.filter((l) => l.classification === "REVENUE").reduce((s, l) => s + l.net, 0));
-  const trustNet = round2(lines.filter((l) => l.classification !== "REVENUE").reduce((s, l) => s + l.net, 0));
+  const revenueNet = round2(lines.filter((l) => isRevenueClassification(l.classification)).reduce((s, l) => s + l.net, 0));
+  const trustNet = round2(lines.filter((l) => isTrustLikeClassification(l.classification)).reduce((s, l) => s + l.net, 0));
   const tax = round2(lines.reduce((s, l) => s + l.tax, 0));
   const grand = round2(revenueNet + trustNet + tax);
   return { revenueNet, trustNet, tax, grand, arBase: round2(revenueNet + tax) };
@@ -142,6 +148,7 @@ export async function upsertInvoiceBridge(invoiceId: string): Promise<string> {
       line_label: l.label,
       classification: l.classification,
       role_key: l.roleKey,
+      collection_category_id: l.collectionCategoryId ?? null,
       gross_amount: l.gross,
       net_amount: l.net,
       tax_amount: l.tax,
@@ -153,31 +160,34 @@ export async function upsertInvoiceBridge(invoiceId: string): Promise<string> {
   return bridgeId;
 }
 
-// ── Pure leg builders (unit-tested) ──────────────────────────────────
-
 /** Invoice accrual legs: DR AR (revenue+tax), CR revenue per line, CR output tax. */
 export function buildInvoiceLegs(
   lines: InvoiceLineClass[],
   opts: { entityId: string; arRoleKey?: string },
 ): PostingLeg[] {
   const t = totals(lines);
-  if (t.arBase <= 0) return []; // nothing earned yet (fully pass-through invoice)
+  if (t.arBase <= 0) return [];
   const legs: PostingLeg[] = [
     { roleKey: opts.arRoleKey || "AR_STUDENT", drCr: "DR", amount: t.arBase, description: "Student receivable" },
   ];
-  for (const l of lines.filter((x) => x.classification === "REVENUE")) {
+  for (const l of lines.filter((x) => isRevenueClassification(x.classification))) {
     if (l.net > 0) legs.push({ roleKey: l.roleKey, drCr: "CR", amount: l.net, description: l.label });
   }
   if (t.tax > 0) legs.push(...splitTaxTotalLegs(t.tax, opts.entityId, "CR"));
   return legs;
 }
 
-/** Payment legs: DR bank, CR AR share, CR trust buckets share. */
+/** Payment legs: DR bank, CR AR share, CR trust/institution buckets by category. */
 export function buildPaymentLegs(
   amount: number,
   lines: InvoiceLineClass[],
   opts: { bankRoleKey?: string; arRoleKey?: string },
-): { legs: PostingLeg[]; arPortion: number; trustByBucket: Record<string, number> } {
+): {
+  legs: PostingLeg[];
+  arPortion: number;
+  trustByBucket: Record<string, number>;
+  trustByCategoryId: Record<string, number>;
+} {
   const amt = round2(amount);
   const t = totals(lines);
   const arPortion = t.grand > 0 ? round2((amt * t.arBase) / t.grand) : amt;
@@ -186,11 +196,13 @@ export function buildPaymentLegs(
   const legs: PostingLeg[] = [
     { roleKey: opts.bankRoleKey || "BANK_OPERATING", drCr: "DR", amount: amt, description: "Student payment received" },
   ];
-  if (arPortion > 0) legs.push({ roleKey: opts.arRoleKey || "AR_STUDENT", drCr: "CR", amount: arPortion, description: "Clear receivable" });
+  if (arPortion > 0) {
+    legs.push({ roleKey: opts.arRoleKey || "AR_STUDENT", drCr: "CR", amount: arPortion, description: "Clear receivable" });
+  }
 
-  // Split trust portion across trust buckets by their share of total trust.
   const trustByBucket: Record<string, number> = {};
-  const trustLines = lines.filter((l) => l.classification !== "REVENUE" && l.net > 0);
+  const trustByCategoryId: Record<string, number> = {};
+  const trustLines = lines.filter((l) => isTrustLikeClassification(l.classification) && l.net > 0);
   const trustTotal = round2(trustLines.reduce((s, l) => s + l.net, 0));
   let allocated = 0;
   trustLines.forEach((l, idx) => {
@@ -200,15 +212,15 @@ export function buildPaymentLegs(
     allocated = round2(allocated + portion);
     if (portion > 0) {
       trustByBucket[l.roleKey] = round2((trustByBucket[l.roleKey] || 0) + portion);
+      const catKey = l.collectionCategoryId ?? `role:${l.roleKey}:${l.lineIndex}`;
+      trustByCategoryId[catKey] = round2((trustByCategoryId[catKey] || 0) + portion);
     }
   });
   for (const [roleKey, portion] of Object.entries(trustByBucket)) {
     legs.push({ roleKey, drCr: "CR", amount: portion, description: "Student funds held" });
   }
-  return { legs, arPortion, trustByBucket };
+  return { legs, arPortion, trustByBucket, trustByCategoryId };
 }
-
-// ── Orchestration ────────────────────────────────────────────────────
 
 async function existingJournalForSource(sourceModule: string, sourceRecordId: string): Promise<string | null> {
   const { data } = await supabase
@@ -221,7 +233,6 @@ async function existingJournalForSource(sourceModule: string, sourceRecordId: st
   return data?.[0]?.id ?? null;
 }
 
-/** Journalize a CRM invoice (revenue accrual). Idempotent per invoice. */
 export async function postInvoiceJournal(invoiceId: string): Promise<Journal | null> {
   const existing = await existingJournalForSource("CRM_AR", invoiceId);
   if (existing) return null;
@@ -229,7 +240,7 @@ export async function postInvoiceJournal(invoiceId: string): Promise<Journal | n
   const bridgeId = await upsertInvoiceBridge(invoiceId);
   const inv = await loadInvoice(invoiceId);
   const legs = buildInvoiceLegs(inv.lines, { entityId: inv.entityId });
-  if (!legs.length) return null; // fully pass-through; nothing to accrue at invoice time
+  if (!legs.length) return null;
 
   const journal = postJournal({
     entityId: inv.entityId,
@@ -250,7 +261,6 @@ export async function postInvoiceJournal(invoiceId: string): Promise<Journal | n
   return journal;
 }
 
-/** Journalize a CRM payment (cash receipt + trust recognition). Idempotent per payment. */
 export async function postPaymentJournal(paymentId: string): Promise<Journal | null> {
   const existing = await existingJournalForSource("CRM_AR", paymentId);
   if (existing) return null;
@@ -261,14 +271,14 @@ export async function postPaymentJournal(paymentId: string): Promise<Journal | n
     .eq("id", paymentId)
     .single();
   if (error) throw error;
-  if (pay.is_refund) return null; // refunds handled by the trust refund workflow
+  if (pay.is_refund) return null;
 
   const inv = await loadInvoice(pay.invoice_id);
   await upsertInvoiceBridge(pay.invoice_id);
   const amount = round2(Number(pay.amount) || 0);
   if (amount <= 0) return null;
 
-  const { legs, trustByBucket } = buildPaymentLegs(amount, inv.lines, {});
+  const { legs, trustByBucket, trustByCategoryId } = buildPaymentLegs(amount, inv.lines, {});
   const postingDate = (pay.paid_at ? String(pay.paid_at).slice(0, 10) : new Date().toISOString().slice(0, 10));
 
   const journal = postJournal({
@@ -282,17 +292,23 @@ export async function postPaymentJournal(paymentId: string): Promise<Journal | n
     legs,
   });
 
-  // Record realized trust receipts in the subledger (no extra GL — the
-  // payment journal already credited the trust liability per bucket).
-  for (const [roleKey, portion] of Object.entries(trustByBucket)) {
+  // Subledger + payment-purpose allocations per category (multi-category single payment)
+  for (const [catKey, portion] of Object.entries(trustByCategoryId)) {
+    if (portion <= 0) continue;
+    const line =
+      inv.lines.find((l) => l.collectionCategoryId === catKey)
+      ?? inv.lines.find((l) => `role:${l.roleKey}:${l.lineIndex}` === catKey)
+      ?? inv.lines.find((l) => l.roleKey === catKey);
+    if (!line) continue;
     try {
       const { getOrCreateTrustAccount } = await import("./trustPosting");
       const trustAccountId = await getOrCreateTrustAccount({
         clientId: pay.client_id,
-        roleKey,
+        roleKey: line.roleKey,
         entityId: inv.entityId,
         branchId: inv.branchId,
         currency: pay.currency || inv.currency,
+        collectionCategoryId: line.collectionCategoryId ?? undefined,
       });
       await supabase.from("accounting_trust_entries").insert({
         trust_account_id: trustAccountId,
@@ -302,15 +318,28 @@ export async function postPaymentJournal(paymentId: string): Promise<Journal | n
         source_module: "CRM_AR",
         source_record_id: pay.id,
         journal_id: journal.id,
-        memo: `Trust receipt from payment ${paymentId}`,
+        memo: `Trust receipt — ${line.label}`,
+        collection_category_id: line.collectionCategoryId ?? null,
       } as any);
+
+      if (line.collectionCategoryId) {
+        await supabase.from("client_invoice_payment_allocations").insert({
+          payment_id: pay.id,
+          invoice_id: pay.invoice_id,
+          amount_allocated: portion,
+          collection_category_id: line.collectionCategoryId,
+          line_item_key: String(line.lineIndex),
+          service_id: null,
+        } as any).then(({ error: ae }) => {
+          if (ae) console.warn("[crmBridge] allocation insert", ae.message);
+        });
+      }
     } catch (e) {
-      console.warn("[crmBridge] trust subledger receipt failed", roleKey, e);
+      console.warn("[crmBridge] trust subledger receipt failed", catKey, e);
     }
   }
 
   return journal;
 }
 
-// Re-export for callers/tests.
 export { calcTax, getEntityTaxConfigSafe, postTrustReceipt };

@@ -53,6 +53,7 @@ export interface TrustAccountKey {
   branchId: string;
   currency: string;
   studentId?: string;
+  collectionCategoryId?: string;
 }
 
 /** Find or create the per-(client, bucket, entity, currency) trust subledger account. */
@@ -74,6 +75,7 @@ export async function getOrCreateTrustAccount(key: TrustAccountKey): Promise<str
       client_id: key.clientId,
       student_id: key.studentId ?? null,
       role_key: key.roleKey,
+      collection_category_id: key.collectionCategoryId ?? null,
       entity_id: key.entityId,
       branch_id: key.branchId,
       currency: key.currency,

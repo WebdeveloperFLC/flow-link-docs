@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { RefreshCw, Wallet, ArrowDownToLine, Search } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -12,6 +12,7 @@ import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
 import { useTrustState, refreshTrust } from "../../stores/trustStore";
 import { useCrmBridgeStatus, syncCrmAll } from "../../stores/crmBridgeStore";
 import { trustBucketLabel } from "../../lib/trustBuckets";
+import { hydrateCollectionCategories } from "../../stores/collectionCategoriesStore";
 
 function fmt(amount: number, currency: string) {
   try {
@@ -27,6 +28,10 @@ export default function AccountingTrustPage() {
   const bridge = useCrmBridgeStatus();
   const [q, setQ] = useState("");
 
+  useEffect(() => {
+    void hydrateCollectionCategories();
+  }, []);
+
   const totalsByCurrency = useMemo(() => {
     const m = new Map<string, number>();
     for (const a of accounts) m.set(a.currency, (m.get(a.currency) ?? 0) + a.balance);
@@ -34,21 +39,22 @@ export default function AccountingTrustPage() {
   }, [accounts]);
 
   const totalsByBucket = useMemo(() => {
-    const m = new Map<string, { amount: number; currency: string }>();
+    const m = new Map<string, { amount: number; currency: string; roleKey: string; collectionCategoryId?: string | null }>();
     for (const a of accounts) {
-      const key = `${a.roleKey}|${a.currency}`;
-      const cur = m.get(key) ?? { amount: 0, currency: a.currency };
+      const bucketKey = a.collectionCategoryId ?? a.roleKey;
+      const key = `${bucketKey}|${a.currency}`;
+      const cur = m.get(key) ?? { amount: 0, currency: a.currency, roleKey: a.roleKey, collectionCategoryId: a.collectionCategoryId };
       cur.amount += a.balance;
       m.set(key, cur);
     }
-    return Array.from(m.entries()).map(([key, v]) => ({ roleKey: key.split("|")[0], ...v }));
+    return Array.from(m.values());
   }, [accounts]);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     return accounts
       .filter((a) => a.balance !== 0 || !term)
-      .filter((a) => !term || [a.clientName, a.clientId, trustBucketLabel(a.roleKey), a.entityId]
+      .filter((a) => !term || [a.clientName, a.clientId, trustBucketLabel(a.roleKey, a.collectionCategoryId), a.entityId]
         .some((v) => String(v ?? "").toLowerCase().includes(term)));
   }, [accounts, q]);
 
@@ -96,8 +102,8 @@ export default function AccountingTrustPage() {
             <div className="text-sm font-medium mb-3">Held by bucket</div>
             <div className="flex flex-wrap gap-2">
               {totalsByBucket.map((b) => (
-                <Badge key={`${b.roleKey}${b.currency}`} variant="outline" className="text-xs">
-                  {trustBucketLabel(b.roleKey)}: {fmt(b.amount, b.currency)}
+                <Badge key={`${b.collectionCategoryId ?? b.roleKey}${b.currency}`} variant="outline" className="text-xs">
+                  {trustBucketLabel(b.roleKey, b.collectionCategoryId)}: {fmt(b.amount, b.currency)}
                 </Badge>
               ))}
             </div>
@@ -138,7 +144,7 @@ export default function AccountingTrustPage() {
                   {filtered.map((a) => (
                     <tr key={a.id} className="border-t hover:bg-muted/30">
                       <td className="px-3 py-2 font-medium">{a.clientName}</td>
-                      <td className="px-3 py-2">{trustBucketLabel(a.roleKey)}</td>
+                      <td className="px-3 py-2">{trustBucketLabel(a.roleKey, a.collectionCategoryId)}</td>
                       <td className="px-3 py-2 text-muted-foreground">{a.entityId}</td>
                       <td className="px-3 py-2 text-muted-foreground">{a.branchId}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{fmt(a.balance, a.currency)}</td>
@@ -147,7 +153,7 @@ export default function AccountingTrustPage() {
                           size="sm"
                           variant="outline"
                           disabled={a.balance <= 0}
-                          onClick={() => navigate(`/accounting/trust/disburse?client=${a.clientId}&role=${a.roleKey}`)}
+                          onClick={() => navigate(`/accounting/trust/disburse?client=${a.clientId}&account=${a.id}`)}
                         >
                           Disburse
                         </Button>

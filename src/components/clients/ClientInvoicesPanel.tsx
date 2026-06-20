@@ -1098,6 +1098,7 @@ function InvoiceEditorDialog({
           gst_rate: gstEnabled ? gstRate : 0,
           gst_basis: gstEnabled ? gstBasis : null,
           total: computed.total,
+          collection_category_id: row.svc?.collection_category_id ?? null,
         };
       })
       .filter(Boolean) as Record<string, unknown>[];

@@ -139,6 +139,21 @@ describe("CRM bridge legs", () => {
     expect(arPortion).toBeCloseTo(1130, 2);
     expect(trustByBucket["TRUST_TUITION"]).toBeCloseTo(5000, 2);
   });
+
+  it("allocates one payment across multiple trust categories", () => {
+    const multiLines: InvoiceLineClass[] = [
+      { lineIndex: 0, label: "IELTS", classification: "TRUST", roleKey: "TRUST_CAT_IELTS", collectionCategoryId: "cat-ielts", gross: 18000, net: 18000, tax: 0 },
+      { lineIndex: 1, label: "Insurance", classification: "TRUST", roleKey: "TRUST_CAT_INSURANCE", collectionCategoryId: "cat-insurance", gross: 12000, net: 12000, tax: 0 },
+      { lineIndex: 2, label: "Visa consulting", classification: "REVENUE", roleKey: "REVENUE_VISA", gross: 5000, net: 5000, tax: 0 },
+    ];
+    const { legs, arPortion, trustByCategoryId } = buildPaymentLegs(35000, multiLines, {});
+    expectBalanced(legs);
+    expect(arPortion).toBeCloseTo(5000, 2);
+    expect(trustByCategoryId["cat-ielts"]).toBeCloseTo(18000, 2);
+    expect(trustByCategoryId["cat-insurance"]).toBeCloseTo(12000, 2);
+    const trustLegs = legs.filter((l) => l.drCr === "CR" && l.roleKey.startsWith("TRUST"));
+    expect(trustLegs).toHaveLength(2);
+  });
 });
 
 describe("journalEngine.postJournal", () => {

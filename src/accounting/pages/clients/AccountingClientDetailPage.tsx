@@ -20,6 +20,7 @@ import ClientServicesPanel from "../../components/clients/ClientServicesPanel";
 import ClientNotesTab from "../../components/clients/ClientNotesTab";
 import ClientActivityTab from "../../components/clients/ClientActivityTab";
 import { ClientInvoicesPanel } from "@/components/clients/ClientInvoicesPanel";
+import StudentFinancialLedger from "@/accounting/components/students/StudentFinancialLedger";
 import {
   MOCK_CLIENTS, MOCK_CLIENT_SERVICES, MOCK_CLIENT_NOTES, MOCK_CLIENT_ACTIVITY,
   CLIENT_SEGMENT_LABEL,
@@ -268,6 +269,15 @@ export default function AccountingClientDetailPage() {
         </div>
 
         <AgingBreakdownCard title="Receivables aging" currency={client.currency} buckets={aging} />
+
+        <StudentFinancialLedger
+          clientId={client.linkedCrmClientId ?? id}
+          clientName={client.name}
+          institution={client.servicePackage ?? undefined}
+          intake={client.intake ?? undefined}
+          visaStatus={client.visaCategory ?? undefined}
+          counselor={client.counselorName ?? client.accountManager ?? undefined}
+        />
 
         <ClientServicesPanel services={services} />
 

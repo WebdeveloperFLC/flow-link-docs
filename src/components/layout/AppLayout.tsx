@@ -51,6 +51,8 @@ import {
   Flame,
   Megaphone,
   CalendarClock,
+  Tags,
+  ListFilter,
 } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -209,12 +211,14 @@ const accountingNav: NavItem[] = [
     label: "Reports — Reconciliation",
     section: "reports_reconciliation",
   },
+  { to: "/accounting/reports/payment-purpose", icon: ListFilter, label: "Payment purpose", section: "payment_purpose_report" },
   { to: "/accounting/tax", icon: Receipt, label: "Tax & compliance", section: "tax" },
   { to: "/accounting/fraud", icon: ShieldAlert, label: "Fraud & audit", section: "fraud" },
   { to: "/accounting/reconciliation", icon: GitMerge, label: "Reconciliation", section: "reports_reconciliation" },
   { to: "/accounting/wealth", icon: PieChart, label: "Wealth summary", section: "owners" },
   { to: "/accounting/ai-assistant", icon: Sparkles, label: "AI assistant", section: "ai" },
   { to: "/accounting/settings/entities", icon: Building2, label: "Entities", section: "entities" },
+  { to: "/accounting/settings/collection-categories", icon: Tags, label: "Collection categories", section: "collection_categories", acctAdminOnly: true },
   { to: "/accounting/settings/users", icon: UserCog, label: "Users", section: "users" },
   {
     to: "/accounting/access",

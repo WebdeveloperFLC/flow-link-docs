@@ -562,6 +562,7 @@ export interface ServiceCatalogueItem {
   bundle_note?: string | null;
   display_order: number;
   notes?: string | null;
+  collection_category_id?: string | null;
 }
 
 /** Lookup by virtual catalogue id or composite service_code. */
