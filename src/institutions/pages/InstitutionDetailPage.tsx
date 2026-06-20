@@ -18,6 +18,8 @@ import { RunCampaignDialog } from "../components/RunCampaignDialog";
 import { AgreementsPanel } from "../components/AgreementsPanel";
 import { CommissionsPanel } from "../components/CommissionsPanel";
 import { ClaimsPanel } from "../components/ClaimsPanel";
+import { BillingProfilesPanel } from "../components/BillingProfilesPanel";
+import { EligibilityConfigPanel } from "../components/EligibilityConfigPanel";
 import { AiReviewPanel } from "../components/AiReviewPanel";
 import { OverviewPanel } from "../components/OverviewPanel";
 import { PromotionsPanel } from "../components/PromotionsPanel";
@@ -488,6 +490,8 @@ export default function InstitutionDetailPage() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="sources">Sources</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
+            {canSeeCommissions && <TabsTrigger value="billing">Billing</TabsTrigger>}
+            {canSeeCommissions && <TabsTrigger value="eligibility">Eligibility</TabsTrigger>}
             {canSeeCommissions && <TabsTrigger value="agreements">Agreements</TabsTrigger>}
             {canSeeCommissions && <TabsTrigger value="commissions">Commissions</TabsTrigger>}
             {canSeeCommissions && <TabsTrigger value="claims">Claims</TabsTrigger>}
@@ -791,6 +795,14 @@ export default function InstitutionDetailPage() {
                 </Card>
               ) : null}
             </div>
+          </TabsContent>
+
+          <TabsContent value="billing">
+            {canSeeCommissions ? <BillingProfilesPanel institutionId={id} /> : <LockedPanel label="Billing" />}
+          </TabsContent>
+
+          <TabsContent value="eligibility">
+            {canSeeCommissions ? <EligibilityConfigPanel institutionId={id} /> : <LockedPanel label="Eligibility" />}
           </TabsContent>
 
           <TabsContent value="agreements">

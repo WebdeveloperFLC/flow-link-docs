@@ -18,6 +18,7 @@ import {
   FLC_AGENCY, buildClaimCsv, downloadCsv, filenameForClaim, printWithRoot,
 } from "../lib/claimsExport";
 import { simulateCommission, type RuleLike } from "../lib/commissionEngine";
+import { resolveCommissionForStudent } from "../lib/commissionRuleResolver";
 import type { CommissionStudent } from "../types/upi";
 
 // ---------- types ----------
@@ -167,32 +168,59 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
   // ---------- recalculation ----------
   const FROZEN_STATUSES = new Set(["paid", "blocked", "carried_forward"]);
 
-  async function fetchActiveCommissionAndRules() {
-    const { data: commissions, error: cErr } = await supabase
-      .from("upi_commissions")
-      .select("*")
-      .eq("institution_id", institutionId)
-      .eq("is_active", true)
-      .limit(1);
-    if (cErr) throw cErr;
-    const commission = commissions?.[0];
-    if (!commission) throw new Error("No active commission configured for this institution");
-    const { data: rules, error: rErr } = await supabase
-      .from("upi_commission_rules")
-      .select("*")
-      .eq("commission_id", commission.id);
+  async function fetchRecalcContext() {
+    const [commRes, routeRes, instRes] = await Promise.all([
+      supabase.from("upi_commissions").select("*").eq("institution_id", institutionId).eq("is_active", true),
+      supabase.from("upi_partnership_routes").select("id, default_commission_id").eq("institution_id", institutionId),
+      supabase.from("upi_institutions").select("country_name").eq("id", institutionId).maybeSingle(),
+    ]);
+    if (commRes.error) throw commRes.error;
+    if (routeRes.error) throw routeRes.error;
+    const commissions = commRes.data ?? [];
+    if (commissions.length === 0) throw new Error("No active commission configured for this institution");
+    const ids = commissions.map((c: any) => c.id);
+    const { data: rules, error: rErr } = await supabase.from("upi_commission_rules").select("*").in("commission_id", ids);
     if (rErr) throw rErr;
-    const { data: inst } = await supabase
-      .from("upi_institutions")
-      .select("country_name")
-      .eq("id", institutionId)
-      .maybeSingle();
-    return { commission, rules: (rules ?? []) as unknown as RuleLike[], institutionCountry: inst?.country_name ?? null };
+    const routeDefaults = new Map<string, string | null>(
+      (routeRes.data ?? []).map((r: any) => [r.id, r.default_commission_id ?? null]),
+    );
+    return {
+      commissions,
+      rules: (rules ?? []) as unknown as RuleLike[],
+      institutionCountry: instRes.data?.country_name ?? null,
+      routeDefaults,
+    };
+  }
+
+  function pickCommissionForStudent(
+    s: CommissionStudent | Student,
+    ctx: Awaited<ReturnType<typeof fetchRecalcContext>>,
+  ) {
+    const routeId = (s as any).partnership_route_id as string | null | undefined;
+    const defaultCommissionId = routeId ? ctx.routeDefaults.get(routeId) ?? null : null;
+    const resolved = resolveCommissionForStudent(
+      ctx.commissions as any[],
+      ctx.rules as any[],
+      {
+        institutionId,
+        partnershipRouteId: routeId,
+        country: (s as any).country_of_origin ?? ctx.institutionCountry ?? undefined,
+        campus: s.campus ?? undefined,
+        programCategory: s.program_level ?? undefined,
+        intake: s.intake_term ?? undefined,
+      },
+      defaultCommissionId,
+    );
+    if (!resolved) throw new Error(`No commission rule match for ${s.student_name}`);
+    const commission = ctx.commissions.find((c: any) => c.id === resolved.commissionId);
+    if (!commission) throw new Error("Resolved commission not found");
+    const commissionRules = ctx.rules.filter((r: any) => r.commission_id === commission.id);
+    return { commission, commissionRules, resolved };
   }
 
   async function recalcOne(
     s: CommissionStudent | Student,
-    ctx: { commission: any; rules: RuleLike[]; institutionCountry: string | null },
+    ctx: Awaited<ReturnType<typeof fetchRecalcContext>>,
     opts: { silent?: boolean } = {},
   ): Promise<{ ok: boolean; amount: number; currency: string }> {
     if (FROZEN_STATUSES.has(s.commission_status)) return { ok: false, amount: 0, currency: "CAD" };
@@ -200,12 +228,13 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
       if (!opts.silent) toast.warning(`Skipped ${s.student_name} — no tuition amount recorded`);
       return { ok: false, amount: 0, currency: "CAD" };
     }
-    const meta: any = ctx.commission.metadata ?? {};
+    const { commission, commissionRules, resolved } = pickCommissionForStudent(s, ctx);
+    const meta: any = commission.metadata ?? {};
     const base = {
-      base_rate_percent: ctx.commission.base_rate_percent ?? meta.base_rate_percent ?? 0,
-      currency: ctx.commission.currency ?? "CAD",
+      base_rate_percent: commission.base_rate_percent ?? meta.base_rate_percent ?? 0,
+      currency: commission.currency ?? "CAD",
     };
-    const breakdown = simulateCommission(base, ctx.rules, {
+    const breakdown = simulateCommission(base, commissionRules, {
       tuition: Number(s.tuition_amount) || 0,
       currency: base.currency,
       country: (s as any).country_of_origin ?? ctx.institutionCountry ?? undefined,
@@ -217,9 +246,15 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
     const { error } = await supabase
       .from("upi_commission_students")
       .update({
+        commission_id: commission.id,
         commission_amount: breakdown.total,
+        expected_amount: breakdown.total,
         commission_rate_applied: base.base_rate_percent,
         commission_calculated_date: nowIso,
+        matched_rule_id: resolved.matchedRuleId,
+        agreement_version_id: resolved.agreementVersionId,
+        snapshot_currency: base.currency,
+        invoice_currency: base.currency,
       } as any)
       .eq("id", s.id);
     if (error) {
@@ -241,7 +276,7 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
     if (FROZEN_STATUSES.has(s.commission_status)) return;
     try {
       setRecalcBusy(s.id);
-      const ctx = await fetchActiveCommissionAndRules();
+      const ctx = await fetchRecalcContext();
       const res = await recalcOne(s as CommissionStudent, ctx);
       if (res.ok) toast.success(`Commission recalculated: ${res.currency} ${res.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
     } catch (e: any) {
@@ -256,11 +291,11 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
     if (list.length === 0) return toast.info("Nothing to recalculate in this cycle");
     try {
       setRecalcBusy(cycleId);
-      const ctx = await fetchActiveCommissionAndRules();
+      const ctx = await fetchRecalcContext();
       const t = toast.loading(`Recalculating ${list.length} students...`);
       let count = 0;
       let sum = 0;
-      let currency = ctx.commission.currency ?? "CAD";
+      let currency = "CAD";
       for (const s of list) {
         const res = await recalcOne(s as CommissionStudent, ctx);
         if (res.ok) { count += 1; sum += res.amount; currency = res.currency; }

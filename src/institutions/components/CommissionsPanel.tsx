@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useCommissions, useCommissionRules } from "../hooks/useInstitutionData";
 import { simulateCommission } from "../lib/commissionEngine";
 import { detectRuleConflicts } from "../lib/claimEngine";
-import { AlertTriangle, Trash2 } from "lucide-react";
+import { AlertTriangle, Trash2, Send } from "lucide-react";
 import { ALLOW_TEST_DELETIONS } from "../config";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -23,6 +23,20 @@ export function CommissionsPanel({ institutionId }: { institutionId: string }) {
     const { error } = await supabase.from("upi_commissions").delete().eq("id", c.id);
     if (error) return toast.error(error.message);
     toast.success("Commission deleted");
+    reload?.();
+  };
+
+  const publishCommission = async (c: any, cRules: any[]) => {
+    const conflicts = detectRuleConflicts(cRules as any[]);
+    if (conflicts.length > 0) {
+      toast.error("Resolve rule conflicts before publishing");
+      return;
+    }
+    const { error } = await supabase.rpc("fn_publish_commission_rules" as any, {
+      p_commission_id: c.id,
+    });
+    if (error) return toast.error(error.message);
+    toast.success(`Published "${c.name}"`);
     reload?.();
   };
 
@@ -47,9 +61,14 @@ export function CommissionsPanel({ institutionId }: { institutionId: string }) {
                   {c.model_type} · {c.currency} · base {base.base_rate_percent}% · {meta.payment_timing ?? c.payment_timing ?? "—"}
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {c.is_proposed && <Badge variant="secondary">Proposed</Badge>}
                 <Badge variant={c.is_active ? "default" : "outline"}>{c.is_active ? "Active" : "Inactive"}</Badge>
+                {(c.is_proposed || !c.is_active) && (
+                  <Button size="sm" variant="secondary" onClick={() => publishCommission(c, cRules)}>
+                    <Send className="size-3 mr-1" /> Publish
+                  </Button>
+                )}
                 {ALLOW_TEST_DELETIONS && (
                   <Button size="sm" variant="ghost" onClick={() => deleteCommission(c)} className="text-destructive hover:text-destructive">
                     <Trash2 className="size-4" />
