@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { AddDocTypeDialog, type AddDocumentRequirementInput } from "@/components/clients/AddDocTypeDialog";
 import { DocumentRequirementRow } from "@/components/documents/DocumentRequirementRow";
 import { DocumentSectionAccordion } from "@/components/documents/DocumentSectionAccordion";
 import { DocumentsProgressSummary } from "@/components/documents/DocumentsProgressSummary";
@@ -12,21 +13,25 @@ import {
 } from "@/components/documents/DocumentsToolbar";
 import { MissingRequiredChips } from "@/components/documents/MissingRequiredChips";
 import { useCaseDocumentWorkflow } from "@/hooks/documentWorkflow/useCaseDocumentWorkflow";
+import {
+  addCaseDocumentRequirement,
+  MANUAL_ADD_SECTION_KEY,
+} from "@/lib/documentWorkflow/addCaseDocumentRequirement";
 import type { EnrichedRequirement } from "@/lib/documentWorkflow/buildEnrichedRequirements";
 import { groupRequirementsBySection } from "@/lib/documentWorkflow/buildEnrichedRequirements";
 import type { RequirementDisplayStatus } from "@/lib/documentWorkflow/resolveDisplayStatus";
+import { logActivity } from "@/lib/activity";
 import type { CaseSection } from "@/lib/sections";
+import { toast } from "sonner";
 
 interface Props {
   clientId: string;
   caseId: string | null;
   sections: CaseSection[];
   canUpload: boolean;
-  isAdmin: boolean;
   templateName?: string | null;
   refreshKey: number | string;
   onChanged: () => void;
-  onAddDocument?: () => void;
   onMissingCountChange?: (count: number) => void;
 }
 
@@ -54,16 +59,15 @@ export function DocumentsTabContent({
   caseId,
   sections,
   canUpload,
-  isAdmin,
   templateName,
   refreshKey,
   onChanged,
-  onAddDocument,
   onMissingCountChange,
 }: Props) {
   const { loading, error, requirements, sectionGroups, progress, missingMandatory, reload } =
     useCaseDocumentWorkflow(clientId, caseId, refreshKey);
 
+  const [addDocOpen, setAddDocOpen] = useState(false);
   const [viewMode, setViewMode] = useState<DocumentsViewMode>("section");
   const [filterMode, setFilterMode] = useState<DocumentsFilterMode>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -115,6 +119,52 @@ export function DocumentsTabContent({
     onChanged();
   }, [reload, onChanged]);
 
+  const existingMasterCodes = useMemo(
+    () => requirements.map((r) => r.master_item_code),
+    [requirements],
+  );
+
+  const handleAddRequirement = useCallback(
+    async (input: AddDocumentRequirementInput) => {
+      if (!caseId) return;
+      const result = await addCaseDocumentRequirement({
+        caseId,
+        masterItemCode: input.masterItemCode,
+        mandatory: input.mandatory,
+        notes: input.notes ?? null,
+      });
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      await logActivity("client.extra_item_added", "client", clientId, {
+        type: input.label,
+        master_item_code: input.masterItemCode,
+        mandatory: input.mandatory,
+        source: "adr_manual_add",
+      });
+      toast.success(`Added "${input.label}" to Other Documents`);
+      setFilterMode("all");
+      setSearchQuery("");
+      setViewMode("section");
+      setExpandedSections((prev) => {
+        const keys = new Set([...prev, MANUAL_ADD_SECTION_KEY, "other_documents"]);
+        return Array.from(keys);
+      });
+      await reload();
+      onChanged();
+      setHighlightRequirementId(result.requirementId);
+      window.setTimeout(() => {
+        document.getElementById(`req-${result.requirementId}`)?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 200);
+      window.setTimeout(() => setHighlightRequirementId(null), 2500);
+    },
+    [caseId, clientId, reload, onChanged],
+  );
+
   if (!caseId) {
     return (
       <Card className="p-6 text-center text-sm text-muted-foreground">
@@ -145,13 +195,20 @@ export function DocumentsTabContent({
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="font-semibold text-sm">Case documents</div>
         <div className="flex items-center gap-2">
-          {canUpload && onAddDocument ? (
-            <Button size="sm" variant="outline" onClick={onAddDocument}>
+          {canUpload ? (
+            <Button size="sm" variant="outline" onClick={() => setAddDocOpen(true)}>
               <Plus className="size-3.5 mr-1" /> Add document
             </Button>
           ) : null}
         </div>
       </div>
+
+      <AddDocTypeDialog
+        open={addDocOpen}
+        onOpenChange={setAddDocOpen}
+        excludedMasterCodes={existingMasterCodes}
+        onAdd={handleAddRequirement}
+      />
 
       <DocumentsProgressSummary progress={progress} templateName={templateName} />
 

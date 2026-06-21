@@ -31,7 +31,7 @@ import { toast } from "sonner";
 import type { Template, TemplateItem, TemplateGroup } from "@/pages/Templates";
 import { ShareLinkDialog } from "@/components/documents/ShareLinkDialog";
 import { BINDER_GROUPS, groupForType } from "@/lib/binderGroups";
-import { AddDocTypeDialog, type ExtraItem } from "@/components/clients/AddDocTypeDialog";
+import { type ExtraItem } from "@/components/clients/AddDocTypeDialog";
 import { UnifiedProfileCard } from "@/components/clients/UnifiedProfileCard";
 import { ClientServicesTabContent } from "@/components/clients/ClientServicesTabContent";
 import { ClientJourneyProfileSection } from "@/components/clients/ClientJourneyProfileSection";
@@ -206,7 +206,6 @@ const ClientDetail = () => {
   const [optimizing, setOptimizing] = useState<string | null>(null);
   const [optimizingAll, setOptimizingAll] = useState(false);
   const [binders, setBinders] = useState<BinderRow[]>([]);
-  const [addDocOpen, setAddDocOpen] = useState(false);
   const [reExtracting, setReExtracting] = useState(false);
   const [syncingOdoo, setSyncingOdoo] = useState(false);
   const [profileRefreshKey, setProfileRefreshKey] = useState(0);
@@ -1383,11 +1382,9 @@ const ClientDetail = () => {
               caseId={serviceCase?.id ?? null}
               sections={sections}
               canUpload={canUpload}
-              isAdmin={isAdmin}
               templateName={template?.name ?? null}
               refreshKey={documentWorkflowRefresh}
               onChanged={load}
-              onAddDocument={() => setAddDocOpen(true)}
               onMissingCountChange={setDocumentMissingCount}
             />
 
@@ -1604,12 +1601,6 @@ const ClientDetail = () => {
       </div>
       <ShareLinkDialog open={!!shareTarget} onOpenChange={(o) => !o && setShareTarget(null)} target={shareTarget} />
       <AddSectionDialog open={addSectionOpen} onOpenChange={setAddSectionOpen} onCreated={load} />
-      <AddDocTypeDialog
-        open={addDocOpen}
-        onOpenChange={setAddDocOpen}
-        existingTypes={checklistItems.map((it) => it.name)}
-        onAdd={onAddExtraItem}
-      />
       {client && (
         <ClientAccessDialog
           open={accessOpen}

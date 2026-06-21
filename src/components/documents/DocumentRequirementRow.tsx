@@ -91,6 +91,11 @@ export function DocumentRequirementRow({
           <span className="text-sm font-medium">{requirement.display_name}</span>
           {requirement.mandatory ? (
             <span className="text-[10px] text-secondary font-semibold uppercase tracking-wide">Required</span>
+          ) : (
+            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Optional</span>
+          )}
+          {requirement.source === "manual_add" ? (
+            <span className="text-[10px] text-muted-foreground">· Other Documents</span>
           ) : null}
           <DocumentStatusBadge status={requirement.displayStatus} />
         </div>

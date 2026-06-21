@@ -20,6 +20,9 @@ export function DocumentsProgressSummary({ progress, templateName }: Props) {
         <div className="text-2xl font-bold tabular-nums text-primary">{progress.completionPct}%</div>
       </div>
       <Progress value={progress.completionPct} className="h-2" />
+      <p className="text-[11px] text-muted-foreground">
+        Progress counts <strong>required</strong> documents only. Optional items do not change these numbers.
+      </p>
       <div className="grid grid-cols-3 gap-3 text-center">
         <div className="rounded-md bg-muted/50 px-2 py-2">
           <div className="text-lg font-semibold tabular-nums">{progress.required}</div>
