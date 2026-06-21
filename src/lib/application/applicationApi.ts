@@ -237,6 +237,7 @@ export async function upsertStudentApplication(payload: UpsertStudentApplication
       tuition_fee: payload.tuitionFee ?? null,
       tuition_currency: payload.tuitionCurrency ?? null,
       destination_country: payload.destinationCountry ?? null,
+      cf_course_id: payload.cfCourseId ?? null,
       institution_application_status: payload.institutionApplicationStatus ?? "APPLIED",
       allow_duplicate_override: payload.allowDuplicateOverride ?? false,
       duplicate_override_reason: payload.duplicateOverrideReason ?? null,

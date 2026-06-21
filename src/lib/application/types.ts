@@ -176,6 +176,7 @@ export type UpsertStudentApplicationPayload = {
   tuitionCurrency?: string | null;
   destinationCountry?: string | null;
   institutionApplicationStatus?: InstitutionApplicationStatus;
+  cfCourseId?: string | null;
   allowDuplicateOverride?: boolean;
   duplicateOverrideReason?: string | null;
 };
