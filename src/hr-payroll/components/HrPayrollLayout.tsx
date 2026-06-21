@@ -1,5 +1,5 @@
 import { Link, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
-import flcLogo from "@/assets/flc-logo.png";
+import { Bell } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   HR_PERM_LIST,
@@ -7,11 +7,22 @@ import {
   HR_ROLE_LIST,
   HR_SCREEN_ROUTES,
   HR_SCREEN_TITLES,
+  type HrPerm,
   type HrScreenKey,
 } from "../lib/constants";
 import { HR_NAV, screenKeyFromPath, totalPendingApprovals } from "../lib/nav";
 import { HrModuleErrorBoundary } from "./HrModuleErrorBoundary";
 import { useHrAccess } from "../context/HrAccessContext";
+
+const PRIMARY_PERMS: HrPerm[] = ["view", "apply", "approve", "export"];
+const OUTLINE_PERMS: HrPerm[] = ["override"];
+
+function permPillClass(p: HrPerm, granted: boolean): string {
+  if (!granted) return "rb-perm-off";
+  if (PRIMARY_PERMS.includes(p)) return "rb-perm";
+  if (OUTLINE_PERMS.includes(p)) return "rb-perm-outline";
+  return "rb-perm-muted";
+}
 
 function firstAllowedScreen(canSee: (s: HrScreenKey) => boolean): string | null {
   for (const g of HR_NAV) {
@@ -40,16 +51,15 @@ function HrPayrollLayout() {
 
   const viewKey = screenKeyFromPath(location.pathname);
   const title = HR_SCREEN_TITLES[viewKey] ?? "HR Payroll";
+  const alertCount = totalPendingApprovals(pendingCounts);
 
   if (permissionsLoading) {
     return (
-      <div data-hr-payroll className="app" style={{ padding: 48, textAlign: "center" }}>
-        <div className="serif" style={{ fontSize: 18, fontWeight: 600 }}>
-          Loading HR module…
+      <div data-hr-payroll className="app app-loading">
+        <div className="card loading-card">
+          <div className="serif loading-title">Loading HR module…</div>
+          <p className="muted">Fetching role permissions and payroll cycle</p>
         </div>
-        <p className="muted" style={{ fontSize: 13, marginTop: 8 }}>
-          Fetching role permissions and payroll cycle
-        </p>
       </div>
     );
   }
@@ -61,36 +71,24 @@ function HrPayrollLayout() {
       return <Navigate to={fallback} replace />;
     }
     return (
-      <div data-hr-payroll className="app" style={{ padding: 48 }}>
-        <div className="card" style={{ maxWidth: 520, margin: "0 auto", padding: 24 }}>
-          <div className="serif" style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>
-            No access to this screen
-          </div>
-          <p className="muted" style={{ fontSize: 13.5, marginBottom: 16 }}>
-            Your current <strong>View as</strong> role ({role}) cannot open{" "}
-            <strong>{title}</strong>. Switch role in the top bar, or ask HR to grant screen access in
-            Team &amp; Roles.
+      <div data-hr-payroll className="app app-loading">
+        <div className="card loading-card">
+          <div className="serif loading-title">No access to this screen</div>
+          <p className="muted">
+            Your current <strong>View as</strong> role ({role}) cannot open <strong>{title}</strong>.
           </p>
           {fallback ? (
-            <Link to={fallback} className="btn btn-primary">
-              Go to My Portal
-            </Link>
+            <Link to={fallback} className="btn btn-primary">Go to My Portal</Link>
           ) : (
-            <p className="muted" style={{ fontSize: 12 }}>
-              No HR screens are enabled for this role. Re-run migration{" "}
-              <code>20260717120008_hr_payroll_demo_rls_bootstrap.sql</code> or reset RBAC in Roles.
-            </p>
+            <p className="muted">No HR screens enabled for this role.</p>
           )}
-          <Link to="/" className="btn" style={{ marginLeft: 8 }}>
-            Main menu
-          </Link>
+          <Link to="/" className="btn">Main menu</Link>
         </div>
       </div>
     );
   }
 
-  const permList = HR_PERM_LIST.filter((p) => can(p));
-  const initials = user?.email?.slice(0, 2).toUpperCase() ?? "MK";
+  const initials = user?.email?.slice(0, 2).toUpperCase() ?? "HR";
 
   const pendingFor = (k: HrScreenKey) => {
     if (k === "approvals") return totalPendingApprovals(pendingCounts);
@@ -106,8 +104,13 @@ function HrPayrollLayout() {
       <div className="app">
         <aside className="sidebar">
           <div className="brand">
-            <img src={flcLogo} alt="Future Link Consultants" className="brand-logo-full" />
-            <div className="brand-module">HR Payroll</div>
+            <div className="brand-row">
+              <div className="brand-mark serif">FL</div>
+              <div>
+                <div className="brand-name">Future Link</div>
+                <div className="brand-module">HR PAYROLL</div>
+              </div>
+            </div>
           </div>
           <nav className="nav">
             {HR_NAV.map((g) => {
@@ -145,13 +148,13 @@ function HrPayrollLayout() {
                 <br />
                 Days: {cycle.payroll_days} ·{" "}
                 {cycle.status === "Paid" ? (
-                  <span style={{ color: "var(--good)", fontWeight: 600 }}>Paid ✓</span>
+                  <span className="status-good">Paid ✓</span>
                 ) : cycle.status === "Locked" ? (
-                  <span style={{ color: "var(--good)", fontWeight: 600 }}>Locked ✓</span>
+                  <span className="status-good">Locked ✓</span>
                 ) : cycle.status === "Approved" ? (
-                  <span style={{ color: "var(--sky)", fontWeight: 600 }}>Approved</span>
+                  <span className="status-sky">Approved</span>
                 ) : cycle.status === "Processed" ? (
-                  <span style={{ color: "var(--clay)", fontWeight: 600 }}>Processed</span>
+                  <span className="status-clay">Processed</span>
                 ) : (
                   "Draft"
                 )}
@@ -160,72 +163,71 @@ function HrPayrollLayout() {
               <>No cycle loaded</>
             )}
             <br />
-            <Link to="/" className="tag" style={{ marginTop: 8, display: "inline-block" }}>
-              ⊞ Main menu
-            </Link>
+            <Link to="/" className="tag nav-foot-link">⊞ Main menu</Link>
             {!dbReady && (
               <>
                 <br />
-                <span style={{ color: "var(--clay)" }}>Apply HR SQL migrations</span>
+                <span className="status-clay">Apply HR SQL migrations</span>
               </>
             )}
           </div>
         </aside>
+
         <main className="main">
-          <header className="topbar">
-            <div className="topbar-left">
-              <div className="topbar-nav">
-                <button type="button" className="topbar-nav-btn" onClick={() => navigate(-1)}>
-                  ← Back
+          <div className="content-shell">
+            <header className="topbar-card">
+              <div className="topbar-left">
+                <div className="topbar-nav">
+                  <button type="button" className="topbar-nav-btn" onClick={() => navigate(-1)}>
+                    ← Back
+                  </button>
+                  <Link to="/" className="topbar-nav-btn">⊞ Main menu</Link>
+                </div>
+                <div>
+                  <div className="crumb">Future Link Consultants</div>
+                  <h2 className="serif page-title">{title}</h2>
+                </div>
+              </div>
+              <div className="topbar-right">
+                <div className="role-pill">
+                  <span className="muted role-pill-label">View as</span>
+                  <select value={role} onChange={(e) => setRole(e.target.value as typeof role)}>
+                    {HR_ROLE_LIST.map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  className="topbar-bell"
+                  aria-label="Notifications"
+                  onClick={() => navigate("/hr/approvals")}
+                >
+                  <Bell size={18} strokeWidth={2} />
+                  {alertCount > 0 && <span className="topbar-bell-dot">{alertCount}</span>}
                 </button>
-                <Link to="/" className="topbar-nav-btn">
-                  ⊞ Main menu
-                </Link>
+                <div className="avatar avatar-profile">{initials}</div>
               </div>
-              <div>
-                <div className="crumb">Future Link Consultants</div>
-                <h2 className="serif">{title}</h2>
-              </div>
-            </div>
-            <div className="topbar-right">
-              <div className="role-pill">
-                <span className="muted" style={{ fontSize: 11 }}>
-                  View as
-                </span>
-                <select value={role} onChange={(e) => setRole(e.target.value as typeof role)}>
-                  {HR_ROLE_LIST.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="avatar">{initials}</div>
-            </div>
-          </header>
-          <div className="content">
-            <div className="role-banner">
-              <span className="rb-dot" />
-              <strong>{role}</strong>
-              <span className="muted">· can:</span>
-              {permList.length ? (
-                permList.map((p) => (
-                  <span key={p} className="rb-perm">
+            </header>
+
+            <div className="content">
+              <div className="role-banner">
+                <span className="rb-dot" />
+                <strong>{role}</strong>
+                <span className="muted">can:</span>
+                {HR_PERM_LIST.map((p) => (
+                  <span key={p} className={permPillClass(p, can(p))}>
                     {HR_PERM_LABELS[p]}
                   </span>
-                ))
-              ) : (
-                <span className="muted" style={{ fontSize: 11.5 }}>
-                  no permissions
+                ))}
+                <span className="role-banner-hint muted">
+                  Edit access in Roles &amp; Access · changes apply instantly
                 </span>
-              )}
-              <span className="muted" style={{ marginLeft: "auto", fontSize: 11.5 }}>
-                Edit access in Roles &amp; Access · changes apply instantly
-              </span>
+              </div>
+              <HrModuleErrorBoundary>
+                <Outlet />
+              </HrModuleErrorBoundary>
             </div>
-            <HrModuleErrorBoundary>
-              <Outlet />
-            </HrModuleErrorBoundary>
           </div>
         </main>
         {toast && <div className="toast">✓ {toast}</div>}

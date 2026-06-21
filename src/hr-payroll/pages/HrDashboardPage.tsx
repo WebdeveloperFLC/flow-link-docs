@@ -3,9 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   Calendar,
+  Cake,
   CheckCircle2,
   ClipboardList,
   Clock,
+  PartyPopper,
   Pencil,
   Users,
 } from "lucide-react";
@@ -197,16 +199,20 @@ export default function HrDashboardPage() {
       <div className="grid g2">
         <div className="card">
           <div className="card-h">
-            <h3>Upcoming birthdays</h3>
+            <div className="card-h-icon">
+              <Cake size={18} />
+              <h3>Upcoming birthdays</h3>
+            </div>
             <Link to="/hr/employees" className="btn btn-sm">Employees →</Link>
           </div>
           {(stats?.upcomingBirthdays ?? []).length === 0 ? (
             <div className="empty empty-sm">None in the next 30 days.</div>
           ) : (
             stats!.upcomingBirthdays.map((e) => (
-              <div key={e.full_name} className="list-row">
+              <div key={e.full_name} className="timeline-row">
+                <div className="avatar">{initials(e.full_name)}</div>
                 <span>{e.full_name}</span>
-                <span className="muted mono">{e.date_of_birth?.slice(5, 10)}</span>
+                <span className="timeline-date">{e.date_of_birth?.slice(5, 10)}</span>
               </div>
             ))
           )}
@@ -214,16 +220,20 @@ export default function HrDashboardPage() {
 
         <div className="card">
           <div className="card-h">
-            <h3>Upcoming work anniversaries</h3>
+            <div className="card-h-icon">
+              <PartyPopper size={18} />
+              <h3>Upcoming work anniversaries</h3>
+            </div>
             <Link to="/hr/employees" className="btn btn-sm">Employees →</Link>
           </div>
           {(stats?.upcomingAnniversaries ?? []).length === 0 ? (
             <div className="empty empty-sm">None in the next 30 days.</div>
           ) : (
             stats!.upcomingAnniversaries.map((e) => (
-              <div key={e.full_name} className="list-row">
+              <div key={e.full_name} className="timeline-row">
+                <div className="avatar">{initials(e.full_name)}</div>
                 <span>{e.full_name}</span>
-                <span className="muted mono">{e.date_of_joining?.slice(5, 10)}</span>
+                <span className="timeline-date">{e.date_of_joining?.slice(5, 10)}</span>
               </div>
             ))
           )}

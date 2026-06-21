@@ -41,7 +41,10 @@ export function Stat({
         </div>
       )}
       <div className="stat-lab">{lab}</div>
-      <div className="stat-val serif" style={{ color: isHighlight ? color : color }}>
+      <div
+        className="stat-val serif"
+        style={{ color: isMetric ? "var(--ink)" : color }}
+      >
         {val}
       </div>
       {meta && <div className="stat-meta">{meta}</div>}
