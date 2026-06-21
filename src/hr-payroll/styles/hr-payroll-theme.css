@@ -1771,36 +1771,77 @@
   margin: 0 0 12px;
   font-size: 13px;
 }
+[data-hr-payroll] .emp360-profile-hero .ess-hero-inner {
+  align-items: center;
+  gap: 20px;
+}
+[data-hr-payroll] .emp360-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+[data-hr-payroll] .emp360-info-grid .info-grid {
+  padding: 0 14px 14px;
+}
+[data-hr-payroll] .emp360-section-card {
+  margin-bottom: 0;
+}
+[data-hr-payroll] .emp360-table-wrap {
+  padding: 0 14px 14px;
+}
+[data-hr-payroll] .emp360-timeline-hint {
+  font-size: 12px;
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
 [data-hr-payroll] .emp360-timeline-filters {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 12px;
-  padding: 0 16px;
+  padding: 0;
 }
 [data-hr-payroll] .emp360-timeline {
-  padding: 0 16px 14px;
+  padding: 0;
 }
 [data-hr-payroll] .emp360-timeline-row {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 8px 0;
+  display: grid;
+  grid-template-columns: 96px 120px 1fr;
+  align-items: start;
+  gap: 10px 12px;
+  padding: 10px 0;
   border-bottom: 1px solid var(--border);
+  font-size: 13px;
 }
 [data-hr-payroll] .emp360-timeline-row:last-child {
   border-bottom: none;
 }
 [data-hr-payroll] .emp360-timeline-date {
   font-size: 12px;
-  min-width: 88px;
 }
 [data-hr-payroll] .emp360-timeline-tag {
   font-size: 10px;
+  justify-self: start;
+}
+[data-hr-payroll] .emp360-timeline-label {
+  font-weight: 500;
 }
 [data-hr-payroll] .emp360-timeline-detail {
+  grid-column: 3;
   font-size: 12px;
+  line-height: 1.35;
+}
+@media (max-width: 880px) {
+  [data-hr-payroll] .emp360-info-grid {
+    grid-template-columns: 1fr;
+  }
+  [data-hr-payroll] .emp360-timeline-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  [data-hr-payroll] .emp360-timeline-detail {
+    grid-column: 1;
+  }
 }
 
 @media (max-width: 880px) {

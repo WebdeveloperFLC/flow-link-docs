@@ -35,7 +35,7 @@ export function Emp360ProfileChrome() {
       {!sectionLabel && (
         <div className="card ess-hero emp360-profile-hero">
           <div className="ess-hero-inner">
-            <EmployeeAvatar name={emp.full_name} photoUrl={emp.photo_url} size={64} fontSize={22} />
+            <EmployeeAvatar name={emp.full_name} photoUrl={emp.photo_url} size={96} fontSize={28} />
             <div className="ess-hero-main">
               <div className="ess-hero-title">{displayEmployeeName(emp)}</div>
               <div className="ess-hero-sub mono">{emp.emp_code}</div>
