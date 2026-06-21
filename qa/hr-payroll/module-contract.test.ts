@@ -270,6 +270,16 @@ describe("HR Payroll module contract", () => {
     expect(leavePage).toContain("Leave request details");
   });
 
+  it("pending leave can be cancelled by employee or HR from list and detail", () => {
+    const leavePage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrLeavePage.tsx"), "utf8");
+    expect(leavePage).toContain("canCancelLeaveRequest");
+    expect(leavePage).toContain("cancelLeave");
+    expect(leavePage).toContain("status: \"Cancelled\"");
+    expect(leavePage).toContain("cancelled_at");
+    expect(leavePage).toContain("Cancel request");
+    expect(leavePage).toContain("selfEmployeeId");
+  });
+
   it("allows leave type selection before dates are filled", () => {
     const leavePage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrLeavePage.tsx"), "utf8");
     expect(leavePage).not.toContain("disabled={resolution.forcedUnpaid}");
@@ -327,8 +337,8 @@ describe("HR Payroll module contract", () => {
     expect(catalog).toContain("Future Link Consultants Pvt Ltd");
     expect(catalog).toContain("Futureway Consultants Inc");
     expect(form).toContain("employee_category_id");
-    expect(form).toContain("employment_type");
-    expect(form).toContain("EMPLOYMENT_TYPE_OPTIONS");
+    expect(form).not.toContain("EMPLOYMENT_TYPE_OPTIONS");
+    expect(form).not.toMatch(/Employment Type/);
     expect(form).toContain("Payroll entity type");
     expect(form).toContain("PAYROLL_ENTITY_REGIONS");
     expect(form).toContain("payrollCompanyLabel");
@@ -351,8 +361,14 @@ describe("HR Payroll module contract", () => {
     expect(foundation).not.toMatch(/CREATE OR REPLACE FUNCTION fn_rollup_inputs/i);
     expect(foundation).not.toContain("sync_employment_type_from_category");
     expect(foundation).toContain("no catch-all");
-    expect(policy).not.toContain("hr_employee_categories");
-    expect(policy).toContain('ELIGIBLE_EMPLOYMENT_TYPES = ["Full time - Permanent"]');
+    expect(policy).toContain("hr_employee_categories");
+    expect(policy).toContain("leave_eligible");
+    const categoryOnly = readFileSync(
+      join(MIGRATIONS, "20260721120001_hr_payroll_category_only_classification.sql"),
+      "utf8",
+    );
+    expect(categoryOnly).toContain("fn_is_leave_eligible");
+    expect(categoryOnly).toContain("DROP NOT NULL");
   });
 
   it("ESS uses linked staff_id not employee picker", () => {

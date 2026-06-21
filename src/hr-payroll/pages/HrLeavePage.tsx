@@ -36,6 +36,17 @@ import type { LeaveRequestRow } from "../lib/types";
 const LEAVE_DOC_TYPE = "Leave Supporting Document";
 const ACCEPTED_LEAVE_DOCS = ".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx";
 
+function canCancelLeaveRequest(
+  row: LeaveRequestRow,
+  selfEmployeeId: string | undefined,
+  canApprove: boolean,
+  canApply: boolean,
+): boolean {
+  if (row.status !== "Pending") return false;
+  if (canApprove) return true;
+  return canApply && selfEmployeeId != null && row.employee_id === selfEmployeeId;
+}
+
 function DetailRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: 8, fontSize: 13.5, marginBottom: 10 }}>
@@ -49,21 +60,25 @@ function LeaveDetailModal({
   row,
   approvals,
   canApprove,
+  canCancel,
   onClose,
   onOpenDoc,
   onApprove,
   onReject,
   onReopen,
+  onCancel,
   onDelete,
 }: {
   row: LeaveRequestRow;
   approvals: Parameters<typeof ApprovalTrail>[0]["approvals"];
   canApprove: boolean;
+  canCancel: boolean;
   onClose: () => void;
   onOpenDoc: (row: LeaveRequestRow) => void;
   onApprove: () => void;
   onReject: () => void;
   onReopen: () => void;
+  onCancel: () => void;
   onDelete: () => void;
 }) {
   return (
@@ -84,6 +99,11 @@ function LeaveDetailModal({
                 Reject
               </button>
             </>
+          )}
+          {canCancel && row.status === "Pending" && (
+            <button type="button" className="btn" onClick={onCancel}>
+              Cancel request
+            </button>
           )}
           {canApprove && row.status !== "Pending" && (
             <button type="button" className="btn" onClick={onReopen}>
@@ -611,8 +631,14 @@ function LeaveModal({
 }
 
 export default function HrLeavePage() {
+  const { user } = useAuth();
   const { can, fire, cycle } = useHrAccess();
+  const { data: employees = [] } = useHrEmployees();
   const qc = useQueryClient();
+  const selfEmployeeId = useMemo(
+    () => employees.find((e) => e.staff_id === user?.id)?.id,
+    [employees, user?.id],
+  );
   const { data: leaves = [], isLoading } = useHrLeaveRequests();
   const leaveIds = leaves.map((l) => l.id);
   const { data: approvals = [] } = useHrApprovals("leave", leaveIds);
@@ -664,6 +690,7 @@ export default function HrLeavePage() {
   };
 
   const cancelLeave = async (row: LeaveRequestRow) => {
+    if (!canCancelLeaveRequest(row, selfEmployeeId, can("approve"), can("apply"))) return;
     if (!confirm("Cancel this leave request?")) return;
     const { error } = await supabase
       .from("leave_requests" as never)
@@ -673,8 +700,11 @@ export default function HrLeavePage() {
       fire(error.message);
       return;
     }
+    await hrAudit("Leave Cancelled", row.employees?.full_name ?? row.id, row.status, "Cancelled");
     fire("Leave cancelled");
     await qc.invalidateQueries({ queryKey: ["hr-leaves"] });
+    await qc.invalidateQueries({ queryKey: ["hr-pending-counts"] });
+    await qc.invalidateQueries({ queryKey: ["hr-approvals"] });
   };
 
   const remove = async (row: LeaveRequestRow) => {
@@ -811,45 +841,45 @@ export default function HrLeavePage() {
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
                     <div className="row-flex">
-                      {can("approve") ? (
-                        l.status === "Pending" ? (
-                          <>
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-good"
-                              onClick={() => void setStatus(l, "Approved")}
-                            >
-                              Approve
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-bad"
-                              onClick={() => {
-                                setRejectRow(l);
-                                setRejectReason("");
-                              }}
-                            >
-                              Reject
-                            </button>
-                          </>
-                        ) : l.status === "Pending" && can("apply") ? (
-                          <button type="button" className="btn btn-sm" onClick={() => void cancelLeave(l)}>
-                            Cancel
-                          </button>
-                        ) : (
+                      {can("approve") && l.status === "Pending" && (
+                        <>
                           <button
                             type="button"
-                            className="btn btn-sm"
-                            onClick={() => void setStatus(l, "Pending")}
+                            className="btn btn-sm btn-good"
+                            onClick={() => void setStatus(l, "Approved")}
                           >
-                            Reopen
+                            Approve
                           </button>
-                        )
-                      ) : (
-                        <span className="muted" style={{ fontSize: 11.5 }}>
-                          view only
-                        </span>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-bad"
+                            onClick={() => {
+                              setRejectRow(l);
+                              setRejectReason("");
+                            }}
+                          >
+                            Reject
+                          </button>
+                        </>
                       )}
+                      {canCancelLeaveRequest(l, selfEmployeeId, can("approve"), can("apply")) && (
+                        <button type="button" className="btn btn-sm" onClick={() => void cancelLeave(l)}>
+                          Cancel
+                        </button>
+                      )}
+                      {can("approve") && l.status !== "Pending" && (
+                        <button
+                          type="button"
+                          className="btn btn-sm"
+                          onClick={() => void setStatus(l, "Pending")}
+                        >
+                          Reopen
+                        </button>
+                      )}
+                      {!can("approve") &&
+                        !canCancelLeaveRequest(l, selfEmployeeId, can("approve"), can("apply")) && (
+                          <span className="muted" style={{ fontSize: 11.5 }}>view only</span>
+                        )}
                       {can("approve") && (
                         <button
                           type="button"
@@ -872,6 +902,7 @@ export default function HrLeavePage() {
           row={detailRow}
           approvals={approvals}
           canApprove={can("approve")}
+          canCancel={canCancelLeaveRequest(detailRow, selfEmployeeId, can("approve"), can("apply"))}
           onClose={() => setDetailRow(null)}
           onOpenDoc={(row) => void openLeaveDoc(row)}
           onApprove={() => {
@@ -884,6 +915,9 @@ export default function HrLeavePage() {
           }}
           onReopen={() => {
             void setStatus(detailRow, "Pending").then(() => setDetailRow(null));
+          }}
+          onCancel={() => {
+            void cancelLeave(detailRow).then(() => setDetailRow(null));
           }}
           onDelete={() => {
             void remove(detailRow).then(() => setDetailRow(null));
