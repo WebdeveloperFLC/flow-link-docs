@@ -33,7 +33,7 @@ export function ClientTaskHistoryCard({ clientId }: { clientId: string }) {
   const refresh = () => listTasks(clientId).then(setTasks).catch(() => {});
   useEffect(() => {
     refresh();
-    const off = subscribeTasks(clientId, refresh);
+    const off = subscribeTasks(clientId, refresh, "history");
     return () => {
       off();
     };

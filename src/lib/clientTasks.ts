@@ -190,9 +190,13 @@ export async function deleteTask(id: string) {
   if (error) throw error;
 }
 
-export function subscribeTasks(clientId: string, onChange: () => void) {
+export function subscribeTasks(
+  clientId: string,
+  onChange: () => void,
+  channelScope: "card" | "history" = "card",
+) {
   const ch = supabase
-    .channel(`tasks:${clientId}`)
+    .channel(`tasks-${channelScope}:${clientId}`)
     .on("postgres_changes",
       { event: "*", schema: "public", table: "client_tasks", filter: `client_id=eq.${clientId}` },
       () => onChange(),

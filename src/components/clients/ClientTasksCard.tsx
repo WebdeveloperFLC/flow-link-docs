@@ -29,7 +29,7 @@ export function ClientTasksCard({ clientId }: { clientId: string }) {
   const refresh = () => listTasks(clientId).then(setTasks).catch(() => {});
   useEffect(() => {
     refresh();
-    const off = subscribeTasks(clientId, refresh);
+    const off = subscribeTasks(clientId, refresh, "card");
     return () => {
       off();
     };

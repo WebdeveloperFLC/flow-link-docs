@@ -58,6 +58,10 @@ export type ClientProgramEnriched = ClientProgramRow & {
   qualification: LinkedApplicationSummary | null;
 };
 
+/** PostgREST embed hint — disambiguates bidirectional FK with client_institution_qualifications. */
+export const CF_CLIENT_PROGRAMS_QUALIFICATION_FK =
+  "cf_client_programs_qualification_id_fkey";
+
 const PROGRAM_SELECT = `
   *,
   course:cf_courses (
@@ -83,7 +87,7 @@ const PROGRAM_SELECT = `
       )
     )
   ),
-  qualification:client_institution_qualifications (
+  qualification:client_institution_qualifications!${CF_CLIENT_PROGRAMS_QUALIFICATION_FK} (
     id,
     status,
     institution_application_status
