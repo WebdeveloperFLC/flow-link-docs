@@ -67,7 +67,7 @@ export default function HrApprovalsPage() {
         .map((l) => ({
           id: l.id,
           title: l.employees?.full_name ?? "Employee",
-          sub: `${l.delay_min} min late · ${l.work_date}`,
+          sub: `${l.delay_min} min late · ${l.late_date}`,
           status: l.status,
         }));
     }
@@ -77,7 +77,7 @@ export default function HrApprovalsPage() {
         .map((m) => ({
           id: m.id,
           title: m.employees?.full_name ?? "Employee",
-          sub: `${m.issue} · ${m.work_date}`,
+          sub: `${m.issue} · ${m.punch_date}`,
           status: m.status,
         }));
     }

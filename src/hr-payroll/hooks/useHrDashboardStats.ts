@@ -38,12 +38,12 @@ export function useHrDashboardStats() {
           .from("late_exemptions" as never)
           .select("id", { count: "exact", head: true })
           .eq("org_id", HR_ORG_ID)
-          .eq("work_date", today),
+          .eq("late_date", today),
         supabase
           .from("mispunch_requests" as never)
           .select("id", { count: "exact", head: true })
           .eq("org_id", HR_ORG_ID)
-          .eq("work_date", today)
+          .eq("punch_date", today)
           .eq("status", "Pending"),
         supabase
           .from("employees" as never)
