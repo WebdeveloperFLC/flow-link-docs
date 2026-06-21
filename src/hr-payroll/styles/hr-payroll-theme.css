@@ -1864,6 +1864,88 @@
   }
 }
 
+[data-hr-payroll] .training-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: start;
+}
+[data-hr-payroll] .training-detail-dates {
+  text-align: right;
+}
+[data-hr-payroll] .training-workflow-strip {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--wash);
+}
+[data-hr-payroll] .training-workflow-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+[data-hr-payroll] .training-workflow-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-size: 12px;
+}
+[data-hr-payroll] .training-workflow-step.done {
+  border-color: var(--mint);
+  background: color-mix(in srgb, var(--mint) 12%, transparent);
+}
+[data-hr-payroll] .training-workflow-step.active {
+  border-color: var(--sky-deep);
+  background: color-mix(in srgb, var(--sky) 18%, transparent);
+  font-weight: 600;
+}
+[data-hr-payroll] .training-workflow-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--wash);
+  font-size: 11px;
+  font-weight: 600;
+}
+[data-hr-payroll] .training-workflow-hint {
+  font-size: 12px;
+  margin: 10px 0 0;
+}
+[data-hr-payroll] .training-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+[data-hr-payroll] .training-timeline-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+[data-hr-payroll] .training-timeline-item:last-child {
+  border-bottom: none;
+}
+[data-hr-payroll] .training-timeline-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--sky-deep);
+  flex-shrink: 0;
+}
+[data-hr-payroll] .training-timeline-body {
+  flex: 1;
+  min-width: 0;
+}
+
 [data-hr-payroll] .attendance-view-tabs-wrap {
   margin-bottom: 4px;
 }

@@ -1,17 +1,17 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees, useHrReferenceData } from "../hooks/useHrEmployees";
-import { useHrApprovals, useHrTrainingRecords } from "../hooks/useHrRequests";
+import { useHrTrainingRecords } from "../hooks/useHrRequests";
 import { StatusBadge } from "../components/ui/StatusBadge";
-import { ApprovalTrail } from "../components/ui/ApprovalTrail";
 import { ModalShell } from "../components/ui/ModalShell";
 import { TrainingFilterBar } from "../components/training/TrainingFilterBar";
 import { ExtendTrainingModal, CompleteTrainingModal } from "../components/training/TrainingWorkflowModals";
-import { TrainingAuditPanel } from "../components/training/TrainingAuditPanel";
+import { TrainingDetailModal } from "../components/training/TrainingDetailModal";
 import { HR_ORG_ID } from "../lib/constants";
-import { getHrActorInfo, hrAudit, assignTrainingRecord, processApprovalDecision } from "../lib/hrApi";
+import { getHrActorInfo, hrAudit, assignTrainingRecord } from "../lib/hrApi";
 import {
   defaultTrainingFilters,
   filterTrainingRecords,
@@ -19,8 +19,6 @@ import {
   type TrainingFilters,
 } from "../lib/trainingFilters";
 import type { TrainingRecordRow } from "../lib/types";
-
-const ACTIVE_STATUSES = new Set(["In Progress", "Extended"]);
 
 function TrainingModal({
   onClose,
@@ -162,6 +160,7 @@ function TrainingModal({
 }
 
 export default function HrTrainingPage() {
+  const location = useLocation();
   const { can, fire } = useHrAccess();
   const qc = useQueryClient();
   const { data: training = [], isLoading } = useHrTrainingRecords();
@@ -169,9 +168,9 @@ export default function HrTrainingPage() {
   const { data: ref } = useHrReferenceData();
   const [filters, setFilters] = useState<TrainingFilters>(defaultTrainingFilters());
   const [assignOpen, setAssignOpen] = useState(false);
+  const [detailRow, setDetailRow] = useState<TrainingRecordRow | null>(null);
   const [extendRow, setExtendRow] = useState<TrainingRecordRow | null>(null);
   const [completeRow, setCompleteRow] = useState<TrainingRecordRow | null>(null);
-  const [auditRow, setAuditRow] = useState<TrainingRecordRow | null>(null);
   const mng = can("approve");
 
   const filtered = useMemo(
@@ -179,8 +178,12 @@ export default function HrTrainingPage() {
     [training, filters],
   );
 
-  const trainingIds = useMemo(() => filtered.map((t) => t.id), [filtered]);
-  const { data: approvals = [] } = useHrApprovals("training", trainingIds);
+  useEffect(() => {
+    const openId = (location.state as { openTrainingId?: string } | null)?.openTrainingId;
+    if (!openId) return;
+    const row = training.find((t) => t.id === openId);
+    if (row) setDetailRow(row);
+  }, [location.state, training]);
 
   const invalidate = async () => {
     await qc.invalidateQueries({ queryKey: ["hr-training"] });
@@ -196,27 +199,21 @@ export default function HrTrainingPage() {
       return;
     }
     fire("Training removed");
+    setDetailRow(null);
     await invalidate();
   };
 
-  const decide = async (row: TrainingRecordRow, decision: "Approved" | "Rejected") => {
-    try {
-      await processApprovalDecision("training", row.id, decision);
-      fire(decision === "Approved" ? "Approved" : "Rejected");
-      await invalidate();
-    } catch (e) {
-      fire(e instanceof Error ? e.message : "Action failed");
-    }
-  };
-
-  const canDecide = (row: TrainingRecordRow) =>
-    mng &&
-    (row.status === "Pending Manager Approval" || row.status === "Pending HR Approval");
-
   return (
     <div className="page-grid">
+      <div className="card card-wash">
+        <p style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55, margin: 0 }}>
+          <strong>Workflow:</strong> Assign → (optional Extend) → Request completion → Manager approves → HR
+          approves → Completed. Open <strong>Manage</strong> on any row for status, approvals, and activity.
+        </p>
+      </div>
+
       <div className="card-h">
-        <span className="tag">Completion requires Manager + HR approval · up to 7 unpaid days</span>
+        <span className="tag">Up to 7 unpaid training days per employee</span>
         {mng && (
           <button type="button" className="btn btn-primary" onClick={() => setAssignOpen(true)}>
             + Assign Training
@@ -241,7 +238,7 @@ export default function HrTrainingPage() {
             No training records match filters.
           </div>
         ) : (
-          <table style={{ minWidth: 1080 }}>
+          <table style={{ minWidth: 960 }}>
             <thead>
               <tr>
                 <th>Ref</th>
@@ -251,7 +248,7 @@ export default function HrTrainingPage() {
                 <th>End / Extended</th>
                 <th>Unpaid</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th />
               </tr>
             </thead>
             <tbody>
@@ -283,57 +280,9 @@ export default function HrTrainingPage() {
                       <StatusBadge status={t.status} />
                     </td>
                     <td>
-                      <div className="row-flex" style={{ flexWrap: "wrap", gap: 4 }}>
-                        <button type="button" className="btn btn-sm" onClick={() => setAuditRow(t)}>
-                          Audit
-                        </button>
-                        {canDecide(t) && (
-                          <>
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-good"
-                              onClick={() => void decide(t, "Approved")}
-                            >
-                              Approve
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-bad"
-                              onClick={() => void decide(t, "Rejected")}
-                            >
-                              Reject
-                            </button>
-                          </>
-                        )}
-                        {mng && ACTIVE_STATUSES.has(t.status) && (
-                          <>
-                            <button type="button" className="btn btn-sm" onClick={() => setExtendRow(t)}>
-                              Extend
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-good"
-                              onClick={() => setCompleteRow(t)}
-                            >
-                              Complete
-                            </button>
-                          </>
-                        )}
-                        {mng && (
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-ghost btn-bad"
-                            onClick={() => void remove(t)}
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                      {(t.status === "Pending Manager Approval" || t.status === "Pending HR Approval") && (
-                        <div style={{ marginTop: 6 }}>
-                          <ApprovalTrail entityId={t.id} approvals={approvals} />
-                        </div>
-                      )}
+                      <button type="button" className="btn btn-sm btn-primary" onClick={() => setDetailRow(t)}>
+                        Manage
+                      </button>
                     </td>
                   </tr>
                 );
@@ -350,6 +299,18 @@ export default function HrTrainingPage() {
             fire(m);
             void invalidate();
           }}
+        />
+      )}
+      {detailRow && !extendRow && !completeRow && (
+        <TrainingDetailModal
+          row={detailRow}
+          canManage={mng}
+          onClose={() => setDetailRow(null)}
+          onExtend={() => setExtendRow(detailRow)}
+          onComplete={() => setCompleteRow(detailRow)}
+          onRefresh={() => void invalidate()}
+          onNotify={(m) => fire(m)}
+          onDelete={() => void remove(detailRow)}
         />
       )}
       {extendRow && (
@@ -373,11 +334,6 @@ export default function HrTrainingPage() {
             void invalidate();
           }}
         />
-      )}
-      {auditRow && (
-        <ModalShell title="Training audit" onClose={() => setAuditRow(null)} footer={null}>
-          <TrainingAuditPanel row={auditRow} />
-        </ModalShell>
       )}
     </div>
   );

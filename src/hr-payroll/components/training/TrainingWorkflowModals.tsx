@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { extendTraining, requestTrainingCompletion } from "../../lib/hrApi";
+import { extendTrainingRecord, submitTrainingCompletion } from "../../lib/trainingWorkflow";
 import { ModalShell } from "../ui/ModalShell";
 import { TRAINING_COMPLETION_REASONS } from "../../lib/trainingFilters";
 import type { TrainingRecordRow } from "../../lib/types";
@@ -32,11 +32,11 @@ export function ExtendTrainingModal({
     setErr("");
     setSaving(true);
     try {
-      await extendTraining(row.id, extendedUntil, reason.trim());
+      await extendTrainingRecord(row, extendedUntil, reason.trim());
       onSaved("Training extended");
       onClose();
     } catch (e) {
-      onSaved(e instanceof Error ? e.message : "Extension failed");
+      setErr(e instanceof Error ? e.message : "Extension failed");
     } finally {
       setSaving(false);
     }
@@ -58,7 +58,7 @@ export function ExtendTrainingModal({
       <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
         Original end: <strong>{row.end_date ?? "—"}</strong>
         {row.extended_end_date && (
-          <> · Current extended until: <strong>{row.extended_end_date}</strong></>
+          <> · Currently extended to: <strong>{row.extended_end_date}</strong></>
         )}
       </p>
       <label className="fld">
@@ -71,13 +71,13 @@ export function ExtendTrainingModal({
         />
       </label>
       <label className="fld">
-        <span className="l">Extension reason</span>
+        <span className="l">Extension reason (required)</span>
         <textarea
           className="input"
           rows={3}
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="Required — reason for extension"
+          placeholder="Why is this training being extended?"
         />
       </label>
       {err && <p style={{ color: "var(--rose)", fontSize: 13 }}>{err}</p>}
@@ -115,11 +115,11 @@ export function CompleteTrainingModal({
     setErr("");
     setSaving(true);
     try {
-      await requestTrainingCompletion(row.id, completionDate, finalReason);
-      onSaved("Completion submitted for approval");
+      await submitTrainingCompletion(row, completionDate, finalReason);
+      onSaved("Sent for approval — manager then HR must approve");
       onClose();
     } catch (e) {
-      onSaved(e instanceof Error ? e.message : "Request failed");
+      setErr(e instanceof Error ? e.message : "Request failed");
     } finally {
       setSaving(false);
     }
@@ -127,7 +127,7 @@ export function CompleteTrainingModal({
 
   return (
     <ModalShell
-      title="Request training completion"
+      title="Complete training"
       onClose={onClose}
       footer={
         <>
@@ -138,9 +138,15 @@ export function CompleteTrainingModal({
         </>
       }
     >
+      <div className="card card-wash" style={{ marginBottom: 12, padding: 12 }}>
+        <p style={{ fontSize: 13, margin: 0, lineHeight: 1.5 }}>
+          After you submit, <strong>reporting manager</strong> approves first, then <strong>HR</strong> marks
+          the training completed. You can complete before the extended end date.
+        </p>
+      </div>
       {extendedUntil && (
         <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
-          Extended until <strong>{extendedUntil}</strong> — you can complete earlier (e.g. before extension date).
+          Planned end: <strong>{extendedUntil}</strong>
         </p>
       )}
       <label className="fld">
@@ -153,7 +159,7 @@ export function CompleteTrainingModal({
         />
       </label>
       <label className="fld">
-        <span className="l">Completion reason</span>
+        <span className="l">Completion reason (required)</span>
         <select className="input" value={reason} onChange={(e) => setReason(e.target.value)}>
           {TRAINING_COMPLETION_REASONS.map((r) => (
             <option key={r} value={r}>{r}</option>
@@ -171,9 +177,6 @@ export function CompleteTrainingModal({
           />
         </label>
       )}
-      <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-        Workflow: Reporting Manager → HR → Completed
-      </p>
       {err && <p style={{ color: "var(--rose)", fontSize: 13 }}>{err}</p>}
     </ModalShell>
   );

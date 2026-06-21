@@ -111,7 +111,7 @@ export default function HrApprovalsPage() {
       return [];
     }
     return [];
-  }, [type, leaves, compoff, late, mispunch, cycle]);
+  }, [type, leaves, compoff, late, mispunch, training, cycle]);
 
   const fullRoute = MODULE_ROUTES[type] ?? "/hr";
 
@@ -166,7 +166,15 @@ export default function HrApprovalsPage() {
                     <StatusBadge status={row.status} />
                   </td>
                   <td>
-                    <button type="button" className="btn btn-sm" onClick={() => navigate(fullRoute)}>
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={() =>
+                        navigate(fullRoute, {
+                          state: type === "training" ? { openTrainingId: row.id } : undefined,
+                        })
+                      }
+                    >
                       Review
                     </button>
                   </td>
