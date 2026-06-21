@@ -1,5 +1,9 @@
 import { matchDocumentToRequirement } from "./matchDocumentToRequirement";
 import {
+  counselorSectionSortIndex,
+  resolveCounselorSectionForRequirement,
+} from "./counselorSections";
+import {
   resolveRequirementDisplayStatus,
   type RequirementDisplayStatus,
 } from "./resolveDisplayStatus";
@@ -68,6 +72,28 @@ export function groupRequirementsBySection(
       requirements: g.requirements.sort((a, b) => a.sort_order - b.sort_order),
     }))
     .sort((a, b) => compareSectionKeys(a.sectionKey, b.sectionKey));
+}
+
+/** Group by approved counselor sections (Identity, Relationship, Financial, …). */
+export function groupRequirementsByCounselorSection(
+  requirements: EnrichedRequirement[],
+): DocumentSectionGroup[] {
+  const map = new Map<string, DocumentSectionGroup>();
+  for (const req of requirements) {
+    const { key, label } = resolveCounselorSectionForRequirement(req);
+    let group = map.get(key);
+    if (!group) {
+      group = { sectionKey: key, sectionLabel: label, requirements: [] };
+      map.set(key, group);
+    }
+    group.requirements.push(req);
+  }
+  return Array.from(map.values())
+    .map((g) => ({
+      ...g,
+      requirements: g.requirements.sort((a, b) => a.sort_order - b.sort_order),
+    }))
+    .sort((a, b) => counselorSectionSortIndex(a.sectionKey) - counselorSectionSortIndex(b.sectionKey));
 }
 
 export function computeCaseDocumentProgress(

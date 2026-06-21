@@ -5,7 +5,7 @@ import {
   buildEnrichedRequirements,
   computeCaseDocumentProgress,
   getMissingMandatory,
-  groupRequirementsBySection,
+  groupRequirementsByCounselorSection,
   type DocumentSectionGroup,
   type EnrichedRequirement,
 } from "@/lib/documentWorkflow/buildEnrichedRequirements";
@@ -111,7 +111,7 @@ export function useCaseDocumentWorkflow(
 
   const progress = useMemo(() => computeCaseDocumentProgress(enriched), [enriched]);
   const missingMandatory = useMemo(() => getMissingMandatory(enriched), [enriched]);
-  const sectionGroups = useMemo(() => groupRequirementsBySection(enriched), [enriched]);
+  const sectionGroups = useMemo(() => groupRequirementsByCounselorSection(enriched), [enriched]);
 
   return {
     loading,

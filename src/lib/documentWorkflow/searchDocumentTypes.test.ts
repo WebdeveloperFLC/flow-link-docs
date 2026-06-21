@@ -21,21 +21,15 @@ describe("searchDocumentTypes", () => {
     ];
     expect(scoreDocumentTypeMatch(items[0], "pcc", "general")).toBeGreaterThan(0);
     expect(
-      filterDocumentTypesForAdd(items, "marriage", null, null).some(
+      filterDocumentTypesForAdd(items, "marriage", [], null, null).some(
         (i) => i.code === "passport",
       ),
     ).toBe(false);
   });
 
-  it("does not remove on-checklist codes from catalogue", () => {
-    const items = [item("passport", "Passport"), item("photograph", "Photograph")];
-    const filtered = filterDocumentTypesForAdd(items, "photo", null, null);
-    expect(filtered.some((i) => i.code === "photograph")).toBe(true);
-  });
-
   it("matches category name in search", () => {
     const items = [item("marksheet_12", "12th Marksheet"), item("passport", "Passport")];
-    const filtered = filterDocumentTypesForAdd(items, "academic", null, null);
+    const filtered = filterDocumentTypesForAdd(items, "academic", [], null, null);
     expect(filtered.some((i) => i.code === "marksheet_12")).toBe(true);
     expect(filtered.some((i) => i.code === "passport")).toBe(false);
   });

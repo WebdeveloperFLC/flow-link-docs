@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  filterDocumentTypesForAdd,
-  groupDocumentTypesByCategory,
+  buildAddDocumentPickerItems,
   inspectDocumentTypeFilterPipeline,
 } from "./documentTypeFilterPipeline";
 import type { MasterItem } from "@/lib/masters";
@@ -18,53 +17,46 @@ const item = (code: string, label: string, meta: Record<string, unknown> = {}): 
 
 describe("documentTypeFilterPipeline", () => {
   const catalog = [
+    item("passport", "Passport"),
     item("marriage_certificate", "Marriage Certificate"),
     item("marksheet_10", "10th Marksheet"),
     item("marksheet_12", "12th Marksheet"),
-    item("passport", "Passport"),
     item("police_clearance", "Police Clearance Certificate"),
   ];
 
-  it("keeps all active types after relevance (sort-only)", () => {
+  const checklist = [
+    {
+      master_item_code: "valid_passport_bio_page_and_relevant_visa_stamp_",
+      display_name: "Valid passport — bio page and relevant visa/stamp pages",
+    },
+    item("marriage_certificate", "Marriage Certificate"),
+  ].map((r) =>
+    "master_item_code" in r
+      ? r
+      : { master_item_code: r.code, display_name: r.label },
+  );
+
+  it("excludes duplicate families from default picker", () => {
     const counts = inspectDocumentTypeFilterPipeline(
       catalog,
       "",
-      new Set(["passport"]),
+      checklist,
       "canada::spouse",
       "Canada - Spouse / Dependent Visitor Visa",
     );
     expect(counts.masterActiveTotal).toBe(5);
-    expect(counts.onChecklistCount).toBe(1);
-    expect(counts.afterRelevance).toBe(5);
-    expect(counts.afterSearch).toBe(5);
-    expect(counts.uiRendered).toBe(5);
-    expect(counts.renderedGroupCount).toBeGreaterThan(1);
-    expect(counts.profile).toBe("spouse_dependent");
+    expect(counts.afterExclusion).toBe(3);
+    expect(counts.afterDuplicateFiltering).toBe(3);
+    expect(counts.uiRendered).toBe(3);
+    expect(counts.duplicateFamilyCodes).toContain("passport");
+    expect(counts.duplicateFamilyCodes).toContain("marriage_certificate");
   });
 
-  it("ranks relationship first but does not hide academic", () => {
-    const results = filterDocumentTypesForAdd(
-      catalog,
-      "",
-      "canada::spouse",
-      "Canada - Spouse / Dependent Visitor Visa",
-    );
-    expect(results.some((i) => i.code === "marksheet_10")).toBe(true);
-    expect(results.some((i) => i.code === "marksheet_12")).toBe(true);
-    expect(results[0]?.code).toBe("marriage_certificate");
-  });
-
-  it("search filters to matches only", () => {
-    const counts = inspectDocumentTypeFilterPipeline(
-      catalog,
-      "10th",
-      new Set(),
-      "canada::spouse",
-      "Canada - Spouse / Dependent Visitor Visa",
-    );
-    expect(counts.afterRelevance).toBe(5);
-    expect(counts.afterSearch).toBe(1);
-    expect(counts.uiRendered).toBe(1);
+  it("shows disabled duplicates when searching", () => {
+    const rows = buildAddDocumentPickerItems(catalog, "passport", checklist, "canada::spouse", "Canada - Spouse / Dependent Visitor Visa");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.duplicateFamily).toBe(true);
+    expect(rows[0]?.item.code).toBe("passport");
   });
 
   it("renders all category groups for large catalogue", () => {
@@ -74,23 +66,15 @@ describe("documentTypeFilterPipeline", () => {
     for (let i = 0; i < 7; i++) large.push(item(`relationship_${i}`, `Relationship Doc ${i}`));
     for (let i = 0; i < 5; i++) large.push(item(`identity_${i}`, `Identity Doc ${i}`, { category: "identity" }));
 
-    const filtered = filterDocumentTypesForAdd(
-      large,
-      "",
-      "canada::spouse",
-      "Canada - Spouse / Dependent Visitor Visa",
-    );
-    const grouped = groupDocumentTypesByCategory(filtered, "spouse_dependent");
     const counts = inspectDocumentTypeFilterPipeline(
       large,
       "",
-      new Set(),
+      [],
       "canada::spouse",
       "Canada - Spouse / Dependent Visitor Visa",
     );
-
-    expect(filtered.length).toBe(54);
-    expect(grouped.length).toBeGreaterThanOrEqual(4);
+    expect(counts.masterActiveTotal).toBe(54);
+    expect(counts.afterExclusion).toBe(54);
     expect(counts.uiRendered).toBe(54);
     expect(counts.renderedGroupCount).toBeGreaterThanOrEqual(4);
   });

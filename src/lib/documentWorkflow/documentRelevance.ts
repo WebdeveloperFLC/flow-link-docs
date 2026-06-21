@@ -218,6 +218,7 @@ export function sampleAddDocumentResults(
   const filtered = filterDocumentTypesForAdd(
     items,
     query,
+    [],
     serviceCode,
     templateName,
   )

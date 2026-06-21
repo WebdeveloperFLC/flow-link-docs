@@ -18,7 +18,7 @@ import {
   MANUAL_ADD_SECTION_KEY,
 } from "@/lib/documentWorkflow/addCaseDocumentRequirement";
 import type { EnrichedRequirement } from "@/lib/documentWorkflow/buildEnrichedRequirements";
-import { groupRequirementsBySection } from "@/lib/documentWorkflow/buildEnrichedRequirements";
+import { groupRequirementsByCounselorSection } from "@/lib/documentWorkflow/buildEnrichedRequirements";
 import type { RequirementDisplayStatus } from "@/lib/documentWorkflow/resolveDisplayStatus";
 import { logActivity } from "@/lib/activity";
 import type { CaseSection } from "@/lib/sections";
@@ -85,8 +85,17 @@ export function DocumentsTabContent({
   );
 
   const filteredSectionGroups = useMemo(
-    () => groupRequirementsBySection(filteredRequirements),
+    () => groupRequirementsByCounselorSection(filteredRequirements),
     [filteredRequirements],
+  );
+
+  const checklistRequirements = useMemo(
+    () =>
+      requirements.map((r) => ({
+        master_item_code: r.master_item_code,
+        display_name: r.display_name,
+      })),
+    [requirements],
   );
 
   const activeExpanded =
@@ -120,11 +129,6 @@ export function DocumentsTabContent({
     await reload();
     onChanged();
   }, [reload, onChanged]);
-
-  const existingMasterCodes = useMemo(
-    () => requirements.map((r) => r.master_item_code),
-    [requirements],
-  );
 
   const handleAddRequirement = useCallback(
     async (input: AddDocumentRequirementInput) => {
@@ -208,7 +212,7 @@ export function DocumentsTabContent({
       <AddDocTypeDialog
         open={addDocOpen}
         onOpenChange={setAddDocOpen}
-        excludedMasterCodes={existingMasterCodes}
+        checklistRequirements={checklistRequirements}
         serviceCode={serviceCode}
         templateName={templateName}
         onAdd={handleAddRequirement}

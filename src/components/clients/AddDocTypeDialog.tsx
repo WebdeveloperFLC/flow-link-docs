@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,20 +6,23 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMasterItems, type MasterItem } from "@/lib/masters";
 import {
   DOCUMENT_CATEGORY_LABELS,
   formatDocumentWithCategory,
   resolveDocumentCategory,
 } from "@/lib/documentWorkflow/documentCategories";
+import type { ChecklistRequirementRef } from "@/lib/documentWorkflow/documentFamily";
 import {
   detectServiceDocumentProfile,
   type ServiceDocumentProfile,
 } from "@/lib/documentWorkflow/documentRelevance";
 import {
-  filterDocumentTypesForAdd,
-  groupDocumentTypesByCategory,
+  buildAddDocumentPickerItems,
+  groupPickerItemsByCategory,
   inspectDocumentTypeFilterPipeline,
+  type AddDocumentPickerItem,
 } from "@/lib/documentWorkflow/documentTypeFilterPipeline";
 import { cn } from "@/lib/utils";
 
@@ -55,15 +58,15 @@ function formatCategorySummary(counts: Record<string, number>): string {
 export const AddDocTypeDialog = ({
   open,
   onOpenChange,
-  excludedMasterCodes,
+  checklistRequirements,
   serviceCode,
   templateName,
   onAdd,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  /** Codes already on case checklist — shown as badge, not removed from picker. */
-  excludedMasterCodes: string[];
+  /** Case ADR rows — used for document-family duplicate detection. */
+  checklistRequirements: ChecklistRequirementRef[];
   serviceCode?: string | null;
   templateName?: string | null;
   onAdd: (item: AddDocumentRequirementInput) => Promise<void> | void;
@@ -75,7 +78,7 @@ export const AddDocTypeDialog = ({
   const [mandatory, setMandatory] = useState(false);
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
-  const listRef = useRef<HTMLDivElement>(null);
+  const [highlightIndex, setHighlightIndex] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const profile = useMemo(
@@ -83,16 +86,19 @@ export const AddDocTypeDialog = ({
     [serviceCode, templateName],
   );
 
-  const onChecklist = useMemo(() => new Set(excludedMasterCodes), [excludedMasterCodes]);
-
-  const filtered = useMemo(
-    () => filterDocumentTypesForAdd(masterItems, search, serviceCode, templateName),
-    [masterItems, search, serviceCode, templateName],
+  const pickerRows = useMemo(
+    () => buildAddDocumentPickerItems(masterItems, search, checklistRequirements, serviceCode, templateName),
+    [masterItems, search, checklistRequirements, serviceCode, templateName],
   );
 
   const grouped = useMemo(
-    () => groupDocumentTypesByCategory(filtered, profile),
-    [filtered, profile],
+    () => groupPickerItemsByCategory(pickerRows, profile),
+    [pickerRows, profile],
+  );
+
+  const selectableRows = useMemo(
+    () => pickerRows.filter((r) => !r.duplicateFamily),
+    [pickerRows],
   );
 
   const pipeline = useMemo(
@@ -100,11 +106,11 @@ export const AddDocTypeDialog = ({
       inspectDocumentTypeFilterPipeline(
         masterItems,
         search,
-        onChecklist,
+        checklistRequirements,
         serviceCode,
         templateName,
       ),
-    [masterItems, search, onChecklist, serviceCode, templateName],
+    [masterItems, search, checklistRequirements, serviceCode, templateName],
   );
 
   useEffect(() => {
@@ -112,12 +118,17 @@ export const AddDocTypeDialog = ({
     console.info("[AddDocTypeDialog] pipeline", pipeline);
   }, [open, pipeline]);
 
+  useEffect(() => {
+    setHighlightIndex(0);
+  }, [search, pickerOpen, pickerRows.length]);
+
   const reset = () => {
     setSelected(null);
     setMandatory(false);
     setNotes("");
     setSearch("");
     setPickerOpen(false);
+    setHighlightIndex(0);
   };
 
   useEffect(() => {
@@ -135,8 +146,31 @@ export const AddDocTypeDialog = ({
     requestAnimationFrame(() => searchInputRef.current?.focus());
   }, [pickerOpen]);
 
+  const selectRow = useCallback((row: AddDocumentPickerItem) => {
+    if (row.duplicateFamily) return;
+    setSelected(row.item);
+    setPickerOpen(false);
+  }, []);
+
+  const onSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!selectableRows.length) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightIndex((i) => Math.min(i + 1, selectableRows.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightIndex((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const row = selectableRows[highlightIndex];
+      if (row) selectRow(row);
+    }
+  };
+
   const submit = async () => {
     if (!selected) return;
+    const blocked = pickerRows.find((r) => r.item.code === selected.code && r.duplicateFamily);
+    if (blocked) return;
     setBusy(true);
     try {
       await onAdd({
@@ -152,6 +186,8 @@ export const AddDocTypeDialog = ({
     }
   };
 
+  let selectableCursor = -1;
+
   return (
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset(); }}>
       <DialogContent className="sm:max-w-md">
@@ -164,7 +200,7 @@ export const AddDocTypeDialog = ({
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label>Document name</Label>
-            <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+            <Popover open={pickerOpen} onOpenChange={setPickerOpen} modal>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -180,66 +216,95 @@ export const AddDocTypeDialog = ({
                   <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+              <PopoverContent
+                className="w-[var(--radix-popover-trigger-width)] p-0"
+                align="start"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                onWheel={(e) => e.stopPropagation()}
+              >
                 <div className="flex items-center border-b px-3">
                   <Search className="mr-2 size-4 shrink-0 opacity-50" />
                   <input
                     ref={searchInputRef}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
+                    onKeyDown={onSearchKeyDown}
                     placeholder="Type to search name, category, or alias…"
                     className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
+                    aria-controls="add-doc-type-list"
+                    aria-activedescendant={
+                      selectableRows[highlightIndex]
+                        ? `add-doc-opt-${selectableRows[highlightIndex].item.code}`
+                        : undefined
+                    }
                   />
                 </div>
-                <div ref={listRef} className="max-h-[300px] overflow-y-auto p-1" role="listbox">
-                  {filtered.length === 0 ? (
-                    <p className="py-6 text-center text-sm text-muted-foreground">No document type found.</p>
-                  ) : (
-                    grouped.map(([category, items]) => (
-                      <div key={category} role="group" aria-label={DOCUMENT_CATEGORY_LABELS[category]}>
-                        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                          {DOCUMENT_CATEGORY_LABELS[category]} ({items.length})
-                        </div>
-                        {items.map((item) => {
-                          const onCase = onChecklist.has(item.code);
-                          return (
-                            <button
-                              key={item.code}
-                              type="button"
-                              role="option"
-                              aria-selected={selected?.code === item.code}
-                              className={cn(
-                                "relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
-                                selected?.code === item.code && "bg-accent text-accent-foreground",
-                              )}
-                              onClick={() => {
-                                setSelected(item);
-                                setPickerOpen(false);
-                              }}
-                            >
-                              <Check
+                <ScrollArea
+                  className="h-[300px]"
+                  onWheel={(e) => e.stopPropagation()}
+                >
+                  <div id="add-doc-type-list" className="p-1" role="listbox">
+                    {pickerRows.length === 0 ? (
+                      <p className="py-6 text-center text-sm text-muted-foreground">No document type found.</p>
+                    ) : (
+                      grouped.map(([category, rows]) => (
+                        <div key={category} role="group" aria-label={DOCUMENT_CATEGORY_LABELS[category]}>
+                          <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                            {DOCUMENT_CATEGORY_LABELS[category]} ({rows.length})
+                          </div>
+                          {rows.map((row) => {
+                            const isSelectable = !row.duplicateFamily;
+                            const rowIndex = isSelectable ? ++selectableCursor : -1;
+                            const highlighted = isSelectable && rowIndex === highlightIndex;
+                            return (
+                              <button
+                                key={row.item.code}
+                                id={isSelectable ? `add-doc-opt-${row.item.code}` : undefined}
+                                type="button"
+                                role="option"
+                                aria-selected={selected?.code === row.item.code}
+                                aria-disabled={row.duplicateFamily}
+                                disabled={row.duplicateFamily}
                                 className={cn(
-                                  "mr-2 size-4 shrink-0",
-                                  selected?.code === item.code ? "opacity-100" : "opacity-0",
+                                  "relative flex w-full select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none text-left",
+                                  row.duplicateFamily
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-default hover:bg-accent hover:text-accent-foreground",
+                                  highlighted && "bg-accent text-accent-foreground",
+                                  selected?.code === row.item.code && "bg-accent text-accent-foreground",
                                 )}
-                              />
-                              <span className="flex-1 truncate text-left">
-                                {formatDocumentWithCategory(item)}
-                                {onCase ? (
-                                  <span className="ml-1 text-[10px] text-muted-foreground">(on checklist)</span>
-                                ) : null}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ))
-                  )}
-                </div>
+                                onMouseEnter={() => {
+                                  if (isSelectable && rowIndex >= 0) setHighlightIndex(rowIndex);
+                                }}
+                                onClick={() => selectRow(row)}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 size-4 shrink-0",
+                                    selected?.code === row.item.code ? "opacity-100" : "opacity-0",
+                                  )}
+                                />
+                                <span className="flex-1 truncate">
+                                  {formatDocumentWithCategory(row.item)}
+                                  {row.duplicateFamily ? (
+                                    <span className="ml-1 text-[10px] font-medium text-muted-foreground">
+                                      — Already on checklist
+                                    </span>
+                                  ) : null}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
                 <p className="border-t px-2 py-1.5 text-[10px] text-muted-foreground leading-snug">
-                  {pipeline.uiRendered} of {pipeline.masterActiveTotal} types
+                  {pipeline.selectableRendered} selectable · {pipeline.uiRendered} shown ·{" "}
+                  {pipeline.masterActiveTotal} active · {pipeline.occupiedFamilyCount} families on checklist
                   {pipeline.renderedGroupCount > 0
-                    ? ` · ${pipeline.renderedGroupCount} groups · ${formatCategorySummary(pipeline.categoryCounts)}`
+                    ? ` · ${formatCategorySummary(pipeline.categoryCounts)}`
                     : ""}
                 </p>
               </PopoverContent>
@@ -250,8 +315,8 @@ export const AddDocTypeDialog = ({
               </p>
             ) : null}
             <p className="text-[11px] text-muted-foreground">
-              Full document catalogue — sorted by visa relevance. Academic types appear last for spouse cases.
-              Manual adds go to <strong>Other Documents</strong>.
+              Sorted by visa relevance. Duplicate document families already on the checklist are hidden
+              (shown disabled when searching). Manual adds go to <strong>Other Documents</strong>.
             </p>
           </div>
           <div className="space-y-1.5">
