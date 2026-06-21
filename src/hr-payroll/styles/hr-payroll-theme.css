@@ -1645,6 +1645,105 @@
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(224, 242, 254, 0.72));
   border-color: rgba(147, 197, 253, 0.45);
 }
+[data-hr-payroll] .emp360-range-card {
+  margin-bottom: 0;
+}
+[data-hr-payroll] .emp360-range-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+}
+[data-hr-payroll] .emp360-range-title {
+  font-weight: 600;
+  display: block;
+}
+[data-hr-payroll] .emp360-range-hint {
+  font-size: 12px;
+}
+[data-hr-payroll] .emp360-range-fields {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+[data-hr-payroll] .emp360-range-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+[data-hr-payroll] .emp360-range-field-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+[data-hr-payroll] .emp360-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+[data-hr-payroll] .emp360-summary-card {
+  margin-bottom: 0;
+}
+[data-hr-payroll] .emp360-summary-card-h {
+  align-items: center;
+}
+[data-hr-payroll] .emp360-summary-card-body {
+  padding: 0 16px 14px;
+}
+[data-hr-payroll] .emp360-metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+}
+[data-hr-payroll] .emp360-metric-label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+[data-hr-payroll] .emp360-metric-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+[data-hr-payroll] .emp360-modal-range {
+  margin: 0 0 12px;
+  font-size: 13px;
+}
+[data-hr-payroll] .emp360-timeline-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 0 16px;
+}
+[data-hr-payroll] .emp360-timeline {
+  padding: 0 16px 14px;
+}
+[data-hr-payroll] .emp360-timeline-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+[data-hr-payroll] .emp360-timeline-row:last-child {
+  border-bottom: none;
+}
+[data-hr-payroll] .emp360-timeline-date {
+  font-size: 12px;
+  min-width: 88px;
+}
+[data-hr-payroll] .emp360-timeline-tag {
+  font-size: 10px;
+}
+[data-hr-payroll] .emp360-timeline-detail {
+  font-size: 12px;
+}
 
 @media (max-width: 880px) {
   [data-hr-payroll] .sidebar { display: none; }
