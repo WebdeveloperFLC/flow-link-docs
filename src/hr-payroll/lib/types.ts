@@ -113,7 +113,8 @@ export type EmployeeRow = {
   company_id: string | null;
   branch_id: string | null;
   reporting_mgr_id: string | null;
-  employment_type: string;
+  /** @deprecated Legacy DB column — use employee_category_id / hr_employee_categories instead. */
+  employment_type?: string | null;
   date_of_joining: string | null;
   notice_period: string | null;
   probation_start_date?: string | null;
@@ -164,7 +165,7 @@ export type EmployeeRow = {
   branches?: { name: string } | null;
   departments?: { name: string } | null;
   designations?: { name: string } | null;
-  hr_employee_categories?: Pick<HrEmployeeCategoryRow, "label" | "leave_eligible" | "leave_accrual_eligible"> | null;
+  hr_employee_categories?: Pick<HrEmployeeCategoryRow, "code" | "label" | "leave_eligible" | "leave_accrual_eligible"> | null;
   shifts?: { name: string; login_time: string; logout_time: string; working_days_per_week?: number; timezone?: string } | null;
 };
 
@@ -209,7 +210,7 @@ export type CompanyRow = {
   country?: string;
   is_active?: boolean;
 };
-export type BranchRow = { id: string; name: string };
+export type BranchRow = { id: string; name: string; country?: string | null };
 export type ShiftRow = {
   id: string;
   org_id?: string;

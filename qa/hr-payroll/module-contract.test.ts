@@ -280,6 +280,16 @@ describe("HR Payroll module contract", () => {
     expect(leavePage).toContain("selfEmployeeId");
   });
 
+  it("payroll verify page filters by country, branch, and payroll company", () => {
+    const verifyPage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrVerifyPage.tsx"), "utf8");
+    expect(verifyPage).toContain("PAYROLL_VERIFY_COUNTRIES");
+    expect(verifyPage).toContain("filterPayrollLines");
+    expect(verifyPage).toContain("Payroll Country");
+    expect(verifyPage).toContain("Payroll Company");
+    expect(verifyPage).toContain("branchesForPayrollCountry");
+    expect(verifyPage).toContain("companiesForPayrollCountryFilter");
+  });
+
   it("allows leave type selection before dates are filled", () => {
     const leavePage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrLeavePage.tsx"), "utf8");
     expect(leavePage).not.toContain("disabled={resolution.forcedUnpaid}");

@@ -59,7 +59,7 @@ export function useHrReferenceData() {
           .eq("org_id", HR_ORG_ID)
           .eq("is_active", true)
           .order("legal_name"),
-        supabase.from("branches" as never).select("id, name").eq("is_active", true).order("display_order"),
+        supabase.from("branches" as never).select("id, name, country").eq("is_active", true).order("display_order"),
         supabase.from("departments" as never).select("id, name").eq("is_active", true).order("display_order"),
         supabase.from("designations" as never).select("id, name").eq("is_active", true).order("display_order"),
         supabase

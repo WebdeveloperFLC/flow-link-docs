@@ -3,13 +3,21 @@ import { useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
+import { useHrReferenceData } from "../hooks/useHrEmployees";
 import { useHrPayrollLines, rpcRollupInputs } from "../hooks/useHrPayroll";
 import { ModalShell } from "../components/ui/ModalShell";
 import { StatusBadge } from "../components/ui/StatusBadge";
-import { inr, formatMoney, employeeCurrency } from "../lib/format";
-import { rebuildPayrollLine, hrAudit, lockPayrollCycle, reopenPayrollCycle, fetchPayrollRegisterExport, processPayrollCycle, approvePayrollCycle, markPayrollPaid, rebuildPayrollCycle } from "../lib/hrApi";
+import { formatMoney, employeeCurrency, payrollCompanyLabel } from "../lib/format";
+import { rebuildPayrollLine, hrAudit, lockPayrollCycle, reopenPayrollCycle, processPayrollCycle, approvePayrollCycle, markPayrollPaid, rebuildPayrollCycle } from "../lib/hrApi";
 import { printSalarySlip } from "../lib/salarySlip";
 import { downloadPayrollRegister, linesToRegisterRows, printRegisterPdf, printBatchSalarySlips } from "../lib/payrollExport";
+import {
+  branchesForPayrollCountry,
+  companiesForPayrollCountryFilter,
+  filterPayrollLines,
+  PAYROLL_VERIFY_COUNTRIES,
+  type PayrollCountryFilter,
+} from "../lib/payrollVerifyFilters";
 import type { PayrollLineRow } from "../lib/types";
 
 type OverrideFields = {
@@ -160,8 +168,11 @@ function OverrideModal({
 export default function HrVerifyPage() {
   const { cycleId } = useParams<{ cycleId?: string }>();
   const { cycle: ctxCycle, can, fire } = useHrAccess();
+  const { data: ref } = useHrReferenceData();
   const qc = useQueryClient();
-  const [branch, setBranch] = useState("All");
+  const [countryFilter, setCountryFilter] = useState<PayrollCountryFilter>("All");
+  const [branchId, setBranchId] = useState("All");
+  const [companyId, setCompanyId] = useState("All");
   const [ovrLine, setOvrLine] = useState<PayrollLineRow | null>(null);
   const [reopenOpen, setReopenOpen] = useState(false);
   const [reopenReason, setReopenReason] = useState("");
@@ -170,15 +181,33 @@ export default function HrVerifyPage() {
   const effectiveCycleId = cycleId ?? cycle?.id;
   const { data: lines = [], isLoading } = useHrPayrollLines(effectiveCycleId);
 
-  const branches = useMemo(
-    () => ["All", ...new Set(lines.map((l) => l.employees?.branches?.name ?? "Unknown"))],
-    [lines],
+  const branchOptions = useMemo(
+    () => branchesForPayrollCountry(ref?.branches ?? [], countryFilter),
+    [ref?.branches, countryFilter],
   );
 
+  const companyOptions = useMemo(
+    () => companiesForPayrollCountryFilter(ref?.companies ?? [], countryFilter),
+    [ref?.companies, countryFilter],
+  );
+
+  useEffect(() => {
+    if (branchId !== "All" && !branchOptions.some((b) => b.id === branchId)) {
+      setBranchId("All");
+    }
+    if (companyId !== "All" && !companyOptions.some((c) => c.id === companyId)) {
+      setCompanyId("All");
+    }
+  }, [branchId, companyId, branchOptions, companyOptions]);
+
   const filtered = useMemo(
-    () =>
-      lines.filter((l) => branch === "All" || l.employees?.branches?.name === branch),
-    [lines, branch],
+    () => filterPayrollLines(lines, countryFilter, branchId, companyId),
+    [lines, countryFilter, branchId, companyId],
+  );
+
+  const registerRows = useMemo(
+    () => (cycle ? linesToRegisterRows(filtered, cycle.label, cycle.status) : []),
+    [filtered, cycle],
   );
 
   const currencyTotals = useMemo(() => {
@@ -290,36 +319,14 @@ export default function HrVerifyPage() {
     }
   };
 
-  const exportRegister = async (fmt: "CSV" | "Excel") => {
-    if (!effectiveCycleId || !cycle) return;
-    try {
-      const rows = await fetchPayrollRegisterExport(effectiveCycleId, branch);
-      if (rows.length > 0) {
-        downloadPayrollRegister(rows, cycle.label, fmt);
-        return;
-      }
-    } catch {
-      /* fallback to client lines if RPC not deployed */
-    }
-    downloadPayrollRegister(
-      linesToRegisterRows(filtered, cycle.label, cycle.status),
-      cycle.label,
-      fmt,
-    );
+  const exportRegister = (fmt: "CSV" | "Excel") => {
+    if (!cycle) return;
+    downloadPayrollRegister(registerRows, cycle.label, fmt);
   };
 
-  const exportPdf = async () => {
-    if (!effectiveCycleId || !cycle) return;
-    let rows;
-    try {
-      rows = await fetchPayrollRegisterExport(effectiveCycleId, branch);
-    } catch {
-      rows = linesToRegisterRows(filtered, cycle.label, cycle.status);
-    }
-    if (!rows.length) {
-      rows = linesToRegisterRows(filtered, cycle.label, cycle.status);
-    }
-    printRegisterPdf(rows, cycle.label, locked);
+  const exportPdf = () => {
+    if (!cycle) return;
+    printRegisterPdf(registerRows, cycle.label, locked);
   };
 
   const exportBatchSlips = () => {
@@ -336,18 +343,11 @@ export default function HrVerifyPage() {
     <div className="grid" style={{ gap: 16 }}>
       <div className="card-h">
         <div className="row-flex">
-          <select
-            className="input"
-            style={{ width: 140 }}
-            value={branch}
-            onChange={(e) => setBranch(e.target.value)}
-          >
-            {branches.map((b) => (
-              <option key={b}>{b}</option>
-            ))}
-          </select>
           <span className="tag">
             {cycle.start_date} – {cycle.end_date} · {cycle.payroll_days}d
+          </span>
+          <span className="tag muted">
+            {filtered.length} of {lines.length} employees
           </span>
           {cycleStatus !== "Draft" && (
             <StatusBadge status={cycleStatus} />
@@ -374,7 +374,7 @@ export default function HrVerifyPage() {
                   ↓ {f}
                 </button>
               ))}
-              <button type="button" className="btn btn-sm" onClick={() => void exportPdf()}>
+              <button type="button" className="btn btn-sm" onClick={() => exportPdf()}>
                 ↓ PDF Register
               </button>
               <button type="button" className="btn btn-sm" onClick={exportBatchSlips}>
@@ -426,6 +426,47 @@ export default function HrVerifyPage() {
               read-only access
             </span>
           )}
+        </div>
+      </div>
+
+      <div className="card" style={{ padding: 12 }}>
+        <div className="row-flex" style={{ gap: 12, flexWrap: "wrap" }}>
+          <label className="fld" style={{ minWidth: 160 }}>
+            <span className="l">Payroll Country</span>
+            <select
+              className="input"
+              value={countryFilter}
+              onChange={(e) => setCountryFilter(e.target.value as PayrollCountryFilter)}
+            >
+              {PAYROLL_VERIFY_COUNTRIES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="fld" style={{ minWidth: 200 }}>
+            <span className="l">Branch</span>
+            <select className="input" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
+              <option value="All">All Branches</option>
+              {branchOptions.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="fld" style={{ minWidth: 280 }}>
+            <span className="l">Payroll Company</span>
+            <select className="input" value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
+              <option value="All">All Companies</option>
+              {companyOptions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {payrollCompanyLabel(c)}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 
