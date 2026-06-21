@@ -10,7 +10,7 @@ type Props = {
   canEdit: boolean;
   refreshKey?: number;
   onProgramsChanged?: () => void;
-  onApplicationCreated?: (qualificationId: string) => void;
+  onApplicationCreated?: (applicationId: string) => void;
   services: Partial<ServiceSelection>;
 };
 

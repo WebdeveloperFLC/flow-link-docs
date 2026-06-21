@@ -117,7 +117,7 @@ function ProgramRow({
           )}
           {isFinal && p.qualification_id && (
             <Button size="sm" className="gap-1" asChild>
-              <Link to={`/clients/${clientId}?tab=qualification&applicationId=${p.qualification_id}`}>
+              <Link to={`/clients/${clientId}?tab=applications&applicationId=${p.qualification_id}`}>
                 <FileText className="size-3.5" />
                 Open application
               </Link>
@@ -132,7 +132,7 @@ function ProgramRow({
       )}
       {!canEdit && isFinal && p.qualification_id && (
         <Button size="sm" variant="outline" className="gap-1 shrink-0" asChild>
-          <Link to={`/clients/${clientId}?tab=qualification&applicationId=${p.qualification_id}`}>
+          <Link to={`/clients/${clientId}?tab=applications&applicationId=${p.qualification_id}`}>
             <FileText className="size-3.5" />
             Open application
           </Link>
@@ -153,7 +153,7 @@ export function ClientProgramsCard({
   caseId: string | undefined;
   canEdit: boolean;
   onChanged?: () => void;
-  onApplicationCreated?: (qualificationId: string) => void;
+  onApplicationCreated?: (applicationId: string) => void;
 }) {
   const [programs, setPrograms] = useState<ClientProgramEnriched[]>([]);
   const [loading, setLoading] = useState(true);
@@ -188,7 +188,7 @@ export function ClientProgramsCard({
     if (!finalizeTarget || !caseId) return;
     setBusy(true);
     try {
-      const { qualificationId } = await markFinalAndCreateApplication({
+      const { applicationId } = await markFinalAndCreateApplication({
         programId: finalizeTarget.id,
         caseId,
         intakeTerm: values.intakeTerm,
@@ -200,7 +200,7 @@ export function ClientProgramsCard({
       setFinalizeTarget(null);
       await load();
       onChanged?.();
-      onApplicationCreated?.(qualificationId);
+      onApplicationCreated?.(applicationId);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not mark final");
       throw e;

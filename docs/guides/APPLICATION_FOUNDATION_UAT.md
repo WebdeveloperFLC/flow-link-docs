@@ -1,7 +1,7 @@
 # Application Foundation — Internal UAT
 
 **Scope:** Q1 Application Foundation Step 0 (lean)  
-**Tab route (unchanged):** `?tab=qualification`  
+**Tab route:** `?tab=applications` (legacy `?tab=qualification` redirects)  
 **User-facing tab:** Applications
 
 ## Preconditions

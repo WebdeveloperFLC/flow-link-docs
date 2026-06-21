@@ -13,11 +13,12 @@ describe("resolveClientDetailTab", () => {
     expect(resolveClientDetailTab("staging")).toBe("overview");
   });
 
-  it("keeps qualification tab", () => {
-    expect(resolveClientDetailTab("qualification")).toBe("qualification");
+  it("maps legacy qualification tab to applications", () => {
+    expect(resolveClientDetailTab("qualification")).toBe("applications");
   });
 
   it("keeps current tabs", () => {
+    expect(resolveClientDetailTab("applications")).toBe("applications");
     expect(resolveClientDetailTab("profile")).toBe("profile");
     expect(resolveClientDetailTab("documents")).toBe("documents");
   });
@@ -29,7 +30,8 @@ describe("resolveClientDetailTab", () => {
 });
 
 describe("shouldOpenAssessmentFromTab", () => {
-  it("does not auto-open assessment from qualification tab", () => {
+  it("does not auto-open assessment from applications tab", () => {
+    expect(shouldOpenAssessmentFromTab("applications")).toBe(false);
     expect(shouldOpenAssessmentFromTab("qualification")).toBe(false);
     expect(shouldOpenAssessmentFromTab("profile")).toBe(false);
   });

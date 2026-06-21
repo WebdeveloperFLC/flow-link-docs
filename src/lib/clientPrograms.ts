@@ -55,7 +55,7 @@ export type CfCourseSummary = {
 
 export type ClientProgramEnriched = ClientProgramRow & {
   course: CfCourseSummary;
-  qualification: LinkedApplicationSummary | null;
+  application: LinkedApplicationSummary | null;
 };
 
 /** PostgREST embed hint — disambiguates bidirectional FK with client_institution_qualifications. */
@@ -87,7 +87,7 @@ const PROGRAM_SELECT = `
       )
     )
   ),
-  qualification:client_institution_qualifications!${CF_CLIENT_PROGRAMS_QUALIFICATION_FK} (
+  application:client_institution_qualifications!${CF_CLIENT_PROGRAMS_QUALIFICATION_FK} (
     id,
     status,
     institution_application_status
@@ -100,7 +100,7 @@ function mapEnriched(row: Record<string, unknown>): ClientProgramEnriched {
   const courseRaw = row.course as Record<string, unknown>;
   const uniRaw = courseRaw.university as Record<string, unknown>;
   const countryRaw = uniRaw.country as Record<string, unknown>;
-  const qualRaw = row.qualification as Record<string, unknown> | null | undefined;
+  const appRaw = row.application as Record<string, unknown> | null | undefined;
   return {
     ...(row as unknown as ClientProgramRow),
     course: {
@@ -126,12 +126,12 @@ function mapEnriched(row: Record<string, unknown>): ClientProgramEnriched {
         flag_emoji: (countryRaw.flag_emoji as string | null) ?? null,
       },
     },
-    qualification: qualRaw?.id
+    application: appRaw?.id
       ? {
-          id: qualRaw.id as string,
-          status: qualRaw.status as string,
+          id: appRaw.id as string,
+          status: appRaw.status as string,
           institutionApplicationStatus:
-            (qualRaw.institution_application_status as string | null) ?? null,
+            (appRaw.institution_application_status as string | null) ?? null,
         }
       : null,
   };
@@ -142,10 +142,10 @@ export function programCodeDisplay(p: ClientProgramEnriched): string | null {
 }
 
 export function applicationStatusLabel(p: ClientProgramEnriched): string {
-  if (!p.qualification) return "No application";
-  const admissions = p.qualification.institutionApplicationStatus;
+  if (!p.application) return "No application";
+  const admissions = p.application.institutionApplicationStatus;
   if (admissions) return admissions.replace(/_/g, " ");
-  return p.qualification.status.replace(/_/g, " ");
+  return p.application.status.replace(/_/g, " ");
 }
 
 async function currentUserId(): Promise<string> {
@@ -298,7 +298,7 @@ export type MarkFinalAndCreateApplicationPayload = {
 };
 
 export type MarkFinalAndCreateApplicationResult = {
-  qualificationId: string;
+  applicationId: string;
   program: ClientProgramEnriched;
 };
 
@@ -356,7 +356,7 @@ export async function markFinalAndCreateApplication(
     isStaffOnly: true,
   });
 
-  return { qualificationId: result.qualification_id, program: enriched };
+  return { applicationId: result.qualification_id, program: enriched };
 }
 
 /** Move a shortlisted program to final (permanent) without creating an application. */

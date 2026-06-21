@@ -91,7 +91,7 @@ import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitche
 import { ClientOverviewDashboard } from "@/components/clients/ClientOverviewDashboard";
 import { CaseOutcomeDialog } from "@/components/clients/CaseOutcomeDialog";
 import { useActiveServiceCase } from "@/hooks/useActiveServiceCase";
-import { QualificationTabContent } from "@/components/qualification";
+import { ApplicationTabContent } from "@/components/application";
 
 /** Re-enable when client AI summaries are ready for production. */
 const CLIENT_AI_SUMMARY_ENABLED = false;
@@ -1245,13 +1245,13 @@ const ClientDetail = () => {
               canEdit={canUpload}
               refreshKey={profileRefreshKey}
               onProgramsChanged={() => setProfileRefreshKey((k) => k + 1)}
-              onApplicationCreated={(qualificationId) => {
+              onApplicationCreated={(applicationId) => {
                 setStageRefreshKey((k) => k + 1);
                 setSearchParams(
                   (prev) => {
                     const next = new URLSearchParams(prev);
-                    next.set("tab", "qualification");
-                    next.set("applicationId", qualificationId);
+                    next.set("tab", "applications");
+                    next.set("applicationId", applicationId);
                     return next;
                   },
                   { replace: true },
@@ -1267,8 +1267,8 @@ const ClientDetail = () => {
             />
           </TabsContent>
 
-          <TabsContent value="qualification" className="mt-0 space-y-6">
-            <QualificationTabContent
+          <TabsContent value="applications" className="mt-0 space-y-6">
+            <ApplicationTabContent
               clientId={client.id}
               caseId={serviceCase?.id}
               canEdit={canUpload}
