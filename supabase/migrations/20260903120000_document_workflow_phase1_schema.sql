@@ -140,6 +140,9 @@ CREATE TABLE IF NOT EXISTS public.application_document_requirements (
       'applicant', 'co_applicant', 'sponsor', 'dependent', 'shared', 'any'
     )),
   person_id uuid REFERENCES public.case_people(id) ON DELETE SET NULL,
+  person_match_key uuid GENERATED ALWAYS AS (
+    COALESCE(person_id, '00000000-0000-0000-0000-000000000000'::uuid)
+  ) STORED,
 
   is_suppressed boolean NOT NULL DEFAULT false,
   notes text,
@@ -153,7 +156,7 @@ CREATE TABLE IF NOT EXISTS public.application_document_requirements (
     client_service_case_id,
     master_item_code,
     requirement_kind,
-    COALESCE(person_id, '00000000-0000-0000-0000-000000000000'::uuid)
+    person_match_key
   )
 );
 
@@ -323,3 +326,6 @@ COMMENT ON COLUMN public.application_document_requirements.section_key IS
 
 COMMENT ON COLUMN public.application_document_requirements.display_group IS
   'Optional UI subgroup e.g. applicant_funds, sponsor_funds within a section.';
+
+COMMENT ON COLUMN public.application_document_requirements.person_match_key IS
+  'Generated scope key for uniqueness when person_id is null (shared/applicant-level requirements).';
