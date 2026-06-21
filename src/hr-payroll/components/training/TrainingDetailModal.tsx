@@ -15,6 +15,7 @@ import { TrainingWorkflowStrip } from "./TrainingWorkflowStrip";
 type Props = {
   row: TrainingRecordRow;
   canManage: boolean;
+  adminBypass: boolean;
   onClose: () => void;
   onExtend: () => void;
   onComplete: () => void;
@@ -26,6 +27,7 @@ type Props = {
 export function TrainingDetailModal({
   row,
   canManage,
+  adminBypass,
   onClose,
   onExtend,
   onComplete,
@@ -60,17 +62,24 @@ export function TrainingDetailModal({
     }
   };
 
-  const showManagerApprove = canManage && step === "awaiting_manager" && approvals.some(
-    (a) => a.stage === "Manager" && a.decision === "Pending",
-  );
+  const showManagerApprove =
+    canManage &&
+    !adminBypass &&
+    step === "awaiting_manager" &&
+    approvals.some((a) => a.stage === "Manager" && a.decision === "Pending");
   const showHrApprove =
+    !adminBypass &&
     canManage &&
     (step === "awaiting_hr" ||
       (step === "awaiting_manager" &&
         !approvals.some((a) => a.stage === "Manager" && a.decision === "Pending") &&
         approvals.some((a) => a.stage === "HR" && a.decision === "Pending")));
-  const showExtend = canManage && step === "active";
-  const showComplete = canManage && step === "active";
+  const showExtend =
+    canManage && (step === "active" || (adminBypass && step !== "completed" && step !== "cancelled"));
+  const showComplete =
+    canManage &&
+    (step === "active" ||
+      (adminBypass && (step === "awaiting_manager" || step === "awaiting_hr" || step === "rejected")));
   const showDelete = canManage && step === "active";
 
   return (
@@ -92,7 +101,7 @@ export function TrainingDetailModal({
           )}
           {showComplete && (
             <button type="button" className="btn btn-sm btn-good" onClick={onComplete}>
-              Request completion
+              {adminBypass ? "Mark completed" : "Request completion"}
             </button>
           )}
           {showManagerApprove && (

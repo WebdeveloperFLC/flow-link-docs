@@ -18,6 +18,7 @@ import {
   trainingEffectiveEnd,
   type TrainingFilters,
 } from "../lib/trainingFilters";
+import { canBypassTrainingApproval } from "../lib/trainingWorkflow";
 import type { TrainingRecordRow } from "../lib/types";
 
 function TrainingModal({
@@ -161,7 +162,7 @@ function TrainingModal({
 
 export default function HrTrainingPage() {
   const location = useLocation();
-  const { can, fire } = useHrAccess();
+  const { can, fire, assignedRole } = useHrAccess();
   const qc = useQueryClient();
   const { data: training = [], isLoading } = useHrTrainingRecords();
   const { data: employees = [] } = useHrEmployees();
@@ -172,6 +173,7 @@ export default function HrTrainingPage() {
   const [extendRow, setExtendRow] = useState<TrainingRecordRow | null>(null);
   const [completeRow, setCompleteRow] = useState<TrainingRecordRow | null>(null);
   const mng = can("approve");
+  const adminBypass = canBypassTrainingApproval(assignedRole);
 
   const filtered = useMemo(
     () => filterTrainingRecords(training, filters),
@@ -208,7 +210,13 @@ export default function HrTrainingPage() {
       <div className="card card-wash">
         <p style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55, margin: 0 }}>
           <strong>Workflow:</strong> Assign → (optional Extend) → Request completion → Manager approves → HR
-          approves → Completed. Open <strong>Manage</strong> on any row for status, approvals, and activity.
+          approves → Completed. Open <strong>Manage</strong> for status, approvals, and activity.
+          {adminBypass && (
+            <>
+              {" "}
+              <strong>Admin:</strong> extend and mark completed skip the approval chain.
+            </>
+          )}
         </p>
       </div>
 
@@ -305,6 +313,7 @@ export default function HrTrainingPage() {
         <TrainingDetailModal
           row={detailRow}
           canManage={mng}
+          adminBypass={adminBypass}
           onClose={() => setDetailRow(null)}
           onExtend={() => setExtendRow(detailRow)}
           onComplete={() => setCompleteRow(detailRow)}
@@ -327,6 +336,7 @@ export default function HrTrainingPage() {
       {completeRow && (
         <CompleteTrainingModal
           row={completeRow}
+          adminBypass={adminBypass}
           onClose={() => setCompleteRow(null)}
           onSaved={(m) => {
             fire(m);

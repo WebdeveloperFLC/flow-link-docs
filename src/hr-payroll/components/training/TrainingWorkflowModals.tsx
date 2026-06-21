@@ -87,10 +87,12 @@ export function ExtendTrainingModal({
 
 export function CompleteTrainingModal({
   row,
+  adminBypass,
   onClose,
   onSaved,
 }: {
   row: TrainingRecordRow;
+  adminBypass?: boolean;
   onClose: () => void;
   onSaved: (msg: string) => void;
 }) {
@@ -115,8 +117,14 @@ export function CompleteTrainingModal({
     setErr("");
     setSaving(true);
     try {
-      await submitTrainingCompletion(row, completionDate, finalReason);
-      onSaved("Sent for approval — manager then HR must approve");
+      await submitTrainingCompletion(row, completionDate, finalReason, {
+        bypassApproval: adminBypass,
+      });
+      onSaved(
+        adminBypass
+          ? "Training marked completed"
+          : "Sent for approval — manager then HR must approve",
+      );
       onClose();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Request failed");
@@ -127,21 +135,22 @@ export function CompleteTrainingModal({
 
   return (
     <ModalShell
-      title="Complete training"
+      title={adminBypass ? "Mark training completed" : "Complete training"}
       onClose={onClose}
       footer={
         <>
           <button type="button" className="btn" onClick={onClose}>Cancel</button>
           <button type="button" className="btn btn-primary" disabled={saving} onClick={() => void save()}>
-            Submit for approval
+            {adminBypass ? "Mark completed" : "Submit for approval"}
           </button>
         </>
       }
     >
       <div className="card card-wash" style={{ marginBottom: 12, padding: 12 }}>
         <p style={{ fontSize: 13, margin: 0, lineHeight: 1.5 }}>
-          After you submit, <strong>reporting manager</strong> approves first, then <strong>HR</strong> marks
-          the training completed. You can complete before the extended end date.
+          {adminBypass
+            ? "As Admin or Super Admin, this completes immediately — no manager or HR approval required."
+            : "After you submit, reporting manager approves first, then HR marks the training completed."}
         </p>
       </div>
       {extendedUntil && (

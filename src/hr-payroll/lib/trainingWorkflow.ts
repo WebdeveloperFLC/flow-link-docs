@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "./constants";
+import type { HrRole } from "./constants";
 import { getHrActorInfo, hrAudit } from "./hrApi";
 import type { ApprovalRow, TrainingRecordRow } from "./types";
 
@@ -29,6 +30,10 @@ function isPostgrestSchemaError(error: { message?: string; code?: string }): boo
     msg.includes("does not exist") ||
     msg.includes("could not find")
   );
+}
+
+export function canBypassTrainingApproval(role: HrRole | null): boolean {
+  return role === "Admin" || role === "Super Admin";
 }
 
 export type TrainingWorkflowStep =
@@ -205,12 +210,79 @@ export async function extendTrainingRecord(
   await hrAudit("Training Extended", row.employees?.full_name ?? row.id, extendedUntil, trimmed);
 }
 
-/** Submit completion for Manager → HR approval chain. */
-export async function submitTrainingCompletion(
+/** Mark training completed immediately (Admin / Super Admin only). */
+export async function completeTrainingDirect(
   row: TrainingRecordRow,
   completionDate: string,
   reason: string,
 ) {
+  const trimmed = reason.trim();
+  if (!trimmed) throw new Error("Completion reason is required");
+  if (!completionDate) throw new Error("Completion date is required");
+
+  try {
+    const { error } = await supabase.rpc("fn_complete_training_direct" as never, {
+      p_training_id: row.id,
+      p_completion_date: completionDate,
+      p_reason: trimmed,
+    } as never);
+    if (!error) {
+      await hrAudit(
+        "Training Completed (Admin)",
+        row.employees?.full_name ?? row.id,
+        completionDate,
+        trimmed,
+      );
+      return;
+    }
+    if (!shouldUseTrainingAppFallback(error)) throw new Error(error.message);
+  } catch (e) {
+    if (e instanceof Error && !shouldUseTrainingAppFallback({ message: e.message })) throw e;
+  }
+
+  const actor = await getHrActorInfo();
+
+  await supabase
+    .from("approvals" as never)
+    .update({
+      decision: "Approved",
+      acted_at: new Date().toISOString(),
+      comment: "Admin direct completion",
+    } as never)
+    .eq("entity_type", "training")
+    .eq("entity_id", row.id)
+    .eq("decision", "Pending");
+
+  await updateTraining(row.id, {
+    status: "Completed",
+    completion_reason: trimmed,
+    completion_date: completionDate,
+    completion_requested_by_id: actor.id,
+    completion_requested_by_label: actor.label,
+    completion_requested_at: new Date().toISOString(),
+    hr_approved_by_label: actor.label,
+    hr_approved_at: new Date().toISOString(),
+  });
+
+  await hrAudit(
+    "Training Completed (Admin)",
+    row.employees?.full_name ?? row.id,
+    completionDate,
+    trimmed,
+  );
+}
+
+/** Submit completion for Manager → HR approval chain (or direct if bypassApproval). */
+export async function submitTrainingCompletion(
+  row: TrainingRecordRow,
+  completionDate: string,
+  reason: string,
+  options?: { bypassApproval?: boolean },
+) {
+  if (options?.bypassApproval) {
+    return completeTrainingDirect(row, completionDate, reason);
+  }
+
   const trimmed = reason.trim();
   if (!trimmed) throw new Error("Completion reason is required");
   if (!completionDate) throw new Error("Completion date is required");
