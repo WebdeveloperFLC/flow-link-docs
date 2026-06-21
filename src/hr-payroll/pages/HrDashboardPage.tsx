@@ -111,93 +111,87 @@ export default function HrDashboardPage() {
       <div className="grid g6">
         <Stat
           variant="metric"
+          tone="blue"
           lab="Total Employees"
           val={stats?.totalEmployees ?? employees.length}
           meta="active"
-          color="var(--moss)"
           icon={Users}
-          iconBg="#3b82c418"
         />
         <Stat
           variant="metric"
+          tone="green"
           lab="Present Today"
           val={stats?.presentToday ?? "—"}
           meta="checked in"
-          color="var(--good)"
           icon={CheckCircle2}
-          iconBg="#16a06a18"
         />
         <Stat
           variant="metric"
+          tone="pink"
           lab="Absent Today"
           val={stats?.absentToday ?? "—"}
           meta="no show"
-          color="var(--rose)"
           icon={AlertCircle}
-          iconBg="#e5484d18"
         />
         <Stat
           variant="metric"
+          tone="cyan"
           lab="On Leave"
           val={stats?.onLeaveToday ?? "—"}
           meta="approved today"
-          color="var(--sky)"
           icon={Calendar}
-          iconBg="#3a6ea518"
         />
         <Stat
           variant="metric"
+          tone="orange"
           lab="Late Arrivals"
           val={stats?.lateToday ?? "—"}
           meta="today"
-          color="var(--clay)"
           icon={Clock}
-          iconBg="#e8732e18"
         />
         <Stat
           variant="metric"
+          tone="purple"
           lab="Mispunches"
           val={stats?.mispunchToday ?? "—"}
           meta="pending today"
-          color="var(--violet)"
           icon={Pencil}
-          iconBg="#7c5cdb18"
         />
       </div>
 
       <div className="grid g4">
         <Stat
           variant="highlight"
+          tone="green"
           lab="Payroll Status"
           val={payrollStatus}
           meta={payrollMeta}
-          color="var(--good)"
         />
         <Stat
           variant="highlight"
+          tone="orange"
           lab="Pending Approvals"
           val={pendingTotal}
           meta="all queues"
-          color="var(--clay)"
         />
         <Stat
           variant="highlight"
+          tone="indigo"
           lab="Net Payroll"
           val={inr(liability)}
           meta="current cycle"
-          color="var(--moss)"
         />
         <Stat
           variant="highlight"
+          tone="rose"
           lab="HR Alerts"
           val={queue.length}
           meta="action items"
-          color="var(--rose)"
         />
       </div>
 
       <div className="grid g2">
-        <div className="card">
+        <div className="card card-birthday">
           <div className="card-h">
             <div className="card-h-icon">
               <Cake size={18} />
@@ -218,7 +212,7 @@ export default function HrDashboardPage() {
           )}
         </div>
 
-        <div className="card">
+        <div className="card card-anniversary">
           <div className="card-h">
             <div className="card-h-icon">
               <PartyPopper size={18} />

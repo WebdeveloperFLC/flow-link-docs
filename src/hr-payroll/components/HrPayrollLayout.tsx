@@ -14,14 +14,19 @@ import { HR_NAV, screenKeyFromPath, totalPendingApprovals } from "../lib/nav";
 import { HrModuleErrorBoundary } from "./HrModuleErrorBoundary";
 import { useHrAccess } from "../context/HrAccessContext";
 
-const PRIMARY_PERMS: HrPerm[] = ["view", "apply", "approve", "export"];
-const OUTLINE_PERMS: HrPerm[] = ["override"];
+const PERM_PILL_CLASSES: Record<HrPerm, string> = {
+  view: "rb-perm rb-perm-view",
+  apply: "rb-perm rb-perm-apply",
+  approve: "rb-perm rb-perm-approve",
+  export: "rb-perm rb-perm-export",
+  override: "rb-perm-outline",
+  configure: "rb-perm-muted",
+  manageEmp: "rb-perm-muted",
+};
 
 function permPillClass(p: HrPerm, granted: boolean): string {
   if (!granted) return "rb-perm-off";
-  if (PRIMARY_PERMS.includes(p)) return "rb-perm";
-  if (OUTLINE_PERMS.includes(p)) return "rb-perm-outline";
-  return "rb-perm-muted";
+  return PERM_PILL_CLASSES[p];
 }
 
 function firstAllowedScreen(canSee: (s: HrScreenKey) => boolean): string | null {
