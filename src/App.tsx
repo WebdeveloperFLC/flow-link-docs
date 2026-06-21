@@ -162,6 +162,7 @@ import InstitutionDetailPage from "./institutions/pages/InstitutionDetailPage";
 import AggregatorWorkbenchPage from "./institutions/pages/AggregatorWorkbenchPage";
 import CourseReviewPage from "./institutions/pages/CourseReviewPage";
 import AiSuggestionsPage from "./institutions/pages/AiSuggestionsPage";
+import CfUpiLinkagePage from "./institutions/pages/CfUpiLinkagePage";
 import { InstitutionsProtectedRoute } from "./institutions/components/InstitutionsProtectedRoute";
 import { CommissionsProtectedRoute } from "./institutions/components/CommissionsProtectedRoute";
 import CommissionsPage from "./pages/CommissionsPage";
@@ -557,6 +558,14 @@ const App = () => (
                     element={
                       <InstitutionsProtectedRoute>
                         <AiSuggestionsPage />
+                      </InstitutionsProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/institutions/linkage"
+                    element={
+                      <InstitutionsProtectedRoute requireEdit>
+                        <CfUpiLinkagePage />
                       </InstitutionsProtectedRoute>
                     }
                   />
