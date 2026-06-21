@@ -26,7 +26,10 @@ import {
   detectServiceDocumentProfile,
   type ServiceDocumentProfile,
 } from "@/lib/documentWorkflow/documentRelevance";
-import { filterDocumentTypesForSearch } from "@/lib/documentWorkflow/searchDocumentTypes";
+import {
+  filterDocumentTypesForAdd,
+  inspectDocumentTypeFilterPipeline,
+} from "@/lib/documentWorkflow/documentTypeFilterPipeline";
 import { cn } from "@/lib/utils";
 
 const PROFILE_LABELS: Record<ServiceDocumentProfile, string> = {
@@ -84,9 +87,21 @@ export const AddDocTypeDialog = ({
   const excluded = useMemo(() => new Set(excludedMasterCodes), [excludedMasterCodes]);
 
   const filtered = useMemo(
-    () => filterDocumentTypesForSearch(masterItems, search, excluded, serviceCode, templateName),
+    () => filterDocumentTypesForAdd(masterItems, search, excluded, serviceCode, templateName),
     [masterItems, search, excluded, serviceCode, templateName],
   );
+
+  useEffect(() => {
+    if (!open || !import.meta.env.DEV) return;
+    const counts = inspectDocumentTypeFilterPipeline(
+      masterItems,
+      search,
+      excluded,
+      serviceCode,
+      templateName,
+    );
+    console.debug("[AddDocTypeDialog] document type pipeline", counts);
+  }, [open, masterItems, search, excluded, serviceCode, templateName]);
 
   const grouped = useMemo(() => {
     const map = new Map<DocumentCategory, MasterItem[]>();
@@ -143,11 +158,6 @@ export const AddDocTypeDialog = ({
     }
   };
 
-  const relevanceHint =
-    profile === "spouse_dependent" || profile === "visitor"
-      ? "Academic types are hidden unless you search (e.g. 10th Marksheet)."
-      : null;
-
   return (
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset(); }}>
       <DialogContent className="sm:max-w-md">
@@ -189,7 +199,7 @@ export const AddDocTypeDialog = ({
                         key={category}
                         heading={DOCUMENT_CATEGORY_LABELS[category]}
                       >
-                        {items.slice(0, 30).map((item) => (
+                        {items.map((item) => (
                           <CommandItem
                             key={item.code}
                             value={`${item.label} ${item.code} ${DOCUMENT_CATEGORY_LABELS[category]}`}
@@ -219,9 +229,8 @@ export const AddDocTypeDialog = ({
               </p>
             ) : null}
             <p className="text-[11px] text-muted-foreground">
-              Sorted by relevance for this visa type. Already on the checklist are hidden.
+              Sorted by relevance for this visa type. Types already on this case checklist are hidden.
               Manual adds go to <strong>Other Documents</strong>.
-              {relevanceHint ? ` ${relevanceHint}` : ""}
             </p>
           </div>
           <div className="space-y-1.5">

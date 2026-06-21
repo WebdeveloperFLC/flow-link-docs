@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterDocumentTypesForSearch } from "./searchDocumentTypes";
+import { filterDocumentTypesForAdd } from "./documentTypeFilterPipeline";
 import type { MasterItem } from "@/lib/masters";
 
 const item = (code: string, label: string): MasterItem => ({
@@ -19,18 +19,19 @@ describe("document relevance in Add Document", () => {
     item("passport", "Passport"),
   ];
 
-  it("hides academic for spouse visa until search", () => {
-    const spouseDefault = filterDocumentTypesForSearch(
+  it("shows all types for spouse visa; academic ranked after relationship", () => {
+    const spouseDefault = filterDocumentTypesForAdd(
       items,
       "",
       new Set(),
       "canada::spouse",
       "Canada - Spouse / Dependent Visitor Visa",
     );
-    expect(spouseDefault.some((i) => i.code === "marksheet_10")).toBe(false);
+    expect(spouseDefault.some((i) => i.code === "marksheet_10")).toBe(true);
     expect(spouseDefault.some((i) => i.code === "marriage_certificate")).toBe(true);
+    expect(spouseDefault[0]?.code).toBe("marriage_certificate");
 
-    const spouseSearch = filterDocumentTypesForSearch(
+    const spouseSearch = filterDocumentTypesForAdd(
       items,
       "10th",
       new Set(),
@@ -38,5 +39,6 @@ describe("document relevance in Add Document", () => {
       "Canada - Spouse / Dependent Visitor Visa",
     );
     expect(spouseSearch.some((i) => i.code === "marksheet_10")).toBe(true);
+    expect(spouseSearch).toHaveLength(1);
   });
 });

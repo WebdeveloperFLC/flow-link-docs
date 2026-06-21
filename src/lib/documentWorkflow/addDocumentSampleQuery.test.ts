@@ -41,12 +41,12 @@ describe("Canada Spouse Add Document sample query", () => {
       templateName,
       "",
       [],
-      10,
+      20,
     );
 
     expect(profile).toBe("spouse_dependent");
-    expect(results.some((r) => r.includes("12th Marksheet"))).toBe(false);
-    expect(results.some((r) => r.includes("10th Marksheet"))).toBe(false);
+    expect(results.some((r) => r.includes("12th Marksheet"))).toBe(true);
+    expect(results.some((r) => r.includes("10th Marksheet"))).toBe(true);
     expect(results[0]).toMatch(/Marriage Certificate|Relationship/);
     expect(results.some((r) => r.includes("Marriage Certificate"))).toBe(true);
     expect(results.some((r) => r.includes("Police Clearance"))).toBe(true);

@@ -1,6 +1,7 @@
 import type { DocumentCategory } from "./documentCategories";
 import { resolveDocumentCategory } from "./documentCategories";
 import type { MasterItem } from "@/lib/masters";
+import { filterDocumentTypesForAdd } from "./documentTypeFilterPipeline";
 
 /** Service context for document relevance (derived from case service_code + template name). */
 export type ServiceDocumentProfile =
@@ -153,15 +154,6 @@ export const CATEGORY_PRIORITY: Record<ServiceDocumentProfile, DocumentCategory[
   ],
 };
 
-/** Hidden from default Add Document list unless user is actively searching. */
-export const HIDDEN_UNLESS_SEARCH: Record<ServiceDocumentProfile, Set<DocumentCategory>> = {
-  spouse_dependent: new Set(["academic"]),
-  visitor: new Set(["academic"]),
-  student: new Set(),
-  work: new Set(),
-  general: new Set(),
-};
-
 export function categoryRank(
   profile: ServiceDocumentProfile,
   category: DocumentCategory,
@@ -174,15 +166,6 @@ export function categoryRank(
 export function pinnedRank(profile: ServiceDocumentProfile, code: string): number {
   const idx = PROFILE_PINNED_CODES[profile].indexOf(code);
   return idx >= 0 ? idx : PROFILE_PINNED_CODES[profile].length + 100;
-}
-
-export function shouldShowCategoryInAddDialog(
-  profile: ServiceDocumentProfile,
-  category: DocumentCategory,
-  hasSearchQuery: boolean,
-): boolean {
-  if (hasSearchQuery) return true;
-  return !HIDDEN_UNLESS_SEARCH[profile].has(category);
 }
 
 /** Label-based boost when master code differs from expected pinned codes. */
@@ -220,6 +203,7 @@ export function compareAddDocumentItems(
   return a.label.localeCompare(b.label);
 }
 
+
 /** Sample top-N labels for UAT / debugging (client-side query simulation). */
 export function sampleAddDocumentResults(
   items: MasterItem[],
@@ -231,22 +215,14 @@ export function sampleAddDocumentResults(
 ): { profile: ServiceDocumentProfile; results: string[] } {
   const profile = detectServiceDocumentProfile(serviceCode, templateName);
   const excluded = new Set(excludedCodes);
-  const hasSearch = !!query.trim();
 
-  const filtered = items
-    .filter((item) => item.is_active && !excluded.has(item.code))
-    .filter((item) =>
-      shouldShowCategoryInAddDialog(profile, resolveDocumentCategory(item), hasSearch),
-    )
-    .filter((item) => {
-      if (!hasSearch) return true;
-      const q = query.toLowerCase();
-      return (
-        item.label.toLowerCase().includes(q) ||
-        item.code.toLowerCase().includes(q)
-      );
-    })
-    .sort((a, b) => compareAddDocumentItems(profile, a, b))
+  const filtered = filterDocumentTypesForAdd(
+    items,
+    query,
+    excluded,
+    serviceCode,
+    templateName,
+  )
     .slice(0, limit)
     .map((item) => {
       const cat = resolveDocumentCategory(item);

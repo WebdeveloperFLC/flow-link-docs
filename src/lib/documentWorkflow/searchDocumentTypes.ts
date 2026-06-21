@@ -1,12 +1,9 @@
 import type { MasterItem } from "@/lib/masters";
-import { resolveDocumentCategory } from "./documentCategories";
+import { DOCUMENT_CATEGORY_LABELS, resolveDocumentCategory } from "./documentCategories";
 import {
   categoryRank,
-  compareAddDocumentItems,
-  detectServiceDocumentProfile,
   labelPinnedBoost,
   pinnedRank,
-  shouldShowCategoryInAddDialog,
   type ServiceDocumentProfile,
 } from "./documentRelevance";
 import { isChecklistAlias } from "@/lib/checklist";
@@ -44,6 +41,7 @@ export function scoreDocumentTypeMatch(
   profile: ServiceDocumentProfile,
 ): number {
   const category = resolveDocumentCategory(item);
+  const categoryLabel = norm(DOCUMENT_CATEGORY_LABELS[category]);
   const q = norm(query);
   const relevanceBoost = Math.max(0, 50 - categoryRank(profile, category) * 5);
   const pinBoost = Math.max(0, 500 - pinnedRank(profile, item.code) * 10);
@@ -57,6 +55,7 @@ export function scoreDocumentTypeMatch(
   if (label === q || code === q) return 100 + relevanceBoost;
   if (label.startsWith(q) || code.startsWith(q)) return 90 + relevanceBoost;
   if (label.includes(q) || code.includes(q)) return 80 + relevanceBoost;
+  if (categoryLabel.includes(q) || q.includes(categoryLabel)) return 75 + relevanceBoost;
 
   for (const alias of metadataAliases(item)) {
     const a = norm(alias);
@@ -79,28 +78,4 @@ export function scoreDocumentTypeMatch(
   return 0;
 }
 
-export function filterDocumentTypesForSearch(
-  items: MasterItem[],
-  query: string,
-  excludedCodes: Set<string>,
-  serviceCode?: string | null,
-  templateName?: string | null,
-): MasterItem[] {
-  const profile = detectServiceDocumentProfile(serviceCode, templateName);
-  const hasSearch = !!query.trim();
-
-  return items
-    .filter((item) => item.is_active && !excludedCodes.has(item.code))
-    .filter((item) =>
-      shouldShowCategoryInAddDialog(profile, resolveDocumentCategory(item), hasSearch),
-    )
-    .map((item) => ({ item, score: scoreDocumentTypeMatch(item, query, profile) }))
-    .filter(({ score }) => score > 0)
-    .sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return compareAddDocumentItems(profile, a.item, b.item);
-    })
-    .map(({ item }) => item);
-}
-
-export { detectServiceDocumentProfile };
+export { detectServiceDocumentProfile } from "./documentRelevance";

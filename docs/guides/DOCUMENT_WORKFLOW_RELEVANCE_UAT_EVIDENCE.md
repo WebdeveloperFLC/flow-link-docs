@@ -15,16 +15,22 @@ Commit `5117353d` (categories + relevance) was **committed locally but never pus
 
 ---
 
-## 2. Connection: `documentRelevance.ts` → dropdown query
+## Filter pipeline (post-fix)
 
 ```
-AddDocTypeDialog
-  └─ filterDocumentTypesForSearch()          [searchDocumentTypes.ts]
-       ├─ detectServiceDocumentProfile()     [documentRelevance.ts]
-       ├─ shouldShowCategoryInAddDialog()    [hides academic for spouse]
-       ├─ scoreDocumentTypeMatch()           [pinned + category boost]
-       └─ compareAddDocumentItems()          [final sort]
+useMasterItems("document_types")           [masters.ts — all is_active=true]
+  → filterDocumentTypesForAdd()           [documentTypeFilterPipeline.ts]
+       1. applyExcluded()                [drops codes already on case checklist]
+       2. sortByRelevance()              [documentRelevance.ts — SORT ONLY]
+       3. applySearchFilter()            [scoreDocumentTypeMatch when query non-empty]
+  → AddDocTypeDialog grouped list         [no per-category slice cap]
 ```
+
+**Removed (was causing hidden items):**
+- `shouldShowCategoryInAddDialog` / `HIDDEN_UNLESS_SEARCH` — academic category removal
+- `items.slice(0, 30)` per category in UI
+
+**Dev console:** Open Add Document with devtools → `[AddDocTypeDialog] document type pipeline` logs counts A–E.
 
 Props wired from `ClientDetail` → `DocumentsTabContent` → `AddDocTypeDialog`:
 
