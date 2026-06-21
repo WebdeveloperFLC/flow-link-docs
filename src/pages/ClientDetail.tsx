@@ -21,7 +21,7 @@ import {
   Unlink,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { SmartUploadZone } from "@/components/documents/SmartUploadZone";
+import { DocumentsTabContent } from "@/components/documents/DocumentsTabContent";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { generateBinder } from "@/lib/binder";
@@ -225,6 +225,8 @@ const ClientDetail = () => {
     "approved" | "refused" | "reapply" | null
   >(null);
   const [pendingAppointmentCount, setPendingAppointmentCount] = useState(0);
+  const [documentMissingCount, setDocumentMissingCount] = useState(0);
+  const [documentWorkflowRefresh, setDocumentWorkflowRefresh] = useState(0);
 
   // Critical fetch — only what's needed for the first paint above the fold
   // (client + template + active documents + sections). Runs in parallel.
@@ -326,6 +328,7 @@ const ClientDetail = () => {
   // Keep that contract: refresh both critical + secondary data.
   const load = useCallback(async () => {
     await loadCritical();
+    setDocumentWorkflowRefresh((k) => k + 1);
     loadSecondary();
   }, [loadCritical, loadSecondary]);
 
@@ -1188,7 +1191,7 @@ const ClientDetail = () => {
             onServiceSwitched={onServiceSwitched}
           />
         )}
-        <ClientDetailTabNav badges={{ documents: requiredMissing.length, communications: pendingAppointmentCount }} />
+        <ClientDetailTabNav badges={{ documents: serviceCase?.id ? documentMissingCount : requiredMissing.length, communications: pendingAppointmentCount }} />
 
         <div className="p-6 sm:p-8 max-w-7xl mx-auto">
           <TabsContent value="overview" className="mt-0 space-y-6">
@@ -1374,128 +1377,31 @@ const ClientDetail = () => {
           </TabsContent>
 
           <TabsContent value="documents" className="mt-0 space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <div className="font-semibold text-sm">Case documents</div>
-                  <div className="text-xs text-muted-foreground">
-                    {template
-                      ? `${template.name} · ${completed}/${checklistItems.length} ready`
-                      : "No workflow template assigned"}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 flex-wrap">
-                  {requiredMissing.length > 0 && (
-                    <div className="text-xs text-secondary flex items-center gap-1.5 font-medium">
-                      <AlertCircle className="size-3.5" /> {requiredMissing.length} required missing
-                    </div>
-                  )}
-                  {suppressedIds.size > 0 && (
-                    <button
-                      type="button"
-                      onClick={onRestoreSuppressed}
-                      className="text-[11px] text-muted-foreground underline hover:text-foreground"
-                      title="Restore checklist items removed for this client"
-                    >
-                      Restore {suppressedIds.size} hidden
-                    </button>
-                  )}
-                  {canUpload && (
-                    <Button size="sm" variant="outline" onClick={() => setAddDocOpen(true)}>
-                      <Plus className="size-3.5 mr-1" /> Add document
-                    </Button>
-                  )}
-                  {isAdmin && (
-                    <Button size="sm" variant="outline" onClick={() => setAddSectionOpen(true)}>
-                      <Plus className="size-3.5 mr-1.5" /> New section
-                    </Button>
-                  )}
-                </div>
+            <DocumentsTabContent
+              clientId={client.id}
+              caseId={serviceCase?.id ?? null}
+              sections={sections}
+              canUpload={canUpload}
+              isAdmin={isAdmin}
+              templateName={template?.name ?? null}
+              refreshKey={documentWorkflowRefresh}
+              onChanged={load}
+              onAddDocument={() => setAddDocOpen(true)}
+              onMissingCountChange={setDocumentMissingCount}
+            />
+
+            {suppressedIds.size > 0 && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={onRestoreSuppressed}
+                  className="text-[11px] text-muted-foreground underline hover:text-foreground"
+                  title="Restore checklist items removed for this client"
+                >
+                  Restore {suppressedIds.size} hidden legacy items
+                </button>
               </div>
-              {sections.map((sec) => {
-                const sectionDocs: SectionDoc[] = docs
-                  .filter((d) => {
-                    const target = docTargetSection.get(d.id);
-                    if (target) return target === sec.id;
-                    return d.section_id === sec.id;
-                  })
-                  .map((d) => ({
-                    id: d.id,
-                    document_type: d.document_type,
-                    custom_type: d.custom_type,
-                    file_name: d.file_name,
-                    storage_path: d.storage_path,
-                    mime_type: d.mime_type,
-                    size_bytes: d.size_bytes,
-                    section_id: d.section_id ?? null,
-                    section_order: d.section_order ?? 0,
-                    uploaded_at: d.uploaded_at,
-                    version: d.version,
-                  }));
-                // Checklist items that belong to this section AND don't yet have an attached doc.
-                const pendingChecklist = checklistItems
-                  .filter((it) => {
-                    const ready = docByType(it.name);
-                    if (ready) return false;
-                    const placed = itemSectionIdById.get(it.id) ?? inferSectionIdFromList(it.name, sections);
-                    return placed === sec.id;
-                  })
-                  .map((it) => {
-                    const attached = attachedDocByType(it.name);
-                    const status =
-                      attached?.status === "rejected"
-                        ? ("rejected" as const)
-                        : attached?.status === "needs_reissue"
-                          ? ("needs_reissue" as const)
-                          : null;
-                    return {
-                      id: it.id,
-                      name: it.name,
-                      mandatory: !!it.mandatory,
-                      notes: it.notes ?? null,
-                      status,
-                      attachedFileName: attached?.file_name ?? null,
-                      isExtra: extraItems.some((e) => e.id === it.id),
-                    };
-                  });
-                // Docs uploaded but not (yet) linked to any checklist item — eligible for manual linking.
-                const linkableDocs = docs
-                  .filter((doc) => {
-                    const t1 = doc.document_type === "Other" ? (doc.custom_type ?? "") : doc.document_type;
-                    const t2 = doc.custom_type ?? "";
-                    return !checklistItems.some((it) => it.name === t1 || it.name === t2);
-                  })
-                  .map((doc) => ({
-                    id: doc.id,
-                    file_name: doc.file_name,
-                    label: doc.document_type === "Other" ? (doc.custom_type ?? "Other") : doc.document_type,
-                  }));
-                return (
-                  <SectionBuilderCard
-                    key={sec.id}
-                    clientId={client.id}
-                    section={sec}
-                    allSections={sections}
-                    documents={sectionDocs}
-                    canEdit={canUpload}
-                    isAdmin={isAdmin}
-                    canDelete={canDeleteDocs}
-                    onChanged={load}
-                    pendingChecklist={pendingChecklist}
-                    linkableDocs={linkableDocs}
-                    onLinkDocToChecklist={linkDocToChecklist}
-                    onRemoveChecklistItem={(itemId, itemName, mandatory, isExtra) =>
-                      isExtra ? onRemoveExtraItem(itemId) : onSuppressTemplateItem(itemId, itemName, mandatory)
-                    }
-                  />
-                );
-              })}
-              {sections.length === 0 && (
-                <Card className="p-6 text-center text-sm text-muted-foreground">
-                  No document sections yet. Assign a pipeline or checklist template from the Overview tab.
-                </Card>
-              )}
-            </div>
+            )}
 
           {/* Mirrored workspaces for non-applicant people on the case */}
           {people.filter((p) => p.role !== "applicant").length > 0 && (
