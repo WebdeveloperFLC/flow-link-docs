@@ -162,6 +162,34 @@ export async function processApprovalDecision(
   return data;
 }
 
+export async function extendTraining(
+  trainingId: string,
+  extendedUntil: string,
+  reason: string,
+) {
+  const { data, error } = await supabase.rpc("fn_extend_training" as never, {
+    p_training_id: trainingId,
+    p_extended_until: extendedUntil,
+    p_reason: reason,
+  } as never);
+  if (error) throw error;
+  return data;
+}
+
+export async function requestTrainingCompletion(
+  trainingId: string,
+  completionDate: string,
+  reason: string,
+) {
+  const { data, error } = await supabase.rpc("fn_request_training_completion" as never, {
+    p_training_id: trainingId,
+    p_completion_date: completionDate,
+    p_reason: reason,
+  } as never);
+  if (error) throw error;
+  return data;
+}
+
 export async function syncHrRoleFromCrm(orgId: string, staffId: string) {
   const { data, error } = await supabase.rpc("fn_sync_hr_role_from_crm" as never, {
     p_org: orgId,

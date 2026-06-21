@@ -14,6 +14,8 @@ const MAP: Record<string, string> = {
   "In Progress": "b-pending",
   Completed: "b-approved",
   Extended: "b-half",
+  "Pending Manager Approval": "b-pending",
+  "Pending HR Approval": "b-pending",
   Draft: "b-pending",
   Processed: "b-half",
   Locked: "b-approved",

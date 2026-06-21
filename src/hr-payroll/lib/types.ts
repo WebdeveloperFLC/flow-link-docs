@@ -340,11 +340,45 @@ export type TrainingRecordRow = {
   org_id: string;
   employee_id: string;
   type: string;
+  training_ref: string | null;
   duration: string | null;
   unpaid_days: number;
   start_date: string | null;
+  end_date: string | null;
+  original_end_date: string | null;
+  extended_end_date: string | null;
+  extension_reason: string | null;
+  extended_by_label: string | null;
+  extended_at: string | null;
+  completion_reason: string | null;
+  completion_date: string | null;
+  completion_requested_by_label: string | null;
+  completion_requested_at: string | null;
+  manager_approved_by_label: string | null;
+  manager_approved_at: string | null;
+  hr_approved_by_label: string | null;
+  hr_approved_at: string | null;
+  created_by_label: string | null;
+  created_at: string;
   status: string;
-  employees?: { full_name: string } | null;
+  employees?: {
+    full_name: string;
+    emp_code?: string;
+    branch_id?: string | null;
+    department_id?: string | null;
+    branches?: { name: string } | null;
+    departments?: { name: string } | null;
+  } | null;
+};
+
+export type TrainingExtensionHistoryRow = {
+  id: string;
+  training_id: string;
+  original_end_date: string | null;
+  extended_end_date: string;
+  extension_reason: string;
+  extended_by_label: string | null;
+  extended_at: string;
 };
 
 export type PayrollLineRow = {

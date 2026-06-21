@@ -80,8 +80,9 @@ export function employeeHolidayTags(emp: EmployeeRow): string[] {
   tags.push(country === "CA" ? "canada_staff" : "india_staff");
 
   const ww = (emp.work_week ?? "").toLowerCase();
-  if (ww.includes("6")) tags.push("6-Day");
-  else if (ww.includes("5")) tags.push("5-Day");
+  const shiftDays = emp.shifts?.working_days_per_week;
+  if (ww.includes("6") || shiftDays === 6) tags.push("6-Day");
+  else if (ww.includes("5") || shiftDays === 5) tags.push("5-Day");
   else tags.push("Day");
 
   const catCode = emp.hr_employee_categories?.code;

@@ -180,6 +180,8 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
   );
   const isEmployeeView = !masterMode && !can("manageEmp") && !can("configure");
 
+  const employeeViewColumns = isEmployeeView;
+
   const branchesById = useMemo(
     () => Object.fromEntries((ref?.branches ?? []).map((b) => [b.id, b])),
     [ref?.branches],
@@ -281,9 +283,10 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
       )}
       <div className="card-h">
         <span className="tag">
-          {masterMode ? "Holiday Master" : "Holiday Calendar"}
+          {masterMode ? "Holiday Master" : isEmployeeView ? "My holidays" : "Holiday Calendar"}
           · {filteredHolidays.length} of {holidays.length}
         </span>
+        {!isEmployeeView && (
         <div className="row-flex">
           {canApply && (
             <>
@@ -313,10 +316,11 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
             </button>
           )}
         </div>
+        )}
       </div>
 
+      {!isEmployeeView && (
       <div className="card" style={{ padding: 12 }}>
-        {!isEmployeeView && (
         <div className="row-flex" style={{ gap: 12, flexWrap: "wrap" }}>
           <label className="fld" style={{ minWidth: 140 }}>
             <span className="l">Country</span>
@@ -352,13 +356,13 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
             </select>
           </label>
         </div>
-        )}
         {isEmployeeView && !selfEmployee && (
           <div className="muted" style={{ fontSize: 13 }}>
             Link your CRM login to an employee record to see applicable holidays.
           </div>
         )}
       </div>
+      )}
 
       <div className="card" style={{ padding: 0, overflow: "auto" }}>
         {isLoading ? (
@@ -369,16 +373,20 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
             No holidays match filters.
           </div>
         ) : (
-          <table style={{ minWidth: 720 }}>
+          <table style={{ minWidth: employeeViewColumns ? 360 : 720 }}>
             <thead>
               <tr>
                 <th>Date</th>
                 <th>Holiday</th>
-                <th>Type</th>
-                <th>Applies To</th>
-                <th>Tags</th>
-                <th>Payable</th>
-                <th>Action</th>
+                {!employeeViewColumns && (
+                  <>
+                    <th>Type</th>
+                    <th>Applies To</th>
+                    <th>Tags</th>
+                    <th>Payable</th>
+                    <th>Action</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -388,48 +396,52 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
                     {h.holiday_date}
                   </td>
                   <td className="strong">{h.name}</td>
-                  <td>
-                    <StatusBadge status={h.type} />
-                  </td>
-                  <td style={{ fontSize: 12.5 }}>{h.branches?.name ?? "All"}</td>
-                  <td style={{ fontSize: 11.5 }}>
-                    {(h.applicable_tags ?? []).length
-                      ? (h.applicable_tags ?? []).join(", ")
-                      : "—"}
-                  </td>
-                  <td>
-                    {h.type === "Optional" ? (
-                      <span className="muted">Optional</span>
-                    ) : (
-                      <span className="badge b-present">Payable</span>
-                    )}
-                  </td>
-                  <td>
-                    <div className="row-flex">
-                      {canApply && (
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-good"
-                          disabled={applying}
-                          onClick={() => void applyOne(h.holiday_date, h.name)}
-                        >
-                          Apply Holiday
-                        </button>
-                      )}
-                      {mng && (
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-bad"
-                          onClick={() => void remove(h.id, h.name)}
-                        >
-                          Remove
-                        </button>
-                      )}
-                      {!canApply && !mng && (
-                        <span className="muted" style={{ fontSize: 11.5 }}>—</span>
-                      )}
-                    </div>
-                  </td>
+                  {!employeeViewColumns && (
+                    <>
+                      <td>
+                        <StatusBadge status={h.type} />
+                      </td>
+                      <td style={{ fontSize: 12.5 }}>{h.branches?.name ?? "All"}</td>
+                      <td style={{ fontSize: 11.5 }}>
+                        {(h.applicable_tags ?? []).length
+                          ? (h.applicable_tags ?? []).join(", ")
+                          : "—"}
+                      </td>
+                      <td>
+                        {h.type === "Optional" ? (
+                          <span className="muted">Optional</span>
+                        ) : (
+                          <span className="badge b-present">Payable</span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="row-flex">
+                          {canApply && (
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-good"
+                              disabled={applying}
+                              onClick={() => void applyOne(h.holiday_date, h.name)}
+                            >
+                              Apply Holiday
+                            </button>
+                          )}
+                          {mng && (
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-bad"
+                              onClick={() => void remove(h.id, h.name)}
+                            >
+                              Remove
+                            </button>
+                          )}
+                          {!canApply && !mng && (
+                            <span className="muted" style={{ fontSize: 11.5 }}>—</span>
+                          )}
+                        </div>
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>

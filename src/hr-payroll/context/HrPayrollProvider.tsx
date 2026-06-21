@@ -144,6 +144,13 @@ export function HrPayrollProvider({ children }: { children: ReactNode }) {
           .eq("status", "Pending");
         if (!error) out[key] = count ?? 0;
       }
+      const { count: trainingPending, error: trainErr } = await supabase
+        .from("approvals" as never)
+        .select("*", { count: "exact", head: true })
+        .eq("org_id", HR_ORG_ID)
+        .eq("entity_type", "training")
+        .eq("decision", "Pending");
+      if (!trainErr) out.training = trainingPending ?? 0;
       return out;
     },
     retry: false,

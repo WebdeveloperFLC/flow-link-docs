@@ -9,6 +9,7 @@ import type {
   LeaveRequestRow,
   MispunchRequestRow,
   TrainingRecordRow,
+  TrainingExtensionHistoryRow,
   ApprovalRow,
 } from "../lib/types";
 
@@ -78,11 +79,29 @@ export function useHrTrainingRecords() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("training_records" as never)
-        .select("*, employees(full_name)")
+        .select(
+          "*, employees(full_name, emp_code, branch_id, department_id, branches(name), departments(name))",
+        )
         .eq("org_id", HR_ORG_ID)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as TrainingRecordRow[];
+    },
+  });
+}
+
+export function useTrainingExtensionHistory(trainingId: string | undefined) {
+  return useQuery({
+    queryKey: ["hr-training-extensions", trainingId],
+    enabled: !!trainingId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("training_extension_history" as never)
+        .select("*")
+        .eq("training_id", trainingId!)
+        .order("extended_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as TrainingExtensionHistoryRow[];
     },
   });
 }

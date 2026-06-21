@@ -6,6 +6,7 @@ import {
   useHrCompoffRequests,
   useHrLateExemptions,
   useHrMispunchRequests,
+  useHrTrainingRecords,
 } from "../hooks/useHrRequests";
 import { HrSectionTabs } from "../components/ui/HrSectionTabs";
 import { HR_APPROVAL_TABS } from "../lib/moduleStructure";
@@ -16,6 +17,7 @@ const MODULE_ROUTES: Record<string, string> = {
   late: "/hr/late",
   mispunch: "/hr/mispunch",
   compoff: "/hr/compoff",
+  training: "/hr/training",
   payroll: "/hr/payroll/verify",
 };
 
@@ -28,6 +30,7 @@ export default function HrApprovalsPage() {
   const { data: compoff = [] } = useHrCompoffRequests();
   const { data: late = [] } = useHrLateExemptions();
   const { data: mispunch = [] } = useHrMispunchRequests();
+  const { data: training = [] } = useHrTrainingRecords();
 
   const tabs = HR_APPROVAL_TABS.map((t) => ({
     id: t.id,
@@ -79,6 +82,18 @@ export default function HrApprovalsPage() {
           title: m.employees?.full_name ?? "Employee",
           sub: `${m.issue} · ${m.punch_date}`,
           status: m.status,
+        }));
+    }
+    if (type === "training") {
+      return training
+        .filter((t) =>
+          t.status === "Pending Manager Approval" || t.status === "Pending HR Approval",
+        )
+        .map((t) => ({
+          id: t.id,
+          title: t.employees?.full_name ?? "Employee",
+          sub: `${t.type} · ${t.status}${t.completion_date ? ` · complete ${t.completion_date}` : ""}`,
+          status: t.status,
         }));
     }
     if (type === "payroll") {

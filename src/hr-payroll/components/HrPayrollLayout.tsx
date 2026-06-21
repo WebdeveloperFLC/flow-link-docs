@@ -101,6 +101,7 @@ function HrPayrollLayout() {
     if (k === "compoff") return pendingCounts.compoff ?? 0;
     if (k === "late") return pendingCounts.late ?? 0;
     if (k === "mispunch") return pendingCounts.mispunch ?? 0;
+    if (k === "training") return pendingCounts.training ?? 0;
     return 0;
   };
 

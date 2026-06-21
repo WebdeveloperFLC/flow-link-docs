@@ -322,6 +322,7 @@ export type ApprovalTab = {
 };
 
 export const HR_APPROVAL_TABS: ApprovalTab[] = [
+  { id: "training", title: "Training", route: "/hr/approvals/training", pendingKey: "training" },
   { id: "leave", title: "Leave", route: "/hr/approvals/leave", pendingKey: "leave" },
   { id: "late", title: "Late Coming", route: "/hr/approvals/late", pendingKey: "late" },
   { id: "mispunch", title: "Mispunch", route: "/hr/approvals/mispunch", pendingKey: "mispunch" },

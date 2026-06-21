@@ -20,7 +20,9 @@ export function Emp360TrainingHistoryTable({ rows }: Props) {
         <thead>
           <tr>
             <th>Type</th>
-            <th>Start date</th>
+            <th>Reference</th>
+            <th>Start</th>
+            <th>End</th>
             <th>Duration</th>
             <th>Unpaid days</th>
             <th>Status</th>
@@ -30,7 +32,9 @@ export function Emp360TrainingHistoryTable({ rows }: Props) {
           {sorted.map((t) => (
             <tr key={t.id}>
               <td>{t.type}</td>
+              <td className="mono">{t.training_ref ?? t.id.slice(0, 8)}</td>
               <td className="mono">{t.start_date ?? "—"}</td>
+              <td className="mono">{t.extended_end_date ?? t.end_date ?? "—"}</td>
               <td>{t.duration ?? "—"}</td>
               <td className="mono">{t.unpaid_days}</td>
               <td><StatusBadge status={t.status} /></td>

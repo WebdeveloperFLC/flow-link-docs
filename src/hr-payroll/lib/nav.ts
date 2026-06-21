@@ -103,5 +103,5 @@ export function screenKeyFromPath(pathname: string): HrScreenKey {
 
 /** Total pending approvals badge for Approval Center nav item. */
 export function totalPendingApprovals(counts: Record<string, number>): number {
-  return (counts.leave ?? 0) + (counts.compoff ?? 0) + (counts.late ?? 0) + (counts.mispunch ?? 0);
+  return (counts.leave ?? 0) + (counts.compoff ?? 0) + (counts.late ?? 0) + (counts.mispunch ?? 0) + (counts.training ?? 0);
 }
