@@ -17,6 +17,10 @@ import HrTrainingPage from "./pages/HrTrainingPage";
 import HrCalculatorPage from "./pages/HrCalculatorPage";
 import HrVerifyPage from "./pages/HrVerifyPage";
 import HrAttendancePage from "./pages/HrAttendancePage";
+import {
+  AttendanceModuleLayout,
+  AttendanceIndexRedirect,
+} from "./components/attendance/AttendanceModuleLayout";
 import HrLeavePage from "./pages/HrLeavePage";
 import HrCompoffPage from "./pages/HrCompoffPage";
 import HrLatePage from "./pages/HrLatePage";
@@ -59,12 +63,18 @@ export default function HrPayrollRoutes() {
           <Route path="documents" element={<HrDocumentsPage />} />
           <Route path="training" element={<HrTrainingPage />} />
 
-          {/* Attendance & Leave */}
-          <Route path="attendance" element={<HrAttendancePage />} />
+          {/* Workforce — attendance module with tabs */}
+          <Route path="attendance" element={<AttendanceModuleLayout />}>
+            <Route index element={<AttendanceIndexRedirect />} />
+            <Route path="records" element={<HrAttendancePage />} />
+            <Route path="compoff" element={<HrCompoffPage />} />
+            <Route path="late" element={<HrLatePage />} />
+            <Route path="mispunch" element={<HrMispunchPage />} />
+          </Route>
+          <Route path="compoff" element={<Navigate to="/hr/attendance/compoff" replace />} />
+          <Route path="late" element={<Navigate to="/hr/attendance/late" replace />} />
+          <Route path="mispunch" element={<Navigate to="/hr/attendance/mispunch" replace />} />
           <Route path="leave" element={<HrLeavePage />} />
-          <Route path="compoff" element={<HrCompoffPage />} />
-          <Route path="late" element={<HrLatePage />} />
-          <Route path="mispunch" element={<HrMispunchPage />} />
           <Route path="holidays" element={<HrHolidaysPage />} />
 
           {/* Payroll */}

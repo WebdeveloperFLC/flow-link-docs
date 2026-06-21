@@ -72,9 +72,9 @@ export const HR_SCREEN_ROUTES: Record<HrScreenKey, string> = {
   training: "/hr/training",
   attendance: "/hr/attendance",
   leave: "/hr/leave",
-  compoff: "/hr/compoff",
-  late: "/hr/late",
-  mispunch: "/hr/mispunch",
+  compoff: "/hr/attendance/compoff",
+  late: "/hr/attendance/late",
+  mispunch: "/hr/attendance/mispunch",
   holiday: "/hr/holidays",
   payrollCycle: "/hr/config/payroll-cycle",
   calculator: "/hr/payroll/process",
@@ -93,7 +93,7 @@ export const HR_SCREEN_ROUTES: Record<HrScreenKey, string> = {
 export const HR_SCREEN_TITLES: Record<HrScreenKey, string> = {
   dashboard: "HR Dashboard",
   ess: "My Portal (ESS)",
-  emp360: "Employee 360°",
+  emp360: "Employee 360",
   employees: "Employee Master",
   documents: "Employee Documents",
   training: "Training & Development",
@@ -113,7 +113,7 @@ export const HR_SCREEN_TITLES: Record<HrScreenKey, string> = {
   config: "Configuration",
   docTypes: "Document Type Master",
   shifts: "Shift Master",
-  roles: "Team & Roles",
+  roles: "Roles & Access",
   audit: "Audit Logs",
 };
 

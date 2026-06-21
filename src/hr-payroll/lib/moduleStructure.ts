@@ -336,12 +336,12 @@ export type ApprovalTab = {
 };
 
 export const HR_APPROVAL_TABS: ApprovalTab[] = [
-  { id: "training", title: "Training", route: "/hr/approvals/training", pendingKey: "training" },
-  { id: "leave", title: "Leave", route: "/hr/approvals/leave", pendingKey: "leave" },
-  { id: "late", title: "Late Coming", route: "/hr/approvals/late", pendingKey: "late" },
-  { id: "mispunch", title: "Mispunch", route: "/hr/approvals/mispunch", pendingKey: "mispunch" },
-  { id: "compoff", title: "Comp-Off", route: "/hr/approvals/compoff", pendingKey: "compoff" },
-  { id: "payroll", title: "Payroll", route: "/hr/approvals/payroll" },
+  { id: "leave", title: "Leave Approvals", route: "/hr/approvals/leave", pendingKey: "leave" },
+  { id: "compoff", title: "Comp-Off Approvals", route: "/hr/approvals/compoff", pendingKey: "compoff" },
+  { id: "late", title: "Late Exemption Approvals", route: "/hr/approvals/late", pendingKey: "late" },
+  { id: "mispunch", title: "Mispunch Approvals", route: "/hr/approvals/mispunch", pendingKey: "mispunch" },
+  { id: "training", title: "Training Approvals", route: "/hr/approvals/training", pendingKey: "training" },
+  { id: "payroll", title: "Payroll Approvals", route: "/hr/approvals/payroll" },
 ];
 
 /** Maps /hr/config/:slug to HrConfigPage tab name. */

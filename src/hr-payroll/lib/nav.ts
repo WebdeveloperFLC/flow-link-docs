@@ -23,19 +23,16 @@ export const HR_NAV: NavGroup[] = [
     grp: "People",
     items: [
       { k: "employees", ic: "⊞", t: "Employee Master" },
-      { k: "emp360", ic: "⊚", t: "Employee 360°" },
+      { k: "emp360", ic: "⊚", t: "Employee 360" },
       { k: "training", ic: "◵", t: "Training & Development" },
       { k: "documents", ic: "📎", t: "Employee Documents" },
     ],
   },
   {
-    grp: "Attendance & Leave",
+    grp: "Workforce Management",
     items: [
       { k: "attendance", ic: "◰", t: "Attendance" },
       { k: "leave", ic: "⊟", t: "Leave Management" },
-      { k: "compoff", ic: "⇄", t: "Comp-Off Management" },
-      { k: "late", ic: "◷", t: "Late Coming" },
-      { k: "mispunch", ic: "⊠", t: "Mispunch Management" },
       { k: "holiday", ic: "◇", t: "Holiday Calendar" },
     ],
   },
@@ -58,7 +55,10 @@ export const HR_NAV: NavGroup[] = [
   },
   {
     grp: "Configuration",
-    items: [{ k: "config", ic: "⚙", t: "Configuration" }],
+    items: [
+      { k: "config", ic: "⚙", t: "Configuration" },
+      { k: "roles", ic: "⊛", t: "Roles & Access" },
+    ],
   },
 ];
 
@@ -84,6 +84,9 @@ export function screenKeyFromPath(pathname: string): HrScreenKey {
   if (pathname.startsWith("/hr/payroll/history")) return "payrollHistory";
   if (pathname.startsWith("/hr/payroll")) return "verify";
 
+  if (pathname.startsWith("/hr/attendance/compoff")) return "compoff";
+  if (pathname.startsWith("/hr/attendance/late")) return "late";
+  if (pathname.startsWith("/hr/attendance/mispunch")) return "mispunch";
   if (pathname.startsWith("/hr/attendance")) return "attendance";
   if (pathname.startsWith("/hr/leave")) return "leave";
   if (pathname.startsWith("/hr/compoff")) return "compoff";

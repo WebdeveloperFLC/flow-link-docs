@@ -233,7 +233,7 @@ export default function HrEssPage() {
           </Link>
         )}
         {can("apply") && canSee("compoff") && (
-          <Link to="/hr/compoff" className="ess-quick-card ess-quick-compoff">
+          <Link to="/hr/attendance/compoff" className="ess-quick-card ess-quick-compoff">
             <span className="ess-quick-icon"><Gift size={18} strokeWidth={2.25} /></span>
             <span>
               <div className="ess-quick-label">Comp-off</div>

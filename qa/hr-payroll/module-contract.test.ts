@@ -496,4 +496,18 @@ describe("HR Payroll module contract", () => {
     expect(reportsPage).not.toContain("coming in the next build phase");
     expect(reportsPage).not.toContain("roll out incrementally");
   });
+
+  it("sidebar nav groups attendance sub-modules under workforce management", () => {
+    const nav = readFileSync(join(ROOT, "src/hr-payroll/lib/nav.ts"), "utf8");
+    const routes = readFileSync(join(ROOT, "src/hr-payroll/HrPayrollRoutes.tsx"), "utf8");
+    expect(nav).toContain("Workforce Management");
+    expect(nav).not.toContain("Comp-Off Management");
+    expect(nav).toContain("Roles & Access");
+    expect(routes).toContain("AttendanceModuleLayout");
+    expect(routes).toContain("path=\"records\" element={<HrAttendancePage />}");
+    expect(routes).toContain("Navigate to=\"/hr/attendance/compoff\"");
+    const approvals = readFileSync(join(ROOT, "src/hr-payroll/pages/HrApprovalsPage.tsx"), "utf8");
+    expect(approvals).toContain("approval-category-card");
+    expect(approvals).not.toContain("Open full module");
+  });
 });
