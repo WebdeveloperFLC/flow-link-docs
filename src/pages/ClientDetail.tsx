@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DocumentsTabContent } from "@/components/documents/DocumentsTabContent";
+import { SmartUploadZone } from "@/components/documents/SmartUploadZone";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { generateBinder } from "@/lib/binder";
