@@ -417,7 +417,7 @@ export default function HrVerifyPage() {
   if (!ctxCycle) return <div className="empty">No payroll cycle loaded.</div>;
 
   return (
-    <div className="grid" style={{ gap: 16 }}>
+    <div className="page-grid">
       <div className="card-h">
         <div className="row-flex">
           <span className="tag">

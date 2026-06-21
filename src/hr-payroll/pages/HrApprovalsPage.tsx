@@ -101,8 +101,8 @@ export default function HrApprovalsPage() {
   const fullRoute = MODULE_ROUTES[type] ?? "/hr";
 
   return (
-    <div className="grid" style={{ gap: 16 }}>
-      <div className="card" style={{ background: "var(--wash)", borderColor: "var(--line)" }}>
+    <div className="page-grid">
+      <div className="card card-wash">
         <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
           Single approval inbox for managers and HR. Manager recommendation flows to HR final
           approval; only HR approval affects payroll snapshots.

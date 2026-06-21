@@ -744,7 +744,7 @@ export default function HrLeavePage() {
   };
 
   return (
-    <div className="grid" style={{ gap: 16 }}>
+    <div className="page-grid">
       <LeaveSummaryPanel
         employeeId={summaryEmployeeId}
         year={summaryYear}

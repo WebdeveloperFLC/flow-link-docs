@@ -18,6 +18,9 @@
   --mut: #8a93a6;
   --violet: #7c5cdb;
   --teal: #0fae9b;
+  --space-page: 18px;
+  --radius-card: 16px;
+  --shadow-card: 0 2px 12px rgba(26, 34, 51, 0.06);
   min-height: 100vh;
   font-family: "Inter", sans-serif;
   background: var(--paper);
@@ -28,53 +31,140 @@
 [data-hr-payroll] .mono { font-family: "JetBrains Mono", monospace; }
 [data-hr-payroll] .serif { font-family: "Fraunces", serif; }
 [data-hr-payroll] .app { display: flex; min-height: 100vh; }
+
+/* Mesh background on main content area */
+[data-hr-payroll] .main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 0%, rgba(59, 130, 196, 0.09), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 90% 10%, rgba(124, 92, 219, 0.07), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(15, 174, 155, 0.06), transparent 55%),
+    var(--paper);
+}
+
 [data-hr-payroll] .sidebar {
-  width: 252px; background: var(--card); color: var(--ink); flex-shrink: 0;
-  display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh;
+  width: 252px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  color: var(--ink);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
   border-right: 1px solid var(--line);
+  box-shadow: 2px 0 24px rgba(26, 34, 51, 0.04);
 }
 [data-hr-payroll] .brand {
-  padding: 18px 16px 14px; border-bottom: 1px solid var(--line); text-align: center;
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--line);
+  text-align: center;
 }
 [data-hr-payroll] .brand-logo-full {
-  width: 100%; height: auto; max-height: 64px; object-fit: contain; display: block;
+  width: 100%;
+  height: auto;
+  max-height: 64px;
+  object-fit: contain;
+  display: block;
 }
 [data-hr-payroll] .brand-module {
-  font-size: 10px; color: var(--mut); letter-spacing: 1.4px; text-transform: uppercase;
-  margin-top: 8px; font-weight: 600;
+  font-size: 10px;
+  color: var(--mut);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  margin-top: 8px;
+  font-weight: 600;
 }
 [data-hr-payroll] .nav { flex: 1; overflow-y: auto; padding: 8px 12px; }
-[data-hr-payroll] .nav-label { font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); padding: 12px 10px 4px; font-weight: 600; }
+[data-hr-payroll] .nav-label {
+  font-size: 9.5px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--mut);
+  padding: 12px 10px 4px;
+  font-weight: 600;
+}
 [data-hr-payroll] .nav-item {
-  display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 9px;
-  font-size: 12.6px; color: var(--ink-soft); cursor: pointer; transition: 0.13s;
-  border: none; background: none; width: 100%; text-align: left; font-family: inherit;
-  position: relative; font-weight: 500; text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 12.6px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: 0.13s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  position: relative;
+  font-weight: 500;
+  text-decoration: none;
 }
 [data-hr-payroll] .nav-item:hover { background: var(--paper); color: var(--ink); }
 [data-hr-payroll] .nav-item.active {
-  background: linear-gradient(135deg, var(--moss), var(--moss-deep)); color: #fff; font-weight: 600;
-  box-shadow: 0 3px 10px rgba(59, 130, 196, 0.28);
+  background: linear-gradient(135deg, var(--moss), var(--violet));
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(59, 130, 196, 0.32);
 }
 [data-hr-payroll] .nav-item .ic { width: 16px; text-align: center; font-size: 13px; opacity: 0.7; }
 [data-hr-payroll] .nav-item.active .ic { opacity: 1; }
 [data-hr-payroll] .nav-item .ct {
-  margin-left: auto; background: var(--clay); color: #fff; font-size: 10px; font-weight: 700;
-  border-radius: 999px; padding: 1px 7px; min-width: 18px; text-align: center;
+  margin-left: auto;
+  background: var(--clay);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 1px 7px;
+  min-width: 18px;
+  text-align: center;
 }
 [data-hr-payroll] .nav-item.active .ct { background: rgba(255, 255, 255, 0.25); }
-[data-hr-payroll] .nav-foot { padding: 11px 14px; border-top: 1px solid var(--line); font-size: 10px; color: var(--mut); line-height: 1.5; }
-[data-hr-payroll] .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+[data-hr-payroll] .nav-foot {
+  padding: 11px 14px;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  color: var(--mut);
+  line-height: 1.5;
+}
+
 [data-hr-payroll] .topbar {
-  background: var(--card); border-bottom: 1px solid var(--line); padding: 11px 28px;
-  display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 [data-hr-payroll] .topbar-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
 [data-hr-payroll] .topbar-nav { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 [data-hr-payroll] .topbar-nav-btn {
-  display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 8px;
-  border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft); font-size: 12px;
-  font-weight: 500; font-family: inherit; cursor: pointer; text-decoration: none; transition: 0.13s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: 0.13s;
   white-space: nowrap;
 }
 [data-hr-payroll] .topbar-nav-btn:hover { background: var(--card); color: var(--ink); border-color: #cfe1f7; }
@@ -82,68 +172,383 @@
 [data-hr-payroll] .topbar h2 { font-family: "Fraunces"; font-size: 20px; font-weight: 600; margin: 4px 0 0; }
 [data-hr-payroll] .topbar-right { display: flex; align-items: center; gap: 12px; }
 [data-hr-payroll] .role-pill {
-  display: flex; align-items: center; gap: 7px; background: var(--paper);
-  border: 1px solid var(--line); border-radius: 999px; padding: 5px 6px 5px 13px; font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 6px 5px 13px;
+  font-size: 13px;
 }
 [data-hr-payroll] .role-pill select {
-  border: none; background: none; font-family: inherit; font-size: 13px;
-  color: var(--ink); font-weight: 500; cursor: pointer; outline: none;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
 }
 [data-hr-payroll] .role-banner {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  background: linear-gradient(135deg, #eef5ff, #f3f0ff); border: 1px solid #d8e3f7;
-  border-radius: 11px; padding: 9px 14px; margin-bottom: 16px; font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, rgba(238, 245, 255, 0.95), rgba(243, 240, 255, 0.95));
+  border: 1px solid #d8e3f7;
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-bottom: var(--space-page);
+  font-size: 13px;
+  box-shadow: var(--shadow-card);
 }
 [data-hr-payroll] .role-banner .rb-dot {
-  width: 8px; height: 8px; border-radius: 50%; background: var(--good);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--good);
   box-shadow: 0 0 0 3px #d4f0e0;
 }
 [data-hr-payroll] .role-banner strong { color: var(--moss-deep); }
 [data-hr-payroll] .rb-perm {
-  font-size: 10.5px; font-weight: 600; text-transform: capitalize; background: #fff;
-  border: 1px solid #d8e3f7; color: var(--moss); border-radius: 6px; padding: 2px 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: capitalize;
+  background: linear-gradient(135deg, var(--moss), var(--violet));
+  border: none;
+  color: #fff;
+  border-radius: 7px;
+  padding: 4px 10px;
+  box-shadow: 0 2px 6px rgba(59, 130, 196, 0.2);
+}
+[data-hr-payroll] .rb-perm-muted {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: capitalize;
+  background: #fff;
+  border: 1px solid #d8e3f7;
+  color: var(--ink-soft);
+  border-radius: 7px;
+  padding: 4px 10px;
 }
 [data-hr-payroll] .avatar {
-  width: 30px; height: 30px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--moss), var(--sky)); color: #fff;
-  display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--moss), var(--violet));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
   overflow: hidden;
+  flex-shrink: 0;
 }
 [data-hr-payroll] .content { padding: 22px 28px 60px; max-width: 1320px; width: 100%; }
-[data-hr-payroll] .card {
-  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-  padding: 20px; box-shadow: 0 1px 3px rgba(26, 34, 51, 0.04);
+
+/* Page layout */
+[data-hr-payroll] .page-grid { display: grid; gap: var(--space-page); }
+[data-hr-payroll] .section-title {
+  font-family: "Fraunces";
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 10px;
 }
-[data-hr-payroll] .card-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
-[data-hr-payroll] .card-h h3 { font-family: "Fraunces"; font-size: 17px; font-weight: 600; margin: 0; }
-[data-hr-payroll] .grid { display: grid; gap: 16px; }
+
+[data-hr-payroll] .card {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+}
+[data-hr-payroll] .card-wash {
+  background: linear-gradient(135deg, rgba(238, 245, 255, 0.7), rgba(255, 255, 255, 0.9));
+  border-color: #d8e3f7;
+}
+[data-hr-payroll] .card-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+[data-hr-payroll] .card-h h3 {
+  font-family: "Fraunces";
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+}
+[data-hr-payroll] .grid { display: grid; gap: var(--space-page); }
 [data-hr-payroll] .g6 { grid-template-columns: repeat(6, 1fr); }
+[data-hr-payroll] .g5 { grid-template-columns: repeat(5, 1fr); }
 [data-hr-payroll] .g4 { grid-template-columns: repeat(4, 1fr); }
 [data-hr-payroll] .g3 { grid-template-columns: repeat(3, 1fr); }
 [data-hr-payroll] .g2 { grid-template-columns: repeat(2, 1fr); }
+
+/* KPI / Stat cards */
+[data-hr-payroll] .stat {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+[data-hr-payroll] .stat-metric { padding: 16px 14px 14px; }
+[data-hr-payroll] .stat-highlight { padding: 16px 18px 16px 22px; }
+[data-hr-payroll] .stat-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  border-radius: var(--radius-card) 0 0 var(--radius-card);
+}
+[data-hr-payroll] .stat-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+[data-hr-payroll] .stat-lab {
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--mut);
+  font-weight: 700;
+}
+[data-hr-payroll] .stat-val {
+  font-family: "Fraunces";
+  font-size: 24px;
+  font-weight: 600;
+  margin-top: 6px;
+  line-height: 1.1;
+}
+[data-hr-payroll] .stat-meta { font-size: 11.5px; color: var(--ink-soft); margin-top: 4px; }
+
+/* Info card fields */
+[data-hr-payroll] .info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 24px;
+}
+[data-hr-payroll] .info-field-label {
+  font-size: 11px;
+  color: var(--mut);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+[data-hr-payroll] .info-field-value {
+  font-size: 13.5px;
+  margin-top: 3px;
+  color: var(--ink);
+}
+
+/* Employee picker cards */
+[data-hr-payroll] .emp-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+[data-hr-payroll] .emp-card {
+  display: block;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  cursor: pointer;
+  transition: 0.15s;
+  font-family: inherit;
+  color: inherit;
+  box-shadow: var(--shadow-card);
+  width: 100%;
+}
+[data-hr-payroll] .emp-card:hover {
+  border-color: #cfe1f7;
+  box-shadow: 0 6px 20px rgba(59, 130, 196, 0.12);
+  transform: translateY(-1px);
+}
+[data-hr-payroll] .emp-card.selected {
+  border-color: var(--moss);
+  background: linear-gradient(135deg, rgba(238, 245, 255, 0.95), rgba(255, 255, 255, 0.98));
+  box-shadow: 0 4px 16px rgba(59, 130, 196, 0.2);
+}
+[data-hr-payroll] .emp-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+[data-hr-payroll] .emp-card-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.3;
+}
+[data-hr-payroll] .emp-card-code {
+  font-size: 11px;
+  color: var(--mut);
+  font-family: "JetBrains Mono", monospace;
+}
+[data-hr-payroll] .emp-card-text { flex: 1; min-width: 0; }
+[data-hr-payroll] .emp-card-meta {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+[data-hr-payroll] .emp-card-status { margin-top: 8px; }
+[data-hr-payroll] .filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: flex-end;
+}
+[data-hr-payroll] .filter-bar .fld { margin-bottom: 0; min-width: 140px; flex: 1; }
+[data-hr-payroll] .showing-count {
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+/* Hub cards */
+[data-hr-payroll] .hub-card {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: 0.15s;
+}
+[data-hr-payroll] .hub-card:hover {
+  border-color: #cfe1f7;
+  box-shadow: 0 8px 24px rgba(59, 130, 196, 0.12);
+  transform: translateY(-2px);
+}
+[data-hr-payroll] .hub-card-icon {
+  font-size: 22px;
+  margin-bottom: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(59, 130, 196, 0.12), rgba(124, 92, 219, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+[data-hr-payroll] .hub-card-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+[data-hr-payroll] .hub-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+[data-hr-payroll] .hub-card-desc {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--mut);
+  margin-top: 4px;
+}
+[data-hr-payroll] .hub-card-disabled { opacity: 0.65; }
+
+/* Metric rows (sum cards) */
+[data-hr-payroll] .metric-panel { }
+[data-hr-payroll] .metric-panel-title {
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--mut);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+[data-hr-payroll] .metric-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 13px;
+  border-bottom: 1px solid #eef0f5;
+}
+[data-hr-payroll] .metric-row:last-child { border-bottom: none; }
+[data-hr-payroll] .metric-panel-hl {
+  background: linear-gradient(135deg, rgba(238, 245, 255, 0.9), rgba(255, 255, 255, 0.95));
+  border-color: #cfe1f7;
+}
+
+/* List rows */
+[data-hr-payroll] .list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #eef0f5;
+  gap: 12px;
+}
+[data-hr-payroll] .list-row:last-child { border-bottom: none; }
+
 [data-hr-payroll] table { width: 100%; border-collapse: collapse; font-size: 13px; }
 [data-hr-payroll] th {
-  text-align: left; font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase;
-  color: var(--mut); font-weight: 700; padding: 9px; border-bottom: 1.5px solid var(--line);
-  white-space: nowrap; background: var(--paper);
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--mut);
+  font-weight: 700;
+  padding: 10px 9px;
+  border-bottom: 1.5px solid var(--line);
+  white-space: nowrap;
+  background: rgba(246, 248, 252, 0.8);
 }
-[data-hr-payroll] td { padding: 9px; border-bottom: 1px solid var(--line); color: var(--ink-soft); }
-[data-hr-payroll] tr:hover td { background: #f3f8ff; }
+[data-hr-payroll] td { padding: 10px 9px; border-bottom: 1px solid var(--line); color: var(--ink-soft); }
+[data-hr-payroll] tr:hover td { background: rgba(243, 248, 255, 0.8); }
 [data-hr-payroll] td.strong { color: var(--ink); font-weight: 600; }
+[data-hr-payroll] .strong { color: var(--ink); font-weight: 600; }
 [data-hr-payroll] .badge {
-  display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600;
-  padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 [data-hr-payroll] .b-present { background: #dcfae8; color: #0f7a4d; }
 [data-hr-payroll] .b-pending { background: #fcf2d4; color: #9a7610; }
 [data-hr-payroll] .b-approved { background: #dcfae8; color: #0f7a4d; }
 [data-hr-payroll] .btn {
-  font-family: inherit; font-size: 13px; font-weight: 500; border-radius: 9px; padding: 8px 15px;
-  cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--ink); transition: 0.13s;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 10px;
+  padding: 8px 15px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  transition: 0.13s;
 }
 [data-hr-payroll] .btn:hover { border-color: var(--moss); color: var(--moss); }
-[data-hr-payroll] .btn-primary { background: var(--moss); color: #fff; border-color: var(--moss); }
-[data-hr-payroll] .btn-primary:hover { background: var(--moss-deep); color: #fff; }
+[data-hr-payroll] .btn-primary {
+  background: linear-gradient(135deg, var(--moss), var(--violet));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 3px 10px rgba(59, 130, 196, 0.25);
+}
+[data-hr-payroll] .btn-primary:hover {
+  background: linear-gradient(135deg, var(--moss-deep), var(--violet));
+  color: #fff;
+}
 [data-hr-payroll] .btn-sm { padding: 5px 10px; font-size: 12px; }
 [data-hr-payroll] .btn-bad { color: var(--bad); border-color: #ecd4d4; }
 [data-hr-payroll] .btn-bad:hover { background: #f9eded; color: var(--bad); }
@@ -151,77 +556,212 @@
 [data-hr-payroll] .input,
 [data-hr-payroll] select.input,
 [data-hr-payroll] textarea.input {
-  width: 100%; font-family: inherit; font-size: 13.5px; padding: 8px 11px;
-  border: 1px solid var(--line); border-radius: 9px; background: #fafbfd; color: var(--ink); outline: none;
+  width: 100%;
+  font-family: inherit;
+  font-size: 13.5px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fafbfd;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.13s, box-shadow 0.13s;
 }
-[data-hr-payroll] .input:focus { border-color: var(--moss); background: #fff; }
+[data-hr-payroll] .input:focus,
+[data-hr-payroll] select.input:focus,
+[data-hr-payroll] textarea.input:focus {
+  border-color: var(--moss);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 196, 0.12);
+}
 [data-hr-payroll] .input.err { border-color: var(--rose); background: #fdf2f2; }
 [data-hr-payroll] label.fld { display: block; margin-bottom: 11px; }
 [data-hr-payroll] label.fld .l {
-  font-size: 11px; font-weight: 600; color: var(--ink-soft); letter-spacing: 0.3px;
-  margin-bottom: 5px; display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  letter-spacing: 0.3px;
+  margin-bottom: 5px;
+  display: block;
 }
 [data-hr-payroll] .errmsg { font-size: 11px; color: var(--rose); margin-top: 4px; }
 [data-hr-payroll] .pill-tab { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
 [data-hr-payroll] .pill-tab button {
-  border: 1px solid var(--line); background: var(--card); font-family: inherit; font-size: 13px;
-  padding: 6px 14px; border-radius: 999px; cursor: pointer; color: var(--ink-soft);
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--ink-soft);
 }
 [data-hr-payroll] .pill-tab button.on {
-  background: linear-gradient(135deg, var(--moss), var(--moss-deep)); color: #fff; border-color: var(--moss-deep);
+  background: linear-gradient(135deg, var(--moss), var(--violet));
+  color: #fff;
+  border-color: transparent;
+}
+[data-hr-payroll] .seg {
+  display: inline-flex;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 3px;
+  flex-wrap: wrap;
+}
+[data-hr-payroll] .seg button {
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 12.5px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+[data-hr-payroll] .seg button.on {
+  background: linear-gradient(135deg, var(--moss), var(--violet));
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(59, 130, 196, 0.3);
 }
 [data-hr-payroll] .modal-bg {
-  position: fixed; inset: 0; background: rgba(22, 32, 28, 0.42);
-  display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px;
-  backdrop-filter: blur(2px);
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 32, 28, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 20px;
+  backdrop-filter: blur(4px);
 }
 [data-hr-payroll] .modal {
-  background: var(--card); border-radius: 16px; width: 100%; max-width: 600px; max-height: 92vh;
-  overflow-y: auto; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  background: var(--card);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
 }
 [data-hr-payroll] .modal.wide { max-width: 760px; }
 [data-hr-payroll] .modal-h {
-  padding: 16px 24px; border-bottom: 1px solid var(--line);
-  display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; background: var(--card); z-index: 2;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: var(--card);
+  z-index: 2;
 }
 [data-hr-payroll] .modal-h h3 { font-family: "Fraunces"; font-size: 18px; margin: 0; }
 [data-hr-payroll] .modal-b { padding: 18px 24px; }
 [data-hr-payroll] .modal-f {
-  padding: 13px 24px; border-top: 1px solid var(--line);
-  display: flex; justify-content: flex-end; gap: 10px;
-  position: sticky; bottom: 0; background: var(--card);
+  padding: 13px 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  position: sticky;
+  bottom: 0;
+  background: var(--card);
 }
-[data-hr-payroll] .x { border: none; background: none; font-size: 21px; cursor: pointer; color: var(--mut); line-height: 1; }
+[data-hr-payroll] .x {
+  border: none;
+  background: none;
+  font-size: 21px;
+  cursor: pointer;
+  color: var(--mut);
+  line-height: 1;
+}
 [data-hr-payroll] .toast {
-  position: fixed; bottom: 24px; right: 24px; background: var(--moss-deep); color: #fff;
-  padding: 12px 18px; border-radius: 11px; font-size: 13.5px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); z-index: 90;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--moss-deep);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 11px;
+  font-size: 13.5px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  z-index: 90;
 }
 [data-hr-payroll] .muted { color: var(--mut); }
 [data-hr-payroll] .row-flex { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 [data-hr-payroll] .divider { height: 1px; background: var(--line); margin: 14px 0; }
 [data-hr-payroll] .tag {
-  font-size: 11px; background: var(--paper); border: 1px solid var(--line);
-  border-radius: 6px; padding: 2px 8px; color: var(--ink-soft);
+  font-size: 11px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 8px;
+  color: var(--ink-soft);
 }
 [data-hr-payroll] .sec-label {
-  font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--moss);
-  font-weight: 700; margin: 6px 0 10px; padding-bottom: 5px; border-bottom: 1px solid var(--line);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--moss);
+  font-weight: 700;
+  margin: 6px 0 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line);
 }
 [data-hr-payroll] .empty { text-align: center; padding: 36px 20px; color: var(--mut); }
 [data-hr-payroll] .empty .ico { font-size: 28px; opacity: 0.4; margin-bottom: 8px; }
+[data-hr-payroll] .empty-sm { padding: 16px; }
 [data-hr-payroll] .photo-up {
-  width: 84px; height: 84px; border-radius: 12px; border: 2px dashed var(--line);
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
-  overflow: hidden; background: #fafbfd; flex-shrink: 0;
+  width: 84px;
+  height: 84px;
+  border-radius: 12px;
+  border: 2px dashed var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  background: #fafbfd;
+  flex-shrink: 0;
 }
 [data-hr-payroll] .photo-up img { width: 100%; height: 100%; object-fit: cover; }
 [data-hr-payroll] .denied { text-align: center; padding: 50px 20px; color: var(--mut); }
+[data-hr-payroll] .profile-banner {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+[data-hr-payroll] .profile-banner .avatar-lg {
+  width: 56px;
+  height: 56px;
+  font-size: 18px;
+}
+[data-hr-payroll] .profile-name {
+  font-family: "Fraunces";
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--ink);
+}
+[data-hr-payroll] .profile-sub {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+[data-hr-payroll] .table-wrap { overflow-x: auto; }
+
 @media (max-width: 880px) {
   [data-hr-payroll] .sidebar { display: none; }
-  [data-hr-payroll] .g6, [data-hr-payroll] .g4, [data-hr-payroll] .g3, [data-hr-payroll] .g2 { grid-template-columns: 1fr 1fr; }
+  [data-hr-payroll] .g6,
+  [data-hr-payroll] .g5,
+  [data-hr-payroll] .g4,
+  [data-hr-payroll] .g3,
+  [data-hr-payroll] .g2 { grid-template-columns: 1fr 1fr; }
   [data-hr-payroll] .content { padding: 16px 12px 50px; }
   [data-hr-payroll] .topbar { padding: 10px 14px; flex-wrap: wrap; gap: 10px; }
   [data-hr-payroll] .topbar-left { flex-wrap: wrap; }
+  [data-hr-payroll] .emp-card-grid { grid-template-columns: 1fr; }
+  [data-hr-payroll] .info-grid { grid-template-columns: 1fr; }
 }

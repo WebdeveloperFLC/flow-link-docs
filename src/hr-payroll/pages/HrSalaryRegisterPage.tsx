@@ -46,8 +46,8 @@ export default function HrSalaryRegisterPage() {
   };
 
   return (
-    <div className="grid" style={{ gap: 16 }}>
-      <div className="card" style={{ background: "var(--wash)", borderColor: "var(--line)" }}>
+    <div className="page-grid">
+      <div className="card card-wash">
         <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
           Salary register for cycle <strong>{cycle?.label ?? "—"}</strong>. Uses payroll snapshots after
           processing — export to CSV, Excel, or PDF.

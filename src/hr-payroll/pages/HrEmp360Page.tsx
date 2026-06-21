@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useHrAccess } from "../context/HrPayrollProvider";
-import { useHrEmployees } from "../hooks/useHrEmployees";
+import { useHrEmployees, useHrReferenceData } from "../hooks/useHrEmployees";
 import { splitShiftHours } from "../lib/shiftHours";
 import { useHrEmployeePayrollHistory, useHrPayrollLine } from "../hooks/useHrPayroll";
 import { useHrAttendance } from "../hooks/useHrAttendance";
@@ -13,13 +13,15 @@ import {
   useHrTrainingRecords,
   useHrAuditLogs,
 } from "../hooks/useHrRequests";
-import { EmployeeSeg } from "../components/ui/EmployeeSeg";
 import { Stat } from "../components/ui/Stat";
+import { EmployeeCard } from "../components/ui/EmployeeCard";
+import { InfoCard, MetricPanel, SectionCard } from "../components/ui/InfoCard";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { LeaveSummaryPanel } from "../components/leave/LeaveSummaryPanel";
 import { EmployeeDocumentsPanel } from "../components/employees/EmployeeDocumentsPanel";
 import { EmployeeAssetsDetailTable } from "../components/employees/EmployeeAssetsDetailTable";
 import { ShiftHistoryTable } from "../components/shifts/ShiftHistoryTable";
+import { EmployeeAvatar } from "../components/ui/EmployeeAvatar";
 import { useEmployeeAssets } from "../hooks/useEmployeeAssets";
 import { useEmployeeShiftHistory } from "../hooks/useEmployeeShiftHistory";
 import { fmtDur } from "../lib/attendanceMetrics";
@@ -31,80 +33,19 @@ import {
   employeeStatusBadgeClass,
   employeeStatusLabel,
   formatMoney,
-  initials,
   parseEmergencyContacts,
   payrollCompanyLabel,
 } from "../lib/format";
-import type { AttendanceRow, ShiftRow } from "../lib/types";
+import type { AttendanceRow, EmployeeRow, ShiftRow } from "../lib/types";
 
-function SumCard({
-  title,
-  rows,
-  hl,
-}: {
-  title: string;
-  rows: [string, string | number][];
-  hl?: boolean;
-}) {
-  return (
-    <div
-      className="card"
-      style={hl ? { background: "#eef5ff", borderColor: "#cfe1f7" } : undefined}
-    >
-      <div
-        style={{
-          fontSize: 11,
-          letterSpacing: 0.6,
-          textTransform: "uppercase",
-          color: "var(--mut)",
-          fontWeight: 600,
-          marginBottom: 9,
-        }}
-      >
-        {title}
-      </div>
-      {rows.map(([k, v]) => (
-        <div
-          key={k}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "4px 0",
-            fontSize: 13,
-          }}
-        >
-          <span style={{ color: "var(--ink-soft)" }}>{k}</span>
-          <span className="mono" style={{ fontWeight: 500 }}>
-            {v}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
+const COUNTRY_OPTIONS = [
+  { value: "All", label: "All countries" },
+  { value: "IN", label: "India" },
+  { value: "CA", label: "Canada" },
+];
 
-function InfoCard({
-  title,
-  rows,
-}: {
-  title: string;
-  rows: [string, string | null | undefined][];
-}) {
-  return (
-    <div className="card">
-      <div className="card-h">
-        <h3>{title}</h3>
-      </div>
-      <div className="grid g2" style={{ gap: "10px 20px" }}>
-        {rows.map(([k, v]) => (
-          <div key={k}>
-            <div style={{ fontSize: 11, color: "var(--mut)", fontWeight: 600 }}>{k}</div>
-            <div style={{ fontSize: 13.5, marginTop: 3 }}>{v?.trim() ? v : "—"}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+function employmentTypeLabel(emp: EmployeeRow) {
+  return emp.employment_type?.trim() || emp.hr_employee_categories?.label || "—";
 }
 
 function rollupAtt(att: AttendanceRow[], shift: ShiftRow) {
@@ -112,7 +53,6 @@ function rollupAtt(att: AttendanceRow[], shift: ShiftRow) {
   let leaves = 0;
   let wOff = 0;
   let otMin = 0;
-  let offShiftMin = 0;
   let present = 0;
   let absent = 0;
   let lateMarks = 0;
@@ -140,7 +80,6 @@ function rollupAtt(att: AttendanceRow[], shift: ShiftRow) {
     if (a.check_in && a.check_out) {
       const split = splitShiftHours(a.check_in, a.check_out, a.break_min, sw);
       otMin += split.otMin;
-      offShiftMin += split.offShiftMin;
     }
   }
   return {
@@ -148,7 +87,6 @@ function rollupAtt(att: AttendanceRow[], shift: ShiftRow) {
     leaves,
     wOff,
     otMin,
-    offShiftMin,
     present: Math.round(present * 10) / 10,
     absent,
     lateMarks,
@@ -157,6 +95,7 @@ function rollupAtt(att: AttendanceRow[], shift: ShiftRow) {
 
 export default function HrEmp360Page() {
   const { id: routeId } = useParams<{ id?: string }>();
+  const navigate = useNavigate();
   const { cycle, can } = useHrAccess();
   const {
     data: employees = [],
@@ -164,17 +103,66 @@ export default function HrEmp360Page() {
     isError: employeesError,
     error: employeesLoadError,
   } = useHrEmployees({ activeOnly: false });
+  const { data: ref } = useHrReferenceData();
   const { data: shifts = [] } = useHrShifts();
-  const [empId, setEmpId] = useState("");
+
+  const [countryFilter, setCountryFilter] = useState("All");
+  const [branchFilter, setBranchFilter] = useState("All");
+  const [companyFilter, setCompanyFilter] = useState("All");
+  const [departmentFilter, setDepartmentFilter] = useState("All");
+  const [designationFilter, setDesignationFilter] = useState("All");
+  const [employmentFilter, setEmploymentFilter] = useState("All");
+  const [search, setSearch] = useState("");
   const [summaryYear, setSummaryYear] = useState(() => new Date().getFullYear());
 
-  useEffect(() => {
-    if (routeId) setEmpId(routeId);
-    else if (!empId && employees[1]) setEmpId(employees[1].id);
-    else if (!empId && employees[0]) setEmpId(employees[0].id);
-  }, [routeId, empId, employees]);
+  const empId = routeId ?? "";
+  const emp = employees.find((e) => e.id === empId);
 
-  const emp = employees.find((e) => e.id === empId) ?? employees[0];
+  const employmentTypes = useMemo(() => {
+    const set = new Set<string>();
+    for (const e of employees) {
+      const label = employmentTypeLabel(e);
+      if (label && label !== "—") set.add(label);
+    }
+    return [...set].sort();
+  }, [employees]);
+
+  const filteredEmployees = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return employees.filter((e) => {
+      if (countryFilter !== "All" && (e.payroll_country ?? "IN").toUpperCase() !== countryFilter) {
+        return false;
+      }
+      if (branchFilter !== "All" && e.branch_id !== branchFilter) return false;
+      if (companyFilter !== "All" && e.company_id !== companyFilter) return false;
+      if (departmentFilter !== "All" && e.department_id !== departmentFilter) return false;
+      if (designationFilter !== "All" && e.designation_id !== designationFilter) return false;
+      if (employmentFilter !== "All" && employmentTypeLabel(e) !== employmentFilter) return false;
+      if (!q) return true;
+      return (
+        e.full_name.toLowerCase().includes(q) ||
+        e.emp_code.toLowerCase().includes(q) ||
+        (e.email ?? "").toLowerCase().includes(q) ||
+        (e.mobile ?? "").includes(q)
+      );
+    });
+  }, [
+    employees,
+    countryFilter,
+    branchFilter,
+    companyFilter,
+    departmentFilter,
+    designationFilter,
+    employmentFilter,
+    search,
+  ]);
+
+  useEffect(() => {
+    if (!routeId && filteredEmployees.length > 0 && !empId) {
+      navigate(`/hr/employee/${filteredEmployees[0].id}`, { replace: true });
+    }
+  }, [routeId, filteredEmployees, empId, navigate]);
+
   const shift = shifts.find((s) => s.id === emp?.shift_id) ?? shifts[0];
   const reportingManager = emp?.reporting_mgr_id
     ? employees.find((e) => e.id === emp.reporting_mgr_id)
@@ -185,7 +173,6 @@ export default function HrEmp360Page() {
   const { data: revisions = [] } = useSalaryRevisions(emp?.id);
   const { data: att = [] } = useHrAttendance(emp?.id, cycle?.start_date, cycle?.end_date);
   const { data: allLeaves = [] } = useHrLeaveRequests();
-  const { data: allCompoff = [] } = useHrCompoffRequests();
   const { data: allTraining = [] } = useHrTrainingRecords();
   const { data: allAudit = [] } = useHrAuditLogs();
   const { data: shiftHistory = [], isLoading: shiftHistoryLoading } = useEmployeeShiftHistory({
@@ -201,10 +188,6 @@ export default function HrEmp360Page() {
   const leaves = useMemo(
     () => allLeaves.filter((l) => l.employee_id === emp?.id),
     [allLeaves, emp?.id],
-  );
-  const compoff = useMemo(
-    () => allCompoff.filter((c) => c.employee_id === emp?.id),
-    [allCompoff, emp?.id],
   );
   const training = useMemo(
     () => allTraining.filter((t) => t.employee_id === emp?.id),
@@ -230,6 +213,10 @@ export default function HrEmp360Page() {
 
   const emergencyContacts = parseEmergencyContacts(emp?.emergency_contacts);
 
+  const selectEmployee = (id: string) => {
+    navigate(`/hr/employee/${id}`);
+  };
+
   if (employeesLoading) {
     return <div className="empty">Loading employees…</div>;
   }
@@ -253,10 +240,6 @@ export default function HrEmp360Page() {
     );
   }
 
-  if (!emp) {
-    return <div className="empty">Select an employee to view profile.</div>;
-  }
-
   const r = line ?? {
     late_count: 0,
     late_deduction: 0,
@@ -276,481 +259,429 @@ export default function HrEmp360Page() {
   const cycleLabel = cycle?.label ?? "Current cycle";
 
   return (
-    <div className="grid" style={{ gap: 18 }}>
-      <div className="card-h" style={{ marginBottom: 0 }}>
-        <label className="fld" style={{ minWidth: 280, flex: 1 }}>
-          <span className="l">Employee</span>
-          <select
-            className="input"
-            value={emp.id}
-            onChange={(e) => setEmpId(e.target.value)}
-          >
-            {employees.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.full_name} ({e.emp_code}) — {employeeStatusLabel(e.status)}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <EmployeeSeg employees={employees} selectedId={emp.id} onSelect={setEmpId} />
-
-      <div className="card" style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-        <div className="avatar" style={{ width: 52, height: 52, fontSize: 17 }}>
-          {initials(emp.full_name)}
+    <div className="page-grid">
+      <div className="card card-wash">
+        <div className="filter-bar">
+          <label className="fld">
+            <span className="l">Country</span>
+            <select className="input" value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)}>
+              {COUNTRY_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="fld">
+            <span className="l">Branch</span>
+            <select className="input" value={branchFilter} onChange={(e) => setBranchFilter(e.target.value)}>
+              <option value="All">All branches</option>
+              {(ref?.branches ?? []).map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="fld">
+            <span className="l">Payroll company</span>
+            <select className="input" value={companyFilter} onChange={(e) => setCompanyFilter(e.target.value)}>
+              <option value="All">All companies</option>
+              {(ref?.companies ?? []).map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="fld">
+            <span className="l">Department</span>
+            <select className="input" value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
+              <option value="All">All departments</option>
+              {(ref?.departments ?? []).map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="fld">
+            <span className="l">Designation</span>
+            <select className="input" value={designationFilter} onChange={(e) => setDesignationFilter(e.target.value)}>
+              <option value="All">All designations</option>
+              {(ref?.designations ?? []).map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="fld">
+            <span className="l">Employment type</span>
+            <select className="input" value={employmentFilter} onChange={(e) => setEmploymentFilter(e.target.value)}>
+              <option value="All">All types</option>
+              {employmentTypes.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </label>
+          <label className="fld">
+            <span className="l">Search employee</span>
+            <input
+              className="input"
+              placeholder="Name, ID, email, mobile…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
         </div>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <div className="serif" style={{ fontSize: 20, fontWeight: 600 }}>
-            {displayEmployeeName(emp)}
-          </div>
-          <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>
-            {emp.emp_code} · {emp.designations?.name ?? emp.designation} · {emp.departments?.name ?? emp.department}
-          </div>
-          <div className="muted" style={{ fontSize: 12, marginTop: 3 }}>
-            {emp.mobile} · {emp.email}
-          </div>
+        <div className="showing-count">
+          Showing {filteredEmployees.length} employee{filteredEmployees.length === 1 ? "" : "s"}
         </div>
-        <span className={`badge ${employeeStatusBadgeClass(emp.status)}`}>
-          {employeeStatusLabel(emp.status)}
-        </span>
       </div>
 
-      <div className="grid g2">
-        <InfoCard
-          title="Personal information"
-          rows={[
-            ["Employee ID", emp.emp_code],
-            ["Full name", displayEmployeeName(emp)],
-            ["Mobile", emp.mobile],
-            ["Email", emp.email],
-            ["Nationality", emp.nationality],
-            ["Marital status", emp.marital_status],
-            ["Blood group", emp.blood_group],
-            ...emergencyContacts
-              .filter((c) => c.name || c.phone)
-              .flatMap((c, i) => [
-                [`Emergency contact ${i + 1}`, `${c.name} · ${c.phone} (${c.relation})`],
-              ] as [string, string][]),
-          ]}
-        />
-        <InfoCard
-          title="Employment information"
-          rows={[
-            ["Department", emp.departments?.name ?? emp.department],
-            ["Designation", emp.designations?.name ?? emp.designation],
-            [
-              "Reporting manager",
-              reportingManager ? `${reportingManager.full_name} (${reportingManager.emp_code})` : null,
-            ],
-            ["Date of joining", emp.date_of_joining],
-            [
-              "Probation",
-              [emp.probation_start_date, emp.probation_end_date].filter(Boolean).join(" – ") || null,
-            ],
-            ["Notice period", emp.notice_period],
-            ["Employee status", emp.status],
-            ["Employee category", emp.hr_employee_categories?.label],
-            [
-              "Payroll company",
-              emp.companies ? payrollCompanyLabel(emp.companies) : null,
-            ],
-            ["Payroll country", emp.payroll_country ?? "IN"],
-            ["Salary currency", currency],
-            ["Branch", emp.branches?.name],
-            [
-              "Shift",
-              emp.shifts
-                ? `${emp.shifts.name} (${emp.shifts.login_time?.slice(0, 5)}–${emp.shifts.logout_time?.slice(0, 5)})`
-                : null,
-            ],
-          ]}
-        />
+      <div className="emp-card-grid">
+        {filteredEmployees.map((e) => (
+          <EmployeeCard
+            key={e.id}
+            employee={e}
+            selected={e.id === empId}
+            onSelect={() => selectEmployee(e.id)}
+          />
+        ))}
       </div>
 
-      {(emp.exit_date || emp.exit_reason || emp.rehire_eligible) && (
-        <InfoCard
-          title="Exit information"
-          rows={[
-            ["Exit date", emp.exit_date],
-            ["Exit reason", emp.exit_reason],
-            ["Rehire eligible", emp.rehire_eligible ? "Yes" : emp.exit_date ? "No" : null],
-          ]}
-        />
+      {!emp && filteredEmployees.length > 0 && (
+        <div className="empty">Select an employee card to view profile.</div>
       )}
 
-      <div className="card">
-        <div className="card-h">
-          <h3>Shift assignment history</h3>
-          <Link to="/hr/config/shifts" className="btn btn-sm">
-            Shift management →
-          </Link>
-        </div>
-        <ShiftHistoryTable
-          rows={shiftHistory}
-          isLoading={shiftHistoryLoading}
-          showEmployeeLink={false}
-          emptyLabel="No shift changes recorded for this employee."
-        />
-      </div>
-
-      <div className="grid g2">
-        <InfoCard
-          title="Bank information"
-          rows={[
-            ["Account holder", emp.bank_holder_name],
-            ["Bank", emp.bank_name],
-            ["Account number", emp.bank_account_number],
-            ["IFSC", emp.bank_ifsc],
-            ["Branch name", emp.bank_branch],
-            ["Account type", emp.bank_account_type],
-            ["Verification status", emp.bank_verified ? "Verified" : "Pending"],
-            ...(emp.bank_verified
-              ? [
-                  ["Verified by", emp.bank_verified_by],
-                  ["Verification date", formatSecurityChequeUploadedAt(emp.bank_verified_at)],
-                ]
-              : []),
-          ]}
-        />
-        <div className="card">
-          <div className="card-h">
-            <h3 style={{ fontSize: 15 }}>Salary information</h3>
-            <span className="tag muted">{currency}</span>
-          </div>
-          <div className="grid g2" style={{ gap: 10, marginBottom: revisions.length ? 14 : 0 }}>
-            {[
-              ["Current monthly gross", money(emp.monthly_gross)],
-              ["Basic", money(emp.basic)],
-              ["HRA", money(emp.hra)],
-              ["Other deductions/mo", emp.other_deductions ? money(emp.other_deductions) : "—"],
-            ].map(([k, v]) => (
-              <div
-                key={k}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "10px 13px",
-                  background: "var(--paper)",
-                  borderRadius: 9,
-                }}
-              >
-                <span style={{ fontSize: 12, color: "var(--mut)", fontWeight: 600 }}>{k}</span>
-                <span className="mono" style={{ fontSize: 13 }}>{v}</span>
+      {emp && (
+        <>
+          <SectionCard title="Profile summary">
+            <div className="profile-banner">
+              <EmployeeAvatar name={emp.full_name} photoUrl={emp.photo_url} size={56} fontSize={19} />
+              <div>
+                <div className="profile-name">{displayEmployeeName(emp)}</div>
+                <div className="profile-sub">
+                  {emp.emp_code} · {emp.designations?.name ?? emp.designation} ·{" "}
+                  {emp.departments?.name ?? emp.department}
+                </div>
+                <div className="muted">{emp.mobile} · {emp.email}</div>
+                <div className="row-flex">
+                  <span className={`badge ${employeeStatusBadgeClass(emp.status)}`}>
+                    {employeeStatusLabel(emp.status)}
+                  </span>
+                  <span className="tag">{emp.branches?.name ?? "—"}</span>
+                  <span className="tag">{employmentTypeLabel(emp)}</span>
+                </div>
               </div>
-            ))}
+            </div>
+            <div className="divider" />
+            <div className="info-grid">
+              {[
+                ["Nationality", emp.nationality],
+                ["Marital status", emp.marital_status],
+                ["Blood group", emp.blood_group],
+                ["Date of birth", emp.dob],
+                ...emergencyContacts
+                  .filter((c) => c.name || c.phone)
+                  .flatMap((c, i) => [
+                    [`Emergency ${i + 1}`, `${c.name} · ${c.phone} (${c.relation})`],
+                  ] as [string, string][]),
+              ].map(([k, v]) => (
+                <div key={k}>
+                  <div className="info-field-label">{k}</div>
+                  <div className="info-field-value">{v?.trim() ? v : "—"}</div>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+
+          <InfoCard
+            title="Employment summary"
+            rows={[
+              ["Department", emp.departments?.name ?? emp.department],
+              ["Designation", emp.designations?.name ?? emp.designation],
+              [
+                "Reporting manager",
+                reportingManager
+                  ? `${reportingManager.full_name} (${reportingManager.emp_code})`
+                  : null,
+              ],
+              ["Date of joining", emp.date_of_joining],
+              [
+                "Probation",
+                [emp.probation_start_date, emp.probation_end_date].filter(Boolean).join(" – ") || null,
+              ],
+              ["Notice period", emp.notice_period],
+              ["Employee status", emp.status],
+              ["Employee category", emp.hr_employee_categories?.label],
+              ["Employment type", employmentTypeLabel(emp)],
+              ["Payroll company", emp.companies ? payrollCompanyLabel(emp.companies) : null],
+              ["Payroll country", emp.payroll_country ?? "IN"],
+              ["Salary currency", currency],
+              ["Branch", emp.branches?.name],
+              [
+                "Shift",
+                emp.shifts
+                  ? `${emp.shifts.name} (${emp.shifts.login_time?.slice(0, 5)}–${emp.shifts.logout_time?.slice(0, 5)})`
+                  : null,
+              ],
+              ["Exit date", emp.exit_date],
+              ["Exit reason", emp.exit_reason],
+              [
+                "Rehire eligible",
+                emp.rehire_eligible ? "Yes" : emp.exit_date ? "No" : null,
+              ],
+            ]}
+          />
+
+          <div>
+            <h3 className="section-title">Attendance KPIs · {cycleLabel}</h3>
+            <div className="grid g4">
+              <Stat lab="Present days" val={ru?.present ?? "—"} meta={cycleLabel} color="var(--good)" variant="highlight" />
+              <Stat lab="Absent days" val={ru?.absent ?? "—"} meta={cycleLabel} color="var(--rose)" variant="highlight" />
+              <Stat lab="Late marks" val={ru?.lateMarks ?? r.late_count} meta={cycleLabel} color="var(--clay)" variant="highlight" />
+              <Stat lab="Net pay" val={money(r.net_salary)} meta={`${r.payable_days}d payable`} color="var(--moss)" variant="highlight" />
+            </div>
+            <div className="grid g4">
+              <MetricPanel
+                title={`Attendance · ${cycleLabel}`}
+                rows={[
+                  ["Working", ru?.working ?? "—"],
+                  ["Leaves", ru?.leaves ?? 0],
+                  ["Week offs", ru?.wOff ?? "—"],
+                  ["Shift OT", ru ? fmtDur(ru.otMin) : "—"],
+                ]}
+              />
+              <MetricPanel
+                title={`Late & mispunch · ${cycleLabel}`}
+                rows={[
+                  ["Late (payroll)", r.late_count],
+                  ["Late ded", `${r.late_deduction}d`],
+                  ["Mispunch", r.mispunch_count],
+                  ["Mis ded", `${r.mispunch_deduction}d`],
+                ]}
+              />
+              <MetricPanel
+                title={`Leave & comp-off · ${cycleLabel}`}
+                rows={[
+                  ["Paid lv", r.paid_leaves],
+                  ["Comp-off", r.comp_off],
+                  ["Sandwich", r.sandwich_count],
+                  ["UL", r.ul_count],
+                ]}
+              />
+              <MetricPanel
+                title={`Payroll detail · ${cycleLabel}`}
+                highlight
+                rows={[
+                  ["Gross", money(r.gross_earned)],
+                  ["PF/ESIC", money(r.pf_employee + r.esic_employee)],
+                  ["Payable", `${r.payable_days}d`],
+                  ["Net", money(r.net_salary)],
+                ]}
+              />
+            </div>
           </div>
-          {revisions.length > 0 && (
-            <>
-              <div className="sec-label">Salary revision history</div>
-              <table style={{ fontSize: 12 }}>
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Old</th>
-                    <th>New</th>
-                    <th>Remarks</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {revisions.map((rev) => (
-                    <tr key={rev.id}>
-                      <td>{rev.effective_date}</td>
-                      <td className="mono">{money(rev.old_salary)}</td>
-                      <td className="mono">{money(rev.new_salary)}</td>
-                      <td className="muted">{rev.remarks ?? "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )}
-        </div>
-      </div>
 
-      <div className="grid g4">
-        <Stat
-          lab="Present days"
-          val={ru?.present ?? "—"}
-          meta={cycleLabel}
-          color="var(--good)"
-        />
-        <Stat
-          lab="Absent days"
-          val={ru?.absent ?? "—"}
-          meta={cycleLabel}
-          color="var(--rose)"
-        />
-        <Stat
-          lab="Late marks"
-          val={ru?.lateMarks ?? r.late_count}
-          meta={cycleLabel}
-          color="var(--clay)"
-        />
-        <Stat
-          lab="Net pay"
-          val={money(r.net_salary)}
-          meta={`${r.payable_days}d payable`}
-          color="var(--moss)"
-        />
-      </div>
-
-      <div className="grid g4">
-        <SumCard
-          title={`Attendance · ${cycleLabel}`}
-          rows={[
-            ["Working", ru?.working ?? "—"],
-            ["Leaves", ru?.leaves ?? 0],
-            ["Week offs", ru?.wOff ?? "—"],
-            ["Shift OT", ru ? fmtDur(ru.otMin) : "—"],
-          ]}
-        />
-        <SumCard
-          title={`Late & mispunch · ${cycleLabel}`}
-          rows={[
-            ["Late (payroll)", r.late_count],
-            ["Late ded", `${r.late_deduction}d`],
-            ["Mispunch", r.mispunch_count],
-            ["Mis ded", `${r.mispunch_deduction}d`],
-          ]}
-        />
-        <SumCard
-          title={`Leave & comp-off · ${cycleLabel}`}
-          rows={[
-            ["Paid lv", r.paid_leaves],
-            ["Comp-off", r.comp_off],
-            ["Sandwich", r.sandwich_count],
-            ["UL", r.ul_count],
-          ]}
-        />
-        <SumCard
-          title={`Payroll detail · ${cycleLabel}`}
-          hl
-          rows={[
-            ["Gross", money(r.gross_earned)],
-            ["PF/ESIC", money(r.pf_employee + r.esic_employee)],
-            ["Payable", `${r.payable_days}d`],
-            ["Net", money(r.net_salary)],
-          ]}
-        />
-      </div>
-
-      <LeaveSummaryPanel
-        employeeId={emp.id}
-        year={summaryYear}
-        onEmployeeChange={() => undefined}
-        onYearChange={setSummaryYear}
-        showEmployeePicker={false}
-      />
-
-      <div className="grid g2">
-        <div className="card">
-          <div className="card-h">
-            <h3 style={{ fontSize: 15 }}>Latest payroll & history</h3>
-            {line && cycle && can("export") && (
-              <button
-                type="button"
-                className="btn btn-sm"
-                onClick={() => printSalarySlip(emp, line, cycle)}
-              >
-                ↓ Salary slip
-              </button>
+          <div>
+            <h3 className="section-title">Leave summary</h3>
+            <LeaveSummaryPanel
+              employeeId={emp.id}
+              year={summaryYear}
+              onEmployeeChange={() => undefined}
+              onYearChange={setSummaryYear}
+              showEmployeePicker={false}
+            />
+            {leaves.length > 0 && (
+              <div className="card">
+                <div className="card-h">
+                  <h3>Recent leave requests</h3>
+                  <Link to="/hr/leave" className="btn btn-sm">Open leave →</Link>
+                </div>
+                {leaves.slice(0, 6).map((l) => (
+                  <div key={l.id} className="list-row">
+                    <span>
+                      {l.type} · {l.from_date}
+                      {l.to_date && l.to_date !== l.from_date ? ` → ${l.to_date}` : ""}
+                    </span>
+                    <StatusBadge status={l.status} />
+                  </div>
+                ))}
+              </div>
             )}
           </div>
-          {payrollHistory.length === 0 ? (
-            <div className="empty" style={{ padding: 16 }}>No payroll lines recorded.</div>
-          ) : (
-            <table style={{ fontSize: 12 }}>
-              <thead>
-                <tr>
-                  <th>Cycle</th>
-                  <th>Status</th>
-                  <th>Payable</th>
-                  <th>Net</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {payrollHistory.map((pl) => (
-                  <tr key={pl.id}>
-                    <td className="strong">{pl.payroll_cycles?.label ?? "—"}</td>
-                    <td>
-                      {pl.payroll_cycles?.status ? (
-                        <StatusBadge status={pl.payroll_cycles.status} />
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className="mono">{pl.payable_days}d</td>
-                    <td className="mono">{money(pl.net_salary)}</td>
-                    <td>
-                      {pl.payroll_cycles && (
-                        <Link to={`/hr/payroll/verify/${pl.cycle_id}`} className="btn btn-sm">
-                          View
-                        </Link>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
 
-        <div className="card">
-          <div className="card-h">
-            <h3 style={{ fontSize: 15 }}>Leave history</h3>
-            <Link to="/hr/leave" className="btn btn-sm">Open leave →</Link>
-          </div>
-          {leaves.length === 0 ? (
-            <div className="empty" style={{ padding: 16 }}>None</div>
-          ) : (
-            leaves.slice(0, 8).map((l) => (
-              <div
-                key={l.id}
-                className="row-flex"
-                style={{
-                  justifyContent: "space-between",
-                  padding: "7px 0",
-                  borderBottom: "1px solid #eef0f5",
-                }}
+          <div>
+            <h3 className="section-title">Payroll summary</h3>
+            <div className="grid g2">
+              <InfoCard
+                title="Salary & bank"
+                rows={[
+                  ["Monthly gross", money(emp.monthly_gross)],
+                  ["Basic", money(emp.basic)],
+                  ["HRA", money(emp.hra)],
+                  ["Other deductions/mo", emp.other_deductions ? money(emp.other_deductions) : "—"],
+                  ["Bank", emp.bank_name],
+                  ["Account", emp.bank_account_number],
+                  ["IFSC", emp.bank_ifsc],
+                  ["Verification", emp.bank_verified ? "Verified" : "Pending"],
+                  ...(emp.bank_verified
+                    ? [
+                        ["Verified by", emp.bank_verified_by],
+                        ["Verified at", formatSecurityChequeUploadedAt(emp.bank_verified_at)],
+                      ]
+                    : []),
+                ]}
+              />
+              <SectionCard
+                title="Payroll history"
+                action={
+                  line && cycle && can("export") ? (
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={() => printSalarySlip(emp, line, cycle)}
+                    >
+                      ↓ Salary slip
+                    </button>
+                  ) : undefined
+                }
               >
-                <span style={{ fontSize: 12.5 }}>
-                  {l.type} · {l.from_date}
-                  {l.to_date && l.to_date !== l.from_date ? ` → ${l.to_date}` : ""}
-                </span>
-                <StatusBadge status={l.status} />
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="card-h">
-          <h3>Company assets</h3>
-          <Link to="/hr/employees" className="btn btn-sm">
-            Edit in Employee Master →
-          </Link>
-        </div>
-        {assetsLoading ? (
-          <div className="empty">Loading assets…</div>
-        ) : (
-          <EmployeeAssetsDetailTable assets={employeeAssets} />
-        )}
-      </div>
-
-      <div className="card">
-        <div className="card-h">
-          <h3>Employee documents</h3>
-        </div>
-        <EmployeeDocumentsPanel emp={emp} />
-      </div>
-
-      <div className="grid g3">
-        <div className="card">
-          <div className="card-h">
-            <h3 style={{ fontSize: 15 }}>Active training</h3>
-          </div>
-          {activeTraining.length === 0 ? (
-            <div className="empty" style={{ padding: 16 }}>None</div>
-          ) : (
-            activeTraining.map((t) => (
-              <div
-                key={t.id}
-                className="row-flex"
-                style={{
-                  justifyContent: "space-between",
-                  padding: "7px 0",
-                  borderBottom: "1px solid #eef0f5",
-                }}
-              >
-                <span style={{ fontSize: 12.5 }}>{t.type}</span>
-                <StatusBadge status={t.status} />
-              </div>
-            ))
-          )}
-        </div>
-
-        <div className="card">
-          <div className="card-h">
-            <h3 style={{ fontSize: 15 }}>Training history</h3>
-          </div>
-          {trainingHistory.length === 0 ? (
-            <div className="empty" style={{ padding: 16 }}>None</div>
-          ) : (
-            trainingHistory.map((t) => (
-              <div
-                key={t.id}
-                className="row-flex"
-                style={{
-                  justifyContent: "space-between",
-                  padding: "7px 0",
-                  borderBottom: "1px solid #eef0f5",
-                }}
-              >
-                <span style={{ fontSize: 12.5 }}>{t.type}</span>
-                <StatusBadge status={t.status} />
-              </div>
-            ))
-          )}
-        </div>
-
-        <div className="card">
-          <div className="card-h">
-            <h3 style={{ fontSize: 15 }}>Comp-off</h3>
-          </div>
-          {compoff.length === 0 ? (
-            <div className="empty" style={{ padding: 16 }}>None</div>
-          ) : (
-            compoff.slice(0, 6).map((c) => (
-              <div
-                key={c.id}
-                className="row-flex"
-                style={{
-                  justifyContent: "space-between",
-                  padding: "7px 0",
-                  borderBottom: "1px solid #eef0f5",
-                }}
-              >
-                <span style={{ fontSize: 12.5 }}>{c.worked_date}</span>
-                <StatusBadge status={c.status} />
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="card-h">
-          <h3 style={{ fontSize: 15 }}>Activity timeline</h3>
-        </div>
-        {audit.length === 0 ? (
-          <div className="empty" style={{ padding: 16 }}>No recent activity</div>
-        ) : (
-          audit.slice(0, 8).map((a) => (
-            <div
-              key={a.id}
-              className="row-flex"
-              style={{
-                padding: "7px 0",
-                borderBottom: "1px solid #eef0f5",
-                alignItems: "flex-start",
-              }}
-            >
-              <span
-                className="mono"
-                style={{ fontSize: 10.5, color: "var(--mut)", width: 78, flexShrink: 0 }}
-              >
-                {new Date(a.created_at).toLocaleDateString("en-IN", {
-                  day: "2-digit",
-                  month: "short",
-                })}
-              </span>
-              <span style={{ fontSize: 12.5 }}>{a.action}</span>
+                {payrollHistory.length === 0 ? (
+                  <div className="empty empty-sm">No payroll lines recorded.</div>
+                ) : (
+                  <div className="table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Cycle</th>
+                          <th>Status</th>
+                          <th>Payable</th>
+                          <th>Net</th>
+                          <th />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {payrollHistory.map((pl) => (
+                          <tr key={pl.id}>
+                            <td className="strong">{pl.payroll_cycles?.label ?? "—"}</td>
+                            <td>
+                              {pl.payroll_cycles?.status ? (
+                                <StatusBadge status={pl.payroll_cycles.status} />
+                              ) : (
+                                "—"
+                              )}
+                            </td>
+                            <td className="mono">{pl.payable_days}d</td>
+                            <td className="mono">{money(pl.net_salary)}</td>
+                            <td>
+                              {pl.payroll_cycles && (
+                                <Link to={`/hr/payroll/verify/${pl.cycle_id}`} className="btn btn-sm">
+                                  View
+                                </Link>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {revisions.length > 0 && (
+                  <>
+                    <div className="sec-label">Salary revisions</div>
+                    <div className="table-wrap">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Old</th>
+                            <th>New</th>
+                            <th>Remarks</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {revisions.map((rev) => (
+                            <tr key={rev.id}>
+                              <td>{rev.effective_date}</td>
+                              <td className="mono">{money(rev.old_salary)}</td>
+                              <td className="mono">{money(rev.new_salary)}</td>
+                              <td className="muted">{rev.remarks ?? "—"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+              </SectionCard>
             </div>
-          ))
-        )}
-      </div>
+          </div>
+
+          <SectionCard title="Documents">
+            <EmployeeDocumentsPanel emp={emp} />
+          </SectionCard>
+
+          <div className="grid g2">
+            <SectionCard title="Training">
+              {activeTraining.length === 0 && trainingHistory.length === 0 ? (
+                <div className="empty empty-sm">No training records.</div>
+              ) : (
+                <>
+                  {activeTraining.map((t) => (
+                    <div key={t.id} className="list-row">
+                      <span>{t.type} (active)</span>
+                      <StatusBadge status={t.status} />
+                    </div>
+                  ))}
+                  {trainingHistory.slice(0, 6).map((t) => (
+                    <div key={t.id} className="list-row">
+                      <span>{t.type}</span>
+                      <StatusBadge status={t.status} />
+                    </div>
+                  ))}
+                </>
+              )}
+              <Link to="/hr/training" className="btn btn-sm">Training module →</Link>
+            </SectionCard>
+
+            <SectionCard
+              title="Assets"
+              action={
+                <Link to="/hr/employees" className="btn btn-sm">Edit in Employee Master →</Link>
+              }
+            >
+              {assetsLoading ? (
+                <div className="empty empty-sm">Loading assets…</div>
+              ) : (
+                <EmployeeAssetsDetailTable assets={employeeAssets} />
+              )}
+            </SectionCard>
+          </div>
+
+          <SectionCard
+            title="Shift history"
+            action={<Link to="/hr/config/shifts" className="btn btn-sm">Shift management →</Link>}
+          >
+            <ShiftHistoryTable
+              rows={shiftHistory}
+              isLoading={shiftHistoryLoading}
+              showEmployeeLink={false}
+              emptyLabel="No shift changes recorded for this employee."
+            />
+          </SectionCard>
+
+          <SectionCard title="Activity timeline">
+            {audit.length === 0 ? (
+              <div className="empty empty-sm">No recent activity</div>
+            ) : (
+              audit.slice(0, 10).map((a) => (
+                <div key={a.id} className="list-row">
+                  <span className="mono muted">
+                    {new Date(a.created_at).toLocaleDateString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                    })}
+                  </span>
+                  <span>{a.action}</span>
+                </div>
+              ))
+            )}
+          </SectionCard>
+        </>
+      )}
     </div>
   );
 }

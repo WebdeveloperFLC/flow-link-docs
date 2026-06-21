@@ -102,7 +102,7 @@ export function AttendanceView({ mode }: AttendanceViewProps) {
   if (!emp || !shift) return <div className="empty">No employees or shifts configured.</div>;
 
   return (
-    <div className="grid" style={{ gap: 16 }}>
+    <div className="page-grid">
       {mode === "admin" && (
         <div className="card-h">
           <EmployeeSeg employees={employees} selectedId={emp.id} onSelect={setEmpId} />

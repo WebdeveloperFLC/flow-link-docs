@@ -66,7 +66,7 @@ export default function HrEmployeesPage() {
   }
 
   return (
-    <div className="grid" style={{ gap: 16 }}>
+    <div className="page-grid">
       <div className="card-h">
         <div className="row-flex" style={{ gap: 12, flex: 1 }}>
           <input

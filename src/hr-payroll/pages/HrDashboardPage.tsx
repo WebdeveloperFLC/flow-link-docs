@@ -1,5 +1,14 @@
 import { useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  AlertCircle,
+  Calendar,
+  CheckCircle2,
+  ClipboardList,
+  Clock,
+  Pencil,
+  Users,
+} from "lucide-react";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
 import { useHrPayrollLines } from "../hooks/useHrPayroll";
@@ -96,25 +105,92 @@ export default function HrDashboardPage() {
   const payrollMeta = cycle ? `${cycle.payroll_days} days · ${cycle.label}` : "Configure cycle";
 
   return (
-    <div className="grid" style={{ gap: 18 }}>
+    <div className="page-grid">
       <div className="grid g6">
-        <Stat lab="Total Employees" val={stats?.totalEmployees ?? employees.length} meta="active" color="var(--moss)" />
-        <Stat lab="Present Today" val={stats?.presentToday ?? "—"} meta="checked in" color="var(--good)" />
-        <Stat lab="Absent Today" val={stats?.absentToday ?? "—"} meta="no show" color="var(--rose)" />
-        <Stat lab="On Leave" val={stats?.onLeaveToday ?? "—"} meta="approved today" color="var(--sky)" />
-        <Stat lab="Late Arrivals" val={stats?.lateToday ?? "—"} meta="today" color="var(--clay)" />
-        <Stat lab="Mispunches" val={stats?.mispunchToday ?? "—"} meta="pending today" color="var(--gold)" />
+        <Stat
+          variant="metric"
+          lab="Total Employees"
+          val={stats?.totalEmployees ?? employees.length}
+          meta="active"
+          color="var(--moss)"
+          icon={Users}
+          iconBg="#3b82c418"
+        />
+        <Stat
+          variant="metric"
+          lab="Present Today"
+          val={stats?.presentToday ?? "—"}
+          meta="checked in"
+          color="var(--good)"
+          icon={CheckCircle2}
+          iconBg="#16a06a18"
+        />
+        <Stat
+          variant="metric"
+          lab="Absent Today"
+          val={stats?.absentToday ?? "—"}
+          meta="no show"
+          color="var(--rose)"
+          icon={AlertCircle}
+          iconBg="#e5484d18"
+        />
+        <Stat
+          variant="metric"
+          lab="On Leave"
+          val={stats?.onLeaveToday ?? "—"}
+          meta="approved today"
+          color="var(--sky)"
+          icon={Calendar}
+          iconBg="#3a6ea518"
+        />
+        <Stat
+          variant="metric"
+          lab="Late Arrivals"
+          val={stats?.lateToday ?? "—"}
+          meta="today"
+          color="var(--clay)"
+          icon={Clock}
+          iconBg="#e8732e18"
+        />
+        <Stat
+          variant="metric"
+          lab="Mispunches"
+          val={stats?.mispunchToday ?? "—"}
+          meta="pending today"
+          color="var(--violet)"
+          icon={Pencil}
+          iconBg="#7c5cdb18"
+        />
       </div>
 
       <div className="grid g4">
-        <Stat lab="Payroll Status" val={payrollStatus} meta={payrollMeta} color="var(--moss-deep)" />
-        <Stat lab="Pending Approvals" val={pendingTotal} meta="all queues" color="var(--rose)" />
-        <Stat lab="Net Payroll" val={inr(liability)} meta="current cycle" color="var(--sky)" />
         <Stat
+          variant="highlight"
+          lab="Payroll Status"
+          val={payrollStatus}
+          meta={payrollMeta}
+          color="var(--good)"
+        />
+        <Stat
+          variant="highlight"
+          lab="Pending Approvals"
+          val={pendingTotal}
+          meta="all queues"
+          color="var(--clay)"
+        />
+        <Stat
+          variant="highlight"
+          lab="Net Payroll"
+          val={inr(liability)}
+          meta="current cycle"
+          color="var(--moss)"
+        />
+        <Stat
+          variant="highlight"
           lab="HR Alerts"
           val={queue.length}
           meta="action items"
-          color="var(--clay)"
+          color="var(--rose)"
         />
       </div>
 
@@ -122,21 +198,15 @@ export default function HrDashboardPage() {
         <div className="card">
           <div className="card-h">
             <h3>Upcoming birthdays</h3>
-            <Link to="/hr/employees" className="btn btn-sm">
-              Employees →
-            </Link>
+            <Link to="/hr/employees" className="btn btn-sm">Employees →</Link>
           </div>
           {(stats?.upcomingBirthdays ?? []).length === 0 ? (
-            <div className="empty" style={{ padding: 16 }}>
-              None in the next 30 days.
-            </div>
+            <div className="empty empty-sm">None in the next 30 days.</div>
           ) : (
             stats!.upcomingBirthdays.map((e) => (
-              <div key={e.full_name} className="row-flex" style={{ padding: "6px 0", fontSize: 13.5 }}>
+              <div key={e.full_name} className="list-row">
                 <span>{e.full_name}</span>
-                <span className="muted mono" style={{ marginLeft: "auto", fontSize: 12 }}>
-                  {e.date_of_birth?.slice(5, 10)}
-                </span>
+                <span className="muted mono">{e.date_of_birth?.slice(5, 10)}</span>
               </div>
             ))
           )}
@@ -145,21 +215,15 @@ export default function HrDashboardPage() {
         <div className="card">
           <div className="card-h">
             <h3>Upcoming work anniversaries</h3>
-            <Link to="/hr/employees" className="btn btn-sm">
-              Employees →
-            </Link>
+            <Link to="/hr/employees" className="btn btn-sm">Employees →</Link>
           </div>
           {(stats?.upcomingAnniversaries ?? []).length === 0 ? (
-            <div className="empty" style={{ padding: 16 }}>
-              None in the next 30 days.
-            </div>
+            <div className="empty empty-sm">None in the next 30 days.</div>
           ) : (
             stats!.upcomingAnniversaries.map((e) => (
-              <div key={e.full_name} className="row-flex" style={{ padding: "6px 0", fontSize: 13.5 }}>
+              <div key={e.full_name} className="list-row">
                 <span>{e.full_name}</span>
-                <span className="muted mono" style={{ marginLeft: "auto", fontSize: 12 }}>
-                  {e.date_of_joining?.slice(5, 10)}
-                </span>
+                <span className="muted mono">{e.date_of_joining?.slice(5, 10)}</span>
               </div>
             ))
           )}
@@ -181,18 +245,10 @@ export default function HrDashboardPage() {
             </div>
           ) : (
             queue.map((q, i) => (
-              <div
-                key={`${q.k}-${i}`}
-                className="row-flex"
-                style={{
-                  justifyContent: "space-between",
-                  padding: "8px 0",
-                  borderBottom: i < queue.length - 1 ? "1px solid #eef0f5" : "none",
-                }}
-              >
+              <div key={`${q.k}-${i}`} className="list-row">
                 <div>
-                  <div style={{ fontSize: 13.5, fontWeight: 500, color: "var(--ink)" }}>{q.t}</div>
-                  <div style={{ fontSize: 12, color: "var(--mut)" }}>{q.s}</div>
+                  <div className="strong">{q.t}</div>
+                  <div className="muted">{q.s}</div>
                 </div>
                 <button
                   type="button"
@@ -210,7 +266,7 @@ export default function HrDashboardPage() {
           <div className="card-h">
             <h3>Payroll quick links</h3>
           </div>
-          <div className="grid" style={{ gap: 8 }}>
+          <div className="page-grid">
             <button type="button" className="btn" onClick={() => navigate("/hr/config/payroll-cycle")}>
               Payroll Cycle Management
             </button>
@@ -234,11 +290,11 @@ export default function HrDashboardPage() {
             Full register →
           </button>
         </div>
-        <div style={{ overflowX: "auto" }}>
+        <div className="table-wrap">
           {isLoading ? (
             <div className="empty">Loading register…</div>
           ) : (
-            <table style={{ minWidth: 520 }}>
+            <table>
               <thead>
                 <tr>
                   <th>Employee</th>
@@ -254,14 +310,10 @@ export default function HrDashboardPage() {
                     <tr key={r.id}>
                       <td className="strong">
                         <div className="row-flex">
-                          <div className="avatar" style={{ width: 28, height: 28, fontSize: 10 }}>
-                            {initials(r.name)}
-                          </div>
+                          <div className="avatar">{initials(r.name)}</div>
                           <div>
                             {r.name}
-                            <div className="muted mono" style={{ fontSize: 11 }}>
-                              {r.code}
-                            </div>
+                            <div className="muted mono">{r.code}</div>
                           </div>
                         </div>
                       </td>

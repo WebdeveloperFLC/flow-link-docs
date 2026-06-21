@@ -262,13 +262,13 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
   };
 
   return (
-    <div className="grid" style={{ gap: 16 }}>
+    <div className="page-grid">
       {masterMode ? (
         <Link to="/hr/config" className="btn btn-sm" style={{ alignSelf: "flex-start" }}>
           ← Configuration hub
         </Link>
       ) : (
-        <div className="card" style={{ background: "var(--wash)", borderColor: "var(--line)" }}>
+        <div className="card card-wash">
           <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
             {isEmployeeView
               ? "Your applicable holidays based on country, branch, category, and shift assignment."

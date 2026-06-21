@@ -162,7 +162,7 @@ export default function HrCalculatorPage() {
 
   return (
     <div className="grid g2" style={{ gap: 16, alignItems: "start" }}>
-      <div className="grid" style={{ gap: 16 }}>
+      <div className="page-grid">
         <div className="card">
           <div className="card-h">
             <h3>Inputs — live</h3>

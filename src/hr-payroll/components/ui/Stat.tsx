@@ -1,30 +1,50 @@
+import type { LucideIcon } from "lucide-react";
+
 type Props = {
   lab: string;
   val: string | number;
   meta?: string;
   color?: string;
+  variant?: "metric" | "highlight" | "default";
+  icon?: LucideIcon;
+  iconBg?: string;
 };
 
-export function Stat({ lab, val, meta, color = "var(--moss)" }: Props) {
+export function Stat({
+  lab,
+  val,
+  meta,
+  color = "var(--moss)",
+  variant = "default",
+  icon: Icon,
+  iconBg,
+}: Props) {
+  const isHighlight = variant === "highlight";
+  const isMetric = variant === "metric";
+
   return (
-    <div className="card" style={{ padding: "14px 16px" }}>
-      <div
-        style={{
-          fontSize: 10,
-          letterSpacing: 0.6,
-          textTransform: "uppercase",
-          color: "var(--mut)",
-          fontWeight: 600,
-        }}
-      >
-        {lab}
-      </div>
-      <div className="serif" style={{ fontSize: 22, fontWeight: 600, color, marginTop: 4 }}>
+    <div
+      className={`stat${isMetric ? " stat-metric" : ""}${isHighlight ? " stat-highlight" : ""}`}
+    >
+      {isHighlight && (
+        <div className="stat-accent" style={{ background: color }} aria-hidden />
+      )}
+      {isMetric && Icon && (
+        <div
+          className="stat-icon"
+          style={{
+            background: iconBg ?? `${color}18`,
+            color,
+          }}
+        >
+          <Icon size={16} strokeWidth={2.2} />
+        </div>
+      )}
+      <div className="stat-lab">{lab}</div>
+      <div className="stat-val serif" style={{ color: isHighlight ? color : color }}>
         {val}
       </div>
-      {meta && (
-        <div style={{ fontSize: 11.5, color: "var(--mut)", marginTop: 2 }}>{meta}</div>
-      )}
+      {meta && <div className="stat-meta">{meta}</div>}
     </div>
   );
 }

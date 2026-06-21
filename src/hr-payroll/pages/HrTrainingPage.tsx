@@ -146,7 +146,7 @@ export default function HrTrainingPage() {
   };
 
   return (
-    <div className="grid" style={{ gap: 16 }}>
+    <div className="page-grid">
       <div className="card-h">
         <span className="tag">Up to 7 unpaid training days · unpaid days reduce payable</span>
         {mng && (
