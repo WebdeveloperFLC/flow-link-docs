@@ -258,7 +258,7 @@ export type HolidayRow = {
   type: string;
   branch_id: string | null;
   applicable_tags?: string[] | null;
-  branches?: { name: string } | null;
+  branches?: { name: string; country?: string | null } | null;
 };
 
 export type LeaveRequestRow = {

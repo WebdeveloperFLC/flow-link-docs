@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,17 +8,35 @@ import { useHrReferenceData } from "../hooks/useHrEmployees";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { ModalShell } from "../components/ui/ModalShell";
 import { HR_ORG_ID } from "../lib/constants";
-import { hrAudit } from "../lib/hrApi";
+import {
+  filterHolidays,
+  HOLIDAY_COUNTRY_OPTIONS,
+  HOLIDAY_TYPE_OPTIONS,
+  uniqueHolidayDatesInMonth,
+  type HolidayCountryFilter,
+} from "../lib/holidayFilters";
+import { applyHolidaysForDate, applyHolidaysForMonth, hrAudit } from "../lib/hrApi";
 
 const HOLIDAY_TAGS = [
   "6-Day",
   "5-Day",
   "Day",
-  "Full time - Permanent",
-  "Full-Time",
-  "Part time - Permanent",
-  "Part-Time",
+  "permanent",
+  "probation",
+  "contract",
+  "consultant",
+  "intern",
+  "part_time",
+  "india_staff",
+  "canada_staff",
 ] as const;
+
+async function invalidateAttendanceCaches(qc: ReturnType<typeof useQueryClient>) {
+  await qc.invalidateQueries({ queryKey: ["hr-attendance"] });
+  await qc.invalidateQueries({ queryKey: ["hr-dashboard-stats"] });
+  await qc.invalidateQueries({ queryKey: ["hr-payroll-lines"] });
+  await qc.invalidateQueries({ queryKey: ["hr-payroll-preview"] });
+}
 
 function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: string) => void }) {
   const { data: ref } = useHrReferenceData();
@@ -27,7 +45,7 @@ function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: 
     holiday_date: "",
     type: "Festival",
     branch_id: "",
-    applicable_tags: ["6-Day", "Day", "Full time - Permanent"] as string[],
+    applicable_tags: ["6-Day", "Day", "permanent"] as string[],
   });
   const [err, setErr] = useState<Record<string, string>>({});
 
@@ -91,7 +109,7 @@ function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: 
         <label className="fld">
           <span className="l">Type</span>
           <select className="input" value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })}>
-            {["National", "Festival", "Company", "Optional"].map((o) => (
+            {HOLIDAY_TYPE_OPTIONS.map((o) => (
               <option key={o}>{o}</option>
             ))}
           </select>
@@ -113,7 +131,7 @@ function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: 
         </select>
       </label>
       <label className="fld">
-        <span className="l">Applicable tags (work week / employment)</span>
+        <span className="l">Applicable tags (work week / employee category)</span>
         <div className="row-flex" style={{ flexWrap: "wrap", gap: 8, marginTop: 6 }}>
           {HOLIDAY_TAGS.map((tag) => (
             <label key={tag} className="row-flex" style={{ fontSize: 12.5, cursor: "pointer" }}>
@@ -141,9 +159,76 @@ function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: 
 export default function HrHolidaysPage({ masterMode = false }: { masterMode?: boolean }) {
   const { can, fire } = useHrAccess();
   const { data: holidays = [], isLoading } = useHrHolidays();
+  const { data: ref } = useHrReferenceData();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [countryFilter, setCountryFilter] = useState<HolidayCountryFilter>("All");
+  const [branchFilter, setBranchFilter] = useState("All");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [applyMonth, setApplyMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [applying, setApplying] = useState(false);
+
   const mng = masterMode ? can("configure") : can("manageEmp");
+  const canApply = can("configure") || can("manageEmp");
+
+  const branchesById = useMemo(
+    () => Object.fromEntries((ref?.branches ?? []).map((b) => [b.id, b])),
+    [ref?.branches],
+  );
+
+  const filteredHolidays = useMemo(
+    () => filterHolidays(holidays, countryFilter, branchFilter, typeFilter, branchesById),
+    [holidays, countryFilter, branchFilter, typeFilter, branchesById],
+  );
+
+  const branchOptions = useMemo(() => {
+    if (countryFilter === "All") return ref?.branches ?? [];
+    return (ref?.branches ?? []).filter((b) => {
+      const bc = (b.country ?? "IN").toUpperCase();
+      return bc === countryFilter;
+    });
+  }, [ref?.branches, countryFilter]);
+
+  const applyOne = async (holidayDate: string, name: string) => {
+    if (!confirm(`Apply holiday to attendance for ${holidayDate} (${name})?`)) return;
+    setApplying(true);
+    try {
+      const n = await applyHolidaysForDate(HR_ORG_ID, holidayDate);
+      await hrAudit("Holiday Applied", name, holidayDate, `${n} attendance rows`);
+      fire(`Holiday applied — ${n} attendance row(s) updated`);
+      await invalidateAttendanceCaches(qc);
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Apply failed");
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const applyMonthHolidays = async () => {
+    const dates = uniqueHolidayDatesInMonth(filteredHolidays, applyMonth);
+    if (!dates.length) {
+      fire("No holidays in the selected month match current filters");
+      return;
+    }
+    if (
+      !confirm(
+        `Apply holidays for ${applyMonth}? This will stamp ${dates.length} date(s) on eligible employee attendance.`,
+      )
+    ) {
+      return;
+    }
+    setApplying(true);
+    try {
+      const n = await applyHolidaysForMonth(HR_ORG_ID, dates);
+      await hrAudit("Holidays Applied (month)", applyMonth, "—", `${n} attendance rows`);
+      fire(`Month holidays applied — ${n} attendance row(s) updated`);
+      await invalidateAttendanceCaches(qc);
+    } catch (e) {
+      fire(e instanceof Error ? e.message : "Apply month failed");
+    } finally {
+      setApplying(false);
+    }
+  };
 
   const remove = async (id: string, name: string) => {
     if (!confirm(`Remove holiday ${name}?`)) return;
@@ -166,31 +251,95 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
       ) : (
         <div className="card" style={{ background: "var(--wash)", borderColor: "var(--line)" }}>
           <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
-            Holiday calendar view — read-only for operations. Maintain holidays in{" "}
+            Holiday calendar — apply master holidays to attendance (status Holiday). Maintain records in{" "}
             <Link to="/hr/config/holidays">Configuration → Holiday Master</Link>.
           </div>
         </div>
       )}
       <div className="card-h">
         <span className="tag">
-          {masterMode ? "Holiday Master" : "Holiday Calendar View"}
+          {masterMode ? "Holiday Master" : "Holiday Calendar"}
+          · {filteredHolidays.length} of {holidays.length}
         </span>
-        {mng && (
-          <button type="button" className="btn btn-primary" onClick={() => setOpen(true)}>
-            + Add Holiday
-          </button>
-        )}
+        <div className="row-flex">
+          {canApply && (
+            <>
+              <label className="row-flex muted" style={{ fontSize: 12, gap: 6 }}>
+                <span>Month</span>
+                <input
+                  className="input"
+                  type="month"
+                  value={applyMonth}
+                  onChange={(e) => setApplyMonth(e.target.value)}
+                  style={{ width: 140 }}
+                />
+              </label>
+              <button
+                type="button"
+                className="btn btn-sm"
+                disabled={applying}
+                onClick={() => void applyMonthHolidays()}
+              >
+                Apply Holidays for Month
+              </button>
+            </>
+          )}
+          {mng && (
+            <button type="button" className="btn btn-primary" onClick={() => setOpen(true)}>
+              + Add Holiday
+            </button>
+          )}
+        </div>
       </div>
+
+      <div className="card" style={{ padding: 12 }}>
+        <div className="row-flex" style={{ gap: 12, flexWrap: "wrap" }}>
+          <label className="fld" style={{ minWidth: 140 }}>
+            <span className="l">Country</span>
+            <select
+              className="input"
+              value={countryFilter}
+              onChange={(e) => {
+                setCountryFilter(e.target.value as HolidayCountryFilter);
+                setBranchFilter("All");
+              }}
+            >
+              {HOLIDAY_COUNTRY_OPTIONS.map((c) => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="fld" style={{ minWidth: 180 }}>
+            <span className="l">Branch</span>
+            <select className="input" value={branchFilter} onChange={(e) => setBranchFilter(e.target.value)}>
+              <option value="All">All Branches</option>
+              {branchOptions.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="fld" style={{ minWidth: 140 }}>
+            <span className="l">Holiday Type</span>
+            <select className="input" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+              <option value="All">All Types</option>
+              {HOLIDAY_TYPE_OPTIONS.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </div>
+
       <div className="card" style={{ padding: 0, overflow: "auto" }}>
         {isLoading ? (
           <div className="empty">Loading…</div>
-        ) : holidays.length === 0 ? (
+        ) : filteredHolidays.length === 0 ? (
           <div className="empty">
             <div className="ico">◇</div>
-            No holidays.
+            No holidays match filters.
           </div>
         ) : (
-          <table style={{ minWidth: 640 }}>
+          <table style={{ minWidth: 720 }}>
             <thead>
               <tr>
                 <th>Date</th>
@@ -203,7 +352,7 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
               </tr>
             </thead>
             <tbody>
-              {holidays.map((h) => (
+              {filteredHolidays.map((h) => (
                 <tr key={h.id}>
                   <td className="strong mono" style={{ fontSize: 12.5 }}>
                     {h.holiday_date}
@@ -226,19 +375,30 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
                     )}
                   </td>
                   <td>
-                    {mng ? (
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-bad"
-                        onClick={() => void remove(h.id, h.name)}
-                      >
-                        Remove
-                      </button>
-                    ) : (
-                      <span className="muted" style={{ fontSize: 11.5 }}>
-                        —
-                      </span>
-                    )}
+                    <div className="row-flex">
+                      {canApply && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-good"
+                          disabled={applying}
+                          onClick={() => void applyOne(h.holiday_date, h.name)}
+                        >
+                          Apply Holiday
+                        </button>
+                      )}
+                      {mng && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-bad"
+                          onClick={() => void remove(h.id, h.name)}
+                        >
+                          Remove
+                        </button>
+                      )}
+                      {!canApply && !mng && (
+                        <span className="muted" style={{ fontSize: 11.5 }}>—</span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

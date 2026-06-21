@@ -31,6 +31,7 @@ import {
 import { hrAudit, processApprovalDecision, rebuildPayrollLine } from "../lib/hrApi";
 import { uploadHrDocument, getHrDocumentSignedUrl } from "../lib/hrStorage";
 import { ApprovalTrail } from "../components/ui/ApprovalTrail";
+import { LeaveSummaryPanel } from "../components/leave/LeaveSummaryPanel";
 import type { LeaveRequestRow } from "../lib/types";
 
 const LEAVE_DOC_TYPE = "Leave Supporting Document";
@@ -650,6 +651,16 @@ export default function HrLeavePage() {
   const [detailRow, setDetailRow] = useState<LeaveRequestRow | null>(null);
 
   const [showLegacy, setShowLegacy] = useState(false);
+  const [summaryYear, setSummaryYear] = useState(() => new Date().getFullYear());
+  const [summaryEmployeeId, setSummaryEmployeeId] = useState("");
+
+  useEffect(() => {
+    if (selfEmployeeId && !can("approve") && !can("manageEmp")) {
+      setSummaryEmployeeId(selfEmployeeId);
+    } else if (!summaryEmployeeId && employees.length > 0) {
+      setSummaryEmployeeId(selfEmployeeId ?? employees[0].id);
+    }
+  }, [employees, selfEmployeeId, summaryEmployeeId, can]);
 
   const filteredLeaves = leaves.filter((l) => {
     if (filterFrom && l.from_date < filterFrom) return false;
@@ -734,6 +745,13 @@ export default function HrLeavePage() {
 
   return (
     <div className="grid" style={{ gap: 16 }}>
+      <LeaveSummaryPanel
+        employeeId={summaryEmployeeId}
+        year={summaryYear}
+        onEmployeeChange={setSummaryEmployeeId}
+        onYearChange={setSummaryYear}
+        showEmployeePicker={can("approve") || can("manageEmp")}
+      />
       <div className="card-h">
         <span className="tag">
           12 Casual + 6 Sick/yr · {MONTHLY_PAID_LEAVE_CAP}/mo cap · 7d / 1mo notice

@@ -9,7 +9,7 @@ export function useHrHolidays() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("holidays" as never)
-        .select("*, branches(name)")
+        .select("*, branches(name, country)")
         .eq("org_id", HR_ORG_ID)
         .order("holiday_date");
       if (error) throw error;

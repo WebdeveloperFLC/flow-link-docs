@@ -137,6 +137,15 @@ export async function applyHolidaysForDate(orgId: string, date: string) {
   return data as number;
 }
 
+/** Applies attendance Holiday status for each distinct holiday date in YYYY-MM. */
+export async function applyHolidaysForMonth(orgId: string, dates: string[]) {
+  let total = 0;
+  for (const date of dates) {
+    total += await applyHolidaysForDate(orgId, date);
+  }
+  return total;
+}
+
 export async function processApprovalDecision(
   entityType: string,
   entityId: string,

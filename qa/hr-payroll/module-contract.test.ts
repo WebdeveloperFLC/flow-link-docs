@@ -301,6 +301,32 @@ describe("HR Payroll module contract", () => {
     expect(verifyPage).toContain("PAYROLL_VERIFY_STATUSES");
   });
 
+  it("holiday calendar supports apply actions and list filters", () => {
+    const holidaysPage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrHolidaysPage.tsx"), "utf8");
+    expect(holidaysPage).toContain("Apply Holiday");
+    expect(holidaysPage).toContain("Apply Holidays for Month");
+    expect(holidaysPage).toContain("applyHolidaysForDate");
+    expect(holidaysPage).toContain("filterHolidays");
+    expect(holidaysPage).toContain("Holiday Type");
+  });
+
+  it("leave page includes summary panel with year filter", () => {
+    const leavePage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrLeavePage.tsx"), "utf8");
+    expect(leavePage).toContain("LeaveSummaryPanel");
+    expect(readFileSync(join(ROOT, "src/hr-payroll/components/leave/LeaveSummaryPanel.tsx"), "utf8")).toContain(
+      "Remaining",
+    );
+  });
+
+  it("late and mispunch pages support request submission", () => {
+    const late = readFileSync(join(ROOT, "src/hr-payroll/pages/HrLatePage.tsx"), "utf8");
+    const mispunch = readFileSync(join(ROOT, "src/hr-payroll/pages/HrMispunchPage.tsx"), "utf8");
+    expect(late).toContain("late_exemptions");
+    expect(late).toContain("Request Exemption");
+    expect(mispunch).toContain("mispunch_requests");
+    expect(mispunch).toContain("Request Regularization");
+  });
+
   it("allows leave type selection before dates are filled", () => {
     const leavePage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrLeavePage.tsx"), "utf8");
     expect(leavePage).not.toContain("disabled={resolution.forcedUnpaid}");
