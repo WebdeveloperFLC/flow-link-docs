@@ -7,15 +7,50 @@ export function Emp360FilterBar({
   options,
   employmentTypes,
   refLoading,
+  bare,
+  dateRange,
 }: {
   filters: Emp360Filters;
   onChange: (patch: Partial<Emp360Filters>) => void;
   options: Emp360FilterOptions;
   employmentTypes: string[];
   refLoading?: boolean;
+  /** Skip outer card wrapper when nested inside another panel */
+  bare?: boolean;
+  /** Optional date range row (attendance register / report) */
+  dateRange?: {
+    from: string;
+    to: string;
+    cycleLabel: string;
+    onFromChange: (value: string) => void;
+    onToChange: (value: string) => void;
+  };
 }) {
-  return (
-    <div className="card card-wash emp360-filter-card">
+  const fields = (
+    <>
+      {dateRange && (
+        <div className="emp360-section-date-filter attendance-date-filter emp360-filter-dates">
+          <label className="emp360-range-field">
+            <span className="emp360-range-field-label">From date</span>
+            <input
+              type="date"
+              className="input"
+              value={dateRange.from}
+              onChange={(e) => dateRange.onFromChange(e.target.value)}
+            />
+          </label>
+          <label className="emp360-range-field">
+            <span className="emp360-range-field-label">To date</span>
+            <input
+              type="date"
+              className="input"
+              value={dateRange.to}
+              onChange={(e) => dateRange.onToChange(e.target.value)}
+            />
+          </label>
+          <span className="muted emp360-range-hint">Default: {dateRange.cycleLabel}</span>
+        </div>
+      )}
       {refLoading && (
         <p className="muted emp360-filter-loading">Loading filter options…</p>
       )}
@@ -107,6 +142,14 @@ export function Emp360FilterBar({
           />
         </label>
       </div>
+    </>
+  );
+
+  if (bare) return fields;
+
+  return (
+    <div className="card card-wash emp360-filter-card">
+      {fields}
     </div>
   );
 }

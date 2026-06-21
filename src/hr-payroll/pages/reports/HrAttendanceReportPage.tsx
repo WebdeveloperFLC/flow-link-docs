@@ -76,14 +76,6 @@ export default function HrAttendanceReportPage() {
 
   return (
     <div className="page-grid">
-      <div className="card card-wash">
-        <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
-          Monthly attendance summary per employee for the selected date range. Use filters to narrow
-          by branch, company, department, designation, or employee name. Export to CSV, Excel, or
-          PDF.
-        </div>
-      </div>
-
       <AttendanceFilterBar
         from={from}
         to={to}

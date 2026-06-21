@@ -1874,6 +1874,14 @@
   display: grid;
   gap: 12px;
 }
+[data-hr-payroll] .attendance-filter-card {
+  overflow: visible;
+}
+[data-hr-payroll] .emp360-filter-dates {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
 [data-hr-payroll] .attendance-date-card {
   margin-bottom: 0;
   overflow: visible;

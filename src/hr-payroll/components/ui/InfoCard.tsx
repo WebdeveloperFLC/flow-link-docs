@@ -20,8 +20,8 @@ export function InfoCard({
         {action}
       </div>
       <div className="info-grid">
-        {rows.map(([k, v]) => (
-          <div key={k}>
+        {rows.map(([k, v], i) => (
+          <div key={`${k}-${i}`}>
             <div className="info-field-label">{k}</div>
             <div className="info-field-value">
               {v === null || v === undefined || (typeof v === "string" && !v.trim())

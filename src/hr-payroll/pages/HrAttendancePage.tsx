@@ -5,6 +5,8 @@ import { useHrShifts } from "../hooks/useHrShifts";
 import { useHrAttendance } from "../hooks/useHrAttendance";
 import { useHrPayrollLine } from "../hooks/useHrPayroll";
 import { useAttendanceActions } from "../hooks/useAttendanceActions";
+import { AttendanceRegisterView } from "../components/attendance/AttendanceRegisterView";
+import { useHrAttendanceFilters } from "../hooks/useHrAttendanceFilters";
 import { EmployeeSeg } from "../components/ui/EmployeeSeg";
 import { Stat } from "../components/ui/Stat";
 import { PunchStation } from "../components/attendance/PunchStation";
@@ -293,9 +295,6 @@ export function AttendanceView({ mode }: AttendanceViewProps) {
     </div>
   );
 }
-
-import { AttendanceRegisterView } from "../components/attendance/AttendanceRegisterView";
-import { useHrAttendanceFilters } from "../hooks/useHrAttendanceFilters";
 
 function AttendanceViewTabs() {
   const { view, setView } = useHrAttendanceFilters();

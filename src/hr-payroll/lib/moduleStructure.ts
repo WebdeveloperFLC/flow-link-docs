@@ -125,23 +125,9 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
     sections: [
       {
         id: "late-policy",
-        title: "Late Coming Policy Master",
-        description: "Deduction toggle, monthly free marks, HR approval, payroll impact",
+        title: "Late Coming Policy",
+        description: "Deduction toggle, monthly free marks, slab grid, exemptions, and payroll impact",
         route: "/hr/config/late",
-        screen: "config",
-      },
-      {
-        id: "late-slabs",
-        title: "Late Deduction Slabs",
-        description: "Configurable from/to day deduction grid",
-        route: "/hr/config/late#slabs",
-        screen: "config",
-      },
-      {
-        id: "late-exemptions",
-        title: "Exemption Rules",
-        description: "Monthly free late marks and exemption workflow",
-        route: "/hr/config/late#exemptions",
         screen: "config",
       },
     ],
@@ -152,15 +138,8 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
     sections: [
       {
         id: "mispunch-policy",
-        title: "Mispunch Policy Master",
-        description: "Free mispunches per month and approval chain",
-        route: "/hr/config/mispunch",
-        screen: "config",
-      },
-      {
-        id: "mispunch-deductions",
-        title: "Mispunch Deduction Rules",
-        description: "Beyond-free deduction formula",
+        title: "Mispunch Policy",
+        description: "Free mispunches per month, deduction rules, and approval chain",
         route: "/hr/config/mispunch",
         screen: "config",
       },
@@ -295,15 +274,8 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
       {
         id: "roles",
         title: "Team & Roles",
-        description: "HR in-module RBAC — CRM Users page controls who can open HR Payroll",
+        description: "HR in-module RBAC and permission matrix — CRM Users controls who can open HR",
         route: "/hr/config/roles",
-        screen: "roles",
-      },
-      {
-        id: "permissions",
-        title: "Permission Matrix",
-        description: "HR screen and action permissions — layered on top of CRM module access",
-        route: "/hr/config/roles#permissions",
         screen: "roles",
       },
     ],

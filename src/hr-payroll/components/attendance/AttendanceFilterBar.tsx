@@ -14,49 +14,23 @@ type Props = {
   refLoading?: boolean;
 };
 
-export function AttendanceFilterBar({
-  from,
-  to,
-  cycleLabel,
-  onFromChange,
-  onToChange,
-  filters,
-  onFiltersChange,
-  options,
-  employmentTypes,
-  refLoading,
-}: Props) {
+export function AttendanceFilterBar(props: Props) {
   return (
-    <div className="attendance-filter-stack">
-      <div className="card card-wash attendance-date-card">
-        <div className="emp360-section-date-filter attendance-date-filter">
-          <label className="emp360-range-field">
-            <span className="emp360-range-field-label">From date</span>
-            <input
-              type="date"
-              className="input"
-              value={from}
-              onChange={(e) => onFromChange(e.target.value)}
-            />
-          </label>
-          <label className="emp360-range-field">
-            <span className="emp360-range-field-label">To date</span>
-            <input
-              type="date"
-              className="input"
-              value={to}
-              onChange={(e) => onToChange(e.target.value)}
-            />
-          </label>
-          <span className="muted emp360-range-hint">Default: {cycleLabel}</span>
-        </div>
-      </div>
+    <div className="card card-wash emp360-filter-card attendance-filter-card">
       <Emp360FilterBar
-        filters={filters}
-        onChange={onFiltersChange}
-        options={options}
-        employmentTypes={employmentTypes}
-        refLoading={refLoading}
+        bare
+        filters={props.filters}
+        onChange={props.onFiltersChange}
+        options={props.options}
+        employmentTypes={props.employmentTypes}
+        refLoading={props.refLoading}
+        dateRange={{
+          from: props.from,
+          to: props.to,
+          cycleLabel: props.cycleLabel,
+          onFromChange: props.onFromChange,
+          onToChange: props.onToChange,
+        }}
       />
     </div>
   );

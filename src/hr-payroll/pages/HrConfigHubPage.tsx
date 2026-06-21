@@ -20,21 +20,18 @@ export default function HrConfigHubPage() {
 
   return (
     <div className="grid" style={{ gap: 20 }}>
-      <div className="card" style={{ background: "var(--wash)", borderColor: "var(--line)" }}>
+      <div className="card card-wash config-hub-intro">
         <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
-          All masters, policies, and statutory setup live here. Operational screens (attendance,
-          leave, payroll processing) do not contain configuration — they read from this single
-          rule-engine source.
-        </div>
-      </div>
-
-      <div className="card" style={{ background: "#f0f7ff", borderColor: "#c8ddf5" }}>
-        <div style={{ fontSize: 13, color: "var(--ink-soft)", lineHeight: 1.55 }}>
-          <strong>Master data:</strong> Branch, Department, and Designation are maintained in{" "}
-          <Link to="/masters" style={{ color: "var(--brand)" }}>CRM Masters</Link> (shared with HR).
-          Employee Category and HR Document Types are HR-only.{" "}
-          <strong>Permissions:</strong> CRM Users controls who can open HR Payroll; Team &amp; Roles
-          below controls in-module screens and approvals.
+          All masters, policies, and statutory setup live here. Operational screens read from this
+          single rule-engine source — not scattered across attendance, leave, or payroll screens.
+          <br />
+          <span style={{ marginTop: 8, display: "inline-block" }}>
+            <strong>Master data:</strong> Branch, Department, and Designation are in{" "}
+            <Link to="/masters" style={{ color: "var(--brand)" }}>CRM Masters</Link> (shared with HR).
+            Employee Category and HR Document Types are HR-only.{" "}
+            <strong>Permissions:</strong> CRM Users controls HR access; Team &amp; Roles controls
+            in-module screens.
+          </span>
         </div>
       </div>
 

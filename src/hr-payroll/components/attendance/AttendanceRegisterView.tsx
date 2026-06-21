@@ -76,14 +76,6 @@ export function AttendanceRegisterView() {
 
   return (
     <div className="page-grid">
-      <div className="card card-wash">
-        <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
-          Daily punch register for all employees in the selected date range. Filter by branch,
-          company, department, designation, or employee name. Switch to <strong>Punch station</strong>
-          to edit punches for one employee.
-        </div>
-      </div>
-
       <AttendanceFilterBar
         from={from}
         to={to}
