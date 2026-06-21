@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
@@ -19,6 +20,9 @@ import {
 } from "../lib/lateSlabGrid";
 import { hrAudit, accrueLeaveBalances } from "../lib/hrApi";
 import type { PolicyRow } from "../lib/types";
+import { CONFIG_SLUG_TO_TAB } from "../lib/moduleStructure";
+
+type Tab = HrConfigTab;
 
 const TABS = [
   "Payroll Cycle",
@@ -31,7 +35,7 @@ const TABS = [
   "Canada Deductions",
   "Workflow",
 ] as const;
-type Tab = (typeof TABS)[number];
+export type HrConfigTab = (typeof TABS)[number];
 
 const DOMAIN_MAP: Partial<Record<Tab, string>> = {
   "Late Coming": "late",
@@ -108,12 +112,18 @@ function Fld({
   );
 }
 
-export default function HrConfigPage() {
+export default function HrConfigPage({
+  initialTab,
+  showHubLink = true,
+}: {
+  initialTab?: Tab;
+  showHubLink?: boolean;
+} = {}) {
   const { cycle, can, fire } = useHrAccess();
   const canEditLate = can("configure");
   const qc = useQueryClient();
   const { data: policies = [] } = useHrPolicies();
-  const [tab, setTab] = useState<Tab>("Payroll Cycle");
+  const [tab, setTab] = useState<Tab>(initialTab ?? "Payroll Cycle");
   const [days, setDays] = useState(cycle?.payroll_days ?? 30);
   const [startDate, setStartDate] = useState(cycle?.start_date ?? "");
   const [endDate, setEndDate] = useState(cycle?.end_date ?? "");
@@ -122,6 +132,10 @@ export default function HrConfigPage() {
     slabTableToGridRows(DEFAULT_LATE_SLAB_TABLE),
   );
   const [lateSlabErrors, setLateSlabErrors] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (initialTab) setTab(initialTab);
+  }, [initialTab]);
 
   const domain = DOMAIN_MAP[tab] ?? null;
   const workflowPolicy = useMemo(() => {
@@ -476,6 +490,13 @@ export default function HrConfigPage() {
 
   return (
     <div className="grid" style={{ gap: 16 }}>
+      {showHubLink && (
+        <div className="row-flex" style={{ justifyContent: "flex-end" }}>
+          <Link to="/hr/config" className="btn btn-sm">
+            ← Configuration hub
+          </Link>
+        </div>
+      )}
       <div className="pill-tab">
         {TABS.map((t) => (
           <button

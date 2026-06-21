@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
@@ -137,12 +138,12 @@ function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: 
   );
 }
 
-export default function HrHolidaysPage() {
+export default function HrHolidaysPage({ masterMode = false }: { masterMode?: boolean }) {
   const { can, fire } = useHrAccess();
   const { data: holidays = [], isLoading } = useHrHolidays();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const mng = can("manageEmp");
+  const mng = masterMode ? can("configure") : can("manageEmp");
 
   const remove = async (id: string, name: string) => {
     if (!confirm(`Remove holiday ${name}?`)) return;
@@ -158,8 +159,22 @@ export default function HrHolidaysPage() {
 
   return (
     <div className="grid" style={{ gap: 16 }}>
+      {masterMode ? (
+        <Link to="/hr/config" className="btn btn-sm" style={{ alignSelf: "flex-start" }}>
+          ← Configuration hub
+        </Link>
+      ) : (
+        <div className="card" style={{ background: "var(--wash)", borderColor: "var(--line)" }}>
+          <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
+            Holiday calendar view — read-only for operations. Maintain holidays in{" "}
+            <Link to="/hr/config/holidays">Configuration → Holiday Master</Link>.
+          </div>
+        </div>
+      )}
       <div className="card-h">
-        <span className="tag">National/Festival always payable · Optional configurable</span>
+        <span className="tag">
+          {masterMode ? "Holiday Master" : "Holiday Calendar View"}
+        </span>
         {mng && (
           <button type="button" className="btn btn-primary" onClick={() => setOpen(true)}>
             + Add Holiday

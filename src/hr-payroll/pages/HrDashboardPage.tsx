@@ -1,8 +1,9 @@
 import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
 import { useHrPayrollLines } from "../hooks/useHrPayroll";
+import { useHrDashboardStats } from "../hooks/useHrDashboardStats";
 import {
   useHrLeaveRequests,
   useHrCompoffRequests,
@@ -11,20 +12,22 @@ import {
 } from "../hooks/useHrRequests";
 import { Stat } from "../components/ui/Stat";
 import { inr, initials } from "../lib/format";
+import { totalPendingApprovals } from "../lib/nav";
 import type { PayrollLineRow } from "../lib/types";
 
-const ROUTE_MAP: Record<string, string> = {
-  leave: "/hr/leave",
-  compoff: "/hr/compoff",
-  late: "/hr/late",
-  mispunch: "/hr/mispunch",
+const APPROVAL_ROUTES: Record<string, string> = {
+  leave: "/hr/approvals/leave",
+  compoff: "/hr/approvals/compoff",
+  late: "/hr/approvals/late",
+  mispunch: "/hr/approvals/mispunch",
 };
 
 export default function HrDashboardPage() {
   const navigate = useNavigate();
-  const { cycle } = useHrAccess();
+  const { cycle, pendingCounts } = useHrAccess();
   const { data: employees = [] } = useHrEmployees();
   const { data: lines = [], isLoading } = useHrPayrollLines(cycle?.id);
+  const { data: stats } = useHrDashboardStats();
   const { data: leaves = [] } = useHrLeaveRequests();
   const { data: compoff = [] } = useHrCompoffRequests();
   const { data: late = [] } = useHrLateExemptions();
@@ -45,25 +48,14 @@ export default function HrDashboardPage() {
           name: e.full_name,
           code: e.emp_code,
           branch: e.branches?.name ?? "—",
-          monthly: e.monthly_gross,
-          payable: l?.payable_days ?? 0,
-          gross: l?.gross_earned ?? 0,
-          pf: l?.pf_employee ?? 0,
-          esic: l?.esic_employee ?? 0,
           net: l?.net_salary ?? 0,
-          overridden: l?.is_overridden ?? false,
         };
       }),
     [employees, lineByEmp],
   );
 
   const liability = rows.reduce((s, r) => s + r.net, 0);
-  const grossSum = rows.reduce((s, r) => s + r.gross, 0);
-  const incentives = lines.reduce((s, l) => s + l.incentive, 0);
-  const bonuses = lines.reduce((s, l) => s + l.bonus, 0);
-  const deductions = rows.reduce((s, r) => s + r.pf + r.esic, 0);
-
-  const branches = [...new Set(employees.map((e) => e.branches?.name ?? "Unknown"))];
+  const pendingTotal = totalPendingApprovals(pendingCounts);
 
   const queue = useMemo(
     () =>
@@ -96,55 +88,90 @@ export default function HrDashboardPage() {
             s: m.issue,
             k: "mispunch",
           })),
-      ].slice(0, 6),
+      ].slice(0, 8),
     [leaves, compoff, late, mispunch],
   );
+
+  const payrollStatus = cycle?.status ?? "No cycle";
+  const payrollMeta = cycle ? `${cycle.payroll_days} days · ${cycle.label}` : "Configure cycle";
 
   return (
     <div className="grid" style={{ gap: 18 }}>
       <div className="grid g6">
-        <Stat lab="Employees" val={employees.length} meta="active" color="var(--moss)" />
-        <Stat lab="Net Payroll" val={inr(liability)} meta="payable · live" color="var(--sky)" />
-        <Stat lab="Gross" val={inr(grossSum)} meta="before stat." color="var(--moss-deep)" />
-        <Stat lab="Deductions" val={inr(deductions)} meta="PF + ESIC" color="var(--clay)" />
-        <Stat lab="Incentives" val={inr(incentives)} meta="this cycle" color="var(--gold)" />
-        <Stat lab="Pending" val={queue.length} meta="approvals" color="var(--rose)" />
+        <Stat lab="Total Employees" val={stats?.totalEmployees ?? employees.length} meta="active" color="var(--moss)" />
+        <Stat lab="Present Today" val={stats?.presentToday ?? "—"} meta="checked in" color="var(--good)" />
+        <Stat lab="Absent Today" val={stats?.absentToday ?? "—"} meta="no show" color="var(--rose)" />
+        <Stat lab="On Leave" val={stats?.onLeaveToday ?? "—"} meta="approved today" color="var(--sky)" />
+        <Stat lab="Late Arrivals" val={stats?.lateToday ?? "—"} meta="today" color="var(--clay)" />
+        <Stat lab="Mispunches" val={stats?.mispunchToday ?? "—"} meta="pending today" color="var(--gold)" />
+      </div>
+
+      <div className="grid g4">
+        <Stat lab="Payroll Status" val={payrollStatus} meta={payrollMeta} color="var(--moss-deep)" />
+        <Stat lab="Pending Approvals" val={pendingTotal} meta="all queues" color="var(--rose)" />
+        <Stat lab="Net Payroll" val={inr(liability)} meta="current cycle" color="var(--sky)" />
+        <Stat
+          lab="HR Alerts"
+          val={queue.length}
+          meta="action items"
+          color="var(--clay)"
+        />
       </div>
 
       <div className="grid g2">
         <div className="card">
           <div className="card-h">
-            <h3>Net liability by branch</h3>
-            <span className="tag">live</span>
+            <h3>Upcoming birthdays</h3>
+            <Link to="/hr/employees" className="btn btn-sm">
+              Employees →
+            </Link>
           </div>
-          {branches.map((b, i) => {
-            const v = rows.filter((r) => r.branch === b).reduce((s, r) => s + r.net, 0);
-            const max = Math.max(
-              1,
-              ...branches.map((bb) => rows.filter((r) => r.branch === bb).reduce((s, r) => s + r.net, 0)),
-            );
-            return (
-              <div className="bar-row" key={b}>
-                <div className="nm">{b}</div>
-                <div className="tr">
-                  <i
-                    style={{
-                      width: `${(v / max) * 100}%`,
-                      background: i % 2 ? "var(--sky)" : "var(--moss)",
-                    }}
-                  />
-                </div>
-                <div className="vv">{inr(v)}</div>
+          {(stats?.upcomingBirthdays ?? []).length === 0 ? (
+            <div className="empty" style={{ padding: 16 }}>
+              None in the next 30 days.
+            </div>
+          ) : (
+            stats!.upcomingBirthdays.map((e) => (
+              <div key={e.full_name} className="row-flex" style={{ padding: "6px 0", fontSize: 13.5 }}>
+                <span>{e.full_name}</span>
+                <span className="muted mono" style={{ marginLeft: "auto", fontSize: 12 }}>
+                  {e.date_of_birth?.slice(5, 10)}
+                </span>
               </div>
-            );
-          })}
+            ))
+          )}
         </div>
 
         <div className="card">
           <div className="card-h">
-            <h3>Action queue</h3>
-            <button type="button" className="btn btn-sm" onClick={() => navigate("/hr/payroll")}>
-              Verify →
+            <h3>Upcoming work anniversaries</h3>
+            <Link to="/hr/employees" className="btn btn-sm">
+              Employees →
+            </Link>
+          </div>
+          {(stats?.upcomingAnniversaries ?? []).length === 0 ? (
+            <div className="empty" style={{ padding: 16 }}>
+              None in the next 30 days.
+            </div>
+          ) : (
+            stats!.upcomingAnniversaries.map((e) => (
+              <div key={e.full_name} className="row-flex" style={{ padding: "6px 0", fontSize: 13.5 }}>
+                <span>{e.full_name}</span>
+                <span className="muted mono" style={{ marginLeft: "auto", fontSize: 12 }}>
+                  {e.date_of_joining?.slice(5, 10)}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="grid g2">
+        <div className="card">
+          <div className="card-h">
+            <h3>Approval Center</h3>
+            <button type="button" className="btn btn-sm" onClick={() => navigate("/hr/approvals")}>
+              Open inbox →
             </button>
           </div>
           {queue.length === 0 ? (
@@ -170,7 +197,7 @@ export default function HrDashboardPage() {
                 <button
                   type="button"
                   className="btn btn-sm"
-                  onClick={() => navigate(ROUTE_MAP[q.k] ?? "/hr")}
+                  onClick={() => navigate(APPROVAL_ROUTES[q.k] ?? "/hr/approvals")}
                 >
                   Review
                 </button>
@@ -178,12 +205,32 @@ export default function HrDashboardPage() {
             ))
           )}
         </div>
+
+        <div className="card">
+          <div className="card-h">
+            <h3>Payroll quick links</h3>
+          </div>
+          <div className="grid" style={{ gap: 8 }}>
+            <button type="button" className="btn" onClick={() => navigate("/hr/payroll/cycle")}>
+              Payroll Cycle Management
+            </button>
+            <button type="button" className="btn" onClick={() => navigate("/hr/payroll/process")}>
+              Payroll Processing
+            </button>
+            <button type="button" className="btn" onClick={() => navigate("/hr/payroll/verify")}>
+              Payroll Verification
+            </button>
+            <button type="button" className="btn" onClick={() => navigate("/hr/payroll/register")}>
+              Salary Register
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="card">
         <div className="card-h">
-          <h3>Salary register — live (Gross → Net)</h3>
-          <button type="button" className="btn btn-sm" onClick={() => navigate("/hr/payroll")}>
+          <h3>Salary snapshot — top net pay</h3>
+          <button type="button" className="btn btn-sm" onClick={() => navigate("/hr/payroll/register")}>
             Full register →
           </button>
         </div>
@@ -191,55 +238,37 @@ export default function HrDashboardPage() {
           {isLoading ? (
             <div className="empty">Loading register…</div>
           ) : (
-            <table style={{ minWidth: 880 }}>
+            <table style={{ minWidth: 520 }}>
               <thead>
                 <tr>
                   <th>Employee</th>
                   <th>Branch</th>
-                  <th>Monthly</th>
-                  <th>Payable</th>
-                  <th>Gross</th>
-                  <th>PF</th>
-                  <th>ESIC</th>
                   <th>Net Salary</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
-                  <tr key={r.id}>
-                    <td className="strong">
-                      <div className="row-flex">
-                        <div className="avatar" style={{ width: 28, height: 28, fontSize: 10 }}>
-                          {initials(r.name)}
-                        </div>
-                        <div>
-                          {r.name}
-                          {r.overridden && (
-                            <span className="tag" style={{ marginLeft: 5, color: "var(--clay)" }}>
-                              ovr
-                            </span>
-                          )}
-                          <div className="muted mono" style={{ fontSize: 11 }}>
-                            {r.code}
+                {[...rows]
+                  .sort((a, b) => b.net - a.net)
+                  .slice(0, 8)
+                  .map((r) => (
+                    <tr key={r.id}>
+                      <td className="strong">
+                        <div className="row-flex">
+                          <div className="avatar" style={{ width: 28, height: 28, fontSize: 10 }}>
+                            {initials(r.name)}
+                          </div>
+                          <div>
+                            {r.name}
+                            <div className="muted mono" style={{ fontSize: 11 }}>
+                              {r.code}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td>{r.branch}</td>
-                    <td className="mono">{inr(r.monthly)}</td>
-                    <td style={{ textAlign: "center", fontWeight: 600, color: "var(--moss)" }}>
-                      {r.payable}
-                    </td>
-                    <td className="mono">{inr(r.gross)}</td>
-                    <td className="mono" style={{ color: "var(--rose)" }}>
-                      {inr(r.pf)}
-                    </td>
-                    <td className="mono" style={{ color: "var(--rose)" }}>
-                      {inr(r.esic)}
-                    </td>
-                    <td className="mono strong">{inr(r.net)}</td>
-                  </tr>
-                ))}
+                      </td>
+                      <td>{r.branch}</td>
+                      <td className="mono strong">{inr(r.net)}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           )}

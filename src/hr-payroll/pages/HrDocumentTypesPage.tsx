@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
@@ -145,6 +146,9 @@ export default function HrDocumentTypesPage() {
 
   return (
     <div className="grid" style={{ gap: 16 }}>
+      <Link to="/hr/config" className="btn btn-sm" style={{ alignSelf: "flex-start" }}>
+        ← Configuration hub
+      </Link>
       <div className="card-h">
         <div>
           <span className="tag">Employee document categories</span>

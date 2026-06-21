@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
@@ -35,6 +36,15 @@ export default function HrShiftsPage() {
 
   return (
     <div className="grid" style={{ gap: 16 }}>
+      <Link to="/hr/config" className="btn btn-sm" style={{ alignSelf: "flex-start" }}>
+        ← Configuration hub
+      </Link>
+      <div className="card" style={{ background: "var(--wash)", borderColor: "var(--line)" }}>
+        <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
+          Shift Master — attendance timings live here only. Late Coming Policy stores deduction rules,
+          not login/logout times. Assign shifts from Employee Master.
+        </div>
+      </div>
       <div className="card-h">
         <span className="tag">Day / Night / Rotational / Custom · drives late, break & OT</span>
         {mng && (

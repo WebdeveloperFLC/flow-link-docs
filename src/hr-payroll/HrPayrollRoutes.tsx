@@ -18,36 +18,75 @@ import HrMispunchPage from "./pages/HrMispunchPage";
 import HrHolidaysPage from "./pages/HrHolidaysPage";
 import HrDocumentTypesPage from "./pages/HrDocumentTypesPage";
 import HrConfigPage from "./pages/HrConfigPage";
+import HrConfigHubPage from "./pages/HrConfigHubPage";
+import HrConfigPolicyRoute from "./pages/HrConfigPolicyRoute";
 import HrRolesPage from "./pages/HrRolesPage";
 import HrAuditPage from "./pages/HrAuditPage";
 import HrImportPage from "./pages/HrImportPage";
+import HrApprovalsPage from "./pages/HrApprovalsPage";
+import HrReportsHubPage, { HrReportPage } from "./pages/HrReportsPage";
+import HrDocumentsPage from "./pages/HrDocumentsPage";
+import HrPayrollCyclePage from "./pages/HrPayrollCyclePage";
+import HrSalaryRegisterPage from "./pages/HrSalaryRegisterPage";
+import HrPayrollHistoryPage from "./pages/HrPayrollHistoryPage";
 
 export default function HrPayrollRoutes() {
   return (
     <HrPayrollProvider>
       <Routes>
         <Route element={<HrPayrollLayout />}>
-        <Route index element={<HrDashboardPage />} />
-        <Route path="me" element={<HrEssPage />} />
-        <Route path="employee" element={<HrEmp360Redirect />} />
-        <Route path="employee/:id" element={<HrEmp360Page />} />
-        <Route path="employees" element={<HrEmployeesPage />} />
-        <Route path="document-types" element={<HrDocumentTypesPage />} />
-        <Route path="shifts" element={<HrShiftsPage />} />
-        <Route path="training" element={<HrTrainingPage />} />
-        <Route path="calculator" element={<HrCalculatorPage />} />
-        <Route path="payroll/:cycleId?" element={<HrVerifyPage />} />
-        <Route path="attendance" element={<HrAttendancePage />} />
-        <Route path="leave" element={<HrLeavePage />} />
-        <Route path="compoff" element={<HrCompoffPage />} />
-        <Route path="late" element={<HrLatePage />} />
-        <Route path="mispunch" element={<HrMispunchPage />} />
-        <Route path="holidays" element={<HrHolidaysPage />} />
-        <Route path="config" element={<HrConfigPage />} />
-        <Route path="import" element={<HrImportPage />} />
-        <Route path="roles" element={<HrRolesPage />} />
-        <Route path="audit" element={<HrAuditPage />} />
-        <Route path="*" element={<Navigate to="/hr" replace />} />
+          <Route index element={<HrDashboardPage />} />
+          <Route path="me" element={<HrEssPage />} />
+          <Route path="employee" element={<HrEmp360Redirect />} />
+          <Route path="employee/:id" element={<HrEmp360Page />} />
+
+          {/* People */}
+          <Route path="employees" element={<HrEmployeesPage />} />
+          <Route path="documents" element={<HrDocumentsPage />} />
+          <Route path="training" element={<HrTrainingPage />} />
+
+          {/* Attendance & Leave */}
+          <Route path="attendance" element={<HrAttendancePage />} />
+          <Route path="leave" element={<HrLeavePage />} />
+          <Route path="compoff" element={<HrCompoffPage />} />
+          <Route path="late" element={<HrLatePage />} />
+          <Route path="mispunch" element={<HrMispunchPage />} />
+          <Route path="holidays" element={<HrHolidaysPage />} />
+
+          {/* Payroll */}
+          <Route path="payroll/cycle" element={<HrPayrollCyclePage />} />
+          <Route path="payroll/process" element={<HrCalculatorPage />} />
+          <Route path="payroll/register" element={<HrSalaryRegisterPage />} />
+          <Route path="payroll/history" element={<HrPayrollHistoryPage />} />
+          <Route path="payroll/verify/:cycleId?" element={<HrVerifyPage />} />
+          <Route path="payroll/:cycleId?" element={<HrVerifyPage />} />
+
+          {/* Approvals */}
+          <Route path="approvals" element={<Navigate to="/hr/approvals/leave" replace />} />
+          <Route path="approvals/:type" element={<HrApprovalsPage />} />
+
+          {/* Reports */}
+          <Route path="reports" element={<HrReportsHubPage />} />
+          <Route path="reports/:reportId" element={<HrReportPage />} />
+
+          {/* Configuration hub + sections */}
+          <Route path="config" element={<HrConfigHubPage />} />
+          <Route path="config/shifts" element={<HrShiftsPage />} />
+          <Route path="config/holidays" element={<HrHolidaysPage masterMode />} />
+          <Route path="config/document-types" element={<HrDocumentTypesPage />} />
+          <Route path="config/roles" element={<HrRolesPage />} />
+          <Route path="config/audit" element={<HrAuditPage />} />
+          <Route path="config/:slug" element={<HrConfigPolicyRoute />} />
+
+          {/* Legacy redirects */}
+          <Route path="shifts" element={<Navigate to="/hr/config/shifts" replace />} />
+          <Route path="calculator" element={<Navigate to="/hr/payroll/process" replace />} />
+          <Route path="document-types" element={<Navigate to="/hr/config/document-types" replace />} />
+          <Route path="roles" element={<Navigate to="/hr/config/roles" replace />} />
+          <Route path="audit" element={<Navigate to="/hr/config/audit" replace />} />
+
+          <Route path="import" element={<HrImportPage />} />
+          <Route path="*" element={<Navigate to="/hr" replace />} />
         </Route>
       </Routes>
     </HrPayrollProvider>

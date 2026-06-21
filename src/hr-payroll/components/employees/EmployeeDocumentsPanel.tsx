@@ -137,7 +137,7 @@ export function EmployeeDocumentsPanel({
           />
           {uploading && <span className="muted" style={{ fontSize: 12 }}>Uploading…</span>}
           {(can("configure") || can("manageEmp")) && (
-            <Link to="/hr/document-types" className="muted" style={{ fontSize: 12 }}>
+            <Link to="/hr/config/document-types" className="muted" style={{ fontSize: 12 }}>
               Manage document types →
             </Link>
           )}

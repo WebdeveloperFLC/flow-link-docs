@@ -63,7 +63,7 @@ export default function HrEmployeesPage() {
         />
         {can("manageEmp") && (
           <div className="row-flex">
-            <Link to="/hr/document-types" className="btn">
+            <Link to="/hr/config/document-types" className="btn">
               Document Master
             </Link>
             <button type="button" className="btn" onClick={() => setCrmImport(true)}>

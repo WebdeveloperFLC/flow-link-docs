@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ALL_HR_SCREENS,
@@ -83,6 +84,9 @@ export default function HrRolesPage() {
 
   return (
     <div className="grid" style={{ gap: 16 }}>
+      <Link to="/hr/config" className="btn btn-sm" style={{ alignSelf: "flex-start" }}>
+        ← Configuration hub
+      </Link>
       <div
         className="card"
         style={{

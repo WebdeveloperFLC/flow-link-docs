@@ -9,7 +9,7 @@ import {
   HR_SCREEN_TITLES,
   type HrScreenKey,
 } from "../lib/constants";
-import { HR_NAV, screenKeyFromPath } from "../lib/nav";
+import { HR_NAV, screenKeyFromPath, totalPendingApprovals } from "../lib/nav";
 import { HrModuleErrorBoundary } from "./HrModuleErrorBoundary";
 import { useHrAccess } from "../context/HrAccessContext";
 
@@ -93,6 +93,7 @@ function HrPayrollLayout() {
   const initials = user?.email?.slice(0, 2).toUpperCase() ?? "MK";
 
   const pendingFor = (k: HrScreenKey) => {
+    if (k === "approvals") return totalPendingApprovals(pendingCounts);
     if (k === "leave") return pendingCounts.leave ?? 0;
     if (k === "compoff") return pendingCounts.compoff ?? 0;
     if (k === "late") return pendingCounts.late ?? 0;

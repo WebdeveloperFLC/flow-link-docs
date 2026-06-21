@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useHrAuditLogs } from "../hooks/useHrRequests";
 import type { AuditLogRow } from "../lib/types";
 
@@ -18,6 +19,9 @@ export default function HrAuditPage() {
 
   return (
     <div className="grid" style={{ gap: 16 }}>
+      <Link to="/hr/config" className="btn btn-sm" style={{ alignSelf: "flex-start" }}>
+        ← Configuration hub
+      </Link>
       <div className="card-h">
         <span className="tag">{logs.length} entries · live</span>
         <input
