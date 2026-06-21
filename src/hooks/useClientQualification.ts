@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   fetchQualificationBundle,
   fetchQualificationsForCase,
@@ -10,6 +11,15 @@ import type {
   QualificationEvent,
   QualificationRecord,
 } from "@/lib/qualification/types";
+
+function errorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "object" && error !== null && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message) return message;
+  }
+  return fallback;
+}
 
 export function useClientQualification(
   clientId: string | undefined,
@@ -25,14 +35,20 @@ export function useClientQualification(
   const [references, setReferences] = useState<ApplicationReference[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [listLoadFailed, setListLoadFailed] = useState(false);
+  const [listError, setListError] = useState<string | null>(null);
 
   const loadList = useCallback(async () => {
     if (!clientId || !caseId) {
       setQualifications([]);
+      setListLoadFailed(false);
+      setListError(null);
       setLoading(false);
       return;
     }
     setLoading(true);
+    setListLoadFailed(false);
+    setListError(null);
     try {
       const rows = await fetchQualificationsForCase(clientId, caseId);
       setQualifications(rows);
@@ -43,6 +59,14 @@ export function useClientQualification(
         if (prev && rows.some((r) => r.id === prev)) return prev;
         return rows[0]?.id ?? null;
       });
+    } catch (error) {
+      const message = errorMessage(error, "Failed to load applications");
+      console.error("[useClientQualification] loadList failed", error);
+      toast.error(message);
+      setListLoadFailed(true);
+      setListError(message);
+      setQualifications([]);
+      setSelectedId(null);
     } finally {
       setLoading(false);
     }
@@ -67,6 +91,10 @@ export function useClientQualification(
       setQualifications((prev) =>
         prev.map((q) => (q.id === bundle.qualification.id ? bundle.qualification : q)),
       );
+    } catch (error) {
+      const message = errorMessage(error, "Failed to load application details");
+      console.error("[useClientQualification] loadDetail failed", error);
+      toast.error(message);
     } finally {
       setDetailLoading(false);
     }
@@ -98,6 +126,8 @@ export function useClientQualification(
     references,
     loading,
     detailLoading,
+    listLoadFailed,
+    listError,
     reload,
   };
 }

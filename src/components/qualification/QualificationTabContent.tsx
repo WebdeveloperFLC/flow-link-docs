@@ -82,6 +82,8 @@ export function QualificationTabContent({
     references,
     loading,
     detailLoading,
+    listLoadFailed,
+    listError,
     reload,
   } = useClientQualification(clientId, caseId, refreshKey, initialApplicationId);
 
@@ -139,6 +141,18 @@ export function QualificationTabContent({
       <Card className="p-6 flex items-center gap-2 text-sm text-muted-foreground">
         <Loader2 className="size-4 animate-spin" />
         Loading application…
+      </Card>
+    );
+  }
+
+  if (listLoadFailed) {
+    return (
+      <Card className="p-8 text-center text-sm space-y-3">
+        <p className="font-medium text-destructive">Could not load applications for this service case.</p>
+        {listError && <p className="text-muted-foreground">{listError}</p>}
+        <Button variant="outline" onClick={() => void reload()}>
+          Retry
+        </Button>
       </Card>
     );
   }

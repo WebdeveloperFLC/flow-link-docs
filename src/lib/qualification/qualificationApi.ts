@@ -14,6 +14,18 @@ import type {
   UpsertQualificationPayload,
 } from "./types";
 
+/** PostgREST embed hint — disambiguates transfer_target_institution_id FK on live schema. */
+export const CLIENT_INSTITUTION_QUALIFICATIONS_INSTITUTION_FK =
+  "client_institution_qualifications_institution_id_fkey";
+
+const QUALIFICATION_WITH_INSTITUTION_SELECT = `
+  *,
+  upi_institutions!${CLIENT_INSTITUTION_QUALIFICATIONS_INSTITUTION_FK} (
+    name,
+    country_name
+  )
+`;
+
 function mapQualification(row: Record<string, unknown>): QualificationRecord {
   const institution = row.upi_institutions as { name?: string; country_name?: string } | null | undefined;
   return {
@@ -96,7 +108,7 @@ export async function fetchQualificationsForCase(
 ): Promise<QualificationRecord[]> {
   const { data, error } = await supabase
     .from("client_institution_qualifications" as never)
-    .select("*, upi_institutions ( name, country_name )" as never)
+    .select(QUALIFICATION_WITH_INSTITUTION_SELECT as never)
     .eq("client_id", clientId)
     .eq("client_service_case_id", caseId)
     .order("created_at", { ascending: false });
@@ -109,7 +121,7 @@ export async function fetchQualificationBundle(qualificationId: string) {
   const [qualRes, offerRes, milestonesRes, eventsRes, referencesRes] = await Promise.all([
     supabase
       .from("client_institution_qualifications" as never)
-      .select("*, upi_institutions ( name, country_name )" as never)
+      .select(QUALIFICATION_WITH_INSTITUTION_SELECT as never)
       .eq("id", qualificationId)
       .maybeSingle(),
     supabase
