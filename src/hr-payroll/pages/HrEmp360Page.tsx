@@ -18,6 +18,10 @@ import { Stat } from "../components/ui/Stat";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { LeaveSummaryPanel } from "../components/leave/LeaveSummaryPanel";
 import { EmployeeDocumentsPanel } from "../components/employees/EmployeeDocumentsPanel";
+import { EmployeeAssetsDetailTable } from "../components/employees/EmployeeAssetsDetailTable";
+import { ShiftHistoryTable } from "../components/shifts/ShiftHistoryTable";
+import { useEmployeeAssets } from "../hooks/useEmployeeAssets";
+import { useEmployeeShiftHistory } from "../hooks/useEmployeeShiftHistory";
 import { fmtDur } from "../lib/attendanceMetrics";
 import { formatSecurityChequeUploadedAt } from "../lib/securityCheque";
 import { printSalarySlip } from "../lib/salarySlip";
@@ -184,6 +188,11 @@ export default function HrEmp360Page() {
   const { data: allCompoff = [] } = useHrCompoffRequests();
   const { data: allTraining = [] } = useHrTrainingRecords();
   const { data: allAudit = [] } = useHrAuditLogs();
+  const { data: shiftHistory = [], isLoading: shiftHistoryLoading } = useEmployeeShiftHistory({
+    employeeId: emp?.id,
+    limit: 50,
+  });
+  const { data: employeeAssets = [], isLoading: assetsLoading } = useEmployeeAssets(emp?.id);
 
   const ru = shift && att.length ? rollupAtt(att, shift) : null;
   const currency = employeeCurrency(emp);
@@ -368,6 +377,21 @@ export default function HrEmp360Page() {
           ]}
         />
       )}
+
+      <div className="card">
+        <div className="card-h">
+          <h3>Shift assignment history</h3>
+          <Link to="/hr/config/shifts" className="btn btn-sm">
+            Shift management →
+          </Link>
+        </div>
+        <ShiftHistoryTable
+          rows={shiftHistory}
+          isLoading={shiftHistoryLoading}
+          showEmployeeLink={false}
+          emptyLabel="No shift changes recorded for this employee."
+        />
+      </div>
 
       <div className="grid g2">
         <InfoCard
@@ -603,7 +627,21 @@ export default function HrEmp360Page() {
 
       <div className="card">
         <div className="card-h">
-          <h3 style={{ fontSize: 15 }}>Employee documents</h3>
+          <h3>Company assets</h3>
+          <Link to="/hr/employees" className="btn btn-sm">
+            Edit in Employee Master →
+          </Link>
+        </div>
+        {assetsLoading ? (
+          <div className="empty">Loading assets…</div>
+        ) : (
+          <EmployeeAssetsDetailTable assets={employeeAssets} />
+        )}
+      </div>
+
+      <div className="card">
+        <div className="card-h">
+          <h3>Employee documents</h3>
         </div>
         <EmployeeDocumentsPanel emp={emp} />
       </div>

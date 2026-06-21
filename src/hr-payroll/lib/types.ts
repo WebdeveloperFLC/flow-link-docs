@@ -231,6 +231,20 @@ export type ShiftRow = {
   timezone?: string;
 };
 
+export type EmployeeShiftHistoryRow = {
+  id: string;
+  org_id: string;
+  employee_id: string;
+  shift_id: string;
+  effective_from: string;
+  effective_to: string | null;
+  changed_by: string | null;
+  change_reason: string | null;
+  created_at: string;
+  employees?: { full_name: string; emp_code: string } | null;
+  shifts?: Pick<ShiftRow, "name" | "login_time" | "logout_time" | "type"> | null;
+};
+
 export type AttendanceRow = {
   id: string;
   org_id: string;
