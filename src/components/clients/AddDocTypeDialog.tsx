@@ -15,6 +15,16 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useMasterItems, type MasterItem } from "@/lib/masters";
+import {
+  DOCUMENT_CATEGORY_LABELS,
+  formatDocumentWithCategory,
+  resolveDocumentCategory,
+  type DocumentCategory,
+} from "@/lib/documentWorkflow/documentCategories";
+import {
+  categoryRank,
+  detectServiceDocumentProfile,
+} from "@/lib/documentWorkflow/documentRelevance";
 import { filterDocumentTypesForSearch } from "@/lib/documentWorkflow/searchDocumentTypes";
 import { cn } from "@/lib/utils";
 
@@ -37,12 +47,15 @@ export const AddDocTypeDialog = ({
   open,
   onOpenChange,
   excludedMasterCodes,
+  serviceCode,
+  templateName,
   onAdd,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  /** master_item_code values already on the case checklist. */
   excludedMasterCodes: string[];
+  serviceCode?: string | null;
+  templateName?: string | null;
   onAdd: (item: AddDocumentRequirementInput) => Promise<void> | void;
 }) => {
   const masterItems = useMasterItems("document_types");
@@ -54,12 +67,30 @@ export const AddDocTypeDialog = ({
   const [busy, setBusy] = useState(false);
   const commandRef = useRef<HTMLDivElement>(null);
 
+  const profile = useMemo(
+    () => detectServiceDocumentProfile(serviceCode, templateName),
+    [serviceCode, templateName],
+  );
+
   const excluded = useMemo(() => new Set(excludedMasterCodes), [excludedMasterCodes]);
 
   const filtered = useMemo(
-    () => filterDocumentTypesForSearch(masterItems, search, excluded),
-    [masterItems, search, excluded],
+    () => filterDocumentTypesForSearch(masterItems, search, excluded, serviceCode, templateName),
+    [masterItems, search, excluded, serviceCode, templateName],
   );
+
+  const grouped = useMemo(() => {
+    const map = new Map<DocumentCategory, MasterItem[]>();
+    for (const item of filtered) {
+      const cat = resolveDocumentCategory(item);
+      const list = map.get(cat) ?? [];
+      list.push(item);
+      map.set(cat, list);
+    }
+    return Array.from(map.entries()).sort(
+      (a, b) => categoryRank(profile, a[0]) - categoryRank(profile, b[0]),
+    );
+  }, [filtered, profile]);
 
   const reset = () => {
     setSelected(null);
@@ -97,6 +128,11 @@ export const AddDocTypeDialog = ({
     }
   };
 
+  const relevanceHint =
+    profile === "spouse_dependent" || profile === "visitor"
+      ? "Academic types are hidden unless you search (e.g. 10th Marksheet)."
+      : null;
+
   return (
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset(); }}>
       <DialogContent className="sm:max-w-md">
@@ -105,58 +141,66 @@ export const AddDocTypeDialog = ({
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label>Document type</Label>
+            <Label>Document name</Label>
             <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   role="combobox"
                   aria-expanded={pickerOpen}
-                  className="w-full justify-between font-normal"
+                  className="w-full justify-between font-normal h-auto min-h-9 py-2"
                 >
-                  <span className="truncate">
-                    {selected ? selected.label : "Search e.g. Wedding Photos, PCC, Marriage Certificate…"}
+                  <span className="truncate text-left">
+                    {selected
+                      ? formatDocumentWithCategory(selected)
+                      : "Search e.g. Marriage Certificate, PCC, Wedding Photos…"}
                   </span>
                   <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
-                <Command
-                  ref={commandRef}
-                  shouldFilter={false}
-                  value={search}
-                  onValueChange={setSearch}
-                >
-                  <CommandInput placeholder="Type to search document name or alias…" />
-                  <CommandList className="max-h-[280px]">
+                <Command ref={commandRef} shouldFilter={false} value={search} onValueChange={setSearch}>
+                  <CommandInput placeholder="Type to search name, category, or alias…" />
+                  <CommandList className="max-h-[300px]">
                     <CommandEmpty>No document type found.</CommandEmpty>
-                    <CommandGroup>
-                      {filtered.slice(0, 50).map((item) => (
-                        <CommandItem
-                          key={item.code}
-                          value={`${item.label} ${item.code}`}
-                          onSelect={() => {
-                            setSelected(item);
-                            setPickerOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 size-4",
-                              selected?.code === item.code ? "opacity-100" : "opacity-0",
-                            )}
-                          />
-                          <span className="flex-1 truncate">{item.label}</span>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
+                    {grouped.map(([category, items]) => (
+                      <CommandGroup
+                        key={category}
+                        heading={DOCUMENT_CATEGORY_LABELS[category]}
+                      >
+                        {items.slice(0, 30).map((item) => (
+                          <CommandItem
+                            key={item.code}
+                            value={`${item.label} ${item.code} ${DOCUMENT_CATEGORY_LABELS[category]}`}
+                            onSelect={() => {
+                              setSelected(item);
+                              setPickerOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 size-4 shrink-0",
+                                selected?.code === item.code ? "opacity-100" : "opacity-0",
+                              )}
+                            />
+                            <span className="flex-1 truncate">{formatDocumentWithCategory(item)}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    ))}
                   </CommandList>
                 </Command>
               </PopoverContent>
             </Popover>
+            {selected ? (
+              <p className="text-[11px] text-muted-foreground">
+                Category: <strong>{DOCUMENT_CATEGORY_LABELS[resolveDocumentCategory(selected)]}</strong>
+              </p>
+            ) : null}
             <p className="text-[11px] text-muted-foreground">
-              Search by name, alias, or partial match. Already on this checklist are hidden.
-              Manual adds default to <strong>Other Documents</strong>.
+              Sorted by relevance for this visa type. Already on the checklist are hidden.
+              Manual adds go to <strong>Other Documents</strong>.
+              {relevanceHint ? ` ${relevanceHint}` : ""}
             </p>
           </div>
           <div className="space-y-1.5">
@@ -167,11 +211,11 @@ export const AddDocTypeDialog = ({
               placeholder="e.g. certified translation required"
             />
           </div>
-          <label className="flex items-center justify-between rounded border p-3">
+          <label className="flex items-center justify-between rounded border p-3 border-dashed">
             <div>
-              <div className="text-sm font-medium">Required for this client</div>
+              <div className="text-sm font-medium">Mandatory document</div>
               <div className="text-[11px] text-muted-foreground">
-                Off = optional — does not affect required/missing progress counts.
+                Default is <strong>optional</strong>. Turn on only when this document must block progress.
               </div>
             </div>
             <Switch checked={mandatory} onCheckedChange={setMandatory} />
@@ -184,7 +228,7 @@ export const AddDocTypeDialog = ({
             disabled={!selected || busy}
             className="gradient-brand text-primary-foreground"
           >
-            {busy ? "Adding…" : "Add"}
+            {busy ? "Adding…" : mandatory ? "Add as mandatory" : "Add as optional"}
           </Button>
         </DialogFooter>
       </DialogContent>

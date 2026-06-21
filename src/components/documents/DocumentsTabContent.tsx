@@ -30,6 +30,7 @@ interface Props {
   sections: CaseSection[];
   canUpload: boolean;
   templateName?: string | null;
+  serviceCode?: string | null;
   refreshKey: number | string;
   onChanged: () => void;
   onMissingCountChange?: (count: number) => void;
@@ -60,6 +61,7 @@ export function DocumentsTabContent({
   sections,
   canUpload,
   templateName,
+  serviceCode,
   refreshKey,
   onChanged,
   onMissingCountChange,
@@ -207,6 +209,8 @@ export function DocumentsTabContent({
         open={addDocOpen}
         onOpenChange={setAddDocOpen}
         excludedMasterCodes={existingMasterCodes}
+        serviceCode={serviceCode}
+        templateName={templateName}
         onAdd={handleAddRequirement}
       />
 

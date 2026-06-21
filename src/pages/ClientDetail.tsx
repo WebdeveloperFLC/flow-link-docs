@@ -1383,6 +1383,7 @@ const ClientDetail = () => {
               sections={sections}
               canUpload={canUpload}
               templateName={template?.name ?? null}
+              serviceCode={serviceCase?.serviceCode ?? serviceCtx.activeServiceCode ?? null}
               refreshKey={documentWorkflowRefresh}
               onChanged={load}
               onMissingCountChange={setDocumentMissingCount}

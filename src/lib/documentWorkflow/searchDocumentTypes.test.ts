@@ -18,13 +18,17 @@ describe("searchDocumentTypes", () => {
       item("police_clearance", "Police Clearance Certificate"),
       item("passport", "Passport"),
     ];
-    expect(scoreDocumentTypeMatch(items[0], "pcc")).toBeGreaterThan(0);
-    expect(filterDocumentTypesForSearch(items, "marriage", new Set()).some((i) => i.code === "passport")).toBe(false);
+    expect(scoreDocumentTypeMatch(items[0], "pcc", "general")).toBeGreaterThan(0);
+    expect(
+      filterDocumentTypesForSearch(items, "marriage", new Set(), null, null).some(
+        (i) => i.code === "passport",
+      ),
+    ).toBe(false);
   });
 
   it("excludes already-added codes", () => {
     const items = [item("passport", "Passport"), item("photograph", "Photograph")];
-    const filtered = filterDocumentTypesForSearch(items, "photo", new Set(["photograph"]));
+    const filtered = filterDocumentTypesForSearch(items, "photo", new Set(["photograph"]), null, null);
     expect(filtered.some((i) => i.code === "photograph")).toBe(false);
   });
 });
