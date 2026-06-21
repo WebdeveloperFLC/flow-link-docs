@@ -188,6 +188,7 @@ ALTER TABLE public.employees
   ADD CONSTRAINT employees_employee_category_id_fkey
   FOREIGN KEY (employee_category_id) REFERENCES hr_employee_categories(id) ON DELETE SET NULL;
 
+-- Per-code idempotent seed: existing rows (e.g. full_time_employee) do not block standard codes
 INSERT INTO hr_employee_categories (org_id, code, label, leave_eligible, leave_accrual_eligible, attendance_rules_apply, payroll_rules_apply, sort_order)
 SELECT o.org_id, c.code, c.label, c.leave_eligible, c.leave_accrual_eligible, c.attendance_rules_apply, c.payroll_rules_apply, c.sort_order
 FROM (VALUES
@@ -201,9 +202,7 @@ FROM (VALUES
   ('canada_staff',  'Canada Staff',  true,  true,  true,  true,  80)
 ) AS c(code, label, leave_eligible, leave_accrual_eligible, attendance_rules_apply, payroll_rules_apply, sort_order)
 CROSS JOIN (SELECT DISTINCT org_id FROM employees UNION SELECT '00000000-0000-0000-0000-0000000000f1'::uuid) o
-WHERE NOT EXISTS (
-  SELECT 1 FROM hr_employee_categories ec WHERE ec.org_id = o.org_id LIMIT 1
-);
+ON CONFLICT (org_id, code) DO NOTHING;
 
 -- Explicit employment_type / status → category mappings only (no catch-all; leave rules wired in Phase 4)
 UPDATE employees e SET employee_category_id = ec.id
@@ -479,21 +478,24 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS
   SELECT fn_locked_payroll_cycle_for_date(p_org, p_work_date) IS NOT NULL;
 $$;
 
+-- Preserve migration 43 ESS behavior: self-punch + close-only checkout bypass lock guard.
+-- HR manual attendance edits remain blocked during locked payroll cycles.
 CREATE OR REPLACE FUNCTION trg_attendance_locked_guard()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE
-  v_org uuid;
-  v_emp uuid;
-  v_date date;
 BEGIN
-  v_org := COALESCE(NEW.org_id, OLD.org_id);
-  v_emp := COALESCE(NEW.employee_id, OLD.employee_id);
-  v_date := COALESCE(NEW.work_date, OLD.work_date);
+  IF COALESCE(NEW.source, OLD.source, 'self') = 'self' THEN
+    RETURN NEW;
+  END IF;
 
-  PERFORM fn_raise_if_payroll_frozen(
-    v_org, v_emp, v_date, 'attendance',
-    jsonb_build_object('op', TG_OP, 'old', to_jsonb(OLD), 'new', to_jsonb(NEW))
-  );
+  IF TG_OP = 'UPDATE'
+     AND fn_attendance_cycle_locked(COALESCE(NEW.org_id, OLD.org_id), COALESCE(NEW.work_date, OLD.work_date))
+     AND fn_attendance_close_only_update(OLD, NEW) THEN
+    RETURN NEW;
+  END IF;
+
+  IF fn_attendance_cycle_locked(COALESCE(NEW.org_id, OLD.org_id), COALESCE(NEW.work_date, OLD.work_date)) THEN
+    RAISE EXCEPTION 'Attendance frozen — payroll cycle is locked for %', COALESCE(NEW.work_date, OLD.work_date);
+  END IF;
 
   RETURN COALESCE(NEW, OLD);
 END;
