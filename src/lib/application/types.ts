@@ -176,6 +176,8 @@ export type UpsertStudentApplicationPayload = {
   tuitionCurrency?: string | null;
   destinationCountry?: string | null;
   institutionApplicationStatus?: InstitutionApplicationStatus;
+  allowDuplicateOverride?: boolean;
+  duplicateOverrideReason?: string | null;
 };
 
 export type UpdateApplicationOfferPayload = {

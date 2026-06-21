@@ -45,6 +45,7 @@ export type CfCourseSummary = {
     name: string;
     city: string | null;
     country_code: string;
+    upi_institution_id: string | null;
   };
   country: {
     code: string;
@@ -80,6 +81,7 @@ const PROGRAM_SELECT = `
       name,
       city,
       country_code,
+      upi_institution_id,
       country:cf_countries (
         code,
         name,
@@ -119,6 +121,7 @@ function mapEnriched(row: Record<string, unknown>): ClientProgramEnriched {
         name: uniRaw.name as string,
         city: (uniRaw.city as string | null) ?? null,
         country_code: uniRaw.country_code as string,
+        upi_institution_id: (uniRaw.upi_institution_id as string | null) ?? null,
       },
       country: {
         code: countryRaw.code as string,
@@ -295,6 +298,8 @@ export type MarkFinalAndCreateApplicationPayload = {
   campusName?: string | null;
   ownerUserId: string;
   setPrimary?: boolean;
+  allowDuplicateOverride?: boolean;
+  duplicateOverrideReason?: string | null;
 };
 
 export type MarkFinalAndCreateApplicationResult = {
@@ -313,6 +318,8 @@ export async function markFinalAndCreateApplication(
     p_campus_name: payload.campusName ?? null,
     p_owner_user_id: payload.ownerUserId,
     p_set_primary: payload.setPrimary ?? true,
+    p_allow_duplicate_override: payload.allowDuplicateOverride ?? false,
+    p_duplicate_override_reason: payload.duplicateOverrideReason ?? null,
   } as never);
 
   if (error) throw error;

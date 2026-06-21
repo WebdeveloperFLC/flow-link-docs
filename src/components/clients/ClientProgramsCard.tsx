@@ -16,7 +16,17 @@ import {
   applicationStatusLabel,
   type ClientProgramEnriched,
 } from "@/lib/clientPrograms";
+import { findDuplicateApplication } from "@/lib/application/applicationApi";
+import type { ApplicationDuplicateMatch } from "@/lib/application/applicationDuplicate";
+import { ApplicationDuplicateWarningDialog } from "@/components/application/ApplicationDuplicateWarningDialog";
 import { MarkFinalProgramDialog } from "./MarkFinalProgramDialog";
+
+type MarkFinalValues = {
+  intakeTerm: string;
+  campusName: string;
+  ownerUserId: string;
+  setPrimary: boolean;
+};
 
 function ProgramRow({
   p,
@@ -159,6 +169,8 @@ export function ClientProgramsCard({
   const [loading, setLoading] = useState(true);
   const [finalizeTarget, setFinalizeTarget] = useState<ClientProgramEnriched | null>(null);
   const [busy, setBusy] = useState(false);
+  const [duplicateMatch, setDuplicateMatch] = useState<ApplicationDuplicateMatch | null>(null);
+  const [pendingMarkFinal, setPendingMarkFinal] = useState<MarkFinalValues | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -179,31 +191,73 @@ export function ClientProgramsCard({
   const grouped = groupProgramsByCountry(programs);
   const hasAny = programs.length > 0;
 
-  const handleMarkFinalConfirm = async (values: {
-    intakeTerm: string;
-    campusName: string;
-    ownerUserId: string;
-    setPrimary: boolean;
-  }) => {
+  const executeMarkFinal = async (
+    values: MarkFinalValues,
+    options?: { allowDuplicateOverride?: boolean; duplicateOverrideReason?: string },
+  ) => {
+    if (!finalizeTarget || !caseId) return;
+    const { applicationId } = await markFinalAndCreateApplication({
+      programId: finalizeTarget.id,
+      caseId,
+      intakeTerm: values.intakeTerm,
+      campusName: values.campusName || null,
+      ownerUserId: values.ownerUserId,
+      setPrimary: values.setPrimary,
+      allowDuplicateOverride: options?.allowDuplicateOverride,
+      duplicateOverrideReason: options?.duplicateOverrideReason,
+    });
+    toast.success(
+      options?.allowDuplicateOverride
+        ? "Program marked final — duplicate override recorded"
+        : "Program marked final — application created",
+    );
+    setFinalizeTarget(null);
+    setDuplicateMatch(null);
+    setPendingMarkFinal(null);
+    await load();
+    onChanged?.();
+    onApplicationCreated?.(applicationId);
+  };
+
+  const handleMarkFinalConfirm = async (values: MarkFinalValues) => {
     if (!finalizeTarget || !caseId) return;
     setBusy(true);
     try {
-      const { applicationId } = await markFinalAndCreateApplication({
-        programId: finalizeTarget.id,
-        caseId,
-        intakeTerm: values.intakeTerm,
-        campusName: values.campusName || null,
-        ownerUserId: values.ownerUserId,
-        setPrimary: values.setPrimary,
-      });
-      toast.success("Program marked final — application created");
-      setFinalizeTarget(null);
-      await load();
-      onChanged?.();
-      onApplicationCreated?.(applicationId);
+      const institutionId = finalizeTarget.course.university.upi_institution_id;
+      if (institutionId) {
+        const duplicate = await findDuplicateApplication({
+          clientId,
+          institutionId,
+          programName: finalizeTarget.course.name,
+          campusName: values.campusName || null,
+          intakeTerm: values.intakeTerm,
+        });
+        if (duplicate) {
+          setPendingMarkFinal(values);
+          setDuplicateMatch(duplicate);
+          return;
+        }
+      }
+
+      await executeMarkFinal(values);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not mark final");
       throw e;
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDuplicateOverride = async (reason: string) => {
+    if (!pendingMarkFinal) return;
+    setBusy(true);
+    try {
+      await executeMarkFinal(pendingMarkFinal, {
+        allowDuplicateOverride: true,
+        duplicateOverrideReason: reason,
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not mark final");
     } finally {
       setBusy(false);
     }
@@ -322,6 +376,23 @@ export function ClientProgramsCard({
         onOpenChange={(o) => !busy && !o && setFinalizeTarget(null)}
         program={finalizeTarget}
         onConfirm={handleMarkFinalConfirm}
+      />
+
+      <ApplicationDuplicateWarningDialog
+        open={!!duplicateMatch}
+        match={duplicateMatch}
+        busy={busy}
+        onClose={() => {
+          setDuplicateMatch(null);
+          setPendingMarkFinal(null);
+        }}
+        onUseExisting={(applicationId) => {
+          setDuplicateMatch(null);
+          setPendingMarkFinal(null);
+          setFinalizeTarget(null);
+          onApplicationCreated?.(applicationId);
+        }}
+        onOverride={(reason) => void handleDuplicateOverride(reason)}
       />
     </>
   );

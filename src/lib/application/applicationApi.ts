@@ -1,5 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
+import {
+  mapDuplicateMatchRow,
+  type ApplicationDuplicateMatch,
+} from "./applicationDuplicate";
 import type {
   ApplicationMilestones,
   ApplicationOffer,
@@ -136,6 +140,32 @@ export async function fetchStudentApplicationsForCase(
   return ((data ?? []) as Record<string, unknown>[]).map(mapStudentApplication);
 }
 
+export type FindDuplicateApplicationInput = {
+  clientId: string;
+  institutionId: string;
+  programName?: string | null;
+  campusName?: string | null;
+  intakeTerm: string;
+  excludeApplicationId?: string | null;
+};
+
+export async function findDuplicateApplication(
+  input: FindDuplicateApplicationInput,
+): Promise<ApplicationDuplicateMatch | null> {
+  const { data, error } = await supabase.rpc("fn_find_duplicate_application" as never, {
+    p_client_id: input.clientId,
+    p_institution_id: input.institutionId,
+    p_program_name: input.programName ?? null,
+    p_campus_name: input.campusName ?? null,
+    p_intake_term: input.intakeTerm,
+    p_exclude_qualification_id: input.excludeApplicationId ?? null,
+  } as never);
+
+  if (error) throw new Error(formatSupabaseError(error, "Duplicate check failed"));
+  if (!data || typeof data !== "object") return null;
+  return mapDuplicateMatchRow(data as Record<string, unknown>);
+}
+
 export async function fetchStudentApplicationBundle(applicationId: string) {
   const [qualRes, offerRes, milestonesRes, eventsRes, referencesRes] = await Promise.all([
     supabase
@@ -208,10 +238,12 @@ export async function upsertStudentApplication(payload: UpsertStudentApplication
       tuition_currency: payload.tuitionCurrency ?? null,
       destination_country: payload.destinationCountry ?? null,
       institution_application_status: payload.institutionApplicationStatus ?? "APPLIED",
+      allow_duplicate_override: payload.allowDuplicateOverride ?? false,
+      duplicate_override_reason: payload.duplicateOverrideReason ?? null,
     },
   } as never);
 
-  if (error) throw error;
+  if (error) throw new Error(formatSupabaseError(error, "Could not create application"));
   return data as string;
 }
 
