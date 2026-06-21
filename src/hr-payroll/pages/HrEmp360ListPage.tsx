@@ -65,7 +65,6 @@ export default function HrEmp360ListPage() {
     );
   }
 
-  const listQuery = emp360FiltersToSearchParams(filters).toString();
   const { from, to } = defaultEmp360Range(cycle);
   const profileSearch = emp360ProfileSearch(from, to, filters);
 
