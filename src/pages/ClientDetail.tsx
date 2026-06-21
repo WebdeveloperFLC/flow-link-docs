@@ -1382,7 +1382,7 @@ const ClientDetail = () => {
               caseId={serviceCase?.id ?? null}
               sections={sections}
               canUpload={canUpload}
-              templateName={template?.name ?? null}
+              templateName={template?.name ?? serviceCase?.serviceCode ?? null}
               serviceCode={serviceCase?.serviceCode ?? serviceCtx.activeServiceCode ?? null}
               refreshKey={documentWorkflowRefresh}
               onChanged={load}

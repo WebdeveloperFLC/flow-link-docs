@@ -2,7 +2,10 @@ import type { MasterItem } from "@/lib/masters";
 import { resolveDocumentCategory } from "./documentCategories";
 import {
   categoryRank,
+  compareAddDocumentItems,
   detectServiceDocumentProfile,
+  labelPinnedBoost,
+  pinnedRank,
   shouldShowCategoryInAddDialog,
   type ServiceDocumentProfile,
 } from "./documentRelevance";
@@ -43,8 +46,10 @@ export function scoreDocumentTypeMatch(
   const category = resolveDocumentCategory(item);
   const q = norm(query);
   const relevanceBoost = Math.max(0, 50 - categoryRank(profile, category) * 5);
+  const pinBoost = Math.max(0, 500 - pinnedRank(profile, item.code) * 10);
+  const labelBoost = labelPinnedBoost(profile, item);
 
-  if (!q) return relevanceBoost + 1;
+  if (!q) return relevanceBoost + pinBoost + labelBoost + 1;
 
   const label = norm(item.label);
   const code = norm(item.code.replace(/_/g, " "));
@@ -93,7 +98,7 @@ export function filterDocumentTypesForSearch(
     .filter(({ score }) => score > 0)
     .sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
-      return a.item.label.localeCompare(b.item.label);
+      return compareAddDocumentItems(profile, a.item, b.item);
     })
     .map(({ item }) => item);
 }

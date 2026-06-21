@@ -24,9 +24,18 @@ import {
 import {
   categoryRank,
   detectServiceDocumentProfile,
+  type ServiceDocumentProfile,
 } from "@/lib/documentWorkflow/documentRelevance";
 import { filterDocumentTypesForSearch } from "@/lib/documentWorkflow/searchDocumentTypes";
 import { cn } from "@/lib/utils";
+
+const PROFILE_LABELS: Record<ServiceDocumentProfile, string> = {
+  spouse_dependent: "Spouse / Dependent visa",
+  student: "Student visa",
+  visitor: "Visitor visa",
+  work: "Work permit",
+  general: "General (no visa profile detected)",
+};
 
 /** @deprecated Legacy extra_items shape — kept for ClientDetail compat reads. */
 export interface ExtraItem {
@@ -101,7 +110,13 @@ export const AddDocTypeDialog = ({
   };
 
   useEffect(() => {
-    if (!open) reset();
+    if (open) {
+      setSelected(null);
+      setSearch("");
+      setMandatory(false);
+    } else {
+      reset();
+    }
   }, [open]);
 
   useEffect(() => {
@@ -138,6 +153,12 @@ export const AddDocTypeDialog = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add a document requirement</DialogTitle>
+          <p className="text-[11px] text-muted-foreground">
+            Relevance: <strong>{PROFILE_LABELS[profile]}</strong>
+            {profile === "general" && templateName ? (
+              <span> — pass service/template context for ranked results</span>
+            ) : null}
+          </p>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
