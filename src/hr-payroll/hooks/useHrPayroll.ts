@@ -19,6 +19,24 @@ export function useHrPayrollLines(cycleId: string | undefined) {
   });
 }
 
+/** Payroll lines for one or more cycles (verify page historical / multi-cycle views). */
+export function useHrPayrollLinesMulti(cycleIds: string[]) {
+  const stableKey = [...cycleIds].sort().join(",");
+  return useQuery({
+    queryKey: ["hr-payroll-lines", HR_ORG_ID, "multi", stableKey],
+    enabled: cycleIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payroll_lines" as never)
+        .select("*, employees(*, branches(name), companies(name, currency))")
+        .eq("org_id", HR_ORG_ID)
+        .in("cycle_id", cycleIds);
+      if (error) throw error;
+      return (data ?? []) as PayrollLineRow[];
+    },
+  });
+}
+
 export function useHrPayrollLine(employeeId: string | undefined, cycleId: string | undefined) {
   return useQuery({
     queryKey: ["hr-payroll-line", employeeId, cycleId],

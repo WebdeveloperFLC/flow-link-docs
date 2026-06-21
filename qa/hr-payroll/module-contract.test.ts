@@ -290,6 +290,17 @@ describe("HR Payroll module contract", () => {
     expect(verifyPage).toContain("companiesForPayrollCountryFilter");
   });
 
+  it("payroll verify page supports date range, cycle, and status filters", () => {
+    const verifyPage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrVerifyPage.tsx"), "utf8");
+    expect(verifyPage).toContain("From Date");
+    expect(verifyPage).toContain("To Date");
+    expect(verifyPage).toContain("Payroll Cycle");
+    expect(verifyPage).toContain("Payroll Status");
+    expect(verifyPage).toContain("useHrPayrollLinesMulti");
+    expect(verifyPage).toContain("cyclesMatchingVerifyFilters");
+    expect(verifyPage).toContain("PAYROLL_VERIFY_STATUSES");
+  });
+
   it("allows leave type selection before dates are filled", () => {
     const leavePage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrLeavePage.tsx"), "utf8");
     expect(leavePage).not.toContain("disabled={resolution.forcedUnpaid}");

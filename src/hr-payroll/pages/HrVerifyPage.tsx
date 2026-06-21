@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrReferenceData } from "../hooks/useHrEmployees";
-import { useHrPayrollLines, rpcRollupInputs } from "../hooks/useHrPayroll";
+import { useHrPayrollLinesMulti, useHrCycles, rpcRollupInputs } from "../hooks/useHrPayroll";
 import { ModalShell } from "../components/ui/ModalShell";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { formatMoney, employeeCurrency, payrollCompanyLabel } from "../lib/format";
@@ -14,11 +14,18 @@ import { downloadPayrollRegister, linesToRegisterRows, printRegisterPdf, printBa
 import {
   branchesForPayrollCountry,
   companiesForPayrollCountryFilter,
+  cyclesInDateRange,
+  cyclesMatchingVerifyFilters,
   filterPayrollLines,
   PAYROLL_VERIFY_COUNTRIES,
+  PAYROLL_VERIFY_STATUSES,
+  todayIsoDate,
+  verifyDateRangeLabel,
+  verifyExportFileStem,
   type PayrollCountryFilter,
+  type PayrollStatusFilter,
 } from "../lib/payrollVerifyFilters";
-import type { PayrollLineRow } from "../lib/types";
+import type { PayrollCycleRow, PayrollLineRow } from "../lib/types";
 
 type OverrideFields = {
   late: number;
@@ -169,17 +176,51 @@ export default function HrVerifyPage() {
   const { cycleId } = useParams<{ cycleId?: string }>();
   const { cycle: ctxCycle, can, fire } = useHrAccess();
   const { data: ref } = useHrReferenceData();
+  const { data: allCycles = [] } = useHrCycles();
   const qc = useQueryClient();
   const [countryFilter, setCountryFilter] = useState<PayrollCountryFilter>("All");
   const [branchId, setBranchId] = useState("All");
   const [companyId, setCompanyId] = useState("All");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [cycleFilter, setCycleFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState<PayrollStatusFilter>("All");
+  const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [ovrLine, setOvrLine] = useState<PayrollLineRow | null>(null);
   const [reopenOpen, setReopenOpen] = useState(false);
   const [reopenReason, setReopenReason] = useState("");
 
-  const cycle = ctxCycle;
-  const effectiveCycleId = cycleId ?? cycle?.id;
-  const { data: lines = [], isLoading } = useHrPayrollLines(effectiveCycleId);
+  useEffect(() => {
+    if (!ctxCycle || filtersInitialized) return;
+    setFromDate(ctxCycle.start_date);
+    setToDate(ctxCycle.end_date);
+    setCycleFilter(cycleId ?? ctxCycle.id);
+    setFiltersInitialized(true);
+  }, [ctxCycle, cycleId, filtersInitialized]);
+
+  const validDateRange = Boolean(fromDate && toDate && fromDate <= toDate);
+
+  const cycleOptions = useMemo(
+    () => (validDateRange ? cyclesInDateRange(allCycles, fromDate, toDate) : []),
+    [allCycles, fromDate, toDate, validDateRange],
+  );
+
+  const matchingCycles = useMemo(
+    () =>
+      validDateRange
+        ? cyclesMatchingVerifyFilters(allCycles, fromDate, toDate, cycleFilter, statusFilter)
+        : [],
+    [allCycles, fromDate, toDate, cycleFilter, statusFilter, validDateRange],
+  );
+
+  const matchingCycleIds = useMemo(() => matchingCycles.map((c) => c.id), [matchingCycles]);
+
+  const cyclesById = useMemo(
+    () => Object.fromEntries(allCycles.map((c) => [c.id, c] as const)),
+    [allCycles],
+  ) as Record<string, PayrollCycleRow>;
+
+  const { data: lines = [], isLoading } = useHrPayrollLinesMulti(matchingCycleIds);
 
   const branchOptions = useMemo(
     () => branchesForPayrollCountry(ref?.branches ?? [], countryFilter),
@@ -200,15 +241,39 @@ export default function HrVerifyPage() {
     }
   }, [branchId, companyId, branchOptions, companyOptions]);
 
+  useEffect(() => {
+    if (cycleFilter !== "All" && !cycleOptions.some((c) => c.id === cycleFilter)) {
+      setCycleFilter("All");
+    }
+  }, [cycleFilter, cycleOptions]);
+
   const filtered = useMemo(
     () => filterPayrollLines(lines, countryFilter, branchId, companyId),
     [lines, countryFilter, branchId, companyId],
   );
 
   const registerRows = useMemo(
-    () => (cycle ? linesToRegisterRows(filtered, cycle.label, cycle.status) : []),
-    [filtered, cycle],
+    () =>
+      filtered.flatMap((line) => {
+        const c = cyclesById[line.cycle_id];
+        return linesToRegisterRows([line], c?.label ?? "", c?.status ?? "");
+      }),
+    [filtered, cyclesById],
   );
+
+  const showCycleColumn = cycleFilter === "All" || matchingCycleIds.length > 1;
+
+  const workflowCycle =
+    cycleFilter !== "All"
+      ? cyclesById[cycleFilter]
+      : matchingCycles.length === 1
+        ? matchingCycles[0]
+        : ctxCycle;
+
+  const workflowCycleId = workflowCycle?.id;
+  const canRunCycleWorkflow = cycleFilter !== "All" && !!cyclesById[cycleFilter];
+  const exportLabel = verifyDateRangeLabel(fromDate, toDate);
+  const exportFileStem = verifyExportFileStem(fromDate, toDate);
 
   const currencyTotals = useMemo(() => {
     const acc: Record<string, { gross: number; net: number }> = {};
@@ -228,9 +293,9 @@ export default function HrVerifyPage() {
   const dedLabels = hasCanada
     ? { pf: "CPP", esic: "EI", pt: "Tax+" }
     : { pf: "PF", esic: "ESIC", pt: "PT" };
-  const cycleStatus = cycle?.status ?? "Draft";
+  const cycleStatus = workflowCycle?.status ?? "Draft";
   const locked = cycleStatus === "Locked" || cycleStatus === "Paid";
-  const editable = ["Draft", "Processed", "Approved"].includes(cycleStatus);
+  const editable = canRunCycleWorkflow && ["Draft", "Processed", "Approved"].includes(cycleStatus);
 
   const refreshCycle = async () => {
     await qc.invalidateQueries({ queryKey: ["hr-payroll-cycle"] });
@@ -239,11 +304,11 @@ export default function HrVerifyPage() {
   };
 
   const rebuildRegister = async () => {
-    if (!effectiveCycleId || !cycle) return;
+    if (!workflowCycleId || !workflowCycle) return;
     if (!confirm("Rebuild payroll lines for all active employees on this cycle?")) return;
     try {
-      const count = await rebuildPayrollCycle(effectiveCycleId);
-      await hrAudit("Payroll Register Rebuilt", cycle.label, cycleStatus, cycleStatus);
+      const count = await rebuildPayrollCycle(workflowCycleId);
+      await hrAudit("Payroll Register Rebuilt", workflowCycle.label, cycleStatus, cycleStatus);
       fire(`Register rebuilt (${count} employees)`);
       await refreshCycle();
     } catch (e) {
@@ -252,11 +317,11 @@ export default function HrVerifyPage() {
   };
 
   const processCycle = async () => {
-    if (!effectiveCycleId || !cycle) return;
+    if (!workflowCycleId || !workflowCycle) return;
     if (!confirm("Process payroll? Lines rebuild + processed snapshots (attendance, leave, policies) are captured.")) return;
     try {
-      await processPayrollCycle(effectiveCycleId);
-      await hrAudit("Payroll Processed", cycle.label, "Draft", "Processed");
+      await processPayrollCycle(workflowCycleId);
+      await hrAudit("Payroll Processed", workflowCycle.label, "Draft", "Processed");
       fire("Payroll processed — review register before approval");
       await refreshCycle();
     } catch (e) {
@@ -265,11 +330,11 @@ export default function HrVerifyPage() {
   };
 
   const approveCycle = async () => {
-    if (!effectiveCycleId || !cycle) return;
+    if (!workflowCycleId || !workflowCycle) return;
     if (!confirm("Approve payroll register for locking?")) return;
     try {
-      await approvePayrollCycle(effectiveCycleId);
-      await hrAudit("Payroll Approved", cycle.label, "Processed", "Approved");
+      await approvePayrollCycle(workflowCycleId);
+      await hrAudit("Payroll Approved", workflowCycle.label, "Processed", "Approved");
       fire("Payroll approved — ready to lock");
       await refreshCycle();
     } catch (e) {
@@ -278,13 +343,13 @@ export default function HrVerifyPage() {
   };
 
   const lockCycle = async () => {
-    if (!effectiveCycleId || !cycle) return;
+    if (!workflowCycleId || !workflowCycle) return;
     if (!confirm("Lock payroll? All lines will be snapshotted and attendance frozen for this cycle.")) {
       return;
     }
     try {
-      await lockPayrollCycle(effectiveCycleId);
-      await hrAudit("Payroll Locked", cycle.label, cycleStatus, "Locked");
+      await lockPayrollCycle(workflowCycleId);
+      await hrAudit("Payroll Locked", workflowCycle.label, cycleStatus, "Locked");
       fire("Payroll locked — register frozen");
       await refreshCycle();
     } catch (e) {
@@ -293,11 +358,11 @@ export default function HrVerifyPage() {
   };
 
   const markPaid = async () => {
-    if (!effectiveCycleId || !cycle) return;
+    if (!workflowCycleId || !workflowCycle) return;
     if (!confirm("Mark this payroll cycle as paid?")) return;
     try {
-      await markPayrollPaid(effectiveCycleId);
-      await hrAudit("Payroll Paid", cycle.label, "Locked", "Paid");
+      await markPayrollPaid(workflowCycleId);
+      await hrAudit("Payroll Paid", workflowCycle.label, "Locked", "Paid");
       fire("Payroll marked as paid");
       await refreshCycle();
     } catch (e) {
@@ -306,10 +371,10 @@ export default function HrVerifyPage() {
   };
 
   const reopenCycle = async () => {
-    if (!effectiveCycleId || !cycle) return;
+    if (!workflowCycleId || !workflowCycle) return;
     try {
-      await reopenPayrollCycle(effectiveCycleId, reopenReason.trim() || undefined);
-      await hrAudit("Payroll Reopened", cycle.label, cycleStatus, reopenReason.trim() || "—");
+      await reopenPayrollCycle(workflowCycleId, reopenReason.trim() || undefined);
+      await hrAudit("Payroll Reopened", workflowCycle.label, cycleStatus, reopenReason.trim() || "—");
       fire("Payroll reopened for corrections");
       setReopenOpen(false);
       setReopenReason("");
@@ -320,45 +385,66 @@ export default function HrVerifyPage() {
   };
 
   const exportRegister = (fmt: "CSV" | "Excel") => {
-    if (!cycle) return;
-    downloadPayrollRegister(registerRows, cycle.label, fmt);
+    if (!registerRows.length) {
+      fire("No payroll records match the current filters");
+      return;
+    }
+    downloadPayrollRegister(registerRows, exportFileStem, fmt);
   };
 
   const exportPdf = () => {
-    if (!cycle) return;
-    printRegisterPdf(registerRows, cycle.label, locked);
+    if (!registerRows.length) {
+      fire("No payroll records match the current filters");
+      return;
+    }
+    const exportLocked = matchingCycles.length > 0 && matchingCycles.every(
+      (c) => c.status === "Locked" || c.status === "Paid",
+    );
+    printRegisterPdf(registerRows, exportLabel, exportLocked);
   };
 
   const exportBatchSlips = () => {
-    if (!cycle) return;
+    if (!filtered.length) {
+      fire("No payroll records match the current filters");
+      return;
+    }
     const items = filtered
       .filter((r) => r.employees)
       .map((r) => ({ emp: r.employees!, line: r }));
-    printBatchSalarySlips(items, cycle.label);
+    printBatchSalarySlips(items, exportLabel);
   };
 
-  if (!cycle) return <div className="empty">No payroll cycle loaded.</div>;
+  if (!ctxCycle) return <div className="empty">No payroll cycle loaded.</div>;
 
   return (
     <div className="grid" style={{ gap: 16 }}>
       <div className="card-h">
         <div className="row-flex">
           <span className="tag">
-            {cycle.start_date} – {cycle.end_date} · {cycle.payroll_days}d
+            {exportLabel}
+            {workflowCycle && cycleFilter !== "All" && (
+              <span className="muted" style={{ marginLeft: 6 }}>
+                · {workflowCycle.label}
+              </span>
+            )}
           </span>
           <span className="tag muted">
-            {filtered.length} of {lines.length} employees
+            {filtered.length} of {lines.length} records
+            {matchingCycles.length > 1 && ` · ${matchingCycles.length} cycles`}
           </span>
           {cycleStatus !== "Draft" && (
             <StatusBadge status={cycleStatus} />
           )}
-          {locked && (
+          {locked && canRunCycleWorkflow && (
               <span className="tag" style={{ color: "var(--good)" }}>
                 locked snapshots · attendance frozen
               </span>
           )}
-          {cycleStatus === "Paid" && cycle.paid_at && (
-            <span className="tag">paid {cycle.paid_at.slice(0, 10)}</span>
+          {cycleStatus === "Paid" && workflowCycle?.paid_at && canRunCycleWorkflow && (
+            <span className="tag">paid {workflowCycle.paid_at.slice(0, 10)}</span>
+          )}
+          {!validDateRange && (
+            <span className="tag" style={{ color: "var(--rose)" }}>Invalid date range</span>
           )}
         </div>
         <div className="row-flex">
@@ -369,7 +455,7 @@ export default function HrVerifyPage() {
                   key={f}
                   type="button"
                   className="btn btn-sm"
-                  onClick={() => void exportRegister(f === "CSV" ? "CSV" : "Excel")}
+                  onClick={() => exportRegister(f === "CSV" ? "CSV" : "Excel")}
                 >
                   ↓ {f}
                 </button>
@@ -382,12 +468,12 @@ export default function HrVerifyPage() {
               </button>
             </>
           )}
-          {can("approve") && editable && (
+          {can("approve") && editable && canRunCycleWorkflow && (
             <button type="button" className="btn btn-sm" onClick={() => void rebuildRegister()}>
               Rebuild register
             </button>
           )}
-          {can("approve") && (
+          {can("approve") && canRunCycleWorkflow && (
             <>
               {cycleStatus === "Draft" && (
                 <button type="button" className="btn btn-primary btn-sm" onClick={() => void processCycle()}>
@@ -424,6 +510,11 @@ export default function HrVerifyPage() {
           {!can("export") && !can("approve") && (
             <span className="muted" style={{ fontSize: 12 }}>
               read-only access
+            </span>
+          )}
+          {can("approve") && !canRunCycleWorkflow && (
+            <span className="muted" style={{ fontSize: 12 }}>
+              Select a payroll cycle to process / approve / lock
             </span>
           )}
         </div>
@@ -467,16 +558,65 @@ export default function HrVerifyPage() {
               ))}
             </select>
           </label>
+          <label className="fld" style={{ minWidth: 150 }}>
+            <span className="l">From Date</span>
+            <input
+              className="input"
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+            />
+          </label>
+          <label className="fld" style={{ minWidth: 150 }}>
+            <span className="l">To Date</span>
+            <input
+              className="input"
+              type="date"
+              value={toDate}
+              max={todayIsoDate()}
+              onChange={(e) => setToDate(e.target.value)}
+            />
+          </label>
+          <label className="fld" style={{ minWidth: 220 }}>
+            <span className="l">Payroll Cycle</span>
+            <select className="input" value={cycleFilter} onChange={(e) => setCycleFilter(e.target.value)}>
+              <option value="All">All cycles in range</option>
+              {cycleOptions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.label} ({c.start_date} – {c.end_date})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="fld" style={{ minWidth: 160 }}>
+            <span className="l">Payroll Status</span>
+            <select
+              className="input"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as PayrollStatusFilter)}
+            >
+              {PAYROLL_VERIFY_STATUSES.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 
       <div className="card" style={{ padding: 0, overflow: "auto" }}>
         {isLoading ? (
           <div className="empty">Loading register…</div>
+        ) : matchingCycleIds.length === 0 ? (
+          <div className="empty">No payroll cycles match the selected date range and filters.</div>
+        ) : filtered.length === 0 ? (
+          <div className="empty">No payroll records match the selected filters.</div>
         ) : (
           <table style={{ minWidth: 1500 }}>
             <thead>
               <tr>
+                {showCycleColumn && <th>Cycle</th>}
                 <th>Employee</th>
                 <th>PF No.</th>
                 <th>Branch</th>
@@ -506,6 +646,14 @@ export default function HrVerifyPage() {
             <tbody>
               {filtered.map((r) => (
                 <tr key={r.id}>
+                  {showCycleColumn && (
+                    <td style={{ fontSize: 11.5 }}>
+                      {cyclesById[r.cycle_id]?.label ?? "—"}
+                      <div className="muted mono" style={{ fontSize: 10 }}>
+                        {cyclesById[r.cycle_id]?.status}
+                      </div>
+                    </td>
+                  )}
                   <td className="strong">
                     {r.employees?.full_name}
                     {r.is_overridden && (
@@ -565,11 +713,14 @@ export default function HrVerifyPage() {
                   <td className="mono strong">{rowMoney(r, r.net_salary)}</td>
                   <td>
                     <div className="row-flex">
-                      {can("export") && r.employees && cycle && (
+                      {can("export") && r.employees && (
                         <button
                           type="button"
                           className="btn btn-sm"
-                          onClick={() => printSalarySlip(r.employees!, r, cycle)}
+                          onClick={() => {
+                            const slipCycle = cyclesById[r.cycle_id] ?? workflowCycle;
+                            if (slipCycle) printSalarySlip(r.employees!, r, slipCycle);
+                          }}
                         >
                           Slip
                         </button>
@@ -578,7 +729,11 @@ export default function HrVerifyPage() {
                         <button
                           type="button"
                           className="btn btn-sm"
-                          disabled={!editable}
+                          disabled={
+                            !["Draft", "Processed", "Approved"].includes(
+                              cyclesById[r.cycle_id]?.status ?? "",
+                            )
+                          }
                           onClick={() => setOvrLine(r)}
                         >
                           Ovr
@@ -598,7 +753,7 @@ export default function HrVerifyPage() {
             <tfoot>
               {currencyTotals.map(([cur, t]) => (
                 <tr key={cur} style={{ borderTop: "2px solid var(--line)" }}>
-                  <td className="strong" colSpan={15} style={{ textAlign: "right" }}>
+                  <td className="strong" colSpan={showCycleColumn ? 16 : 15} style={{ textAlign: "right" }}>
                     Totals ({cur})
                   </td>
                   <td className="mono strong">{formatMoney(t.gross, cur)}</td>
@@ -623,10 +778,10 @@ export default function HrVerifyPage() {
         </div>
       </div>
 
-      {ovrLine && effectiveCycleId && (
+      {ovrLine && (
         <OverrideModal
           line={ovrLine}
-          cycleId={effectiveCycleId}
+          cycleId={ovrLine.cycle_id}
           onClose={() => setOvrLine(null)}
           onSaved={fire}
         />

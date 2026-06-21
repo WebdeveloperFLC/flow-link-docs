@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   branchesForPayrollCountry,
   companiesForPayrollCountryFilter,
+  cycleOverlapsDateRange,
+  cyclesMatchingVerifyFilters,
   employeePayrollCountry,
   filterPayrollLines,
   hasActivePayrollFilters,
@@ -117,6 +119,38 @@ describe("payrollVerifyFilters", () => {
     ];
     const filtered = filterPayrollLines(lines, "IN", "b-in", "c-in");
     expect(filtered.map((l) => l.id)).toEqual(["1"]);
+  });
+
+  it("matches cycles by date range, cycle id, and status", () => {
+    const cycles = [
+      {
+        id: "c1",
+        label: "Jan 2026",
+        start_date: "2026-01-01",
+        end_date: "2026-01-31",
+        payroll_days: 31,
+        status: "Locked",
+      },
+      {
+        id: "c2",
+        label: "Feb 2026",
+        start_date: "2026-02-01",
+        end_date: "2026-02-28",
+        payroll_days: 28,
+        status: "Draft",
+      },
+    ];
+    expect(
+      cyclesMatchingVerifyFilters(cycles, "2026-01-01", "2026-03-31", "All", "All").map((c) => c.id),
+    ).toEqual(["c1", "c2"]);
+    expect(
+      cyclesMatchingVerifyFilters(cycles, "2026-01-01", "2026-03-31", "c1", "All").map((c) => c.id),
+    ).toEqual(["c1"]);
+    expect(
+      cyclesMatchingVerifyFilters(cycles, "2026-01-01", "2026-03-31", "All", "Locked").map((c) => c.id),
+    ).toEqual(["c1"]);
+    expect(cycleOverlapsDateRange(cycles[0], "2026-01-15", "2026-02-15")).toBe(true);
+    expect(cycleOverlapsDateRange(cycles[1], "2026-01-01", "2026-01-31")).toBe(false);
   });
 
   it("detects active filter state", () => {
