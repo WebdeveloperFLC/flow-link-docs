@@ -104,8 +104,6 @@ maybe_publish_service_library_pilot() {
     [[ -z "$f" ]] && continue
     case "$f" in
       content/service-library/canada-spouse-dependent-visitor.json|\
-scripts/publish-service-library-pilot.mjs|\
-scripts/test-document-manifest-pilot.mjs|\
 scripts/lib/document-manifest.mjs|\
 scripts/lib/document-master-codes.mjs|\
 scripts/lib/build-checklist-from-service.mjs)
