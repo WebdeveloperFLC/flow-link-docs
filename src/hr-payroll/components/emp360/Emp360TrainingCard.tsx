@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import { Stat } from "../ui/Stat";
-import { Emp360StatRow, Emp360SummaryCard } from "./Emp360SummaryCard";
+import { Emp360MetricList, Emp360SummaryCard } from "./Emp360SummaryCard";
 import { emp360DetailPath } from "../../lib/emp360Paths";
 import type { TrainingRecordRow } from "../../lib/types";
 
@@ -18,6 +17,7 @@ export function Emp360TrainingCard({ employeeId, profileSearch, records }: Props
   return (
     <Emp360SummaryCard
       title="Training"
+      subtitle="All records"
       action={
         <Link
           to={emp360DetailPath(employeeId, "training", profileSearch)}
@@ -27,12 +27,13 @@ export function Emp360TrainingCard({ employeeId, profileSearch, records }: Props
         </Link>
       }
     >
-      <p className="muted emp360-card-summary-hint">All training records</p>
-      <Emp360StatRow>
-        <Stat variant="highlight" tone="blue" lab="Total records" val={records.length} />
-        <Stat variant="highlight" tone="orange" lab="Active" val={active} />
-        <Stat variant="highlight" tone="green" lab="Completed / other" val={records.length - active} />
-      </Emp360StatRow>
+      <Emp360MetricList
+        rows={[
+          ["Total records", records.length],
+          ["Active", active],
+          ["Completed / other", records.length - active],
+        ]}
+      />
     </Emp360SummaryCard>
   );
 }

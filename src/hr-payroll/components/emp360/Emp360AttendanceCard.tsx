@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import { Stat } from "../ui/Stat";
-import { Emp360StatRow, Emp360SummaryCard } from "./Emp360SummaryCard";
+import { Emp360MetricList, Emp360SummaryCard } from "./Emp360SummaryCard";
 import { fmtDur } from "../../lib/attendanceMetrics";
 import { emp360DetailPath } from "../../lib/emp360Paths";
 import type { AttendanceRollup } from "../../lib/emp360Rollups";
@@ -21,6 +20,7 @@ export function Emp360AttendanceCard({
   return (
     <Emp360SummaryCard
       title="Attendance"
+      subtitle={`Current cycle · ${cycleLabel}`}
       action={
         <Link
           to={emp360DetailPath(employeeId, "attendance", profileSearch)}
@@ -30,20 +30,16 @@ export function Emp360AttendanceCard({
         </Link>
       }
     >
-      <p className="muted emp360-card-summary-hint">Current cycle · {cycleLabel}</p>
-      <Emp360StatRow>
-        <Stat variant="highlight" tone="green" lab="Present days" val={rollup?.present ?? "—"} />
-        <Stat variant="highlight" tone="rose" lab="Absent days" val={rollup?.absent ?? "—"} />
-        <Stat variant="highlight" tone="orange" lab="Half days" val={rollup?.halfDays ?? "—"} />
-        <Stat variant="highlight" tone="gold" lab="Late marks" val={rollup?.lateMarks ?? "—"} />
-        <Stat variant="highlight" tone="purple" lab="Mispunches" val={rollup?.mispunches ?? "—"} />
-        <Stat
-          variant="highlight"
-          tone="blue"
-          lab="Working hours"
-          val={rollup ? fmtDur(rollup.workingMinutes) : "—"}
-        />
-      </Emp360StatRow>
+      <Emp360MetricList
+        rows={[
+          ["Present days", rollup?.present ?? "—"],
+          ["Absent days", rollup?.absent ?? "—"],
+          ["Half days", rollup?.halfDays ?? "—"],
+          ["Late marks", rollup?.lateMarks ?? "—"],
+          ["Mispunches", rollup?.mispunches ?? "—"],
+          ["Working hours", rollup ? fmtDur(rollup.workingMinutes) : "—"],
+        ]}
+      />
     </Emp360SummaryCard>
   );
 }
