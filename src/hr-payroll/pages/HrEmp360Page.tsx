@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
 import { splitShiftHours } from "../lib/shiftHours";
-import { useHrPayrollLine } from "../hooks/useHrPayroll";
+import { useHrEmployeePayrollHistory, useHrPayrollLine } from "../hooks/useHrPayroll";
 import { useHrAttendance } from "../hooks/useHrAttendance";
 import { useHrShifts } from "../hooks/useHrShifts";
+import { useSalaryRevisions } from "../hooks/useSalaryRevisions";
 import {
   useHrLeaveRequests,
   useHrCompoffRequests,
@@ -14,8 +15,21 @@ import {
 } from "../hooks/useHrRequests";
 import { EmployeeSeg } from "../components/ui/EmployeeSeg";
 import { StatusBadge } from "../components/ui/StatusBadge";
+import { LeaveSummaryPanel } from "../components/leave/LeaveSummaryPanel";
+import { EmployeeDocumentsPanel } from "../components/employees/EmployeeDocumentsPanel";
 import { fmtDur } from "../lib/attendanceMetrics";
-import { inr, initials } from "../lib/format";
+import { formatSecurityChequeUploadedAt } from "../lib/securityCheque";
+import { printSalarySlip } from "../lib/salarySlip";
+import {
+  displayEmployeeName,
+  employeeCurrency,
+  employeeStatusBadgeClass,
+  employeeStatusLabel,
+  formatMoney,
+  initials,
+  parseEmergencyContacts,
+  payrollCompanyLabel,
+} from "../lib/format";
 import type { AttendanceRow, ShiftRow } from "../lib/types";
 
 function SumCard({
@@ -64,18 +78,50 @@ function SumCard({
   );
 }
 
+function InfoCard({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: [string, string | null | undefined][];
+}) {
+  return (
+    <div className="card">
+      <div className="card-h">
+        <h3 style={{ fontSize: 15 }}>{title}</h3>
+      </div>
+      <div className="grid g2" style={{ gap: "10px 20px" }}>
+        {rows.map(([k, v]) => (
+          <div key={k}>
+            <div style={{ fontSize: 11, color: "var(--mut)", fontWeight: 600 }}>{k}</div>
+            <div style={{ fontSize: 13.5, marginTop: 3 }}>{v?.trim() ? v : "—"}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function rollupAtt(att: AttendanceRow[], shift: ShiftRow) {
   let working = 0;
   let leaves = 0;
   let wOff = 0;
   let otMin = 0;
   let offShiftMin = 0;
+  let present = 0;
+  let absent = 0;
+  let lateMarks = 0;
   const sw = {
     login: shift.login_time.slice(0, 5),
     logout: shift.logout_time.slice(0, 5),
     breakDur: shift.break_min ?? 45,
   };
   for (const a of att) {
+    if (a.status === "Absent") absent++;
+    if (a.status === "Late") lateMarks++;
+    if (a.status === "Half Day") present += 0.5;
+    else if (["Present", "Late"].includes(a.status)) present++;
+
     if (a.status === "Week Off" || a.status === "Holiday") {
       wOff++;
       continue;
@@ -98,15 +144,19 @@ function rollupAtt(att: AttendanceRow[], shift: ShiftRow) {
     wOff,
     otMin,
     offShiftMin,
+    present: Math.round(present * 10) / 10,
+    absent,
+    lateMarks,
   };
 }
 
 export default function HrEmp360Page() {
   const { id: routeId } = useParams<{ id?: string }>();
-  const { cycle } = useHrAccess();
+  const { cycle, can } = useHrAccess();
   const { data: employees = [] } = useHrEmployees({ activeOnly: false });
   const { data: shifts = [] } = useHrShifts();
   const [empId, setEmpId] = useState("");
+  const [summaryYear, setSummaryYear] = useState(() => new Date().getFullYear());
 
   useEffect(() => {
     if (routeId) setEmpId(routeId);
@@ -116,8 +166,13 @@ export default function HrEmp360Page() {
 
   const emp = employees.find((e) => e.id === empId) ?? employees[0];
   const shift = shifts.find((s) => s.id === emp?.shift_id) ?? shifts[0];
+  const reportingManager = emp?.reporting_mgr_id
+    ? employees.find((e) => e.id === emp.reporting_mgr_id)
+    : null;
 
   const { data: line } = useHrPayrollLine(emp?.id, cycle?.id);
+  const { data: payrollHistory = [] } = useHrEmployeePayrollHistory(emp?.id);
+  const { data: revisions = [] } = useSalaryRevisions(emp?.id);
   const { data: att = [] } = useHrAttendance(emp?.id, cycle?.start_date, cycle?.end_date);
   const { data: allLeaves = [] } = useHrLeaveRequests();
   const { data: allCompoff = [] } = useHrCompoffRequests();
@@ -125,6 +180,8 @@ export default function HrEmp360Page() {
   const { data: allAudit = [] } = useHrAuditLogs();
 
   const ru = shift && att.length ? rollupAtt(att, shift) : null;
+  const currency = employeeCurrency(emp);
+  const money = (n: number | null | undefined) => formatMoney(n ?? 0, currency);
 
   const leaves = useMemo(
     () => allLeaves.filter((l) => l.employee_id === emp?.id),
@@ -138,6 +195,14 @@ export default function HrEmp360Page() {
     () => allTraining.filter((t) => t.employee_id === emp?.id),
     [allTraining, emp?.id],
   );
+  const activeTraining = useMemo(
+    () => training.filter((t) => t.status === "In Progress" || t.status === "Extended"),
+    [training],
+  );
+  const trainingHistory = useMemo(
+    () => training.filter((t) => t.status !== "In Progress" && t.status !== "Extended"),
+    [training],
+  );
   const audit = useMemo(
     () =>
       allAudit.filter(
@@ -147,6 +212,8 @@ export default function HrEmp360Page() {
       ),
     [allAudit, emp?.full_name, emp?.emp_code],
   );
+
+  const emergencyContacts = parseEmergencyContacts(emp?.emergency_contacts);
 
   if (!emp) return <div className="empty">No employees configured.</div>;
 
@@ -166,6 +233,8 @@ export default function HrEmp360Page() {
     net_salary: 0,
   };
 
+  const cycleLabel = cycle?.label ?? "Current cycle";
+
   return (
     <div className="grid" style={{ gap: 16 }}>
       <EmployeeSeg employees={employees} selectedId={emp.id} onSelect={setEmpId} />
@@ -176,44 +245,180 @@ export default function HrEmp360Page() {
         </div>
         <div style={{ flex: 1, minWidth: 200 }}>
           <div className="serif" style={{ fontSize: 20, fontWeight: 600 }}>
-            {emp.full_name}
+            {displayEmployeeName(emp)}
           </div>
           <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>
-            {emp.designation} · {emp.department} · {emp.branches?.name} · {emp.companies?.name}
+            {emp.emp_code} · {emp.designations?.name ?? emp.designation} · {emp.departments?.name ?? emp.department}
           </div>
           <div className="muted" style={{ fontSize: 12, marginTop: 3 }}>
             {emp.mobile} · {emp.email}
           </div>
         </div>
-        {emp.status === "On Probation" ? (
-          <StatusBadge status="On Probation" />
-        ) : (
-          <StatusBadge status="Confirmed" />
-        )}
+        <span className={`badge ${employeeStatusBadgeClass(emp.status)}`}>
+          {employeeStatusLabel(emp.status)}
+        </span>
+      </div>
+
+      <div className="grid g2">
+        <InfoCard
+          title="Personal information"
+          rows={[
+            ["Employee ID", emp.emp_code],
+            ["Full name", displayEmployeeName(emp)],
+            ["Mobile", emp.mobile],
+            ["Email", emp.email],
+            ["Nationality", emp.nationality],
+            ["Marital status", emp.marital_status],
+            ["Blood group", emp.blood_group],
+            ...emergencyContacts
+              .filter((c) => c.name || c.phone)
+              .flatMap((c, i) => [
+                [`Emergency contact ${i + 1}`, `${c.name} · ${c.phone} (${c.relation})`],
+              ] as [string, string][]),
+          ]}
+        />
+        <InfoCard
+          title="Employment information"
+          rows={[
+            ["Department", emp.departments?.name ?? emp.department],
+            ["Designation", emp.designations?.name ?? emp.designation],
+            [
+              "Reporting manager",
+              reportingManager ? `${reportingManager.full_name} (${reportingManager.emp_code})` : null,
+            ],
+            ["Date of joining", emp.date_of_joining],
+            [
+              "Probation",
+              [emp.probation_start_date, emp.probation_end_date].filter(Boolean).join(" – ") || null,
+            ],
+            ["Notice period", emp.notice_period],
+            ["Employee status", emp.status],
+            ["Employee category", emp.hr_employee_categories?.label],
+            [
+              "Payroll company",
+              emp.companies ? payrollCompanyLabel(emp.companies) : null,
+            ],
+            ["Payroll country", emp.payroll_country ?? "IN"],
+            ["Salary currency", currency],
+            ["Branch", emp.branches?.name],
+            [
+              "Shift",
+              emp.shifts
+                ? `${emp.shifts.name} (${emp.shifts.login_time?.slice(0, 5)}–${emp.shifts.logout_time?.slice(0, 5)})`
+                : null,
+            ],
+          ]}
+        />
+      </div>
+
+      {(emp.exit_date || emp.exit_reason || emp.rehire_eligible) && (
+        <InfoCard
+          title="Exit information"
+          rows={[
+            ["Exit date", emp.exit_date],
+            ["Exit reason", emp.exit_reason],
+            ["Rehire eligible", emp.rehire_eligible ? "Yes" : emp.exit_date ? "No" : null],
+          ]}
+        />
+      )}
+
+      <div className="grid g2">
+        <InfoCard
+          title="Bank information"
+          rows={[
+            ["Account holder", emp.bank_holder_name],
+            ["Bank", emp.bank_name],
+            ["Account number", emp.bank_account_number],
+            ["IFSC", emp.bank_ifsc],
+            ["Branch name", emp.bank_branch],
+            ["Account type", emp.bank_account_type],
+            ["Verification status", emp.bank_verified ? "Verified" : "Pending"],
+            ...(emp.bank_verified
+              ? [
+                  ["Verified by", emp.bank_verified_by],
+                  ["Verification date", formatSecurityChequeUploadedAt(emp.bank_verified_at)],
+                ]
+              : []),
+          ]}
+        />
+        <div className="card">
+          <div className="card-h">
+            <h3 style={{ fontSize: 15 }}>Salary information</h3>
+            <span className="tag muted">{currency}</span>
+          </div>
+          <div className="grid g2" style={{ gap: 10, marginBottom: revisions.length ? 14 : 0 }}>
+            {[
+              ["Current monthly gross", money(emp.monthly_gross)],
+              ["Basic", money(emp.basic)],
+              ["HRA", money(emp.hra)],
+              ["Other deductions/mo", emp.other_deductions ? money(emp.other_deductions) : "—"],
+            ].map(([k, v]) => (
+              <div
+                key={k}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  padding: "10px 13px",
+                  background: "var(--paper)",
+                  borderRadius: 9,
+                }}
+              >
+                <span style={{ fontSize: 12, color: "var(--mut)", fontWeight: 600 }}>{k}</span>
+                <span className="mono" style={{ fontSize: 13 }}>{v}</span>
+              </div>
+            ))}
+          </div>
+          {revisions.length > 0 && (
+            <>
+              <div className="sec-label">Salary revision history</div>
+              <table style={{ fontSize: 12 }}>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Old</th>
+                    <th>New</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {revisions.map((rev) => (
+                    <tr key={rev.id}>
+                      <td>{rev.effective_date}</td>
+                      <td className="mono">{money(rev.old_salary)}</td>
+                      <td className="mono">{money(rev.new_salary)}</td>
+                      <td className="muted">{rev.remarks ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid g4">
         <SumCard
-          title="Attendance"
+          title={`Attendance · ${cycleLabel}`}
           rows={[
+            ["Present days", ru?.present ?? "—"],
+            ["Absent days", ru?.absent ?? "—"],
+            ["Late marks", ru?.lateMarks ?? r.late_count],
             ["Working", ru?.working ?? "—"],
             ["Leaves", ru?.leaves ?? 0],
-            ["Week Offs", ru?.wOff ?? "—"],
-            ["Shift OT", ru ? fmtDur(ru.otMin) : "—"],
-            ["Off-shift", ru ? fmtDur(ru.offShiftMin) : "—"],
+            ["Week offs", ru?.wOff ?? "—"],
           ]}
         />
         <SumCard
-          title="Late & Mispunch"
+          title={`Late & mispunch · ${cycleLabel}`}
           rows={[
-            ["Late", r.late_count],
+            ["Late (payroll)", r.late_count],
             ["Late ded", `${r.late_deduction}d`],
             ["Mispunch", r.mispunch_count],
             ["Mis ded", `${r.mispunch_deduction}d`],
           ]}
         />
         <SumCard
-          title="Leave & Comp-Off"
+          title={`Leave & comp-off · ${cycleLabel}`}
           rows={[
             ["Paid lv", r.paid_leaves],
             ["Comp-off", r.comp_off],
@@ -222,28 +427,88 @@ export default function HrEmp360Page() {
           ]}
         />
         <SumCard
-          title="Payroll"
+          title={`Payroll · ${cycleLabel}`}
           hl
           rows={[
-            ["Gross", inr(r.gross_earned)],
-            ["PF/ESIC", inr(r.pf_employee + r.esic_employee)],
+            ["Gross", money(r.gross_earned)],
+            ["PF/ESIC", money(r.pf_employee + r.esic_employee)],
             ["Payable", `${r.payable_days}d`],
-            ["Net", inr(r.net_salary)],
+            ["Net", money(r.net_salary)],
           ]}
         />
       </div>
 
-      <div className="grid g3">
+      <LeaveSummaryPanel
+        employeeId={emp.id}
+        year={summaryYear}
+        onEmployeeChange={() => undefined}
+        onYearChange={setSummaryYear}
+        showEmployeePicker={false}
+      />
+
+      <div className="grid g2">
+        <div className="card">
+          <div className="card-h">
+            <h3 style={{ fontSize: 15 }}>Latest payroll & history</h3>
+            {line && cycle && can("export") && (
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => printSalarySlip(emp, line, cycle)}
+              >
+                ↓ Salary slip
+              </button>
+            )}
+          </div>
+          {payrollHistory.length === 0 ? (
+            <div className="empty" style={{ padding: 16 }}>No payroll lines recorded.</div>
+          ) : (
+            <table style={{ fontSize: 12 }}>
+              <thead>
+                <tr>
+                  <th>Cycle</th>
+                  <th>Status</th>
+                  <th>Payable</th>
+                  <th>Net</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {payrollHistory.map((pl) => (
+                  <tr key={pl.id}>
+                    <td className="strong">{pl.payroll_cycles?.label ?? "—"}</td>
+                    <td>
+                      {pl.payroll_cycles?.status ? (
+                        <StatusBadge status={pl.payroll_cycles.status} />
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="mono">{pl.payable_days}d</td>
+                    <td className="mono">{money(pl.net_salary)}</td>
+                    <td>
+                      {pl.payroll_cycles && (
+                        <Link to={`/hr/payroll/verify/${pl.cycle_id}`} className="btn btn-sm">
+                          View
+                        </Link>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
         <div className="card">
           <div className="card-h">
             <h3 style={{ fontSize: 15 }}>Leave history</h3>
+            <Link to="/hr/leave" className="btn btn-sm">Open leave →</Link>
           </div>
           {leaves.length === 0 ? (
-            <div className="empty" style={{ padding: 16 }}>
-              None
-            </div>
+            <div className="empty" style={{ padding: 16 }}>None</div>
           ) : (
-            leaves.map((l) => (
+            leaves.slice(0, 8).map((l) => (
               <div
                 key={l.id}
                 className="row-flex"
@@ -255,88 +520,126 @@ export default function HrEmp360Page() {
               >
                 <span style={{ fontSize: 12.5 }}>
                   {l.type} · {l.from_date}
+                  {l.to_date && l.to_date !== l.from_date ? ` → ${l.to_date}` : ""}
                 </span>
                 <StatusBadge status={l.status} />
               </div>
             ))
           )}
         </div>
+      </div>
 
-        <div className="card">
-          <div className="card-h">
-            <h3 style={{ fontSize: 15 }}>Comp-off & Training</h3>
-          </div>
-          {compoff.length === 0 && training.length === 0 ? (
-            <div className="empty" style={{ padding: 16 }}>
-              None
-            </div>
-          ) : (
-            <>
-              {compoff.map((c) => (
-                <div
-                  key={c.id}
-                  className="row-flex"
-                  style={{
-                    justifyContent: "space-between",
-                    padding: "7px 0",
-                    borderBottom: "1px solid #eef0f5",
-                  }}
-                >
-                  <span style={{ fontSize: 12.5 }}>Comp-off · {c.worked_date}</span>
-                  <StatusBadge status={c.status} />
-                </div>
-              ))}
-              {training.map((t) => (
-                <div
-                  key={t.id}
-                  className="row-flex"
-                  style={{
-                    justifyContent: "space-between",
-                    padding: "7px 0",
-                    borderBottom: "1px solid #eef0f5",
-                  }}
-                >
-                  <span style={{ fontSize: 12.5 }}>{t.type}</span>
-                  <StatusBadge status={t.status} />
-                </div>
-              ))}
-            </>
-          )}
+      <div className="card">
+        <div className="card-h">
+          <h3 style={{ fontSize: 15 }}>Employee documents</h3>
         </div>
+        <EmployeeDocumentsPanel emp={emp} />
+      </div>
 
+      <div className="grid g3">
         <div className="card">
           <div className="card-h">
-            <h3 style={{ fontSize: 15 }}>Activity timeline</h3>
+            <h3 style={{ fontSize: 15 }}>Active training</h3>
           </div>
-          {audit.length === 0 ? (
-            <div className="empty" style={{ padding: 16 }}>
-              No recent activity
-            </div>
+          {activeTraining.length === 0 ? (
+            <div className="empty" style={{ padding: 16 }}>None</div>
           ) : (
-            audit.slice(0, 6).map((a) => (
+            activeTraining.map((t) => (
               <div
-                key={a.id}
+                key={t.id}
                 className="row-flex"
                 style={{
+                  justifyContent: "space-between",
                   padding: "7px 0",
                   borderBottom: "1px solid #eef0f5",
-                  alignItems: "flex-start",
                 }}
               >
-                <span
-                  className="mono"
-                  style={{ fontSize: 10.5, color: "var(--mut)", width: 78, flexShrink: 0 }}
-                >
-                  {new Date(a.created_at).toLocaleDateString("en-IN", {
-                    day: "2-digit",
-                    month: "short",
-                  })}
-                </span>
-                <span style={{ fontSize: 12.5 }}>{a.action}</span>
+                <span style={{ fontSize: 12.5 }}>{t.type}</span>
+                <StatusBadge status={t.status} />
               </div>
             ))
           )}
         </div>
+
+        <div className="card">
+          <div className="card-h">
+            <h3 style={{ fontSize: 15 }}>Training history</h3>
+          </div>
+          {trainingHistory.length === 0 ? (
+            <div className="empty" style={{ padding: 16 }}>None</div>
+          ) : (
+            trainingHistory.map((t) => (
+              <div
+                key={t.id}
+                className="row-flex"
+                style={{
+                  justifyContent: "space-between",
+                  padding: "7px 0",
+                  borderBottom: "1px solid #eef0f5",
+                }}
+              >
+                <span style={{ fontSize: 12.5 }}>{t.type}</span>
+                <StatusBadge status={t.status} />
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="card">
+          <div className="card-h">
+            <h3 style={{ fontSize: 15 }}>Comp-off</h3>
+          </div>
+          {compoff.length === 0 ? (
+            <div className="empty" style={{ padding: 16 }}>None</div>
+          ) : (
+            compoff.slice(0, 6).map((c) => (
+              <div
+                key={c.id}
+                className="row-flex"
+                style={{
+                  justifyContent: "space-between",
+                  padding: "7px 0",
+                  borderBottom: "1px solid #eef0f5",
+                }}
+              >
+                <span style={{ fontSize: 12.5 }}>{c.worked_date}</span>
+                <StatusBadge status={c.status} />
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-h">
+          <h3 style={{ fontSize: 15 }}>Activity timeline</h3>
+        </div>
+        {audit.length === 0 ? (
+          <div className="empty" style={{ padding: 16 }}>No recent activity</div>
+        ) : (
+          audit.slice(0, 8).map((a) => (
+            <div
+              key={a.id}
+              className="row-flex"
+              style={{
+                padding: "7px 0",
+                borderBottom: "1px solid #eef0f5",
+                alignItems: "flex-start",
+              }}
+            >
+              <span
+                className="mono"
+                style={{ fontSize: 10.5, color: "var(--mut)", width: 78, flexShrink: 0 }}
+              >
+                {new Date(a.created_at).toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                })}
+              </span>
+              <span style={{ fontSize: 12.5 }}>{a.action}</span>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

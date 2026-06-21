@@ -85,6 +85,29 @@ export function useHrCycles() {
   });
 }
 
+export type EmployeePayrollHistoryLine = PayrollLineRow & {
+  payroll_cycles?: Pick<PayrollCycleRow, "label" | "status" | "start_date" | "end_date"> | null;
+};
+
+/** Recent payroll lines for one employee (Employee 360 history). */
+export function useHrEmployeePayrollHistory(employeeId: string | undefined) {
+  return useQuery({
+    queryKey: ["hr-emp-payroll-history", HR_ORG_ID, employeeId],
+    enabled: !!employeeId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payroll_lines" as never)
+        .select("*, payroll_cycles(label, status, start_date, end_date)")
+        .eq("org_id", HR_ORG_ID)
+        .eq("employee_id", employeeId!)
+        .order("created_at", { ascending: false })
+        .limit(12);
+      if (error) throw error;
+      return (data ?? []) as EmployeePayrollHistoryLine[];
+    },
+  });
+}
+
 export async function rpcComputePayroll(args: Record<string, unknown>) {
   const { data, error } = await supabase.rpc("fn_compute_payroll" as never, args as never);
   if (error) throw error;
