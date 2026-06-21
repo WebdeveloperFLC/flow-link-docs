@@ -1,54 +1,51 @@
-import { useState } from "react";
-import { Emp360MetricGrid, Emp360SummaryCard } from "./Emp360SummaryCard";
-import { Emp360TrainingHistoryModal } from "./Emp360TrainingHistoryModal";
+import { Link } from "react-router-dom";
+import { Stat } from "../ui/Stat";
+import { Emp360StatRow, Emp360SummaryCard } from "./Emp360SummaryCard";
 import { dateInRange } from "../../lib/emp360DateRange";
+import { emp360DetailPath } from "../../lib/emp360Paths";
 import type { TrainingRecordRow } from "../../lib/types";
 
 type Props = {
-  employeeName: string;
+  employeeId: string;
+  profileSearch: string;
   from: string;
   to: string;
   records: TrainingRecordRow[];
 };
 
-function trainingInRange(records: TrainingRecordRow[], from: string, to: string) {
-  return records.filter((t) => t.start_date && dateInRange(t.start_date, from, to));
-}
-
-export function Emp360TrainingCard({ employeeName, from, to, records }: Props) {
-  const [open, setOpen] = useState(false);
-  const inRange = trainingInRange(records, from, to);
+export function Emp360TrainingCard({
+  employeeId,
+  profileSearch,
+  from,
+  to,
+  records,
+}: Props) {
+  const inRange = records.filter(
+    (t) => t.start_date && dateInRange(t.start_date, from, to),
+  );
   const active = inRange.filter(
     (t) => t.status === "In Progress" || t.status === "Extended",
   ).length;
 
   return (
-    <>
-      <Emp360SummaryCard
-        title="Training"
-        action={
-          <button type="button" className="btn btn-sm" onClick={() => setOpen(true)}>
-            View training history
-          </button>
-        }
-      >
-        <Emp360MetricGrid
-          rows={[
-            ["Records in range", inRange.length],
-            ["Active in range", active],
-            ["Completed / other", inRange.length - active],
-          ]}
-        />
-      </Emp360SummaryCard>
-
-      <Emp360TrainingHistoryModal
-        open={open}
-        onClose={() => setOpen(false)}
-        employeeName={employeeName}
-        from={from}
-        to={to}
-        rows={inRange}
-      />
-    </>
+    <Emp360SummaryCard
+      title="Training"
+      from={from}
+      to={to}
+      action={
+        <Link
+          to={emp360DetailPath(employeeId, "training", profileSearch)}
+          className="btn btn-sm"
+        >
+          View training history
+        </Link>
+      }
+    >
+      <Emp360StatRow>
+        <Stat variant="highlight" tone="blue" lab="Records in range" val={inRange.length} />
+        <Stat variant="highlight" tone="orange" lab="Active" val={active} />
+        <Stat variant="highlight" tone="green" lab="Completed / other" val={inRange.length - active} />
+      </Emp360StatRow>
+    </Emp360SummaryCard>
   );
 }

@@ -1,17 +1,19 @@
-import { useState } from "react";
-import { Emp360MetricGrid, Emp360SummaryCard } from "./Emp360SummaryCard";
-import { Emp360PayrollHistoryModal } from "./Emp360PayrollHistoryModal";
+import { Link } from "react-router-dom";
+import { Stat } from "../ui/Stat";
+import { Emp360StatRow, Emp360SummaryCard } from "./Emp360SummaryCard";
 import { rangesOverlap } from "../../lib/emp360DateRange";
 import { employeeCurrency, formatMoney } from "../../lib/format";
+import { emp360DetailPath } from "../../lib/emp360Paths";
 import type { EmployeePayrollHistoryLine } from "../../hooks/useHrPayroll";
 import type { EmployeeRow } from "../../lib/types";
 
 type Props = {
   employee: EmployeeRow;
+  employeeId: string;
+  profileSearch: string;
   from: string;
   to: string;
   history: EmployeePayrollHistoryLine[];
-  canExport: boolean;
 };
 
 function filterPayrollHistory(
@@ -28,12 +30,12 @@ function filterPayrollHistory(
 
 export function Emp360PayrollHistoryCard({
   employee,
+  employeeId,
+  profileSearch,
   from,
   to,
   history,
-  canExport,
 }: Props) {
-  const [open, setOpen] = useState(false);
   const currency = employeeCurrency(employee);
   const money = (n: number) => formatMoney(n, currency);
   const filtered = filterPayrollHistory(history, from, to);
@@ -41,34 +43,35 @@ export function Emp360PayrollHistoryCard({
   const cycleLabel = latest?.payroll_cycles?.label ?? "—";
 
   return (
-    <>
-      <Emp360SummaryCard
-        title="Payroll history"
-        action={
-          <button type="button" className="btn btn-sm" onClick={() => setOpen(true)}>
-            View payroll history
-          </button>
-        }
-      >
-        <Emp360MetricGrid
-          rows={[
-            ["Latest salary", latest ? money(latest.monthly_gross) : "—"],
-            ["Net salary", latest ? money(latest.net_salary) : "—"],
-            ["Currency", currency],
-            ["Payroll cycle", cycleLabel],
-          ]}
+    <Emp360SummaryCard
+      title="Payroll history"
+      from={from}
+      to={to}
+      action={
+        <Link
+          to={emp360DetailPath(employeeId, "payroll", profileSearch)}
+          className="btn btn-sm"
+        >
+          View payroll history
+        </Link>
+      }
+    >
+      <Emp360StatRow>
+        <Stat
+          variant="highlight"
+          tone="blue"
+          lab="Latest salary"
+          val={latest ? money(latest.monthly_gross) : "—"}
         />
-      </Emp360SummaryCard>
-
-      <Emp360PayrollHistoryModal
-        open={open}
-        onClose={() => setOpen(false)}
-        employee={employee}
-        from={from}
-        to={to}
-        rows={filtered}
-        canExport={canExport}
-      />
-    </>
+        <Stat
+          variant="highlight"
+          tone="green"
+          lab="Net salary"
+          val={latest ? money(latest.net_salary) : "—"}
+        />
+        <Stat variant="highlight" tone="purple" lab="Currency" val={currency} />
+        <Stat variant="highlight" tone="gold" lab="Payroll cycle" val={cycleLabel} />
+      </Emp360StatRow>
+    </Emp360SummaryCard>
   );
 }

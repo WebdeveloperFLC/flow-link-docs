@@ -133,7 +133,7 @@ export function Emp360ActivityTimeline(props: Props) {
     filter === "all" ? all : all.filter((a) => a.category === filter);
 
   return (
-    <Emp360SummaryCard title="Activity timeline">
+    <Emp360SummaryCard title="Activity timeline" from={props.from} to={props.to}>
       <div className="emp360-timeline-filters">
         {FILTER_OPTIONS.map((opt) => (
           <button

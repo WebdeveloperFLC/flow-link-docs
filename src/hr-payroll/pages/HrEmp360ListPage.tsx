@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees, useHrReferenceData } from "../hooks/useHrEmployees";
 import { EmployeeCard } from "../components/ui/EmployeeCard";
 import { Emp360FilterBar } from "../components/emp360/Emp360FilterBar";
+import { defaultEmp360Range } from "../lib/emp360DateRange";
+import { emp360ProfilePath, emp360ProfileSearch } from "../lib/emp360Paths";
 import {
   collectEmploymentTypes,
   emp360FiltersFromSearchParams,
@@ -13,6 +16,7 @@ import {
 
 export default function HrEmp360ListPage() {
   const [searchParams] = useSearchParams();
+  const { cycle } = useHrAccess();
   const [filters, setFilters] = useState<Emp360Filters>(() =>
     emp360FiltersFromSearchParams(searchParams),
   );
@@ -62,7 +66,8 @@ export default function HrEmp360ListPage() {
   }
 
   const listQuery = emp360FiltersToSearchParams(filters).toString();
-  const listSuffix = listQuery ? `?${listQuery}` : "";
+  const { from, to } = defaultEmp360Range(cycle);
+  const profileSearch = emp360ProfileSearch(from, to, filters);
 
   return (
     <div className="page-grid">
@@ -87,7 +92,7 @@ export default function HrEmp360ListPage() {
             <EmployeeCard
               key={e.id}
               employee={e}
-              to={`/hr/employee/${e.id}${listSuffix}`}
+              to={emp360ProfilePath(e.id, profileSearch)}
             />
           ))}
         </div>

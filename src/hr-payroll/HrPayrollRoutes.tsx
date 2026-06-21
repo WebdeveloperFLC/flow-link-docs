@@ -4,7 +4,13 @@ import { HrPayrollProvider } from "./context/HrPayrollProvider";
 import HrDashboardPage from "./pages/HrDashboardPage";
 import HrEssPage from "./pages/HrEssPage";
 import HrEmp360ListPage from "./pages/HrEmp360ListPage";
-import HrEmp360DetailPage from "./pages/HrEmp360DetailPage";
+import HrEmp360Layout from "./pages/emp360/HrEmp360Layout";
+import HrEmp360SummaryPage from "./pages/emp360/HrEmp360SummaryPage";
+import HrEmp360AttendancePage from "./pages/emp360/HrEmp360AttendancePage";
+import HrEmp360LeaveHistoryPage from "./pages/emp360/HrEmp360LeaveHistoryPage";
+import HrEmp360PayrollHistoryPage from "./pages/emp360/HrEmp360PayrollHistoryPage";
+import HrEmp360TrainingPage from "./pages/emp360/HrEmp360TrainingPage";
+import HrEmp360DocumentsPage from "./pages/emp360/HrEmp360DocumentsPage";
 import HrEmployeesPage from "./pages/HrEmployeesPage";
 import HrShiftsPage from "./pages/HrShiftsPage";
 import HrTrainingPage from "./pages/HrTrainingPage";
@@ -39,7 +45,14 @@ export default function HrPayrollRoutes() {
           <Route index element={<HrDashboardPage />} />
           <Route path="me" element={<HrEssPage />} />
           <Route path="employee" element={<HrEmp360ListPage />} />
-          <Route path="employee/:id" element={<HrEmp360DetailPage />} />
+          <Route path="employee/:id" element={<HrEmp360Layout />}>
+            <Route index element={<HrEmp360SummaryPage />} />
+            <Route path="attendance" element={<HrEmp360AttendancePage />} />
+            <Route path="leaves" element={<HrEmp360LeaveHistoryPage />} />
+            <Route path="payroll" element={<HrEmp360PayrollHistoryPage />} />
+            <Route path="training" element={<HrEmp360TrainingPage />} />
+            <Route path="documents" element={<HrEmp360DocumentsPage />} />
+          </Route>
 
           {/* People */}
           <Route path="employees" element={<HrEmployeesPage />} />
