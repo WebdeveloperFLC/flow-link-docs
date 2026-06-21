@@ -457,6 +457,7 @@ export default function HrVerifyPage() {
                 <th>{dedLabels.pf}</th>
                 <th>{dedLabels.esic}</th>
                 <th>{dedLabels.pt}</th>
+                <th>Other Ded.</th>
                 <th>Net Salary</th>
                 <th />
               </tr>
@@ -517,6 +518,9 @@ export default function HrVerifyPage() {
                   <td className="mono" style={{ color: "var(--rose)" }}>
                     {rowMoney(r, r.pt_employee ?? 0)}
                   </td>
+                  <td className="mono" style={{ color: "var(--rose)" }}>
+                    {rowMoney(r, r.employees?.other_deductions ?? 0)}
+                  </td>
                   <td className="mono strong">{rowMoney(r, r.net_salary)}</td>
                   <td>
                     <div className="row-flex">
@@ -557,7 +561,7 @@ export default function HrVerifyPage() {
                     Totals ({cur})
                   </td>
                   <td className="mono strong">{formatMoney(t.gross, cur)}</td>
-                  <td colSpan={5} />
+                  <td colSpan={6} />
                   <td className="mono strong" style={{ color: "var(--moss)" }}>
                     {formatMoney(t.net, cur)}
                   </td>

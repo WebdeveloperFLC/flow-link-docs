@@ -149,7 +149,7 @@ export default function HrEssPage() {
           </div>
           <div className="row-flex" style={{ marginTop: 6 }}>
             <span className="tag">{emp.emp_code}</span>
-            <span className="tag">{emp.employment_type}</span>
+            <span className="tag">{emp.hr_employee_categories?.label ?? "—"}</span>
             <span
               className="tag"
               style={{
@@ -247,6 +247,7 @@ export default function HrEssPage() {
               ["Bonus", money(line?.bonus ?? 0)],
               ["PF (−)", money(line?.pf_employee ?? 0)],
               ["ESIC (−)", money(line?.esic_employee ?? 0)],
+              ["Other Deductions (−)", money(emp.other_deductions ?? 0)],
               ["Net Payable", money(line?.net_salary ?? 0)],
             ] as const
           ).map(([k, v], i, a) => (

@@ -25,6 +25,7 @@ export function printSalarySlip(
     ...(line.ot_pay && line.ot_pay > 0 ? [["OT Pay", money(line.ot_pay)]] as const : []),
     [isCanada ? "CPP (Employee)" : "PF (Employee)", money(line.pf_employee)],
     [isCanada ? "EI (Employee)" : "ESIC (Employee)", money(line.esic_employee)],
+    ["Other Deductions", money(emp.other_deductions ?? 0)],
     ["Net Salary", money(line.net_salary)],
   ];
   w.document.write(`

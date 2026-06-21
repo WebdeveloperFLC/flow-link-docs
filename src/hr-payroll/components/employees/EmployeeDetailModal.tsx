@@ -80,6 +80,12 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
     ["Branch", emp.bank_branch],
     ["Account Type", emp.bank_account_type],
     ["Verified", emp.bank_verified ? "Yes" : "No"],
+    ...(emp.bank_verified
+      ? [
+          ["Verification Date", formatSecurityChequeUploadedAt(emp.bank_verified_at)],
+          ["Verified By", emp.bank_verified_by],
+        ]
+      : []),
     ["Security Cheque Status", emp.security_cheque_status ?? "Pending"],
   ];
 
@@ -166,10 +172,13 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
                 }
               />
               <Row k="Currency / Country" v={`${currency} · ${emp.payroll_country ?? "IN"}`} />
-              <Row k="Employee Category" v={emp.hr_employee_categories?.label ?? emp.employment_type} />
+              <Row k="Employee Category" v={emp.hr_employee_categories?.label ?? "—"} />
               <Row k="Date of Joining" v={emp.date_of_joining} />
               <Row k="Probation" v={[emp.probation_start_date, emp.probation_end_date].filter(Boolean).join(" – ") || null} />
               <Row k="Notice Period" v={emp.notice_period} />
+              <Row k="Exit Date" v={emp.exit_date} />
+              <Row k="Exit Reason" v={emp.exit_reason} />
+              <Row k="Rehire Eligible" v={emp.rehire_eligible ? "Yes" : emp.exit_date ? "No" : null} />
               <Row k="Work Week (from shift)" v={emp.work_week} />
               <Row k="Status" v={emp.status} />
               <Row k="CRM login (ESS)" v={crmLoginLabel} />

@@ -2,8 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../../lib/constants";
-import { EMPLOYMENT_TYPE_OPTIONS } from "../../lib/leavePolicy";
-import { fillSalaryComponents, formatMoney, normalizeEmploymentType, parseEmergencyContacts, payrollCompanyLabel, weeklyOffDays } from "../../lib/format";
+import { fillSalaryComponents, formatMoney, parseEmergencyContacts, payrollCompanyLabel, weeklyOffDays } from "../../lib/format";
 import {
   companiesForPayrollRegion,
   defaultPayrollEntityRegion,
@@ -71,11 +70,13 @@ type FormState = {
   reporting_mgr_id: string;
   company_id: string;
   employee_category_id: string;
-  employment_type: string;
   date_of_joining: string;
   notice_period: string;
   probation_start_date: string;
   probation_end_date: string;
+  exit_date: string;
+  exit_reason: string;
+  rehire_eligible: boolean;
   status: string;
   shift_id: string;
   shift_change_reason: string;
@@ -142,11 +143,13 @@ function fromEmployee(e: EmployeeRow): FormState {
     reporting_mgr_id: e.reporting_mgr_id ?? "",
     company_id: e.company_id ?? "",
     employee_category_id: e.employee_category_id ?? "",
-    employment_type: normalizeEmploymentType(e.employment_type),
     date_of_joining: e.date_of_joining ?? "",
     notice_period: e.notice_period ?? "30 days",
     probation_start_date: e.probation_start_date ?? "",
     probation_end_date: e.probation_end_date ?? "",
+    exit_date: e.exit_date ?? "",
+    exit_reason: e.exit_reason ?? "",
+    rehire_eligible: e.rehire_eligible ?? false,
     status: e.status,
     shift_id: e.shift_id ?? "",
     shift_change_reason: "",
@@ -195,7 +198,9 @@ const blank = (
 ): FormState => {
   const indian = companiesForPayrollRegion(companies, "IN");
   const firstCo = indian[0] ?? companies[0];
-  const defaultCategory = categories.find((c) => c.code === "permanent") ?? categories[0];
+  const defaultCategory = categories.find((c) => c.code === "probation")
+    ?? categories.find((c) => c.code === "permanent")
+    ?? categories[0];
   return {
   emp_code: "",
   first_name: "",
@@ -219,11 +224,13 @@ const blank = (
   reporting_mgr_id: "",
   company_id: firstCo?.id ?? "",
   employee_category_id: defaultCategory?.id ?? "",
-  employment_type: "Full time - Permanent",
   date_of_joining: "",
   notice_period: "30 days",
   probation_start_date: "",
   probation_end_date: "",
+  exit_date: "",
+  exit_reason: "",
+  rehire_eligible: false,
   status: "On Probation",
   shift_id: shifts[0]?.id ?? "",
   shift_change_reason: "",
@@ -415,7 +422,6 @@ export function EmployeeFormModal({
     if (!f.designation_id) e.desig = "Designation required";
     if (!f.department_id) e.dept = "Department required";
     if (!f.employee_category_id) e.category = "Employee category required";
-    if (!f.employment_type) e.employment_type = "Employment type required";
     if (!f.monthly_gross || Number(f.monthly_gross) <= 0) e.monthly = "Valid monthly salary required";
 
     if (!isValidSecurityChequeStatus(f.security_cheque_status)) {
@@ -491,7 +497,6 @@ export function EmployeeFormModal({
       department: deptName,
       department_id: f.department_id || null,
       employee_category_id: f.employee_category_id || null,
-      employment_type: f.employment_type,
       branch_id: f.branch_id || null,
       reporting_mgr_id: f.reporting_mgr_id || null,
       company_id: f.company_id || null,
@@ -499,6 +504,9 @@ export function EmployeeFormModal({
       notice_period: f.notice_period,
       probation_start_date: f.probation_start_date || null,
       probation_end_date: f.probation_end_date || null,
+      exit_date: f.exit_date || null,
+      exit_reason: f.exit_reason.trim() || null,
+      rehire_eligible: f.rehire_eligible,
       work_week: workWeekFromShift(f.shift_id, shifts),
       status: f.status,
       shift_id: f.shift_id || null,
@@ -536,13 +544,29 @@ export function EmployeeFormModal({
 
     const auditTarget = `${f.emp_code.trim()} · ${fullName}`;
     const actor = await getHrActorInfo();
+    const wasBankVerified = sourceEmp?.bank_verified ?? false;
+    let bankVerifiedAt: string | null = sourceEmp?.bank_verified_at ?? null;
+    let bankVerifiedBy: string | null = sourceEmp?.bank_verified_by ?? null;
+    if (f.bank_verified && !wasBankVerified) {
+      bankVerifiedAt = new Date().toISOString();
+      bankVerifiedBy = actor.label;
+    } else if (!f.bank_verified && wasBankVerified) {
+      bankVerifiedAt = null;
+      bankVerifiedBy = null;
+    }
+
+    const savePayload = {
+      ...payload,
+      bank_verified_at: bankVerifiedAt,
+      bank_verified_by: bankVerifiedBy,
+    };
 
     try {
       let employeeId = emp?.id;
       if (emp) {
         const { error } = await supabase
           .from("employees" as never)
-          .update(payload as never)
+          .update(savePayload as never)
           .eq("id", emp.id);
         if (error) throw error;
         employeeId = emp.id;
@@ -565,7 +589,7 @@ export function EmployeeFormModal({
       } else {
         const { data, error } = await supabase
           .from("employees" as never)
-          .insert(payload as never)
+          .insert(savePayload as never)
           .select("id")
           .single();
         if (error) throw error;
@@ -883,20 +907,6 @@ export function EmployeeFormModal({
                 {err.category && <div className="errmsg">{err.category}</div>}
               </label>
               <label className="fld">
-                <span className="l">Employment Type</span>
-                <select
-                  className={`input${err.employment_type ? " err" : ""}`}
-                  value={f.employment_type}
-                  onChange={(e) => set("employment_type", e.target.value)}
-                >
-                  <option value="">— select —</option>
-                  {EMPLOYMENT_TYPE_OPTIONS.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-                {err.employment_type && <div className="errmsg">{err.employment_type}</div>}
-              </label>
-              <label className="fld">
                 <span className="l">Branch</span>
                 <select
                   className="input"
@@ -985,6 +995,25 @@ export function EmployeeFormModal({
               {T("probation_end_date", "Probation End", undefined, "date")}
               {T("notice_period", "Notice Period", ["30 days", "60 days", "90 days", "15 days"])}
               {T("status", "Status", ["On Probation", "Confirmed", "Resigned", "Terminated", "On Notice"])}
+              <div className="sec-label" style={{ marginTop: 8 }}>Exit (if applicable)</div>
+              {T("exit_date", "Exit Date", undefined, "date")}
+              <label className="fld">
+                <span className="l">Exit Reason</span>
+                <input
+                  className="input"
+                  value={f.exit_reason}
+                  onChange={(e) => set("exit_reason", e.target.value)}
+                  placeholder="e.g. resignation, role change"
+                />
+              </label>
+              <label className="row-flex" style={{ fontSize: 13 }}>
+                <input
+                  type="checkbox"
+                  checked={f.rehire_eligible}
+                  onChange={(e) => set("rehire_eligible", e.target.checked)}
+                />
+                Rehire eligible
+              </label>
               <label className="fld">
                 <span className="l">CRM login (ESS self-access)</span>
                 <select
