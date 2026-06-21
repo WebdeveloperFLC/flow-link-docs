@@ -1,6 +1,5 @@
 import { Link, useMatch } from "react-router-dom";
 import { EmployeeAvatar } from "../ui/EmployeeAvatar";
-import { Emp360DateRangeBar } from "./Emp360DateRangeBar";
 import { useEmp360Profile } from "../../context/Emp360ProfileContext";
 import {
   displayEmployeeName,
@@ -10,14 +9,7 @@ import { employmentTypeLabel } from "../../lib/emp360Filters";
 import { EMP360_DETAIL_LABELS, type Emp360DetailSection } from "../../lib/emp360Paths";
 
 export function Emp360ProfileChrome() {
-  const {
-    employee: emp,
-    from,
-    to,
-    cycleLabel,
-    listBackHref,
-    profileHref,
-  } = useEmp360Profile();
+  const { employee: emp, listBackHref, profileHref } = useEmp360Profile();
 
   const sectionMatch = useMatch("/hr/employee/:id/:section");
   const section = sectionMatch?.params.section as Emp360DetailSection | undefined;
@@ -74,8 +66,6 @@ export function Emp360ProfileChrome() {
           </div>
         </div>
       )}
-
-      <Emp360DateRangeBar from={from} to={to} cycleLabel={cycleLabel} />
     </>
   );
 }

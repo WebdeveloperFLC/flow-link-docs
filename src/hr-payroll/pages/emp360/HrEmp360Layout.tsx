@@ -4,11 +4,8 @@ import { Emp360ProfileProvider } from "../../context/Emp360ProfileContext";
 import { useHrEmployees } from "../../hooks/useHrEmployees";
 import { useHrShifts } from "../../hooks/useHrShifts";
 import { Emp360ProfileChrome } from "../../components/emp360/Emp360ProfileChrome";
-import { emp360RangeFromSearchParams } from "../../lib/emp360DateRange";
-import {
-  emp360FiltersFromSearchParams,
-  emp360FiltersToSearchParams,
-} from "../../lib/emp360Filters";
+import { defaultEmp360Range } from "../../lib/emp360DateRange";
+import { emp360FiltersFromSearchParams, emp360FiltersToSearchParams } from "../../lib/emp360Filters";
 import { emp360ProfilePath, emp360ProfileSearch } from "../../lib/emp360Paths";
 
 export default function HrEmp360Layout() {
@@ -24,10 +21,10 @@ export default function HrEmp360Layout() {
   const { data: shifts = [] } = useHrShifts();
 
   const listFilters = emp360FiltersFromSearchParams(searchParams);
-  const { from, to } = emp360RangeFromSearchParams(searchParams, cycle);
-  const profileSearch = emp360ProfileSearch(from, to, listFilters);
+  const profileSearch = emp360ProfileSearch(listFilters);
   const listQuery = emp360FiltersToSearchParams(listFilters).toString();
   const listBackHref = listQuery ? `/hr/employee?${listQuery}` : "/hr/employee";
+  const { from: cycleFrom, to: cycleTo } = defaultEmp360Range(cycle);
 
   const emp = employees.find((e) => e.id === id);
   const shift = shifts.find((s) => s.id === emp?.shift_id) ?? shifts[0];
@@ -65,9 +62,9 @@ export default function HrEmp360Layout() {
         employee: emp,
         employees,
         shift,
-        from,
-        to,
         cycleLabel,
+        cycleFrom,
+        cycleTo,
         listFilters,
         listBackHref,
         profileHref: emp360ProfilePath(emp.id, profileSearch),

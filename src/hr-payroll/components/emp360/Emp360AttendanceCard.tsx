@@ -8,23 +8,19 @@ import type { AttendanceRollup } from "../../lib/emp360Rollups";
 type Props = {
   employeeId: string;
   profileSearch: string;
-  from: string;
-  to: string;
+  cycleLabel: string;
   rollup: AttendanceRollup | null;
 };
 
 export function Emp360AttendanceCard({
   employeeId,
   profileSearch,
-  from,
-  to,
+  cycleLabel,
   rollup,
 }: Props) {
   return (
     <Emp360SummaryCard
       title="Attendance"
-      from={from}
-      to={to}
       action={
         <Link
           to={emp360DetailPath(employeeId, "attendance", profileSearch)}
@@ -34,6 +30,7 @@ export function Emp360AttendanceCard({
         </Link>
       }
     >
+      <p className="muted emp360-card-summary-hint">Current cycle · {cycleLabel}</p>
       <Emp360StatRow>
         <Stat variant="highlight" tone="green" lab="Present days" val={rollup?.present ?? "—"} />
         <Stat variant="highlight" tone="rose" lab="Absent days" val={rollup?.absent ?? "—"} />

@@ -1,10 +1,12 @@
 import { useEmp360Profile } from "../../context/Emp360ProfileContext";
 import { useHrAttendance } from "../../hooks/useHrAttendance";
+import { useEmp360SectionRange } from "../../hooks/useEmp360SectionRange";
 import { Emp360AttendanceTable } from "../../components/emp360/Emp360AttendanceTable";
-import { Emp360CardDateStrip } from "../../components/emp360/Emp360CardDateStrip";
+import { Emp360SectionDateFilter } from "../../components/emp360/Emp360SectionDateFilter";
 
 export default function HrEmp360AttendancePage() {
-  const { employee, shift, from, to } = useEmp360Profile();
+  const { employee, shift } = useEmp360Profile();
+  const { from, to } = useEmp360SectionRange("cycle");
   const { data: rows = [], isLoading } = useHrAttendance(employee.id, from, to);
 
   if (!shift) {
@@ -13,9 +15,11 @@ export default function HrEmp360AttendancePage() {
 
   return (
     <div className="card emp360-detail-panel">
-      <div className="card-h">
+      <div className="card-h emp360-detail-panel-h">
         <h3>Attendance detail</h3>
-        <Emp360CardDateStrip from={from} to={to} />
+      </div>
+      <div className="emp360-detail-panel-filters">
+        <Emp360SectionDateFilter kind="cycle" />
       </div>
       {isLoading ? (
         <div className="empty empty-sm">Loading attendance…</div>

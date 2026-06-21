@@ -1734,6 +1734,28 @@
   align-items: center;
   gap: 12px;
 }
+[data-hr-payroll] .emp360-detail-panel-filters {
+  padding: 0 16px 14px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+[data-hr-payroll] .emp360-section-date-filter {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+[data-hr-payroll] .emp360-card-summary-hint {
+  font-size: 12px;
+  margin: 0 0 10px;
+  padding: 0 16px;
+}
+[data-hr-payroll] .emp360-summary-card-body .emp360-card-summary-hint {
+  padding: 0;
+}
+[data-hr-payroll] .emp360-detail-panel-h {
+  padding-bottom: 8px;
+}
 [data-hr-payroll] .emp360-detail-panel .table-wrap {
   padding: 0 16px 16px;
 }

@@ -1,15 +1,9 @@
 import { emp360FiltersToSearchParams, type Emp360Filters } from "./emp360Filters";
 
-/** Build search string preserving list filters + profile date range. */
-export function emp360ProfileSearch(
-  from: string,
-  to: string,
-  listFilters?: Emp360Filters,
-): string {
-  const p = listFilters ? emp360FiltersToSearchParams(listFilters) : new URLSearchParams();
-  p.set("from", from);
-  p.set("to", to);
-  const q = p.toString();
+/** Build search string preserving list filters only (no shared date range). */
+export function emp360ProfileSearch(listFilters?: Emp360Filters): string {
+  if (!listFilters) return "";
+  const q = emp360FiltersToSearchParams(listFilters).toString();
   return q ? `?${q}` : "";
 }
 

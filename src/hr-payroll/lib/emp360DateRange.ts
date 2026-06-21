@@ -1,4 +1,4 @@
-/** Date-range helpers for Employee 360 profile (no payroll/leave maths). */
+/** Date-range helpers for Employee 360 section views (no payroll/leave maths). */
 
 export function defaultEmp360Range(cycle?: { start_date: string; end_date: string } | null) {
   const today = new Date();
@@ -12,14 +12,19 @@ export function defaultEmp360Range(cycle?: { start_date: string; end_date: strin
   };
 }
 
-export function emp360RangeFromSearchParams(
+export function defaultLeaveYearRange() {
+  const y = new Date().getFullYear();
+  return { from: `${y}-01-01`, to: `${y}-12-31` };
+}
+
+export function sectionRangeFromSearchParams(
   params: URLSearchParams,
-  cycle?: { start_date: string; end_date: string } | null,
+  defaults: { from: string; to: string },
 ) {
-  const defaults = defaultEmp360Range(cycle);
-  const from = params.get("from") ?? defaults.from;
-  const to = params.get("to") ?? defaults.to;
-  return { from, to };
+  return {
+    from: params.get("from") ?? defaults.from,
+    to: params.get("to") ?? defaults.to,
+  };
 }
 
 export function rangesOverlap(
@@ -42,15 +47,4 @@ export function leaveOverlapsRange(
   rangeTo: string,
 ): boolean {
   return rangesOverlap(fromDate, toDate, rangeFrom, rangeTo);
-}
-
-export function mergeEmp360SearchParams(
-  listParams: URLSearchParams,
-  from: string,
-  to: string,
-): URLSearchParams {
-  const p = new URLSearchParams(listParams);
-  p.set("from", from);
-  p.set("to", to);
-  return p;
 }

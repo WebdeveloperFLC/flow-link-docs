@@ -30,8 +30,9 @@ export default function HrEmp360SummaryPage() {
     employee: emp,
     employees,
     shift,
-    from,
-    to,
+    cycleFrom,
+    cycleTo,
+    cycleLabel,
     profileSearch,
   } = useEmp360Profile();
 
@@ -41,7 +42,7 @@ export default function HrEmp360SummaryPage() {
 
   const { data: payrollHistory = [] } = useHrEmployeePayrollHistory(emp.id);
   const { data: revisions = [] } = useSalaryRevisions(emp.id);
-  const { data: att = [] } = useHrAttendance(emp.id, from, to);
+  const { data: att = [] } = useHrAttendance(emp.id, cycleFrom, cycleTo);
   const { data: allLeaves = [] } = useHrLeaveRequests();
   const { data: allTraining = [] } = useHrTrainingRecords();
   const { data: shiftHistory = [] } = useEmployeeShiftHistory({
@@ -70,31 +71,23 @@ export default function HrEmp360SummaryPage() {
         <Emp360AttendanceCard
           employeeId={emp.id}
           profileSearch={profileSearch}
-          from={from}
-          to={to}
+          cycleLabel={cycleLabel}
           rollup={rollup}
         />
         <Emp360LeaveSummaryCard
           employee={emp}
           employeeId={emp.id}
           profileSearch={profileSearch}
-          from={from}
-          to={to}
-          leaves={leaves}
         />
         <Emp360PayrollHistoryCard
           employee={emp}
           employeeId={emp.id}
           profileSearch={profileSearch}
-          from={from}
-          to={to}
           history={payrollHistory}
         />
         <Emp360TrainingCard
           employeeId={emp.id}
           profileSearch={profileSearch}
-          from={from}
-          to={to}
           records={training}
         />
         <Emp360DocumentsCard
@@ -105,8 +98,8 @@ export default function HrEmp360SummaryPage() {
       </div>
 
       <Emp360ActivityTimeline
-        from={from}
-        to={to}
+        from={cycleFrom}
+        to={cycleTo}
         attendance={att}
         leaves={leaves}
         payroll={payrollHistory}

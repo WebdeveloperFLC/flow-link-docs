@@ -1,22 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees, useHrReferenceData } from "../hooks/useHrEmployees";
 import { EmployeeCard } from "../components/ui/EmployeeCard";
 import { Emp360FilterBar } from "../components/emp360/Emp360FilterBar";
-import { defaultEmp360Range } from "../lib/emp360DateRange";
 import { emp360ProfilePath, emp360ProfileSearch } from "../lib/emp360Paths";
 import {
   collectEmploymentTypes,
   emp360FiltersFromSearchParams,
-  emp360FiltersToSearchParams,
   filterEmployees,
   type Emp360Filters,
 } from "../lib/emp360Filters";
 
 export default function HrEmp360ListPage() {
   const [searchParams] = useSearchParams();
-  const { cycle } = useHrAccess();
   const [filters, setFilters] = useState<Emp360Filters>(() =>
     emp360FiltersFromSearchParams(searchParams),
   );
@@ -65,8 +61,7 @@ export default function HrEmp360ListPage() {
     );
   }
 
-  const { from, to } = defaultEmp360Range(cycle);
-  const profileSearch = emp360ProfileSearch(from, to, filters);
+  const profileSearch = emp360ProfileSearch(filters);
 
   return (
     <div className="page-grid">

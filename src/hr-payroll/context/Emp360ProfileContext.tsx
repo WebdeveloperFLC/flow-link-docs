@@ -6,9 +6,9 @@ export type Emp360ProfileContextValue = {
   employee: EmployeeRow;
   employees: EmployeeRow[];
   shift: ShiftRow | undefined;
-  from: string;
-  to: string;
   cycleLabel: string;
+  cycleFrom: string;
+  cycleTo: string;
   listFilters: Emp360Filters;
   listBackHref: string;
   profileHref: string;
