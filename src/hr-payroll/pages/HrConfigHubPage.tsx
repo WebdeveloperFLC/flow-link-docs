@@ -14,6 +14,59 @@ function canOpenSection(
   return canConfigure;
 }
 
+function ConfigHubCard({
+  title,
+  description,
+  href,
+  crmMaster,
+  comingSoon,
+}: {
+  title: string;
+  description: string;
+  href: string;
+  crmMaster?: boolean;
+  comingSoon?: boolean;
+}) {
+  const inner = (
+    <>
+      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>
+        {title}
+        {crmMaster && (
+          <span className="tag" style={{ marginLeft: 8, fontSize: 10, verticalAlign: "middle" }}>
+            CRM
+          </span>
+        )}
+        {comingSoon && (
+          <span className="tag" style={{ marginLeft: 8, fontSize: 10, verticalAlign: "middle" }}>
+            Coming soon
+          </span>
+        )}
+      </div>
+      <div className="muted" style={{ fontSize: 12.5, lineHeight: 1.45 }}>
+        {description}
+      </div>
+    </>
+  );
+
+  if (comingSoon) {
+    return (
+      <Link
+        to={href}
+        className="card hub-card-disabled"
+        style={{ textDecoration: "none", color: "inherit", display: "block" }}
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <Link to={href} className="card" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+      {inner}
+    </Link>
+  );
+}
+
 export default function HrConfigHubPage() {
   const { can, canSee } = useHrAccess();
   const canConfigure = can("configure");
@@ -24,6 +77,8 @@ export default function HrConfigHubPage() {
         <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
           All masters, policies, and statutory setup live here. Operational screens read from this
           single rule-engine source — not scattered across attendance, leave, or payroll screens.
+          Cards marked <strong>Coming soon</strong> are placeholders — use wired tabs (Leave, Late,
+          Payroll Cycle, etc.) for live policy editing.
           <br />
           <span style={{ marginTop: 8, display: "inline-block" }}>
             <strong>Master data:</strong> Branch, Department, and Designation are in{" "}
@@ -50,25 +105,16 @@ export default function HrConfigHubPage() {
               {sections.map((s) => {
                 const href = s.crmMaster ? `/masters?section=${s.crmMaster}` : s.route;
                 return (
-                <Link
-                  key={s.id}
-                  to={href}
-                  className="card"
-                  style={{ textDecoration: "none", color: "inherit", display: "block" }}
-                >
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>
-                    {s.title}
-                    {s.crmMaster && (
-                      <span className="tag" style={{ marginLeft: 8, fontSize: 10, verticalAlign: "middle" }}>
-                        CRM
-                      </span>
-                    )}
-                  </div>
-                  <div className="muted" style={{ fontSize: 12.5, lineHeight: 1.45 }}>
-                    {s.description}
-                  </div>
-                </Link>
-              );})}
+                  <ConfigHubCard
+                    key={s.id}
+                    title={s.title}
+                    description={s.description}
+                    href={href}
+                    crmMaster={!!s.crmMaster}
+                    comingSoon={s.comingSoon}
+                  />
+                );
+              })}
             </div>
           </div>
         );

@@ -65,14 +65,21 @@ export function HrConfigPlaceholderPage({ slug }: { slug: string }) {
       <div className="card">
         <div className="card-h">
           <h3>{meta.title}</h3>
-          <span className="tag">Configuration</span>
+          <span className="tag">Coming soon</span>
         </div>
         <div className="empty">
           <div className="ico">⚙</div>
           <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>
             {meta.title}
           </div>
-          <div style={{ fontSize: 13, maxWidth: 480, margin: "0 auto" }}>{meta.description}</div>
+          <div style={{ fontSize: 13, maxWidth: 480, margin: "0 auto", lineHeight: 1.5 }}>
+            {meta.description}
+            <br />
+            <span className="muted" style={{ marginTop: 8, display: "inline-block" }}>
+              This screen is not editable yet. Use the wired policy tabs on Configuration (Leave, Late,
+              Payroll Cycle, Professional Tax, etc.) for live settings.
+            </span>
+          </div>
         </div>
       </div>
     </div>

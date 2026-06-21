@@ -45,6 +45,11 @@ const REQUIRED_MIGRATIONS = [
   "20260717120043_hr_payroll_punch_final.sql",
   "20260720120000_hr_payroll_module_restructure_rbac.sql",
   "20260721120000_hr_payroll_crm_masters_foundation.sql",
+  "20260721120001_hr_payroll_category_only_classification.sql",
+  "20260719120100_hr_payroll_employee_assets.sql",
+  "20260724120000_hr_training_completion_workflow.sql",
+  "20260725120000_hr_training_approval_fixes.sql",
+  "20260726120000_hr_training_admin_bypass.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -63,6 +68,10 @@ const REQUIRED_RPCS = [
   "fn_capture_payroll_snapshots",
   "fn_employee_shift_at",
   "fn_locked_payroll_cycle_for_date",
+  "fn_extend_training",
+  "fn_request_training_completion",
+  "fn_complete_training_direct",
+  "fn_finalize_training_on_approve",
 ];
 
 const REQUIRED_PAGES = [
@@ -435,5 +444,30 @@ describe("HR Payroll module contract", () => {
     expect(panel).toContain("View");
     expect(panel).toContain("Download");
     expect(panel).toContain("getHrDocumentSignedUrl");
+  });
+
+  it("training workflow migrations and UI are present", () => {
+    const train = readFileSync(
+      join(MIGRATIONS, "20260724120000_hr_training_completion_workflow.sql"),
+      "utf8",
+    );
+    expect(train).toContain("Pending Manager Approval");
+    expect(train).toContain("fn_request_training_completion");
+    const adminBypass = readFileSync(
+      join(MIGRATIONS, "20260726120000_hr_training_admin_bypass.sql"),
+      "utf8",
+    );
+    expect(adminBypass).toContain("fn_complete_training_direct");
+    const trainingPage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrTrainingPage.tsx"), "utf8");
+    expect(trainingPage).toContain("TrainingDetailModal");
+    expect(trainingPage).toContain("canBypassTrainingApproval");
+  });
+
+  it("config hub labels placeholder sections as Coming soon", () => {
+    const hub = readFileSync(join(ROOT, "src/hr-payroll/pages/HrConfigHubPage.tsx"), "utf8");
+    const structure = readFileSync(join(ROOT, "src/hr-payroll/lib/moduleStructure.ts"), "utf8");
+    expect(hub).toContain("Coming soon");
+    expect(structure).toContain("comingSoon: true");
+    expect(structure).toContain("org-settings");
   });
 });

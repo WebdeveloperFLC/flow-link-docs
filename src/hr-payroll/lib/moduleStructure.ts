@@ -11,6 +11,8 @@ export type ConfigSection = {
   configureOnly?: boolean;
   /** CRM Masters section key — hub links to /masters instead of /hr/config */
   crmMaster?: "__branches" | "__departments" | "__designations";
+  /** UI-only — section opens a placeholder page (not yet editable). */
+  comingSoon?: boolean;
 };
 
 export type ConfigCategory = {
@@ -30,6 +32,7 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
         description: "Company profile, payroll org, and global defaults",
         route: "/hr/config/org-settings",
         configureOnly: true,
+        comingSoon: true,
       },
       {
         id: "branches",
@@ -89,6 +92,7 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
         description: "Shift-driven status derivation — no hardcoded timings",
         route: "/hr/config/attendance-rules",
         configureOnly: true,
+        comingSoon: true,
       },
     ],
   },
@@ -109,6 +113,7 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
         description: "Casual, sick, unpaid and custom leave types",
         route: "/hr/config/leave-types",
         configureOnly: true,
+        comingSoon: true,
       },
       {
         id: "leave-accrual",
@@ -116,6 +121,7 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
         description: "Monthly accrual with eligibility validation",
         route: "/hr/config/leave-accrual",
         screen: "config",
+        comingSoon: true,
       },
     ],
   },
@@ -162,6 +168,7 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
         description: "Earnings and deductions component structure",
         route: "/hr/config/salary-components",
         configureOnly: true,
+        comingSoon: true,
       },
       {
         id: "earnings",
@@ -169,6 +176,7 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
         description: "Basic, HRA, allowances and variable pay",
         route: "/hr/config/earnings",
         configureOnly: true,
+        comingSoon: true,
       },
       {
         id: "deductions",
@@ -176,6 +184,7 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
         description: "Statutory and voluntary deduction heads",
         route: "/hr/config/deductions",
         configureOnly: true,
+        comingSoon: true,
       },
     ],
   },
@@ -189,6 +198,7 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
         description: "Provident fund rates and applicability",
         route: "/hr/config/pf",
         configureOnly: true,
+        comingSoon: true,
       },
       {
         id: "esic",
@@ -196,6 +206,7 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
         description: "ESIC thresholds and employee/employer share",
         route: "/hr/config/esic",
         configureOnly: true,
+        comingSoon: true,
       },
       {
         id: "professional-tax",
@@ -210,6 +221,7 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
         description: "Labour welfare fund configuration",
         route: "/hr/config/lwf",
         configureOnly: true,
+        comingSoon: true,
       },
       {
         id: "tds",
@@ -217,6 +229,7 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
         description: "Income tax deduction at source",
         route: "/hr/config/tds",
         configureOnly: true,
+        comingSoon: true,
       },
       {
         id: "overtime",
@@ -264,6 +277,7 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
         description: "HR alerts for over-break, unauthorized absence, and approvals",
         route: "/hr/config/notifications",
         configureOnly: true,
+        comingSoon: true,
       },
     ],
   },
