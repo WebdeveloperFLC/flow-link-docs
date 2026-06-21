@@ -23,7 +23,6 @@ describe("document relevance in Add Document", () => {
     const spouseDefault = filterDocumentTypesForAdd(
       items,
       "",
-      new Set(),
       "canada::spouse",
       "Canada - Spouse / Dependent Visitor Visa",
     );
@@ -34,7 +33,6 @@ describe("document relevance in Add Document", () => {
     const spouseSearch = filterDocumentTypesForAdd(
       items,
       "10th",
-      new Set(),
       "canada::spouse",
       "Canada - Spouse / Dependent Visitor Visa",
     );

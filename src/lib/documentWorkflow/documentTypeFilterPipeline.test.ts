@@ -1,16 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
   filterDocumentTypesForAdd,
+  groupDocumentTypesByCategory,
   inspectDocumentTypeFilterPipeline,
 } from "./documentTypeFilterPipeline";
 import type { MasterItem } from "@/lib/masters";
 
-const item = (code: string, label: string): MasterItem => ({
+const item = (code: string, label: string, meta: Record<string, unknown> = {}): MasterItem => ({
   id: code,
   list_key: "document_types",
   code,
   label,
-  metadata: {},
+  metadata: meta,
   is_active: true,
   sort_order: 0,
 });
@@ -28,14 +29,16 @@ describe("documentTypeFilterPipeline", () => {
     const counts = inspectDocumentTypeFilterPipeline(
       catalog,
       "",
-      new Set(),
+      new Set(["passport"]),
       "canada::spouse",
       "Canada - Spouse / Dependent Visitor Visa",
     );
     expect(counts.masterActiveTotal).toBe(5);
-    expect(counts.afterExcluded).toBe(5);
+    expect(counts.onChecklistCount).toBe(1);
     expect(counts.afterRelevance).toBe(5);
     expect(counts.afterSearch).toBe(5);
+    expect(counts.uiRendered).toBe(5);
+    expect(counts.renderedGroupCount).toBeGreaterThan(1);
     expect(counts.profile).toBe("spouse_dependent");
   });
 
@@ -43,7 +46,6 @@ describe("documentTypeFilterPipeline", () => {
     const results = filterDocumentTypesForAdd(
       catalog,
       "",
-      new Set(),
       "canada::spouse",
       "Canada - Spouse / Dependent Visitor Visa",
     );
@@ -62,20 +64,34 @@ describe("documentTypeFilterPipeline", () => {
     );
     expect(counts.afterRelevance).toBe(5);
     expect(counts.afterSearch).toBe(1);
-    expect(counts.hiddenBySearch.sort()).toEqual(
-      ["marksheet_12", "passport", "police_clearance", "marriage_certificate"].sort(),
-    );
+    expect(counts.uiRendered).toBe(1);
   });
 
-  it("excludes codes already on the case checklist", () => {
-    const counts = inspectDocumentTypeFilterPipeline(
-      catalog,
+  it("renders all category groups for large catalogue", () => {
+    const large: MasterItem[] = [];
+    for (let i = 0; i < 30; i++) large.push(item(`academic_${i}`, `${i}th Marksheet`));
+    for (let i = 0; i < 12; i++) large.push(item(`financial_${i}`, `Bank Statement ${i}`, { category: "financial" }));
+    for (let i = 0; i < 7; i++) large.push(item(`relationship_${i}`, `Relationship Doc ${i}`));
+    for (let i = 0; i < 5; i++) large.push(item(`identity_${i}`, `Identity Doc ${i}`, { category: "identity" }));
+
+    const filtered = filterDocumentTypesForAdd(
+      large,
       "",
-      new Set(["passport", "marriage_certificate"]),
-      null,
-      null,
+      "canada::spouse",
+      "Canada - Spouse / Dependent Visitor Visa",
     );
-    expect(counts.afterExcluded).toBe(3);
-    expect(counts.hiddenByExcluded.sort()).toEqual(["passport", "marriage_certificate"].sort());
+    const grouped = groupDocumentTypesByCategory(filtered, "spouse_dependent");
+    const counts = inspectDocumentTypeFilterPipeline(
+      large,
+      "",
+      new Set(),
+      "canada::spouse",
+      "Canada - Spouse / Dependent Visitor Visa",
+    );
+
+    expect(filtered.length).toBe(54);
+    expect(grouped.length).toBeGreaterThanOrEqual(4);
+    expect(counts.uiRendered).toBe(54);
+    expect(counts.renderedGroupCount).toBeGreaterThanOrEqual(4);
   });
 });

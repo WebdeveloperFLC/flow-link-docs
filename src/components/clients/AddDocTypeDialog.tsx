@@ -1,33 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { useMasterItems, type MasterItem } from "@/lib/masters";
 import {
   DOCUMENT_CATEGORY_LABELS,
   formatDocumentWithCategory,
   resolveDocumentCategory,
-  type DocumentCategory,
 } from "@/lib/documentWorkflow/documentCategories";
 import {
-  categoryRank,
   detectServiceDocumentProfile,
   type ServiceDocumentProfile,
 } from "@/lib/documentWorkflow/documentRelevance";
 import {
   filterDocumentTypesForAdd,
+  groupDocumentTypesByCategory,
   inspectDocumentTypeFilterPipeline,
 } from "@/lib/documentWorkflow/documentTypeFilterPipeline";
 import { cn } from "@/lib/utils";
@@ -55,6 +46,12 @@ export interface AddDocumentRequirementInput {
   notes?: string;
 }
 
+function formatCategorySummary(counts: Record<string, number>): string {
+  return Object.entries(counts)
+    .map(([cat, n]) => `${cat}: ${n}`)
+    .join(" · ");
+}
+
 export const AddDocTypeDialog = ({
   open,
   onOpenChange,
@@ -65,6 +62,7 @@ export const AddDocTypeDialog = ({
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
+  /** Codes already on case checklist — shown as badge, not removed from picker. */
   excludedMasterCodes: string[];
   serviceCode?: string | null;
   templateName?: string | null;
@@ -77,44 +75,42 @@ export const AddDocTypeDialog = ({
   const [mandatory, setMandatory] = useState(false);
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
-  const commandRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const profile = useMemo(
     () => detectServiceDocumentProfile(serviceCode, templateName),
     [serviceCode, templateName],
   );
 
-  const excluded = useMemo(() => new Set(excludedMasterCodes), [excludedMasterCodes]);
+  const onChecklist = useMemo(() => new Set(excludedMasterCodes), [excludedMasterCodes]);
 
   const filtered = useMemo(
-    () => filterDocumentTypesForAdd(masterItems, search, excluded, serviceCode, templateName),
-    [masterItems, search, excluded, serviceCode, templateName],
+    () => filterDocumentTypesForAdd(masterItems, search, serviceCode, templateName),
+    [masterItems, search, serviceCode, templateName],
+  );
+
+  const grouped = useMemo(
+    () => groupDocumentTypesByCategory(filtered, profile),
+    [filtered, profile],
+  );
+
+  const pipeline = useMemo(
+    () =>
+      inspectDocumentTypeFilterPipeline(
+        masterItems,
+        search,
+        onChecklist,
+        serviceCode,
+        templateName,
+      ),
+    [masterItems, search, onChecklist, serviceCode, templateName],
   );
 
   useEffect(() => {
-    if (!open || !import.meta.env.DEV) return;
-    const counts = inspectDocumentTypeFilterPipeline(
-      masterItems,
-      search,
-      excluded,
-      serviceCode,
-      templateName,
-    );
-    console.debug("[AddDocTypeDialog] document type pipeline", counts);
-  }, [open, masterItems, search, excluded, serviceCode, templateName]);
-
-  const grouped = useMemo(() => {
-    const map = new Map<DocumentCategory, MasterItem[]>();
-    for (const item of filtered) {
-      const cat = resolveDocumentCategory(item);
-      const list = map.get(cat) ?? [];
-      list.push(item);
-      map.set(cat, list);
-    }
-    return Array.from(map.entries()).sort(
-      (a, b) => categoryRank(profile, a[0]) - categoryRank(profile, b[0]),
-    );
-  }, [filtered, profile]);
+    if (!open) return;
+    console.info("[AddDocTypeDialog] pipeline", pipeline);
+  }, [open, pipeline]);
 
   const reset = () => {
     setSelected(null);
@@ -136,9 +132,7 @@ export const AddDocTypeDialog = ({
 
   useEffect(() => {
     if (!pickerOpen) return;
-    requestAnimationFrame(() => {
-      commandRef.current?.querySelector<HTMLInputElement>("[cmdk-input]")?.focus();
-    });
+    requestAnimationFrame(() => searchInputRef.current?.focus());
   }, [pickerOpen]);
 
   const submit = async () => {
@@ -165,9 +159,6 @@ export const AddDocTypeDialog = ({
           <DialogTitle>Add a document requirement</DialogTitle>
           <p className="text-[11px] text-muted-foreground">
             Relevance: <strong>{PROFILE_LABELS[profile]}</strong>
-            {profile === "general" && templateName ? (
-              <span> — pass service/template context for ranked results</span>
-            ) : null}
           </p>
         </DialogHeader>
         <div className="space-y-3">
@@ -184,43 +175,73 @@ export const AddDocTypeDialog = ({
                   <span className="truncate text-left">
                     {selected
                       ? formatDocumentWithCategory(selected)
-                      : "Search e.g. Marriage Certificate, PCC, Wedding Photos…"}
+                      : "Search e.g. Marriage Certificate, PCC, Passport…"}
                   </span>
                   <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
-                <Command ref={commandRef} shouldFilter={false} value={search} onValueChange={setSearch}>
-                  <CommandInput placeholder="Type to search name, category, or alias…" />
-                  <CommandList className="max-h-[300px]">
-                    <CommandEmpty>No document type found.</CommandEmpty>
-                    {grouped.map(([category, items]) => (
-                      <CommandGroup
-                        key={category}
-                        heading={DOCUMENT_CATEGORY_LABELS[category]}
-                      >
-                        {items.map((item) => (
-                          <CommandItem
-                            key={item.code}
-                            value={`${item.label} ${item.code} ${DOCUMENT_CATEGORY_LABELS[category]}`}
-                            onSelect={() => {
-                              setSelected(item);
-                              setPickerOpen(false);
-                            }}
-                          >
-                            <Check
+                <div className="flex items-center border-b px-3">
+                  <Search className="mr-2 size-4 shrink-0 opacity-50" />
+                  <input
+                    ref={searchInputRef}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Type to search name, category, or alias…"
+                    className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
+                  />
+                </div>
+                <div ref={listRef} className="max-h-[300px] overflow-y-auto p-1" role="listbox">
+                  {filtered.length === 0 ? (
+                    <p className="py-6 text-center text-sm text-muted-foreground">No document type found.</p>
+                  ) : (
+                    grouped.map(([category, items]) => (
+                      <div key={category} role="group" aria-label={DOCUMENT_CATEGORY_LABELS[category]}>
+                        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                          {DOCUMENT_CATEGORY_LABELS[category]} ({items.length})
+                        </div>
+                        {items.map((item) => {
+                          const onCase = onChecklist.has(item.code);
+                          return (
+                            <button
+                              key={item.code}
+                              type="button"
+                              role="option"
+                              aria-selected={selected?.code === item.code}
                               className={cn(
-                                "mr-2 size-4 shrink-0",
-                                selected?.code === item.code ? "opacity-100" : "opacity-0",
+                                "relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                                selected?.code === item.code && "bg-accent text-accent-foreground",
                               )}
-                            />
-                            <span className="flex-1 truncate">{formatDocumentWithCategory(item)}</span>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    ))}
-                  </CommandList>
-                </Command>
+                              onClick={() => {
+                                setSelected(item);
+                                setPickerOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 size-4 shrink-0",
+                                  selected?.code === item.code ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                              <span className="flex-1 truncate text-left">
+                                {formatDocumentWithCategory(item)}
+                                {onCase ? (
+                                  <span className="ml-1 text-[10px] text-muted-foreground">(on checklist)</span>
+                                ) : null}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ))
+                  )}
+                </div>
+                <p className="border-t px-2 py-1.5 text-[10px] text-muted-foreground leading-snug">
+                  {pipeline.uiRendered} of {pipeline.masterActiveTotal} types
+                  {pipeline.renderedGroupCount > 0
+                    ? ` · ${pipeline.renderedGroupCount} groups · ${formatCategorySummary(pipeline.categoryCounts)}`
+                    : ""}
+                </p>
               </PopoverContent>
             </Popover>
             {selected ? (
@@ -229,7 +250,7 @@ export const AddDocTypeDialog = ({
               </p>
             ) : null}
             <p className="text-[11px] text-muted-foreground">
-              Sorted by relevance for this visa type. Types already on this case checklist are hidden.
+              Full document catalogue — sorted by visa relevance. Academic types appear last for spouse cases.
               Manual adds go to <strong>Other Documents</strong>.
             </p>
           </div>

@@ -214,12 +214,10 @@ export function sampleAddDocumentResults(
   limit = 15,
 ): { profile: ServiceDocumentProfile; results: string[] } {
   const profile = detectServiceDocumentProfile(serviceCode, templateName);
-  const excluded = new Set(excludedCodes);
 
   const filtered = filterDocumentTypesForAdd(
     items,
     query,
-    excluded,
     serviceCode,
     templateName,
   )

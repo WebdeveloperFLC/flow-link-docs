@@ -1,6 +1,7 @@
 import type { MasterItem } from "@/lib/masters";
-import { DOCUMENT_CATEGORY_LABELS, resolveDocumentCategory } from "./documentCategories";
+import { DOCUMENT_CATEGORY_LABELS, resolveDocumentCategory, type DocumentCategory } from "./documentCategories";
 import {
+  categoryRank,
   compareAddDocumentItems,
   detectServiceDocumentProfile,
   type ServiceDocumentProfile,
@@ -9,23 +10,23 @@ import { scoreDocumentTypeMatch } from "./searchDocumentTypes";
 
 /** Counts at each Add Document filter stage — for UAT / debugging. */
 export interface DocumentTypeFilterPipelineCounts {
-  /** A. Active items in master_items (same set useMasterItems returns). */
+  /** 1. Active items returned from useMasterItems / fetchList. */
   masterActiveTotal: number;
-  /** B. After is_active + excludedMasterCodes (already on checklist). */
-  afterExcluded: number;
-  /** C. After relevance layer — sort-only; must equal afterExcluded. */
+  /** 2. Codes on case checklist (informational — not removed from picker). */
+  onChecklistCount: number;
+  /** 3. After relevance sort (same count as master when search empty). */
   afterRelevance: number;
-  /** D. After search text filter (empty query = same as afterRelevance). */
+  /** 4. After search text filter. */
   afterSearch: number;
-  /** E. Shown in UI (afterRelevance/search; no per-category slice). */
-  uiVisible: number;
+  /** 5. Items rendered in dropdown (= afterSearch). */
+  uiRendered: number;
+  /** Category breakdown of rendered list. */
+  categoryCounts: Record<string, number>;
+  /** Number of category groups rendered. */
+  renderedGroupCount: number;
   profile: ServiceDocumentProfile;
-  hiddenByExcluded: string[];
   hiddenBySearch: string[];
-}
-
-function applyExcluded(items: MasterItem[], excluded: Set<string>): MasterItem[] {
-  return items.filter((item) => item.is_active && !excluded.has(item.code));
+  onChecklistCodes: string[];
 }
 
 function applySearchFilter(
@@ -39,45 +40,66 @@ function applySearchFilter(
 }
 
 function sortByRelevance(items: MasterItem[], profile: ServiceDocumentProfile): MasterItem[] {
-  return [...items].sort((a, b) => compareAddDocumentItems(profile, a, b));
+  return [...items].filter((i) => i.is_active).sort((a, b) => compareAddDocumentItems(profile, a, b));
 }
 
 /**
- * Full Add Document pipeline: load all active → drop checklist duplicates → sort by visa relevance → search filter.
- * Relevance never removes items.
+ * Add Document catalogue: ALL active master types, visa relevance sort-only, optional search filter.
+ * Does NOT remove types already on the case checklist.
  */
 export function filterDocumentTypesForAdd(
   items: MasterItem[],
   query: string,
-  excludedCodes: Set<string>,
   serviceCode?: string | null,
   templateName?: string | null,
 ): MasterItem[] {
   const profile = detectServiceDocumentProfile(serviceCode, templateName);
-  const eligible = applyExcluded(items, excludedCodes);
-  const sorted = sortByRelevance(eligible, profile);
+  const sorted = sortByRelevance(items, profile);
   return applySearchFilter(sorted, query, profile);
 }
 
-/** Inspect counts at each pipeline stage (A–E). */
+export function groupDocumentTypesByCategory(
+  items: MasterItem[],
+  profile: ServiceDocumentProfile,
+): [DocumentCategory, MasterItem[]][] {
+  const map = new Map<DocumentCategory, MasterItem[]>();
+  for (const item of items) {
+    const cat = resolveDocumentCategory(item);
+    const list = map.get(cat) ?? [];
+    list.push(item);
+    map.set(cat, list);
+  }
+  return Array.from(map.entries()).sort(
+    (a, b) => categoryRank(profile, a[0]) - categoryRank(profile, b[0]),
+  );
+}
+
+export function countByCategory(items: MasterItem[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const item of items) {
+    const cat = resolveDocumentCategory(item);
+    const label = DOCUMENT_CATEGORY_LABELS[cat];
+    counts[label] = (counts[label] ?? 0) + 1;
+  }
+  return counts;
+}
+
+/** Inspect counts at each pipeline stage (1–5) for UAT. */
 export function inspectDocumentTypeFilterPipeline(
   items: MasterItem[],
   query: string,
-  excludedCodes: Set<string>,
+  onChecklistCodes: Set<string>,
   serviceCode?: string | null,
   templateName?: string | null,
 ): DocumentTypeFilterPipelineCounts {
   const profile = detectServiceDocumentProfile(serviceCode, templateName);
   const masterActiveTotal = items.filter((i) => i.is_active).length;
-  const eligible = applyExcluded(items, excludedCodes);
-  const afterExcluded = eligible.length;
-  const sorted = sortByRelevance(eligible, profile);
+  const sorted = sortByRelevance(items, profile);
   const afterRelevance = sorted.length;
   const afterSearchList = applySearchFilter(sorted, query, profile);
   const afterSearch = afterSearchList.length;
-  const hiddenByExcluded = items
-    .filter((i) => i.is_active && excludedCodes.has(i.code))
-    .map((i) => i.code);
+  const grouped = groupDocumentTypesByCategory(afterSearchList, profile);
+  const categoryCounts = countByCategory(afterSearchList);
   const hiddenBySearch =
     query.trim() === ""
       ? []
@@ -87,14 +109,16 @@ export function inspectDocumentTypeFilterPipeline(
 
   return {
     masterActiveTotal,
-    afterExcluded,
+    onChecklistCount: onChecklistCodes.size,
     afterRelevance,
     afterSearch,
-    uiVisible: afterSearch,
+    uiRendered: afterSearch,
+    categoryCounts,
+    renderedGroupCount: grouped.length,
     profile,
-    hiddenByExcluded,
     hiddenBySearch,
+    onChecklistCodes: Array.from(onChecklistCodes),
   };
 }
 
-export { applyExcluded, applySearchFilter, sortByRelevance };
+export { applySearchFilter, sortByRelevance };
