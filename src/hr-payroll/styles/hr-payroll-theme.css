@@ -1586,6 +1586,66 @@
   flex-shrink: 0;
 }
 
+/* Employee 360 list + detail */
+[data-hr-payroll] .emp360-filter-card { margin-bottom: 0; }
+[data-hr-payroll] .emp360-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+[data-hr-payroll] .emp360-card-grid {
+  gap: 14px;
+}
+[data-hr-payroll] .emp360-emp-card {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(12px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 8px 28px rgba(59, 130, 196, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: 0.15s;
+}
+[data-hr-payroll] .emp360-emp-card:hover {
+  border-color: rgba(147, 197, 253, 0.65);
+  box-shadow: 0 12px 32px rgba(79, 172, 254, 0.18);
+  transform: translateY(-2px);
+}
+[data-hr-payroll] .emp360-card-meta {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+[data-hr-payroll] .emp360-card-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.35;
+}
+[data-hr-payroll] .emp360-card-label {
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--mut);
+  flex-shrink: 0;
+}
+[data-hr-payroll] .emp360-back-btn {
+  align-self: flex-start;
+}
+[data-hr-payroll] .emp360-detail-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+[data-hr-payroll] .emp360-profile-hero {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(224, 242, 254, 0.72));
+  border-color: rgba(147, 197, 253, 0.45);
+}
+
 @media (max-width: 880px) {
   [data-hr-payroll] .sidebar { display: none; }
   [data-hr-payroll] .content-shell { padding: 12px 10px 32px; }
