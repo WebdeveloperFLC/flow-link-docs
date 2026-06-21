@@ -1,6 +1,12 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  CalendarDays,
+  ClipboardCheck,
+  FileText,
+  Gift,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
@@ -29,9 +35,18 @@ import { printSalarySlip } from "../lib/salarySlip";
 import { ensureMyEmployeeProfile } from "../lib/hrApi";
 import { HR_ORG_ID } from "../lib/constants";
 
+function leaveTileTone(type: string): string {
+  const t = type.toLowerCase();
+  if (t.includes("casual")) return "cyan";
+  if (t.includes("sick")) return "orange";
+  if (t.includes("unpaid")) return "rose";
+  if (t.includes("comp")) return "purple";
+  return "blue";
+}
+
 export default function HrEssPage() {
   const { user, isAdmin } = useAuth();
-  const { actualCan, assignedRole, can, cycle, fire } = useHrAccess();
+  const { actualCan, assignedRole, can, canSee, cycle, fire } = useHrAccess();
   const qc = useQueryClient();
   const [setupBusy, setSetupBusy] = useState(false);
   const { data: employees = [] } = useHrEmployees();
@@ -59,6 +74,13 @@ export default function HrEssPage() {
     () => (emp ? monthlyPaidLeaveUsed(allLeaves, emp.id, today) : 0),
     [allLeaves, emp, today],
   );
+  const pendingLeaveCount = useMemo(
+    () =>
+      emp
+        ? allLeaves.filter((l) => l.employee_id === emp.id && l.status === "Pending").length
+        : 0,
+    [allLeaves, emp],
+  );
   const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, tz, fire);
 
   const attStatus = essAttendanceStatus(todayRow);
@@ -81,36 +103,46 @@ export default function HrEssPage() {
     const canManageTeam = isAdmin || actualCan("manageEmp") || actualCan("configure");
 
     return (
-      <div className="card" style={{ padding: 24 }}>
-        <div className="serif" style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>
-          Set up My Portal to check in
-        </div>
-        <p className="muted" style={{ fontSize: 13.5, marginBottom: 16, maxWidth: 560 }}>
-          Check-in uses <strong>your login</strong> ({user?.email ?? "—"}), not the View-as role
-          picker. Admins, counselors, and other staff at Future Link need a one-time employee profile
-          linked to this account before punching.
-        </p>
-        <div className="row-flex" style={{ gap: 10, flexWrap: "wrap" }}>
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={setupBusy}
-            onClick={() => void setupMyProfile()}
-          >
-            {setupBusy ? "Setting up…" : "Create my employee profile"}
-          </button>
-          {canManageTeam && (
-            <Link to="/hr/config" className="btn">
-              Configuration
-            </Link>
+      <div className="page-grid">
+        <div className="card ess-setup-card">
+          <div className="ess-setup-icon">◔</div>
+          <h2 className="ess-setup-title">Welcome to My Portal</h2>
+          <p className="muted" style={{ fontSize: 13.5, maxWidth: 520 }}>
+            Your login (<strong>{user?.email ?? "—"}</strong>) needs a one-time employee profile before you can check in, view pay, or apply for leave.
+          </p>
+          <ul className="ess-setup-steps">
+            <li className="ess-setup-step">
+              <span className="ess-setup-step-num">1</span>
+              <span>Create your employee profile (one click below).</span>
+            </li>
+            <li className="ess-setup-step">
+              <span className="ess-setup-step-num">2</span>
+              <span>Check in from the punch station on this page.</span>
+            </li>
+            <li className="ess-setup-step">
+              <span className="ess-setup-step-num">3</span>
+              <span>View salary, leave balance, and documents anytime.</span>
+            </li>
+          </ul>
+          <div className="row-flex" style={{ gap: 10, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={setupBusy}
+              onClick={() => void setupMyProfile()}
+            >
+              {setupBusy ? "Setting up…" : "Create my employee profile"}
+            </button>
+            {canManageTeam && (
+              <Link to="/hr/config" className="btn">Configuration</Link>
+            )}
+          </div>
+          {assignedRole && (
+            <p className="muted" style={{ fontSize: 12, marginTop: 14 }}>
+              Your HR role: <strong>{assignedRole}</strong> — View-as only changes menus; it does not change who you punch as.
+            </p>
           )}
         </div>
-        {assignedRole && (
-          <p className="muted" style={{ fontSize: 12, marginTop: 14 }}>
-            Your HR role: <strong>{assignedRole}</strong> — View-as only changes what menus you see;
-            it does not change who you punch as.
-          </p>
-        )}
       </div>
     );
   }
@@ -131,40 +163,97 @@ export default function HrEssPage() {
     comp_off: 0,
   };
 
+  const earnings = [
+    ["Monthly gross", money(emp.monthly_gross)],
+    ["Basic", money(emp.basic)],
+    ["HRA", money(emp.hra)],
+    ["Daily rate", money(line?.daily_rate ?? r.daily_rate)],
+    ["Payable days", String(line?.payable_days ?? 0)],
+    ["Earned gross", money(line?.gross_earned ?? 0)],
+    ["Incentive", money(line?.incentive ?? 0)],
+    ["Bonus", money(line?.bonus ?? 0)],
+  ] as const;
+
+  const deductions = [
+    ["PF", money(line?.pf_employee ?? 0)],
+    ["ESIC", money(line?.esic_employee ?? 0)],
+    ["Other deductions", money(emp.other_deductions ?? 0)],
+    ["Late deduction", `${line?.late_deduction ?? 0}d`],
+  ] as const;
+
   return (
-    <div className="grid" style={{ gap: 16 }}>
-      <div className="card-h">
-        <span className="tag">My Portal</span>
-        <span className="tag">{emp.emp_code}</span>
+    <div className="page-grid">
+      <div className="card ess-hero">
+        <div className="ess-hero-inner">
+          <EmployeeAvatar name={emp.full_name} photoUrl={emp.photo_url} size={56} fontSize={19} />
+          <div className="ess-hero-main">
+            <div className="ess-hero-title">{emp.full_name}</div>
+            <div className="ess-hero-sub">
+              {emp.designation} · {emp.department} · {emp.branches?.name ?? "—"}
+            </div>
+            <div className="ess-hero-tags">
+              <span className="ess-chip mono">{emp.emp_code}</span>
+              <span className="ess-chip">{emp.hr_employee_categories?.label ?? "—"}</span>
+              <span className={`ess-status ess-status--${attStatus.tone}`}>{attStatus.label}</span>
+            </div>
+          </div>
+          {cycle && (
+            <div className="ess-hero-side">
+              <div className="ess-cycle-chip">
+                <span className="ess-cycle-label">Payroll cycle</span>
+                <span className="ess-cycle-val">{cycle.label}</span>
+                <span className="ess-cycle-meta">
+                  {cycle.status} · {cycle.payroll_days} days
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="card" style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-        <EmployeeAvatar name={emp.full_name} photoUrl={emp.photo_url} size={56} fontSize={19} />
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <div className="serif" style={{ fontSize: 21, fontWeight: 600 }}>
-            {emp.full_name}
-          </div>
-          <div style={{ color: "var(--ink-soft)", fontSize: 13.5 }}>
-            {emp.designation} · {emp.department} · {emp.branches?.name ?? "—"}
-          </div>
-          <div className="row-flex" style={{ marginTop: 6 }}>
-            <span className="tag">{emp.emp_code}</span>
-            <span className="tag">{emp.hr_employee_categories?.label ?? "—"}</span>
-            <span
-              className="tag"
-              style={{
-                color:
-                  attStatus.tone === "good"
-                    ? "var(--good)"
-                    : attStatus.tone === "warn"
-                      ? "var(--clay)"
-                      : "var(--mut)",
-              }}
-            >
-              {attStatus.label}
+      <div className="ess-quick-grid">
+        {can("apply") && canSee("leave") && (
+          <Link to="/hr/leave" className="ess-quick-card ess-quick-leave">
+            <span className="ess-quick-icon"><CalendarDays size={18} strokeWidth={2.25} /></span>
+            <span>
+              <div className="ess-quick-label">Apply for leave</div>
+              <div className="ess-quick-hint">
+                {pendingLeaveCount > 0 ? `${pendingLeaveCount} pending` : "Casual, sick & more"}
+              </div>
             </span>
-          </div>
-        </div>
+          </Link>
+        )}
+        {canSee("attendance") && (
+          <Link to="/hr/attendance" className="ess-quick-card ess-quick-attendance">
+            <span className="ess-quick-icon"><ClipboardCheck size={18} strokeWidth={2.25} /></span>
+            <span>
+              <div className="ess-quick-label">My attendance</div>
+              <div className="ess-quick-hint">Cycle history & punches</div>
+            </span>
+          </Link>
+        )}
+        {can("apply") && canSee("compoff") && (
+          <Link to="/hr/compoff" className="ess-quick-card ess-quick-compoff">
+            <span className="ess-quick-icon"><Gift size={18} strokeWidth={2.25} /></span>
+            <span>
+              <div className="ess-quick-label">Comp-off</div>
+              <div className="ess-quick-hint">Request comp-off days</div>
+            </span>
+          </Link>
+        )}
+        {line && cycle && (
+          <button
+            type="button"
+            className="ess-quick-card ess-quick-slip"
+            onClick={() => printSalarySlip(emp, line, cycle)}
+          >
+            <span className="ess-quick-icon"><FileText size={18} strokeWidth={2.25} /></span>
+            <span>
+              <div className="ess-quick-label">Salary slip</div>
+              <div className="ess-quick-hint">Download PDF</div>
+            </span>
+          </button>
+        )}
       </div>
 
       <PunchStation
@@ -187,112 +276,108 @@ export default function HrEssPage() {
       />
 
       <div className="grid g4">
-        <Stat lab="Earned Today" val={money(r.daily_rate)} meta="daily rate" color="var(--moss)" />
+        <Stat variant="metric" tone="green" lab="Earned Today" val={money(r.daily_rate)} meta="daily rate" />
         <Stat
+          variant="metric"
+          tone="blue"
           lab="Net This Cycle"
           val={money(line?.net_salary ?? 0)}
           meta={`${line?.payable_days ?? 0} payable days`}
-          color="var(--gold)"
         />
         <Stat
+          variant="metric"
+          tone="orange"
           lab="Late Comings"
           val={line?.late_count ?? 0}
           meta={`${line?.late_deduction ?? 0}d deduction`}
-          color="var(--clay)"
         />
-        <Stat lab="Comp-Off" val={line?.comp_off ?? 0} meta="approved" color="var(--sky)" />
+        <Stat variant="metric" tone="purple" lab="Comp-Off" val={line?.comp_off ?? 0} meta="approved" />
       </div>
 
-      <div className="card">
+      <div className="card ess-leave-card">
         <div className="card-h">
           <h3>Leave balance</h3>
-          <span className="tag">12+6/yr · {MONTHLY_PAID_LEAVE_CAP}/mo cap</span>
+          <div className="row-flex" style={{ gap: 8 }}>
+            <span className="tag">12+6/yr · {MONTHLY_PAID_LEAVE_CAP}/mo cap</span>
+            {canSee("leave") && (
+              <Link to="/hr/leave" className="btn btn-sm">Apply leave →</Link>
+            )}
+          </div>
         </div>
-        <div className="row-flex">
-          {shownLeaveBalances.map((b) => (
-            <span key={b.type} className="tag">
-              {b.type}: {leaveBalanceRemaining(b).toFixed(1)} / {b.entitled}
-            </span>
-          ))}
+        <div className="ess-leave-grid">
+          {shownLeaveBalances.map((b) => {
+            const tone = leaveTileTone(b.type);
+            const remaining = leaveBalanceRemaining(b);
+            return (
+              <div key={b.type} className={`ess-leave-tile ess-leave-tile--${tone}`}>
+                <div className="ess-leave-tile-type">{b.type}</div>
+                <div className="ess-leave-tile-val">{remaining.toFixed(1)}</div>
+                <div className="ess-leave-tile-sub">of {b.entitled} entitled</div>
+              </div>
+            );
+          })}
         </div>
-        <div style={{ fontSize: 11.5, color: "var(--mut)", marginTop: 8 }}>
-          This month: {monthLeaveUsed.toFixed(1)} / {MONTHLY_PAID_LEAVE_CAP} paid days used · annual{" "}
+        <div className="ess-leave-foot">
+          This month: <strong>{monthLeaveUsed.toFixed(1)}</strong> / {MONTHLY_PAID_LEAVE_CAP} paid days used · annual{" "}
           {LEAVE_ENTITLED.casual}+{LEAVE_ENTITLED.sick} (no carry-forward)
         </div>
       </div>
 
       <div className="grid g2">
-        <div className="card">
-          <div className="card-h">
+        <div className="card ess-salary-card">
+          <div className="ess-salary-head card-h">
             <h3>Salary breakdown</h3>
-            {line && cycle && emp && (
+            {line && cycle && (
               <button
                 type="button"
                 className="btn btn-sm"
                 onClick={() => printSalarySlip(emp, line, cycle)}
               >
-                ↓ Salary Slip
+                ↓ Salary slip
               </button>
             )}
           </div>
-          {(
-            [
-              ["Monthly Gross", money(emp.monthly_gross)],
-              ["Basic", money(emp.basic)],
-              ["HRA", money(emp.hra)],
-              ["Daily Rate", money(line?.daily_rate ?? 0)],
-              ["Payable Days", line?.payable_days ?? 0],
-              ["Earned Gross", money(line?.gross_earned ?? 0)],
-              ["Incentive", money(line?.incentive ?? 0)],
-              ["Bonus", money(line?.bonus ?? 0)],
-              ["PF (−)", money(line?.pf_employee ?? 0)],
-              ["ESIC (−)", money(line?.esic_employee ?? 0)],
-              ["Other Deductions (−)", money(emp.other_deductions ?? 0)],
-              ["Net Payable", money(line?.net_salary ?? 0)],
-            ] as const
-          ).map(([k, v], i, a) => (
-            <div
-              key={k}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "7px 0",
-                borderBottom: i < a.length - 1 ? "1px solid #eef0f5" : "none",
-              }}
-            >
-              <span style={{ fontSize: 13, color: "var(--ink-soft)" }}>{k}</span>
-              <span
-                className="mono"
-                style={{
-                  fontWeight: i === a.length - 1 ? 700 : 400,
-                  color: i === a.length - 1 ? "var(--moss)" : "inherit",
-                }}
-              >
-                {v}
-              </span>
+          <div className="ess-salary-cols">
+            <div className="ess-salary-col">
+              <div className="ess-salary-col-title">Earnings</div>
+              {earnings.map(([label, val]) => (
+                <div key={label} className="ess-salary-row">
+                  <span className="ess-salary-row-label">{label}</span>
+                  <span className="ess-salary-row-val">{val}</span>
+                </div>
+              ))}
             </div>
-          ))}
+            <div className="ess-salary-col">
+              <div className="ess-salary-col-title">Deductions</div>
+              {deductions.map(([label, val]) => (
+                <div key={label} className="ess-salary-row ess-salary-row--deduct">
+                  <span className="ess-salary-row-label">{label}</span>
+                  <span className="ess-salary-row-val">{val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="ess-salary-net">
+            <span className="ess-salary-net-label">Net payable this cycle</span>
+            <span className="ess-salary-net-val">{money(line?.net_salary ?? 0)}</span>
+          </div>
         </div>
+
         <div className="card">
           <div className="card-h">
             <h3>My documents & statutory</h3>
           </div>
-          <div className="grid g3" style={{ gap: 8, marginBottom: 12 }}>
+          <div className="ess-stat-grid">
             {(
               [
                 ["PF", emp.pf_number?.split("/").pop() ?? "—"],
                 ["UAN", emp.uan ?? "—"],
                 ["ESIC", emp.esic_number ?? "—"],
               ] as const
-            ).map(([a, b]) => (
-              <div
-                key={a}
-                style={{ textAlign: "center", padding: 8, background: "var(--paper)", borderRadius: 8 }}
-              >
-                <div style={{ fontSize: 10, color: "var(--mut)", fontWeight: 600 }}>{a}</div>
-                <div className="mono" style={{ fontSize: 11, marginTop: 3 }}>
-                  {b}
-                </div>
+            ).map(([label, val]) => (
+              <div key={label} className="ess-stat-tile">
+                <div className="ess-stat-tile-label">{label}</div>
+                <div className="ess-stat-tile-val">{val}</div>
               </div>
             ))}
           </div>
