@@ -9,6 +9,8 @@ export type ConfigSection = {
   /** Screen permission required (defaults to config). */
   screen?: HrScreenKey;
   configureOnly?: boolean;
+  /** CRM Masters section key — hub links to /masters instead of /hr/config */
+  crmMaster?: "__branches" | "__departments" | "__designations";
 };
 
 export type ConfigCategory = {
@@ -32,28 +34,31 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
       {
         id: "branches",
         title: "Branch Master",
-        description: "Office locations and branch-level payroll settings",
+        description: "CRM shared — office locations used by HR, Leads, Clients, and Accounting",
         route: "/hr/config/branches",
         configureOnly: true,
+        crmMaster: "__branches",
       },
       {
         id: "departments",
         title: "Department Master",
-        description: "Departments used across employee master and reports",
+        description: "CRM shared — internal departments for Users and HR employee records",
         route: "/hr/config/departments",
         configureOnly: true,
+        crmMaster: "__departments",
       },
       {
         id: "designations",
         title: "Designation Master",
-        description: "Job titles and designation hierarchy",
+        description: "CRM shared — job titles for Users and HR Payroll (single source)",
         route: "/hr/config/designations",
         configureOnly: true,
+        crmMaster: "__designations",
       },
       {
         id: "categories",
         title: "Employee Category Master",
-        description: "Employment categories and eligibility groupings",
+        description: "HR-specific — leave, accrual, attendance, and payroll rule groupings",
         route: "/hr/config/categories",
         configureOnly: true,
       },
@@ -257,7 +262,7 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
       {
         id: "doc-types",
         title: "Document Type Master",
-        description: "Offer letters, certificates, Form 16 and custom types",
+        description: "HR employee documents only — separate from CRM client document types",
         route: "/hr/config/document-types",
         screen: "docTypes",
       },
@@ -290,14 +295,14 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
       {
         id: "roles",
         title: "Team & Roles",
-        description: "CRM-linked HR roles and team assignments",
+        description: "HR in-module RBAC — CRM Users page controls who can open HR Payroll",
         route: "/hr/config/roles",
         screen: "roles",
       },
       {
         id: "permissions",
         title: "Permission Matrix",
-        description: "Screen access and action permissions per role",
+        description: "HR screen and action permissions — layered on top of CRM module access",
         route: "/hr/config/roles#permissions",
         screen: "roles",
       },

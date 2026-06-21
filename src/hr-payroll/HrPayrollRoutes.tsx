@@ -26,9 +26,10 @@ import HrImportPage from "./pages/HrImportPage";
 import HrApprovalsPage from "./pages/HrApprovalsPage";
 import HrReportsHubPage, { HrReportPage } from "./pages/HrReportsPage";
 import HrDocumentsPage from "./pages/HrDocumentsPage";
-import HrPayrollCyclePage from "./pages/HrPayrollCyclePage";
 import HrSalaryRegisterPage from "./pages/HrSalaryRegisterPage";
 import HrPayrollHistoryPage from "./pages/HrPayrollHistoryPage";
+import HrEmployeeCategoriesPage from "./pages/HrEmployeeCategoriesPage";
+import HrCrmMasterLinkPage from "./pages/HrCrmMasterLinkPage";
 
 export default function HrPayrollRoutes() {
   return (
@@ -54,7 +55,7 @@ export default function HrPayrollRoutes() {
           <Route path="holidays" element={<HrHolidaysPage />} />
 
           {/* Payroll */}
-          <Route path="payroll/cycle" element={<HrPayrollCyclePage />} />
+          <Route path="payroll/cycle" element={<Navigate to="/hr/config/payroll-cycle" replace />} />
           <Route path="payroll/process" element={<HrCalculatorPage />} />
           <Route path="payroll/register" element={<HrSalaryRegisterPage />} />
           <Route path="payroll/history" element={<HrPayrollHistoryPage />} />
@@ -74,6 +75,10 @@ export default function HrPayrollRoutes() {
           <Route path="config/shifts" element={<HrShiftsPage />} />
           <Route path="config/holidays" element={<HrHolidaysPage masterMode />} />
           <Route path="config/document-types" element={<HrDocumentTypesPage />} />
+          <Route path="config/categories" element={<HrEmployeeCategoriesPage />} />
+          <Route path="config/branches" element={<HrCrmMasterLinkPage kind="branches" />} />
+          <Route path="config/departments" element={<HrCrmMasterLinkPage kind="departments" />} />
+          <Route path="config/designations" element={<HrCrmMasterLinkPage kind="designations" />} />
           <Route path="config/roles" element={<HrRolesPage />} />
           <Route path="config/audit" element={<HrAuditPage />} />
           <Route path="config/:slug" element={<HrConfigPolicyRoute />} />

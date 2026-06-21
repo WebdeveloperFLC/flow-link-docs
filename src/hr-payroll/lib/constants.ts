@@ -76,7 +76,7 @@ export const HR_SCREEN_ROUTES: Record<HrScreenKey, string> = {
   late: "/hr/late",
   mispunch: "/hr/mispunch",
   holiday: "/hr/holidays",
-  payrollCycle: "/hr/payroll/cycle",
+  payrollCycle: "/hr/config/payroll-cycle",
   calculator: "/hr/payroll/process",
   verify: "/hr/payroll/verify",
   salaryRegister: "/hr/payroll/register",
@@ -117,8 +117,6 @@ export const HR_SCREEN_TITLES: Record<HrScreenKey, string> = {
   audit: "Audit Logs",
 };
 
-export const DEPARTMENTS = ["Counselling", "IELTS Training", "Documentation", "Operations"] as const;
-export const BRANCHES = ["Vadodara", "Ahmedabad", "Surat"] as const;
 export const COMPANIES = [
   "Future Link Consultants Pvt Ltd",
   "Future Link Visa Consultants Pvt Ltd",
@@ -129,15 +127,4 @@ export const COMPANIES = [
   "Ontario Inc 2709223",
   "Future Link Consultants Inc",
 ] as const;
-
-/** Employee form employment type options (stored as text on employees.employment_type). */
-export const EMPLOYMENT_TYPES = [
-  "Full time - Permanent",
-  "Part time - Permanent",
-  "Part time - Temporary",
-  "Contract",
-  "Interns",
-] as const;
-
-export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number];
 export const MANAGERS = ["Santosh Sir", "S. Nair", "A. Verma", "CEO Office"] as const;

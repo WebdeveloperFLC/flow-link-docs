@@ -16,6 +16,15 @@ export const SANDWICH_CAP_PER_YEAR = 2;
 export const SANDWICH_HALF_DAY_EXCEPTION = true;
 
 export const ELIGIBLE_EMPLOYMENT_TYPES = ["Full time - Permanent"] as const;
+
+/** Legacy employment type on employee record — drives leave eligibility until Phase 4 category rules. */
+export const EMPLOYMENT_TYPE_OPTIONS = [
+  "Full time - Permanent",
+  "Part time - Permanent",
+  "Part time - Temporary",
+  "Contract",
+  "Interns",
+] as const;
 export const NOTICE_DAYS_SHORT = 7;
 export const NOTICE_DAYS_LONG = 30;
 export const NOTICE_THRESHOLD_DAYS = 3;

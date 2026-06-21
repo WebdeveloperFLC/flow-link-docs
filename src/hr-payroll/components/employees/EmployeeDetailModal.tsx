@@ -146,8 +146,8 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
           )}
           {tab === "employment" && (
             <div className="grid g3" style={{ gap: "12px 22px" }}>
-              <Row k="Designation" v={emp.designation} />
-              <Row k="Department" v={emp.department} />
+              <Row k="Designation" v={emp.designations?.name ?? emp.designation} />
+              <Row k="Department" v={emp.departments?.name ?? emp.department} />
               <Row k="Branch" v={emp.branches?.name ?? null} />
               <Row
                 k="Reporting Manager"
@@ -166,7 +166,7 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
                 }
               />
               <Row k="Currency / Country" v={`${currency} · ${emp.payroll_country ?? "IN"}`} />
-              <Row k="Employment Type" v={emp.employment_type} />
+              <Row k="Employee Category" v={emp.hr_employee_categories?.label ?? emp.employment_type} />
               <Row k="Date of Joining" v={emp.date_of_joining} />
               <Row k="Probation" v={[emp.probation_start_date, emp.probation_end_date].filter(Boolean).join(" – ") || null} />
               <Row k="Notice Period" v={emp.notice_period} />

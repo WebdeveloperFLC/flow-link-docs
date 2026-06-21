@@ -211,7 +211,7 @@ export default function HrDashboardPage() {
             <h3>Payroll quick links</h3>
           </div>
           <div className="grid" style={{ gap: 8 }}>
-            <button type="button" className="btn" onClick={() => navigate("/hr/payroll/cycle")}>
+            <button type="button" className="btn" onClick={() => navigate("/hr/config/payroll-cycle")}>
               Payroll Cycle Management
             </button>
             <button type="button" className="btn" onClick={() => navigate("/hr/payroll/process")}>

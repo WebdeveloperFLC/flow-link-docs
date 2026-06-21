@@ -68,6 +68,22 @@ export type HrDocumentTypeRow = {
   updated_at?: string;
 };
 
+export type HrEmployeeCategoryRow = {
+  id: string;
+  org_id: string;
+  code: string;
+  label: string;
+  leave_eligible: boolean;
+  leave_accrual_eligible: boolean;
+  attendance_rules_apply: boolean;
+  payroll_rules_apply: boolean;
+  is_active: boolean;
+  sort_order: number;
+};
+
+export type DepartmentRow = { id: string; name: string };
+export type DesignationRow = { id: string; name: string };
+
 export type EmployeeRow = {
   id: string;
   org_id: string;
@@ -90,7 +106,10 @@ export type EmployeeRow = {
   nationality?: string | null;
   photo_url: string | null;
   designation: string | null;
+  designation_id?: string | null;
   department: string | null;
+  department_id?: string | null;
+  employee_category_id?: string | null;
   company_id: string | null;
   branch_id: string | null;
   reporting_mgr_id: string | null;
@@ -143,6 +162,9 @@ export type EmployeeRow = {
   security_cheque_uploaded_by_label?: string | null;
   companies?: { name: string; legal_name?: string | null; currency?: string } | null;
   branches?: { name: string } | null;
+  departments?: { name: string } | null;
+  designations?: { name: string } | null;
+  hr_employee_categories?: Pick<HrEmployeeCategoryRow, "label" | "leave_eligible" | "leave_accrual_eligible"> | null;
   shifts?: { name: string; login_time: string; logout_time: string; working_days_per_week?: number; timezone?: string } | null;
 };
 

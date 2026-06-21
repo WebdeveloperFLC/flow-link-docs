@@ -100,8 +100,8 @@ export default function HrEssPage() {
             {setupBusy ? "Setting up…" : "Create my employee profile"}
           </button>
           {canManageTeam && (
-            <Link to="/hr/config/roles" className="btn">
-              Team &amp; CRM (link to existing)
+            <Link to="/hr/config" className="btn">
+              Configuration
             </Link>
           )}
         </div>

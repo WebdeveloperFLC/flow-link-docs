@@ -9,19 +9,19 @@ const PLACEHOLDER_COPY: Record<string, { title: string; description: string }> =
   },
   branches: {
     title: "Branch Master",
-    description: "Branches are managed via reference data — linked from Employee Master.",
+    description: "Opens CRM Masters — branches are shared across CRM and HR Payroll.",
   },
   departments: {
     title: "Department Master",
-    description: "Department list used in employee records and filters.",
+    description: "Opens CRM Masters — departments are shared with Users and HR employee records.",
   },
   designations: {
     title: "Designation Master",
-    description: "Job titles and reporting hierarchy.",
+    description: "Opens CRM Masters — designations are shared with Users and HR Payroll.",
   },
   categories: {
     title: "Employee Category Master",
-    description: "Employment categories for leave and holiday eligibility.",
+    description: "HR-specific employment categories for leave, accrual, attendance, and payroll rules.",
   },
   "attendance-rules": {
     title: "Attendance Rule Engine",

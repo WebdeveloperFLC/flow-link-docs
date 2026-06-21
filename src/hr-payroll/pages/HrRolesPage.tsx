@@ -97,7 +97,8 @@ export default function HrRolesPage() {
         <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>
           <strong>CRM is the primary role source</strong> per product spec — map CRM app roles to HR
           roles via migration 22, then use <strong>Sync from CRM</strong>. The matrix below controls
-          payroll-specific permissions. Manage CRM module access at <code>/users</code>.
+          payroll-specific permissions. Manage CRM module access at{" "}
+          <Link to="/users" style={{ color: "var(--brand)" }}>CRM Users</Link>.
         </div>
         {editable && (
           <div className="row-flex" style={{ marginTop: 12, gap: 8 }}>

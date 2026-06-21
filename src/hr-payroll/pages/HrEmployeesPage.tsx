@@ -26,7 +26,7 @@ export default function HrEmployeesPage() {
       (e) =>
         e.full_name.toLowerCase().includes(s) ||
         e.emp_code.toLowerCase().includes(s) ||
-        (e.department ?? "").toLowerCase().includes(s),
+        (e.departments?.name ?? e.department ?? "").toLowerCase().includes(s),
     );
   }, [employees, q]);
 
@@ -63,8 +63,8 @@ export default function HrEmployeesPage() {
         />
         {can("manageEmp") && (
           <div className="row-flex">
-            <Link to="/hr/config/document-types" className="btn">
-              Document Master
+            <Link to="/hr/config" className="btn">
+              Configuration
             </Link>
             <button type="button" className="btn" onClick={() => setCrmImport(true)}>
               Import from CRM
@@ -92,7 +92,7 @@ export default function HrEmployeesPage() {
                 <th>Dept</th>
                 <th>Designation</th>
                 <th>Branch</th>
-                <th>Type</th>
+                <th>Category</th>
                 <th>Monthly</th>
                 <th>Bank</th>
                 <th>Status</th>
@@ -119,10 +119,10 @@ export default function HrEmployeesPage() {
                     {e.mobile || "—"}
                     <div className="muted">{e.email || ""}</div>
                   </td>
-                  <td>{e.department}</td>
-                  <td>{e.designation}</td>
-                  <td>{e.branches?.name}</td>
-                  <td style={{ fontSize: 12 }}>{e.employment_type}</td>
+                  <td>{e.departments?.name ?? e.department ?? "—"}</td>
+                  <td>{e.designations?.name ?? e.designation ?? "—"}</td>
+                  <td>{e.branches?.name ?? "—"}</td>
+                  <td style={{ fontSize: 12 }}>{e.hr_employee_categories?.label ?? e.employment_type}</td>
                   <td className="mono">{formatMoney(e.monthly_gross, employeeCurrency(e))}</td>
                   <td>
                     {e.bank_account_number ? (
@@ -171,6 +171,9 @@ export default function HrEmployeesPage() {
           emp={edit === "new" ? null : edit}
           companies={ref.companies}
           branches={ref.branches}
+          departments={ref.departments}
+          designations={ref.designations}
+          categories={ref.categories}
           shifts={ref.shifts}
           onClose={() => setEdit(null)}
         />

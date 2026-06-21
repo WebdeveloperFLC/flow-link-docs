@@ -43,6 +43,8 @@ const REQUIRED_MIGRATIONS = [
   "20260717120041_hr_payroll_punch_close_locked_open.sql",
   "20260717120042_hr_payroll_attendance_columns_catchup.sql",
   "20260717120043_hr_payroll_punch_final.sql",
+  "20260720120000_hr_payroll_module_restructure_rbac.sql",
+  "20260721120000_hr_payroll_crm_masters_foundation.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -59,6 +61,8 @@ const REQUIRED_RPCS = [
   "fn_sync_hr_role_from_crm",
   "fn_sync_all_crm_hr_roles",
   "fn_capture_payroll_snapshots",
+  "fn_employee_shift_at",
+  "fn_locked_payroll_cycle_for_date",
 ];
 
 const REQUIRED_PAGES = [
@@ -66,6 +70,7 @@ const REQUIRED_PAGES = [
   "HrEssPage.tsx",
   "HrEmployeesPage.tsx",
   "HrDocumentTypesPage.tsx",
+  "HrEmployeeCategoriesPage.tsx",
   "HrVerifyPage.tsx",
   "HrAttendancePage.tsx",
   "HrLeavePage.tsx",
@@ -303,18 +308,27 @@ describe("HR Payroll module contract", () => {
     expect(m34).toContain("Casual Leave");
   });
 
-  it("employment types and payroll company labels", () => {
+  it("employee categories and payroll company labels", () => {
     const form = readFileSync(
       join(ROOT, "src/hr-payroll/components/employees/EmployeeFormModal.tsx"),
       "utf8",
     );
     const catalog = readFileSync(join(ROOT, "src/hr-payroll/lib/payrollCompanies.ts"), "utf8");
     const constants = readFileSync(join(ROOT, "src/hr-payroll/lib/constants.ts"), "utf8");
-    expect(constants).toContain("Full time - Permanent");
+    const foundation = readFileSync(
+      join(MIGRATIONS, "20260721120000_hr_payroll_crm_masters_foundation.sql"),
+      "utf8",
+    );
+    expect(foundation).toContain("hr_employee_categories");
+    expect(foundation).toContain("'Permanent'");
+    expect(constants).not.toContain("EMPLOYMENT_TYPES");
     expect(constants).toContain("Future Link Academic Excellence Pvt Ltd");
     expect(catalog).not.toContain("Academic Services");
     expect(catalog).toContain("Future Link Consultants Pvt Ltd");
     expect(catalog).toContain("Futureway Consultants Inc");
+    expect(form).toContain("employee_category_id");
+    expect(form).toContain("employment_type");
+    expect(form).toContain("EMPLOYMENT_TYPE_OPTIONS");
     expect(form).toContain("Payroll entity type");
     expect(form).toContain("PAYROLL_ENTITY_REGIONS");
     expect(form).toContain("payrollCompanyLabel");
@@ -324,6 +338,21 @@ describe("HR Payroll module contract", () => {
     );
     expect(m39).toContain("Future Link Academic Excellence Pvt Ltd");
     expect(m39).toContain("DELETE FROM companies");
+  });
+
+  it("Phase 1 foundation: category master without leave/payroll behavior changes", () => {
+    const foundation = readFileSync(
+      join(MIGRATIONS, "20260721120000_hr_payroll_crm_masters_foundation.sql"),
+      "utf8",
+    );
+    const policy = readFileSync(join(ROOT, "src/hr-payroll/lib/leavePolicy.ts"), "utf8");
+    expect(foundation).toContain("v_hr_employee_category_review");
+    expect(foundation).not.toMatch(/CREATE OR REPLACE FUNCTION fn_is_leave_eligible/i);
+    expect(foundation).not.toMatch(/CREATE OR REPLACE FUNCTION fn_rollup_inputs/i);
+    expect(foundation).not.toContain("sync_employment_type_from_category");
+    expect(foundation).toContain("no catch-all");
+    expect(policy).not.toContain("hr_employee_categories");
+    expect(policy).toContain('ELIGIBLE_EMPLOYMENT_TYPES = ["Full time - Permanent"]');
   });
 
   it("ESS uses linked staff_id not employee picker", () => {

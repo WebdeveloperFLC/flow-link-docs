@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { HR_ORG_ID, DEPARTMENTS, EMPLOYMENT_TYPES } from "../../lib/constants";
+import { HR_ORG_ID } from "../../lib/constants";
+import { EMPLOYMENT_TYPE_OPTIONS } from "../../lib/leavePolicy";
 import { fillSalaryComponents, formatMoney, normalizeEmploymentType, parseEmergencyContacts, payrollCompanyLabel, weeklyOffDays } from "../../lib/format";
 import {
   companiesForPayrollRegion,
@@ -20,7 +21,7 @@ import {
 } from "../../lib/securityCheque";
 import { EmployeeAvatar } from "../ui/EmployeeAvatar";
 import { EmployeeAssetsSection } from "./EmployeeAssetsSection";
-import type { BranchRow, CompanyRow, EmergencyContact, EmployeeAssetRow, EmployeeRow, ShiftRow, CrmStaffRow } from "../../lib/types";
+import type { BranchRow, CompanyRow, DepartmentRow, DesignationRow, EmergencyContact, EmployeeAssetRow, EmployeeRow, HrEmployeeCategoryRow, ShiftRow, CrmStaffRow } from "../../lib/types";
 import { fetchNextEmpCode, useHrEmployee, useHrEmployees } from "../../hooks/useHrEmployees";
 import { useEmployeeAssets } from "../../hooks/useEmployeeAssets";
 import {
@@ -40,6 +41,9 @@ type Props = {
   emp: EmployeeRow | null;
   companies: CompanyRow[];
   branches: BranchRow[];
+  departments: DepartmentRow[];
+  designations: DesignationRow[];
+  categories: HrEmployeeCategoryRow[];
   shifts: ShiftRow[];
   onClose: () => void;
 };
@@ -61,11 +65,12 @@ type FormState = {
   marital_status: string;
   blood_group: string;
   nationality: string;
-  designation: string;
-  department: string;
+  designation_id: string;
+  department_id: string;
   branch_id: string;
   reporting_mgr_id: string;
   company_id: string;
+  employee_category_id: string;
   employment_type: string;
   date_of_joining: string;
   notice_period: string;
@@ -73,6 +78,7 @@ type FormState = {
   probation_end_date: string;
   status: string;
   shift_id: string;
+  shift_change_reason: string;
   salary_currency: string;
   payroll_country: string;
   monthly_gross: number | "";
@@ -130,11 +136,12 @@ function fromEmployee(e: EmployeeRow): FormState {
     marital_status: e.marital_status ?? "",
     blood_group: e.blood_group ?? "",
     nationality: e.nationality ?? "Indian",
-    designation: e.designation ?? "",
-    department: e.department ?? "Counselling",
+    designation_id: e.designation_id ?? "",
+    department_id: e.department_id ?? "",
     branch_id: e.branch_id ?? "",
     reporting_mgr_id: e.reporting_mgr_id ?? "",
     company_id: e.company_id ?? "",
+    employee_category_id: e.employee_category_id ?? "",
     employment_type: normalizeEmploymentType(e.employment_type),
     date_of_joining: e.date_of_joining ?? "",
     notice_period: e.notice_period ?? "30 days",
@@ -142,6 +149,7 @@ function fromEmployee(e: EmployeeRow): FormState {
     probation_end_date: e.probation_end_date ?? "",
     status: e.status,
     shift_id: e.shift_id ?? "",
+    shift_change_reason: "",
     salary_currency: e.salary_currency ?? e.companies?.currency ?? "INR",
     payroll_country: e.payroll_country ?? "IN",
     monthly_gross: e.monthly_gross,
@@ -177,9 +185,17 @@ function fromEmployee(e: EmployeeRow): FormState {
   };
 }
 
-const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[]): FormState => {
+const blank = (
+  shifts: ShiftRow[],
+  companies: CompanyRow[],
+  branches: BranchRow[],
+  departments: DepartmentRow[],
+  designations: DesignationRow[],
+  categories: HrEmployeeCategoryRow[],
+): FormState => {
   const indian = companiesForPayrollRegion(companies, "IN");
   const firstCo = indian[0] ?? companies[0];
+  const defaultCategory = categories.find((c) => c.code === "permanent") ?? categories[0];
   return {
   emp_code: "",
   first_name: "",
@@ -197,11 +213,12 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
   marital_status: "",
   blood_group: "",
   nationality: "Indian",
-  designation: "",
-  department: "Counselling",
+  designation_id: designations[0]?.id ?? "",
+  department_id: departments[0]?.id ?? "",
   branch_id: branches[0]?.id ?? "",
   reporting_mgr_id: "",
   company_id: firstCo?.id ?? "",
+  employee_category_id: defaultCategory?.id ?? "",
   employment_type: "Full time - Permanent",
   date_of_joining: "",
   notice_period: "30 days",
@@ -209,6 +226,7 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
   probation_end_date: "",
   status: "On Probation",
   shift_id: shifts[0]?.id ?? "",
+  shift_change_reason: "",
   salary_currency: firstCo?.currency ?? "INR",
   payroll_country: "IN",
   monthly_gross: "",
@@ -242,7 +260,16 @@ const blank = (shifts: ShiftRow[], companies: CompanyRow[], branches: BranchRow[
 };
 };
 
-export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }: Props) {
+export function EmployeeFormModal({
+  emp,
+  companies,
+  branches,
+  departments,
+  designations,
+  categories,
+  shifts,
+  onClose,
+}: Props) {
   const { fire } = useHrAccess();
   const qc = useQueryClient();
   const { data: employees = [] } = useHrEmployees();
@@ -252,7 +279,7 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
   const { data: crmStaff = [], isError: crmStaffError } = useHrCrmStaff();
   const [tab, setTab] = useState<FormTab>("basic");
   const [f, setF] = useState<FormState>(
-    sourceEmp ? fromEmployee(sourceEmp) : blank(shifts, companies, branches),
+    sourceEmp ? fromEmployee(sourceEmp) : blank(shifts, companies, branches, departments, designations, categories),
   );
   const [entityRegion, setEntityRegion] = useState<PayrollEntityRegion>(() => {
     const co = companies.find((c) => c.id === sourceEmp?.company_id);
@@ -385,7 +412,10 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
     if (!f.emp_code.trim()) e.emp_code = "Employee ID required";
     if (!f.first_name.trim()) e.name = "First name required";
     if (!f.last_name.trim()) e.lastName = "Last name required";
-    if (!f.designation.trim()) e.desig = "Designation required";
+    if (!f.designation_id) e.desig = "Designation required";
+    if (!f.department_id) e.dept = "Department required";
+    if (!f.employee_category_id) e.category = "Employee category required";
+    if (!f.employment_type) e.employment_type = "Employment type required";
     if (!f.monthly_gross || Number(f.monthly_gross) <= 0) e.monthly = "Valid monthly salary required";
 
     if (!isValidSecurityChequeStatus(f.security_cheque_status)) {
@@ -436,6 +466,8 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
     const contacts = f.emergency_contacts
       .map((c) => ({ name: c.name.trim(), phone: c.phone.trim(), relation: c.relation.trim() }))
       .filter((c) => c.name || c.phone);
+    const desigName = designations.find((d) => d.id === f.designation_id)?.name ?? "";
+    const deptName = departments.find((d) => d.id === f.department_id)?.name ?? "";
     const payload = {
       org_id: HR_ORG_ID,
       emp_code: f.emp_code.trim(),
@@ -454,12 +486,15 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
       marital_status: f.marital_status || null,
       blood_group: f.blood_group || null,
       nationality: f.nationality || null,
-      designation: f.designation.trim(),
-      department: f.department,
+      designation: desigName,
+      designation_id: f.designation_id || null,
+      department: deptName,
+      department_id: f.department_id || null,
+      employee_category_id: f.employee_category_id || null,
+      employment_type: f.employment_type,
       branch_id: f.branch_id || null,
       reporting_mgr_id: f.reporting_mgr_id || null,
       company_id: f.company_id || null,
-      employment_type: f.employment_type,
       date_of_joining: f.date_of_joining || null,
       notice_period: f.notice_period,
       probation_start_date: f.probation_start_date || null,
@@ -512,6 +547,21 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
         if (error) throw error;
         employeeId = emp.id;
         fire("Employee updated");
+        if (f.shift_id !== (sourceEmp?.shift_id ?? "") && f.shift_change_reason.trim()) {
+          const { data: histRow } = await supabase
+            .from("employee_shift_history" as never)
+            .select("id")
+            .eq("employee_id", employeeId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (histRow) {
+            await supabase
+              .from("employee_shift_history" as never)
+              .update({ change_reason: f.shift_change_reason.trim() } as never)
+              .eq("id", (histRow as { id: string }).id);
+          }
+        }
       } else {
         const { data, error } = await supabase
           .from("employees" as never)
@@ -790,8 +840,62 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
           )}
           {tab === "employment" && (
             <div className="grid g2" style={{ gap: "0 16px" }}>
-              {T("designation", "Designation")}
-              {T("department", "Department", [...DEPARTMENTS])}
+              <label className="fld">
+                <span className="l">Designation</span>
+                <select
+                  className={`input${err.desig ? " err" : ""}`}
+                  value={f.designation_id}
+                  onChange={(e) => set("designation_id", e.target.value)}
+                >
+                  <option value="">— select —</option>
+                  {designations.map((d) => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+                {err.desig && <div className="errmsg">{err.desig}</div>}
+              </label>
+              <label className="fld">
+                <span className="l">Department</span>
+                <select
+                  className={`input${err.dept ? " err" : ""}`}
+                  value={f.department_id}
+                  onChange={(e) => set("department_id", e.target.value)}
+                >
+                  <option value="">— select —</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+                {err.dept && <div className="errmsg">{err.dept}</div>}
+              </label>
+              <label className="fld">
+                <span className="l">Employee Category</span>
+                <select
+                  className={`input${err.category ? " err" : ""}`}
+                  value={f.employee_category_id}
+                  onChange={(e) => set("employee_category_id", e.target.value)}
+                >
+                  <option value="">— select —</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.label}</option>
+                  ))}
+                </select>
+                {err.category && <div className="errmsg">{err.category}</div>}
+              </label>
+              <label className="fld">
+                <span className="l">Employment Type</span>
+                <select
+                  className={`input${err.employment_type ? " err" : ""}`}
+                  value={f.employment_type}
+                  onChange={(e) => set("employment_type", e.target.value)}
+                >
+                  <option value="">— select —</option>
+                  {EMPLOYMENT_TYPE_OPTIONS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                {err.employment_type && <div className="errmsg">{err.employment_type}</div>}
+              </label>
               <label className="fld">
                 <span className="l">Branch</span>
                 <select
@@ -876,7 +980,6 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                 {T("salary_currency", "Salary Currency", ["INR", "CAD"])}
                 {T("payroll_country", "Payroll Country", ["IN", "CA"])}
               </div>
-              {T("employment_type", "Employment Type", [...EMPLOYMENT_TYPES])}
               {T("date_of_joining", "Date of Joining", undefined, "date")}
               {T("probation_start_date", "Probation Start", undefined, "date")}
               {T("probation_end_date", "Probation End", undefined, "date")}
@@ -939,6 +1042,17 @@ export function EmployeeFormModal({ emp, companies, branches, shifts, onClose }:
                     {workWeekFromShift(f.shift_id, shifts)}
                   </div>
                 </div>
+              )}
+              {emp && f.shift_id !== (sourceEmp?.shift_id ?? "") && (
+                <label className="fld" style={{ gridColumn: "1 / -1" }}>
+                  <span className="l">Shift change reason</span>
+                  <input
+                    className="input"
+                    value={f.shift_change_reason}
+                    onChange={(e) => set("shift_change_reason", e.target.value)}
+                    placeholder="Required when changing shift — recorded in shift history"
+                  />
+                </label>
               )}
             </div>
           )}

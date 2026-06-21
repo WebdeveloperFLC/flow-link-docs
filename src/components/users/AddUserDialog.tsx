@@ -45,16 +45,20 @@ export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean
   const [departments, setDepartments] = useState<Opt[]>([]);
   const [branchId, setBranchId] = useState<string>("");
   const [departmentId, setDepartmentId] = useState<string>("");
+  const [designationId, setDesignationId] = useState<string>("");
+  const [designations, setDesignations] = useState<Opt[]>([]);
 
   useEffect(() => {
     if (!open) return;
     (async () => {
-      const [b, d] = await Promise.all([
+      const [b, d, des] = await Promise.all([
         supabase.from("branches").select("id, name").eq("is_active", true).order("display_order"),
         supabase.from("departments").select("id, name").eq("is_active", true).order("display_order"),
+        supabase.from("designations").select("id, name").eq("is_active", true).order("display_order"),
       ]);
       setBranches((b.data ?? []) as Opt[]);
       setDepartments((d.data ?? []) as Opt[]);
+      setDesignations((des.data ?? []) as Opt[]);
     })();
   }, [open]);
 
@@ -70,7 +74,7 @@ export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean
       password: fd.get("password"),
       branch_id: branchId || null,
       department_id: departmentId || null,
-      designation: (fd.get("designation") as string)?.trim() || null,
+      designation: designations.find((d) => d.id === designationId)?.name ?? null,
     });
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
@@ -140,8 +144,18 @@ export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="designation">Designation</Label>
-            <Input id="designation" name="designation" maxLength={80} placeholder="e.g. Senior Counselor" />
+            <Label htmlFor="designation_id">Designation</Label>
+            <select
+              id="designation_id"
+              className="w-full border rounded-md h-10 px-2 bg-background text-sm"
+              value={designationId}
+              onChange={(e) => setDesignationId(e.target.value)}
+            >
+              <option value="">— none —</option>
+              {designations.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-1.5">

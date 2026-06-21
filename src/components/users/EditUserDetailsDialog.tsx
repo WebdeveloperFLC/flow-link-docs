@@ -25,25 +25,28 @@ export const EditUserDetailsDialog = ({
   const [busy, setBusy] = useState(false);
   const [branches, setBranches] = useState<Opt[]>([]);
   const [departments, setDepartments] = useState<Opt[]>([]);
+  const [designations, setDesignations] = useState<Opt[]>([]);
   const [branchId, setBranchId] = useState<string>("");
   const [departmentId, setDepartmentId] = useState<string>("");
-  const [designation, setDesignation] = useState<string>("");
+  const [designationId, setDesignationId] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
 
   useEffect(() => {
     if (!open || !user) return;
     (async () => {
-      const [b, d, current] = await Promise.all([
+      const [b, d, des, current] = await Promise.all([
         supabase.from("branches").select("id, name").eq("is_active", true).order("display_order"),
         supabase.from("departments").select("id, name").eq("is_active", true).order("display_order"),
-        supabase.from("profiles").select("branch_id, department_id, designation, phone").eq("id", user.id).maybeSingle(),
+        supabase.from("designations").select("id, name").eq("is_active", true).order("display_order"),
+        supabase.from("profiles").select("branch_id, department_id, designation_id, designation, phone").eq("id", user.id).maybeSingle(),
       ]);
       setBranches((b.data ?? []) as Opt[]);
       setDepartments((d.data ?? []) as Opt[]);
-      const cur = current.data as any;
+      setDesignations((des.data ?? []) as Opt[]);
+      const cur = current.data as { branch_id?: string; department_id?: string; designation_id?: string; designation?: string; phone?: string } | null;
       setBranchId(cur?.branch_id ?? "");
       setDepartmentId(cur?.department_id ?? "");
-      setDesignation(cur?.designation ?? "");
+      setDesignationId(cur?.designation_id ?? "");
       setPhone(cur?.phone ?? "");
     })();
   }, [open, user?.id]);
@@ -54,13 +57,14 @@ export const EditUserDetailsDialog = ({
     if (!phone.trim()) { toast.error("Phone is required"); return; }
     setBusy(true);
     try {
+      const designationName = designations.find((d) => d.id === designationId)?.name ?? null;
       await callAdminUsers({
         action: "update",
         user_id: user.id,
         phone: phone.trim(),
         branch_id: branchId || null,
         department_id: departmentId,
-        designation: designation.trim() || null,
+        designation: designationName,
       });
       toast.success("Details updated");
       onOpenChange(false);
@@ -117,7 +121,17 @@ export const EditUserDetailsDialog = ({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="edit_designation">Designation</Label>
-            <Input id="edit_designation" value={designation} onChange={(e) => setDesignation(e.target.value)} maxLength={80} placeholder="e.g. Senior Counselor" />
+            <select
+              id="edit_designation"
+              className="w-full border rounded-md h-10 px-2 bg-background text-sm"
+              value={designationId}
+              onChange={(e) => setDesignationId(e.target.value)}
+            >
+              <option value="">— none —</option>
+              {designations.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
           </div>
         </div>
         <DialogFooter>

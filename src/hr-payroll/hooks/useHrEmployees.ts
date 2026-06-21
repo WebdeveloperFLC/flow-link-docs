@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../lib/constants";
-import type { BranchRow, CompanyRow, EmployeeRow, ShiftRow } from "../lib/types";
+import type { BranchRow, CompanyRow, DepartmentRow, DesignationRow, EmployeeRow, HrEmployeeCategoryRow, ShiftRow } from "../lib/types";
 
 export function useHrEmployees() {
   return useQuery({
@@ -10,7 +10,7 @@ export function useHrEmployees() {
       const { data, error } = await supabase
         .from("employees" as never)
         .select(
-          "*, companies(name, legal_name, currency), branches(name), shifts(name, login_time, logout_time, working_days_per_week, timezone)",
+          "*, companies(name, legal_name, currency), branches(name), departments(name), designations(name), hr_employee_categories(label, leave_eligible, leave_accrual_eligible), shifts(name, login_time, logout_time, working_days_per_week, timezone)",
         )
         .eq("org_id", HR_ORG_ID)
         .order("full_name");
@@ -29,7 +29,7 @@ export function useHrEmployee(employeeId: string | undefined) {
       const { data, error } = await supabase
         .from("employees" as never)
         .select(
-          "*, companies(name, legal_name, currency), branches(name), shifts(name, login_time, logout_time, working_days_per_week, timezone)",
+          "*, companies(name, legal_name, currency), branches(name), departments(name), designations(name), hr_employee_categories(label, leave_eligible, leave_accrual_eligible), shifts(name, login_time, logout_time, working_days_per_week, timezone)",
         )
         .eq("id", employeeId!)
         .single();
@@ -43,7 +43,7 @@ export function useHrReferenceData() {
   return useQuery({
     queryKey: ["hr-reference", HR_ORG_ID],
     queryFn: async () => {
-      const [companies, branches, shifts] = await Promise.all([
+      const [companies, branches, departments, designations, categories, shifts] = await Promise.all([
         supabase
           .from("companies" as never)
           .select("id, name, legal_name, currency, country, is_active")
@@ -51,6 +51,14 @@ export function useHrReferenceData() {
           .eq("is_active", true)
           .order("legal_name"),
         supabase.from("branches" as never).select("id, name").eq("is_active", true).order("display_order"),
+        supabase.from("departments" as never).select("id, name").eq("is_active", true).order("display_order"),
+        supabase.from("designations" as never).select("id, name").eq("is_active", true).order("display_order"),
+        supabase
+          .from("hr_employee_categories" as never)
+          .select("id, code, label, leave_eligible, leave_accrual_eligible, attendance_rules_apply, payroll_rules_apply, is_active, sort_order")
+          .eq("org_id", HR_ORG_ID)
+          .eq("is_active", true)
+          .order("sort_order"),
         supabase
           .from("shifts" as never)
           .select("id, name, login_time, logout_time, working_days_per_week")
@@ -58,10 +66,16 @@ export function useHrReferenceData() {
       ]);
       if (companies.error) throw companies.error;
       if (branches.error) throw branches.error;
+      if (departments.error) throw departments.error;
+      if (designations.error) throw designations.error;
+      if (categories.error) throw categories.error;
       if (shifts.error) throw shifts.error;
       return {
         companies: (companies.data ?? []) as CompanyRow[],
         branches: (branches.data ?? []) as BranchRow[],
+        departments: (departments.data ?? []) as DepartmentRow[],
+        designations: (designations.data ?? []) as DesignationRow[],
+        categories: (categories.data ?? []) as HrEmployeeCategoryRow[],
         shifts: (shifts.data ?? []) as ShiftRow[],
       };
     },
