@@ -2,6 +2,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { HrHubGrid } from "../components/ui/HrHubGrid";
 import { HR_REPORTS } from "../lib/moduleStructure";
 import { useHrAccess } from "../context/HrPayrollProvider";
+import HrAttendanceReportPage from "./reports/HrAttendanceReportPage";
 
 export default function HrReportsHubPage() {
   const { can } = useHrAccess();
@@ -20,7 +21,10 @@ export default function HrReportsHubPage() {
           description: r.description,
           route: r.route,
           icon: "▦",
-          disabled: r.id !== "salary-register" && !can("export"),
+          disabled:
+            r.id !== "salary-register" &&
+            r.id !== "attendance" &&
+            !can("export"),
         }))}
       />
     </div>
@@ -33,6 +37,10 @@ export function HrReportPage() {
   const def = HR_REPORTS.find((r) => r.id === reportId);
 
   if (!def) return <Navigate to="/hr/reports" replace />;
+
+  if (reportId === "attendance") {
+    return <HrAttendanceReportPage />;
+  }
 
   if (reportId === "salary-register") {
     return (

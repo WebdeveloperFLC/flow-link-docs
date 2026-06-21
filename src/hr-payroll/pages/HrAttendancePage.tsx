@@ -294,6 +294,41 @@ export function AttendanceView({ mode }: AttendanceViewProps) {
   );
 }
 
+import { AttendanceRegisterView } from "../components/attendance/AttendanceRegisterView";
+import { useHrAttendanceFilters } from "../hooks/useHrAttendanceFilters";
+
+function AttendanceViewTabs() {
+  const { view, setView } = useHrAttendanceFilters();
+
+  return (
+    <div className="seg attendance-view-tabs">
+      <button
+        type="button"
+        className={view === "register" ? "on" : ""}
+        onClick={() => setView("register")}
+      >
+        All employees
+      </button>
+      <button
+        type="button"
+        className={view === "punch" ? "on" : ""}
+        onClick={() => setView("punch")}
+      >
+        Punch station
+      </button>
+    </div>
+  );
+}
+
 export default function HrAttendancePage() {
-  return <AttendanceView mode="admin" />;
+  const { view } = useHrAttendanceFilters();
+
+  return (
+    <>
+      <div className="attendance-view-tabs-wrap">
+        <AttendanceViewTabs />
+      </div>
+      {view === "register" ? <AttendanceRegisterView /> : <AttendanceView mode="admin" />}
+    </>
+  );
 }

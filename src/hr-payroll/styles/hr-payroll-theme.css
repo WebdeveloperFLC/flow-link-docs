@@ -1864,6 +1864,37 @@
   }
 }
 
+[data-hr-payroll] .attendance-view-tabs-wrap {
+  margin-bottom: 4px;
+}
+[data-hr-payroll] .attendance-view-tabs {
+  display: inline-flex;
+}
+[data-hr-payroll] .attendance-filter-stack {
+  display: grid;
+  gap: 12px;
+}
+[data-hr-payroll] .attendance-date-card {
+  margin-bottom: 0;
+  overflow: visible;
+}
+[data-hr-payroll] .attendance-date-filter {
+  padding: 2px 0;
+}
+[data-hr-payroll] .attendance-emp-link {
+  color: var(--ink);
+  text-decoration: none;
+}
+[data-hr-payroll] .attendance-emp-link:hover {
+  color: var(--sky-deep);
+  text-decoration: underline;
+}
+[data-hr-payroll] .attendance-summary-totals td {
+  border-top: 2px solid var(--line);
+  background: var(--wash);
+  font-weight: 600;
+}
+
 @media (max-width: 880px) {
   [data-hr-payroll] .sidebar { display: none; }
   [data-hr-payroll] .content-shell { padding: 12px 10px 32px; }
