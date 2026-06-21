@@ -190,6 +190,81 @@ export async function requestTrainingCompletion(
   return data;
 }
 
+function isPostgrestSchemaError(error: { message?: string; code?: string }): boolean {
+  const msg = (error.message ?? "").toLowerCase();
+  return (
+    error.code === "PGRST204" ||
+    error.code === "42703" ||
+    error.code === "42P01" ||
+    msg.includes("column") ||
+    msg.includes("does not exist") ||
+    msg.includes("could not find")
+  );
+}
+
+export type AssignTrainingInput = {
+  employee_id: string;
+  type: string;
+  duration: string;
+  unpaid_days: number;
+  start_date: string | null;
+  end_date: string | null;
+  training_ref: string | null;
+  created_by_id: string | null;
+  created_by_label: string;
+};
+
+/** Inserts training; falls back to legacy columns if workflow migration not yet published. */
+export async function assignTrainingRecord(input: AssignTrainingInput) {
+  if (!input.employee_id) {
+    throw new Error("Employee is required");
+  }
+
+  const core = {
+    org_id: HR_ORG_ID,
+    employee_id: input.employee_id,
+    type: input.type,
+    duration: input.duration,
+    unpaid_days: input.unpaid_days,
+    start_date: input.start_date,
+    status: "In Progress",
+  };
+
+  const withWorkflow = {
+    ...core,
+    end_date: input.end_date,
+    training_ref: input.training_ref,
+    created_by_id: input.created_by_id,
+    created_by_label: input.created_by_label,
+  };
+
+  let { data, error } = await supabase
+    .from("training_records" as never)
+    .insert(withWorkflow as never)
+    .select("id")
+    .single();
+
+  if (error && isPostgrestSchemaError(error)) {
+    const legacy = await supabase
+      .from("training_records" as never)
+      .insert(core as never)
+      .select("id")
+      .single();
+    data = legacy.data;
+    error = legacy.error;
+  }
+
+  if (error) {
+    const msg = error.message ?? "Assign failed";
+    if (msg.toLowerCase().includes("permission") || error.code === "42501") {
+      throw new Error("Not authorized — Approve permission required to assign training");
+    }
+    throw new Error(msg);
+  }
+
+  return data as { id: string };
+}
+
 export async function syncHrRoleFromCrm(orgId: string, staffId: string) {
   const { data, error } = await supabase.rpc("fn_sync_hr_role_from_crm" as never, {
     p_org: orgId,

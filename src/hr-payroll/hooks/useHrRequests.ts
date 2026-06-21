@@ -77,11 +77,31 @@ export function useHrTrainingRecords() {
   return useQuery({
     queryKey: ["hr-training", HR_ORG_ID],
     queryFn: async () => {
+      const embeds = [
+        "*, employees(full_name, emp_code, branch_id, department_id, branches(name), departments(name))",
+        "*, employees(full_name, emp_code, branch_id, branches(name))",
+        "*, employees(full_name, emp_code)",
+        "*, employees(full_name)",
+      ];
+      for (const embed of embeds) {
+        const { data, error } = await supabase
+          .from("training_records" as never)
+          .select(embed)
+          .eq("org_id", HR_ORG_ID)
+          .order("created_at", { ascending: false });
+        if (!error) return (data ?? []) as TrainingRecordRow[];
+        const msg = (error.message ?? "").toLowerCase();
+        if (
+          error.code !== "PGRST200" &&
+          !msg.includes("relationship") &&
+          !msg.includes("does not exist")
+        ) {
+          throw error;
+        }
+      }
       const { data, error } = await supabase
         .from("training_records" as never)
-        .select(
-          "*, employees(full_name, emp_code, branch_id, department_id, branches(name), departments(name))",
-        )
+        .select("*")
         .eq("org_id", HR_ORG_ID)
         .order("created_at", { ascending: false });
       if (error) throw error;

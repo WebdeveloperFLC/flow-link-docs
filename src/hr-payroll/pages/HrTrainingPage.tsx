@@ -11,7 +11,7 @@ import { TrainingFilterBar } from "../components/training/TrainingFilterBar";
 import { ExtendTrainingModal, CompleteTrainingModal } from "../components/training/TrainingWorkflowModals";
 import { TrainingAuditPanel } from "../components/training/TrainingAuditPanel";
 import { HR_ORG_ID } from "../lib/constants";
-import { getHrActorInfo, hrAudit, processApprovalDecision } from "../lib/hrApi";
+import { getHrActorInfo, hrAudit, assignTrainingRecord, processApprovalDecision } from "../lib/hrApi";
 import {
   defaultTrainingFilters,
   filterTrainingRecords,
@@ -39,31 +39,36 @@ function TrainingModal({
     start_date: "",
     end_date: "",
   });
+  const [err, setErr] = useState("");
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
+    if (!f.employee_id) {
+      setErr("Select an employee");
+      return;
+    }
+    setErr("");
     setSaving(true);
     try {
       const actor = await getHrActorInfo();
-      const { error } = await supabase.from("training_records" as never).insert({
-        org_id: HR_ORG_ID,
+      await assignTrainingRecord({
         employee_id: f.employee_id,
         type: f.type,
-        training_ref: f.training_ref.trim() || null,
         duration: f.duration,
         unpaid_days: parseInt(String(f.unpaid_days), 10) || 0,
         start_date: f.start_date || null,
         end_date: f.end_date || null,
-        status: "In Progress",
+        training_ref: f.training_ref.trim() || null,
         created_by_id: actor.id,
         created_by_label: actor.label,
-      } as never);
-      if (error) throw error;
+      });
       await hrAudit("Training Assigned", f.type, actor.label);
       onSaved("Training assigned");
       onClose();
     } catch (e) {
-      onSaved(e instanceof Error ? e.message : "Assign failed");
+      const message = e instanceof Error ? e.message : "Assign failed";
+      setErr(message);
+      onSaved(message);
     } finally {
       setSaving(false);
     }
@@ -149,6 +154,9 @@ function TrainingModal({
           />
         </label>
       </div>
+      {err && (
+        <p style={{ color: "var(--rose)", fontSize: 13, marginTop: 8 }}>{err}</p>
+      )}
     </ModalShell>
   );
 }
