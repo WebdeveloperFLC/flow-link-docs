@@ -225,7 +225,7 @@ export default function HrEssPage() {
         <div className="card">
           <div className="card-h">
             <h3>Salary breakdown</h3>
-            {line && cycle && can("export") && (
+            {line && cycle && emp && (
               <button
                 type="button"
                 className="btn btn-sm"
