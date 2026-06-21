@@ -1587,7 +1587,27 @@
 }
 
 /* Employee 360 list + detail */
-[data-hr-payroll] .emp360-filter-card { margin-bottom: 0; }
+[data-hr-payroll] .emp360-filter-card { margin-bottom: 0; overflow: visible; }
+[data-hr-payroll] .emp360-filter-bar {
+  overflow: visible;
+}
+[data-hr-payroll] .emp360-filter-loading {
+  font-size: 12px;
+  margin: 0 0 10px;
+  padding: 0 4px;
+}
+[data-hr-payroll] .emp360-filter-select {
+  cursor: pointer;
+  min-height: 38px;
+  background-color: #fff;
+  color: var(--ink);
+  appearance: auto;
+  -webkit-appearance: menulist;
+}
+[data-hr-payroll] .emp360-filter-search {
+  min-width: 200px;
+  flex: 1.4;
+}
 [data-hr-payroll] .emp360-list-header {
   display: flex;
   align-items: center;

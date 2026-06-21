@@ -94,37 +94,90 @@ export function useHrReferenceData() {
   return useQuery({
     queryKey: ["hr-reference", HR_ORG_ID],
     queryFn: async () => {
-      const [companies, branches, departments, designations, categories, shifts] = await Promise.all([
-        supabase
+      const fetchCompanies = async () => {
+        const full = await supabase
           .from("companies" as never)
           .select("id, name, legal_name, currency, country, is_active")
           .eq("org_id", HR_ORG_ID)
           .eq("is_active", true)
-          .order("legal_name"),
-        supabase.from("branches" as never).select("id, name, country").eq("is_active", true).order("display_order"),
-        supabase.from("departments" as never).select("id, name").eq("is_active", true).order("display_order"),
-        supabase.from("designations" as never).select("id, name").eq("is_active", true).order("display_order"),
-        supabase
-          .from("hr_employee_categories" as never)
-          .select("id, code, label, leave_eligible, leave_accrual_eligible, attendance_rules_apply, payroll_rules_apply, is_active, sort_order")
+          .order("legal_name");
+        if (!full.error) return (full.data ?? []) as CompanyRow[];
+        const basic = await supabase
+          .from("companies" as never)
+          .select("id, name, legal_name, currency, country")
           .eq("org_id", HR_ORG_ID)
+          .order("name");
+        if (basic.error) throw basic.error;
+        return (basic.data ?? []) as CompanyRow[];
+      };
+
+      const fetchBranches = async () => {
+        const active = await supabase
+          .from("branches" as never)
+          .select("id, name, country")
           .eq("is_active", true)
-          .order("sort_order"),
-        supabase
-          .from("shifts" as never)
-          .select("id, name, login_time, logout_time, working_days_per_week")
-          .eq("org_id", HR_ORG_ID),
-      ]);
-      if (companies.error) throw companies.error;
-      if (branches.error) throw branches.error;
-      if (departments.error && !isEmbedSchemaError(departments.error)) throw departments.error;
-      if (designations.error && !isEmbedSchemaError(designations.error)) throw designations.error;
+          .order("display_order");
+        if (!active.error) return (active.data ?? []) as BranchRow[];
+        const all = await supabase
+          .from("branches" as never)
+          .select("id, name, country")
+          .order("display_order");
+        if (all.error) throw all.error;
+        return (all.data ?? []) as BranchRow[];
+      };
+
+      const fetchDepartments = async () => {
+        const active = await supabase
+          .from("departments" as never)
+          .select("id, name")
+          .eq("is_active", true)
+          .order("display_order");
+        if (!active.error) return (active.data ?? []) as DepartmentRow[];
+        const all = await supabase.from("departments" as never).select("id, name").order("name");
+        if (all.error) return [] as DepartmentRow[];
+        return (all.data ?? []) as DepartmentRow[];
+      };
+
+      const fetchDesignations = async () => {
+        const active = await supabase
+          .from("designations" as never)
+          .select("id, name")
+          .eq("is_active", true)
+          .order("display_order");
+        if (!active.error) return (active.data ?? []) as DesignationRow[];
+        const all = await supabase.from("designations" as never).select("id, name").order("name");
+        if (all.error) return [] as DesignationRow[];
+        return (all.data ?? []) as DesignationRow[];
+      };
+
+      const [companies, branches, departments, designations, categories, shifts] =
+        await Promise.all([
+          fetchCompanies(),
+          fetchBranches(),
+          fetchDepartments(),
+          fetchDesignations(),
+          supabase
+            .from("hr_employee_categories" as never)
+            .select(
+              "id, code, label, leave_eligible, leave_accrual_eligible, attendance_rules_apply, payroll_rules_apply, is_active, sort_order",
+            )
+            .eq("org_id", HR_ORG_ID)
+            .eq("is_active", true)
+            .order("sort_order"),
+          supabase
+            .from("shifts" as never)
+            .select("id, name, login_time, logout_time, working_days_per_week")
+            .eq("org_id", HR_ORG_ID),
+        ]);
+
+      if (categories.error && !isEmbedSchemaError(categories.error)) throw categories.error;
       if (shifts.error) throw shifts.error;
+
       return {
-        companies: (companies.data ?? []) as CompanyRow[],
-        branches: (branches.data ?? []) as BranchRow[],
-        departments: (departments.error ? [] : departments.data ?? []) as DepartmentRow[],
-        designations: (designations.error ? [] : designations.data ?? []) as DesignationRow[],
+        companies,
+        branches,
+        departments,
+        designations,
         categories: (categories.error ? [] : categories.data ?? []) as HrEmployeeCategoryRow[],
         shifts: (shifts.data ?? []) as ShiftRow[],
       };

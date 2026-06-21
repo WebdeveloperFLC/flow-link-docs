@@ -1,4 +1,11 @@
-import type { EmployeeRow } from "./types";
+import type {
+  BranchRow,
+  CompanyRow,
+  DepartmentRow,
+  DesignationRow,
+  EmployeeRow,
+} from "./types";
+import { payrollCompanyLabel } from "./format";
 
 export const EMP360_COUNTRY_OPTIONS = [
   { value: "All", label: "All countries" },
@@ -80,6 +87,96 @@ export function collectEmploymentTypes(employees: EmployeeRow[]) {
     if (label && label !== "—") set.add(label);
   }
   return [...set].sort();
+}
+
+export type Emp360FilterOption = { id: string; label: string };
+
+export type Emp360FilterOptions = {
+  branches: Emp360FilterOption[];
+  companies: Emp360FilterOption[];
+  departments: Emp360FilterOption[];
+  designations: Emp360FilterOption[];
+};
+
+/** Merge CRM reference masters with values present on loaded employees. */
+export function collectEmp360FilterOptions(
+  employees: EmployeeRow[],
+  ref?: {
+    branches?: BranchRow[];
+    companies?: CompanyRow[];
+    departments?: DepartmentRow[];
+    designations?: DesignationRow[];
+  },
+): Emp360FilterOptions {
+  const branches = new Map<string, string>();
+  const companies = new Map<string, string>();
+  const departments = new Map<string, string>();
+  const designations = new Map<string, string>();
+
+  for (const e of employees) {
+    if (e.branch_id && e.branches?.name) branches.set(e.branch_id, e.branches.name);
+    if (e.company_id && e.companies) {
+      companies.set(e.company_id, payrollCompanyLabel(e.companies));
+    }
+    if (e.department_id && e.departments?.name) {
+      departments.set(e.department_id, e.departments.name);
+    }
+    if (e.designation_id && e.designations?.name) {
+      designations.set(e.designation_id, e.designations.name);
+    }
+  }
+
+  for (const b of ref?.branches ?? []) branches.set(b.id, b.name);
+  for (const c of ref?.companies ?? []) {
+    companies.set(c.id, payrollCompanyLabel(c) || c.name);
+  }
+  for (const d of ref?.departments ?? []) departments.set(d.id, d.name);
+  for (const d of ref?.designations ?? []) designations.set(d.id, d.name);
+
+  const toSorted = (m: Map<string, string>): Emp360FilterOption[] =>
+    [...m.entries()]
+      .map(([id, label]) => ({ id, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+
+  return {
+    branches: toSorted(branches),
+    companies: toSorted(companies),
+    departments: toSorted(departments),
+    designations: toSorted(designations),
+  };
+}
+
+/** Reset filter IDs that are not in the current option lists (stale URL params). */
+export function sanitizeEmp360Filters(
+  filters: Emp360Filters,
+  options: Emp360FilterOptions,
+): Emp360Filters {
+  const next = { ...filters };
+  if (
+    next.branch !== "All" &&
+    !options.branches.some((o) => o.id === next.branch)
+  ) {
+    next.branch = "All";
+  }
+  if (
+    next.company !== "All" &&
+    !options.companies.some((o) => o.id === next.company)
+  ) {
+    next.company = "All";
+  }
+  if (
+    next.department !== "All" &&
+    !options.departments.some((o) => o.id === next.department)
+  ) {
+    next.department = "All";
+  }
+  if (
+    next.designation !== "All" &&
+    !options.designations.some((o) => o.id === next.designation)
+  ) {
+    next.designation = "All";
+  }
+  return next;
 }
 
 export function filterEmployees(employees: EmployeeRow[], filters: Emp360Filters) {

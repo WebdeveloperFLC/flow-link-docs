@@ -5,9 +5,11 @@ import { EmployeeCard } from "../components/ui/EmployeeCard";
 import { Emp360FilterBar } from "../components/emp360/Emp360FilterBar";
 import { emp360ProfilePath, emp360ProfileSearch } from "../lib/emp360Paths";
 import {
+  collectEmp360FilterOptions,
   collectEmploymentTypes,
   emp360FiltersFromSearchParams,
   filterEmployees,
+  sanitizeEmp360Filters,
   type Emp360Filters,
 } from "../lib/emp360Filters";
 
@@ -27,7 +29,16 @@ export default function HrEmp360ListPage() {
     isError,
     error,
   } = useHrEmployees({ activeOnly: false });
-  const { data: ref } = useHrReferenceData();
+  const { data: ref, isLoading: refLoading } = useHrReferenceData();
+
+  const filterOptions = useMemo(
+    () => collectEmp360FilterOptions(employees, ref),
+    [employees, ref],
+  );
+
+  useEffect(() => {
+    setFilters((prev) => sanitizeEmp360Filters(prev, filterOptions));
+  }, [filterOptions]);
 
   const employmentTypes = useMemo(() => collectEmploymentTypes(employees), [employees]);
   const filteredEmployees = useMemo(
@@ -68,8 +79,9 @@ export default function HrEmp360ListPage() {
       <Emp360FilterBar
         filters={filters}
         onChange={updateFilters}
-        ref={ref}
+        options={filterOptions}
         employmentTypes={employmentTypes}
+        refLoading={refLoading}
       />
 
       <div className="emp360-list-header">

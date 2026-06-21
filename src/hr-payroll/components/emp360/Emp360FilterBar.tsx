@@ -1,30 +1,29 @@
-import type { BranchRow, CompanyRow, DepartmentRow, DesignationRow } from "../../lib/types";
-import type { Emp360Filters } from "../../lib/emp360Filters";
+import type { Emp360Filters, Emp360FilterOptions } from "../../lib/emp360Filters";
 import { EMP360_COUNTRY_OPTIONS } from "../../lib/emp360Filters";
 
 export function Emp360FilterBar({
   filters,
   onChange,
-  ref,
+  options,
   employmentTypes,
+  refLoading,
 }: {
   filters: Emp360Filters;
   onChange: (patch: Partial<Emp360Filters>) => void;
-  ref?: {
-    branches?: BranchRow[];
-    companies?: CompanyRow[];
-    departments?: DepartmentRow[];
-    designations?: DesignationRow[];
-  };
+  options: Emp360FilterOptions;
   employmentTypes: string[];
+  refLoading?: boolean;
 }) {
   return (
     <div className="card card-wash emp360-filter-card">
-      <div className="filter-bar">
+      {refLoading && (
+        <p className="muted emp360-filter-loading">Loading filter options…</p>
+      )}
+      <div className="filter-bar emp360-filter-bar">
         <label className="fld">
           <span className="l">Country</span>
           <select
-            className="input"
+            className="input emp360-filter-select"
             value={filters.country}
             onChange={(e) => onChange({ country: e.target.value })}
           >
@@ -36,59 +35,59 @@ export function Emp360FilterBar({
         <label className="fld">
           <span className="l">Branch</span>
           <select
-            className="input"
+            className="input emp360-filter-select"
             value={filters.branch}
             onChange={(e) => onChange({ branch: e.target.value })}
           >
             <option value="All">All branches</option>
-            {(ref?.branches ?? []).map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
+            {options.branches.map((b) => (
+              <option key={b.id} value={b.id}>{b.label}</option>
             ))}
           </select>
         </label>
         <label className="fld">
           <span className="l">Payroll company</span>
           <select
-            className="input"
+            className="input emp360-filter-select"
             value={filters.company}
             onChange={(e) => onChange({ company: e.target.value })}
           >
             <option value="All">All companies</option>
-            {(ref?.companies ?? []).map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+            {options.companies.map((c) => (
+              <option key={c.id} value={c.id}>{c.label}</option>
             ))}
           </select>
         </label>
         <label className="fld">
           <span className="l">Department</span>
           <select
-            className="input"
+            className="input emp360-filter-select"
             value={filters.department}
             onChange={(e) => onChange({ department: e.target.value })}
           >
             <option value="All">All departments</option>
-            {(ref?.departments ?? []).map((d) => (
-              <option key={d.id} value={d.id}>{d.name}</option>
+            {options.departments.map((d) => (
+              <option key={d.id} value={d.id}>{d.label}</option>
             ))}
           </select>
         </label>
         <label className="fld">
           <span className="l">Designation</span>
           <select
-            className="input"
+            className="input emp360-filter-select"
             value={filters.designation}
             onChange={(e) => onChange({ designation: e.target.value })}
           >
             <option value="All">All designations</option>
-            {(ref?.designations ?? []).map((d) => (
-              <option key={d.id} value={d.id}>{d.name}</option>
+            {options.designations.map((d) => (
+              <option key={d.id} value={d.id}>{d.label}</option>
             ))}
           </select>
         </label>
         <label className="fld">
           <span className="l">Employment type</span>
           <select
-            className="input"
+            className="input emp360-filter-select"
             value={filters.employment}
             onChange={(e) => onChange({ employment: e.target.value })}
           >
@@ -98,7 +97,7 @@ export function Emp360FilterBar({
             ))}
           </select>
         </label>
-        <label className="fld">
+        <label className="fld emp360-filter-search">
           <span className="l">Search employee</span>
           <input
             className="input"
