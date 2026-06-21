@@ -1985,6 +1985,39 @@
   font-weight: 600;
 }
 
+/* HR Reports */
+[data-hr-payroll] .emp360-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px 12px;
+  align-items: end;
+}
+[data-hr-payroll] .hr-report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+[data-hr-payroll] .hr-report-table th,
+[data-hr-payroll] .hr-report-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+[data-hr-payroll] .hr-report-table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: var(--wash);
+}
+[data-hr-payroll] .hr-report-th-sortable:hover {
+  color: var(--ink);
+}
+[data-hr-payroll] .hr-report-pagination {
+  border-top: 1px solid var(--line);
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 880px) {
   [data-hr-payroll] .sidebar { display: none; }
   [data-hr-payroll] .content-shell { padding: 12px 10px 32px; }

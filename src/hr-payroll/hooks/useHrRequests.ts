@@ -126,6 +126,24 @@ export function useTrainingExtensionHistory(trainingId: string | undefined) {
   });
 }
 
+export function useHrLeaveBalancesAll(policyYear?: number) {
+  return useQuery({
+    queryKey: ["hr-leave-balances-all", HR_ORG_ID, policyYear],
+    queryFn: async () => {
+      let query = supabase
+        .from("leave_balances" as never)
+        .select("*")
+        .eq("org_id", HR_ORG_ID);
+      if (policyYear != null) {
+        query = query.eq("policy_year", policyYear);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data ?? []) as LeaveBalanceRow[];
+    },
+  });
+}
+
 export function useHrLeaveBalances(employeeId?: string, policyYear?: number) {
   return useQuery({
     queryKey: ["hr-leave-balances", HR_ORG_ID, employeeId, policyYear],

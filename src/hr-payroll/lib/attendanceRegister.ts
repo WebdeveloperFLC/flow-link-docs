@@ -18,6 +18,9 @@ export type AttendanceRegisterRow = {
   breakMinutes: number;
   status: string;
   isMispunch: boolean;
+  lateMinutes: number;
+  shiftName: string | null;
+  workingHours: string;
 };
 
 export type AttendanceSummaryRow = {
@@ -72,6 +75,9 @@ export function buildAttendanceRegisterRows(
       breakMinutes: dm.breakMin ?? 0,
       status: a.status,
       isMispunch: a.is_mispunch,
+      lateMinutes: dm.lateMin ?? 0,
+      shiftName: shift?.name ?? null,
+      workingHours: fmtDur(dm.net),
     });
   }
 

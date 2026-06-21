@@ -1,18 +1,23 @@
-import { Link, Navigate, useParams } from "react-router-dom";
+import type { ComponentType } from "react";
+import { Navigate, useParams } from "react-router-dom";
 import { HrHubGrid } from "../components/ui/HrHubGrid";
 import { HR_REPORTS } from "../lib/moduleStructure";
-import { useHrAccess } from "../context/HrPayrollProvider";
+import HrEmployeeReportPage from "./reports/HrEmployeeReportPage";
 import HrAttendanceReportPage from "./reports/HrAttendanceReportPage";
+import HrLeaveReportPage from "./reports/HrLeaveReportPage";
+import HrPayrollReportPage from "./reports/HrPayrollReportPage";
+import HrSalaryRegisterReportPage from "./reports/HrSalaryRegisterReportPage";
+import HrLateReportPage from "./reports/HrLateReportPage";
+import HrMispunchReportPage from "./reports/HrMispunchReportPage";
+import HrHolidayReportPage from "./reports/HrHolidayReportPage";
+import HrAuditReportPage from "./reports/HrAuditReportPage";
 
 export default function HrReportsHubPage() {
-  const { can } = useHrAccess();
-
   return (
     <div className="grid" style={{ gap: 16 }}>
       <div className="card" style={{ background: "var(--wash)", borderColor: "var(--line)" }}>
         <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
-          Dedicated reports with filters and export to Excel, PDF, and print. Salary register is
-          fully wired; other reports roll out incrementally.
+          Filtered HR reports with summary metrics, sortable tables, and CSV, Excel, PDF, and print export.
         </div>
       </div>
       <HrHubGrid
@@ -21,65 +26,32 @@ export default function HrReportsHubPage() {
           description: r.description,
           route: r.route,
           icon: "▦",
-          disabled:
-            r.id !== "salary-register" &&
-            r.id !== "attendance" &&
-            !can("export"),
         }))}
       />
     </div>
   );
 }
 
+const REPORT_PAGES: Record<string, ComponentType> = {
+  employee: HrEmployeeReportPage,
+  attendance: HrAttendanceReportPage,
+  leave: HrLeaveReportPage,
+  payroll: HrPayrollReportPage,
+  "salary-register": HrSalaryRegisterReportPage,
+  late: HrLateReportPage,
+  mispunch: HrMispunchReportPage,
+  holiday: HrHolidayReportPage,
+  audit: HrAuditReportPage,
+};
+
 export function HrReportPage() {
   const { reportId } = useParams<{ reportId: string }>();
-  const { can, cycle } = useHrAccess();
   const def = HR_REPORTS.find((r) => r.id === reportId);
 
-  if (!def) return <Navigate to="/hr/reports" replace />;
+  if (!def || !reportId) return <Navigate to="/hr/reports" replace />;
 
-  if (reportId === "attendance") {
-    return <HrAttendanceReportPage />;
-  }
+  const Page = REPORT_PAGES[reportId];
+  if (!Page) return <Navigate to="/hr/reports" replace />;
 
-  if (reportId === "salary-register") {
-    return (
-      <div className="grid" style={{ gap: 16 }}>
-        <div className="card">
-          <div className="card-h">
-            <h3>Salary Register Report</h3>
-            <Link to="/hr/payroll/register" className="btn btn-primary btn-sm">
-              Open register →
-            </Link>
-          </div>
-          <p className="muted" style={{ fontSize: 13 }}>
-            Full salary register with CSV, Excel, and PDF export is available on the Salary Register
-            screen for cycle <strong>{cycle?.label ?? "—"}</strong>.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="card">
-      <div className="card-h">
-        <h3>{def.title}</h3>
-        <Link to="/hr/reports" className="btn btn-sm">
-          ← All reports
-        </Link>
-      </div>
-      <div className="empty">
-        <div className="ico">▦</div>
-        <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>
-          {def.title}
-        </div>
-        <div style={{ fontSize: 13, maxWidth: 420, margin: "0 auto" }}>
-          {can("export")
-            ? `${def.description} — filters and Excel/PDF/Print export coming in the next build phase.`
-            : "Export permission required to run this report."}
-        </div>
-      </div>
-    </div>
-  );
+  return <Page />;
 }

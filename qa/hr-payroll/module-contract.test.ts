@@ -470,4 +470,30 @@ describe("HR Payroll module contract", () => {
     expect(structure).toContain("comingSoon: true");
     expect(structure).toContain("org-settings");
   });
+
+  it("all HR report pages exist and hub routes each report id", () => {
+    const reportsPage = readFileSync(join(ROOT, "src/hr-payroll/pages/HrReportsPage.tsx"), "utf8");
+    const structure = readFileSync(join(ROOT, "src/hr-payroll/lib/moduleStructure.ts"), "utf8");
+    const reportIds = [...structure.matchAll(/id: "([^"]+)", title: "[^"]+ Report"/g)].map((m) => m[1]);
+    expect(reportIds.length).toBeGreaterThanOrEqual(9);
+    for (const id of reportIds) {
+      const fileName = `Hr${id
+        .split("-")
+        .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+        .join("")}ReportPage.tsx`;
+      const altName =
+        id === "salary-register"
+          ? "HrSalaryRegisterReportPage.tsx"
+          : id === "attendance"
+            ? "HrAttendanceReportPage.tsx"
+            : fileName;
+      expect(
+        existsSync(join(ROOT, "src/hr-payroll/pages/reports", altName)),
+        `missing report page for ${id}`,
+      ).toBe(true);
+      expect(reportsPage).toContain(id);
+    }
+    expect(reportsPage).not.toContain("coming in the next build phase");
+    expect(reportsPage).not.toContain("roll out incrementally");
+  });
 });
