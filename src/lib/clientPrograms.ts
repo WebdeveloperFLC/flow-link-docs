@@ -15,8 +15,18 @@ export type ClientProgramRow = {
   shortlisted_at: string;
   finalized_by: string | null;
   finalized_at: string | null;
+  qualification_id: string | null;
+  selected_intake_term: string | null;
+  selected_campus: string | null;
+  program_code_snapshot: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type LinkedApplicationSummary = {
+  id: string;
+  status: string;
+  institutionApplicationStatus: string | null;
 };
 
 export type CfCourseSummary = {
@@ -28,6 +38,8 @@ export type CfCourseSummary = {
   intake_year: number | null;
   tuition_fee: number | null;
   currency: string | null;
+  program_code: string | null;
+  campus_names: string[];
   university: {
     id: string;
     name: string;
@@ -43,6 +55,7 @@ export type CfCourseSummary = {
 
 export type ClientProgramEnriched = ClientProgramRow & {
   course: CfCourseSummary;
+  qualification: LinkedApplicationSummary | null;
 };
 
 const PROGRAM_SELECT = `
@@ -56,6 +69,8 @@ const PROGRAM_SELECT = `
     intake_year,
     tuition_fee,
     currency,
+    program_code,
+    campus_names,
     university:cf_universities (
       id,
       name,
@@ -67,6 +82,11 @@ const PROGRAM_SELECT = `
         flag_emoji
       )
     )
+  ),
+  qualification:client_institution_qualifications (
+    id,
+    status,
+    institution_application_status
   )
 `;
 
@@ -76,6 +96,7 @@ function mapEnriched(row: Record<string, unknown>): ClientProgramEnriched {
   const courseRaw = row.course as Record<string, unknown>;
   const uniRaw = courseRaw.university as Record<string, unknown>;
   const countryRaw = uniRaw.country as Record<string, unknown>;
+  const qualRaw = row.qualification as Record<string, unknown> | null | undefined;
   return {
     ...(row as unknown as ClientProgramRow),
     course: {
@@ -87,6 +108,8 @@ function mapEnriched(row: Record<string, unknown>): ClientProgramEnriched {
       intake_year: (courseRaw.intake_year as number | null) ?? null,
       tuition_fee: (courseRaw.tuition_fee as number | null) ?? null,
       currency: (courseRaw.currency as string | null) ?? null,
+      program_code: (courseRaw.program_code as string | null) ?? null,
+      campus_names: (courseRaw.campus_names as string[] | null) ?? [],
       university: {
         id: uniRaw.id as string,
         name: uniRaw.name as string,
@@ -99,7 +122,26 @@ function mapEnriched(row: Record<string, unknown>): ClientProgramEnriched {
         flag_emoji: (countryRaw.flag_emoji as string | null) ?? null,
       },
     },
+    qualification: qualRaw?.id
+      ? {
+          id: qualRaw.id as string,
+          status: qualRaw.status as string,
+          institutionApplicationStatus:
+            (qualRaw.institution_application_status as string | null) ?? null,
+        }
+      : null,
   };
+}
+
+export function programCodeDisplay(p: ClientProgramEnriched): string | null {
+  return p.program_code_snapshot ?? p.course.program_code ?? null;
+}
+
+export function applicationStatusLabel(p: ClientProgramEnriched): string {
+  if (!p.qualification) return "No application";
+  const admissions = p.qualification.institutionApplicationStatus;
+  if (admissions) return admissions.replace(/_/g, " ");
+  return p.qualification.status.replace(/_/g, " ");
 }
 
 async function currentUserId(): Promise<string> {
@@ -242,7 +284,78 @@ export async function shortlistCourseForClient(
   return enriched;
 }
 
-/** Move a shortlisted program to final (permanent). */
+export type MarkFinalAndCreateApplicationPayload = {
+  programId: string;
+  caseId: string;
+  intakeTerm: string;
+  campusName?: string | null;
+  ownerUserId: string;
+  setPrimary?: boolean;
+};
+
+export type MarkFinalAndCreateApplicationResult = {
+  qualificationId: string;
+  program: ClientProgramEnriched;
+};
+
+/** Mark final, create linked Draft application, and return both IDs. */
+export async function markFinalAndCreateApplication(
+  payload: MarkFinalAndCreateApplicationPayload,
+): Promise<MarkFinalAndCreateApplicationResult> {
+  const { data, error } = await supabase.rpc("fn_mark_final_and_create_application" as never, {
+    p_client_program_id: payload.programId,
+    p_client_service_case_id: payload.caseId,
+    p_intake_term: payload.intakeTerm,
+    p_campus_name: payload.campusName ?? null,
+    p_owner_user_id: payload.ownerUserId,
+    p_set_primary: payload.setPrimary ?? true,
+  } as never);
+
+  if (error) throw error;
+
+  const result = data as {
+    qualification_id: string;
+    client_program_id: string;
+    country_name?: string;
+    is_primary?: boolean;
+  };
+
+  const { data: row, error: fetchErr } = await programsTable()
+    .select(PROGRAM_SELECT)
+    .eq("id", result.client_program_id)
+    .single();
+  if (fetchErr) throw fetchErr;
+
+  const enriched = mapEnriched(row as Record<string, unknown>);
+
+  if (result.country_name) {
+    await ensureClientInterestedCountry(enriched.client_id, result.country_name);
+  }
+
+  if (enriched.is_primary) {
+    await syncClientPrimaryFromProgram(enriched);
+  }
+
+  await appendTimeline({
+    clientId: enriched.client_id,
+    eventType: "program_finalized",
+    summary: `Finalized program and created application: ${programLabel(enriched.course)}`,
+    metadata: {
+      program_id: enriched.id,
+      course_id: enriched.course_id,
+      qualification_id: result.qualification_id,
+      country_code: enriched.country_code,
+      intake_term: payload.intakeTerm,
+      campus_name: payload.campusName ?? null,
+      is_primary: enriched.is_primary,
+    },
+    isStaffOnly: true,
+  });
+
+  return { qualificationId: result.qualification_id, program: enriched };
+}
+
+/** Move a shortlisted program to final (permanent) without creating an application. */
 export async function finalizeClientProgram(
   programId: string,
   opts?: { setPrimary?: boolean },

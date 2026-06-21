@@ -51,4 +51,16 @@
 
 **Owner:** Balveer + Engineering
 
-**Out of scope (Q2+):** funding plans, external events, TRANSFERRED, qualification source, payment recording, commission integration, Phase A catalog, Phase B Mark Final, Phase C auto-create.
+**Out of scope (Q2+):** funding plans, external events, TRANSFERRED, qualification source, payment recording, commission integration, Phase A catalog publish (full), financial requirements.
+
+## Mark Final → Application (Client Services)
+
+| ID | Scenario | Pass |
+|----|----------|------|
+| MF-01 | **Client Services → Mark final** wizard collects intake, campus, owner (default Keep me) | ☐ |
+| MF-02 | Mark final creates **Draft** application with `application_source = MARK_FINAL` | ☐ |
+| MF-03 | `cf_client_programs.qualification_id` set; final card shows code, campus, intake, application status | ☐ |
+| MF-04 | **Open application** navigates to Applications tab with correct record selected | ☐ |
+| MF-05 | Applications tab banner explains Client Services → Course Finder → Mark final path | ☐ |
+| MF-06 | Duplicate institution+intake on same case rejected | ☐ |
+| MF-07 | Mark final blocked when institution not linked to UPI master | ☐ |

@@ -1241,9 +1241,22 @@ const ClientDetail = () => {
           <TabsContent value="client-services" className="mt-0 space-y-6">
             <ClientServicesTabContent
               clientId={client.id}
+              caseId={serviceCase?.id}
               canEdit={canUpload}
               refreshKey={profileRefreshKey}
               onProgramsChanged={() => setProfileRefreshKey((k) => k + 1)}
+              onApplicationCreated={(qualificationId) => {
+                setStageRefreshKey((k) => k + 1);
+                setSearchParams(
+                  (prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.set("tab", "qualification");
+                    next.set("applicationId", qualificationId);
+                    return next;
+                  },
+                  { replace: true },
+                );
+              }}
               services={{
                 coaching_services: client.coaching_services ?? [],
                 visa_services: client.visa_services ?? [],
@@ -1260,6 +1273,7 @@ const ClientDetail = () => {
               caseId={serviceCase?.id}
               canEdit={canUpload}
               refreshKey={stageRefreshKey}
+              initialApplicationId={searchParams.get("applicationId")}
             />
           </TabsContent>
 

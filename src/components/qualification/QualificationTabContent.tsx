@@ -43,6 +43,7 @@ type Props = {
   caseId: string | undefined;
   canEdit: boolean;
   refreshKey?: number;
+  initialApplicationId?: string | null;
 };
 
 function formatMoney(amount: number, currency: string) {
@@ -63,7 +64,13 @@ function SnapshotRow({ label, value }: { label: string; value: string | null | u
   );
 }
 
-export function QualificationTabContent({ clientId, caseId, canEdit, refreshKey = 0 }: Props) {
+export function QualificationTabContent({
+  clientId,
+  caseId,
+  canEdit,
+  refreshKey = 0,
+  initialApplicationId = null,
+}: Props) {
   const {
     qualifications,
     selected,
@@ -76,7 +83,7 @@ export function QualificationTabContent({ clientId, caseId, canEdit, refreshKey 
     loading,
     detailLoading,
     reload,
-  } = useClientQualification(clientId, caseId, refreshKey);
+  } = useClientQualification(clientId, caseId, refreshKey, initialApplicationId);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [transitionTo, setTransitionTo] = useState<QualificationLifecycleStatus | null>(null);
@@ -165,6 +172,15 @@ export function QualificationTabContent({ clientId, caseId, canEdit, refreshKey 
 
   return (
     <div className="space-y-6">
+      <Card className="p-4 border-dashed bg-muted/30">
+        <p className="text-sm text-muted-foreground">
+          Applications are normally created from{" "}
+          <span className="font-medium text-foreground">Client Services → Course Finder → Mark final</span>.
+          Use this tab for admissions processing: application details, offer, references, milestones, and timeline.
+          Manual creation remains available when needed.
+        </p>
+      </Card>
+
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">

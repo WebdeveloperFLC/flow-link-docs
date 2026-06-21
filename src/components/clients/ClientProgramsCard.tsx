@@ -4,55 +4,52 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/status-badge";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { GraduationCap, Loader2, ExternalLink, Star, Trash2, CheckCircle2 } from "lucide-react";
+import { GraduationCap, Loader2, ExternalLink, Star, Trash2, CheckCircle2, FileText } from "lucide-react";
 import { toast } from "sonner";
 import {
   listClientPrograms,
-  finalizeClientProgram,
+  markFinalAndCreateApplication,
   removeShortlistedProgram,
   setPrimaryClientProgram,
   groupProgramsByCountry,
+  programCodeDisplay,
+  applicationStatusLabel,
   type ClientProgramEnriched,
 } from "@/lib/clientPrograms";
-
-const fmtMoney = (n: number | null, c: string | null) => {
-  if (n == null) return "—";
-  return `${c ?? ""} ${n.toLocaleString()}`.trim();
-};
+import { MarkFinalProgramDialog } from "./MarkFinalProgramDialog";
 
 function ProgramRow({
   p,
+  clientId,
   canEdit,
-  onFinalize,
+  caseId,
+  onMarkFinal,
   onRemove,
   onSetPrimary,
 }: {
   p: ClientProgramEnriched;
+  clientId: string;
   canEdit: boolean;
-  onFinalize: (p: ClientProgramEnriched) => void;
+  caseId: string | undefined;
+  onMarkFinal: (p: ClientProgramEnriched) => void;
   onRemove: (id: string) => void;
   onSetPrimary: (id: string) => void;
 }) {
   const { course: c } = p;
+  const code = programCodeDisplay(p);
+  const intake = p.selected_intake_term ?? (c.intake_months.length > 0
+    ? `${c.intake_months.join(", ")}${c.intake_year ? ` ${c.intake_year}` : ""}`
+    : null);
+  const campus = p.selected_campus ?? (c.campus_names.length ? c.campus_names.join(", ") : null);
+  const isFinal = p.status === "final";
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 rounded-lg border p-3 bg-background">
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 space-y-1">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-base">{c.country.flag_emoji}</span>
-          <span className="font-medium text-sm truncate">{c.name}</span>
-          {p.status === "final" && p.is_primary && (
+          <span className="font-medium text-sm">{c.name}</span>
+          {isFinal && p.is_primary && (
             <Badge className="gap-1 text-[10px]">
               <Star className="size-3 fill-current" />
               Primary
@@ -63,27 +60,53 @@ function ProgramRow({
               Shortlisted
             </Badge>
           )}
-          {p.status === "final" && (
+          {isFinal && (
             <StatusBadge variant="success" className="text-[10px]">Final</StatusBadge>
           )}
         </div>
-        <p className="text-xs text-muted-foreground mt-0.5">{c.university.name}</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          {c.study_level} · {fmtMoney(c.tuition_fee, c.currency)}
-          {c.intake_months.length > 0 && ` · ${c.intake_months.join(", ")} ${c.intake_year ?? ""}`}
-        </p>
+        <p className="text-xs text-muted-foreground">{c.university.name}</p>
+        {isFinal ? (
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-0.5 text-xs mt-1">
+            <div>
+              <span className="text-muted-foreground">Program code: </span>
+              <span className="font-mono">{code ?? "—"}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Campus: </span>
+              <span>{campus ?? "—"}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Intake: </span>
+              <span>{intake ?? "—"}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Application: </span>
+              <span>{applicationStatusLabel(p)}</span>
+            </div>
+          </dl>
+        ) : (
+          <p className="text-xs text-muted-foreground mt-1">
+            {c.study_level}
+            {code ? ` · ${code}` : ""}
+          </p>
+        )}
       </div>
       {canEdit && (
         <div className="flex flex-wrap gap-1.5 shrink-0">
           <Button size="sm" variant="outline" className="gap-1" asChild>
-            <Link to={`/course-finder?clientId=${p.client_id}`}>
+            <Link to={`/course-finder?clientId=${clientId}`}>
               <ExternalLink className="size-3.5" />
               Finder
             </Link>
           </Button>
           {p.status === "shortlisted" && (
             <>
-              <Button size="sm" onClick={() => onFinalize(p)}>
+              <Button
+                size="sm"
+                onClick={() => onMarkFinal(p)}
+                disabled={!caseId}
+                title={caseId ? undefined : "Select an active service case first"}
+              >
                 <CheckCircle2 className="size-3.5 mr-1" />
                 Mark final
               </Button>
@@ -92,12 +115,28 @@ function ProgramRow({
               </Button>
             </>
           )}
-          {p.status === "final" && !p.is_primary && (
+          {isFinal && p.qualification_id && (
+            <Button size="sm" className="gap-1" asChild>
+              <Link to={`/clients/${clientId}?tab=qualification&applicationId=${p.qualification_id}`}>
+                <FileText className="size-3.5" />
+                Open application
+              </Link>
+            </Button>
+          )}
+          {isFinal && !p.is_primary && (
             <Button size="sm" variant="outline" onClick={() => onSetPrimary(p.id)}>
               Set primary
             </Button>
           )}
         </div>
+      )}
+      {!canEdit && isFinal && p.qualification_id && (
+        <Button size="sm" variant="outline" className="gap-1 shrink-0" asChild>
+          <Link to={`/clients/${clientId}?tab=qualification&applicationId=${p.qualification_id}`}>
+            <FileText className="size-3.5" />
+            Open application
+          </Link>
+        </Button>
       )}
     </div>
   );
@@ -105,17 +144,20 @@ function ProgramRow({
 
 export function ClientProgramsCard({
   clientId,
+  caseId,
   canEdit,
   onChanged,
+  onApplicationCreated,
 }: {
   clientId: string;
+  caseId: string | undefined;
   canEdit: boolean;
   onChanged?: () => void;
+  onApplicationCreated?: (qualificationId: string) => void;
 }) {
   const [programs, setPrograms] = useState<ClientProgramEnriched[]>([]);
   const [loading, setLoading] = useState(true);
   const [finalizeTarget, setFinalizeTarget] = useState<ClientProgramEnriched | null>(null);
-  const [setPrimaryOnFinalize, setSetPrimaryOnFinalize] = useState(true);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -137,17 +179,31 @@ export function ClientProgramsCard({
   const grouped = groupProgramsByCountry(programs);
   const hasAny = programs.length > 0;
 
-  const confirmFinalize = async () => {
-    if (!finalizeTarget) return;
+  const handleMarkFinalConfirm = async (values: {
+    intakeTerm: string;
+    campusName: string;
+    ownerUserId: string;
+    setPrimary: boolean;
+  }) => {
+    if (!finalizeTarget || !caseId) return;
     setBusy(true);
     try {
-      await finalizeClientProgram(finalizeTarget.id, { setPrimary: setPrimaryOnFinalize });
-      toast.success("Program added to client file permanently");
+      const { qualificationId } = await markFinalAndCreateApplication({
+        programId: finalizeTarget.id,
+        caseId,
+        intakeTerm: values.intakeTerm,
+        campusName: values.campusName || null,
+        ownerUserId: values.ownerUserId,
+        setPrimary: values.setPrimary,
+      });
+      toast.success("Program marked final — application created");
       setFinalizeTarget(null);
       await load();
       onChanged?.();
+      onApplicationCreated?.(qualificationId);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not finalize");
+      toast.error(e instanceof Error ? e.message : "Could not mark final");
+      throw e;
     } finally {
       setBusy(false);
     }
@@ -182,7 +238,7 @@ export function ClientProgramsCard({
             <div>
               <h3 className="font-semibold">Study programs</h3>
               <p className="text-xs text-muted-foreground">
-                Shortlist options while exploring; mark final to lock onto the client file.
+                Shortlist in Course Finder, then Mark final to create an application on the Applications tab.
               </p>
             </div>
           </div>
@@ -192,6 +248,12 @@ export function ClientProgramsCard({
             </Button>
           )}
         </div>
+
+        {!caseId && canEdit && (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4">
+            Select an active service case in the header before marking a program final.
+          </p>
+        )}
 
         {loading ? (
           <div className="py-8 grid place-items-center text-muted-foreground">
@@ -222,11 +284,10 @@ export function ClientProgramsCard({
                       <ProgramRow
                         key={p.id}
                         p={p}
+                        clientId={clientId}
                         canEdit={canEdit}
-                        onFinalize={(row) => {
-                          setSetPrimaryOnFinalize(true);
-                          setFinalizeTarget(row);
-                        }}
+                        caseId={caseId}
+                        onMarkFinal={setFinalizeTarget}
                         onRemove={onRemove}
                         onSetPrimary={onSetPrimary}
                       />
@@ -240,8 +301,10 @@ export function ClientProgramsCard({
                       <ProgramRow
                         key={p.id}
                         p={p}
+                        clientId={clientId}
                         canEdit={canEdit}
-                        onFinalize={() => {}}
+                        caseId={caseId}
+                        onMarkFinal={setFinalizeTarget}
                         onRemove={onRemove}
                         onSetPrimary={onSetPrimary}
                       />
@@ -254,39 +317,12 @@ export function ClientProgramsCard({
         )}
       </Card>
 
-      <AlertDialog open={!!finalizeTarget} onOpenChange={(o) => !o && setFinalizeTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Mark program as final?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This permanently attaches the program to the client file. Shortlisted entries can be removed; final
-              programs stay on the record (admin can remove if needed).
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          {finalizeTarget && (
-            <p className="text-sm font-medium px-1">
-              {finalizeTarget.course.university.name} — {finalizeTarget.course.name}
-            </p>
-          )}
-          <div className="flex items-center gap-2 py-2">
-            <Checkbox
-              id="set-primary"
-              checked={setPrimaryOnFinalize}
-              onCheckedChange={(v) => setSetPrimaryOnFinalize(!!v)}
-            />
-            <Label htmlFor="set-primary" className="text-sm font-normal cursor-pointer">
-              Set as primary for {finalizeTarget?.course.country.name ?? "this country"} (updates portal course
-              summary)
-            </Label>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmFinalize} disabled={busy}>
-              {busy ? <Loader2 className="size-4 animate-spin" /> : "Mark as final"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <MarkFinalProgramDialog
+        open={!!finalizeTarget}
+        onOpenChange={(o) => !busy && !o && setFinalizeTarget(null)}
+        program={finalizeTarget}
+        onConfirm={handleMarkFinalConfirm}
+      />
     </>
   );
 }

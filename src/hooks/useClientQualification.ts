@@ -15,6 +15,7 @@ export function useClientQualification(
   clientId: string | undefined,
   caseId: string | undefined,
   refreshKey = 0,
+  initialApplicationId?: string | null,
 ) {
   const [qualifications, setQualifications] = useState<QualificationRecord[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -36,13 +37,16 @@ export function useClientQualification(
       const rows = await fetchQualificationsForCase(clientId, caseId);
       setQualifications(rows);
       setSelectedId((prev) => {
+        if (initialApplicationId && rows.some((r) => r.id === initialApplicationId)) {
+          return initialApplicationId;
+        }
         if (prev && rows.some((r) => r.id === prev)) return prev;
         return rows[0]?.id ?? null;
       });
     } finally {
       setLoading(false);
     }
-  }, [clientId, caseId]);
+  }, [clientId, caseId, initialApplicationId]);
 
   const loadDetail = useCallback(async (qualificationId: string | null) => {
     if (!qualificationId) {
