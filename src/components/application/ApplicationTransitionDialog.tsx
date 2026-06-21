@@ -77,7 +77,9 @@ export function ApplicationTransitionDialog({
         toStatus,
         reasonCode: reasonCode.trim() || null,
         reasonNotes: reasonNotes.trim() || null,
-        holdReasonCode: holdReasonCode as StudentApplicationRecord["holdReasonCode"],
+        holdReasonCode: needsHoldReason
+          ? (holdReasonCode as StudentApplicationRecord["holdReasonCode"])
+          : null,
       });
       toast.success(`Application lifecycle updated to ${APPLICATION_LIFECYCLE_STATUS_LABELS[toStatus]}`);
       onComplete();

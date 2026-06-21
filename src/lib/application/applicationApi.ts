@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { formatSupabaseError } from "@/lib/formatSupabaseError";
 import type {
   ApplicationMilestones,
   ApplicationOffer,
@@ -25,6 +26,24 @@ const APPLICATION_WITH_INSTITUTION_SELECT = `
     country_name
   )
 `;
+
+/** PostgREST rejects "" for enum params — must send null when not applicable. */
+export function buildTransitionQualificationRpcParams(payload: TransitionApplicationPayload) {
+  const holdReasonCode =
+    payload.holdReasonCode && String(payload.holdReasonCode).trim()
+      ? payload.holdReasonCode
+      : null;
+
+  return {
+    p_qualification_id: payload.applicationId,
+    p_to_status: payload.toStatus,
+    p_reason_code: payload.reasonCode?.trim() || null,
+    p_reason_notes: payload.reasonNotes?.trim() || null,
+    p_hold_reason_code: holdReasonCode,
+    p_transfer_target_case_id: null,
+    p_transfer_target_institution_id: null,
+  };
+}
 
 function mapStudentApplication(row: Record<string, unknown>): StudentApplicationRecord {
   const institution = row.upi_institutions as { name?: string; country_name?: string } | null | undefined;
@@ -199,16 +218,11 @@ export async function upsertStudentApplication(payload: UpsertStudentApplication
 export async function transitionApplicationLifecycle(
   payload: TransitionApplicationPayload,
 ): Promise<void> {
-  const { error } = await supabase.rpc("fn_transition_qualification_status" as never, {
-    p_qualification_id: payload.applicationId,
-    p_to_status: payload.toStatus,
-    p_reason_code: payload.reasonCode ?? null,
-    p_reason_notes: payload.reasonNotes ?? null,
-    p_hold_reason_code: payload.holdReasonCode ?? null,
-    p_transfer_target_case_id: null,
-    p_transfer_target_institution_id: null,
-  } as never);
-  if (error) throw error;
+  const { error } = await supabase.rpc(
+    "fn_transition_qualification_status" as never,
+    buildTransitionQualificationRpcParams(payload) as never,
+  );
+  if (error) throw new Error(formatSupabaseError(error, "Transition failed"));
 }
 
 export async function reassignApplicationOwner(
