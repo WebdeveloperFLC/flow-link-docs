@@ -136,6 +136,23 @@ export type ServiceAcademyMetadata = {
     mimeType?: string;
     docKind?: string;
   }[];
+  /**
+   * Canonical uploadable document requirements for CRM materialization.
+   * Phase 1 pilot — sole source for workflow_templates document rows.
+   */
+  document_manifest?: DocumentManifestItem[];
+};
+
+export type DocumentManifestItem = {
+  item_key: string;
+  label: string;
+  master_item_code: string;
+  section_key?: string;
+  section_label?: string;
+  mandatory?: boolean;
+  party_scope?: string;
+  notes?: string;
+  sort_order?: number;
 };
 
 /** Bulk JSON template for Service Library admin. */

@@ -62,6 +62,19 @@
     "{Firm policy / legal line 1}",
     "{Firm policy / legal line 2}"
   ],
+  "document_manifest": [
+    {
+      "item_key": "passport_bio",
+      "label": "Valid passport — bio page and relevant visa/stamp pages",
+      "master_item_code": "passport",
+      "section_key": "identity",
+      "section_label": "Identity & travel documents",
+      "mandatory": true,
+      "party_scope": "applicant",
+      "notes": "Must meet validity rules; colour scans, no glare.",
+      "sort_order": 10
+    }
+  ],
   "proTips": ["{Counselor tip 1}", "{Counselor tip 2}"],
   "postApproval": ["{After grant step 1}", "{After grant step 2}"],
   "performance": {

@@ -1387,6 +1387,91 @@
       "Applicant passport expiry shortens permit"
     ]
   },
+  "document_manifest": [
+    {
+      "item_key": "passport_bio",
+      "label": "Valid passport — bio page and relevant visa/stamp pages",
+      "master_item_code": "passport",
+      "section_key": "identity",
+      "section_label": "Identity & travel documents",
+      "mandatory": true,
+      "party_scope": "applicant",
+      "notes": "Must meet validity rules for destination country; colour scans, no glare.",
+      "sort_order": 10
+    },
+    {
+      "item_key": "passport_photos",
+      "label": "Passport-size photographs per embassy / online portal specifications",
+      "master_item_code": "photograph",
+      "section_key": "identity",
+      "section_label": "Identity & travel documents",
+      "mandatory": true,
+      "party_scope": "applicant",
+      "sort_order": 20
+    },
+    {
+      "item_key": "visa_application_form",
+      "label": "Visa application form complete, signed, and reviewed for consistency",
+      "master_item_code": "visa_forms",
+      "section_key": "forms",
+      "section_label": "Identity & travel documents",
+      "mandatory": true,
+      "party_scope": "applicant",
+      "notes": "Use \"N/A\" where applicable; answers must match supporting documents.",
+      "sort_order": 30
+    },
+    {
+      "item_key": "travel_itinerary_invitation",
+      "label": "Travel itinerary / invitation letter (if visiting family or business)",
+      "master_item_code": "sponsorship_letter",
+      "section_key": "identity",
+      "section_label": "Identity & travel documents",
+      "mandatory": false,
+      "party_scope": "applicant",
+      "sort_order": 40
+    },
+    {
+      "item_key": "marriage_certificate",
+      "label": "Marriage certificate — civil proof with certified translation if needed",
+      "master_item_code": "marriage_certificate",
+      "section_key": "relationship",
+      "section_label": "Relationship & principal applicant",
+      "mandatory": true,
+      "party_scope": "applicant",
+      "sort_order": 50
+    },
+    {
+      "item_key": "relationship_evidence",
+      "label": "Relationship evidence — photos, communication history, shared documents",
+      "master_item_code": "photograph",
+      "section_key": "relationship",
+      "section_label": "Relationship & principal applicant",
+      "mandatory": true,
+      "party_scope": "applicant",
+      "notes": "Organize chronologically; include chat logs, photos, and travel history.",
+      "sort_order": 60
+    },
+    {
+      "item_key": "proof_of_funds",
+      "label": "Proof of funds for visit and return travel",
+      "master_item_code": "financial_documents",
+      "section_key": "financial",
+      "section_label": "Financial documents",
+      "mandatory": true,
+      "party_scope": "applicant",
+      "sort_order": 70
+    },
+    {
+      "item_key": "principal_status_document",
+      "label": "Principal applicant status document (work permit / study permit / PR card copy)",
+      "master_item_code": "other",
+      "section_key": "relationship",
+      "section_label": "Relationship & principal applicant",
+      "mandatory": true,
+      "party_scope": "applicant",
+      "sort_order": 80
+    }
+  ],
   "sampleDocs": [
     {
       "title": "Sample passport bio page (mock)",

@@ -61,7 +61,6 @@ scan_paths_for_hints() {
   done
 }
 
-# Performance Hub phases 5C–5F — print every ship so nothing is skipped in Lovable Publish.
 print_performance_migration_checklist() {
   cat <<'EOF'
 
@@ -95,6 +94,31 @@ Performance Hub migrations (Lovable Publish — approve ALL that still show as p
   [ ] 20260711120001_incentive_platform_phase6b.sql  — director read-only RPCs + RLS
 
 EOF
+}
+
+# Phase 1 — document_manifest pilot: regen HTML + SQL when pilot JSON or publish scripts ship.
+maybe_publish_service_library_pilot() {
+  local run=0
+  local f
+  for f in "$@"; do
+    [[ -z "$f" ]] && continue
+    case "$f" in
+      content/service-library/canada-spouse-dependent-visitor.json|\
+scripts/publish-service-library-pilot.mjs|\
+scripts/test-document-manifest-pilot.mjs|\
+scripts/lib/document-manifest.mjs|\
+scripts/lib/document-master-codes.mjs|\
+scripts/lib/build-checklist-from-service.mjs)
+        run=1
+        ;;
+    esac
+  done
+  if [[ "$run" != "1" ]]; then
+    return 0
+  fi
+  echo "→ Regenerating Service Library pilot publish (document_manifest)…"
+  node scripts/publish-service-library-pilot.mjs canada-spouse-dependent-visitor
+  echo "✓ Pilot publish artifacts regenerated."
 }
 
 print_cms_migration_checklist() {
@@ -187,6 +211,11 @@ else
   FILES=("$@")
 fi
 
+# Regenerate pilot artifacts before path validation (publish replaces migration timestamp).
+if [[ "$ADD_ALL" != "1" ]]; then
+  maybe_publish_service_library_pilot "${FILES[@]}"
+fi
+
 BRANCH="${SHIP_BRANCH:-$(git branch --show-current)}"
 REMOTE="${SHIP_REMOTE:-origin}"
 PROJECT_REF="${SUPABASE_PROJECT_REF:-auofttkyosgjhxcbhscw}"
@@ -235,6 +264,8 @@ else
   done
   scan_paths_for_hints "${FILES[@]}"
   git add "${FILES[@]}"
+  git add public/specimens/checklists/canada-spouse-dependent-visitor.html 2>/dev/null || true
+  git add supabase/migrations/*_publish_pilot_canada_spouse_dependent_visitor.sql 2>/dev/null || true
 fi
 
 # Gate: catch missing imports / ReferenceError in Performance Hub before push

@@ -123,6 +123,32 @@ function redFlagReminders(meta) {
   }));
 }
 
+/** document_manifest[] → printable HTML sections (uploadable docs only). */
+function manifestChecklistSections(meta) {
+  const manifest = meta.document_manifest;
+  if (!Array.isArray(manifest) || manifest.length === 0) return null;
+
+  /** @type {Map<string, { title: string, items: Array<{ title: string, note?: string, badge: string }> }>} */
+  const byLabel = new Map();
+  const sorted = [...manifest].sort(
+    (a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0),
+  );
+
+  for (const row of sorted) {
+    const title = row.section_label ?? "Identity & travel documents";
+    if (!byLabel.has(title)) {
+      byLabel.set(title, { title, items: [] });
+    }
+    byLabel.get(title).items.push({
+      title: row.label,
+      note: row.notes ?? undefined,
+      badge: row.mandatory === false ? "IF APPLICABLE" : "REQUIRED",
+    });
+  }
+
+  return [...byLabel.values()];
+}
+
 export function buildFromService(file) {
   const slug = slugFromFile(file);
   const overridePath = path.join(CHECKLIST_OVERRIDE, `${slug}.json`);
@@ -139,11 +165,18 @@ export function buildFromService(file) {
   const sections = [];
   let letter = "A";
 
-  sections.push({
-    id: letter++,
-    title: "Identity & travel documents",
-    items: identityItems(slug, kind),
-  });
+  const manifestSections = manifestChecklistSections(meta);
+  if (manifestSections?.length) {
+    for (const sec of manifestSections) {
+      sections.push({ id: letter++, title: sec.title, items: sec.items });
+    }
+  } else {
+    sections.push({
+      id: letter++,
+      title: "Identity & travel documents",
+      items: identityItems(slug, kind),
+    });
+  }
 
   const elig = eligibilityItems(meta);
   if (elig.length) {
