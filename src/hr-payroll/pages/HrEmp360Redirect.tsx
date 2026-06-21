@@ -3,7 +3,7 @@ import { useHrEmployees } from "../hooks/useHrEmployees";
 
 /** Nav link target — redirects to first demo employee (Isha FL-1042). */
 export default function HrEmp360Redirect() {
-  const { data: employees = [], isLoading } = useHrEmployees();
+  const { data: employees = [], isLoading } = useHrEmployees({ activeOnly: false });
 
   if (isLoading) {
     return <div className="empty">Loading employee profile…</div>;

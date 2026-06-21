@@ -1,19 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { HR_ORG_ID } from "../lib/constants";
+import { EMPLOYEE_ACTIVE_STATUSES, HR_ORG_ID } from "../lib/constants";
 import type { BranchRow, CompanyRow, DepartmentRow, DesignationRow, EmployeeRow, HrEmployeeCategoryRow, ShiftRow } from "../lib/types";
 
-export function useHrEmployees() {
+export type UseHrEmployeesOptions = {
+  /** When true, only active employees (excludes Resigned / Terminated). Default true. */
+  activeOnly?: boolean;
+};
+
+export function useHrEmployees(options?: UseHrEmployeesOptions) {
+  const activeOnly = options?.activeOnly ?? true;
   return useQuery({
-    queryKey: ["hr-employees", HR_ORG_ID],
+    queryKey: ["hr-employees", HR_ORG_ID, activeOnly],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("employees" as never)
         .select(
-          "*, companies(name, legal_name, currency), branches(name), departments(name), designations(name), hr_employee_categories(label, leave_eligible, leave_accrual_eligible), shifts(name, login_time, logout_time, working_days_per_week, timezone)",
+          "*, companies(name, legal_name, currency), branches(name), departments(name), designations(name), hr_employee_categories(code, label, leave_eligible, leave_accrual_eligible), shifts(name, login_time, logout_time, working_days_per_week, timezone)",
         )
-        .eq("org_id", HR_ORG_ID)
-        .order("full_name");
+        .eq("org_id", HR_ORG_ID);
+      if (activeOnly) {
+        query = query.in("status", [...EMPLOYEE_ACTIVE_STATUSES]);
+      }
+      const { data, error } = await query.order("full_name");
       if (error) throw error;
       return (data ?? []) as EmployeeRow[];
     },
@@ -29,7 +38,7 @@ export function useHrEmployee(employeeId: string | undefined) {
       const { data, error } = await supabase
         .from("employees" as never)
         .select(
-          "*, companies(name, legal_name, currency), branches(name), departments(name), designations(name), hr_employee_categories(label, leave_eligible, leave_accrual_eligible), shifts(name, login_time, logout_time, working_days_per_week, timezone)",
+          "*, companies(name, legal_name, currency), branches(name), departments(name), designations(name), hr_employee_categories(code, label, leave_eligible, leave_accrual_eligible), shifts(name, login_time, logout_time, working_days_per_week, timezone)",
         )
         .eq("id", employeeId!)
         .single();

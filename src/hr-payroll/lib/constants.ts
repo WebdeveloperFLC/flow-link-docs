@@ -128,3 +128,12 @@ export const COMPANIES = [
   "Future Link Consultants Inc",
 ] as const;
 export const MANAGERS = ["Santosh Sir", "S. Nair", "A. Verma", "CEO Office"] as const;
+
+/** Active employment — included in operational lists (attendance, leave apply, dashboard headcount). */
+export const EMPLOYEE_ACTIVE_STATUSES = ["On Probation", "Confirmed", "On Notice"] as const;
+
+/** Inactive employment — excluded from active lists; retained for payroll history, reports, and audit. */
+export const EMPLOYEE_INACTIVE_STATUSES = ["Resigned", "Terminated"] as const;
+
+/** Status set by Employee Master deactivate (maps to inactive; no separate enum value). */
+export const EMPLOYEE_DEACTIVATE_STATUS = "Terminated" as const;

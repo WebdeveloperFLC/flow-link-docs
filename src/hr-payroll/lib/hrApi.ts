@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { HR_ORG_ID } from "./constants";
+import { EMPLOYEE_DEACTIVATE_STATUS, HR_ORG_ID } from "./constants";
 import type { AttendanceRow } from "./types";
 
 export type HrActorInfo = { id: string | null; label: string };
@@ -38,6 +38,37 @@ export async function hrAudit(
     prev_value: prev ?? "—",
     new_value: next ?? "—",
   } as never);
+}
+
+export async function deactivateEmployee(
+  employeeId: string,
+  fullName: string,
+  currentStatus: string,
+) {
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: row, error: fetchErr } = await supabase
+    .from("employees" as never)
+    .select("exit_date, exit_reason")
+    .eq("id", employeeId)
+    .single();
+  if (fetchErr) throw fetchErr;
+
+  const existing = row as { exit_date?: string | null; exit_reason?: string | null };
+  const { error } = await supabase
+    .from("employees" as never)
+    .update({
+      status: EMPLOYEE_DEACTIVATE_STATUS,
+      exit_date: existing.exit_date ?? today,
+      exit_reason: existing.exit_reason?.trim() || "Deactivated from Employee Master",
+    } as never)
+    .eq("id", employeeId);
+  if (error) throw error;
+  await hrAudit(
+    "Employee Deactivated",
+    fullName,
+    currentStatus,
+    EMPLOYEE_DEACTIVATE_STATUS,
+  );
 }
 
 export async function rebuildPayrollCycle(cycleId: string) {

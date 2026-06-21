@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { employeeCurrency, formatMoney } from "@/hr-payroll/lib/format";
+import {
+  employeeCurrency,
+  employeeStatusLabel,
+  formatMoney,
+  isEmployeeActive,
+  isEmployeeInactive,
+} from "@/hr-payroll/lib/format";
 
 describe("HR Payroll currency formatting", () => {
   it("formats INR with rupee symbol", () => {
@@ -16,5 +22,25 @@ describe("HR Payroll currency formatting", () => {
 
   it("falls back to payroll_country for Canada", () => {
     expect(employeeCurrency({ payroll_country: "CA" })).toBe("CAD");
+  });
+});
+
+describe("HR Payroll employee status", () => {
+  it("treats probation and confirmed as active", () => {
+    expect(isEmployeeActive("On Probation")).toBe(true);
+    expect(isEmployeeActive("Confirmed")).toBe(true);
+    expect(isEmployeeActive("On Notice")).toBe(true);
+  });
+
+  it("treats resigned and terminated as inactive", () => {
+    expect(isEmployeeInactive("Resigned")).toBe(true);
+    expect(isEmployeeInactive("Terminated")).toBe(true);
+    expect(isEmployeeActive("Terminated")).toBe(false);
+  });
+
+  it("labels inactive statuses for display", () => {
+    expect(employeeStatusLabel("Terminated")).toBe("Inactive");
+    expect(employeeStatusLabel("Resigned")).toBe("Inactive");
+    expect(employeeStatusLabel("On Probation")).toBe("Probation");
   });
 });

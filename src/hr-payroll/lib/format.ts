@@ -1,3 +1,7 @@
+import {
+  EMPLOYEE_ACTIVE_STATUSES,
+  EMPLOYEE_INACTIVE_STATUSES,
+} from "./constants";
 import type { EmergencyContact } from "./types";
 
 export function inr(n: number | null | undefined): string {
@@ -37,19 +41,6 @@ export function payrollCompanyLabel(c: { name: string; legal_name?: string | nul
   return c.name;
 }
 
-const LEGACY_EMPLOYMENT_TYPE: Record<string, string> = {
-  "Full-Time": "Full time - Permanent",
-  "Part-Time": "Part time - Permanent",
-  Temporary: "Part time - Temporary",
-  Intern: "Interns",
-  Contract: "Contract",
-};
-
-export function normalizeEmploymentType(value: string | null | undefined): string {
-  if (!value) return "Full time - Permanent";
-  return LEGACY_EMPLOYMENT_TYPE[value] ?? value;
-}
-
 export function parseEmergencyContacts(raw: unknown): EmergencyContact[] {
   if (!Array.isArray(raw)) return [{ name: "", phone: "", relation: "" }, { name: "", phone: "", relation: "" }];
   const rows = raw
@@ -64,6 +55,27 @@ export function parseEmergencyContacts(raw: unknown): EmergencyContact[] {
 
 export function weeklyOffDays(workingDaysPerWeek: number): number {
   return Math.max(0, 7 - Math.min(7, Math.max(1, workingDaysPerWeek)));
+}
+
+export function isEmployeeActive(status: string): boolean {
+  return (EMPLOYEE_ACTIVE_STATUSES as readonly string[]).includes(status);
+}
+
+export function isEmployeeInactive(status: string): boolean {
+  return (EMPLOYEE_INACTIVE_STATUSES as readonly string[]).includes(status);
+}
+
+export function employeeStatusLabel(status: string): string {
+  if (isEmployeeInactive(status)) return "Inactive";
+  if (status === "On Probation") return "Probation";
+  if (status === "On Notice") return "On Notice";
+  return "Confirmed";
+}
+
+export function employeeStatusBadgeClass(status: string): string {
+  if (isEmployeeInactive(status)) return "b-absent";
+  if (status === "On Probation" || status === "On Notice") return "b-pending";
+  return "b-present";
 }
 
 export function initials(name: string): string {

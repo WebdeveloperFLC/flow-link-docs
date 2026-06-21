@@ -1,18 +1,29 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees, useHrReferenceData } from "../hooks/useHrEmployees";
-import { formatMoney, employeeCurrency, initials } from "../lib/format";
+import {
+  employeeStatusBadgeClass,
+  employeeStatusLabel,
+  formatMoney,
+  employeeCurrency,
+  initials,
+  isEmployeeInactive,
+} from "../lib/format";
+import { deactivateEmployee } from "../lib/hrApi";
 import type { EmployeeRow } from "../lib/types";
 import { EmployeeFormModal } from "../components/employees/EmployeeFormModal";
 import { EmployeeDetailModal } from "../components/employees/EmployeeDetailModal";
 import { CrmImportModal } from "../components/team/CrmImportModal";
 
+const DEACTIVATE_CONFIRM =
+  "This employee will be marked inactive. Historical payroll, attendance, leave and documents will be preserved.";
+
 export default function HrEmployeesPage() {
   const { can, fire, dbReady } = useHrAccess();
-  const { data: employees = [], isLoading, error } = useHrEmployees();
+  const [showInactive, setShowInactive] = useState(false);
+  const { data: employees = [], isLoading, error } = useHrEmployees({ activeOnly: !showInactive });
   const { data: ref } = useHrReferenceData();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
@@ -30,15 +41,18 @@ export default function HrEmployeesPage() {
     );
   }, [employees, q]);
 
-  const remove = async (e: EmployeeRow) => {
-    if (!confirm(`Remove ${e.full_name}?`)) return;
-    const { error: err } = await supabase.from("employees" as never).delete().eq("id", e.id);
-    if (err) {
-      fire(err.message);
-      return;
+  const deactivate = async (e: EmployeeRow) => {
+    if (isEmployeeInactive(e.status)) return;
+    if (!confirm(`${DEACTIVATE_CONFIRM}\n\nDeactivate ${e.full_name} (${e.emp_code})?`)) return;
+    try {
+      await deactivateEmployee(e.id, e.full_name, e.status);
+      fire("Employee deactivated");
+      await qc.invalidateQueries({ queryKey: ["hr-employees"] });
+      await qc.invalidateQueries({ queryKey: ["hr-shift-counts"] });
+      await qc.invalidateQueries({ queryKey: ["hr-dashboard-stats"] });
+    } catch (err) {
+      fire(err instanceof Error ? err.message : "Deactivate failed");
     }
-    fire("Employee removed");
-    await qc.invalidateQueries({ queryKey: ["hr-employees"] });
   };
 
   if (!dbReady && error) {
@@ -54,13 +68,23 @@ export default function HrEmployeesPage() {
   return (
     <div className="grid" style={{ gap: 16 }}>
       <div className="card-h">
-        <input
-          className="input"
-          style={{ maxWidth: 300 }}
-          placeholder="Search name, ID, dept…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
+        <div className="row-flex" style={{ gap: 12, flex: 1 }}>
+          <input
+            className="input"
+            style={{ maxWidth: 300 }}
+            placeholder="Search name, ID, dept…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+          <label className="row-flex muted" style={{ fontSize: 12.5, cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={showInactive}
+              onChange={(e) => setShowInactive(e.target.checked)}
+            />
+            Show inactive employees
+          </label>
+        </div>
         {can("manageEmp") && (
           <div className="row-flex">
             <Link to="/hr/config" className="btn">
@@ -122,7 +146,7 @@ export default function HrEmployeesPage() {
                   <td>{e.departments?.name ?? e.department ?? "—"}</td>
                   <td>{e.designations?.name ?? e.designation ?? "—"}</td>
                   <td>{e.branches?.name ?? "—"}</td>
-                  <td style={{ fontSize: 12 }}>{e.hr_employee_categories?.label ?? e.employment_type}</td>
+                  <td style={{ fontSize: 12 }}>{e.hr_employee_categories?.label ?? "—"}</td>
                   <td className="mono">{formatMoney(e.monthly_gross, employeeCurrency(e))}</td>
                   <td>
                     {e.bank_account_number ? (
@@ -136,11 +160,9 @@ export default function HrEmployeesPage() {
                     )}
                   </td>
                   <td>
-                    {e.status === "On Probation" ? (
-                      <span className="badge b-pending">Probation</span>
-                    ) : (
-                      <span className="badge b-present">Confirmed</span>
-                    )}
+                    <span className={`badge ${employeeStatusBadgeClass(e.status)}`}>
+                      {employeeStatusLabel(e.status)}
+                    </span>
                   </td>
                   <td>
                     <div className="row-flex">
@@ -152,9 +174,15 @@ export default function HrEmployeesPage() {
                           <button type="button" className="btn btn-sm" onClick={() => setEdit(e)}>
                             Edit
                           </button>
-                          <button type="button" className="btn btn-sm btn-bad" onClick={() => void remove(e)}>
-                            Del
-                          </button>
+                          {!isEmployeeInactive(e.status) && (
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-bad"
+                              onClick={() => void deactivate(e)}
+                            >
+                              Deactivate
+                            </button>
+                          )}
                         </>
                       )}
                     </div>

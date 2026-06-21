@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { HR_ORG_ID } from "../lib/constants";
+import { EMPLOYEE_ACTIVE_STATUSES, HR_ORG_ID } from "../lib/constants";
 import type { ShiftRow } from "../lib/types";
 
 export function useHrShifts() {
@@ -25,7 +25,8 @@ export function useShiftEmployeeCounts() {
       const { data, error } = await supabase
         .from("employees" as never)
         .select("shift_id")
-        .eq("org_id", HR_ORG_ID);
+        .eq("org_id", HR_ORG_ID)
+        .in("status", [...EMPLOYEE_ACTIVE_STATUSES]);
       if (error) throw error;
       const counts: Record<string, number> = {};
       for (const row of (data ?? []) as { shift_id: string | null }[]) {

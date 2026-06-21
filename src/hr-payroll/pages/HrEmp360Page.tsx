@@ -104,7 +104,7 @@ function rollupAtt(att: AttendanceRow[], shift: ShiftRow) {
 export default function HrEmp360Page() {
   const { id: routeId } = useParams<{ id?: string }>();
   const { cycle } = useHrAccess();
-  const { data: employees = [] } = useHrEmployees();
+  const { data: employees = [] } = useHrEmployees({ activeOnly: false });
   const { data: shifts = [] } = useHrShifts();
   const [empId, setEmpId] = useState("");
 
