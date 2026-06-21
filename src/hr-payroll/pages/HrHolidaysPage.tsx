@@ -1,15 +1,17 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrHolidays } from "../hooks/useHrHolidays";
-import { useHrReferenceData } from "../hooks/useHrEmployees";
+import { useHrReferenceData, useHrEmployees } from "../hooks/useHrEmployees";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { ModalShell } from "../components/ui/ModalShell";
 import { HR_ORG_ID } from "../lib/constants";
 import {
   filterHolidays,
+  filterHolidaysForEmployee,
   HOLIDAY_COUNTRY_OPTIONS,
   HOLIDAY_TYPE_OPTIONS,
   uniqueHolidayDatesInMonth,
@@ -157,9 +159,11 @@ function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: 
 }
 
 export default function HrHolidaysPage({ masterMode = false }: { masterMode?: boolean }) {
+  const { user } = useAuth();
   const { can, fire } = useHrAccess();
   const { data: holidays = [], isLoading } = useHrHolidays();
   const { data: ref } = useHrReferenceData();
+  const { data: employees = [] } = useHrEmployees({ activeOnly: true });
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [countryFilter, setCountryFilter] = useState<HolidayCountryFilter>("All");
@@ -170,16 +174,31 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
 
   const mng = masterMode ? can("configure") : can("manageEmp");
   const canApply = can("configure") || can("manageEmp");
+  const selfEmployee = useMemo(
+    () => employees.find((e) => e.staff_id === user?.id),
+    [employees, user?.id],
+  );
+  const isEmployeeView = !masterMode && !can("manageEmp") && !can("configure");
 
   const branchesById = useMemo(
     () => Object.fromEntries((ref?.branches ?? []).map((b) => [b.id, b])),
     [ref?.branches],
   );
 
-  const filteredHolidays = useMemo(
-    () => filterHolidays(holidays, countryFilter, branchFilter, typeFilter, branchesById),
-    [holidays, countryFilter, branchFilter, typeFilter, branchesById],
-  );
+  const filteredHolidays = useMemo(() => {
+    if (isEmployeeView && selfEmployee) {
+      return filterHolidaysForEmployee(holidays, selfEmployee, branchesById);
+    }
+    return filterHolidays(holidays, countryFilter, branchFilter, typeFilter, branchesById);
+  }, [
+    holidays,
+    countryFilter,
+    branchFilter,
+    typeFilter,
+    branchesById,
+    isEmployeeView,
+    selfEmployee,
+  ]);
 
   const branchOptions = useMemo(() => {
     if (countryFilter === "All") return ref?.branches ?? [];
@@ -251,8 +270,12 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
       ) : (
         <div className="card" style={{ background: "var(--wash)", borderColor: "var(--line)" }}>
           <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
-            Holiday calendar — apply master holidays to attendance (status Holiday). Maintain records in{" "}
-            <Link to="/hr/config/holidays">Configuration → Holiday Master</Link>.
+            {isEmployeeView
+              ? "Your applicable holidays based on country, branch, category, and shift assignment."
+              : "Holiday calendar — apply master holidays to attendance (status Holiday). Maintain records in "}
+            {!isEmployeeView && (
+              <Link to="/hr/config/holidays">Configuration → Holiday Master</Link>
+            )}
           </div>
         </div>
       )}
@@ -293,6 +316,7 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
       </div>
 
       <div className="card" style={{ padding: 12 }}>
+        {!isEmployeeView && (
         <div className="row-flex" style={{ gap: 12, flexWrap: "wrap" }}>
           <label className="fld" style={{ minWidth: 140 }}>
             <span className="l">Country</span>
@@ -328,6 +352,12 @@ export default function HrHolidaysPage({ masterMode = false }: { masterMode?: bo
             </select>
           </label>
         </div>
+        )}
+        {isEmployeeView && !selfEmployee && (
+          <div className="muted" style={{ fontSize: 13 }}>
+            Link your CRM login to an employee record to see applicable holidays.
+          </div>
+        )}
       </div>
 
       <div className="card" style={{ padding: 0, overflow: "auto" }}>

@@ -15,16 +15,6 @@ export const FIVE_DAY_NIGHT_TIMEZONE = "America/Toronto";
 export const SANDWICH_CAP_PER_YEAR = 2;
 export const SANDWICH_HALF_DAY_EXCEPTION = true;
 
-export const ELIGIBLE_EMPLOYMENT_TYPES = ["Full time - Permanent"] as const;
-
-/** Legacy employment type on employee record — drives leave eligibility until Phase 4 category rules. */
-export const EMPLOYMENT_TYPE_OPTIONS = [
-  "Full time - Permanent",
-  "Part time - Permanent",
-  "Part time - Temporary",
-  "Contract",
-  "Interns",
-] as const;
 export const NOTICE_DAYS_SHORT = 7;
 export const NOTICE_DAYS_LONG = 30;
 export const NOTICE_THRESHOLD_DAYS = 3;
@@ -83,10 +73,13 @@ export function balanceForType(balances: LeaveBalanceRow[], type: string): Leave
   return balances.find((b) => b.type === type);
 }
 
-export function isLeaveEligible(emp: Pick<EmployeeRow, "employment_type" | "status" | "work_hours" | "probation_end_date" | "date_of_joining">): boolean {
-  if (!ELIGIBLE_EMPLOYMENT_TYPES.includes(emp.employment_type as (typeof ELIGIBLE_EMPLOYMENT_TYPES)[number])) {
-    return false;
-  }
+export function isLeaveEligible(
+  emp: Pick<EmployeeRow, "status" | "work_hours" | "probation_end_date" | "date_of_joining"> & {
+    hr_employee_categories?: { leave_eligible?: boolean; code?: string } | null;
+  },
+): boolean {
+  if (!emp.hr_employee_categories?.leave_eligible) return false;
+  if (emp.hr_employee_categories.code === "probation") return false;
   if (Number(emp.work_hours ?? 9) < 8) return false;
   if (emp.status === "On Probation") return false;
   const probEnd = emp.probation_end_date
@@ -274,7 +267,9 @@ export function resolveLeaveApplication(input: {
   fromDate: string;
   balances: LeaveBalanceRow[];
   requests: Pick<LeaveRequestRow, "type" | "days" | "from_date" | "status" | "employee_id" | "id">[];
-  employee?: Pick<EmployeeRow, "employment_type" | "status" | "work_hours" | "probation_end_date" | "date_of_joining"> | null;
+  employee?: Pick<EmployeeRow, "status" | "work_hours" | "probation_end_date" | "date_of_joining"> & {
+    hr_employee_categories?: { leave_eligible?: boolean; code?: string } | null;
+  } | null;
   hasDocument?: boolean;
   shiftLoginTime?: string | null;
   shiftTimezone?: string | null;
@@ -348,8 +343,8 @@ export function resolveLeaveApplication(input: {
     return {
       effectiveType: UNPAID_LEAVE_TYPE,
       forcedUnpaid: true,
-      unpaidReason: "Not eligible for paid leave (Full time Permanent after probation only).",
-      ruleViolation: `${LEAVE_RULES_REJECT_MSG} (employment type or probation)`,
+      unpaidReason: "Not eligible for paid leave (category or probation rules).",
+      ruleViolation: `${LEAVE_RULES_REJECT_MSG} (employee category or probation)`,
       selectablePaidTypes,
     };
   }

@@ -8,24 +8,75 @@ export type UseHrEmployeesOptions = {
   activeOnly?: boolean;
 };
 
+const EMPLOYEE_EMBED_FULL =
+  "companies(name, legal_name, currency), branches(name), departments(name), designations(name), hr_employee_categories(code, label, leave_eligible, leave_accrual_eligible), shifts(name, login_time, logout_time, working_days_per_week, timezone)";
+
+const EMPLOYEE_EMBED_NO_CATEGORY =
+  "companies(name, legal_name, currency), branches(name), departments(name), designations(name), shifts(name, login_time, logout_time, working_days_per_week, timezone)";
+
+const EMPLOYEE_EMBED_CORE =
+  "companies(name, legal_name, currency), branches(name), shifts(name, login_time, logout_time, working_days_per_week, timezone)";
+
+const EMPLOYEE_EMBED_MINIMAL = "branches(name), shifts(name, login_time, logout_time, working_days_per_week, timezone)";
+
+function isEmbedSchemaError(error: { message?: string; code?: string }): boolean {
+  const msg = (error.message ?? "").toLowerCase();
+  return (
+    error.code === "PGRST200" ||
+    error.code === "42P01" ||
+    msg.includes("does not exist") ||
+    msg.includes("relationship") ||
+    msg.includes("hr_employee_categories") ||
+    msg.includes("designations") ||
+    msg.includes("departments")
+  );
+}
+
+async function fetchEmployeeRows(activeOnly: boolean): Promise<EmployeeRow[]> {
+  const embeds = [EMPLOYEE_EMBED_FULL, EMPLOYEE_EMBED_NO_CATEGORY, EMPLOYEE_EMBED_CORE, EMPLOYEE_EMBED_MINIMAL];
+  let lastError: { message?: string } | null = null;
+
+  for (const embed of embeds) {
+    let query = supabase
+      .from("employees" as never)
+      .select(`*, ${embed}`)
+      .eq("org_id", HR_ORG_ID);
+    if (activeOnly) {
+      query = query.in("status", [...EMPLOYEE_ACTIVE_STATUSES]);
+    }
+    const { data, error } = await query.order("full_name");
+    if (!error) return (data ?? []) as EmployeeRow[];
+    lastError = error;
+    if (!isEmbedSchemaError(error)) throw error;
+  }
+
+  throw lastError ?? new Error("Unable to load employees");
+}
+
+async function fetchEmployeeRow(employeeId: string): Promise<EmployeeRow> {
+  const embeds = [EMPLOYEE_EMBED_FULL, EMPLOYEE_EMBED_NO_CATEGORY, EMPLOYEE_EMBED_CORE, EMPLOYEE_EMBED_MINIMAL];
+  let lastError: { message?: string } | null = null;
+
+  for (const embed of embeds) {
+    const { data, error } = await supabase
+      .from("employees" as never)
+      .select(`*, ${embed}`)
+      .eq("id", employeeId)
+      .single();
+    if (!error) return data as EmployeeRow;
+    lastError = error;
+    if (!isEmbedSchemaError(error)) throw error;
+  }
+
+  throw lastError ?? new Error("Unable to load employee");
+}
+
 export function useHrEmployees(options?: UseHrEmployeesOptions) {
   const activeOnly = options?.activeOnly ?? true;
   return useQuery({
     queryKey: ["hr-employees", HR_ORG_ID, activeOnly],
-    queryFn: async () => {
-      let query = supabase
-        .from("employees" as never)
-        .select(
-          "*, companies(name, legal_name, currency), branches(name), departments(name), designations(name), hr_employee_categories(code, label, leave_eligible, leave_accrual_eligible), shifts(name, login_time, logout_time, working_days_per_week, timezone)",
-        )
-        .eq("org_id", HR_ORG_ID);
-      if (activeOnly) {
-        query = query.in("status", [...EMPLOYEE_ACTIVE_STATUSES]);
-      }
-      const { data, error } = await query.order("full_name");
-      if (error) throw error;
-      return (data ?? []) as EmployeeRow[];
-    },
+    queryFn: () => fetchEmployeeRows(activeOnly),
+    retry: 1,
   });
 }
 
@@ -34,17 +85,8 @@ export function useHrEmployee(employeeId: string | undefined) {
   return useQuery({
     queryKey: ["hr-employee", HR_ORG_ID, employeeId],
     enabled: !!employeeId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("employees" as never)
-        .select(
-          "*, companies(name, legal_name, currency), branches(name), departments(name), designations(name), hr_employee_categories(code, label, leave_eligible, leave_accrual_eligible), shifts(name, login_time, logout_time, working_days_per_week, timezone)",
-        )
-        .eq("id", employeeId!)
-        .single();
-      if (error) throw error;
-      return data as EmployeeRow;
-    },
+    queryFn: () => fetchEmployeeRow(employeeId!),
+    retry: 1,
   });
 }
 
@@ -75,16 +117,15 @@ export function useHrReferenceData() {
       ]);
       if (companies.error) throw companies.error;
       if (branches.error) throw branches.error;
-      if (departments.error) throw departments.error;
-      if (designations.error) throw designations.error;
-      if (categories.error) throw categories.error;
+      if (departments.error && !isEmbedSchemaError(departments.error)) throw departments.error;
+      if (designations.error && !isEmbedSchemaError(designations.error)) throw designations.error;
       if (shifts.error) throw shifts.error;
       return {
         companies: (companies.data ?? []) as CompanyRow[],
         branches: (branches.data ?? []) as BranchRow[],
-        departments: (departments.data ?? []) as DepartmentRow[],
-        designations: (designations.data ?? []) as DesignationRow[],
-        categories: (categories.data ?? []) as HrEmployeeCategoryRow[],
+        departments: (departments.error ? [] : departments.data ?? []) as DepartmentRow[],
+        designations: (designations.error ? [] : designations.data ?? []) as DesignationRow[],
+        categories: (categories.error ? [] : categories.data ?? []) as HrEmployeeCategoryRow[],
         shifts: (shifts.data ?? []) as ShiftRow[],
       };
     },

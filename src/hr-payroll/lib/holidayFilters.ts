@@ -1,4 +1,4 @@
-import type { BranchRow, HolidayRow } from "./types";
+import type { BranchRow, EmployeeRow, HolidayRow } from "./types";
 
 export const HOLIDAY_COUNTRY_OPTIONS = [
   { value: "All", label: "All Countries" },
@@ -65,4 +65,63 @@ export function uniqueHolidayDatesInMonth(holidays: HolidayRow[], yearMonth: str
       .filter((h) => h.holiday_date.startsWith(prefix))
       .map((h) => h.holiday_date),
   )].sort();
+}
+
+/** Payroll country used for employee holiday visibility (IN vs CA). */
+export function employeeHolidayCountry(emp: EmployeeRow): "IN" | "CA" {
+  const pc = (emp.payroll_country ?? "IN").toUpperCase();
+  return pc === "CA" ? "CA" : "IN";
+}
+
+/** Tags derived from employee profile for holiday applicability checks. */
+export function employeeHolidayTags(emp: EmployeeRow): string[] {
+  const tags: string[] = [];
+  const country = employeeHolidayCountry(emp);
+  tags.push(country === "CA" ? "canada_staff" : "india_staff");
+
+  const ww = (emp.work_week ?? "").toLowerCase();
+  if (ww.includes("6")) tags.push("6-Day");
+  else if (ww.includes("5")) tags.push("5-Day");
+  else tags.push("Day");
+
+  const catCode = emp.hr_employee_categories?.code;
+  if (catCode) tags.push(catCode);
+
+  return tags;
+}
+
+const STAFF_HOLIDAY_TAGS = new Set(["india_staff", "canada_staff"]);
+
+/**
+ * Whether a holiday applies to a specific employee (country, branch, category, shift tags).
+ */
+export function holidayMatchesEmployee(
+  holiday: HolidayRow,
+  emp: EmployeeRow,
+  branchesById: Record<string, BranchRow>,
+): boolean {
+  const country = employeeHolidayCountry(emp);
+  if (!holidayMatchesCountry(holiday, country, branchesById)) return false;
+
+  if (holiday.branch_id && emp.branch_id && holiday.branch_id !== emp.branch_id) {
+    return false;
+  }
+
+  const hTags = holiday.applicable_tags ?? [];
+  if (hTags.length === 0) return true;
+
+  const empTags = employeeHolidayTags(emp);
+  const requiredTags = hTags.filter((t) => !STAFF_HOLIDAY_TAGS.has(t));
+  if (requiredTags.length === 0) return true;
+
+  return requiredTags.some((t) => empTags.includes(t));
+}
+
+/** Holidays visible to one employee (ESS / employee role calendar). */
+export function filterHolidaysForEmployee(
+  holidays: HolidayRow[],
+  emp: EmployeeRow,
+  branchesById: Record<string, BranchRow>,
+): HolidayRow[] {
+  return holidays.filter((h) => holidayMatchesEmployee(h, emp, branchesById));
 }

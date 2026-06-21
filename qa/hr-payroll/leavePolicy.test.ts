@@ -45,11 +45,11 @@ describe("leavePolicy", () => {
   ];
 
   const eligibleEmp = {
-    employment_type: "Full time - Permanent",
     status: "Active",
     work_hours: 9,
     probation_end_date: "2025-01-01",
     date_of_joining: "2024-01-01",
+    hr_employee_categories: { leave_eligible: true, code: "permanent" },
   };
 
   it("counts monthly paid leave for same employee and month", () => {
@@ -87,14 +87,14 @@ describe("leavePolicy", () => {
     expect(r.valid).toBe(true);
   });
 
-  it("blocks ineligible employment type", () => {
+  it("blocks ineligible employee category", () => {
     expect(
       isLeaveEligible({
-        employment_type: "Interns",
         status: "Active",
         work_hours: 9,
         probation_end_date: null,
         date_of_joining: "2024-01-01",
+        hr_employee_categories: { leave_eligible: false, code: "intern" },
       }),
     ).toBe(false);
   });

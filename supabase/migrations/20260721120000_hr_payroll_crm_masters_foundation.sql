@@ -629,7 +629,6 @@ DECLARE
   v_cat uuid;
   v_dept_name text;
   v_desig_name text;
-  v_cat_label text;
 BEGIN
   SELECT * INTO pr FROM profiles WHERE id = p_staff_id;
   IF NOT FOUND THEN
@@ -647,8 +646,12 @@ BEGIN
     SELECT id INTO v_desig FROM designations WHERE lower(trim(name)) = lower(trim(pr.designation));
   END IF;
 
-  SELECT id, label INTO v_cat, v_cat_label
-  FROM hr_employee_categories WHERE org_id = p_org AND code = 'permanent' LIMIT 1;
+  SELECT id INTO v_cat
+  FROM hr_employee_categories WHERE org_id = p_org AND code = 'probation' LIMIT 1;
+  IF v_cat IS NULL THEN
+    SELECT id INTO v_cat
+    FROM hr_employee_categories WHERE org_id = p_org AND code = 'permanent' LIMIT 1;
+  END IF;
 
   v_dept_name := COALESCE((SELECT name FROM departments WHERE id = v_dept), 'General');
   v_desig_name := COALESCE((SELECT name FROM designations WHERE id = v_desig), NULLIF(trim(pr.designation), ''), 'Staff');
@@ -665,7 +668,7 @@ BEGIN
     org_id, staff_id, emp_code, full_name, email, mobile, branch_id,
     designation, designation_id, department, department_id,
     company_id, shift_id, employee_category_id,
-    employment_type, work_week, status,
+    work_week, status,
     monthly_gross, basic, hra, conveyance, special_allow, pf_applicable
   ) VALUES (
     p_org, p_staff_id, v_code,
@@ -673,7 +676,7 @@ BEGIN
     pr.email, pr.phone, pr.branch_id,
     v_desig_name, v_desig, v_dept_name, v_dept,
     v_co, v_shift, v_cat,
-    'Full time - Permanent', '6-Day', 'On Probation',
+    '6-Day', 'On Probation',
     0, 0, 0, 1600, 0, true
   ) RETURNING id INTO v_emp;
 

@@ -64,17 +64,26 @@ export function useHrDashboardStats() {
       const absent = attendance.filter((a) => a.status === "Absent").length;
       const onLeave = attendance.filter((a) => a.status === "Leave").length;
 
-      const month = today.slice(5, 7);
-      const day = today.slice(8, 10);
+      const isWithinNextDays = (fullDate: string, horizon: number) => {
+        const monthDay = fullDate.slice(5, 10);
+        const start = new Date(`${today}T12:00:00`);
+        for (let i = 0; i <= horizon; i++) {
+          const d = new Date(start);
+          d.setDate(d.getDate() + i);
+          const md = `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          if (md === monthDay) return true;
+        }
+        return false;
+      };
 
       const upcomingBirthdays = ((birthdaysRes.data ?? []) as { full_name: string; date_of_birth: string }[])
-        .filter((e) => e.date_of_birth?.slice(5, 10) >= `${month}-${day}`)
+        .filter((e) => e.date_of_birth && isWithinNextDays(e.date_of_birth, 30))
         .slice(0, 5);
 
       const upcomingAnniversaries = (
         (anniversariesRes.data ?? []) as { full_name: string; date_of_joining: string }[]
       )
-        .filter((e) => e.date_of_joining?.slice(5, 10) >= `${month}-${day}`)
+        .filter((e) => e.date_of_joining && isWithinNextDays(e.date_of_joining, 30))
         .slice(0, 5);
 
       return {

@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   filterHolidays,
+  filterHolidaysForEmployee,
   holidayMatchesCountry,
   uniqueHolidayDatesInMonth,
 } from "@/hr-payroll/lib/holidayFilters";
-import type { BranchRow, HolidayRow } from "@/hr-payroll/lib/types";
+import type { BranchRow, EmployeeRow, HolidayRow } from "@/hr-payroll/lib/types";
 
 const branchesById: Record<string, BranchRow> = {
   bIn: { id: "bIn", name: "Genda Circle", country: "IN" },
@@ -51,5 +52,34 @@ describe("holidayFilters", () => {
   it("collects unique dates in month", () => {
     expect(uniqueHolidayDatesInMonth(holidays, "2026-01")).toEqual(["2026-01-26"]);
     expect(uniqueHolidayDatesInMonth(holidays, "2026-07")).toEqual(["2026-07-01"]);
+  });
+
+  it("filters holidays per employee country (IN vs CA)", () => {
+    const indiaEmp: EmployeeRow = {
+      id: "e1",
+      org_id: "o",
+      emp_code: "IN001",
+      full_name: "India Staff",
+      branch_id: "bIn",
+      payroll_country: "IN",
+      work_week: "6-Day",
+      status: "active",
+    };
+    const canadaEmp: EmployeeRow = {
+      id: "e2",
+      org_id: "o",
+      emp_code: "CA001",
+      full_name: "Canada Staff",
+      branch_id: "bCa",
+      payroll_country: "CA",
+      work_week: "5-Day",
+      status: "active",
+    };
+
+    const indiaView = filterHolidaysForEmployee(holidays, indiaEmp, branchesById);
+    expect(indiaView.map((h) => h.name)).toEqual(["Republic Day"]);
+
+    const canadaView = filterHolidaysForEmployee(holidays, canadaEmp, branchesById);
+    expect(canadaView.map((h) => h.name)).toEqual(["Canada Day"]);
   });
 });

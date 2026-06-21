@@ -14,6 +14,7 @@ import {
   useHrAuditLogs,
 } from "../hooks/useHrRequests";
 import { EmployeeSeg } from "../components/ui/EmployeeSeg";
+import { Stat } from "../components/ui/Stat";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { LeaveSummaryPanel } from "../components/leave/LeaveSummaryPanel";
 import { EmployeeDocumentsPanel } from "../components/employees/EmployeeDocumentsPanel";
@@ -88,7 +89,7 @@ function InfoCard({
   return (
     <div className="card">
       <div className="card-h">
-        <h3 style={{ fontSize: 15 }}>{title}</h3>
+        <h3>{title}</h3>
       </div>
       <div className="grid g2" style={{ gap: "10px 20px" }}>
         {rows.map(([k, v]) => (
@@ -153,7 +154,12 @@ function rollupAtt(att: AttendanceRow[], shift: ShiftRow) {
 export default function HrEmp360Page() {
   const { id: routeId } = useParams<{ id?: string }>();
   const { cycle, can } = useHrAccess();
-  const { data: employees = [] } = useHrEmployees({ activeOnly: false });
+  const {
+    data: employees = [],
+    isLoading: employeesLoading,
+    isError: employeesError,
+    error: employeesLoadError,
+  } = useHrEmployees({ activeOnly: false });
   const { data: shifts = [] } = useHrShifts();
   const [empId, setEmpId] = useState("");
   const [summaryYear, setSummaryYear] = useState(() => new Date().getFullYear());
@@ -215,7 +221,32 @@ export default function HrEmp360Page() {
 
   const emergencyContacts = parseEmergencyContacts(emp?.emergency_contacts);
 
-  if (!emp) return <div className="empty">No employees configured.</div>;
+  if (employeesLoading) {
+    return <div className="empty">Loading employees…</div>;
+  }
+
+  if (employeesError) {
+    return (
+      <div className="empty">
+        <div className="ico">⚠</div>
+        Could not load employees:{" "}
+        {employeesLoadError instanceof Error ? employeesLoadError.message : "Request failed"}
+      </div>
+    );
+  }
+
+  if (!employees.length) {
+    return (
+      <div className="empty">
+        <div className="ico">👤</div>
+        No employees found. Add employees in Employee Master or check HR database access.
+      </div>
+    );
+  }
+
+  if (!emp) {
+    return <div className="empty">Select an employee to view profile.</div>;
+  }
 
   const r = line ?? {
     late_count: 0,
@@ -236,7 +267,23 @@ export default function HrEmp360Page() {
   const cycleLabel = cycle?.label ?? "Current cycle";
 
   return (
-    <div className="grid" style={{ gap: 16 }}>
+    <div className="grid" style={{ gap: 18 }}>
+      <div className="card-h" style={{ marginBottom: 0 }}>
+        <label className="fld" style={{ minWidth: 280, flex: 1 }}>
+          <span className="l">Employee</span>
+          <select
+            className="input"
+            value={emp.id}
+            onChange={(e) => setEmpId(e.target.value)}
+          >
+            {employees.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.full_name} ({e.emp_code}) — {employeeStatusLabel(e.status)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       <EmployeeSeg employees={employees} selectedId={emp.id} onSelect={setEmpId} />
 
       <div className="card" style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
@@ -397,15 +444,40 @@ export default function HrEmp360Page() {
       </div>
 
       <div className="grid g4">
+        <Stat
+          lab="Present days"
+          val={ru?.present ?? "—"}
+          meta={cycleLabel}
+          color="var(--good)"
+        />
+        <Stat
+          lab="Absent days"
+          val={ru?.absent ?? "—"}
+          meta={cycleLabel}
+          color="var(--rose)"
+        />
+        <Stat
+          lab="Late marks"
+          val={ru?.lateMarks ?? r.late_count}
+          meta={cycleLabel}
+          color="var(--clay)"
+        />
+        <Stat
+          lab="Net pay"
+          val={money(r.net_salary)}
+          meta={`${r.payable_days}d payable`}
+          color="var(--moss)"
+        />
+      </div>
+
+      <div className="grid g4">
         <SumCard
           title={`Attendance · ${cycleLabel}`}
           rows={[
-            ["Present days", ru?.present ?? "—"],
-            ["Absent days", ru?.absent ?? "—"],
-            ["Late marks", ru?.lateMarks ?? r.late_count],
             ["Working", ru?.working ?? "—"],
             ["Leaves", ru?.leaves ?? 0],
             ["Week offs", ru?.wOff ?? "—"],
+            ["Shift OT", ru ? fmtDur(ru.otMin) : "—"],
           ]}
         />
         <SumCard
@@ -427,7 +499,7 @@ export default function HrEmp360Page() {
           ]}
         />
         <SumCard
-          title={`Payroll · ${cycleLabel}`}
+          title={`Payroll detail · ${cycleLabel}`}
           hl
           rows={[
             ["Gross", money(r.gross_earned)],
