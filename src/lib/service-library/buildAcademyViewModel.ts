@@ -33,6 +33,7 @@ import {
 import type { CountryInsightsView, FullCostBreakdown } from "./countryInsights/types";
 import type { MbbsInstitutionMeta } from "./mbbs/types";
 import { isMbbsServiceRow } from "./mbbs/resolveMbbsInstitutions";
+import { resolveDocumentStructure, type ServiceDocumentStructure } from "./documentStructure";
 
 export type AcademyViewModel = {
   masterId: string;
@@ -119,6 +120,7 @@ export type AcademyViewModel = {
     donts: string[];
     checklist: string[];
   } | null;
+  documentStructure: ServiceDocumentStructure | null;
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -517,5 +519,6 @@ export function buildAcademyViewModel(args: {
     isMbbs,
     coachingProfile,
     testDayGuide,
+    documentStructure: resolveDocumentStructure(meta),
   };
 }

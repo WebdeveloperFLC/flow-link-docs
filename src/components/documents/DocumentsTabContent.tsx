@@ -21,6 +21,7 @@ import {
 import type { EnrichedRequirement } from "@/lib/documentWorkflow/buildEnrichedRequirements";
 import { groupRequirementsByCounselorSection } from "@/lib/documentWorkflow/buildEnrichedRequirements";
 import { resolveServiceDocumentProfile } from "@/lib/documentWorkflow/resolveServiceDocumentProfile";
+import { appendDocumentToServiceStructure } from "@/lib/service-library/appendDocumentToServiceStructure";
 import type { RequirementDisplayStatus } from "@/lib/documentWorkflow/resolveDisplayStatus";
 import {
   buildSuggestedDocumentPlan,
@@ -76,14 +77,18 @@ export function DocumentsTabContent({
   onChanged,
   onMissingCountChange,
 }: Props) {
+  const serviceProfile = useMemo(
+    () => (serviceCode ? resolveServiceDocumentProfile(serviceCode) : null),
+    [serviceCode],
+  );
+
   const documentProfile = useMemo(() => {
-    if (!serviceCode) return null;
-    const resolved = resolveServiceDocumentProfile(serviceCode);
+    if (!serviceProfile) return null;
     return {
-      profileType: resolved.profileType,
-      country: resolved.country,
+      profileType: serviceProfile.profileType,
+      country: serviceProfile.country,
     };
-  }, [serviceCode]);
+  }, [serviceProfile]);
 
   const { loading, error, requirements, progress, missingMandatory, labelByCode, reload } =
     useCaseDocumentWorkflow(clientId, caseId, refreshKey);
@@ -170,28 +175,57 @@ export function DocumentsTabContent({
   const handleAddRequirement = useCallback(
     async (input: AddDocumentRequirementInput) => {
       if (!caseId) return;
+      const sectionKey = input.sectionKey ?? MANUAL_ADD_SECTION_KEY;
+      const sectionLabel =
+        input.sectionLabel ??
+        (sectionKey === MANUAL_ADD_SECTION_KEY ? "Other Documents" : sectionKey);
       const result = await addCaseDocumentRequirement({
         caseId,
         masterItemCode: input.masterItemCode,
         mandatory: input.mandatory,
+        sectionKey,
+        sectionLabel,
         notes: input.notes ?? null,
       });
       if (!result.ok) {
         toast.error(result.error);
         return;
       }
-      await logActivity("client.extra_item_added", "client", clientId, {
-        type: input.label,
-        master_item_code: input.masterItemCode,
-        mandatory: input.mandatory,
-        source: "adr_manual_add",
-      });
-      toast.success(`Added "${input.label}" to Other Documents`);
+      if (input.saveToTemplate && serviceProfile?.libraryId) {
+        const templateResult = await appendDocumentToServiceStructure({
+          libraryId: serviceProfile.libraryId,
+          country: serviceProfile.country,
+          sectionKey,
+          sectionLabel,
+          masterItemCode: input.masterItemCode,
+          label: input.label,
+          mandatory: input.mandatory,
+        });
+        if (!templateResult.ok) {
+          toast.error(`Added to case but template save failed: ${templateResult.error}`);
+        } else {
+          toast.success(`Added "${input.label}" and saved to Service Library template`);
+        }
+        await logActivity("client.extra_item_added", "client", clientId, {
+          type: input.label,
+          master_item_code: input.masterItemCode,
+          mandatory: input.mandatory,
+          source: input.saveToTemplate ? "adr_manual_add_template" : "adr_manual_add",
+        });
+      } else {
+        await logActivity("client.extra_item_added", "client", clientId, {
+          type: input.label,
+          master_item_code: input.masterItemCode,
+          mandatory: input.mandatory,
+          source: "adr_manual_add",
+        });
+        toast.success(`Added "${input.label}" to ${sectionLabel}`);
+      }
       setFilterMode("all");
       setSearchQuery("");
       setViewMode("section");
       setExpandedSections((prev) => {
-        const keys = new Set([...prev, MANUAL_ADD_SECTION_KEY, "other_documents"]);
+        const keys = new Set([...prev, sectionKey]);
         return Array.from(keys);
       });
       await reload();
@@ -205,7 +239,7 @@ export function DocumentsTabContent({
       }, 200);
       window.setTimeout(() => setHighlightRequirementId(null), 2500);
     },
-    [caseId, clientId, reload, onChanged],
+    [caseId, clientId, serviceProfile, reload, onChanged],
   );
 
   const handleAcceptSuggestion = useCallback(
@@ -278,6 +312,8 @@ export function DocumentsTabContent({
         checklistRequirements={checklistRequirements}
         serviceCode={serviceCode}
         templateName={templateName}
+        libraryId={serviceProfile?.libraryId}
+        country={serviceProfile?.country}
         onAdd={handleAddRequirement}
       />
 

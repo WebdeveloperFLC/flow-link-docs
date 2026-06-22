@@ -139,8 +139,14 @@ export type ServiceAcademyMetadata = {
   /**
    * Canonical uploadable document requirements for CRM materialization.
    * Phase 1 pilot — sole source for workflow_templates document rows.
+   * @deprecated Prefer document_structure — auto-converted at read time.
    */
   document_manifest?: DocumentManifestItem[];
+  /**
+   * Document Structure tab — sections + default documents (single source of truth).
+   * Documents must use master_item_code from document_types catalogue only.
+   */
+  document_structure?: import("./documentStructure").ServiceDocumentStructure;
 };
 
 export type DocumentManifestItem = {
@@ -262,6 +268,50 @@ export const SERVICE_LIBRARY_METADATA_TEMPLATE: ServiceAcademyMetadata = {
   ],
   navBucket: "visa",
   resources: [{ title: "IRCC study permit guide", url: "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada.html" }],
+  document_structure: {
+    sections: [
+      {
+        section_key: "personal_documents",
+        label: "Personal Documents",
+        sort_order: 10,
+        is_active: true,
+        documents: [
+          { item_key: "passport", master_item_code: "passport", mandatory: true, is_active: true, sort_order: 10 },
+          { item_key: "photograph", master_item_code: "photograph", mandatory: true, is_active: true, sort_order: 20 },
+        ],
+      },
+      {
+        section_key: "academic_documents",
+        label: "Academic Documents",
+        sort_order: 20,
+        is_active: true,
+        documents: [
+          { item_key: "academic_transcripts", master_item_code: "academic_transcripts", mandatory: true, is_active: true, sort_order: 10 },
+          { item_key: "offer_letter", master_item_code: "offer_letter", mandatory: true, is_active: true, sort_order: 20 },
+          { item_key: "ielts", master_item_code: "ielts", mandatory: false, is_active: true, sort_order: 30 },
+        ],
+      },
+      {
+        section_key: "financial_documents",
+        label: "Financial Documents",
+        sort_order: 30,
+        is_active: true,
+        documents: [
+          { item_key: "financial_documents", master_item_code: "financial_documents", mandatory: true, is_active: true, sort_order: 10 },
+          { item_key: "gic_certificate", master_item_code: "gic_certificate", mandatory: false, is_active: true, sort_order: 20 },
+        ],
+      },
+      {
+        section_key: "application_forms",
+        label: "Application Forms",
+        sort_order: 80,
+        is_active: true,
+        documents: [
+          { item_key: "visa_forms", master_item_code: "visa_forms", mandatory: true, is_active: true, sort_order: 10 },
+        ],
+      },
+    ],
+  },
 };
 
 /** @deprecated Use SERVICE_LIBRARY_METADATA_TEMPLATE */
@@ -290,6 +340,7 @@ export function mergeAcademyMetadata(
   if (patch.policyAlert) out.policyAlert = { ...base.policyAlert, ...patch.policyAlert };
   if (patch.alert) out.alert = { ...base.alert, ...patch.alert };
   if (patch.compare) out.compare = patch.compare;
+  if (patch.document_structure) out.document_structure = patch.document_structure;
   return out;
 }
 

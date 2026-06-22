@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { ServiceLibraryQuiz } from "@/components/service-library/design/ServiceLibraryQuiz";
 import { SampleDocSpecimenDialog } from "@/components/service-library/design/SampleDocSpecimenDialog";
 import { ServiceBinderTab } from "@/components/service-library/ServiceBinderTab";
+import { ServiceDocumentStructureTab } from "@/components/service-library/ServiceDocumentStructureTab";
 import { ServiceEligibilityPanel } from "@/components/service-library/ServiceEligibilityPanel";
 import { ServiceFeeBreakdownPanel } from "@/components/service-library/design/ServiceFeeBreakdownPanel";
 import { ServiceCountryInsightsPanel } from "@/components/service-library/design/ServiceCountryInsightsPanel";
@@ -853,6 +854,10 @@ export function ServiceLibraryTabs({
           open={!!specimenDoc}
           onOpenChange={(o) => !o && setSpecimenDoc(null)}
         />
+      </TabsContent>
+
+      <TabsContent value="documentstructure" className="mt-0">
+        <ServiceDocumentStructureTab structure={view.documentStructure} />
       </TabsContent>
 
       <TabsContent value="quiz" className="mt-0">

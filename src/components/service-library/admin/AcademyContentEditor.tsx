@@ -39,6 +39,7 @@ import type { Master } from "@/lib/serviceLibrary";
 import { ContentSetupSummary } from "@/components/service-library/admin/ContentSetupSummary";
 import { QuizQuestionsEditor } from "@/components/service-library/admin/QuizQuestionsEditor";
 import { SampleDocsEditor } from "@/components/service-library/admin/SampleDocsEditor";
+import { DocumentStructureEditor } from "@/components/service-library/admin/DocumentStructureEditor";
 
 type Props = {
   master: Master & { service_library_countries?: { country: string }[] };
@@ -237,6 +238,7 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
           <TabsTrigger value="header">Header & KPIs</TabsTrigger>
           <TabsTrigger value="quiz">Quiz</TabsTrigger>
           <TabsTrigger value="sampledocs">Sample docs</TabsTrigger>
+          <TabsTrigger value="documentstructure">Document structure</TabsTrigger>
           <TabsTrigger value="about">About & eligibility</TabsTrigger>
           <TabsTrigger value="flags">Red flags & FAQs</TabsTrigger>
           <TabsTrigger value="process">Process & resources</TabsTrigger>
@@ -413,6 +415,13 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
           <SampleDocsEditor
             items={meta.sampleDocs ?? []}
             onChange={(sampleDocs) => patch((m) => ({ ...m, sampleDocs }))}
+          />
+        </TabsContent>
+
+        <TabsContent value="documentstructure" className="mt-4">
+          <DocumentStructureEditor
+            structure={meta.document_structure}
+            onChange={(document_structure) => patch((m) => ({ ...m, document_structure }))}
           />
         </TabsContent>
 

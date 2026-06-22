@@ -21,6 +21,7 @@ export const ACADEMY_TAB_IDS = [
   "compliance",
   "downloads",
   "sampledocs",
+  "documentstructure",
   "quiz",
   "notes",
   "changelog",
@@ -48,6 +49,7 @@ const MBBS_TABS: AcademyTabId[] = [
   "compliance",
   "downloads",
   "sampledocs",
+  "documentstructure",
   "quiz",
   "notes",
   "changelog",
@@ -68,6 +70,7 @@ const VISA_TABS: AcademyTabId[] = [
   "compliance",
   "downloads",
   "sampledocs",
+  "documentstructure",
   "quiz",
   "notes",
   "changelog",
@@ -86,6 +89,7 @@ const COACHING_TEST_TABS: AcademyTabId[] = [
   "faqs",
   "downloads",
   "sampledocs",
+  "documentstructure",
   "quiz",
   "notes",
   "changelog",
@@ -102,6 +106,7 @@ const COACHING_PROGRAM_TABS: AcademyTabId[] = [
   "faqs",
   "downloads",
   "sampledocs",
+  "documentstructure",
   "quiz",
   "notes",
   "changelog",
@@ -170,6 +175,8 @@ export function tabLabel(
         return "Resources";
       case "sampledocs":
         return "Sample docs";
+      case "documentstructure":
+        return "Document structure";
       case "changelog":
         return "Change log";
       default:
@@ -192,6 +199,8 @@ export function tabLabel(
         return "Resources";
       case "sampledocs":
         return "Sample practice";
+      case "documentstructure":
+        return "Document structure";
       case "process":
         return view.coachingProfile === "program" ? "Delivery process" : "Process";
       default:
@@ -216,6 +225,8 @@ export function tabLabel(
       return "Visa forms";
     case "sampledocs":
       return "Sample docs";
+    case "documentstructure":
+      return "Document structure";
     case "changelog":
       return "Change log";
     default:

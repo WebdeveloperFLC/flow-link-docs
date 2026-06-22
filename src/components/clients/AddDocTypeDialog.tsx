@@ -6,6 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMasterItems, type MasterItem } from "@/lib/masters";
 import {
@@ -21,6 +28,13 @@ import {
   type AddDocumentPickerItem,
 } from "@/lib/documentWorkflow/documentTypeFilterPipeline";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { fetchServiceDocumentStructure } from "@/lib/service-library/fetchServiceDocumentStructure";
+import { DEFAULT_DOCUMENT_SECTION_TEMPLATES } from "@/lib/service-library/documentStructure";
+import {
+  MANUAL_ADD_SECTION_KEY,
+  MANUAL_ADD_SECTION_LABEL,
+} from "@/lib/documentWorkflow/addCaseDocumentRequirement";
 
 /** @deprecated Legacy extra_items shape — kept for ClientDetail compat reads. */
 export interface ExtraItem {
@@ -35,6 +49,9 @@ export interface AddDocumentRequirementInput {
   label: string;
   mandatory: boolean;
   notes?: string;
+  sectionKey?: string;
+  sectionLabel?: string;
+  saveToTemplate?: boolean;
 }
 
 function formatCategorySummary(counts: Record<string, number>): string {
@@ -49,6 +66,8 @@ export const AddDocTypeDialog = ({
   checklistRequirements,
   serviceCode,
   templateName,
+  libraryId,
+  country,
   onAdd,
 }: {
   open: boolean;
@@ -57,6 +76,8 @@ export const AddDocTypeDialog = ({
   checklistRequirements: ChecklistRequirementRef[];
   serviceCode?: string | null;
   templateName?: string | null;
+  libraryId?: string | null;
+  country?: string | null;
   onAdd: (item: AddDocumentRequirementInput) => Promise<void> | void;
 }) => {
   const masterItems = useMasterItems("document_types");
@@ -67,7 +88,30 @@ export const AddDocTypeDialog = ({
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(0);
+  const [sectionKey, setSectionKey] = useState(MANUAL_ADD_SECTION_KEY);
+  const [saveToTemplate, setSaveToTemplate] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const structureQuery = useQuery({
+    queryKey: ["service-doc-structure", libraryId, country],
+    enabled: open && !!libraryId,
+    queryFn: () => fetchServiceDocumentStructure(libraryId!, country),
+  });
+
+  const sectionOptions = useMemo(() => {
+    const fromStructure =
+      structureQuery.data?.sections
+        .filter((s) => s.is_active)
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map((s) => ({ key: s.section_key, label: s.label })) ?? [];
+    if (fromStructure.length > 0) return fromStructure;
+    return DEFAULT_DOCUMENT_SECTION_TEMPLATES.map((s) => ({ key: s.section_key, label: s.label }));
+  }, [structureQuery.data]);
+
+  const sectionLabel = useMemo(
+    () => sectionOptions.find((s) => s.key === sectionKey)?.label ?? MANUAL_ADD_SECTION_LABEL,
+    [sectionKey, sectionOptions],
+  );
 
   const pickerRows = useMemo(
     () => buildAddDocumentPickerItems(masterItems, search, checklistRequirements, serviceCode, templateName),
@@ -109,6 +153,8 @@ export const AddDocTypeDialog = ({
     setSearch("");
     setPickerOpen(false);
     setHighlightIndex(0);
+    setSectionKey(MANUAL_ADD_SECTION_KEY);
+    setSaveToTemplate(false);
   };
 
   useEffect(() => {
@@ -116,6 +162,8 @@ export const AddDocTypeDialog = ({
       setSelected(null);
       setSearch("");
       setMandatory(false);
+      setSectionKey(MANUAL_ADD_SECTION_KEY);
+      setSaveToTemplate(false);
     } else {
       reset();
     }
@@ -158,6 +206,9 @@ export const AddDocTypeDialog = ({
         label: selected.label,
         mandatory,
         notes: notes.trim() || undefined,
+        sectionKey,
+        sectionLabel,
+        saveToTemplate: saveToTemplate && !!libraryId,
       });
       reset();
       onOpenChange(false);
@@ -174,8 +225,7 @@ export const AddDocTypeDialog = ({
         <DialogHeader>
           <DialogTitle>Add a document requirement</DialogTitle>
           <p className="text-[11px] text-muted-foreground">
-            Pick from the <strong>document_types</strong> catalogue only. Manual adds go to{" "}
-            <strong>Other Documents</strong>.
+            Pick from the <strong>document_types</strong> catalogue only. Choose a section for this requirement.
           </p>
         </DialogHeader>
         <div className="space-y-3">
@@ -301,6 +351,24 @@ export const AddDocTypeDialog = ({
             </p>
           </div>
           <div className="space-y-1.5">
+            <Label>Section</Label>
+            <Select value={sectionKey} onValueChange={setSectionKey}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {sectionOptions.map((s) => (
+                  <SelectItem key={s.key} value={s.key}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+                {!sectionOptions.some((s) => s.key === MANUAL_ADD_SECTION_KEY) ? (
+                  <SelectItem value={MANUAL_ADD_SECTION_KEY}>{MANUAL_ADD_SECTION_LABEL}</SelectItem>
+                ) : null}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
             <Label>Notes (optional)</Label>
             <Input
               value={notes}
@@ -317,6 +385,17 @@ export const AddDocTypeDialog = ({
             </div>
             <Switch checked={mandatory} onCheckedChange={setMandatory} />
           </label>
+          {libraryId ? (
+            <label className="flex items-center justify-between rounded border p-3">
+              <div>
+                <div className="text-sm font-medium">Save to Service Library template</div>
+                <div className="text-[11px] text-muted-foreground">
+                  Also add to this service&apos;s Document Structure so future cases inherit it.
+                </div>
+              </div>
+              <Switch checked={saveToTemplate} onCheckedChange={setSaveToTemplate} />
+            </label>
+          ) : null}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>

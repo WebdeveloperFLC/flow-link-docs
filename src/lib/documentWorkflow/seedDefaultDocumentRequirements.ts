@@ -1,5 +1,10 @@
 import { fetchList } from "@/lib/masters";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchServiceDocumentStructure } from "@/lib/service-library/fetchServiceDocumentStructure";
+import {
+  flattenDocumentStructureForSeeding,
+  SERVICE_LIBRARY_STRUCTURE_NOTE,
+} from "@/lib/service-library/documentStructure";
 import {
   addCaseDocumentRequirement,
   type AddCaseDocumentRequirementParams,
@@ -11,6 +16,8 @@ import {
   type DocumentProfileContext,
 } from "./visaDocumentProfiles";
 import { resolveServiceDocumentProfile } from "./resolveServiceDocumentProfile";
+
+const DEFAULT_SEED_NOTES = [PROFILE_DEFAULT_NOTE, SERVICE_LIBRARY_STRUCTURE_NOTE] as const;
 
 export async function fetchActiveDocumentTypeCodes(): Promise<Set<string>> {
   const items = await fetchList("document_types");
@@ -30,15 +37,64 @@ async function fetchExistingRequirementCodes(caseId: string): Promise<Set<string
   );
 }
 
+type SeedPlanItem = {
+  code: string;
+  mandatory: boolean;
+  sectionKey: string;
+  sectionLabel: string;
+  notes: string;
+};
+
+async function buildSeedPlan(opts: {
+  profile: DocumentProfileContext;
+  libraryId?: string | null;
+  country?: string | null;
+  catalogueCodes: ReadonlySet<string>;
+}): Promise<SeedPlanItem[]> {
+  if (opts.libraryId) {
+    const structure = await fetchServiceDocumentStructure(opts.libraryId, opts.country);
+    if (structure) {
+      const fromLibrary = flattenDocumentStructureForSeeding(structure, opts.catalogueCodes);
+      if (fromLibrary.length > 0) {
+        return fromLibrary.map((doc) => ({
+          code: doc.code,
+          mandatory: doc.mandatory,
+          sectionKey: doc.sectionKey,
+          sectionLabel: doc.sectionLabel,
+          notes: SERVICE_LIBRARY_STRUCTURE_NOTE,
+        }));
+      }
+    }
+  }
+
+  return buildDefaultDocumentPlan(opts.profile, opts.catalogueCodes).map((doc) => {
+    const section = sectionForDocumentCode(doc.code);
+    return {
+      code: doc.code,
+      mandatory: doc.mandatory,
+      sectionKey: section.key,
+      sectionLabel: section.label,
+      notes: PROFILE_DEFAULT_NOTE,
+    };
+  });
+}
+
 /** Seed default document requirements for a case — defaults only, never suggestions. */
 export async function seedDefaultDocumentRequirements(opts: {
   caseId: string;
   profile: DocumentProfileContext;
+  libraryId?: string | null;
+  country?: string | null;
   catalogueCodes?: ReadonlySet<string>;
 }): Promise<{ added: number; skipped: number }> {
   const catalogueCodes = opts.catalogueCodes ?? (await fetchActiveDocumentTypeCodes());
   const existingCodes = await fetchExistingRequirementCodes(opts.caseId);
-  const plan = buildDefaultDocumentPlan(opts.profile, catalogueCodes);
+  const plan = await buildSeedPlan({
+    profile: opts.profile,
+    libraryId: opts.libraryId,
+    country: opts.country,
+    catalogueCodes,
+  });
 
   let added = 0;
   let skipped = 0;
@@ -49,14 +105,13 @@ export async function seedDefaultDocumentRequirements(opts: {
       continue;
     }
 
-    const section = sectionForDocumentCode(doc.code);
     const params: AddCaseDocumentRequirementParams = {
       caseId: opts.caseId,
       masterItemCode: doc.code,
       mandatory: doc.mandatory,
-      sectionKey: section.key,
-      sectionLabel: section.label,
-      notes: PROFILE_DEFAULT_NOTE,
+      sectionKey: doc.sectionKey,
+      sectionLabel: doc.sectionLabel,
+      notes: doc.notes,
     };
 
     const result = await addCaseDocumentRequirement(params);
@@ -78,14 +133,16 @@ export async function seedDefaultDocumentRequirementsIfEmpty(opts: {
 }): Promise<{ added: number; skipped: number; seeded: boolean }> {
   const { data, error } = await supabase
     .from("application_document_requirements" as never)
-    .select("id")
+    .select("notes")
     .eq("client_service_case_id", opts.caseId)
     .eq("is_suppressed", false)
     .eq("requirement_kind", "document")
-    .eq("notes", PROFILE_DEFAULT_NOTE)
-    .limit(1);
+    .limit(50);
   if (error) throw error;
-  if ((data ?? []).length > 0) {
+  const hasDefaults = ((data ?? []) as { notes: string | null }[]).some((r) =>
+    DEFAULT_SEED_NOTES.includes(r.notes as (typeof DEFAULT_SEED_NOTES)[number]),
+  );
+  if (hasDefaults) {
     return { added: 0, skipped: 0, seeded: false };
   }
 
@@ -94,7 +151,12 @@ export async function seedDefaultDocumentRequirementsIfEmpty(opts: {
     profileType: resolved.profileType,
     country: resolved.country,
   };
-  const result = await seedDefaultDocumentRequirements({ caseId: opts.caseId, profile });
+  const result = await seedDefaultDocumentRequirements({
+    caseId: opts.caseId,
+    profile,
+    libraryId: resolved.libraryId,
+    country: resolved.country,
+  });
   return { ...result, seeded: result.added > 0 };
 }
 
@@ -106,5 +168,7 @@ export async function seedDefaultDocumentRequirementsForServiceCode(opts: {
   return seedDefaultDocumentRequirements({
     caseId: opts.caseId,
     profile: { profileType: resolved.profileType, country: resolved.country },
+    libraryId: resolved.libraryId,
+    country: resolved.country,
   });
 }
