@@ -6,6 +6,7 @@ import { AddDocTypeDialog, type AddDocumentRequirementInput } from "@/components
 import { DocumentRequirementRow } from "@/components/documents/DocumentRequirementRow";
 import { DocumentSectionAccordion } from "@/components/documents/DocumentSectionAccordion";
 import { DocumentsProgressSummary } from "@/components/documents/DocumentsProgressSummary";
+import { SuggestedDocumentsPanel } from "@/components/documents/SuggestedDocumentsPanel";
 import {
   DocumentsToolbar,
   type DocumentsFilterMode,
@@ -19,8 +20,14 @@ import {
 } from "@/lib/documentWorkflow/addCaseDocumentRequirement";
 import type { EnrichedRequirement } from "@/lib/documentWorkflow/buildEnrichedRequirements";
 import { groupRequirementsByCounselorSection } from "@/lib/documentWorkflow/buildEnrichedRequirements";
+import { resolveServiceDocumentProfile } from "@/lib/documentWorkflow/resolveServiceDocumentProfile";
 import type { RequirementDisplayStatus } from "@/lib/documentWorkflow/resolveDisplayStatus";
-import type { ClientProfileSignals, VisaProfileContext } from "@/lib/documentWorkflow/visaDocumentProfiles";
+import {
+  buildSuggestedDocumentPlan,
+  PROFILE_SUGGEST_NOTE,
+  sectionForDocumentCode,
+  type ClientProfileSignals,
+} from "@/lib/documentWorkflow/visaDocumentProfiles";
 import type { CaseSection } from "@/lib/sections";
 import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
@@ -32,8 +39,6 @@ interface Props {
   canUpload: boolean;
   templateName?: string | null;
   serviceCode?: string | null;
-  serviceName?: string | null;
-  country?: string | null;
   clientSignals?: ClientProfileSignals;
   refreshKey: number | string;
   onChanged: () => void;
@@ -66,31 +71,22 @@ export function DocumentsTabContent({
   canUpload,
   templateName,
   serviceCode,
-  serviceName,
-  country,
   clientSignals,
   refreshKey,
   onChanged,
   onMissingCountChange,
 }: Props) {
-  const profileContext = useMemo<VisaProfileContext>(
-    () => ({
-      templateName,
-      serviceCode,
-      serviceName,
-      country,
-    }),
-    [templateName, serviceCode, serviceName, country],
-  );
+  const documentProfile = useMemo(() => {
+    if (!serviceCode) return null;
+    const resolved = resolveServiceDocumentProfile(serviceCode);
+    return {
+      profileType: resolved.profileType,
+      country: resolved.country,
+    };
+  }, [serviceCode]);
 
-  const { loading, error, requirements, sectionGroups, progress, missingMandatory, reload } =
-    useCaseDocumentWorkflow(
-      clientId,
-      caseId,
-      refreshKey,
-      profileContext,
-      clientSignals,
-    );
+  const { loading, error, requirements, progress, missingMandatory, labelByCode, reload } =
+    useCaseDocumentWorkflow(clientId, caseId, refreshKey);
 
   const [addDocOpen, setAddDocOpen] = useState(false);
   const [viewMode, setViewMode] = useState<DocumentsViewMode>("section");
@@ -98,6 +94,24 @@ export function DocumentsTabContent({
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [highlightRequirementId, setHighlightRequirementId] = useState<string | null>(null);
+  const [acceptingCode, setAcceptingCode] = useState<string | null>(null);
+
+  const existingCodes = useMemo(
+    () => new Set(requirements.map((r) => r.master_item_code)),
+    [requirements],
+  );
+
+  const catalogueCodes = useMemo(() => new Set(labelByCode.keys()), [labelByCode]);
+
+  const suggestedDocuments = useMemo(() => {
+    if (!documentProfile) return [];
+    return buildSuggestedDocumentPlan(
+      documentProfile,
+      clientSignals ?? {},
+      catalogueCodes,
+      existingCodes,
+    );
+  }, [documentProfile, clientSignals, catalogueCodes, existingCodes]);
 
   const filteredRequirements = useMemo(
     () =>
@@ -194,6 +208,32 @@ export function DocumentsTabContent({
     [caseId, clientId, reload, onChanged],
   );
 
+  const handleAcceptSuggestion = useCallback(
+    async (code: string) => {
+      if (!caseId) return;
+      setAcceptingCode(code);
+      const section = sectionForDocumentCode(code);
+      const result = await addCaseDocumentRequirement({
+        caseId,
+        masterItemCode: code,
+        mandatory: false,
+        sectionKey: section.key,
+        sectionLabel: section.label,
+        notes: PROFILE_SUGGEST_NOTE,
+      });
+      setAcceptingCode(null);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      const label = labelByCode.get(code) ?? code;
+      toast.success(`Added suggested document "${label}"`);
+      await reload();
+      onChanged();
+    },
+    [caseId, labelByCode, reload, onChanged],
+  );
+
   if (!caseId) {
     return (
       <Card className="p-6 text-center text-sm text-muted-foreground">
@@ -245,6 +285,14 @@ export function DocumentsTabContent({
 
       <MissingRequiredChips items={missingMandatory} onJump={handleJump} />
 
+      <SuggestedDocumentsPanel
+        suggestions={suggestedDocuments}
+        labelByCode={labelByCode}
+        canUpload={canUpload}
+        busyCode={acceptingCode}
+        onAccept={handleAcceptSuggestion}
+      />
+
       <DocumentsToolbar
         viewMode={viewMode}
         filterMode={filterMode}
@@ -261,7 +309,11 @@ export function DocumentsTabContent({
       ) : viewMode === "flat" ? (
         <Card className="overflow-hidden shadow-elev-sm">
           {filteredRequirements.length === 0 ? (
-            <div className="p-6 text-center text-sm text-muted-foreground">No documents match your filters.</div>
+            <div className="p-6 text-center text-sm text-muted-foreground">
+              {requirements.length === 0
+                ? "No document requirements yet. Defaults are created when a service is activated."
+                : "No documents match your filters."}
+            </div>
           ) : (
             filteredRequirements.map((req) => (
               <DocumentRequirementRow

@@ -6,6 +6,7 @@ import { buildServiceCode, parseLibraryIdFromServiceCode } from "./serviceCodes"
 import { fetchWorkflowTemplatesForService } from "./matchWorkflowTemplate";
 import { findCatalogueItemForStoredCode } from "./resolveServiceLabel";
 import { serviceKeywordsForPipelineMatch } from "./formsCategory";
+import { ensureServiceCaseWithDocumentDefaults } from "@/lib/documentWorkflow/ensureServiceCaseWithDocumentDefaults";
 
 type ServiceCategory =
   | "visa_immigration"
@@ -202,6 +203,15 @@ export async function completeClientServiceEnrollment(params: {
   if (Object.keys(patch).length > 0) {
     const { error: updateErr } = await supabase.from("clients").update(patch).eq("id", params.clientId);
     if (updateErr) throw updateErr;
+  }
+
+  const pipelineId = (patch.pipeline_id as string | undefined) ?? null;
+  if (serviceCode && pipelineId) {
+    await ensureServiceCaseWithDocumentDefaults({
+      clientId: params.clientId,
+      serviceCode,
+      pipelineId,
+    }).catch(() => null);
   }
 
   return {

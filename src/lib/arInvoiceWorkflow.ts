@@ -20,6 +20,7 @@ import {
   fetchCasesForClient,
   type ClientServiceCase,
 } from "@/lib/clientServiceCase";
+import { ensureServiceCaseWithDocumentDefaults } from "@/lib/documentWorkflow/ensureServiceCaseWithDocumentDefaults";
 import {
   classifyBillingStage,
   resolveBillingIntent,
@@ -475,19 +476,20 @@ export async function addServiceFromLibrary(params: {
   );
 
   try {
-    const svcCase = await createServiceCase({
-      clientId: params.clientId,
-      serviceCode,
-      pipelineId: pipeline?.pipelineId ?? null,
-      attemptNumber: 1,
-    });
-    caseId = svcCase.id;
-    await ensureCaseRequestedFromCatalogue({
-      caseId: svcCase.id,
-      feeCad: params.catalogueItem.fee_cad ?? null,
-      feeInr: params.catalogueItem.fee_inr ?? null,
-      currency: params.country === "Canada" || params.catalogueItem.country_tag === "Canada" ? "CAD" : "INR",
-    }).catch(() => null);
+    if (pipeline?.pipelineId) {
+      const svcCase = await ensureServiceCaseWithDocumentDefaults({
+        clientId: params.clientId,
+        serviceCode,
+        pipelineId: pipeline.pipelineId,
+      });
+      caseId = svcCase.id;
+      await ensureCaseRequestedFromCatalogue({
+        caseId: svcCase.id,
+        feeCad: params.catalogueItem.fee_cad ?? null,
+        feeInr: params.catalogueItem.fee_inr ?? null,
+        currency: params.country === "Canada" || params.catalogueItem.country_tag === "Canada" ? "CAD" : "INR",
+      }).catch(() => null);
+    }
   } catch {
     // Case may already exist — non-fatal
   }

@@ -1405,8 +1405,6 @@ const ClientDetail = () => {
               canUpload={canUpload}
               templateName={template?.name ?? serviceCase?.serviceCode ?? null}
               serviceCode={serviceCase?.serviceCode ?? serviceCtx.activeServiceCode ?? null}
-              serviceName={serviceCtx.serviceLabel ?? client.application_type ?? null}
-              country={client.country}
               clientSignals={documentClientSignals}
               refreshKey={documentWorkflowRefresh}
               onChanged={load}

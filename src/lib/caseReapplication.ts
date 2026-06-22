@@ -5,6 +5,7 @@ import {
   nextAttemptNumber,
   type ClientServiceCase,
 } from "@/lib/clientServiceCase";
+import { seedDefaultDocumentRequirementsForServiceCode } from "@/lib/documentWorkflow/seedDefaultDocumentRequirements";
 import { closeCaseWithOutcome, uploadOutcomeDocument } from "@/lib/caseOutcome";
 import { resolvePipelineForServiceCode } from "@/lib/clientActiveService";
 import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
@@ -188,6 +189,11 @@ export async function executeReapplication(params: ReapplyParams): Promise<{
     attemptNumber: attempt,
     reapplicationOf: params.sourceCase.id,
   });
+
+  await seedDefaultDocumentRequirementsForServiceCode({
+    caseId: newCase.id,
+    serviceCode: params.targetServiceCode,
+  }).catch(() => null);
 
   await applyTransfer(params, newCase.id);
 

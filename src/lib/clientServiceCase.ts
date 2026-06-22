@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { seedDefaultDocumentRequirementsForServiceCode } from "@/lib/documentWorkflow/seedDefaultDocumentRequirements";
 
 export type CaseStatus = "open" | "closed";
 export type CaseOutcome = "approved" | "refused" | "withdrawn";
@@ -118,12 +119,17 @@ export async function resolveActiveServiceCase(params: {
   if (latest) return mapRow(latest as Record<string, unknown>);
 
   if (params.pipelineId) {
-    return createServiceCase({
+    const created = await createServiceCase({
       clientId: params.clientId,
       serviceCode: params.serviceCode,
       pipelineId: params.pipelineId,
       attemptNumber: 1,
     });
+    await seedDefaultDocumentRequirementsForServiceCode({
+      caseId: created.id,
+      serviceCode: params.serviceCode,
+    }).catch(() => null);
+    return created;
   }
 
   return null;

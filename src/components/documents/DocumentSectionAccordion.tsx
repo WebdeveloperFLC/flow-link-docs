@@ -35,7 +35,7 @@ export function DocumentSectionAccordion({
   if (groups.length === 0) {
     return (
       <Card className="p-6 text-center text-sm text-muted-foreground">
-        No document requirements for this case yet.
+        No document requirements yet. Defaults are created when a service is activated.
       </Card>
     );
   }

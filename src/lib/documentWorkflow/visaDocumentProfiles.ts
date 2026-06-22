@@ -93,13 +93,11 @@ export const CODE_TO_SECTION: Record<string, DocumentSectionKey> = {
 export interface ProfileDocumentDef {
   code: string;
   mandatory: boolean;
-  layer: "default" | "suggest";
 }
 
-export interface VisaProfileContext {
-  templateName?: string | null;
-  serviceCode?: string | null;
-  serviceName?: string | null;
+/** Resolved from service_code — never from service title. */
+export interface DocumentProfileContext {
+  profileType: VisaProfileId;
   country?: string | null;
 }
 
@@ -107,120 +105,95 @@ export interface ClientProfileSignals {
   marital_status?: string | null;
   visa_refusal_history?: boolean | null;
   sponsor?: string | null;
-  /** True when client has prior international travel on file. */
   has_travel_history?: boolean;
-  /** Self-employed / business owner from work experience. */
   is_business_owner?: boolean;
 }
 
 const PROFILE_DEFAULTS: Record<VisaProfileId, ProfileDocumentDef[]> = {
   student_visa: [
-    { code: "passport", mandatory: true, layer: "default" },
-    { code: "photograph", mandatory: true, layer: "default" },
-    { code: "visa_forms", mandatory: true, layer: "default" },
-    { code: "academic_transcripts", mandatory: true, layer: "default" },
-    { code: "ielts_language_test", mandatory: true, layer: "default" },
-    { code: "offer_letter", mandatory: true, layer: "default" },
-    { code: "financial_documents", mandatory: true, layer: "default" },
-    { code: "sop", mandatory: true, layer: "default" },
+    { code: "passport", mandatory: true },
+    { code: "photograph", mandatory: true },
+    { code: "visa_forms", mandatory: true },
+    { code: "academic_transcripts", mandatory: true },
+    { code: "ielts_language_test", mandatory: true },
+    { code: "offer_letter", mandatory: true },
+    { code: "financial_documents", mandatory: true },
+    { code: "sop", mandatory: true },
   ],
   visitor_visa: [
-    { code: "passport", mandatory: true, layer: "default" },
-    { code: "photograph", mandatory: true, layer: "default" },
-    { code: "visa_forms", mandatory: true, layer: "default" },
-    { code: "financial_documents", mandatory: true, layer: "default" },
-    { code: "travel_itinerary", mandatory: false, layer: "default" },
+    { code: "passport", mandatory: true },
+    { code: "photograph", mandatory: true },
+    { code: "visa_forms", mandatory: true },
+    { code: "financial_documents", mandatory: true },
+    { code: "travel_itinerary", mandatory: false },
   ],
   spouse_dependent: [
-    { code: "passport", mandatory: true, layer: "default" },
-    { code: "photograph", mandatory: true, layer: "default" },
-    { code: "visa_forms", mandatory: true, layer: "default" },
-    { code: "marriage_certificate", mandatory: true, layer: "default" },
-    { code: "relationship_proof", mandatory: true, layer: "default" },
-    { code: "principal_status_document", mandatory: true, layer: "default" },
-    { code: "financial_documents", mandatory: true, layer: "default" },
+    { code: "passport", mandatory: true },
+    { code: "photograph", mandatory: true },
+    { code: "visa_forms", mandatory: true },
+    { code: "marriage_certificate", mandatory: true },
+    { code: "relationship_proof", mandatory: true },
+    { code: "principal_status_document", mandatory: true },
+    { code: "financial_documents", mandatory: true },
   ],
   work_permit: [
-    { code: "passport", mandatory: true, layer: "default" },
-    { code: "photograph", mandatory: true, layer: "default" },
-    { code: "visa_forms", mandatory: true, layer: "default" },
-    { code: "employment_letter", mandatory: true, layer: "default" },
-    { code: "experience_letter", mandatory: true, layer: "default" },
-    { code: "financial_documents", mandatory: true, layer: "default" },
+    { code: "passport", mandatory: true },
+    { code: "photograph", mandatory: true },
+    { code: "visa_forms", mandatory: true },
+    { code: "employment_letter", mandatory: true },
+    { code: "experience_letter", mandatory: true },
+    { code: "financial_documents", mandatory: true },
   ],
   permanent_residence: [
-    { code: "passport", mandatory: true, layer: "default" },
-    { code: "photograph", mandatory: true, layer: "default" },
-    { code: "academic_transcripts", mandatory: true, layer: "default" },
-    { code: "experience_letter", mandatory: true, layer: "default" },
-    { code: "financial_documents", mandatory: true, layer: "default" },
-    { code: "police_clearance", mandatory: true, layer: "default" },
-    { code: "medical_report", mandatory: true, layer: "default" },
-    { code: "ielts_language_test", mandatory: true, layer: "default" },
+    { code: "passport", mandatory: true },
+    { code: "photograph", mandatory: true },
+    { code: "academic_transcripts", mandatory: true },
+    { code: "experience_letter", mandatory: true },
+    { code: "financial_documents", mandatory: true },
+    { code: "police_clearance", mandatory: true },
+    { code: "medical_report", mandatory: true },
+    { code: "ielts_language_test", mandatory: true },
   ],
   coaching: [
-    { code: "enrollment_agreement", mandatory: true, layer: "default" },
-    { code: "passport", mandatory: false, layer: "default" },
+    { code: "enrollment_agreement", mandatory: true },
+    { code: "passport", mandatory: false },
   ],
   mbbs: [
-    { code: "passport", mandatory: true, layer: "default" },
-    { code: "photograph", mandatory: true, layer: "default" },
-    { code: "academic_transcripts", mandatory: true, layer: "default" },
-    { code: "entrance_exam_scorecard", mandatory: true, layer: "default" },
-    { code: "offer_letter", mandatory: true, layer: "default" },
-    { code: "financial_documents", mandatory: true, layer: "default" },
+    { code: "passport", mandatory: true },
+    { code: "photograph", mandatory: true },
+    { code: "academic_transcripts", mandatory: true },
+    { code: "entrance_exam_scorecard", mandatory: true },
+    { code: "offer_letter", mandatory: true },
+    { code: "financial_documents", mandatory: true },
   ],
 };
 
-type CountryAddition = { match: (ctx: VisaProfileContext) => boolean; add: ProfileDocumentDef[] };
+type CountryOverride = { matchCountry: (country: string) => boolean; add: ProfileDocumentDef[] };
 
-const COUNTRY_ADDITIONS: Partial<Record<VisaProfileId, CountryAddition[]>> = {
-  student_visa: [
-    {
-      match: (ctx) => /australia|subclass-500/i.test(haystack(ctx)),
-      add: [
-        { code: "coe", mandatory: true, layer: "default" },
-        { code: "oshc_policy", mandatory: true, layer: "default" },
-      ],
-    },
-    {
-      match: (ctx) => /\buk\b|united kingdom|student route/i.test(haystack(ctx)),
-      add: [{ code: "cas_letter", mandatory: true, layer: "default" }],
-    },
-    {
-      match: (ctx) => /canada|study permit/i.test(haystack(ctx)),
-      add: [{ code: "gic_certificate", mandatory: false, layer: "default" }],
-    },
-    {
-      match: (ctx) => /germany|sperrkonto|blocked account/i.test(haystack(ctx)),
-      add: [{ code: "blocked_account_proof", mandatory: true, layer: "default" }],
-    },
-  ],
-  spouse_dependent: [
-    {
-      match: (ctx) => !/dependent|visitor-with-principal|super visa/i.test(haystack(ctx)),
-      add: [],
-      // principal_status only for dependent flows — remove from defaults when not dependent
-    },
-  ],
-};
+const STUDENT_COUNTRY_OVERRIDES: CountryOverride[] = [
+  {
+    matchCountry: (c) => /^australia$/i.test(c.trim()),
+    add: [
+      { code: "coe", mandatory: true },
+      { code: "oshc_policy", mandatory: true },
+    ],
+  },
+  {
+    matchCountry: (c) => /^(uk|united kingdom)$/i.test(c.trim()),
+    add: [{ code: "cas_letter", mandatory: true }],
+  },
+  {
+    matchCountry: (c) => /^canada$/i.test(c.trim()),
+    add: [{ code: "gic_certificate", mandatory: false }],
+  },
+  {
+    matchCountry: (c) => /^germany$/i.test(c.trim()),
+    add: [{ code: "blocked_account_proof", mandatory: true }],
+  },
+];
 
-function haystack(ctx: VisaProfileContext): string {
-  return `${ctx.templateName ?? ""} ${ctx.serviceCode ?? ""} ${ctx.serviceName ?? ""} ${ctx.country ?? ""}`.toLowerCase();
-}
-
-export function resolveVisaProfile(ctx: VisaProfileContext): VisaProfileId {
-  const h = haystack(ctx);
-  if (/coaching-/i.test(h) || ctx.serviceCode?.includes("coaching")) return "coaching";
-  if (/^mbbs|mbbs-/i.test(h)) return "mbbs";
-  if (/express-entry|skilled-migration|oinp|pnp|green-card|permanent|subclass-189|subclass-190|subclass-491|smc/i.test(h))
-    return "permanent_residence";
-  if (/student|study permit|subclass-500|pgwp|graduate-route|post-study|subclass-485|ausbildung/i.test(h))
-    return "student_visa";
-  if (/spouse|partner visa|dependent|sponsorship|super visa|owp.*spouse/i.test(h)) return "spouse_dependent";
-  if (/visitor|tourist|trv|visitor record/i.test(h)) return "visitor_visa";
-  if (/work permit|skilled worker|bowp|lmia|job seeker|blue card|employment pass/i.test(h)) return "work_permit";
-  return "visitor_visa";
+function normalizeCountry(country: string | null | undefined): string {
+  return (country ?? "").trim();
 }
 
 export function sectionForDocumentCode(code: string): { key: DocumentSectionKey; label: string } {
@@ -229,20 +202,17 @@ export function sectionForDocumentCode(code: string): { key: DocumentSectionKey;
 }
 
 export function getProfileDefaultDocuments(
-  profileId: VisaProfileId,
-  ctx: VisaProfileContext,
+  profileType: VisaProfileId,
+  ctx: Pick<DocumentProfileContext, "country">,
 ): ProfileDocumentDef[] {
-  const base = [...(PROFILE_DEFAULTS[profileId] ?? PROFILE_DEFAULTS.visitor_visa)];
+  const base = [...(PROFILE_DEFAULTS[profileType] ?? PROFILE_DEFAULTS.visitor_visa)];
 
-  // Spouse: principal_status only for dependent / visitor-with-principal services
-  if (profileId === "spouse_dependent" && !/dependent|visitor-with-principal|super visa/i.test(haystack(ctx))) {
-    const idx = base.findIndex((d) => d.code === "principal_status_document");
-    if (idx >= 0) base.splice(idx, 1);
-  }
-
-  for (const rule of COUNTRY_ADDITIONS[profileId] ?? []) {
-    if (rule.match(ctx)) {
-      for (const add of rule.add) base.push(add);
+  if (profileType === "student_visa") {
+    const country = normalizeCountry(ctx.country);
+    for (const rule of STUDENT_COUNTRY_OVERRIDES) {
+      if (country && rule.matchCountry(country)) {
+        for (const add of rule.add) base.push(add);
+      }
     }
   }
 
@@ -254,15 +224,15 @@ export function getProfileDefaultDocuments(
   });
 }
 
-/** Profile-driven suggestions — catalogue codes only. */
+/** Profile-driven suggestions — catalogue codes only; NOT auto-seeded as requirements. */
 export function getSuggestedDocuments(
-  _profileId: VisaProfileId,
+  _profileType: VisaProfileId,
   signals: ClientProfileSignals,
 ): ProfileDocumentDef[] {
   const out: ProfileDocumentDef[] = [];
   const push = (code: string) => {
     if (!out.some((d) => d.code === code)) {
-      out.push({ code, mandatory: false, layer: "suggest" });
+      out.push({ code, mandatory: false });
     }
   };
 
@@ -295,21 +265,36 @@ export function getSuggestedDocuments(
   return out;
 }
 
-export function buildProfileDocumentPlan(
-  ctx: VisaProfileContext,
-  signals: ClientProfileSignals,
+export function buildDefaultDocumentPlan(
+  ctx: DocumentProfileContext,
   catalogueCodes: ReadonlySet<string>,
 ): ProfileDocumentDef[] {
-  const profileId = resolveVisaProfile(ctx);
-  const defaults = getProfileDefaultDocuments(profileId, ctx);
-  const suggestions = getSuggestedDocuments(profileId, signals);
+  const defaults = getProfileDefaultDocuments(ctx.profileType, ctx);
   const seen = new Set<string>();
   const plan: ProfileDocumentDef[] = [];
 
-  for (const d of [...defaults, ...suggestions]) {
+  for (const d of defaults) {
     if (!catalogueCodes.has(d.code)) continue;
     if (seen.has(d.code)) continue;
     seen.add(d.code);
+    plan.push(d);
+  }
+  return plan;
+}
+
+export function buildSuggestedDocumentPlan(
+  ctx: DocumentProfileContext,
+  signals: ClientProfileSignals,
+  catalogueCodes: ReadonlySet<string>,
+  existingCodes: ReadonlySet<string>,
+): ProfileDocumentDef[] {
+  const suggestions = getSuggestedDocuments(ctx.profileType, signals);
+  const plan: ProfileDocumentDef[] = [];
+
+  for (const d of suggestions) {
+    if (!catalogueCodes.has(d.code)) continue;
+    if (existingCodes.has(d.code)) continue;
+    if (plan.some((p) => p.code === d.code)) continue;
     plan.push(d);
   }
   return plan;

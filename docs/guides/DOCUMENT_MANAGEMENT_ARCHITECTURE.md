@@ -35,7 +35,9 @@ Documents (uploads)  →  Binders (collections)  →  Submission Packages (final
 
 **Do NOT derive requirements from:** eligibility text, red flags, compliance, checklist items, milestones, binder content, or Service Library narrative.
 
-Template bootstrap (`fn_assign_case_workflow_template`) is **not** used for the Documents tab.
+Template bootstrap (`fn_assign_case_workflow_template`) is **not** used for the Documents tab. Defaults are seeded when a service case is created/activated (`ensureServiceCaseWithDocumentDefaults`), not when the Documents tab opens.
+
+Profile resolution uses **`profile_type` + `country`** from `service_code` library slug — never service title matching. See `resolveServiceDocumentProfile.ts`.
 
 ### NEVER on Documents tab
 
@@ -75,7 +77,7 @@ Source: `src/lib/documentWorkflow/visaDocumentProfiles.ts` + `counselorSections.
 | Business owner | business_registration, itr_tax_returns |
 | Sponsor present | sponsorship_letter, financial_documents, affidavit_of_support |
 
-Seeded via `ensureProfileDocumentRequirements.ts` (`notes`: `profile_default` / `profile_suggest`).
+Seeded at **service activation** via `seedDefaultDocumentRequirements.ts` (`notes`: `profile_default`). Suggestions are **not** auto-seeded — counselor accepts via Suggested Documents panel (`notes`: `profile_suggest`).
 
 ### Runtime filter
 
