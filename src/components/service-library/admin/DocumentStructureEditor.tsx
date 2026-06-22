@@ -38,7 +38,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useMasterItems } from "@/lib/masters";
+import { useMasterItems, type MasterItem } from "@/lib/masters";
 import {
   createDefaultDocumentStructure,
   DEFAULT_DOCUMENT_SECTION_TEMPLATES,
@@ -73,7 +73,8 @@ function SortableSection({
   onToggleDocActive,
   onToggleDocMandatory,
   onDocDragEnd,
-  docTypesByCode,
+  docTypes,
+  existingCodes,
   children,
 }: {
   section: DocumentStructureSection;
@@ -87,7 +88,8 @@ function SortableSection({
   onToggleDocActive: (itemKey: string, active: boolean) => void;
   onToggleDocMandatory: (itemKey: string, mandatory: boolean) => void;
   onDocDragEnd: (activeKey: string, overKey: string) => void;
-  docTypesByCode: Map<string, string>;
+  docTypes: MasterItem[];
+  existingCodes: ReadonlySet<string>;
   children: React.ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -182,22 +184,14 @@ function SortableSection({
           </div>
           <CollapsibleContent className="pt-3 space-y-3">
             <div className="flex flex-wrap items-end gap-2">
-              <div className="flex-1 min-w-[200px]">
+              <div className="flex-1 min-w-[240px]">
                 <Label className="text-xs">Add from Document Types</Label>
-                <Select value={addCode} onValueChange={setAddCode}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Select document type…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[...docTypesByCode.entries()]
-                      .sort((a, b) => a[1].localeCompare(b[1]))
-                      .map(([code, label]) => (
-                        <SelectItem key={code} value={code}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                <DocumentTypeSearchPicker
+                  items={docTypes}
+                  value={addCode}
+                  onChange={setAddCode}
+                  excludeCodes={existingCodes}
+                />
               </div>
               <Button
                 type="button"
@@ -503,7 +497,8 @@ export function DocumentStructureEditor({ structure: raw, onChange }: Props) {
                 onDocDragEnd={(activeKey, overKey) =>
                   commit(reorderDocumentsInSection(structure, section.section_key, activeKey, overKey))
                 }
-                docTypesByCode={docTypesByCode}
+                docTypes={docTypes}
+                existingCodes={new Set(section.documents.map((d) => d.master_item_code))}
               >
                 <SectionDocuments
                   section={section}
