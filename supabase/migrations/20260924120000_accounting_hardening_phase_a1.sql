@@ -5,12 +5,32 @@
 -- ---------------------------------------------------------------------------
 -- 1. Service lifecycle statuses (never hard-delete)
 -- ---------------------------------------------------------------------------
+-- Drop old constraint FIRST — 'completed' is not in the pre-A1 allowed set
+-- ('active','cancelled','withdrawn','closed','archived'), so mapping must
+-- happen after the constraint is removed.
+ALTER TABLE public.client_service_cases
+  DROP CONSTRAINT IF EXISTS client_service_cases_lifecycle_status_check;
+
+UPDATE public.client_service_cases
+SET lifecycle_status = 'withdrawn'
+WHERE lifecycle_status = 'closed'
+  AND outcome = 'withdrawn';
+
 UPDATE public.client_service_cases
 SET lifecycle_status = 'completed'
 WHERE lifecycle_status = 'closed';
 
-ALTER TABLE public.client_service_cases
-  DROP CONSTRAINT IF EXISTS client_service_cases_lifecycle_status_check;
+UPDATE public.client_service_cases
+SET lifecycle_status = 'completed'
+WHERE lifecycle_status = 'active'
+  AND status = 'closed'
+  AND outcome IS DISTINCT FROM 'withdrawn';
+
+UPDATE public.client_service_cases
+SET lifecycle_status = 'withdrawn'
+WHERE lifecycle_status = 'active'
+  AND status = 'closed'
+  AND outcome = 'withdrawn';
 
 ALTER TABLE public.client_service_cases
   ADD CONSTRAINT client_service_cases_lifecycle_status_check
