@@ -47,6 +47,8 @@ import {
 type Props = {
   view: AcademyViewModel;
   libraryId?: string;
+  country?: string | null;
+  canManage?: boolean;
   activeTab?: AcademyTabId;
   onTabChange?: (tab: AcademyTabId) => void;
   onToggleChecklistItem?: (id: string) => void;
@@ -60,6 +62,8 @@ type Props = {
 export function ServiceLibraryTabs({
   view,
   libraryId,
+  country,
+  canManage,
   activeTab: controlledTab,
   onTabChange,
   onToggleChecklistItem,
@@ -857,7 +861,12 @@ export function ServiceLibraryTabs({
       </TabsContent>
 
       <TabsContent value="documentstructure" className="mt-0">
-        <ServiceDocumentStructureTab structure={view.documentStructure} />
+        <ServiceDocumentStructureTab
+          structure={view.documentStructure}
+          libraryId={libraryId}
+          country={country ?? view.country}
+          canManage={canManage}
+        />
       </TabsContent>
 
       <TabsContent value="quiz" className="mt-0">

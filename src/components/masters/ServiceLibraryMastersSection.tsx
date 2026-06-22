@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Pencil, Trash2, Search, ExternalLink, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
+import { serviceLibraryDocumentStructureAdminUrl } from "@/lib/service-library/serviceLibraryAdminLinks";
 import { isExcludedCatalogueService } from "@/lib/service-library/excludedCatalogueServices";
 import { isAcademyVisaServiceRow } from "@/lib/service-library/academyNav";
 
@@ -404,7 +405,7 @@ function LibraryEditorDialog({
                 <strong>Service Library Admin</strong>, not in this quick edit dialog.
               </p>
               <Button variant="outline" size="sm" asChild>
-                <Link to={`/service-library-admin?id=${row.id}&detailTab=documentstructure`}>
+                <Link to={serviceLibraryDocumentStructureAdminUrl(row.id, row.service_library_countries?.[0]?.country)}>
                   <ExternalLink className="size-3.5 mr-1.5" />
                   Open Document structure
                 </Link>

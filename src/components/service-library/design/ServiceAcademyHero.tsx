@@ -8,8 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { AcademyViewModel } from "@/lib/service-library/buildAcademyViewModel";
 import { splitServiceTitle } from "@/lib/service-library/serviceDisplayLabels";
+import { serviceLibraryAdminUrl } from "@/lib/service-library/serviceLibraryAdminLinks";
 import { copyToClipboard } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 import { MbbsInstitutionSwitcher } from "@/components/service-library/design/MbbsInstitutionSwitcher";
 import type { MbbsInstitutionOption } from "@/lib/service-library/mbbs/types";
 import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
@@ -156,9 +158,9 @@ export function ServiceAcademyHero({
         <div className="flex flex-wrap gap-2 justify-end pl-[4.5rem]">
           {canManage && (
             <Button variant="outline" size="sm" asChild>
-              <a href={`/service-library-admin`} target="_blank" rel="noopener noreferrer">
+              <Link to={serviceLibraryAdminUrl(view.masterId, view.country)}>
                 Edit content
-              </a>
+              </Link>
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={() => (onOpenResources ? onOpenResources() : onOpenTab?.("downloads"))}>

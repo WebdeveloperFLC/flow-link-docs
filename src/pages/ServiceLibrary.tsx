@@ -468,6 +468,8 @@ export default function ServiceLibrary() {
                 <ServiceLibraryTabs
                   view={detail.data.view}
                   libraryId={detail.data.master.id}
+                  country={detail.data.view.country}
+                  canManage={canManage}
                   activeTab={resolvedActiveTab}
                   onTabChange={setActiveTab}
                   onToggleChecklistItem={toggleSub}
