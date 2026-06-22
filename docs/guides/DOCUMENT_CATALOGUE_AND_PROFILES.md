@@ -1,6 +1,6 @@
 # Document Catalogue & Service Profiles — Phase B Pre-Seed Design
 
-Generated: 2026-06-22T00:25:43.143Z
+Generated: 2026-06-22T00:26:56.728Z
 
 > **Status:** Review required before Phase B seeding.
 > **No DB changes. No fleet conversion. Canada Spouse pilot remains the only converted service.**
@@ -413,9 +413,9 @@ Individual services **inherit** from one profile and add **exceptions only**.
 | Coaching | 29 | 0 |
 | MBBS | 8 | 0 |
 | Permanent Residence | 6 | 0 |
-| Spouse / Dependent | 14 | 4 |
+| Spouse / Dependent | 15 | 5 |
 | Student Visa | 31 | 9 |
-| Visitor Visa | 29 | 2 |
+| Visitor Visa | 28 | 1 |
 | Work Permit | 14 | 3 |
 
 ### 5.1 Reference inheritance examples
@@ -446,10 +446,10 @@ Individual services **inherit** from one profile and add **exceptions only**.
 
 #### Canada Spouse Dependent Visitor (pilot)
 
-- **Profile:** `visitor_visa`
+- **Profile:** `spouse_dependent`
 - **Source:** document_manifest
-- **Inherits:** `passport`, `photograph`, `visa_forms`, `financial_documents`, `travel_itinerary`, `employment_letter`
-- **Adds:** `sponsorship_letter`, `marriage_certificate`, `other`
+- **Inherits:** `passport`, `photograph`, `visa_forms`, `marriage_certificate`, `relationship_proof`, `financial_documents`
+- **Adds:** `sponsorship_letter`, `other`
 - **Effective defaults:** `passport`, `photograph`, `visa_forms`, `sponsorship_letter`, `marriage_certificate`, `photograph`, `financial_documents`, `other`
 
 ---

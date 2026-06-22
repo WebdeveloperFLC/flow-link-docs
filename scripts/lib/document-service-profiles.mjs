@@ -289,8 +289,9 @@ export function resolveServiceProfile(slug) {
   if (/express-entry|skilled-migration|oinp|pnp|green-card|tr-to-pr|smc|permanent|subclass-189|subclass-190|subclass-491/i.test(slug))
     return "permanent_residence";
   if (/student|study|pgwp|graduate-route|post-study|subclass-485|ausbildung/i.test(slug)) return "student_visa";
-  if (/visitor|super-visa|visitor-record|trv/i.test(slug)) return "visitor_visa";
+  // Spouse before visitor — e.g. canada-spouse-dependent-visitor must not match visitor first
   if (/spouse|partner|dependent|sponsorship/i.test(slug)) return "spouse_dependent";
+  if (/visitor|super-visa|visitor-record|trv/i.test(slug)) return "visitor_visa";
   if (/skilled|work|bowp|opportunity|job-seeker|caips|blue-card|employment-pass|work-permit/i.test(slug)) return "work_permit";
   return "visitor_visa"; // general short-stay / misc → visitor baseline
 }
