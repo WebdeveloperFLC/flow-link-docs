@@ -2160,6 +2160,216 @@ export type Database = {
         }
         Relationships: []
       }
+      application_document_milestones: {
+        Row: {
+          client_id: string
+          client_service_case_id: string
+          completed: boolean
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          reference_number: string | null
+          requirement_id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          client_service_case_id: string
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reference_number?: string | null
+          requirement_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          client_service_case_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reference_number?: string | null
+          requirement_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_document_milestones_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_document_milestones_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_document_milestones_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_document_milestones_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "application_document_milestones_client_service_case_id_fkey"
+            columns: ["client_service_case_id"]
+            isOneToOne: false
+            referencedRelation: "client_service_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_document_milestones_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: true
+            referencedRelation: "application_document_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      application_document_requirements: {
+        Row: {
+          client_id: string
+          client_service_case_id: string
+          created_at: string
+          created_by: string | null
+          display_group: string | null
+          display_name: string
+          id: string
+          is_suppressed: boolean
+          mandatory: boolean
+          master_item_code: string
+          notes: string | null
+          party_scope: string
+          person_id: string | null
+          person_match_key: string | null
+          requirement_kind: string
+          section_key: string
+          section_label: string
+          sort_order: number
+          source: string
+          template_item_id: string | null
+          updated_at: string
+          workflow_template_id: string | null
+        }
+        Insert: {
+          client_id: string
+          client_service_case_id: string
+          created_at?: string
+          created_by?: string | null
+          display_group?: string | null
+          display_name: string
+          id?: string
+          is_suppressed?: boolean
+          mandatory?: boolean
+          master_item_code: string
+          notes?: string | null
+          party_scope?: string
+          person_id?: string | null
+          person_match_key?: string | null
+          requirement_kind?: string
+          section_key: string
+          section_label: string
+          sort_order?: number
+          source: string
+          template_item_id?: string | null
+          updated_at?: string
+          workflow_template_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          client_service_case_id?: string
+          created_at?: string
+          created_by?: string | null
+          display_group?: string | null
+          display_name?: string
+          id?: string
+          is_suppressed?: boolean
+          mandatory?: boolean
+          master_item_code?: string
+          notes?: string | null
+          party_scope?: string
+          person_id?: string | null
+          person_match_key?: string | null
+          requirement_kind?: string
+          section_key?: string
+          section_label?: string
+          sort_order?: number
+          source?: string
+          template_item_id?: string | null
+          updated_at?: string
+          workflow_template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_document_requirements_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_document_requirements_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_document_requirements_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_document_requirements_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "application_document_requirements_client_service_case_id_fkey"
+            columns: ["client_service_case_id"]
+            isOneToOne: false
+            referencedRelation: "client_service_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_document_requirements_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "case_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_document_requirements_workflow_template_id_fkey"
+            columns: ["workflow_template_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approvals: {
         Row: {
           acted_at: string | null
@@ -4263,6 +4473,10 @@ export type Database = {
           id: string
           is_primary: boolean
           notes: string | null
+          program_code_snapshot: string | null
+          qualification_id: string | null
+          selected_campus: string | null
+          selected_intake_term: string | null
           shortlisted_at: string
           shortlisted_by: string | null
           status: string
@@ -4278,6 +4492,10 @@ export type Database = {
           id?: string
           is_primary?: boolean
           notes?: string | null
+          program_code_snapshot?: string | null
+          qualification_id?: string | null
+          selected_campus?: string | null
+          selected_intake_term?: string | null
           shortlisted_at?: string
           shortlisted_by?: string | null
           status: string
@@ -4293,6 +4511,10 @@ export type Database = {
           id?: string
           is_primary?: boolean
           notes?: string | null
+          program_code_snapshot?: string | null
+          qualification_id?: string | null
+          selected_campus?: string | null
+          selected_intake_term?: string | null
           shortlisted_at?: string
           shortlisted_by?: string | null
           status?: string
@@ -4341,6 +4563,13 @@ export type Database = {
             referencedRelation: "cf_courses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cf_client_programs_qualification_id_fkey"
+            columns: ["qualification_id"]
+            isOneToOne: false
+            referencedRelation: "client_institution_qualifications"
+            referencedColumns: ["id"]
+          },
         ]
       }
       cf_countries: {
@@ -4375,6 +4604,7 @@ export type Database = {
           applications_open: boolean
           apply_url: string | null
           backlogs_allowed: number | null
+          campus_names: string[]
           career_outcomes: string | null
           coop_available: boolean
           created_at: string
@@ -4398,6 +4628,7 @@ export type Database = {
           pgwp_eligible: boolean
           pr_friendly: boolean
           pr_visa_notes: string | null
+          program_code: string | null
           pte_score: number | null
           scholarship_available: boolean
           scholarship_info: string | null
@@ -4415,6 +4646,7 @@ export type Database = {
           applications_open?: boolean
           apply_url?: string | null
           backlogs_allowed?: number | null
+          campus_names?: string[]
           career_outcomes?: string | null
           coop_available?: boolean
           created_at?: string
@@ -4438,6 +4670,7 @@ export type Database = {
           pgwp_eligible?: boolean
           pr_friendly?: boolean
           pr_visa_notes?: string | null
+          program_code?: string | null
           pte_score?: number | null
           scholarship_available?: boolean
           scholarship_info?: string | null
@@ -4455,6 +4688,7 @@ export type Database = {
           applications_open?: boolean
           apply_url?: string | null
           backlogs_allowed?: number | null
+          campus_names?: string[]
           career_outcomes?: string | null
           coop_available?: boolean
           created_at?: string
@@ -4478,6 +4712,7 @@ export type Database = {
           pgwp_eligible?: boolean
           pr_friendly?: boolean
           pr_visa_notes?: string | null
+          program_code?: string | null
           pte_score?: number | null
           scholarship_available?: boolean
           scholarship_info?: string | null
@@ -4616,6 +4851,196 @@ export type Database = {
           },
           {
             foreignKeyName: "cf_universities_upi_institution_id_fkey"
+            columns: ["upi_institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cf_upi_linkage_candidates: {
+        Row: {
+          ambiguous_candidates: Json
+          applied_at: string | null
+          cf_country_code: string
+          cf_course_count: number
+          cf_name: string
+          cf_university_id: string
+          confidence: number
+          created_at: string
+          id: string
+          is_ambiguous: boolean
+          match_method: Database["public"]["Enums"]["cf_upi_linkage_match_method"]
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          run_id: string
+          status: Database["public"]["Enums"]["cf_upi_linkage_candidate_status"]
+          suggested_upi_institution_id: string | null
+          suggested_upi_name: string | null
+        }
+        Insert: {
+          ambiguous_candidates?: Json
+          applied_at?: string | null
+          cf_country_code: string
+          cf_course_count?: number
+          cf_name: string
+          cf_university_id: string
+          confidence?: number
+          created_at?: string
+          id?: string
+          is_ambiguous?: boolean
+          match_method: Database["public"]["Enums"]["cf_upi_linkage_match_method"]
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id: string
+          status?: Database["public"]["Enums"]["cf_upi_linkage_candidate_status"]
+          suggested_upi_institution_id?: string | null
+          suggested_upi_name?: string | null
+        }
+        Update: {
+          ambiguous_candidates?: Json
+          applied_at?: string | null
+          cf_country_code?: string
+          cf_course_count?: number
+          cf_name?: string
+          cf_university_id?: string
+          confidence?: number
+          created_at?: string
+          id?: string
+          is_ambiguous?: boolean
+          match_method?: Database["public"]["Enums"]["cf_upi_linkage_match_method"]
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string
+          status?: Database["public"]["Enums"]["cf_upi_linkage_candidate_status"]
+          suggested_upi_institution_id?: string | null
+          suggested_upi_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cf_upi_linkage_candidates_cf_university_id_fkey"
+            columns: ["cf_university_id"]
+            isOneToOne: false
+            referencedRelation: "cf_universities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_upi_linkage_candidates_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "cf_upi_linkage_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_upi_linkage_candidates_suggested_upi_institution_id_fkey"
+            columns: ["suggested_upi_institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cf_upi_linkage_runs: {
+        Row: {
+          alias_count: number
+          already_linked_count: number
+          ambiguous_count: number
+          applied_count: number
+          cf_linked_before: number
+          cf_total: number
+          cf_unlinked_before: number
+          completed_at: string | null
+          exact_count: number
+          id: string
+          normalized_count: number
+          notes: string | null
+          run_type: string
+          started_at: string
+          started_by: string | null
+          unmatched_count: number
+        }
+        Insert: {
+          alias_count?: number
+          already_linked_count?: number
+          ambiguous_count?: number
+          applied_count?: number
+          cf_linked_before?: number
+          cf_total?: number
+          cf_unlinked_before?: number
+          completed_at?: string | null
+          exact_count?: number
+          id?: string
+          normalized_count?: number
+          notes?: string | null
+          run_type: string
+          started_at?: string
+          started_by?: string | null
+          unmatched_count?: number
+        }
+        Update: {
+          alias_count?: number
+          already_linked_count?: number
+          ambiguous_count?: number
+          applied_count?: number
+          cf_linked_before?: number
+          cf_total?: number
+          cf_unlinked_before?: number
+          completed_at?: string | null
+          exact_count?: number
+          id?: string
+          normalized_count?: number
+          notes?: string | null
+          run_type?: string
+          started_at?: string
+          started_by?: string | null
+          unmatched_count?: number
+        }
+        Relationships: []
+      }
+      cf_upi_name_aliases: {
+        Row: {
+          cf_name_pattern: string
+          country_code: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          updated_at: string
+          upi_institution_id: string
+        }
+        Insert: {
+          cf_name_pattern: string
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          updated_at?: string
+          upi_institution_id: string
+        }
+        Update: {
+          cf_name_pattern?: string
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          updated_at?: string
+          upi_institution_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cf_upi_name_aliases_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "cf_countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "cf_upi_name_aliases_upi_institution_id_fkey"
             columns: ["upi_institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
@@ -5326,63 +5751,84 @@ export type Database = {
       }
       client_documents: {
         Row: {
+          assignment_status: string
           case_id: string | null
           client_id: string
           custom_type: string | null
           deleted_at: string | null
           deleted_by: string | null
           document_type: string
+          expiry_date: string | null
           file_name: string
           id: string
+          is_active_version: boolean
           is_shared: boolean
+          issue_date: string | null
+          master_item_code: string | null
           mime_type: string | null
           person_id: string | null
+          portal_source: boolean
           section_id: string | null
           section_order: number
           size_bytes: number | null
           status: string
+          status_review_note: string | null
           storage_path: string
           uploaded_at: string
           uploaded_by: string | null
           version: number
         }
         Insert: {
+          assignment_status?: string
           case_id?: string | null
           client_id: string
           custom_type?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           document_type: string
+          expiry_date?: string | null
           file_name: string
           id?: string
+          is_active_version?: boolean
           is_shared?: boolean
+          issue_date?: string | null
+          master_item_code?: string | null
           mime_type?: string | null
           person_id?: string | null
+          portal_source?: boolean
           section_id?: string | null
           section_order?: number
           size_bytes?: number | null
           status?: string
+          status_review_note?: string | null
           storage_path: string
           uploaded_at?: string
           uploaded_by?: string | null
           version?: number
         }
         Update: {
+          assignment_status?: string
           case_id?: string | null
           client_id?: string
           custom_type?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           document_type?: string
+          expiry_date?: string | null
           file_name?: string
           id?: string
+          is_active_version?: boolean
           is_shared?: boolean
+          issue_date?: string | null
+          master_item_code?: string | null
           mime_type?: string | null
           person_id?: string | null
+          portal_source?: boolean
           section_id?: string | null
           section_order?: number
           size_bytes?: number | null
           status?: string
+          status_review_note?: string | null
           storage_path?: string
           uploaded_at?: string
           uploaded_by?: string | null
@@ -5833,6 +6279,206 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
+          },
+        ]
+      }
+      client_institution_qualifications: {
+        Row: {
+          application_source: Database["public"]["Enums"]["application_source"]
+          campus_name: string | null
+          cf_client_program_id: string | null
+          cf_course_id: string | null
+          client_id: string
+          client_service_case_id: string
+          created_at: string
+          created_by: string | null
+          destination_country: string | null
+          duplicate_override_at: string | null
+          duplicate_override_by: string | null
+          duplicate_override_reason: string | null
+          duration_months: number | null
+          hold_reason_code:
+            | Database["public"]["Enums"]["qualification_hold_reason_code"]
+            | null
+          id: string
+          institution_application_status:
+            | Database["public"]["Enums"]["institution_application_status"]
+            | null
+          institution_city_snapshot: string | null
+          institution_id: string
+          institution_name_snapshot: string | null
+          intake_date: string | null
+          intake_term: string
+          intake_year: number | null
+          program_code: string | null
+          program_name: string | null
+          qualification_owner_user_id: string | null
+          status: Database["public"]["Enums"]["qualification_lifecycle_status"]
+          status_changed_at: string | null
+          status_changed_by: string | null
+          status_reason_code: string | null
+          status_reason_notes: string | null
+          study_level: string | null
+          transfer_target_case_id: string | null
+          transfer_target_institution_id: string | null
+          tuition_currency: string | null
+          tuition_fee: number | null
+          updated_at: string
+        }
+        Insert: {
+          application_source?: Database["public"]["Enums"]["application_source"]
+          campus_name?: string | null
+          cf_client_program_id?: string | null
+          cf_course_id?: string | null
+          client_id: string
+          client_service_case_id: string
+          created_at?: string
+          created_by?: string | null
+          destination_country?: string | null
+          duplicate_override_at?: string | null
+          duplicate_override_by?: string | null
+          duplicate_override_reason?: string | null
+          duration_months?: number | null
+          hold_reason_code?:
+            | Database["public"]["Enums"]["qualification_hold_reason_code"]
+            | null
+          id?: string
+          institution_application_status?:
+            | Database["public"]["Enums"]["institution_application_status"]
+            | null
+          institution_city_snapshot?: string | null
+          institution_id: string
+          institution_name_snapshot?: string | null
+          intake_date?: string | null
+          intake_term: string
+          intake_year?: number | null
+          program_code?: string | null
+          program_name?: string | null
+          qualification_owner_user_id?: string | null
+          status?: Database["public"]["Enums"]["qualification_lifecycle_status"]
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          status_reason_code?: string | null
+          status_reason_notes?: string | null
+          study_level?: string | null
+          transfer_target_case_id?: string | null
+          transfer_target_institution_id?: string | null
+          tuition_currency?: string | null
+          tuition_fee?: number | null
+          updated_at?: string
+        }
+        Update: {
+          application_source?: Database["public"]["Enums"]["application_source"]
+          campus_name?: string | null
+          cf_client_program_id?: string | null
+          cf_course_id?: string | null
+          client_id?: string
+          client_service_case_id?: string
+          created_at?: string
+          created_by?: string | null
+          destination_country?: string | null
+          duplicate_override_at?: string | null
+          duplicate_override_by?: string | null
+          duplicate_override_reason?: string | null
+          duration_months?: number | null
+          hold_reason_code?:
+            | Database["public"]["Enums"]["qualification_hold_reason_code"]
+            | null
+          id?: string
+          institution_application_status?:
+            | Database["public"]["Enums"]["institution_application_status"]
+            | null
+          institution_city_snapshot?: string | null
+          institution_id?: string
+          institution_name_snapshot?: string | null
+          intake_date?: string | null
+          intake_term?: string
+          intake_year?: number | null
+          program_code?: string | null
+          program_name?: string | null
+          qualification_owner_user_id?: string | null
+          status?: Database["public"]["Enums"]["qualification_lifecycle_status"]
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          status_reason_code?: string | null
+          status_reason_notes?: string | null
+          study_level?: string | null
+          transfer_target_case_id?: string | null
+          transfer_target_institution_id?: string | null
+          tuition_currency?: string | null
+          tuition_fee?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_institution_qualificat_transfer_target_institution__fkey"
+            columns: ["transfer_target_institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualifications_cf_client_program_id_fkey"
+            columns: ["cf_client_program_id"]
+            isOneToOne: false
+            referencedRelation: "cf_client_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualifications_cf_course_id_fkey"
+            columns: ["cf_course_id"]
+            isOneToOne: false
+            referencedRelation: "cf_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualifications_client_service_case_id_fkey"
+            columns: ["client_service_case_id"]
+            isOneToOne: false
+            referencedRelation: "client_service_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualifications_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualifications_transfer_target_case_id_fkey"
+            columns: ["transfer_target_case_id"]
+            isOneToOne: false
+            referencedRelation: "client_service_cases"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -7660,6 +8306,84 @@ export type Database = {
           },
         ]
       }
+      client_service_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          case_id: string | null
+          client_id: string
+          created_at: string
+          id: string
+          metadata: Json
+          new_value: Json | null
+          previous_value: Json | null
+          reason: string | null
+          service_code: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          case_id?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          new_value?: Json | null
+          previous_value?: Json | null
+          reason?: string | null
+          service_code: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          case_id?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          new_value?: Json | null
+          previous_value?: Json | null
+          reason?: string | null
+          service_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_service_audit_log_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "client_service_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_audit_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_audit_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_audit_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_audit_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
       client_service_billing_events: {
         Row: {
           actor_id: string | null
@@ -7740,9 +8464,12 @@ export type Database = {
           client_id: string
           closed_at: string | null
           created_at: string
+          destination_country: string | null
+          document_profile_type: string | null
           id: string
           institution_deposit_reference: string | null
           institution_required_deposit: number | null
+          lifecycle_status: string
           outcome: string | null
           outcome_at: string | null
           outcome_by: string | null
@@ -7750,6 +8477,9 @@ export type Database = {
           pipeline_id: string | null
           reapplication_of: string | null
           refusal_doc_pending: boolean
+          removal_reason: string | null
+          removed_at: string | null
+          removed_by: string | null
           requested_amount: number | null
           requested_currency: string | null
           requested_set_at: string | null
@@ -7757,6 +8487,8 @@ export type Database = {
           requested_source: string | null
           service_code: string
           status: string
+          template_assigned_at: string | null
+          workflow_template_id: string | null
         }
         Insert: {
           attempt_number?: number
@@ -7765,9 +8497,12 @@ export type Database = {
           client_id: string
           closed_at?: string | null
           created_at?: string
+          destination_country?: string | null
+          document_profile_type?: string | null
           id?: string
           institution_deposit_reference?: string | null
           institution_required_deposit?: number | null
+          lifecycle_status?: string
           outcome?: string | null
           outcome_at?: string | null
           outcome_by?: string | null
@@ -7775,6 +8510,9 @@ export type Database = {
           pipeline_id?: string | null
           reapplication_of?: string | null
           refusal_doc_pending?: boolean
+          removal_reason?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
           requested_amount?: number | null
           requested_currency?: string | null
           requested_set_at?: string | null
@@ -7782,6 +8520,8 @@ export type Database = {
           requested_source?: string | null
           service_code: string
           status?: string
+          template_assigned_at?: string | null
+          workflow_template_id?: string | null
         }
         Update: {
           attempt_number?: number
@@ -7790,9 +8530,12 @@ export type Database = {
           client_id?: string
           closed_at?: string | null
           created_at?: string
+          destination_country?: string | null
+          document_profile_type?: string | null
           id?: string
           institution_deposit_reference?: string | null
           institution_required_deposit?: number | null
+          lifecycle_status?: string
           outcome?: string | null
           outcome_at?: string | null
           outcome_by?: string | null
@@ -7800,6 +8543,9 @@ export type Database = {
           pipeline_id?: string | null
           reapplication_of?: string | null
           refusal_doc_pending?: boolean
+          removal_reason?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
           requested_amount?: number | null
           requested_currency?: string | null
           requested_set_at?: string | null
@@ -7807,6 +8553,8 @@ export type Database = {
           requested_source?: string | null
           service_code?: string
           status?: string
+          template_assigned_at?: string | null
+          workflow_template_id?: string | null
         }
         Relationships: [
           {
@@ -7856,6 +8604,13 @@ export type Database = {
             columns: ["reapplication_of"]
             isOneToOne: false
             referencedRelation: "client_service_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_service_cases_workflow_template_id_fkey"
+            columns: ["workflow_template_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -9130,6 +9885,33 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      designations: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -11061,6 +11843,51 @@ export type Database = {
           is_active?: boolean
           label?: string
           org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      hr_employee_categories: {
+        Row: {
+          attendance_rules_apply: boolean
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          leave_accrual_eligible: boolean
+          leave_eligible: boolean
+          org_id: string
+          payroll_rules_apply: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          attendance_rules_apply?: boolean
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          leave_accrual_eligible?: boolean
+          leave_eligible?: boolean
+          org_id: string
+          payroll_rules_apply?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          attendance_rules_apply?: boolean
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          leave_accrual_eligible?: boolean
+          leave_eligible?: boolean
+          org_id?: string
+          payroll_rules_apply?: boolean
           sort_order?: number
           updated_at?: string
         }
@@ -15395,6 +16222,700 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "noc_occupations"
             referencedColumns: ["noc_code"]
+          },
+        ]
+      }
+      qualification_adjustment_events: {
+        Row: {
+          actor_id: string | null
+          adjustment_type: string
+          amount: number | null
+          client_id: string
+          created_at: string
+          currency: string | null
+          id: string
+          qualification_id: string
+          reason: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          adjustment_type?: string
+          amount?: number | null
+          client_id: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          qualification_id: string
+          reason?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          adjustment_type?: string
+          amount?: number | null
+          client_id?: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          qualification_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualification_adjustment_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_adjustment_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_adjustment_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_adjustment_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "qualification_adjustment_events_qualification_id_fkey"
+            columns: ["qualification_id"]
+            isOneToOne: false
+            referencedRelation: "client_institution_qualifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualification_application_milestones: {
+        Row: {
+          application_created_at: string
+          application_submitted_date: string | null
+          client_id: string
+          enrollment_at: string | null
+          offer_received_at: string | null
+          qualification_id: string
+          submitted_by_user_id: string | null
+          updated_at: string
+          visa_approved_at: string | null
+          visa_filed_at: string | null
+        }
+        Insert: {
+          application_created_at: string
+          application_submitted_date?: string | null
+          client_id: string
+          enrollment_at?: string | null
+          offer_received_at?: string | null
+          qualification_id: string
+          submitted_by_user_id?: string | null
+          updated_at?: string
+          visa_approved_at?: string | null
+          visa_filed_at?: string | null
+        }
+        Update: {
+          application_created_at?: string
+          application_submitted_date?: string | null
+          client_id?: string
+          enrollment_at?: string | null
+          offer_received_at?: string | null
+          qualification_id?: string
+          submitted_by_user_id?: string | null
+          updated_at?: string
+          visa_approved_at?: string | null
+          visa_filed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualification_application_milestones_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_application_milestones_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_application_milestones_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_application_milestones_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "qualification_application_milestones_qualification_id_fkey"
+            columns: ["qualification_id"]
+            isOneToOne: true
+            referencedRelation: "client_institution_qualifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualification_application_offer: {
+        Row: {
+          client_id: string
+          created_at: string
+          notes: string | null
+          offer_date: string | null
+          offer_expiry_date: string | null
+          offer_number: string | null
+          offer_status: Database["public"]["Enums"]["application_offer_status"]
+          offer_type:
+            | Database["public"]["Enums"]["application_offer_type"]
+            | null
+          qualification_id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          notes?: string | null
+          offer_date?: string | null
+          offer_expiry_date?: string | null
+          offer_number?: string | null
+          offer_status?: Database["public"]["Enums"]["application_offer_status"]
+          offer_type?:
+            | Database["public"]["Enums"]["application_offer_type"]
+            | null
+          qualification_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          notes?: string | null
+          offer_date?: string | null
+          offer_expiry_date?: string | null
+          offer_number?: string | null
+          offer_status?: Database["public"]["Enums"]["application_offer_status"]
+          offer_type?:
+            | Database["public"]["Enums"]["application_offer_type"]
+            | null
+          qualification_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualification_application_offer_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_application_offer_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_application_offer_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_application_offer_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "qualification_application_offer_qualification_id_fkey"
+            columns: ["qualification_id"]
+            isOneToOne: true
+            referencedRelation: "client_institution_qualifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualification_application_references: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          qualification_id: string
+          reference_number: string
+          reference_type: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          qualification_id: string
+          reference_number?: string
+          reference_type: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          qualification_id?: string
+          reference_number?: string
+          reference_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualification_application_references_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_application_references_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_application_references_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_application_references_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "qualification_application_references_qualification_id_fkey"
+            columns: ["qualification_id"]
+            isOneToOne: false
+            referencedRelation: "client_institution_qualifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualification_deposit_track: {
+        Row: {
+          client_id: string
+          created_at: string
+          currency: string
+          due_date: string | null
+          id: string
+          outstanding_amount: number
+          paid_amount: number
+          qualification_id: string
+          required_amount: number
+          status: Database["public"]["Enums"]["qualification_track_status"]
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          outstanding_amount?: number
+          paid_amount?: number
+          qualification_id: string
+          required_amount?: number
+          status?: Database["public"]["Enums"]["qualification_track_status"]
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          outstanding_amount?: number
+          paid_amount?: number
+          qualification_id?: string
+          required_amount?: number
+          status?: Database["public"]["Enums"]["qualification_track_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualification_deposit_track_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_deposit_track_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_deposit_track_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_deposit_track_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "qualification_deposit_track_qualification_id_fkey"
+            columns: ["qualification_id"]
+            isOneToOne: true
+            referencedRelation: "client_institution_qualifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualification_events: {
+        Row: {
+          actor_id: string | null
+          client_id: string
+          created_at: string
+          event_type: string
+          id: string
+          idempotency_key: string | null
+          payload_jsonb: Json
+          qualification_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          client_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          idempotency_key?: string | null
+          payload_jsonb?: Json
+          qualification_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          client_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          idempotency_key?: string | null
+          payload_jsonb?: Json
+          qualification_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualification_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "qualification_events_qualification_id_fkey"
+            columns: ["qualification_id"]
+            isOneToOne: false
+            referencedRelation: "client_institution_qualifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualification_external_events: {
+        Row: {
+          client_id: string | null
+          error_message: string | null
+          event_type: string
+          external_reference: string
+          id: string
+          idempotency_key: string
+          institution_id: string | null
+          matched_payment_record_id: string | null
+          payload_jsonb: Json
+          processed_at: string | null
+          processing_status: string
+          provider_code: string
+          qualification_id: string | null
+          received_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          error_message?: string | null
+          event_type: string
+          external_reference: string
+          id?: string
+          idempotency_key: string
+          institution_id?: string | null
+          matched_payment_record_id?: string | null
+          payload_jsonb?: Json
+          processed_at?: string | null
+          processing_status?: string
+          provider_code: string
+          qualification_id?: string | null
+          received_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          error_message?: string | null
+          event_type?: string
+          external_reference?: string
+          id?: string
+          idempotency_key?: string
+          institution_id?: string | null
+          matched_payment_record_id?: string | null
+          payload_jsonb?: Json
+          processed_at?: string | null
+          processing_status?: string
+          provider_code?: string
+          qualification_id?: string | null
+          received_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualification_external_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_external_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_external_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_external_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "qualification_external_events_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_external_events_qualification_id_fkey"
+            columns: ["qualification_id"]
+            isOneToOne: false
+            referencedRelation: "client_institution_qualifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualification_funding_plans: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          deposit_sources: string[]
+          id: string
+          is_active: boolean
+          notes: string | null
+          qualification_id: string
+          tuition_sources: string[]
+          version: number
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          deposit_sources?: string[]
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          qualification_id: string
+          tuition_sources?: string[]
+          version?: number
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          deposit_sources?: string[]
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          qualification_id?: string
+          tuition_sources?: string[]
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualification_funding_plans_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_funding_plans_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_funding_plans_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_funding_plans_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "qualification_funding_plans_qualification_id_fkey"
+            columns: ["qualification_id"]
+            isOneToOne: false
+            referencedRelation: "client_institution_qualifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualification_tuition_track: {
+        Row: {
+          active_schedule_version_id: string | null
+          client_id: string
+          created_at: string
+          currency: string
+          id: string
+          outstanding_amount: number
+          paid_amount: number
+          qualification_id: string
+          status: Database["public"]["Enums"]["qualification_track_status"]
+          total_tuition: number
+          updated_at: string
+        }
+        Insert: {
+          active_schedule_version_id?: string | null
+          client_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          outstanding_amount?: number
+          paid_amount?: number
+          qualification_id: string
+          status?: Database["public"]["Enums"]["qualification_track_status"]
+          total_tuition?: number
+          updated_at?: string
+        }
+        Update: {
+          active_schedule_version_id?: string | null
+          client_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          outstanding_amount?: number
+          paid_amount?: number
+          qualification_id?: string
+          status?: Database["public"]["Enums"]["qualification_track_status"]
+          total_tuition?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualification_tuition_track_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_tuition_track_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_tuition_track_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_tuition_track_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "qualification_tuition_track_qualification_id_fkey"
+            columns: ["qualification_id"]
+            isOneToOne: true
+            referencedRelation: "client_institution_qualifications"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -23585,6 +25106,20 @@ export type Database = {
         Args: { p_org: string; p_year?: number }
         Returns: number
       }
+      fn_add_case_document_requirement: {
+        Args: {
+          p_case_id: string
+          p_display_group?: string
+          p_mandatory?: boolean
+          p_master_item_code: string
+          p_notes?: string
+          p_party_scope?: string
+          p_person_id?: string
+          p_section_key?: string
+          p_section_label?: string
+        }
+        Returns: string
+      }
       fn_add_invoices_to_aggregator_invoice: {
         Args: {
           p_aggregator_invoice_id: string
@@ -23722,6 +25257,22 @@ export type Database = {
       fn_assert_commission_aggregator_actor: { Args: never; Returns: undefined }
       fn_assert_commission_receipt_actor: { Args: never; Returns: undefined }
       fn_assert_not_director_read_only: { Args: never; Returns: undefined }
+      fn_assess_service_financial_dependencies: {
+        Args: {
+          p_client_id: string
+          p_match_keys?: string[]
+          p_service_code: string
+        }
+        Returns: Json
+      }
+      fn_assign_case_workflow_template: {
+        Args: {
+          p_case_id: string
+          p_rematerialize?: boolean
+          p_template_id?: string
+        }
+        Returns: Json
+      }
       fn_assign_offer_ab_variant: {
         Args: { _client_id?: string; _experiment_id: string; _lead_id?: string }
         Returns: Json
@@ -23870,6 +25421,69 @@ export type Database = {
       fn_case_invoiced_amount: {
         Args: { p_case_id: string; p_exclude_invoice_id?: string }
         Returns: number
+      }
+      fn_cf_upi_country_name_to_code: {
+        Args: { p_country_name: string }
+        Returns: string
+      }
+      fn_cf_upi_linkage_apply: {
+        Args: { p_candidate_ids?: string[] }
+        Returns: Json
+      }
+      fn_cf_upi_linkage_assert_editor: { Args: never; Returns: undefined }
+      fn_cf_upi_linkage_auto_apply_exact: { Args: never; Returns: Json }
+      fn_cf_upi_linkage_can_edit: { Args: { p_uid: string }; Returns: boolean }
+      fn_cf_upi_linkage_dashboard_stats: { Args: never; Returns: Json }
+      fn_cf_upi_linkage_list_candidates: {
+        Args: {
+          p_limit?: number
+          p_match_method?: string
+          p_offset?: number
+          p_run_id?: string
+          p_status?: string
+        }
+        Returns: {
+          ambiguous_candidates: Json
+          cf_country_code: string
+          cf_course_count: number
+          cf_name: string
+          cf_university_id: string
+          confidence: number
+          created_at: string
+          id: string
+          is_ambiguous: boolean
+          match_method: Database["public"]["Enums"]["cf_upi_linkage_match_method"]
+          review_notes: string
+          run_id: string
+          status: Database["public"]["Enums"]["cf_upi_linkage_candidate_status"]
+          suggested_upi_institution_id: string
+          suggested_upi_name: string
+        }[]
+      }
+      fn_cf_upi_linkage_refresh: {
+        Args: { p_dry_run?: boolean }
+        Returns: Json
+      }
+      fn_cf_upi_linkage_set_review: {
+        Args: {
+          p_candidate_id: string
+          p_notes?: string
+          p_status: string
+          p_upi_institution_id?: string
+        }
+        Returns: string
+      }
+      fn_cf_upi_names_match_exact: {
+        Args: { p_cf_name: string; p_upi_name: string }
+        Returns: boolean
+      }
+      fn_cf_upi_names_match_normalized: {
+        Args: { p_cf_name: string; p_upi_name: string }
+        Returns: boolean
+      }
+      fn_cf_upi_upi_matches_cf_country: {
+        Args: { p_cf_country_code: string; p_upi_country_name: string }
+        Returns: boolean
       }
       fn_classify_payment_service: {
         Args: { _payment_id: string; _service_library_id: string }
@@ -24279,6 +25893,10 @@ export type Database = {
         }
         Returns: string
       }
+      fn_delete_application_reference: {
+        Args: { p_reference_id: string }
+        Returns: string
+      }
       fn_derive_status:
         | {
             Args: {
@@ -24341,6 +25959,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      fn_document_workflow_infer_display_group: {
+        Args: { p_item: Json; p_party_scope: string; p_section_key: string }
+        Returns: string
+      }
+      fn_document_workflow_is_milestone: {
+        Args: { p_item_name: string; p_section_key: string }
+        Returns: boolean
+      }
+      fn_document_workflow_slug: { Args: { p_text: string }; Returns: string }
       fn_effective_fx_rate_to_inr:
         | { Args: { _currency: string; _period_key?: string }; Returns: number }
         | {
@@ -24492,6 +26119,17 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_find_duplicate_application: {
+        Args: {
+          p_campus_name: string
+          p_client_id: string
+          p_exclude_qualification_id?: string
+          p_institution_id: string
+          p_intake_term: string
+          p_program_name: string
+        }
+        Returns: Json
+      }
       fn_fx_rate: {
         Args: { _ccy: string; _period_key: string }
         Returns: number
@@ -24618,6 +26256,19 @@ export type Database = {
         }
         Returns: string
       }
+      fn_ingest_external_event: { Args: { p_payload: Json }; Returns: string }
+      fn_ingest_portal_document: {
+        Args: {
+          p_case_id?: string
+          p_client_id: string
+          p_file_name: string
+          p_master_item_code: string
+          p_mime_type?: string
+          p_size_bytes?: number
+          p_storage_path: string
+        }
+        Returns: Json
+      }
       fn_init_entity_approvals: {
         Args: {
           p_employee_id: string
@@ -24636,6 +26287,10 @@ export type Database = {
           p_transfer_reason?: string
         }
         Returns: string
+      }
+      fn_invoice_line_matches_service_keys: {
+        Args: { p_line_items: Json; p_match_keys: string[] }
+        Returns: boolean
       }
       fn_is_director_only: { Args: { _user_id: string }; Returns: boolean }
       fn_is_five_day_night_est: {
@@ -24749,6 +26404,31 @@ export type Database = {
         Args: { p_crm_role: string; p_org: string }
         Returns: Database["public"]["Enums"]["hr_role"]
       }
+      fn_mark_final_and_create_application:
+        | {
+            Args: {
+              p_campus_name?: string
+              p_client_program_id: string
+              p_client_service_case_id: string
+              p_intake_term: string
+              p_owner_user_id?: string
+              p_set_primary?: boolean
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_allow_duplicate_override?: boolean
+              p_campus_name?: string
+              p_client_program_id: string
+              p_client_service_case_id: string
+              p_duplicate_override_reason?: string
+              p_intake_term: string
+              p_owner_user_id?: string
+              p_set_primary?: boolean
+            }
+            Returns: Json
+          }
       fn_mark_payouts_payroll_sent: {
         Args: { _batch_ref?: string; _payout_ids: string[] }
         Returns: Json
@@ -24785,6 +26465,10 @@ export type Database = {
       fn_mark_student_eligible: {
         Args: { p_eligibility_date?: string; p_student_commission_id: string }
         Returns: string
+      }
+      fn_materialize_case_document_requirements: {
+        Args: { p_case_id: string; p_skip_existing_manual?: boolean }
+        Returns: number
       }
       fn_mispunch_deduction:
         | { Args: { p_mis: number }; Returns: number }
@@ -25049,9 +26733,47 @@ export type Database = {
         Args: { p_login: number; p_logout: number; p_min: number }
         Returns: number
       }
+      fn_qualification_ingest_event: {
+        Args: {
+          p_event_type: string
+          p_idempotency_key?: string
+          p_payload?: Json
+          p_qualification_id: string
+        }
+        Returns: string
+      }
+      fn_qualification_is_terminal: {
+        Args: {
+          p_status: Database["public"]["Enums"]["qualification_lifecycle_status"]
+        }
+        Returns: boolean
+      }
+      fn_qualification_track_status: {
+        Args: { p_paid: number; p_required: number }
+        Returns: Database["public"]["Enums"]["qualification_track_status"]
+      }
+      fn_qualification_transition_allowed: {
+        Args: {
+          p_from: Database["public"]["Enums"]["qualification_lifecycle_status"]
+          p_to: Database["public"]["Enums"]["qualification_lifecycle_status"]
+        }
+        Returns: boolean
+      }
+      fn_reassign_qualification_owner: {
+        Args: {
+          p_new_owner_user_id: string
+          p_qualification_id: string
+          p_reason_notes?: string
+        }
+        Returns: string
+      }
       fn_rebind_ph_demo_wallets: { Args: never; Returns: undefined }
       fn_rebuild_cycle_lines: { Args: { p_cycle: string }; Returns: number }
       fn_receipt_summary: { Args: { p_receipt_id: string }; Returns: Json }
+      fn_record_application_submitted: {
+        Args: { p_qualification_id: string; p_submitted_date?: string }
+        Returns: string
+      }
       fn_record_punch: {
         Args: { p_attendance: string; p_field: string; p_time?: string }
         Returns: {
@@ -25237,13 +26959,25 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_resolve_document_master_code: {
+        Args: { p_label: string }
+        Returns: string
+      }
       fn_resolve_policy: {
         Args: { p_as_of?: string; p_domain: string; p_org: string }
         Returns: Json
       }
+      fn_resolve_qualification_owner: {
+        Args: { p_client_id: string; p_creating_user_id: string }
+        Returns: string
+      }
       fn_resolve_run_item_dispute: {
         Args: { _dispute_id: string }
         Returns: Json
+      }
+      fn_resolve_workflow_template_for_case: {
+        Args: { p_case_id: string }
+        Returns: string
       }
       fn_review_discount_request: {
         Args: { _action: string; _note?: string; _request_id: string }
@@ -25270,6 +27004,15 @@ export type Database = {
         Returns: string
       }
       fn_seed_performance_hub_demo: { Args: never; Returns: undefined }
+      fn_set_case_milestone_completed: {
+        Args: {
+          p_completed: boolean
+          p_notes?: string
+          p_reference_number?: string
+          p_requirement_id: string
+        }
+        Returns: Json
+      }
       fn_set_client_attribution_splits: {
         Args: {
           _actor_id?: string
@@ -25589,6 +27332,18 @@ export type Database = {
         Args: { p_in: string; p_out: string }
         Returns: Json
       }
+      fn_transition_qualification_status: {
+        Args: {
+          p_hold_reason_code?: Database["public"]["Enums"]["qualification_hold_reason_code"]
+          p_qualification_id: string
+          p_reason_code?: string
+          p_reason_notes?: string
+          p_to_status: Database["public"]["Enums"]["qualification_lifecycle_status"]
+          p_transfer_target_case_id?: string
+          p_transfer_target_institution_id?: string
+        }
+        Returns: string
+      }
       fn_unclassified_payment_count: {
         Args: { _period_key: string }
         Returns: number
@@ -25607,6 +27362,21 @@ export type Database = {
           payment_id: string
         }[]
       }
+      fn_update_application_milestones: {
+        Args: { p_payload: Json; p_qualification_id: string }
+        Returns: string
+      }
+      fn_update_application_offer: {
+        Args: { p_payload: Json; p_qualification_id: string }
+        Returns: string
+      }
+      fn_update_application_status: {
+        Args: {
+          p_application_status: Database["public"]["Enums"]["institution_application_status"]
+          p_qualification_id: string
+        }
+        Returns: string
+      }
       fn_update_commission_receipt: {
         Args: {
           p_bank_reference?: string
@@ -25621,6 +27391,14 @@ export type Database = {
           p_remittance_reference?: string
         }
         Returns: undefined
+      }
+      fn_upsert_application_reference: {
+        Args: { p_payload: Json }
+        Returns: string
+      }
+      fn_upsert_client_qualification: {
+        Args: { p_payload: Json }
+        Returns: string
       }
       fn_upsert_discount_margin_floor_policy: {
         Args: {
@@ -25643,6 +27421,15 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      fn_upsert_qualification_funding_plan: {
+        Args: {
+          p_deposit_sources?: string[]
+          p_notes?: string
+          p_qualification_id: string
+          p_tuition_sources?: string[]
+        }
+        Returns: string
       }
       fn_upsert_receipt_invoice_allocations: {
         Args: { p_allocations: Json; p_receipt_id: string }
@@ -26163,6 +27950,22 @@ export type Database = {
         | "administrator"
         | "manager"
         | "director"
+      application_offer_status:
+        | "NONE"
+        | "PENDING"
+        | "RECEIVED"
+        | "ACCEPTED"
+        | "DECLINED"
+        | "EXPIRED"
+      application_offer_type:
+        | "CONDITIONAL_OFFER"
+        | "UNCONDITIONAL_OFFER"
+        | "LOA"
+        | "I20"
+        | "CAS"
+        | "COE"
+        | "OTHER"
+      application_source: "MANUAL" | "MARK_FINAL" | "IMPORT" | "OTHER"
       approval_stage: "Manager" | "HR" | "Final"
       assessment_invite_status: "pending" | "registered" | "expired" | "revoked"
       assessment_lead_source:
@@ -26217,6 +28020,19 @@ export type Database = {
         | "no_answer"
         | "busy"
         | "cancelled"
+      cf_upi_linkage_candidate_status:
+        | "pending_review"
+        | "approved"
+        | "applied"
+        | "rejected"
+        | "superseded"
+      cf_upi_linkage_match_method:
+        | "already_linked"
+        | "exact"
+        | "normalized"
+        | "alias"
+        | "manual"
+        | "unmatched"
       client_permission: "view" | "edit" | "upload" | "full"
       dsh_content_scope:
         | "common"
@@ -26284,6 +28100,19 @@ export type Database = {
         | "ancillary"
         | "direct_visa_commission"
         | "b2b_admission_commission"
+      institution_application_status:
+        | "APPLIED"
+        | "OFFER_RECEIVED"
+        | "CONDITIONAL_OFFER"
+        | "UNCONDITIONAL_OFFER"
+        | "LOA_RECEIVED"
+        | "DEPOSIT_PENDING"
+        | "DEPOSIT_PAID"
+        | "VISA_FILED"
+        | "VISA_APPROVED"
+        | "ENROLLED"
+        | "WITHDRAWN"
+        | "OTHER"
       leave_type:
         | "Annual Leave"
         | "Sick Leave"
@@ -26309,6 +28138,25 @@ export type Database = {
         | "dependant"
         | "sponsor"
         | "co_sponsor"
+      qualification_hold_reason_code:
+        | "WAITING_TUITION_PAYMENT"
+        | "WAITING_LOAN_APPROVAL"
+        | "WAITING_VISA_RESULT"
+        | "DEFERRED_INTAKE"
+        | "MEDICAL_ISSUE"
+        | "PERSONAL_REASONS"
+        | "MISSING_INSTITUTION_DOCS"
+        | "OTHER_OPERATIONAL"
+      qualification_lifecycle_status:
+        | "DRAFT"
+        | "ACTIVE"
+        | "ON_HOLD"
+        | "COMPLETED"
+        | "CLOSED"
+        | "CANCELLED"
+        | "REFUSED"
+        | "TRANSFERRED"
+      qualification_track_status: "NOT_STARTED" | "PARTIAL" | "SATISFIED"
       request_status: "Pending" | "Approved" | "Rejected" | "Cancelled"
       shift_type: "Day" | "Night" | "Rotational" | "Custom"
       telephony_role:
@@ -26467,6 +28315,24 @@ export const Constants = {
         "manager",
         "director",
       ],
+      application_offer_status: [
+        "NONE",
+        "PENDING",
+        "RECEIVED",
+        "ACCEPTED",
+        "DECLINED",
+        "EXPIRED",
+      ],
+      application_offer_type: [
+        "CONDITIONAL_OFFER",
+        "UNCONDITIONAL_OFFER",
+        "LOA",
+        "I20",
+        "CAS",
+        "COE",
+        "OTHER",
+      ],
+      application_source: ["MANUAL", "MARK_FINAL", "IMPORT", "OTHER"],
       approval_stage: ["Manager", "HR", "Final"],
       assessment_invite_status: ["pending", "registered", "expired", "revoked"],
       assessment_lead_source: [
@@ -26526,6 +28392,21 @@ export const Constants = {
         "no_answer",
         "busy",
         "cancelled",
+      ],
+      cf_upi_linkage_candidate_status: [
+        "pending_review",
+        "approved",
+        "applied",
+        "rejected",
+        "superseded",
+      ],
+      cf_upi_linkage_match_method: [
+        "already_linked",
+        "exact",
+        "normalized",
+        "alias",
+        "manual",
+        "unmatched",
       ],
       client_permission: ["view", "edit", "upload", "full"],
       dsh_content_scope: [
@@ -26602,6 +28483,20 @@ export const Constants = {
         "direct_visa_commission",
         "b2b_admission_commission",
       ],
+      institution_application_status: [
+        "APPLIED",
+        "OFFER_RECEIVED",
+        "CONDITIONAL_OFFER",
+        "UNCONDITIONAL_OFFER",
+        "LOA_RECEIVED",
+        "DEPOSIT_PENDING",
+        "DEPOSIT_PAID",
+        "VISA_FILED",
+        "VISA_APPROVED",
+        "ENROLLED",
+        "WITHDRAWN",
+        "OTHER",
+      ],
       leave_type: [
         "Annual Leave",
         "Sick Leave",
@@ -26630,6 +28525,27 @@ export const Constants = {
         "sponsor",
         "co_sponsor",
       ],
+      qualification_hold_reason_code: [
+        "WAITING_TUITION_PAYMENT",
+        "WAITING_LOAN_APPROVAL",
+        "WAITING_VISA_RESULT",
+        "DEFERRED_INTAKE",
+        "MEDICAL_ISSUE",
+        "PERSONAL_REASONS",
+        "MISSING_INSTITUTION_DOCS",
+        "OTHER_OPERATIONAL",
+      ],
+      qualification_lifecycle_status: [
+        "DRAFT",
+        "ACTIVE",
+        "ON_HOLD",
+        "COMPLETED",
+        "CLOSED",
+        "CANCELLED",
+        "REFUSED",
+        "TRANSFERRED",
+      ],
+      qualification_track_status: ["NOT_STARTED", "PARTIAL", "SATISFIED"],
       request_status: ["Pending", "Approved", "Rejected", "Cancelled"],
       shift_type: ["Day", "Night", "Rotational", "Custom"],
       telephony_role: [
