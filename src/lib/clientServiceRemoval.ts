@@ -2,16 +2,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
 import { collectClientServices } from "@/lib/clientActiveService";
 import { fetchCasesForClient, type ClientServiceCase } from "@/lib/clientServiceCase";
-import { invoiceLineMatchesServiceCode, type InvoiceLineLike } from "@/lib/clientInvoiceServices";
 import { findCatalogueItemForStoredCode } from "@/lib/service-library/resolveServiceLabel";
 import { parseLibraryIdFromServiceCode } from "@/lib/service-library/serviceCodes";
 import { appendClientActivityLog } from "@/lib/clientActivityLog";
 import type { ServiceSelection } from "@/components/leads/ServiceTabs";
 import { removeStoredServiceCode } from "@/lib/service-library/serviceSelectionMatch";
+import {
+  assessServiceFinancialDependencies,
+  type FinancialTransferReason,
+  type ServiceFinancialDependencies,
+} from "@/lib/serviceFinancialDependencies";
 
 export type DocumentDisposition = "move" | "unassign";
 
-export type ServiceRemovalBlockReason = "payment" | "application_submitted" | null;
+export type ServiceRemovalBlockReason = "financial" | "application_submitted" | null;
 
 export interface ServiceRemovalAssessment {
   serviceCode: string;
@@ -19,10 +23,11 @@ export interface ServiceRemovalAssessment {
   canRemove: boolean;
   blockReason: ServiceRemovalBlockReason;
   blockMessage: string | null;
+  dependencies: ServiceFinancialDependencies;
   linkedRecords: {
     documents: number;
     openCases: number;
-    hasPayments: boolean;
+    hasFinancialData: boolean;
     hasSubmittedApplication: boolean;
   };
   openCaseIds: string[];
@@ -37,8 +42,6 @@ export interface ExecuteServiceRemovalParams {
   targetCaseId?: string | null;
   catalogue?: ServiceCatalogueItem[];
 }
-
-const TERMINAL_INVOICE = new Set(["void", "cancelled", "written_off"]);
 
 function serviceCodesMatch(a: string, b: string, catalogue: ServiceCatalogueItem[]): boolean {
   if (a === b) return true;
@@ -62,47 +65,6 @@ function categoryKeyForCode(code: string, selection: ServiceSelection): keyof Se
   if ((selection.allied_services ?? []).includes(code)) return "allied_services";
   if ((selection.travel_services ?? []).includes(code)) return "travel_services";
   return null;
-}
-
-async function hasCollectedPaymentForService(
-  clientId: string,
-  serviceCode: string,
-  catalogue: ServiceCatalogueItem[],
-): Promise<boolean> {
-  const { data: invoices } = await supabase
-    .from("client_invoices")
-    .select("id, status, line_items, amount_paid")
-    .eq("client_id", clientId);
-
-  const active = (invoices ?? []).filter((i) => !TERMINAL_INVOICE.has(String(i.status)));
-  const invoiceIds = active.map((i) => i.id);
-
-  let hasMatchingLine = false;
-  for (const inv of active) {
-    const lines = Array.isArray(inv.line_items) ? (inv.line_items as InvoiceLineLike[]) : [];
-    if (lines.some((li) => invoiceLineMatchesServiceCode(li, serviceCode, catalogue))) {
-      hasMatchingLine = true;
-      if (Number(inv.amount_paid ?? 0) > 0) return true;
-    }
-  }
-
-  if (!hasMatchingLine || invoiceIds.length === 0) return false;
-
-  const item = findCatalogueItemForStoredCode(serviceCode, catalogue);
-  const serviceIds = new Set([serviceCode, item?.id, item?.service_code].filter(Boolean) as string[]);
-
-  const { data: allocs } = await supabase
-    .from("client_invoice_payment_allocations")
-    .select("service_id, amount_allocated, invoice_id")
-    .in("invoice_id", invoiceIds);
-
-  for (const row of allocs ?? []) {
-    const sid = (row as { service_id?: string }).service_id;
-    const amt = Number((row as { amount_allocated?: number }).amount_allocated ?? 0);
-    if (amt > 0 && sid && serviceIds.has(sid)) return true;
-  }
-
-  return false;
 }
 
 async function hasSubmittedApplicationForCases(caseIds: string[]): Promise<boolean> {
@@ -171,18 +133,12 @@ export async function assessClientServiceRemoval(params: {
   );
   const openCaseIds = openCases.map((c) => c.id);
 
-  const { count: docCount } = await supabase
-    .from("client_documents")
-    .select("id", { count: "exact", head: true })
-    .eq("client_id", params.clientId)
-    .is("deleted_at", null)
-    .in("case_id", openCaseIds.length ? openCaseIds : ["00000000-0000-0000-0000-000000000000"]);
-
-  const hasPayments = await hasCollectedPaymentForService(
-    params.clientId,
-    params.serviceCode,
+  const dependencies = await assessServiceFinancialDependencies({
+    clientId: params.clientId,
+    serviceCode: params.serviceCode,
     catalogue,
-  );
+  });
+
   const hasSubmittedApplication = await hasSubmittedApplicationForCases(openCaseIds);
 
   const otherCodes = collectClientServices({
@@ -201,10 +157,18 @@ export async function assessClientServiceRemoval(params: {
   let blockReason: ServiceRemovalBlockReason = null;
   let blockMessage: string | null = null;
 
-  if (hasPayments) {
-    blockReason = "payment";
+  if (dependencies.has_financial_data) {
+    blockReason = "financial";
     blockMessage =
-      "Payment records exist for this service. Please transfer, refund, reverse, or reassign the payment before removing the service.";
+      "This service contains financial transactions and cannot be removed. Transfer financials to another service, process a refund, or cancel.";
+    await logServiceAudit({
+      clientId: params.clientId,
+      caseId: openCaseIds[0] ?? null,
+      serviceCode: params.serviceCode,
+      action: "removal_blocked",
+      reason: blockMessage,
+      metadata: { dependencies, block_reason: "financial" },
+    }).catch(() => null);
   } else if (hasSubmittedApplication) {
     blockReason = "application_submitted";
     blockMessage =
@@ -217,10 +181,11 @@ export async function assessClientServiceRemoval(params: {
     canRemove: blockReason === null,
     blockReason,
     blockMessage,
+    dependencies,
     linkedRecords: {
-      documents: docCount ?? 0,
+      documents: dependencies.non_financial.documents.count,
       openCases: openCases.length,
-      hasPayments,
+      hasFinancialData: dependencies.has_financial_data,
       hasSubmittedApplication,
     },
     openCaseIds,
@@ -232,7 +197,15 @@ async function logServiceAudit(opts: {
   clientId: string;
   caseId?: string | null;
   serviceCode: string;
-  action: "added" | "modified" | "reassigned" | "cancelled" | "removed" | "payment_reassigned";
+  action:
+    | "added"
+    | "modified"
+    | "reassigned"
+    | "cancelled"
+    | "removed"
+    | "payment_reassigned"
+    | "transfer_requested"
+    | "removal_blocked";
   previousValue?: unknown;
   newValue?: unknown;
   reason?: string | null;
@@ -387,6 +360,34 @@ export async function executeClientServiceRemoval(
   });
 
   return { ok: true };
+}
+
+export async function recordFinancialTransferRequest(params: {
+  clientId: string;
+  sourceServiceCode: string;
+  targetServiceCode: string;
+  targetCaseId: string | null;
+  reason: FinancialTransferReason;
+  reasonNotes?: string;
+  caseId?: string | null;
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    await logServiceAudit({
+      clientId: params.clientId,
+      caseId: params.caseId ?? params.targetCaseId ?? null,
+      serviceCode: params.sourceServiceCode,
+      action: "transfer_requested",
+      reason: params.reasonNotes?.trim() || params.reason,
+      metadata: {
+        target_service_code: params.targetServiceCode,
+        target_case_id: params.targetCaseId,
+        transfer_reason: params.reason,
+      },
+    });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Failed to record transfer request" };
+  }
 }
 
 export function diffRemovedServiceCodes(
