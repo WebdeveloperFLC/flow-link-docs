@@ -33,6 +33,10 @@ export type PayrollEngineInput = {
   incomeTaxBrackets?: { upTo: number | null; rate: number }[];
   otherDeductions?: number;
   tdsApplicable?: boolean;
+  /** Phase C — default legacy preserves pre-Phase-C payable */
+  formulaMode?: "legacy" | "earned";
+  payrollDaysEffective?: number;
+  attendanceEarned?: number;
 };
 
 export type PayrollEngineResult = {
@@ -95,18 +99,34 @@ export function computePayroll(input: PayrollEngineInput): PayrollEngineResult {
   const k = lateDeductionDays(input.late ?? 0);
   const n = mispunchDeductionDays(input.mispunch ?? 0, input.freeMispunch ?? 2);
   const ulMult = input.ulMult ?? 2;
-  const payable =
-    input.payrollDays -
-    (input.leaves ?? 0) +
-    (input.paidLeaves ?? 0) +
-    (input.compoff ?? 0) -
-    k -
-    (input.ul ?? 0) * ulMult -
-    (input.sandwich ?? 0) -
-    n -
-    (input.unpaidTraining ?? 0);
+  const formulaMode = input.formulaMode ?? "legacy";
 
-  const daily = Math.round((input.monthly / input.payrollDays) * 100) / 100;
+  let payable: number;
+  let daily: number;
+
+  if (formulaMode === "earned") {
+    payable =
+      (input.attendanceEarned ?? 0) -
+      k -
+      (input.ul ?? 0) * ulMult -
+      (input.sandwich ?? 0) -
+      n -
+      (input.unpaidTraining ?? 0);
+    const divisor = input.payrollDaysEffective ?? input.payrollDays;
+    daily = Math.round((input.monthly / divisor) * 100) / 100;
+  } else {
+    payable =
+      input.payrollDays -
+      (input.leaves ?? 0) +
+      (input.paidLeaves ?? 0) +
+      (input.compoff ?? 0) -
+      k -
+      (input.ul ?? 0) * ulMult -
+      (input.sandwich ?? 0) -
+      n -
+      (input.unpaidTraining ?? 0);
+    daily = Math.round((input.monthly / input.payrollDays) * 100) / 100;
+  }
   const gross = Math.round(daily * payable);
   const basic = input.basic ?? Math.round(input.monthly * 0.5);
   const incentive = input.incentive ?? 0;

@@ -50,6 +50,10 @@ const REQUIRED_MIGRATIONS = [
   "20260724120000_hr_training_completion_workflow.sql",
   "20260725120000_hr_training_approval_fixes.sql",
   "20260726120000_hr_training_admin_bypass.sql",
+  "20260722120000_hr_payroll_attendance_hours_status.sql",
+  "20260722120100_hr_payroll_attendance_dynamic_shift_thresholds.sql",
+  "20260722120200_hr_payroll_weekly_off_automation.sql",
+  "20260727120000_hr_payroll_phase_c_earned_days_engine.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -66,6 +70,11 @@ const REQUIRED_RPCS = [
   "fn_sync_hr_role_from_crm",
   "fn_sync_all_crm_hr_roles",
   "fn_capture_payroll_snapshots",
+  "fn_apply_weekly_offs_for_range",
+  "fn_compare_payroll_formulas",
+  "fn_apply_priority_matrix_c17",
+  "fn_rollup_inputs_legacy",
+  "fn_rollup_inputs_earned",
   "fn_employee_shift_at",
   "fn_locked_payroll_cycle_for_date",
   "fn_extend_training",
@@ -528,5 +537,23 @@ describe("HR Payroll module contract", () => {
     expect(weeklyOff).toContain("shouldStampWeeklyOff");
     const attHook = readFileSync(join(ROOT, "src/hr-payroll/hooks/useHrAttendance.ts"), "utf8");
     expect(attHook).toContain("syncWeeklyOffsForRange");
+  });
+
+  it("migration Phase C earned days engine (legacy default)", () => {
+    const m = readFileSync(
+      join(MIGRATIONS, "20260727120000_hr_payroll_phase_c_earned_days_engine.sql"),
+      "utf8",
+    );
+    expect(m).toContain('"formula_mode":"legacy"');
+    expect(m).toContain("fn_rollup_inputs_legacy");
+    expect(m).toContain("fn_rollup_inputs_earned");
+    expect(m).toContain("fn_apply_priority_matrix_c17");
+    expect(m).toContain("fn_compare_payroll_formulas");
+    expect(m).toContain("HR_PAYROLL_PHASE_C_LOCKED_SPEC.md");
+    const spec = readFileSync(join(ROOT, "docs/HR_PAYROLL_PHASE_C_LOCKED_SPEC.md"), "utf8");
+    expect(spec).toContain("C1");
+    expect(spec).toContain("2.0");
+    const resolver = readFileSync(join(ROOT, "src/hr-payroll/lib/earnedDaysResolver.ts"), "utf8");
+    expect(resolver).toContain("HR_PAYROLL_PHASE_C_LOCKED_SPEC.md");
   });
 });
