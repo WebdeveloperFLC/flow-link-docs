@@ -4,7 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   Plus, Pencil, Trash2, Loader2, Upload, Download, X, ShieldAlert,
   ListChecks, ChevronRight, ChevronDown, ChevronLeft, Globe, FileText, FileUp, Settings2,
-  ClipboardCheck, BookOpen, Coins, Sparkles, History, GraduationCap, ScrollText, Workflow, LayoutList,
+  ClipboardCheck, BookOpen, Coins, Sparkles, History, GraduationCap, ScrollText, Workflow, LayoutList, FolderTree,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,6 +33,7 @@ import {
 import type { CoachingVariant } from "@/lib/service-library/serviceNavClassification";
 import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
 import { AcademyContentEditor } from "@/components/service-library/admin/AcademyContentEditor";
+import { DocumentStructureAdminTab } from "@/components/service-library/admin/DocumentStructureAdminTab";
 import { ContentSetupSummary } from "@/components/service-library/admin/ContentSetupSummary";
 import { ServiceAcademyNavPanel } from "@/components/service-library/design/ServiceAcademyNavPanel";
 import { WorkflowTemplatePanel } from "@/components/templates/WorkflowTemplatePanel";
@@ -100,6 +101,7 @@ export default function ServiceLibraryAdmin() {
     parseCoachingVariant(searchParams.get("variant")),
   );
   const adminTab = searchParams.get("tab");
+  const detailTab = searchParams.get("detailTab");
   const showBinderCatalog = adminTab === "binder-catalog";
 
   const masters = useQuery({
@@ -122,8 +124,9 @@ export default function ServiceLibraryAdmin() {
     if (coachingFamily) p.set("family", coachingFamily);
     if (coachingVariant) p.set("variant", coachingVariant);
     if (adminTab === "binder-catalog") p.set("tab", "binder-catalog");
+    if (detailTab) p.set("detailTab", detailTab);
     setSearchParams(p, { replace: true });
-  }, [selectedId, adminCategory, countryFilter, coachingFamily, coachingVariant, adminTab, setSearchParams]);
+  }, [selectedId, adminCategory, countryFilter, coachingFamily, coachingVariant, adminTab, detailTab, setSearchParams]);
 
   const academyCategory: AcademyCategoryFilter =
     adminCategory === "coaching" ? "coaching" : adminCategory === "mbbs" ? "mbbs" : "visa";
@@ -378,6 +381,13 @@ export default function ServiceLibraryAdmin() {
               <MasterDetail
                 key={selected.id}
                 master={selected}
+                initialTab={detailTab ?? undefined}
+                onTabChange={(tab) => {
+                  const p = new URLSearchParams(searchParams);
+                  if (tab === "content") p.delete("detailTab");
+                  else p.set("detailTab", tab);
+                  setSearchParams(p, { replace: true });
+                }}
                 onChanged={() => qc.invalidateQueries({ queryKey: ["sl-masters"] })}
                 onDeleted={() => {
                   setSelectedId(null);
@@ -785,8 +795,48 @@ function BinderTab({
 }
 
 function MasterDetail({
-  master, onChanged, onDeleted,
-}: { master: Master & { service_library_countries?: { country: string }[] }; onChanged: () => void; onDeleted: () => void }) {
+  master,
+  initialTab,
+  onTabChange,
+  onChanged,
+  onDeleted,
+}: {
+  master: Master & { service_library_countries?: { country: string }[] };
+  initialTab?: string;
+  onTabChange?: (tab: string) => void;
+  onChanged: () => void;
+  onDeleted: () => void;
+}) {
+  const allowedTabs = new Set([
+    "overview",
+    "content",
+    "documentstructure",
+    "countries",
+    "checklist",
+    "binder",
+    "visaforms",
+    "submission",
+    "quickguide",
+    "fees",
+    "packages",
+    "cost",
+    "process",
+    "sop",
+    "overrides",
+  ]);
+  const [activeTab, setActiveTab] = useState(() =>
+    initialTab && allowedTabs.has(initialTab) ? initialTab : "content",
+  );
+
+  useEffect(() => {
+    if (initialTab && allowedTabs.has(initialTab)) setActiveTab(initialTab);
+  }, [initialTab, master.id]);
+
+  const setTab = (tab: string) => {
+    setActiveTab(tab);
+    onTabChange?.(tab);
+  };
+
   return (
     <div className="rounded-2xl border bg-white shadow-sm">
       <header className="flex items-center justify-between gap-2 border-b p-4">
@@ -811,10 +861,11 @@ function MasterDetail({
         </Button>
       </header>
 
-      <Tabs defaultValue="content" className="p-4">
+      <Tabs value={activeTab} onValueChange={setTab} className="p-4">
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="overview"><Settings2 className="h-3.5 w-3.5 mr-1" />Overview</TabsTrigger>
           <TabsTrigger value="content"><GraduationCap className="h-3.5 w-3.5 mr-1" />Service content</TabsTrigger>
+          <TabsTrigger value="documentstructure"><FolderTree className="h-3.5 w-3.5 mr-1" />Document structure</TabsTrigger>
           <TabsTrigger value="countries"><Globe className="h-3.5 w-3.5 mr-1" />Countries</TabsTrigger>
           <TabsTrigger value="checklist"><ClipboardCheck className="h-3.5 w-3.5 mr-1" />Checklist</TabsTrigger>
           <TabsTrigger value="binder"><Workflow className="h-3.5 w-3.5 mr-1" />Document binder</TabsTrigger>
@@ -832,6 +883,9 @@ function MasterDetail({
         <TabsContent value="overview"><OverviewTab master={master} onChanged={onChanged} /></TabsContent>
         <TabsContent value="content">
           <AcademyContentEditor master={master} onChanged={onChanged} />
+        </TabsContent>
+        <TabsContent value="documentstructure">
+          <DocumentStructureAdminTab master={master} onChanged={onChanged} />
         </TabsContent>
         <TabsContent value="quickguide"><QuickGuideTab master={master} onChanged={onChanged} /></TabsContent>
         <TabsContent value="countries"><CountriesTab master={master} /></TabsContent>

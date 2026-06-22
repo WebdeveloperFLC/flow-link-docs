@@ -397,6 +397,20 @@ function LibraryEditorDialog({
               placeholder="e.g. Canada — Student Visa (Study Permit)"
             />
           </div>
+          {row ? (
+            <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-sm">
+              <p className="text-muted-foreground mb-2">
+                Document sections and default requirements are configured in{" "}
+                <strong>Service Library Admin</strong>, not in this quick edit dialog.
+              </p>
+              <Button variant="outline" size="sm" asChild>
+                <Link to={`/service-library-admin?id=${row.id}&detailTab=documentstructure`}>
+                  <ExternalLink className="size-3.5 mr-1.5" />
+                  Open Document structure
+                </Link>
+              </Button>
+            </div>
+          ) : null}
           {category === "visa_immigration" && !row && (
             <div className="space-y-1.5">
               <Label>Country mapping</Label>
