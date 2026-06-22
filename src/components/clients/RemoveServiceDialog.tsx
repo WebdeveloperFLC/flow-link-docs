@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { ServiceSelection } from "@/components/leads/ServiceTabs";
 import type { ServiceCatalogueItem } from "@/lib/leads";
