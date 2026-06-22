@@ -1,9 +1,10 @@
 /**
- * Attendance status helpers (Phase A hours-based derive + ESS session labels).
- * SQL source of truth: fn_derive_status in 20260722120000_hr_payroll_attendance_hours_status.sql
+ * Attendance status helpers (Phase A.1 dynamic shift thresholds + ESS session labels).
+ * SQL source of truth: fn_derive_status in 20260722120100_hr_payroll_attendance_dynamic_shift_thresholds.sql
  */
 
 import type { AttendanceRow } from "./types";
+import { shiftLogoutEffective } from "./shiftWindow";
 
 /** ESS dashboard status per company policy (Available / Break / Unavailable). */
 export function essAttendanceStatus(row: AttendanceRow | null): {
@@ -25,11 +26,20 @@ export function essAttendanceStatus(row: AttendanceRow | null): {
   return { label: "Available", tone: "good" };
 }
 
+/** Shift master window used for scheduled working-minute thresholds. */
+export type ShiftSchedule = {
+  login: string;
+  logout: string;
+  shiftBreakMin: number;
+};
+
 export type AttendanceStatusInput = {
   checkIn: string | null;
   checkOut: string | null;
   status?: string;
+  /** @deprecated use shift instead — ignored when shift is provided */
   workHours?: number;
+  shift?: ShiftSchedule;
   breakMin?: number | null;
   breakStart?: string | null;
   breakEnd?: string | null;
@@ -39,6 +49,7 @@ export type AttendanceStatusResult = {
   status: string;
   isMispunch: boolean;
   netWorkMinutes: number | null;
+  scheduledWorkMinutes: number | null;
 };
 
 const PROTECTED = new Set([
@@ -53,6 +64,14 @@ export function toMinutesFromTime(t: string | null | undefined): number | null {
   if (!t) return null;
   const parts = t.slice(0, 8).split(":").map(Number);
   return parts[0] * 60 + parts[1];
+}
+
+/** (logout − login) − configured shift break — mirrors fn_shift_scheduled_work_minutes. */
+export function scheduledWorkMinutes(shift: ShiftSchedule): number {
+  const lg = toMinutesFromTime(shift.login) ?? 600;
+  const lo = toMinutesFromTime(shift.logout) ?? 1140;
+  const loEff = shiftLogoutEffective(lg, lo);
+  return Math.max(0, loEff - lg - (shift.shiftBreakMin ?? 0));
 }
 
 export function breakMinutesFromPunches(
@@ -79,39 +98,44 @@ export function netWorkMinutes(input: AttendanceStatusInput): number | null {
   return Math.max(0, end - ci - brk);
 }
 
-/** Derive Present / Half Day / Absent from net worked hours vs shift work_hours. */
+const DEFAULT_SHIFT: ShiftSchedule = { login: "10:00", logout: "19:00", shiftBreakMin: 45 };
+
+/** Derive Present / Half Day / Absent from net worked vs shift-scheduled minutes. */
 export function deriveAttendanceStatus(input: AttendanceStatusInput): AttendanceStatusResult {
   const current = input.status ?? "Absent";
   if (PROTECTED.has(current)) {
-    return { status: current, isMispunch: false, netWorkMinutes: null };
+    return { status: current, isMispunch: false, netWorkMinutes: null, scheduledWorkMinutes: null };
   }
 
   const hasIn = !!input.checkIn;
   const hasOut = !!input.checkOut;
 
   if (!hasIn && !hasOut) {
-    return { status: "Absent", isMispunch: false, netWorkMinutes: null };
+    return { status: "Absent", isMispunch: false, netWorkMinutes: null, scheduledWorkMinutes: null };
   }
   if (hasIn && !hasOut) {
-    return { status: "Present", isMispunch: false, netWorkMinutes: null };
+    return { status: "Present", isMispunch: false, netWorkMinutes: null, scheduledWorkMinutes: null };
   }
   if (!hasIn && hasOut) {
-    return { status: "Present", isMispunch: true, netWorkMinutes: null };
+    return { status: "Present", isMispunch: true, netWorkMinutes: null, scheduledWorkMinutes: null };
   }
 
-  const wh = input.workHours && input.workHours > 0 ? input.workHours : 9;
-  const fullMin = wh * 60;
+  const shift = input.shift ?? DEFAULT_SHIFT;
+  const fullMin = scheduledWorkMinutes(shift);
   const halfMin = fullMin / 2;
   const net = netWorkMinutes(input);
 
   if (net == null) {
-    return { status: "Absent", isMispunch: false, netWorkMinutes: null };
+    return { status: "Absent", isMispunch: false, netWorkMinutes: null, scheduledWorkMinutes: fullMin };
+  }
+  if (fullMin <= 0) {
+    return { status: "Present", isMispunch: false, netWorkMinutes: net, scheduledWorkMinutes: fullMin };
   }
   if (net >= fullMin) {
-    return { status: "Present", isMispunch: false, netWorkMinutes: net };
+    return { status: "Present", isMispunch: false, netWorkMinutes: net, scheduledWorkMinutes: fullMin };
   }
   if (net >= halfMin) {
-    return { status: "Half Day", isMispunch: false, netWorkMinutes: net };
+    return { status: "Half Day", isMispunch: false, netWorkMinutes: net, scheduledWorkMinutes: fullMin };
   }
-  return { status: "Absent", isMispunch: false, netWorkMinutes: net };
+  return { status: "Absent", isMispunch: false, netWorkMinutes: net, scheduledWorkMinutes: fullMin };
 }
