@@ -1,9 +1,10 @@
 # Document Catalogue & Service Profiles — Phase B Pre-Seed Design
 
-Generated: 2026-06-22T00:26:56.728Z
+Generated: 2026-06-22T01:01:20.934Z
 
 > **Status:** Review required before Phase B seeding.
 > **No DB changes. No fleet conversion. Canada Spouse pilot remains the only converted service.**
+> **Three-entity model (locked):** See [DOCUMENT_MANAGEMENT_ARCHITECTURE.md](./DOCUMENT_MANAGEMENT_ARCHITECTURE.md) — Documents → Binders → Submission Packages.
 
 ## Approved architecture (locked)
 
@@ -183,7 +184,25 @@ The following variants **must not** be seeded as separate `document_types`:
 
 ---
 
-## 4. Service profiles (master templates)
+## 4. Binder types (logical collections)
+
+Binders organize uploaded documents into submission-ready sections. A binder is **not** a PDF.
+See [DOCUMENT_MANAGEMENT_ARCHITECTURE.md](./DOCUMENT_MANAGEMENT_ARCHITECTURE.md) for full rules (OUTDATED status, manual rebuild, version audit).
+
+| Key | Label | Typical document codes |
+|-----|-------|--------------------------|
+| `identity` | Identity Binder | `passport`, `photograph`, `birth_certificate` |
+| `relationship` | Relationship Binder | `marriage_certificate`, `relationship_proof`, `principal_status_document`, `divorce_certificate` |
+| `financial` | Financial Binder | `financial_documents`, `gic_certificate`, `blocked_account_proof`, `affidavit_of_support`, `property_documents`, `itr_tax_returns` |
+| `employment` | Employment Binder | `employment_letter`, `experience_letter`, `resume`, `noc`, `business_registration` |
+| `academic` | Academic Binder | `academic_transcripts`, `offer_letter`, `coe`, `cas_letter`, `entrance_exam_scorecard`, `tuition_fee_receipt` |
+| `travel` | Travel Binder | `travel_history_record`, `travel_itinerary`, `visa_refusal_letter`, `sponsorship_letter`, `accommodation_proof` |
+| `forms` | Forms Binder | `visa_forms` |
+| `supporting_documents` | Supporting Documents Binder | `sop`, `medical_report`, `oshc_policy`, `police_clearance`, `ielts_language_test` |
+
+---
+
+## 5. Service profiles (master templates)
 
 Individual services **inherit** from one profile and add **exceptions only**.
 131 services map to 7 profiles — not 131 independent document definitions.
@@ -218,6 +237,11 @@ Individual services **inherit** from one profile and add **exceptions only**.
 - `education`
 - `financial`
 - `language`
+
+#### Default binders & package order
+
+- **Default binders:** Identity Binder → Academic Binder → Financial Binder → Forms Binder → Supporting Documents Binder
+- **Default package order:** 1. Supporting Documents Binder; 2. Academic Binder; 3. Financial Binder; 4. Forms Binder
 
 #### Suggestion rules
 
@@ -254,6 +278,11 @@ Individual services **inherit** from one profile and add **exceptions only**.
 - `application`
 - `financial`
 
+#### Default binders & package order
+
+- **Default binders:** Identity Binder → Financial Binder → Travel Binder → Employment Binder → Forms Binder
+- **Default package order:** 1. Supporting Documents Binder; 2. Identity Binder; 3. Financial Binder; 4. Travel Binder; 5. Forms Binder
+
 #### Suggestion rules
 
 | Rule | Trigger | Suggest | Confidence | Behavior |
@@ -286,6 +315,11 @@ Individual services **inherit** from one profile and add **exceptions only**.
 - `application`
 - `relationship`
 - `financial`
+
+#### Default binders & package order
+
+- **Default binders:** Identity Binder → Relationship Binder → Financial Binder → Employment Binder → Forms Binder
+- **Default package order:** 1. Supporting Documents Binder; 2. Identity Binder; 3. Relationship Binder; 4. Financial Binder; 5. Forms Binder
 
 #### Suggestion rules
 
@@ -321,6 +355,11 @@ Individual services **inherit** from one profile and add **exceptions only**.
 - `application`
 - `employment`
 
+#### Default binders & package order
+
+- **Default binders:** Identity Binder → Employment Binder → Academic Binder → Financial Binder → Forms Binder
+- **Default package order:** 1. Supporting Documents Binder; 2. Employment Binder; 3. Academic Binder; 4. Financial Binder; 5. Forms Binder
+
 #### Suggestion rules
 
 | Rule | Trigger | Suggest | Confidence | Behavior |
@@ -351,6 +390,11 @@ Individual services **inherit** from one profile and add **exceptions only**.
 - `education`
 - `compliance_upload`
 
+#### Default binders & package order
+
+- **Default binders:** Identity Binder → Employment Binder → Academic Binder → Financial Binder → Travel Binder → Forms Binder → Supporting Documents Binder
+- **Default package order:** 1. Supporting Documents Binder; 2. Identity Binder; 3. Employment Binder; 4. Academic Binder; 5. Financial Binder; 6. Forms Binder
+
 #### Suggestion rules
 
 | Rule | Trigger | Suggest | Confidence | Behavior |
@@ -372,6 +416,11 @@ Individual services **inherit** from one profile and add **exceptions only**.
 
 - `coaching`
 - `identity`
+
+#### Default binders & package order
+
+- **Default binders:** Identity Binder → Supporting Documents Binder
+- **Default package order:** 1. Supporting Documents Binder; 2. Identity Binder
 
 #### Suggestion rules
 
@@ -398,6 +447,11 @@ Individual services **inherit** from one profile and add **exceptions only**.
 - `education`
 - `financial`
 
+#### Default binders & package order
+
+- **Default binders:** Identity Binder → Academic Binder → Financial Binder → Supporting Documents Binder
+- **Default package order:** 1. Supporting Documents Binder; 2. Academic Binder; 3. Financial Binder; 4. Identity Binder
+
 #### Suggestion rules
 
 | Rule | Trigger | Suggest | Confidence | Behavior |
@@ -406,7 +460,7 @@ Individual services **inherit** from one profile and add **exceptions only**.
 
 ---
 
-## 5. Service inheritance map
+## 6. Service inheritance map
 
 | Profile | Services | With exceptions |
 |---------|----------|-----------------|
@@ -418,7 +472,7 @@ Individual services **inherit** from one profile and add **exceptions only**.
 | Visitor Visa | 28 | 1 |
 | Work Permit | 14 | 3 |
 
-### 5.1 Reference inheritance examples
+### 6.1 Reference inheritance examples
 
 #### Australia Student Visa
 
@@ -454,7 +508,7 @@ Individual services **inherit** from one profile and add **exceptions only**.
 
 ---
 
-## 6. Catalogue size summary
+## 7. Catalogue size summary
 
 | Metric | Count |
 |--------|-------|
@@ -467,7 +521,7 @@ Individual services **inherit** from one profile and add **exceptions only**.
 
 ---
 
-## 7. Pilot note (Canada Spouse Dependent Visitor)
+## 8. Pilot note (Canada Spouse Dependent Visitor)
 
 Pilot `document_manifest[]` still maps `relationship_evidence` → `photograph` and `principal_status` → `other`.
 Phase C will align manifest to profile after catalogue seed:
@@ -479,12 +533,14 @@ Phase C will align manifest to profile after catalogue seed:
 
 ---
 
-## 8. Next steps (blocked until approval)
+## 9. Next steps (blocked until approval)
 
-1. **Review** final catalogue (Section 1) and family merges (Section 2)
-2. **Review** 7 service profiles and confidence-level rules (Sections 3–4)
-3. **Approve** Phase B seed migration for **15 proposed codes only**
-4. **Complete** Canada Spouse pilot UAT on new case
-5. **Phase C** — align pilot manifest + roll `document_manifest[]` via profile inheritance
+1. **Review** [DOCUMENT_MANAGEMENT_ARCHITECTURE.md](./DOCUMENT_MANAGEMENT_ARCHITECTURE.md) — three-entity model
+2. **Review** final catalogue (Section 1) and family merges (Section 2)
+3. **Review** 7 service profiles, binders, and confidence-level rules (Sections 3–5)
+4. **Approve** Phase B seed migration for **15 proposed codes only**
+5. **Complete** Canada Spouse pilot UAT on new case
+6. **Phase C** — align pilot manifest + roll `document_manifest[]` via profile inheritance
+7. **Phase E/F** — binder collections + submission packages (post-catalogue)
 
 **No seeding, no fleet conversion until sign-off.**

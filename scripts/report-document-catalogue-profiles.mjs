@@ -12,7 +12,7 @@ import { listServiceFiles } from "./lib/build-checklist-from-service.mjs";
 import {
   EXISTING_CATALOGUE,
   PROPOSED_CATALOGUE,
-  FINAL_CATALOGUE,
+  BINDER_DEFINITIONS,
   FAMILY_MERGES,
   SERVICE_PROFILES,
   PROFILE_EXCEPTIONS,
@@ -92,6 +92,10 @@ function renderProfileSection(profileId) {
   lines.push("", "#### Required document families", "");
   lines.push(profile.required_families.map((f) => `- \`${f}\``).join("\n"));
 
+  lines.push("", "#### Default binders & package order", "");
+  lines.push(`- **Default binders:** ${profile.default_binders.map((k) => BINDER_DEFINITIONS[k]?.label ?? k).join(" → ")}`);
+  lines.push(`- **Default package order:** ${profile.default_package_order.map((k, i) => `${i + 1}. ${BINDER_DEFINITIONS[k]?.label ?? k}`).join("; ")}`);
+
   lines.push("", "#### Suggestion rules", "");
   lines.push("| Rule | Trigger | Suggest | Confidence | Behavior |");
   lines.push("|------|---------|---------|------------|----------|");
@@ -118,6 +122,7 @@ function buildMarkdown() {
     "",
     "> **Status:** Review required before Phase B seeding.",
     "> **No DB changes. No fleet conversion. Canada Spouse pilot remains the only converted service.**",
+    "> **Three-entity model (locked):** See [DOCUMENT_MANAGEMENT_ARCHITECTURE.md](./DOCUMENT_MANAGEMENT_ARCHITECTURE.md) — Documents → Binders → Submission Packages.",
     "",
     "## Approved architecture (locked)",
     "",
@@ -196,7 +201,19 @@ function buildMarkdown() {
     );
   }
 
-  push("", "---", "", "## 4. Service profiles (master templates)", "");
+  push("", "---", "", "## 4. Binder types (logical collections)", "");
+  push(
+    "Binders organize uploaded documents into submission-ready sections. A binder is **not** a PDF.",
+    "See [DOCUMENT_MANAGEMENT_ARCHITECTURE.md](./DOCUMENT_MANAGEMENT_ARCHITECTURE.md) for full rules (OUTDATED status, manual rebuild, version audit).",
+    "",
+    "| Key | Label | Typical document codes |",
+    "|-----|-------|--------------------------|",
+  );
+  for (const b of Object.values(BINDER_DEFINITIONS)) {
+    push(`| \`${b.key}\` | ${b.label} | ${b.typical_codes.map((c) => `\`${c}\``).join(", ")} |`);
+  }
+
+  push("", "---", "", "## 5. Service profiles (master templates)", "");
   push(
     "Individual services **inherit** from one profile and add **exceptions only**.",
     "131 services map to 7 profiles — not 131 independent document definitions.",
@@ -207,7 +224,7 @@ function buildMarkdown() {
     push(renderProfileSection(profileId));
   }
 
-  push("---", "", "## 5. Service inheritance map", "");
+  push("---", "", "## 6. Service inheritance map", "");
   push("| Profile | Services | With exceptions |");
   push("|---------|----------|-----------------|");
 
@@ -216,7 +233,7 @@ function buildMarkdown() {
     push(`| ${SERVICE_PROFILES[profileId].label} | ${services.length} | ${withEx} |`);
   }
 
-  push("", "### 5.1 Reference inheritance examples", "");
+  push("", "### 6.1 Reference inheritance examples", "");
   const examples = [
     { slug: "Australia-Student-Visa", label: "Australia Student Visa" },
     { slug: "uk-student-visa", label: "UK Student Visa" },
@@ -242,7 +259,7 @@ function buildMarkdown() {
     push("");
   }
 
-  push("---", "", "## 6. Catalogue size summary", "");
+  push("---", "", "## 7. Catalogue size summary", "");
   push("| Metric | Count |");
   push("|--------|-------|");
   push(`| Existing codes (today) | ${stats.existing_count} |`);
@@ -252,7 +269,7 @@ function buildMarkdown() {
   push(`| Previous Phase A estimate (before merges) | ~44 |`);
   push(`| Reduction from family-merge policy | ~${44 - stats.final_count} codes avoided |`);
 
-  push("", "---", "", "## 7. Pilot note (Canada Spouse Dependent Visitor)", "");
+  push("", "---", "", "## 8. Pilot note (Canada Spouse Dependent Visitor)", "");
   push(
     "Pilot `document_manifest[]` still maps `relationship_evidence` → `photograph` and `principal_status` → `other`.",
     "Phase C will align manifest to profile after catalogue seed:",
@@ -263,12 +280,14 @@ function buildMarkdown() {
     "**Fleet conversion remains blocked** until pilot UAT + this design approved.",
   );
 
-  push("", "---", "", "## 8. Next steps (blocked until approval)", "");
-  push("1. **Review** final catalogue (Section 1) and family merges (Section 2)");
-  push("2. **Review** 7 service profiles and confidence-level rules (Sections 3–4)");
-  push("3. **Approve** Phase B seed migration for **15 proposed codes only**");
-  push("4. **Complete** Canada Spouse pilot UAT on new case");
-  push("5. **Phase C** — align pilot manifest + roll `document_manifest[]` via profile inheritance");
+  push("", "---", "", "## 9. Next steps (blocked until approval)", "");
+  push("1. **Review** [DOCUMENT_MANAGEMENT_ARCHITECTURE.md](./DOCUMENT_MANAGEMENT_ARCHITECTURE.md) — three-entity model");
+  push("2. **Review** final catalogue (Section 1) and family merges (Section 2)");
+  push("3. **Review** 7 service profiles, binders, and confidence-level rules (Sections 3–5)");
+  push("4. **Approve** Phase B seed migration for **15 proposed codes only**");
+  push("5. **Complete** Canada Spouse pilot UAT on new case");
+  push("6. **Phase C** — align pilot manifest + roll `document_manifest[]` via profile inheritance");
+  push("7. **Phase E/F** — binder collections + submission packages (post-catalogue)");
   push("", "**No seeding, no fleet conversion until sign-off.**");
 
   return lines.join("\n");

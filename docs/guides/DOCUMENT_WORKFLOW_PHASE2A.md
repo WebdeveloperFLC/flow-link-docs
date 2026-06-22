@@ -41,3 +41,5 @@ Capture after Lovable Publish + hard refresh:
 - Admin template page (2E)
 - Portal integration (2F)
 - OCR / AI verification
+- **Binder collections + OUTDATED/rebuild** (Phase E — see `DOCUMENT_MANAGEMENT_ARCHITECTURE.md`)
+- **Submission packages from binder versions** (Phase F — see `DOCUMENT_MANAGEMENT_ARCHITECTURE.md`)
