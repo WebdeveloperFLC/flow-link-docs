@@ -366,9 +366,11 @@ export function ClientInvoicesPanel({
       if (preferred) draft = preferred;
     }
     if (draft) {
+      setCreateOpen(false);
       setEditInvoice(draft);
       return;
     }
+    setEditInvoice(null);
     setCreateOpen(true);
   };
 
@@ -380,6 +382,7 @@ export function ClientInvoicesPanel({
 
   const openInvoiceDetail = (invoice: Invoice) => {
     if (invoice.status === "draft" && !invoice.invoice_locked_for_edit) {
+      setCreateOpen(false);
       setEditInvoice(invoice);
       return;
     }
@@ -605,10 +608,12 @@ export function ClientInvoicesPanel({
         <PendingVerificationQueue payments={pending} invoices={rows} canApprove={canApprove} onChange={load} />
       )}
 
-      {createOpen && (
+      {(createOpen || editInvoice) && (
         <InvoiceEditorDialog
+          key={editInvoice?.id ?? "create-invoice"}
           clientId={clientId}
           activeServiceCode={activeServiceCode}
+          existingInvoice={editInvoice ?? undefined}
           onClose={closeInvoiceEditor}
           onOpenDraftInvoice={(id) => {
             const inv = rows.find((r) => r.id === id);
@@ -617,14 +622,6 @@ export function ClientInvoicesPanel({
               setEditInvoice(inv);
             }
           }}
-        />
-      )}
-      {editInvoice && (
-        <InvoiceEditorDialog
-          clientId={clientId}
-          activeServiceCode={activeServiceCode}
-          existingInvoice={editInvoice}
-          onClose={closeInvoiceEditor}
         />
       )}
       {collectFor && (
@@ -931,6 +928,21 @@ function InvoiceEditorDialog({
   const [saving, setSaving] = useState(false);
   const [paidByLineKey, setPaidByLineKey] = useState<Record<string, number>>({});
   const [paidByServiceId, setPaidByServiceId] = useState<Record<string, number>>({});
+
+  const dismissEditor = () => {
+    setLibraryOpen(false);
+    setDuplicateCheck(null);
+    setPendingLibraryItem(null);
+    onClose();
+  };
+
+  useEffect(() => {
+    return () => {
+      // Radix can leave body scroll-lock when nested dialogs unmount out of order.
+      document.body.style.removeProperty("pointer-events");
+      document.body.style.removeProperty("overflow");
+    };
+  }, []);
 
   type EligibleOffer = {
     id: string;
@@ -1445,7 +1457,7 @@ function InvoiceEditorDialog({
         return;
       }
       toast.success("Draft invoice updated");
-      onClose();
+      dismissEditor();
       return;
     }
 
@@ -1506,14 +1518,14 @@ function InvoiceEditorDialog({
       console.warn("[invoice] inapp_notif_throw", e);
     }
     toast.success("Draft invoice created");
-    onClose();
+    dismissEditor();
   };
 
   const primaryService = displayServices.length === 1 ? displayServices[0] : null;
 
   return (
     <>
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
+    <Dialog open onOpenChange={(o) => !o && dismissEditor()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit draft invoice" : "Create invoice"}</DialogTitle>
@@ -1971,7 +1983,7 @@ function InvoiceEditorDialog({
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={dismissEditor}>
             Cancel
           </Button>
           <Button onClick={save} disabled={saving || loadingServices || services.length === 0 || netTotal <= 0}>
@@ -1999,7 +2011,7 @@ function InvoiceEditorDialog({
       onOpenDraft={(id) => {
         setDuplicateCheck(null);
         onOpenDraftInvoice?.(id);
-        onClose();
+        dismissEditor();
       }}
       onCreateDeposit={() => void confirmDuplicateUseExisting()}
       onCreateInstallment={() => void confirmDuplicateUseExisting()}
