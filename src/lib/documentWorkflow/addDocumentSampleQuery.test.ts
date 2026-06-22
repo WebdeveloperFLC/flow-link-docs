@@ -34,8 +34,8 @@ describe("Canada Spouse Add Document sample query", () => {
   const templateName = "Canada - Spouse / Dependent Visitor Visa";
   const serviceCode = "b2000001-0001-4000-8000-00000000001b::Canada";
 
-  it("detects spouse_dependent profile and ranks relationship first", () => {
-    const { profile, results } = sampleAddDocumentResults(
+  it("lists catalogue items alphabetically for spouse service", () => {
+    const { results } = sampleAddDocumentResults(
       CATALOG,
       serviceCode,
       templateName,
@@ -44,12 +44,15 @@ describe("Canada Spouse Add Document sample query", () => {
       20,
     );
 
-    expect(profile).toBe("spouse_dependent");
     expect(results.some((r) => r.includes("12th Marksheet"))).toBe(true);
-    expect(results.some((r) => r.includes("10th Marksheet"))).toBe(true);
-    expect(results[0]).toMatch(/Marriage Certificate|Relationship/);
     expect(results.some((r) => r.includes("Marriage Certificate"))).toBe(true);
-    expect(results.some((r) => r.includes("Police Clearance"))).toBe(true);
+    expect(results.some((r) => r.includes("Passport"))).toBe(true);
+    // Alphabetical — Academic Transcripts before Marriage Certificate
+    const academicIdx = results.findIndex((r) => r.includes("Academic Transcripts"));
+    const marriageIdx = results.findIndex((r) => r.includes("Marriage Certificate"));
+    if (academicIdx >= 0 && marriageIdx >= 0) {
+      expect(academicIdx).toBeLessThan(marriageIdx);
+    }
   });
 
   it("shows academic only when searching", () => {

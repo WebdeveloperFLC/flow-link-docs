@@ -113,57 +113,57 @@ export const FAMILY_MERGES = [
 export const FINAL_CATALOGUE = { ...EXISTING_CATALOGUE, ...PROPOSED_CATALOGUE };
 
 /**
- * Logical binder types — collections of uploaded documents, NOT PDFs themselves.
- * See docs/guides/DOCUMENT_MANAGEMENT_ARCHITECTURE.md (locked).
+ * Standard binder categories (locked — simplified workflow).
+ * See docs/guides/DOCUMENT_MANAGEMENT_ARCHITECTURE.md
  */
 export const BINDER_DEFINITIONS = {
-  identity: {
-    key: "identity",
-    label: "Identity Binder",
+  personal_documents: {
+    key: "personal_documents",
+    label: "Personal Documents",
     description: "Passport, photographs, birth certificates, national ID",
     typical_codes: ["passport", "photograph", "birth_certificate"],
   },
-  relationship: {
-    key: "relationship",
-    label: "Relationship Binder",
-    description: "Marriage cert, relationship proof (photos, chat, joint evidence), principal status",
-    typical_codes: ["marriage_certificate", "relationship_proof", "principal_status_document", "divorce_certificate"],
+  academic_documents: {
+    key: "academic_documents",
+    label: "Academic Documents",
+    description: "Transcripts, marksheets, offer letters, CoE, CAS",
+    typical_codes: ["academic_transcripts", "offer_letter", "coe", "cas_letter", "entrance_exam_scorecard"],
   },
-  financial: {
-    key: "financial",
-    label: "Financial Binder",
-    description: "Bank statements, ITR, GIC, blocked account, property, affidavit of support",
-    typical_codes: ["financial_documents", "gic_certificate", "blocked_account_proof", "affidavit_of_support", "property_documents", "itr_tax_returns"],
+  financial_documents: {
+    key: "financial_documents",
+    label: "Financial Documents",
+    description: "Bank statements, ITR, GIC, proof of funds, property",
+    typical_codes: ["financial_documents", "gic_certificate", "blocked_account_proof", "itr_tax_returns", "property_documents"],
   },
-  employment: {
-    key: "employment",
-    label: "Employment Binder",
+  employment_documents: {
+    key: "employment_documents",
+    label: "Employment Documents",
     description: "Employment letters, experience letters, resume, NOC, business registration",
     typical_codes: ["employment_letter", "experience_letter", "resume", "noc", "business_registration"],
   },
-  academic: {
-    key: "academic",
-    label: "Academic Binder",
-    description: "Transcripts, offer letters, CoE, CAS, entrance exams",
-    typical_codes: ["academic_transcripts", "offer_letter", "coe", "cas_letter", "entrance_exam_scorecard", "tuition_fee_receipt"],
+  relationship_documents: {
+    key: "relationship_documents",
+    label: "Relationship Documents",
+    description: "Marriage certificate, relationship proof, wedding photos, chat history",
+    typical_codes: ["marriage_certificate", "relationship_proof", "divorce_certificate", "principal_status_document"],
   },
-  travel: {
-    key: "travel",
-    label: "Travel Binder",
-    description: "Travel history, itineraries, refusal letters, sponsorship/accommodation",
+  sponsor_documents: {
+    key: "sponsor_documents",
+    label: "Sponsor Documents",
+    description: "Affidavit of support, sponsor financials, sponsor ID",
+    typical_codes: ["affidavit_of_support", "financial_documents", "sponsorship_letter"],
+  },
+  travel_documents: {
+    key: "travel_documents",
+    label: "Travel Documents",
+    description: "Travel history, itineraries, refusal letters, invitations, accommodation",
     typical_codes: ["travel_history_record", "travel_itinerary", "visa_refusal_letter", "sponsorship_letter", "accommodation_proof"],
   },
-  forms: {
-    key: "forms",
-    label: "Forms Binder",
+  application_forms: {
+    key: "application_forms",
+    label: "Application Forms",
     description: "Completed visa application forms and signed declarations",
-    typical_codes: ["visa_forms"],
-  },
-  supporting_documents: {
-    key: "supporting_documents",
-    label: "Supporting Documents Binder",
-    description: "SOP / cover letter, medical reports, OSHC, police clearance, misc",
-    typical_codes: ["sop", "medical_report", "oshc_policy", "police_clearance", "ielts_language_test"],
+    typical_codes: ["visa_forms", "sop"],
   },
 };
 
@@ -185,8 +185,18 @@ export const SERVICE_PROFILES = {
       { code: "ielts_language_test", mandatory: true },
     ],
     required_families: ["identity", "application", "education", "financial", "language"],
-    default_binders: ["identity", "academic", "financial", "forms", "supporting_documents"],
-    default_package_order: ["supporting_documents", "academic", "financial", "forms"],
+    default_binders: [
+      "personal_documents",
+      "academic_documents",
+      "financial_documents",
+      "application_forms",
+    ],
+    default_package_order: [
+      "personal_documents",
+      "academic_documents",
+      "financial_documents",
+      "application_forms",
+    ],
     suggestion_rules: ["SR-S01", "SR-S02", "SR-S03", "SR-S04", "SR-S05"],
   },
   visitor_visa: {
@@ -201,8 +211,8 @@ export const SERVICE_PROFILES = {
       { code: "employment_letter", mandatory: false },
     ],
     required_families: ["identity", "application", "financial"],
-    default_binders: ["identity", "financial", "travel", "employment", "forms"],
-    default_package_order: ["supporting_documents", "identity", "financial", "travel", "forms"],
+    default_binders: ["personal_documents", "financial_documents", "travel_documents", "employment_documents", "application_forms"],
+    default_package_order: ["personal_documents", "financial_documents", "travel_documents", "application_forms"],
     suggestion_rules: ["SR-V01"],
   },
   spouse_dependent: {
@@ -217,8 +227,8 @@ export const SERVICE_PROFILES = {
       { code: "financial_documents", mandatory: true },
     ],
     required_families: ["identity", "application", "relationship", "financial"],
-    default_binders: ["identity", "relationship", "financial", "employment", "forms"],
-    default_package_order: ["supporting_documents", "identity", "relationship", "financial", "forms"],
+    default_binders: ["personal_documents", "relationship_documents", "financial_documents", "employment_documents", "application_forms"],
+    default_package_order: ["personal_documents", "relationship_documents", "financial_documents", "application_forms"],
     suggestion_rules: ["SR-P01", "SR-P02"],
   },
   work_permit: {
@@ -235,8 +245,8 @@ export const SERVICE_PROFILES = {
       { code: "police_clearance", mandatory: false },
     ],
     required_families: ["identity", "application", "employment"],
-    default_binders: ["identity", "employment", "academic", "financial", "forms"],
-    default_package_order: ["supporting_documents", "employment", "academic", "financial", "forms"],
+    default_binders: ["personal_documents", "employment_documents", "academic_documents", "financial_documents", "application_forms"],
+    default_package_order: ["personal_documents", "employment_documents", "financial_documents", "application_forms"],
     suggestion_rules: ["SR-W01"],
   },
   permanent_residence: {
@@ -254,8 +264,8 @@ export const SERVICE_PROFILES = {
       { code: "ielts_language_test", mandatory: false },
     ],
     required_families: ["identity", "application", "employment", "education", "compliance_upload"],
-    default_binders: ["identity", "employment", "academic", "financial", "travel", "forms", "supporting_documents"],
-    default_package_order: ["supporting_documents", "identity", "employment", "academic", "financial", "forms"],
+    default_binders: ["personal_documents", "employment_documents", "academic_documents", "financial_documents", "travel_documents", "application_forms"],
+    default_package_order: ["personal_documents", "employment_documents", "academic_documents", "financial_documents", "application_forms"],
     suggestion_rules: ["SR-W01", "SR-PR01"],
   },
   coaching: {
@@ -267,8 +277,8 @@ export const SERVICE_PROFILES = {
       { code: "diagnostic_score_report", mandatory: false },
     ],
     required_families: ["coaching", "identity"],
-    default_binders: ["identity", "supporting_documents"],
-    default_package_order: ["supporting_documents", "identity"],
+    default_binders: ["personal_documents"],
+    default_package_order: ["personal_documents"],
     suggestion_rules: ["SR-C01"],
   },
   mbbs: {
@@ -283,8 +293,8 @@ export const SERVICE_PROFILES = {
       { code: "financial_documents", mandatory: true },
     ],
     required_families: ["identity", "education", "financial"],
-    default_binders: ["identity", "academic", "financial", "supporting_documents"],
-    default_package_order: ["supporting_documents", "academic", "financial", "identity"],
+    default_binders: ["personal_documents", "academic_documents", "financial_documents"],
+    default_package_order: ["personal_documents", "academic_documents", "financial_documents"],
     suggestion_rules: ["SR-M01"],
   },
 };
@@ -313,10 +323,8 @@ export const PROFILE_EXCEPTIONS = {
 };
 
 /**
- * Suggestion rules with confidence levels.
- * HIGH → auto-add to Suggested Documents section
- * MEDIUM → counselor review banner
- * LOW → informational only; never auto-create upload rows
+ * Suggestion rules — DEFERRED (locked simplified workflow: no profile automation).
+ * Kept for future reference only; not used at runtime.
  */
 export const SUGGESTION_RULES = [
   // --- HIGH confidence (global) ---

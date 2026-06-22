@@ -15,24 +15,12 @@ import {
 } from "@/lib/documentWorkflow/documentCategories";
 import type { ChecklistRequirementRef } from "@/lib/documentWorkflow/documentFamily";
 import {
-  detectServiceDocumentProfile,
-  type ServiceDocumentProfile,
-} from "@/lib/documentWorkflow/documentRelevance";
-import {
   buildAddDocumentPickerItems,
   groupPickerItemsByCategory,
   inspectDocumentTypeFilterPipeline,
   type AddDocumentPickerItem,
 } from "@/lib/documentWorkflow/documentTypeFilterPipeline";
 import { cn } from "@/lib/utils";
-
-const PROFILE_LABELS: Record<ServiceDocumentProfile, string> = {
-  spouse_dependent: "Spouse / Dependent visa",
-  student: "Student visa",
-  visitor: "Visitor visa",
-  work: "Work permit",
-  general: "General (no visa profile detected)",
-};
 
 /** @deprecated Legacy extra_items shape — kept for ClientDetail compat reads. */
 export interface ExtraItem {
@@ -81,20 +69,12 @@ export const AddDocTypeDialog = ({
   const [highlightIndex, setHighlightIndex] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const profile = useMemo(
-    () => detectServiceDocumentProfile(serviceCode, templateName),
-    [serviceCode, templateName],
-  );
-
   const pickerRows = useMemo(
     () => buildAddDocumentPickerItems(masterItems, search, checklistRequirements, serviceCode, templateName),
     [masterItems, search, checklistRequirements, serviceCode, templateName],
   );
 
-  const grouped = useMemo(
-    () => groupPickerItemsByCategory(pickerRows, profile),
-    [pickerRows, profile],
-  );
+  const grouped = useMemo(() => groupPickerItemsByCategory(pickerRows), [pickerRows]);
 
   const selectableRows = useMemo(
     () => pickerRows.filter((r) => !r.duplicateFamily),
@@ -194,7 +174,8 @@ export const AddDocTypeDialog = ({
         <DialogHeader>
           <DialogTitle>Add a document requirement</DialogTitle>
           <p className="text-[11px] text-muted-foreground">
-            Relevance: <strong>{PROFILE_LABELS[profile]}</strong>
+            Pick from the <strong>document_types</strong> catalogue only. Manual adds go to{" "}
+            <strong>Other Documents</strong>.
           </p>
         </DialogHeader>
         <div className="space-y-3">
@@ -315,8 +296,8 @@ export const AddDocTypeDialog = ({
               </p>
             ) : null}
             <p className="text-[11px] text-muted-foreground">
-              Sorted by visa relevance. Duplicate document families already on the checklist are hidden
-              (shown disabled when searching). Manual adds go to <strong>Other Documents</strong>.
+              Sorted alphabetically by category. Duplicate document families already on the checklist are hidden
+              (shown disabled when searching).
             </p>
           </div>
           <div className="space-y-1.5">

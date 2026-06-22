@@ -1,6 +1,6 @@
 # Document Catalogue & Service Profiles — Phase B Pre-Seed Design
 
-Generated: 2026-06-22T01:01:20.934Z
+Generated: 2026-06-22T01:35:30.618Z
 
 > **Status:** Review required before Phase B seeding.
 > **No DB changes. No fleet conversion. Canada Spouse pilot remains the only converted service.**
@@ -191,14 +191,14 @@ See [DOCUMENT_MANAGEMENT_ARCHITECTURE.md](./DOCUMENT_MANAGEMENT_ARCHITECTURE.md)
 
 | Key | Label | Typical document codes |
 |-----|-------|--------------------------|
-| `identity` | Identity Binder | `passport`, `photograph`, `birth_certificate` |
-| `relationship` | Relationship Binder | `marriage_certificate`, `relationship_proof`, `principal_status_document`, `divorce_certificate` |
-| `financial` | Financial Binder | `financial_documents`, `gic_certificate`, `blocked_account_proof`, `affidavit_of_support`, `property_documents`, `itr_tax_returns` |
-| `employment` | Employment Binder | `employment_letter`, `experience_letter`, `resume`, `noc`, `business_registration` |
-| `academic` | Academic Binder | `academic_transcripts`, `offer_letter`, `coe`, `cas_letter`, `entrance_exam_scorecard`, `tuition_fee_receipt` |
-| `travel` | Travel Binder | `travel_history_record`, `travel_itinerary`, `visa_refusal_letter`, `sponsorship_letter`, `accommodation_proof` |
-| `forms` | Forms Binder | `visa_forms` |
-| `supporting_documents` | Supporting Documents Binder | `sop`, `medical_report`, `oshc_policy`, `police_clearance`, `ielts_language_test` |
+| `personal_documents` | Personal Documents | `passport`, `photograph`, `birth_certificate` |
+| `academic_documents` | Academic Documents | `academic_transcripts`, `offer_letter`, `coe`, `cas_letter`, `entrance_exam_scorecard` |
+| `financial_documents` | Financial Documents | `financial_documents`, `gic_certificate`, `blocked_account_proof`, `itr_tax_returns`, `property_documents` |
+| `employment_documents` | Employment Documents | `employment_letter`, `experience_letter`, `resume`, `noc`, `business_registration` |
+| `relationship_documents` | Relationship Documents | `marriage_certificate`, `relationship_proof`, `divorce_certificate`, `principal_status_document` |
+| `sponsor_documents` | Sponsor Documents | `affidavit_of_support`, `financial_documents`, `sponsorship_letter` |
+| `travel_documents` | Travel Documents | `travel_history_record`, `travel_itinerary`, `visa_refusal_letter`, `sponsorship_letter`, `accommodation_proof` |
+| `application_forms` | Application Forms | `visa_forms`, `sop` |
 
 ---
 
@@ -240,8 +240,8 @@ Individual services **inherit** from one profile and add **exceptions only**.
 
 #### Default binders & package order
 
-- **Default binders:** Identity Binder → Academic Binder → Financial Binder → Forms Binder → Supporting Documents Binder
-- **Default package order:** 1. Supporting Documents Binder; 2. Academic Binder; 3. Financial Binder; 4. Forms Binder
+- **Default binders:** Personal Documents → Academic Documents → Financial Documents → Application Forms
+- **Default package order:** 1. Personal Documents; 2. Academic Documents; 3. Financial Documents; 4. Application Forms
 
 #### Suggestion rules
 
@@ -280,8 +280,8 @@ Individual services **inherit** from one profile and add **exceptions only**.
 
 #### Default binders & package order
 
-- **Default binders:** Identity Binder → Financial Binder → Travel Binder → Employment Binder → Forms Binder
-- **Default package order:** 1. Supporting Documents Binder; 2. Identity Binder; 3. Financial Binder; 4. Travel Binder; 5. Forms Binder
+- **Default binders:** Personal Documents → Financial Documents → Travel Documents → Employment Documents → Application Forms
+- **Default package order:** 1. Personal Documents; 2. Financial Documents; 3. Travel Documents; 4. Application Forms
 
 #### Suggestion rules
 
@@ -318,8 +318,8 @@ Individual services **inherit** from one profile and add **exceptions only**.
 
 #### Default binders & package order
 
-- **Default binders:** Identity Binder → Relationship Binder → Financial Binder → Employment Binder → Forms Binder
-- **Default package order:** 1. Supporting Documents Binder; 2. Identity Binder; 3. Relationship Binder; 4. Financial Binder; 5. Forms Binder
+- **Default binders:** Personal Documents → Relationship Documents → Financial Documents → Employment Documents → Application Forms
+- **Default package order:** 1. Personal Documents; 2. Relationship Documents; 3. Financial Documents; 4. Application Forms
 
 #### Suggestion rules
 
@@ -357,8 +357,8 @@ Individual services **inherit** from one profile and add **exceptions only**.
 
 #### Default binders & package order
 
-- **Default binders:** Identity Binder → Employment Binder → Academic Binder → Financial Binder → Forms Binder
-- **Default package order:** 1. Supporting Documents Binder; 2. Employment Binder; 3. Academic Binder; 4. Financial Binder; 5. Forms Binder
+- **Default binders:** Personal Documents → Employment Documents → Academic Documents → Financial Documents → Application Forms
+- **Default package order:** 1. Personal Documents; 2. Employment Documents; 3. Financial Documents; 4. Application Forms
 
 #### Suggestion rules
 
@@ -392,8 +392,8 @@ Individual services **inherit** from one profile and add **exceptions only**.
 
 #### Default binders & package order
 
-- **Default binders:** Identity Binder → Employment Binder → Academic Binder → Financial Binder → Travel Binder → Forms Binder → Supporting Documents Binder
-- **Default package order:** 1. Supporting Documents Binder; 2. Identity Binder; 3. Employment Binder; 4. Academic Binder; 5. Financial Binder; 6. Forms Binder
+- **Default binders:** Personal Documents → Employment Documents → Academic Documents → Financial Documents → Travel Documents → Application Forms
+- **Default package order:** 1. Personal Documents; 2. Employment Documents; 3. Academic Documents; 4. Financial Documents; 5. Application Forms
 
 #### Suggestion rules
 
@@ -419,8 +419,8 @@ Individual services **inherit** from one profile and add **exceptions only**.
 
 #### Default binders & package order
 
-- **Default binders:** Identity Binder → Supporting Documents Binder
-- **Default package order:** 1. Supporting Documents Binder; 2. Identity Binder
+- **Default binders:** Personal Documents
+- **Default package order:** 1. Personal Documents
 
 #### Suggestion rules
 
@@ -449,8 +449,8 @@ Individual services **inherit** from one profile and add **exceptions only**.
 
 #### Default binders & package order
 
-- **Default binders:** Identity Binder → Academic Binder → Financial Binder → Supporting Documents Binder
-- **Default package order:** 1. Supporting Documents Binder; 2. Academic Binder; 3. Financial Binder; 4. Identity Binder
+- **Default binders:** Personal Documents → Academic Documents → Financial Documents
+- **Default package order:** 1. Personal Documents; 2. Academic Documents; 3. Financial Documents
 
 #### Suggestion rules
 

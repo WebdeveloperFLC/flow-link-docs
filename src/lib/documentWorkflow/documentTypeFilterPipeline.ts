@@ -6,8 +6,6 @@ import {
   type ChecklistRequirementRef,
 } from "./documentFamily";
 import {
-  categoryRank,
-  compareAddDocumentItems,
   detectServiceDocumentProfile,
   type ServiceDocumentProfile,
 } from "./documentRelevance";
@@ -51,8 +49,30 @@ function applySearchFilter(
   return items.filter((item) => scoreDocumentTypeMatch(item, q, profile) > 0);
 }
 
-function sortByRelevance(items: MasterItem[], profile: ServiceDocumentProfile): MasterItem[] {
-  return [...items].filter((i) => i.is_active).sort((a, b) => compareAddDocumentItems(profile, a, b));
+function sortByCatalogue(items: MasterItem[]): MasterItem[] {
+  return [...items]
+    .filter((i) => i.is_active)
+    .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+}
+
+/** Fixed category order for Add Document picker (no visa profile automation). */
+const CATEGORY_DISPLAY_ORDER: DocumentCategory[] = [
+  "identity",
+  "relationship",
+  "family",
+  "financial",
+  "employment",
+  "academic",
+  "travel",
+  "police",
+  "medical",
+  "forms",
+  "other",
+];
+
+function categoryDisplayRank(category: DocumentCategory): number {
+  const idx = CATEGORY_DISPLAY_ORDER.indexOf(category);
+  return idx >= 0 ? idx : CATEGORY_DISPLAY_ORDER.length;
 }
 
 function annotateDuplicates(
@@ -79,7 +99,7 @@ export function buildAddDocumentPickerItems(
 ): AddDocumentPickerItem[] {
   const profile = detectServiceDocumentProfile(serviceCode, templateName);
   const occupiedFamilies = buildOccupiedDocumentFamilies(checklist);
-  const sorted = sortByRelevance(items, profile);
+  const sorted = sortByCatalogue(items);
   const searched = applySearchFilter(sorted, query, profile);
   const annotated = annotateDuplicates(searched, occupiedFamilies);
   const hasSearch = !!query.trim();
@@ -106,7 +126,6 @@ export function filterDocumentTypesForAdd(
 
 export function groupPickerItemsByCategory(
   rows: AddDocumentPickerItem[],
-  profile: ServiceDocumentProfile,
 ): [DocumentCategory, AddDocumentPickerItem[]][] {
   const map = new Map<DocumentCategory, AddDocumentPickerItem[]>();
   for (const row of rows) {
@@ -116,7 +135,7 @@ export function groupPickerItemsByCategory(
     map.set(cat, list);
   }
   return Array.from(map.entries()).sort(
-    (a, b) => categoryRank(profile, a[0]) - categoryRank(profile, b[0]),
+    (a, b) => categoryDisplayRank(a[0]) - categoryDisplayRank(b[0]),
   );
 }
 
@@ -133,7 +152,7 @@ export function groupDocumentTypesByCategory(
     map.set(cat, list);
   }
   return Array.from(map.entries()).sort(
-    (a, b) => categoryRank(profile, a[0]) - categoryRank(profile, b[0]),
+    (a, b) => categoryDisplayRank(a[0]) - categoryDisplayRank(b[0]),
   );
 }
 
@@ -157,7 +176,7 @@ export function inspectDocumentTypeFilterPipeline(
   const profile = detectServiceDocumentProfile(serviceCode, templateName);
   const masterActiveTotal = items.filter((i) => i.is_active).length;
   const occupiedFamilies = buildOccupiedDocumentFamilies(checklist);
-  const sorted = sortByRelevance(items, profile);
+  const sorted = sortByCatalogue(items);
   const searched = applySearchFilter(sorted, query, profile);
   const allAnnotated = annotateDuplicates(searched, occupiedFamilies);
   const hasSearch = !!query.trim();
@@ -165,7 +184,7 @@ export function inspectDocumentTypeFilterPipeline(
   const selectable = rendered.filter((r) => !r.duplicateFamily);
   const disabledDupes = rendered.filter((r) => r.duplicateFamily);
   const afterExclusion = allAnnotated.filter((r) => !r.duplicateFamily).length;
-  const grouped = groupPickerItemsByCategory(rendered, profile);
+  const grouped = groupPickerItemsByCategory(rendered);
 
   return {
     masterActiveTotal,
@@ -188,4 +207,4 @@ export function inspectDocumentTypeFilterPipeline(
   };
 }
 
-export { applySearchFilter, sortByRelevance };
+export { applySearchFilter, sortByCatalogue as sortByRelevance };

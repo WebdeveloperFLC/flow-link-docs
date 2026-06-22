@@ -11,6 +11,7 @@ import {
 } from "@/lib/documentWorkflow/buildEnrichedRequirements";
 import type { ApplicationDocumentRequirement, CaseDocumentProgress } from "@/lib/documentWorkflow/types";
 import type { WorkflowDocument } from "@/lib/documentWorkflow/workflowDocument";
+import { filterUploadableDocumentRequirements } from "@/lib/documentWorkflow/uploadableRequirements";
 
 export function useCaseDocumentWorkflow(
   clientId: string | undefined,
@@ -35,6 +36,7 @@ export function useCaseDocumentWorkflow(
     try {
       const masterItems = await fetchList("document_types");
       const labels = new Map(masterItems.map((m) => [m.code, m.label]));
+      const catalogueCodes = new Set(masterItems.filter((m) => m.is_active).map((m) => m.code));
       setLabelByCode(labels);
 
       const docQuery = supabase
@@ -91,7 +93,7 @@ export function useCaseDocumentWorkflow(
         }
       }
 
-      setRequirements(reqs);
+      setRequirements(filterUploadableDocumentRequirements(reqs, catalogueCodes));
       setDocuments((docRes.data ?? []) as unknown as WorkflowDocument[]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load document workflow");
