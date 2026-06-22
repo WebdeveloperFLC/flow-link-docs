@@ -1,7 +1,7 @@
-# Document Management Architecture (LOCKED — Simplified)
+# Document Management Architecture (LOCKED)
 
-> **Status:** Locked implementation decision (2026-06-22).
-> **Deferred until stable:** profile-based suggestions, AI labels, catalogue automation, fleet conversion, Phase B seeding.
+> **Status:** Locked implementation decision (2026-06-22, reset 2026-06-21).
+> **Deferred until stable:** AI labels, fleet conversion, Phase B catalogue seeding for proposed codes.
 
 ---
 
@@ -19,17 +19,23 @@ Documents (uploads)  →  Binders (collections)  →  Submission Packages (final
 
 **Do not simplify into direct PDF merge.** Source documents are never permanently merged or replaced.
 
+**Binder generation is separate from document collection.** Binders never create upload requirements.
+
 ---
 
 ## 1. Documents tab — uploadable files ONLY
 
-### Allowed
+### Three sources (and only these)
 
-Real files counselors upload: passport, marriage certificate, bank statements, CoE, OSHC policy, employment letter, etc.
+| Source | How it appears |
+|--------|----------------|
+| **Default documents** | Visa profile defaults + country additions (`visaDocumentProfiles.ts`) |
+| **Suggested documents** | Client profile signals → catalogue codes only |
+| **Manual documents** | Counselor **Add Document** from active `document_types` |
 
-Each service has a **Default Documents** list → materialized on the Documents tab.
+**Do NOT derive requirements from:** eligibility text, red flags, compliance, checklist items, milestones, binder content, or Service Library narrative.
 
-Counselors **manually add** extra requirements via **document_types** picker only.
+Template bootstrap (`fn_assign_case_workflow_template`) is **not** used for the Documents tab.
 
 ### NEVER on Documents tab
 
@@ -43,14 +49,33 @@ Counselors **manually add** extra requirements via **document_types** picker onl
 
 These stay in **Service Library guidance**, eligibility assessments, red flags, or future checklist modules.
 
-### Documents tab sections (simplified)
+### Documents tab sections (9 standard)
 
-| Section | Source |
-|---------|--------|
-| **Default documents** | Service default list (uploadable codes only) |
-| **Manual documents** | Counselor Add Document from catalogue |
+Personal · Academic · Financial · Employment · Relationship · Sponsor · Travel · Application Forms · Other Documents
 
-**Removed / deferred:** Suggested documents, profile automation, AI-generated labels, auto-generated requirements.
+Source: `src/lib/documentWorkflow/visaDocumentProfiles.ts` + `counselorSections.ts`
+
+### Visa profile defaults
+
+| Profile | Default codes |
+|---------|---------------|
+| Student Visa | passport, photograph, visa_forms, academic_transcripts, ielts_language_test, offer_letter, financial_documents, sop + country: AU (coe, oshc_policy), UK (cas_letter), CA (gic_certificate optional), DE (blocked_account_proof) |
+| Visitor Visa | passport, photograph, visa_forms, financial_documents, travel_itinerary |
+| Spouse / Dependent | passport, photograph, visa_forms, marriage_certificate, relationship_proof, principal_status_document, financial_documents |
+| Work Permit | passport, photograph, visa_forms, employment_letter, experience_letter, financial_documents |
+| PR / Immigration | passport, photograph, academic_transcripts, experience_letter, financial_documents, police_clearance, medical_report, ielts_language_test |
+
+### Suggestion rules (catalogue codes only)
+
+| Client signal | Suggested codes |
+|---------------|-----------------|
+| Married | marriage_certificate, relationship_proof |
+| Prior refusal | visa_refusal_letter |
+| Travel history | travel_history_record |
+| Business owner | business_registration, itr_tax_returns |
+| Sponsor present | sponsorship_letter, financial_documents, affidavit_of_support |
+
+Seeded via `ensureProfileDocumentRequirements.ts` (`notes`: `profile_default` / `profile_suggest`).
 
 ### Runtime filter
 
@@ -136,8 +161,8 @@ Service Library **Document Binder page** = counselor training / file-prep guide 
 
 ## 6. Deferred work (do not start)
 
-- Phase B catalogue seeding (until simplified workflow UAT approved)
-- Profile-based suggestion engine + confidence levels
+- Phase B catalogue seeding for proposed codes not yet in `document_types` (until workflow UAT approved)
+- AI-generated labels
 - Fleet `document_manifest[]` conversion
 - Strict catalogue validation / slug fallback removal
 - Binder entity refactor (Phase E) — current UI still legacy PDF merge
@@ -155,6 +180,6 @@ See [`DOCUMENT_WORKFLOW_SIMPLIFIED_UAT.md`](./DOCUMENT_WORKFLOW_SIMPLIFIED_UAT.m
 
 ## Related docs
 
-- [`DOCUMENT_CATALOGUE_AND_PROFILES.md`](./DOCUMENT_CATALOGUE_AND_PROFILES.md) — catalogue + service profiles (reference; suggestions deferred)
+- [`DOCUMENT_CATALOGUE_AND_PROFILES.md`](./DOCUMENT_CATALOGUE_AND_PROFILES.md) — catalogue + service profiles (reference)
 - [`DOCUMENT_WORKFLOW_PHASE2A.md`](./DOCUMENT_WORKFLOW_PHASE2A.md) — shipped Documents tab UI
 - [`docs/system-map/flows/documents-ocr-binders.md`](../system-map/flows/documents-ocr-binders.md) — technical flow

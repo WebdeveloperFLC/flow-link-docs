@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchList } from "@/lib/masters";
 import {
@@ -9,20 +9,28 @@ import {
   type DocumentSectionGroup,
   type EnrichedRequirement,
 } from "@/lib/documentWorkflow/buildEnrichedRequirements";
+import { ensureProfileDocumentRequirements } from "@/lib/documentWorkflow/ensureProfileDocumentRequirements";
 import type { ApplicationDocumentRequirement, CaseDocumentProgress } from "@/lib/documentWorkflow/types";
-import type { WorkflowDocument } from "@/lib/documentWorkflow/workflowDocument";
 import { filterUploadableDocumentRequirements } from "@/lib/documentWorkflow/uploadableRequirements";
+import type {
+  ClientProfileSignals,
+  VisaProfileContext,
+} from "@/lib/documentWorkflow/visaDocumentProfiles";
+import type { WorkflowDocument } from "@/lib/documentWorkflow/workflowDocument";
 
 export function useCaseDocumentWorkflow(
   clientId: string | undefined,
   caseId: string | null | undefined,
   refreshKey: number | string = 0,
+  profileContext?: VisaProfileContext | null,
+  clientSignals?: ClientProfileSignals | null,
 ) {
   const [requirements, setRequirements] = useState<ApplicationDocumentRequirement[]>([]);
   const [documents, setDocuments] = useState<WorkflowDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [labelByCode, setLabelByCode] = useState<Map<string, string>>(new Map());
+  const ensureKeyRef = useRef<string | null>(null);
 
   const load = useCallback(async () => {
     if (!clientId) {
@@ -56,55 +64,54 @@ export function useCaseDocumentWorkflow(
         return;
       }
 
-      const [reqRes, docRes] = await Promise.all([
-        supabase
+      const { data: docRes, error: docErr } = await docQuery;
+      if (docErr) throw docErr;
+
+      const fetchReqs = async () => {
+        const { data, error: reqErr } = await supabase
           .from("application_document_requirements" as never)
           .select("*")
           .eq("client_service_case_id", caseId)
           .eq("is_suppressed", false)
           .eq("requirement_kind", "document")
-          .order("sort_order"),
-        docQuery,
-      ]);
+          .order("sort_order");
+        if (reqErr) throw reqErr;
+        return (data ?? []) as unknown as ApplicationDocumentRequirement[];
+      };
 
-      if (reqRes.error) throw reqRes.error;
-      if (docRes.error) throw docRes.error;
+      let reqs = filterUploadableDocumentRequirements(await fetchReqs(), catalogueCodes);
 
-      let reqs = (reqRes.data ?? []) as unknown as ApplicationDocumentRequirement[];
+      const ensureKey = `${caseId}:${refreshKey}:${profileContext?.serviceCode ?? ""}`;
+      const shouldEnsure =
+        profileContext &&
+        ensureKeyRef.current !== ensureKey;
 
-      if (reqs.length === 0) {
-        const { data: assigned, error: assignErr } = await supabase.rpc(
-          "fn_assign_case_workflow_template",
-          {
-            p_case_id: caseId,
-            p_template_id: null,
-            p_rematerialize: true,
-          },
-        );
-        if (!assignErr && assigned && (assigned as { ok?: boolean }).ok) {
-          const { data: retry } = await supabase
-            .from("application_document_requirements" as never)
-            .select("*")
-            .eq("client_service_case_id", caseId)
-            .eq("is_suppressed", false)
-            .eq("requirement_kind", "document")
-            .order("sort_order");
-          reqs = (retry ?? []) as unknown as ApplicationDocumentRequirement[];
+      if (shouldEnsure) {
+        ensureKeyRef.current = ensureKey;
+        const { added } = await ensureProfileDocumentRequirements({
+          caseId,
+          ctx: profileContext,
+          signals: clientSignals ?? {},
+          catalogueCodes,
+          existing: reqs,
+        });
+        if (added > 0) {
+          reqs = filterUploadableDocumentRequirements(await fetchReqs(), catalogueCodes);
         }
       }
 
-      setRequirements(filterUploadableDocumentRequirements(reqs, catalogueCodes));
-      setDocuments((docRes.data ?? []) as unknown as WorkflowDocument[]);
+      setRequirements(reqs);
+      setDocuments((docRes ?? []) as unknown as WorkflowDocument[]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load document workflow");
     } finally {
       setLoading(false);
     }
-  }, [clientId, caseId]);
+  }, [clientId, caseId, refreshKey, profileContext, clientSignals]);
 
   useEffect(() => {
     void load();
-  }, [load, refreshKey]);
+  }, [load]);
 
   const enriched = useMemo(
     () => buildEnrichedRequirements(requirements, documents, labelByCode),

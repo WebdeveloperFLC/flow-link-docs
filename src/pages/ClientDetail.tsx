@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DocumentsTabContent } from "@/components/documents/DocumentsTabContent";
+import type { ClientProfileSignals } from "@/lib/documentWorkflow/visaDocumentProfiles";
 import { SmartUploadZone } from "@/components/documents/SmartUploadZone";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
 import { useAuth } from "@/contexts/AuthContext";
@@ -359,6 +360,26 @@ const ClientDetail = () => {
       .filter((c) => c.serviceCode.toLowerCase() === code.toLowerCase())
       .sort((a, b) => a.attemptNumber - b.attemptNumber);
   }, [allCases, serviceCtx.activeServiceCode]);
+
+  const documentClientSignals = useMemo((): ClientProfileSignals => {
+    if (!client) return {};
+    const workExp = client.work_experience;
+    const isBusinessOwner = Array.isArray(workExp)
+      ? workExp.some((row) => {
+          const r = row as { employment_type?: string; employer?: string; role?: string };
+          const hay = `${r.employment_type ?? ""} ${r.employer ?? ""} ${r.role ?? ""}`.toLowerCase();
+          return /self|business|owner|proprietor|freelance|consultant/.test(hay);
+        })
+      : false;
+    const sponsor = client.sponsor?.trim() ?? null;
+    return {
+      marital_status: client.marital_status,
+      visa_refusal_history: serviceCase?.refusalDocPending ?? serviceCase?.outcome === "refused",
+      sponsor,
+      is_business_owner: isBusinessOwner,
+      has_travel_history: Boolean(client.passport_number),
+    };
+  }, [client, serviceCase?.outcome, serviceCase?.refusalDocPending]);
 
   const onSelectAttempt = useCallback(
     (caseId: string) => {
@@ -1384,6 +1405,9 @@ const ClientDetail = () => {
               canUpload={canUpload}
               templateName={template?.name ?? serviceCase?.serviceCode ?? null}
               serviceCode={serviceCase?.serviceCode ?? serviceCtx.activeServiceCode ?? null}
+              serviceName={serviceCtx.serviceLabel ?? client.application_type ?? null}
+              country={client.country}
+              clientSignals={documentClientSignals}
               refreshKey={documentWorkflowRefresh}
               onChanged={load}
               onMissingCountChange={setDocumentMissingCount}

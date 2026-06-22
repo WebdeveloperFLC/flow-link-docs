@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export const MANUAL_ADD_SECTION_KEY = "other";
+export const MANUAL_ADD_SECTION_KEY = "other_documents";
 export const MANUAL_ADD_SECTION_LABEL = "Other Documents";
 
 export interface AddCaseDocumentRequirementParams {

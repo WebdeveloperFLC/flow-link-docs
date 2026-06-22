@@ -20,8 +20,9 @@ import {
 import type { EnrichedRequirement } from "@/lib/documentWorkflow/buildEnrichedRequirements";
 import { groupRequirementsByCounselorSection } from "@/lib/documentWorkflow/buildEnrichedRequirements";
 import type { RequirementDisplayStatus } from "@/lib/documentWorkflow/resolveDisplayStatus";
-import { logActivity } from "@/lib/activity";
+import type { ClientProfileSignals, VisaProfileContext } from "@/lib/documentWorkflow/visaDocumentProfiles";
 import type { CaseSection } from "@/lib/sections";
+import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
 
 interface Props {
@@ -31,6 +32,9 @@ interface Props {
   canUpload: boolean;
   templateName?: string | null;
   serviceCode?: string | null;
+  serviceName?: string | null;
+  country?: string | null;
+  clientSignals?: ClientProfileSignals;
   refreshKey: number | string;
   onChanged: () => void;
   onMissingCountChange?: (count: number) => void;
@@ -62,12 +66,31 @@ export function DocumentsTabContent({
   canUpload,
   templateName,
   serviceCode,
+  serviceName,
+  country,
+  clientSignals,
   refreshKey,
   onChanged,
   onMissingCountChange,
 }: Props) {
+  const profileContext = useMemo<VisaProfileContext>(
+    () => ({
+      templateName,
+      serviceCode,
+      serviceName,
+      country,
+    }),
+    [templateName, serviceCode, serviceName, country],
+  );
+
   const { loading, error, requirements, sectionGroups, progress, missingMandatory, reload } =
-    useCaseDocumentWorkflow(clientId, caseId, refreshKey);
+    useCaseDocumentWorkflow(
+      clientId,
+      caseId,
+      refreshKey,
+      profileContext,
+      clientSignals,
+    );
 
   const [addDocOpen, setAddDocOpen] = useState(false);
   const [viewMode, setViewMode] = useState<DocumentsViewMode>("section");
