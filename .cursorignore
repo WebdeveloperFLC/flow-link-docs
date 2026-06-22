@@ -1,0 +1,48 @@
+# REPOSITORY_SIZE_REPORT.md recommendations
+# Reduces Cursor indexing of deps, build output, duplicates, and binaries.
+
+# Dependencies & VCS
+node_modules/
+.git/
+
+# Build outputs
+dist/
+dist-ssr/
+.vite/
+
+# Test / QA artifacts
+playwright-report/
+test-results/
+qa-report/
+.auth/
+
+# Zip staging & review bundles (duplicate / export artifacts)
+.zip-staging*/
+review-bundles/**/SCREENSHOTS/
+review-bundles/**/01_SCREENSHOTS/
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# Large binary docs (markdown guides remain indexed)
+docs/guides/FLC_CMS_Cursor_Package/04_Screenshots/
+docs/guides/FLC_CMS_Cursor_Package/FLC_CMS_Cursor_Package.zip
+docs/guides/FLC_CMS_Cursor_Package/03_Prototype/
+guides/screenshots*/
+
+# Generated lock binary
+bun.lockb
+
+# Static specimens (served from public/ at runtime; dist/ is build copy)
+public/specimens/
+dist/specimens/
+
+# Office binaries
+*.docx
+*.xlsx
+
+# OS / editor
+.DS_Store
