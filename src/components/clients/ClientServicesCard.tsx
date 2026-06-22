@@ -13,11 +13,8 @@ import { appendClientActivityLog } from "@/lib/clientActivityLog";
 import { autoDraftInvoiceForServices } from "@/lib/autoDraftInvoice";
 import { toast } from "sonner";
 import { Loader2, Pencil, Sparkles } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import {
-  isServiceRemovalRestricted,
-} from "@/lib/clientProcessPolicy";
-import type { PipelineProgressSnapshot } from "@/lib/clientServiceGuards";
+import { RemoveServiceDialog } from "@/components/clients/RemoveServiceDialog";
+import { diffRemovedServiceCodes } from "@/lib/clientServiceRemoval";
 
 const EMPTY: ServiceSelection = {
   coaching_services: [],
@@ -58,31 +55,24 @@ function totalServiceCount(sel: ServiceSelection): number {
 }
 
 export function ClientServicesCard({ clientId, canEdit }: { clientId: string; canEdit: boolean }) {
-  const { isAdmin } = useAuth();
   const [selection, setSelection] = useState<ServiceSelection>(EMPTY);
   const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<ServiceSelection>(EMPTY);
   const [saving, setSaving] = useState(false);
-  const [pipelineProgress, setPipelineProgress] = useState<PipelineProgressSnapshot | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: c }, { data: stage }, cat] = await Promise.all([
+    const [{ data: c }, cat] = await Promise.all([
       supabase
         .from("clients")
         .select("coaching_services,visa_services,admission_services,allied_services,travel_financial_services")
         .eq("id", clientId)
         .maybeSingle(),
-      supabase
-        .from("vw_client_current_stage")
-        .select("pipeline_id, progress_percent, stage_order, stage_key")
-        .eq("client_id", clientId)
-        .maybeSingle(),
       fetchAllServiceCatalogue().catch(() => [] as ServiceCatalogueItem[]),
     ]);
-    setPipelineProgress((stage as PipelineProgressSnapshot) ?? null);
     setCatalogue(cat);
     setSelection({
       coaching_services: (c?.coaching_services as string[] | null) ?? [],
@@ -117,7 +107,17 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
     [selection],
   );
 
-  const removalLocked = isServiceRemovalRestricted(pipelineProgress);
+  const removalLocked = false;
+
+  const handleRequestRemove = (code: string) => {
+    setRemoveTarget(code);
+  };
+
+  const handleRemovalCompleted = async () => {
+    setRemoveTarget(null);
+    await load();
+    setOpen(false);
+  };
 
   const startEdit = () => {
     setDraft(selection);
@@ -125,34 +125,13 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
   };
 
   const setDraftGuarded = (next: ServiceSelection) => {
-    if (
-      removalLocked &&
-      !isAdmin &&
-      totalServiceCount(next) < totalServiceCount(draft)
-    ) {
-      toast.error("Cannot remove services while the application is in progress.");
-      return;
-    }
     setDraft(next);
   };
 
   const save = async () => {
-    if (
-      removalLocked &&
-      !isAdmin &&
-      totalServiceCount(draft) < totalServiceCount(selection)
-    ) {
-      toast.error("Cannot remove services while the application is in progress.");
-      return;
-    }
-    if (
-      removalLocked &&
-      isAdmin &&
-      totalServiceCount(draft) < totalServiceCount(selection) &&
-      !window.confirm(
-        "Save service removals for a client whose application is already in progress?\n\nOnly continue if this is a test file.",
-      )
-    ) {
+    const removed = diffRemovedServiceCodes(selection, draft, catalogue);
+    if (removed.length > 0) {
+      setRemoveTarget(removed[0] ?? null);
       return;
     }
 
@@ -283,6 +262,7 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
             catalogue={catalogue}
             labelByCode={draftLabelMap}
             onChange={setDraftGuarded}
+            onRequestRemove={handleRequestRemove}
             removalLocked={removalLocked}
           />
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground pt-1">
@@ -305,6 +285,18 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {removeTarget ? (
+        <RemoveServiceDialog
+          open={Boolean(removeTarget)}
+          onOpenChange={(o) => !o && setRemoveTarget(null)}
+          clientId={clientId}
+          serviceCode={removeTarget}
+          currentSelection={selection}
+          catalogue={catalogue}
+          onCompleted={() => void handleRemovalCompleted()}
+        />
+      ) : null}
     </Card>
   );
 }

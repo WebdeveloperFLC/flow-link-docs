@@ -19,6 +19,7 @@ export function SelectedServicesPanel({
   catalogue,
   labelByCode,
   onChange,
+  onRequestRemove,
   removalLocked = false,
   removalLockMessage,
   isAdmin = false,
@@ -27,6 +28,7 @@ export function SelectedServicesPanel({
   catalogue: ServiceCatalogueItem[];
   labelByCode: Map<string, string>;
   onChange: (next: ServiceSelection) => void;
+  onRequestRemove?: (code: string, name: string) => void;
   removalLocked?: boolean;
   removalLockMessage?: string;
   isAdmin?: boolean;
@@ -55,6 +57,10 @@ export function SelectedServicesPanel({
   };
 
   const tryRemove = (groupKey: keyof ServiceSelection, code: string, name: string) => {
+    if (onRequestRemove) {
+      onRequestRemove(code, name);
+      return;
+    }
     if (!removalLocked) {
       remove(groupKey, code);
       return;
