@@ -19,6 +19,7 @@
     "test:e2e": "playwright test",
     "publish:service-library-pilot": "node scripts/publish-service-library-pilot.mjs",
     "test:document-manifest-pilot": "node scripts/test-document-manifest-pilot.mjs",
+    "inventory:document-catalogue": "node scripts/inventory-document-catalogue.mjs",
     "ship": "bash scripts/ship.sh"
   },
   "dependencies": {
