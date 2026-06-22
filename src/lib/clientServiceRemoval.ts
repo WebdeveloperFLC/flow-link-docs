@@ -9,6 +9,8 @@ import type { ServiceSelection } from "@/components/leads/ServiceTabs";
 import { removeStoredServiceCode } from "@/lib/service-library/serviceSelectionMatch";
 import {
   assessServiceFinancialDependencies,
+  cleanupPreFinancialServiceDrafts,
+  preFinancialDraftSummary,
   type FinancialTransferReason,
   type ServiceFinancialDependencies,
 } from "@/lib/serviceFinancialDependencies";
@@ -21,8 +23,10 @@ export interface ServiceRemovalAssessment {
   serviceCode: string;
   serviceLabel: string;
   canRemove: boolean;
+  tier: "pre_financial" | "financial";
   blockReason: ServiceRemovalBlockReason;
   blockMessage: string | null;
+  draftCleanupSummary: string | null;
   dependencies: ServiceFinancialDependencies;
   linkedRecords: {
     documents: number;
@@ -157,7 +161,7 @@ export async function assessClientServiceRemoval(params: {
   let blockReason: ServiceRemovalBlockReason = null;
   let blockMessage: string | null = null;
 
-  if (dependencies.has_financial_data) {
+  if (dependencies.tier === "financial" || dependencies.block_removal) {
     blockReason = "financial";
     blockMessage =
       "This service contains financial transactions and cannot be removed. Transfer financials to another service, process a refund, or cancel.";
@@ -179,8 +183,10 @@ export async function assessClientServiceRemoval(params: {
     serviceCode: params.serviceCode,
     serviceLabel: label,
     canRemove: blockReason === null,
+    tier: dependencies.tier,
     blockReason,
     blockMessage,
+    draftCleanupSummary: preFinancialDraftSummary(dependencies),
     dependencies,
     linkedRecords: {
       documents: dependencies.non_financial.documents.count,
@@ -205,7 +211,9 @@ async function logServiceAudit(opts: {
     | "removed"
     | "payment_reassigned"
     | "transfer_requested"
-    | "removal_blocked";
+    | "removal_blocked"
+    | "draft_invoice_cancelled"
+    | "draft_invoice_lines_removed";
   previousValue?: unknown;
   newValue?: unknown;
   reason?: string | null;
@@ -270,6 +278,46 @@ export async function executeClientServiceRemoval(
     return { ok: false, error: assessment.blockMessage ?? "Service cannot be removed." };
   }
 
+  const { data: u } = await supabase.auth.getUser();
+
+  if (assessment.tier === "pre_financial") {
+    const cleanup = await cleanupPreFinancialServiceDrafts({
+      clientId: params.clientId,
+      serviceCode: params.serviceCode,
+      catalogue,
+      actorId: u?.user?.id ?? null,
+      reason: params.reason ?? "service_removed_pre_financial",
+    });
+    if (!cleanup.ok) {
+      return {
+        ok: false,
+        error: "Could not clean up draft invoices for this service. Removal aborted.",
+      };
+    }
+
+    for (const invoiceId of cleanup.cancelled_invoices ?? []) {
+      await logServiceAudit({
+        clientId: params.clientId,
+        caseId: assessment.openCaseIds[0] ?? null,
+        serviceCode: params.serviceCode,
+        action: "draft_invoice_cancelled",
+        reason: params.reason ?? cleanup.cancellation_reason ?? null,
+        metadata: { invoice_id: invoiceId, cleanup },
+      }).catch(() => null);
+    }
+
+    for (const mod of cleanup.modified_invoices ?? []) {
+      await logServiceAudit({
+        clientId: params.clientId,
+        caseId: assessment.openCaseIds[0] ?? null,
+        serviceCode: params.serviceCode,
+        action: "draft_invoice_lines_removed",
+        reason: params.reason ?? cleanup.cancellation_reason ?? null,
+        metadata: { ...mod, cleanup },
+      }).catch(() => null);
+    }
+  }
+
   const categoryKey = categoryKeyForCode(params.serviceCode, selection);
   const nextSelection: ServiceSelection = {
     visa_services: removeStoredServiceCode(selection.visa_services ?? [], params.serviceCode, catalogue),
@@ -291,7 +339,6 @@ export async function executeClientServiceRemoval(
     return { ok: false, error: "Service not found on client file." };
   }
 
-  const { data: u } = await supabase.auth.getUser();
   const now = new Date().toISOString();
 
   for (const caseId of assessment.openCaseIds) {
@@ -356,6 +403,8 @@ export async function executeClientServiceRemoval(
       document_disposition: params.documentDisposition,
       target_case_id: params.targetCaseId ?? null,
       archived_case_ids: assessment.openCaseIds,
+      dependency_tier: assessment.tier,
+      draft_cleanup: assessment.draftCleanupSummary,
     },
   });
 

@@ -231,11 +231,16 @@ export function RemoveServiceDialog({
           ) : step === "warning" ? (
             <div className="space-y-4 text-sm">
               <p className="font-semibold text-amber-700 dark:text-amber-400">WARNING</p>
-              <p>
-                <span className="font-medium">{assessment.serviceLabel}</span> will be archived and
-                hidden from the active workflow.
+            <p>
+              <span className="font-medium">{assessment.serviceLabel}</span> will be archived and
+              hidden from the active workflow.
+            </p>
+            {assessment.draftCleanupSummary ? (
+              <p className="rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-blue-900 dark:text-blue-200">
+                {assessment.draftCleanupSummary}
               </p>
-              <p>Archiving will <strong>NOT</strong> delete:</p>
+            ) : null}
+            <p>Archiving will <strong>NOT</strong> delete:</p>
               <ul className="list-disc pl-5 space-y-0.5 text-muted-foreground">
                 <li>Documents ({assessment.linkedRecords.documents})</li>
                 <li>Payments and invoices</li>

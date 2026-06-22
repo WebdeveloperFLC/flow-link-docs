@@ -1,6 +1,6 @@
 # Accounting Hardening Architecture (APPROVED)
 
-> **Status:** Phase A1 ready for UAT (2026-06-22). Phases A2–A6 deferred until A1 UAT passes.  
+> **Status:** Phase A1.5 ready for UAT. Phases A2–A6 deferred until A1.5 UAT passes.  
 > **Document module:** LOCKED — no changes to documents, binders, Service Library document structure.
 
 ---
@@ -30,10 +30,10 @@ Legacy `closed` maps to `completed`.
 
 ### Remove-from-client behaviour
 
-1. Run `fn_assess_service_financial_dependencies`.
-2. **No financial data** → confirm → archive case, remove from client selection.
-3. **Financial data exists** → block → offer Transfer / Refund / Cancel.
-4. Never hard-delete invoices, payments, receipts, journals, documents, or audit rows.
+1. Run `fn_assess_service_financial_dependencies` → tier `pre_financial` or `financial`.
+2. **Pre-financial** (draft only, ₹0 paid, no money artifacts) → cleanup drafts → archive case.
+3. **Financial** → block → offer Transfer / Refund / Cancel.
+4. Never hard-delete posted financial records. Draft commercial invoices may be **cancelled** (soft) pre-financial only.
 
 ---
 
@@ -114,15 +114,54 @@ Append-only model:
 
 ---
 
-## 7. Dependency check (Phase A1)
+## 7. Dependency check (Phase A1 / A1.5)
 
-`fn_assess_service_financial_dependencies` checks:
+`fn_assess_service_financial_dependencies` returns tier:
 
-**Financial:** invoices, payments, allocations, receipts, refunds, discounts, wallet usage, accounting journals, trust entries
+| Tier | Meaning | Removal |
+|------|---------|---------|
+| `pre_financial` | Draft-only commercial records; ₹0 paid; no receipts/allocations/refunds/journals/trust/wallet applied | Archive + `fn_cleanup_pre_financial_service_drafts` |
+| `financial` | Issued/sent invoice OR any money artifact | Block → Transfer / Refund / Cancel |
 
-**Non-financial:** tasks, forms, documents, notes
+**Pre-financial rules (locked):** Draft + discounts OK. Wallet `applied`/`reserved` → financial. Issued/sent invoice → financial even if ₹0 paid.
 
-If financial records exist → block removal → **Transfer Financials** | **Process Refund** | **Cancel**.
+**Service-scoped traceability:**
+
+| Record | Service link |
+|--------|----------------|
+| Invoice lines | `line_items[].service_id`, `service_code`, `case_id` |
+| Payment allocations | `service_id`, `line_item_key`, `invoice_id` |
+| Payments / receipts | Via `invoice_id` → line match |
+| Refunds / adjustments | Via `invoice_id` |
+| Wallet allocations | `invoice_id` + `client_id` |
+| CRM accounting bridge / journals | Via `invoice_id` |
+| Trust entries | Via `accounting_crm_invoice_bridge.journal_id` for service invoices |
+| Service cases / documents | `service_code`, `case_id` |
+| Client-level trust account | Scoped to service only when bridge exists on that service's invoices |
+
+If financial tier → block removal → **Transfer Financials** | **Process Refund** | **Cancel**.
+
+---
+
+## Phase A1.5 — Pre-financial draft cleanup (APPROVED)
+
+Migration: `20260925120000_accounting_hardening_phase_a1_5.sql`
+
+- Extend `fn_assess_service_financial_dependencies` with `tier`, `draft_invoices`, `issued_invoices`
+- `fn_cleanup_pre_financial_service_drafts` — cancel exclusive drafts or strip lines on mixed invoices
+- Audit: `draft_invoice_cancelled`, `draft_invoice_lines_removed`
+- Cancelled drafts: `status = cancelled`, `archived_at` set — hidden from counselor UI, retained for audit
+- No purge job in this phase
+
+### Phase A1.5 UAT checklist
+
+- [ ] Publish migration `20260925120000_accounting_hardening_phase_a1_5.sql`
+- [ ] Remove pre-financial service → draft invoice cancelled, hidden from Payments tab
+- [ ] Multi-service client → remove Germany only → Canada drafts unchanged
+- [ ] Mixed draft invoice → Germany lines removed, Canada lines remain
+- [ ] Issued/sent invoice on service → financial block (Transfer/Refund path)
+- [ ] Draft with applied wallet → financial block
+- [ ] Audit rows for `draft_invoice_cancelled` / `draft_invoice_lines_removed`
 
 ---
 
@@ -143,8 +182,9 @@ Refunds remain visible historically — never removed from reports.
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| **A1** | Dependency RPC, archive lifecycle, removal UI, transfer wizard skeleton | **Ready for UAT** |
-| A2 | Immutability + `financial_audit_log` | After A1 UAT |
+| **A1** | Dependency RPC, archive lifecycle, removal UI, transfer wizard skeleton | **Shipped** |
+| **A1.5** | Pre-financial tier + draft cleanup RPC + cancelled draft hide | **Ready for UAT** |
+| A2 | Immutability + `financial_audit_log` | After A1.5 UAT |
 | A3 | Transfer engine (posting) | After A2 |
 | A4 | Refund policy + line-based calculation + approval | After A3 |
 | A5 | Refund processing (negative payment + reversal) | After A4 |

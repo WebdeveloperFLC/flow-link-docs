@@ -248,6 +248,7 @@ export function ClientInvoicesPanel({
         )
         .eq("client_id", clientId)
         .is("archived_at", null)
+        .neq("status", "cancelled")
         .order("created_at", { ascending: false }),
       supabase
         .from("client_invoice_payments")
