@@ -21,6 +21,7 @@
     "test:document-manifest-pilot": "node scripts/test-document-manifest-pilot.mjs",
     "inventory:document-catalogue": "node scripts/inventory-document-catalogue.mjs",
     "report:document-defaults": "node scripts/report-default-documents-and-suggestions.mjs",
+    "report:document-profiles": "node scripts/report-document-catalogue-profiles.mjs",
     "ship": "bash scripts/ship.sh"
   },
   "dependencies": {
