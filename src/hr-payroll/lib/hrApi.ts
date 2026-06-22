@@ -146,6 +146,34 @@ export async function applyHolidaysForMonth(orgId: string, dates: string[]) {
   return total;
 }
 
+/** Sync system Week Off rows for a date range (idempotent). */
+export async function syncWeeklyOffsForRange(
+  orgId: string,
+  from: string,
+  to: string,
+  employeeId?: string,
+) {
+  const { data, error } = await supabase.rpc("fn_apply_weekly_offs_for_range" as never, {
+    p_org: orgId,
+    p_from: from,
+    p_to: to,
+    p_employee: employeeId ?? null,
+    p_internal: false,
+  } as never);
+  if (error) throw error;
+  return data as number;
+}
+
+export async function applyWeeklyOffsForDate(orgId: string, date: string) {
+  const { data, error } = await supabase.rpc("fn_apply_weekly_offs_for_date" as never, {
+    p_org: orgId,
+    p_date: date,
+    p_internal: false,
+  } as never);
+  if (error) throw error;
+  return data as number;
+}
+
 export async function processApprovalDecision(
   entityType: string,
   entityId: string,

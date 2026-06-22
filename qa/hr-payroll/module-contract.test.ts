@@ -510,4 +510,23 @@ describe("HR Payroll module contract", () => {
     expect(approvals).toContain("approval-category-card");
     expect(approvals).not.toContain("Open full module");
   });
+
+  it("migration Phase B weekly off automation", () => {
+    const m = readFileSync(
+      join(MIGRATIONS, "20260722120200_hr_payroll_weekly_off_automation.sql"),
+      "utf8",
+    );
+    expect(m).toContain("fn_apply_weekly_offs_for_cycle");
+    expect(m).toContain("fn_employee_work_week_at");
+    expect(m).toContain("fn_is_weekly_off_day");
+    expect(m).toContain("fn_employee_shift_at");
+    expect(m).toContain("five_day_off_dow");
+    expect(m).toContain("six_day_off_dow");
+    expect(m).toContain("Holiday");
+    expect(m).toContain("fn_rebuild_cycle_lines");
+    const weeklyOff = readFileSync(join(ROOT, "src/hr-payroll/lib/weeklyOff.ts"), "utf8");
+    expect(weeklyOff).toContain("shouldStampWeeklyOff");
+    const attHook = readFileSync(join(ROOT, "src/hr-payroll/hooks/useHrAttendance.ts"), "utf8");
+    expect(attHook).toContain("syncWeeklyOffsForRange");
+  });
 });

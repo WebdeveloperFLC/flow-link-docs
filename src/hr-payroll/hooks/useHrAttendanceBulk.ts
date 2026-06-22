@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../lib/constants";
+import { syncWeeklyOffsForRange } from "../lib/hrApi";
 import type { AttendanceRow } from "../lib/types";
 
 export function useHrAttendanceBulk(
@@ -15,6 +16,11 @@ export function useHrAttendanceBulk(
     queryKey: ["hr-attendance-bulk", HR_ORG_ID, from, to, ids],
     enabled,
     queryFn: async () => {
+      try {
+        await syncWeeklyOffsForRange(HR_ORG_ID, from!, to!);
+      } catch {
+        /* migration not published yet */
+      }
       const { data, error } = await supabase
         .from("attendance" as never)
         .select("*")

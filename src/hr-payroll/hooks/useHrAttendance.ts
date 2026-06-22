@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../lib/constants";
+import { syncWeeklyOffsForRange } from "../lib/hrApi";
 import type { AttendanceRow } from "../lib/types";
 
 export function useHrAttendance(employeeId: string | undefined, cycleStart?: string, cycleEnd?: string) {
@@ -8,6 +9,13 @@ export function useHrAttendance(employeeId: string | undefined, cycleStart?: str
     queryKey: ["hr-attendance", HR_ORG_ID, employeeId, cycleStart, cycleEnd],
     enabled: !!employeeId,
     queryFn: async () => {
+      if (cycleStart && cycleEnd) {
+        try {
+          await syncWeeklyOffsForRange(HR_ORG_ID, cycleStart, cycleEnd, employeeId);
+        } catch {
+          /* migration not published yet — still show stored rows */
+        }
+      }
       let q = supabase
         .from("attendance" as never)
         .select("*")
