@@ -15,7 +15,8 @@ export function generateLineItemKey(): string {
 export function normalizeFeePaymentStatus(
   status: FeePaymentStatusInput | null | undefined,
 ): FeePaymentStatus | undefined {
-  if (status == null || status === "") return undefined;
+  if (status == null) return undefined;
+  if (typeof status === "string" && status.trim() === "") return undefined;
   if (status === "NOT_REQUIRED") return "EXEMPT";
   if (isFeePaymentStatus(status)) return status;
   return undefined;

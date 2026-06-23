@@ -36,7 +36,7 @@ export const FEE_SUBGROUPS = [
   "INSTITUTION",
   "ANCILLARY",
   "TEST",
-  "CREENTIAL",
+  "CREDENTIAL",
 ] as const;
 
 /** Derived GL / reporting bucket for a line. */
