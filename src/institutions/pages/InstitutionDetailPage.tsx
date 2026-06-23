@@ -35,6 +35,7 @@ import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
 import { InstitutionLogoField } from "../components/InstitutionLogoField";
 import { InstitutionLogo } from "../components/InstitutionLogo";
 import { PartnershipRoutesPanel } from "../components/PartnershipRoutesPanel";
+import { InstitutionFeeSchedulePanel } from "../components/InstitutionFeeSchedulePanel";
 import type { CatalogStatus } from "../types/partnership";
 
 // Sanitize a filename for use as a Supabase Storage object key.
@@ -493,6 +494,7 @@ export default function InstitutionDetailPage() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="sources">Sources</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="fee-schedule">Fee Schedule</TabsTrigger>
             {canSeeCommissions && <TabsTrigger value="billing">Billing</TabsTrigger>}
             {canSeeCommissions && <TabsTrigger value="eligibility">Eligibility</TabsTrigger>}
             {canSeeCommissions && <TabsTrigger value="agreements">Agreements</TabsTrigger>}
@@ -799,6 +801,10 @@ export default function InstitutionDetailPage() {
                 </Card>
               ) : null}
             </div>
+          </TabsContent>
+
+          <TabsContent value="fee-schedule">
+            <InstitutionFeeSchedulePanel institutionId={id} canEdit={canEdit} />
           </TabsContent>
 
           <TabsContent value="billing">

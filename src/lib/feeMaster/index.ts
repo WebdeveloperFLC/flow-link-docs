@@ -1,7 +1,7 @@
 /**
- * Fee Master P3 — line item contract (Sprint 1 / ws-1).
+ * Fee Master P3 — line item contract (ws-1) + institution schedule resolver (ws-2).
  *
- * Pure library: enums, Zod contract, legacy normalization, send validators, helpers.
+ * Pure library: enums, Zod contract, legacy normalization, send validators, helpers, resolver.
  * Gated by {@link isFeeMasterV1Enabled}; default off until consumer PRs wire callers.
  */
 
@@ -89,3 +89,49 @@ export {
   enrichLineDefaults,
   areExemptAndWaivedDistinct,
 } from "./helpers";
+
+export {
+  INSTITUTION_FEE_TYPES,
+  FEE_ACCURACY_LEVELS,
+  VERIFICATION_METHODS,
+  INSTITUTION_FEE_SCHEDULE_STATUSES,
+  INSTITUTION_FEE_TYPE_LABELS,
+  RECOMMENDED_INSTITUTION_FEE_TYPES,
+  isInvalidApplicationFeeAccuracy,
+} from "./institutionFeeTypes";
+
+export type {
+  InstitutionFeeType,
+  FeeAccuracy,
+  VerificationMethod,
+  InstitutionFeeScheduleStatus,
+} from "./institutionFeeTypes";
+
+export { formatFeeDisplayAmount, isApproximateDisplayAccuracy } from "./formatFeeDisplayAmount";
+
+export {
+  resolveInstitutionFee,
+  resolveInstitutionFees,
+  missingRecommendedScheduleTypes,
+} from "./institutionScheduleResolver";
+
+export type {
+  FeeProvenanceFields,
+  InstitutionFeeScheduleRow,
+  ProgramFeeSource,
+  ManualFeeOverride,
+  InstitutionFeeResolution,
+  InstitutionFeeResolverInput,
+} from "./institutionScheduleResolver";
+
+export {
+  serializeFeeSnapshot,
+  tuitionFromResolutions,
+  applicationFeeFromResolutions,
+} from "./feeSnapshot";
+
+export { useResolvedInstitutionFees } from "./useResolvedInstitutionFees";
+export type {
+  UseResolvedInstitutionFeesArgs,
+  UseResolvedInstitutionFeesResult,
+} from "./useResolvedInstitutionFees";

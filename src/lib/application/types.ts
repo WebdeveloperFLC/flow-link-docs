@@ -90,6 +90,10 @@ export type StudentApplicationRecord = {
   durationMonths: number | null;
   tuitionFee: number | null;
   tuitionCurrency: string | null;
+  applicationFee: number | null;
+  applicationFeeCurrency: string | null;
+  partnershipRouteId: string | null;
+  feeSnapshotJsonb: Record<string, unknown>[] | null;
   destinationCountry: string | null;
   institutionNameSnapshot: string | null;
   institutionCitySnapshot: string | null;
@@ -174,6 +178,10 @@ export type UpsertStudentApplicationPayload = {
   durationMonths?: number | null;
   tuitionFee?: number | null;
   tuitionCurrency?: string | null;
+  applicationFee?: number | null;
+  applicationFeeCurrency?: string | null;
+  partnershipRouteId?: string | null;
+  feeSnapshotJsonb?: Record<string, unknown>[] | null;
   destinationCountry?: string | null;
   institutionApplicationStatus?: InstitutionApplicationStatus;
   cfCourseId?: string | null;

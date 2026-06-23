@@ -31,8 +31,16 @@ import {
   type CourseFinderInstitutionOption,
 } from "@/lib/application/courseFinderCatalog";
 import { ApplicationDuplicateWarningDialog } from "./ApplicationDuplicateWarningDialog";
+import { InstitutionFeePreviewPanel } from "./InstitutionFeePreviewPanel";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  isFeeMasterV1Enabled,
+  useResolvedInstitutionFees,
+  serializeFeeSnapshot,
+  tuitionFromResolutions,
+  applicationFeeFromResolutions,
+} from "@/lib/feeMaster";
 
 type PendingCreatePayload = {
   clientId: string;
@@ -49,6 +57,10 @@ type PendingCreatePayload = {
   durationMonths: number | null;
   tuitionFee: number | null;
   tuitionCurrency: string | null;
+  applicationFee: number | null;
+  applicationFeeCurrency: string | null;
+  partnershipRouteId: string | null;
+  feeSnapshotJsonb: Record<string, unknown>[] | null;
 };
 
 type Props = {
@@ -97,6 +109,28 @@ export function ApplicationCreateDialog({
   );
   const campusOptions = selectedCourse?.campusNames ?? [];
   const fieldsLocked = !!selectedCourse && !manualOverride;
+  const feeMasterEnabled = isFeeMasterV1Enabled();
+
+  const {
+    loading: feesLoading,
+    error: feesError,
+    resolutions,
+    selectedRoute,
+  } = useResolvedInstitutionFees({
+    institutionId: institutionId || null,
+    cfCourseId: courseId || null,
+    enabled: open && feeMasterEnabled && !!institutionId,
+  });
+
+  useEffect(() => {
+    if (!feeMasterEnabled || manualOverride || !resolutions.length) return;
+    const { tuitionFee: resolvedTuition, tuitionCurrency: resolvedCurrency } =
+      tuitionFromResolutions(resolutions);
+    if (resolvedTuition != null) {
+      setTuitionFee(String(resolvedTuition));
+      setTuitionCurrency(resolvedCurrency ?? "CAD");
+    }
+  }, [feeMasterEnabled, manualOverride, resolutions]);
 
   useEffect(() => {
     if (!open) return;
@@ -203,6 +237,24 @@ export function ApplicationCreateDialog({
       return null;
     }
 
+    let resolvedTuitionFee = tuitionFee ? Number(tuitionFee) : null;
+    let resolvedTuitionCurrency = tuitionCurrency.trim() || null;
+    let applicationFee: number | null = null;
+    let applicationFeeCurrency: string | null = null;
+    let partnershipRouteId: string | null = null;
+    let feeSnapshotJsonb: Record<string, unknown>[] | null = null;
+
+    if (feeMasterEnabled && !manualOverride && resolutions.length) {
+      const tuition = tuitionFromResolutions(resolutions);
+      const appFee = applicationFeeFromResolutions(resolutions);
+      resolvedTuitionFee = tuition.tuitionFee;
+      resolvedTuitionCurrency = tuition.tuitionCurrency;
+      applicationFee = appFee.applicationFee;
+      applicationFeeCurrency = appFee.applicationFeeCurrency;
+      partnershipRouteId = selectedRoute?.id ?? null;
+      feeSnapshotJsonb = serializeFeeSnapshot(resolutions);
+    }
+
     return {
       clientId,
       clientServiceCaseId: caseId,
@@ -216,8 +268,12 @@ export function ApplicationCreateDialog({
       intakeYear: intakeYear ? Number(intakeYear) : null,
       studyLevel: studyLevel.trim() || null,
       durationMonths: durationMonths ? Number(durationMonths) : null,
-      tuitionFee: tuitionFee ? Number(tuitionFee) : null,
-      tuitionCurrency: tuitionCurrency.trim() || null,
+      tuitionFee: resolvedTuitionFee,
+      tuitionCurrency: resolvedTuitionCurrency,
+      applicationFee,
+      applicationFeeCurrency,
+      partnershipRouteId,
+      feeSnapshotJsonb,
     };
   };
 
@@ -445,6 +501,16 @@ export function ApplicationCreateDialog({
               </div>
             </div>
 
+            {feeMasterEnabled && institutionId && !manualOverride && (
+              <InstitutionFeePreviewPanel
+                loading={feesLoading}
+                error={feesError}
+                resolutions={resolutions}
+                routeName={selectedRoute?.display_name}
+                compact
+              />
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Study level</Label>
@@ -466,26 +532,28 @@ export function ApplicationCreateDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Tuition fee</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={tuitionFee}
-                  onChange={(e) => setTuitionFee(e.target.value)}
-                  disabled={fieldsLocked}
-                />
+            {(!feeMasterEnabled || manualOverride) && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Tuition fee</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={tuitionFee}
+                    onChange={(e) => setTuitionFee(e.target.value)}
+                    disabled={fieldsLocked}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Currency</Label>
+                  <Input
+                    value={tuitionCurrency}
+                    onChange={(e) => setTuitionCurrency(e.target.value)}
+                    disabled={fieldsLocked}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Currency</Label>
-                <Input
-                  value={tuitionCurrency}
-                  onChange={(e) => setTuitionCurrency(e.target.value)}
-                  disabled={fieldsLocked}
-                />
-              </div>
-            </div>
+            )}
 
             {manualOverride && (
               <div className="space-y-2">

@@ -24,6 +24,9 @@ import { ApplicationReferencesPanel } from "./ApplicationReferencesPanel";
 import { ApplicationOfferPanel } from "./ApplicationOfferPanel";
 import { ApplicationMilestonesPanel } from "./ApplicationMilestonesPanel";
 import { FinancialRequirementsPlaceholder } from "./FinancialRequirementsPlaceholder";
+import { InstitutionFeePreviewPanel } from "./InstitutionFeePreviewPanel";
+import { isFeeMasterV1Enabled, useResolvedInstitutionFees } from "@/lib/feeMaster";
+import type { InstitutionFeeResolution } from "@/lib/feeMaster/institutionScheduleResolver";
 import {
   availableApplicationTransitions,
   isApplicationEditable,
@@ -92,10 +95,26 @@ export function ApplicationTabContent({
   const [ownerName, setOwnerName] = useState<string | null>(null);
   const [ownerOptions, setOwnerOptions] = useState<{ id: string; name: string }[]>([]);
 
-  const transitions = useMemo(
-    () => (selected ? availableApplicationTransitions(selected.status) : []),
-    [selected],
-  );
+  const feeMasterEnabled = isFeeMasterV1Enabled();
+
+  const {
+    loading: feesLoading,
+    error: feesError,
+    resolutions: liveResolutions,
+    selectedRoute,
+  } = useResolvedInstitutionFees({
+    institutionId: selected?.institutionId,
+    cfCourseId: selected?.cfCourseId,
+    partnershipRouteId: selected?.partnershipRouteId,
+    enabled: feeMasterEnabled && !!selected,
+  });
+
+  const storedResolutions = useMemo(() => {
+    if (!selected?.feeSnapshotJsonb?.length) return null;
+    return selected.feeSnapshotJsonb as unknown as InstitutionFeeResolution[];
+  }, [selected?.feeSnapshotJsonb]);
+
+  const feeResolutions = storedResolutions ?? liveResolutions;
 
   useEffect(() => {
     if (!selected?.ownerUserId) {
@@ -127,6 +146,23 @@ export function ApplicationTabContent({
         ),
       );
   }, [canEdit]);
+
+  const transitions = useMemo(
+    () => (selected ? availableApplicationTransitions(selected.status) : []),
+    [selected],
+  );
+
+  const tuitionSnapshot =
+    selected?.tuitionFee != null && selected.tuitionCurrency
+      ? formatMoney(selected.tuitionFee, selected.tuitionCurrency)
+      : null;
+
+  const tuitionDisplayFromResolver = feeResolutions.find((f) => f.fee_type === "TUITION")?.display_amount;
+
+  const applicationFeeSnapshot =
+    selected?.applicationFee != null && selected.applicationFeeCurrency
+      ? formatMoney(selected.applicationFee, selected.applicationFeeCurrency)
+      : feeResolutions.find((f) => f.fee_type === "APPLICATION")?.display_amount ?? null;
 
   if (!caseId) {
     return (
@@ -178,11 +214,6 @@ export function ApplicationTabContent({
       toast.error(e instanceof Error ? e.message : "Reassign failed");
     }
   };
-
-  const tuitionSnapshot =
-    selected?.tuitionFee != null && selected.tuitionCurrency
-      ? formatMoney(selected.tuitionFee, selected.tuitionCurrency)
-      : null;
 
   return (
     <div className="space-y-6">
@@ -269,7 +300,11 @@ export function ApplicationTabContent({
                         label="Duration"
                         value={selected.durationMonths != null ? `${selected.durationMonths} months` : null}
                       />
-                      <SnapshotRow label="Tuition snapshot" value={tuitionSnapshot} />
+                      <SnapshotRow
+                        label="Tuition snapshot"
+                        value={feeMasterEnabled ? tuitionDisplayFromResolver ?? tuitionSnapshot : tuitionSnapshot}
+                      />
+                      <SnapshotRow label="Application fee" value={applicationFeeSnapshot} />
                       <SnapshotRow label="Source" value={selected.applicationSource} />
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
@@ -374,7 +409,16 @@ export function ApplicationTabContent({
                 onChanged={reload}
               />
 
-              <FinancialRequirementsPlaceholder />
+              {feeMasterEnabled && selected ? (
+                <InstitutionFeePreviewPanel
+                  loading={!storedResolutions && feesLoading}
+                  error={storedResolutions ? null : feesError}
+                  resolutions={feeResolutions}
+                  routeName={selectedRoute?.display_name}
+                />
+              ) : (
+                <FinancialRequirementsPlaceholder />
+              )}
 
               <Card className="p-5 space-y-3">
                 <div className="font-medium">Application Timeline</div>
