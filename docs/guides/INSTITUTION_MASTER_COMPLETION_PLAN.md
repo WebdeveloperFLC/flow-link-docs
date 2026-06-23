@@ -400,7 +400,8 @@ Add to `upi_institutions` (nullable; no jobs, no auto-updates):
 | M3 | `20261004120200_upi_institution_governance_rpcs.sql` | Validation function + status RPC + `is_active` sync trigger |
 | M4 | `20261004120300_upi_institution_ai_readiness_schema.sql` | AI columns only |
 | M5 | `20261004120400_upi_shell_status_remediation.sql` | Set incomplete shells (incl. 12 CF shells) to `Draft` / `is_active = false` — **preserves linkage** |
-| M6a | `20261004120500_canada_public_institutions_seed_p1_ontario_colleges.sql` | P1 — Ontario public colleges |
+| **Pre-M6** | `20261004120450_canada_institution_pre_m6_remediation.sql` | Audit enrich 6 existing + insert 21 ON institutions; gap report |
+| M6a | `20261004120500_canada_public_institutions_seed_p1_ontario_colleges.sql` | P1 — remaining Ontario public colleges |
 | M6b | `20261004120600_canada_public_institutions_seed_p2_on_universities.sql` | P2 — Ontario universities |
 | M6c | `20261004120700_canada_public_institutions_seed_p2_bc_ab.sql` | P2 — BC + Alberta public |
 | M6d | `20261004120800_canada_public_institutions_seed_p3_remaining.sql` | P3 — QC, Prairies, Atlantic, Territories |
