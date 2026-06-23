@@ -6,9 +6,9 @@ import {
   splitAttendanceDays,
   statutorySteps,
   type BreakdownStep,
-} from "../lib/payrollBreakdown";
-import { employeeCurrency, formatMoney } from "../lib/format";
-import type { PayrollCycleRow, PayrollLineRow } from "../lib/types";
+} from "../../lib/payrollBreakdown";
+import { employeeCurrency, formatMoney } from "../../lib/format";
+import type { PayrollCycleRow, PayrollLineRow } from "../../lib/types";
 
 const STEPS = ["Draft", "Processed", "Approved", "Locked", "Paid"] as const;
 
