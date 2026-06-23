@@ -15,6 +15,7 @@
     "test:rules": "vitest run qa/rules",
     "test:regression": "vitest run qa/regression",
     "test:crm": "vitest run qa/regression/CRM-R-* src/lib/service-library/resolveServiceLabel.test.ts src/lib/service-library/serviceSelectionSummary.test.ts src/lib/service-library/pipelineLibraryParity.test.ts src/components/clients/ClientDetailTabNav.test.ts",
+    "test:fee-master": "vitest run src/lib/feeMaster",
     "test:hr-payroll": "node scripts/hr-payroll-ai-test.mjs",
     "test:e2e": "playwright test",
     "publish:service-library-pilot": "node scripts/publish-service-library-pilot.mjs",
