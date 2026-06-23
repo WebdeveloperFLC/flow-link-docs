@@ -32,13 +32,15 @@ Institution Master (`upi_institutions` + related tables) becomes the **single so
 |-------|----------|
 | Deposit Policy URL | New `deposit_policy_url` on institution |
 | Source tracking | `profile_source_url`, `profile_source_type`, `profile_source_reference`, `profile_source_notes` |
-| Institution Contacts | **Multiple contacts per role** (M2 — no unique-one-per-role constraint) |
+| Institution Contacts | **Flexible contact records** (M2) — not fixed role-only design |
 | Canada seeding | **P0–P3 phased** provincial batches (M6a–M6d) |
 | Institution Completeness Score | `completeness_score` 0–100, auto-computed via trigger (M1) |
 | Last Human Verification | `last_human_verified_at`, `last_human_verified_by`, `human_verification_method` |
 | Fee accuracy rule | **Preserved** — APPLICATION = EXACT, TUITION/DEPOSIT = APPROXIMATE (ws-2, no DDL change) |
 
-**Implementation status:** **M1 applied** — `20261004120000_upi_institution_profile_phase1.sql`. M2+ pending review.
+**M2 contacts adjustment (2026-06-23):** Flexible contact records (type, designation, department, active/primary) — **not** a fixed four-role schema. See §3.3.
+
+**Implementation status:** **M1 applied** — `20261004120000_upi_institution_profile_phase1.sql`. **M2 pending** — revised schema in §3.3.
 
 ---
 
@@ -156,30 +158,69 @@ Migration maps legacy values (`Public University` → `University`, `Community C
 - `catalog_status` (`promoted` / `hidden` / `archived`) — **retained** for partnership-route catalog; do not conflate with `institution_status`.
 - `is_active` — **derived/synced** from `institution_status = 'Active'` via trigger or RPC-only update path to avoid drift.
 
-### 3.3 Institution Contacts (new table)
+### 3.3 Institution Contacts (M2 — flexible model)
+
+Staff turnover is high — contacts must **not** be limited to four fixed roles. Use a general-purpose contact table; **Contact Type** is free text with UI suggestions (e.g. Admissions, Agent, Finance, Regional Manager, International Office, Commission, Other).
+
+| Field | Column | Type | Notes |
+|-------|--------|------|-------|
+| Contact Type | `contact_type` | `text NOT NULL` | Free-form; UI autocomplete from common types |
+| Contact Name | `contact_name` | `text` | |
+| Designation | `designation` | `text` | Job title |
+| Department | `department` | `text` | |
+| Email | `email` | `text` | |
+| Phone | `phone` | `text` | Office / landline |
+| Mobile | `mobile` | `text` | |
+| Country | `country` | `text` | Contact location |
+| Notes | `notes` | `text` | |
+| Primary Contact | `is_primary` | `boolean DEFAULT false` | Y/N — at most one primary per institution per normalized contact type |
+| Active | `is_active` | `boolean DEFAULT true` | Y/N — inactive contacts hidden from defaults, retained for history |
 
 ```sql
-CREATE TABLE upi_institution_contacts (
+CREATE TABLE public.upi_institution_contacts (
   id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  institution_id    uuid NOT NULL REFERENCES upi_institutions(id) ON DELETE CASCADE,
-  contact_role      text NOT NULL CHECK (contact_role IN (
-                      'ADMISSIONS', 'AGENT', 'FINANCE', 'REGIONAL_MANAGER'
-                    )),
+  institution_id    uuid NOT NULL REFERENCES public.upi_institutions(id) ON DELETE CASCADE,
+  contact_type      text NOT NULL,
   contact_name      text,
+  designation       text,
+  department        text,
   email             text,
   phone             text,
+  mobile            text,
+  country           text,
   notes             text,
-  sort_order        int NOT NULL DEFAULT 0,
   is_primary        boolean NOT NULL DEFAULT false,
+  is_active         boolean NOT NULL DEFAULT true,
+  sort_order        int NOT NULL DEFAULT 0,
+  created_by        uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+  updated_by        uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
   created_at        timestamptz NOT NULL DEFAULT now(),
-  updated_at        timestamptz NOT NULL DEFAULT now()
+  updated_at        timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT upi_institution_contacts_contact_type_nonempty_chk CHECK (
+    trim(contact_type) <> ''
+  )
 );
 
-CREATE INDEX idx_upi_institution_contacts_institution_role
-  ON upi_institution_contacts (institution_id, contact_role, sort_order);
+CREATE INDEX idx_upi_institution_contacts_institution
+  ON public.upi_institution_contacts (institution_id, is_active, sort_order);
+
+CREATE INDEX idx_upi_institution_contacts_type
+  ON public.upi_institution_contacts (institution_id, lower(trim(contact_type)));
+
+-- One primary per institution per contact type (case-insensitive)
+CREATE UNIQUE INDEX uq_upi_institution_contacts_primary_per_type
+  ON public.upi_institution_contacts (
+    institution_id,
+    lower(trim(contact_type))
+  )
+  WHERE is_primary = true AND is_active = true;
 ```
 
-**Multiple contacts per role** — no unique-one-per-role constraint. UI lists all contacts grouped by role; optional `is_primary` flag for display default.
+**UI:** **Institution Contacts** tab/section — sortable table with add/edit/deactivate; filter by type and active; mark primary within type. Suggested contact types in dropdown (not enforced in DB).
+
+**Governance:** Contacts **recommended** at activation (warning if zero active contacts with email); **do not block** activation.
+
+**Completeness score (M2):** Extend `fn_compute_upi_institution_completeness_score` — +5 pts if ≥1 active contact with email; +5 if ≥1 active primary contact.
 
 ---
 
@@ -355,7 +396,7 @@ Add to `upi_institutions` (nullable; no jobs, no auto-updates):
 | # | File | Purpose |
 |---|------|---------|
 | M1 | `20261004120000_upi_institution_profile_phase1.sql` | Profile, compliance, recruitment, `institution_status`, `last_loa_verified_at`, type normalization |
-| M2 | `20261004120100_upi_institution_contacts.sql` | Contacts table + RLS |
+| M2 | `20261004120100_upi_institution_contacts.sql` | Flexible contacts table + RLS + completeness score extension |
 | M3 | `20261004120200_upi_institution_governance_rpcs.sql` | Validation function + status RPC + `is_active` sync trigger |
 | M4 | `20261004120300_upi_institution_ai_readiness_schema.sql` | AI columns only |
 | M5 | `20261004120400_upi_shell_status_remediation.sql` | Set incomplete shells (incl. 12 CF shells) to `Draft` / `is_active = false` — **preserves linkage** |
@@ -372,7 +413,8 @@ Add to `upi_institutions` (nullable; no jobs, no auto-updates):
 
 | Screen | Change |
 |--------|--------|
-| `InstitutionDetailPage` — Overview | Sectioned form: Information, Compliance (CA-conditional), URLs, Recruitment, Branding, **Contacts**, LOA date |
+| `InstitutionDetailPage` — Overview | Sectioned form: Information, Compliance (CA-conditional), URLs, Recruitment, Branding, LOA date |
+| `InstitutionDetailPage` — Contacts | Sortable contact table (add/edit/deactivate); suggested types, not fixed roles |
 | `InstitutionDetailPage` — Fees | Summary card + existing `InstitutionFeeSchedulePanel` |
 | Status control | Replace free `is_active` toggle with status dropdown + **Activate** button |
 | Activation modal | Hard errors vs yellow warnings (fees = warnings) |
@@ -428,19 +470,20 @@ Add to `upi_institutions` (nullable; no jobs, no auto-updates):
 
 | # | Question | Proposed default |
 |---|----------|------------------|
-| 1 | Multiple contacts per role? | One primary per role; optional secondary rows later |
-| 2 | `Review` status required before `Active`? | Optional shortcut Draft → Active if validator passes |
-| 3 | Contacts block activation? | **No** — warnings only |
-| 4 | Canada seed in one migration or provincial batches? | **Provincial batches** (M6a Ontario, M6b BC, …) |
-| 5 | IRCC DLI source for backfill | Use open DLI list CSV — separate data approval |
+| 1 | Primary contact rule? | One primary per institution **per contact type** (case-insensitive); inactive contacts excluded |
+| 2 | Contact type enforcement? | **Free text in DB**; UI suggests Admissions, Agent, Finance, Regional Manager, International Office, Commission, Other |
+| 3 | `Review` status required before `Active`? | Optional shortcut Draft → Active if validator passes |
+| 4 | Contacts block activation? | **No** — warnings only |
+| 5 | Canada seed in one migration or provincial batches? | **Provincial batches** (M6a Ontario, M6b BC, …) |
+| 6 | IRCC DLI source for backfill | Use open DLI list CSV — separate data approval |
 
 ---
 
 ## 15. What happens next
 
-1. **Acknowledge this plan** (or comment on §14 defaults).
-2. **Implementation begins at M1** — no coding before acknowledgment.
-3. After ship: Lovable → Publish → hard refresh; run Mark Final smoke on linked CF institutions.
+1. **M1 published in Lovable** (migration `20261004120000`).
+2. **Approve M2 schema** (§3.3) → implement migration + contacts UI.
+3. After each ship: Lovable → Publish → hard refresh.
 
 **Explicitly out of scope for this initiative:**
 
