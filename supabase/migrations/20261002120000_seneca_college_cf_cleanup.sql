@@ -1,6 +1,6 @@
 -- Pre-production UAT: merge legacy Seneca College CF into Seneca Polytechnic.
--- Aborts if applications (client_institution_qualifications) or finalized programs exist.
--- Shortlisted cf_client_programs are preserved (course_id unchanged; parent university moves).
+-- Aborts only if client_institution_qualifications are linked by cf_course_id.
+-- Finalized cf_client_programs are allowed (course_id unchanged; parent university moves).
 
 DO $$
 DECLARE
@@ -59,8 +59,7 @@ BEGIN
   END IF;
 
   IF v_program_final > 0 THEN
-    RAISE EXCEPTION
-      'SENECA_CLEANUP_BLOCKED: % finalized cf_client_programs on Seneca College courses — report before cleanup',
+    RAISE NOTICE 'SENECA_CLEANUP_UAT: proceeding with % finalized cf_client_programs (course_id preserved)',
       v_program_final;
   END IF;
 
@@ -131,14 +130,15 @@ BEGIN
       'action', 'seneca_college_cf_cleanup',
       'courses_moved', v_courses_moved,
       'programs_shortlisted_preserved', v_program_shortlisted,
+      'programs_final_preserved', v_program_final,
       'college_cf_id', v_college_id,
       'polytechnic_cf_id', v_poly_id,
       'upi_institution_id', v_upi_id
     )::text
   ;
 
-  RAISE NOTICE 'SENECA_CLEANUP_DONE courses_moved=% programs_shortlisted_preserved=%',
-    v_courses_moved, v_program_shortlisted;
+  RAISE NOTICE 'SENECA_CLEANUP_DONE courses_moved=% programs_shortlisted=% programs_final=%',
+    v_courses_moved, v_program_shortlisted, v_program_final;
 END $$;
 
 -- Post-cleanup verification (raises if legacy row or orphan courses remain).
