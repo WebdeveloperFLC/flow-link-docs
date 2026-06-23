@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | DESIGN — locked business rules; **no implementation** |
-| **Phase** | P2.2 (follows Institution Fee Architecture lock) |
+| **Status** | **LOCKED (P2.2 approved)** — see [`GOVERNMENT_FEE_ARCHITECTURE_LOCKED.md`](./GOVERNMENT_FEE_ARCHITECTURE_LOCKED.md) |
+| **Phase** | P2.2 complete; P2.3 = MD sign-off |
 | **Date** | June 2026 |
 | **Prerequisite docs** | [`FEE_MASTER_ARCHITECTURE_V1_1.md`](./FEE_MASTER_ARCHITECTURE_V1_1.md), [`INSTITUTION_FEE_ARCHITECTURE_LOCKED.md`](./INSTITUTION_FEE_ARCHITECTURE_LOCKED.md) |
 | **Governed by** | [`ACCOUNTING_HARDENING_ARCHITECTURE.md`](./ACCOUNTING_HARDENING_ARCHITECTURE.md) |
@@ -396,24 +396,14 @@ Extends V1.1 §9.1:
 
 ### Open decisions requiring MD approval
 
-| # | Decision | Recommendation |
-|---|----------|----------------|
-| MD-G1 | Tolerance for direct-paid amount ≠ master without accounts review | ±5% or ±CAD 5 — above requires accounts |
-| MD-G2 | UK IHS — government fee master vs third-party insurance | Government master if mandatory statutory levy |
-| MD-G3 | Pipeline hard gate on direct-paid proof | Hard gate for submission stages |
-| MD-G4 | Memo journal for direct-paid at scale | Defer — tracking first (align MD-3) |
-| MD-G5 | PCC — government vs ancillary when paid to private agency | `POLICE_CLEARANCE` when statutory; vendor medical stays ancillary |
+**Carried to [`FEE_MASTER_MD_SIGNOFF_P2_3.md`](./FEE_MASTER_MD_SIGNOFF_P2_3.md)** — MD-G1 through MD-G5.
 
 ### Recommended next phase after P2.2 approval
 
 | Phase | Scope |
 |-------|-------|
-| **P2.3** | MD sign-off MD-G1–G5 |
-| **P3c** | Government fee consolidation + Service Library Government Fees admin tab |
-| **P3b** | Direct-paid UI on service case + Payments tab (parallel with institution P3b) |
-| **P3d** | Category wiring + trust disbursement for govt categories |
-
-**Gate:** Institution + Government design both locked before P3 implementation starts.
+| **P2.3** | **Final MD sign-off** — all MD-* and MD-G* decisions |
+| **P3** | Implementation — **blocked until P2.3 complete** |
 
 ### Risks if implementation starts without these rules
 

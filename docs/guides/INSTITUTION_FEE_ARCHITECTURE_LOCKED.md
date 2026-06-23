@@ -5,7 +5,7 @@
 | **Status** | **LOCKED** — design approved; no further institution-fee architecture changes without MD review |
 | **Closed** | June 2026 |
 | **Canonical document** | [`FEE_MASTER_ARCHITECTURE_V1_1.md`](./FEE_MASTER_ARCHITECTURE_V1_1.md) §4, §4.6, BR-3, BR-12–BR-18 |
-| **Implementation** | Deferred to P3a/P3b — **do not implement until Government Fee Master (P2.2) is also locked** |
+| **Implementation** | Deferred to P3a/P3b — after [`FEE_MASTER_MD_SIGNOFF_P2_3.md`](./FEE_MASTER_MD_SIGNOFF_P2_3.md) |
 
 ---
 
@@ -37,13 +37,15 @@ The following institution fee architecture is **final for design purposes**:
 
 ## Open MD decisions (institution — pending sign-off)
 
-Carried to P2.2 / P3 — see V1.1 document closure §2: MD-6, MD-7, MD-8.
+See [`FEE_MASTER_MD_SIGNOFF_P2_3.md`](./FEE_MASTER_MD_SIGNOFF_P2_3.md): MD-6, MD-7, MD-8.
 
 ---
 
 ## Next design phase
 
-**Government Fee Master + Direct-Paid Tracking** — [`GOVERNMENT_FEE_MASTER_ARCHITECTURE_V1.md`](./GOVERNMENT_FEE_MASTER_ARCHITECTURE_V1.md)
+**P2.3 Final MD Sign-Off** — [`FEE_MASTER_MD_SIGNOFF_P2_3.md`](./FEE_MASTER_MD_SIGNOFF_P2_3.md)
+
+Government fee architecture: **LOCKED** — [`GOVERNMENT_FEE_ARCHITECTURE_LOCKED.md`](./GOVERNMENT_FEE_ARCHITECTURE_LOCKED.md)
 
 ---
 

@@ -45,7 +45,8 @@ V1.1 adds **future data contracts** (field names and semantics only — no SQL, 
 12. [Appendix: V1 carry-forward](#12-appendix-v1-carry-forward)
 
 **Institution fee architecture:** [LOCKED — P2.1 complete](./INSTITUTION_FEE_ARCHITECTURE_LOCKED.md)  
-**Next design:** [Government Fee Master V1](./GOVERNMENT_FEE_MASTER_ARCHITECTURE_V1.md) (P2.2)
+**Government fee architecture:** [LOCKED — P2.2 complete](./GOVERNMENT_FEE_ARCHITECTURE_LOCKED.md)  
+**Next:** [P2.3 MD Sign-Off](./FEE_MASTER_MD_SIGNOFF_P2_3.md) — **implementation blocked until complete**
 
 ---
 
@@ -894,28 +895,15 @@ The following V1 content remains valid and is not duplicated here:
 
 ### 2. Open decisions requiring MD approval
 
-| # | Decision | Options | Recommendation |
-|---|----------|---------|----------------|
-| MD-1 | New collection categories for **Forex** and **SIM Card** | Add leaves under `THIRD_PARTY` vs map to `OTHER` | Add dedicated leaves if volume justifies trust/COA mapping |
-| MD-2 | **Sponsor billing** — separate sponsor invoice entity vs client invoice with `SPONSOR` responsibility | Single invoice vs dual AR | Client invoice + sponsor metadata for P3; dual invoice defer |
-| MD-3 | **Memo journal** for direct-paid fees (no cash through FL) | Status-only vs optional memo JE | Status-only for P3; memo JE in accounting Phase 2 |
-| MD-4 | **MBBS institution costs** in Service Library | Migrate to Institution Masters vs MBBS exception | Gradual migration — MBBS display reads institution snapshot where linked |
-| MD-5 | **Informational zero-amount lines** on invoice vs case-only fee checklist | Invoice line vs external status table | Both — zero billable line on invoice for audit trail |
-| MD-6 | **FL-paid promotional waivers** (`FLC` responsibility) — branch margin chargeback? | Central marketing cost vs branch P&L | Central cost unless branch-initiated |
-| MD-7 | **FL absorbs institution fee gap** when client waived but FL must remit full base to institution | FL subsidy vs institution true waiver | Track as `FLC` advance; institution `INSTITUTION` responsibility when partner-funded |
-| MD-8 | **Branch constraints on policy use** — can a branch block waiver even when policy active? | Company policy config vs counselor freedom | Default: policy active = counselor choice; branch rules as guardrails not per-app approval |
+**All items consolidated in [`FEE_MASTER_MD_SIGNOFF_P2_3.md`](./FEE_MASTER_MD_SIGNOFF_P2_3.md)** — MD-1 through MD-8, MD-G1 through MD-G5.
 
 ### 3. Recommended next phase after V1.1 approval
 
 | Phase | Name | Scope |
 |-------|------|-------|
-| **P2.2** | MD sign-off | Resolve MD-1 through MD-6 |
-| **P3a** | Data contract + institution precedence + **fee policy engine** | Line JSON validation, institution fee resolver, policy CRUD/audit, remove SL institution authoring |
-| **P3b** | Payments UI + four-bucket totals | Responsibility, status, direct proof, collections vs revenue display |
-| **P3c** | Category wiring + government consolidation | `collection_category_id` end-to-end, single govt fee write path |
-| **A1.5 → A2** | Accounting hardening | Bridge/trust UAT, then immutability — parallel track, not blocked by P3a |
-
-**Gate:** V1.1 approved + A1.5 UAT pass before P3b trust-linked features.
+| **P2.2** | Government Fee Master | **Complete — LOCKED** |
+| **P2.3** | Final MD Sign-Off | Resolve all MD decisions — **in progress** |
+| **P3** | Implementation | Blocked until P2.3 + A1.5 UAT |
 
 ### 4. Risks if implementation starts without V1.1 additions
 
