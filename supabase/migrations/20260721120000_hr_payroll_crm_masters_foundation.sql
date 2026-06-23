@@ -611,7 +611,7 @@ CREATE TRIGGER shift_assignment_locked_guard
   BEFORE UPDATE OF shift_id ON employees
   FOR EACH ROW EXECUTE FUNCTION trg_shift_assignment_locked_guard();
 
-COMMENT ON FUNCTION fn_reopen_payroll_cycle IS
+COMMENT ON FUNCTION public.fn_reopen_payroll_cycle(uuid, text) IS
   'Reopens a locked cycle to Draft. Does NOT auto-recalculate payroll lines — run fn_build_payroll_line / fn_compute_payroll manually after corrections.';
 
 -- CRM import: sync department + designation FKs from profile
