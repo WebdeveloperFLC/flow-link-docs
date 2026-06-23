@@ -121,9 +121,8 @@ export default function InstitutionDetailPage() {
   const [reviewDoc, setReviewDoc] = useState<any | null>(null);
 
   const INSTITUTION_TYPES = [
-    "Public University", "Private University", "Public College", "Private College",
-    "Polytechnic", "Community College", "Language School", "Pathway Provider", "Other",
-  ];
+    "Public College", "Polytechnic", "University", "Private College", "Language School", "Other",
+  ] as const;
 
   const DOC_KIND_OPTIONS: { value: DocKind | "promotion_campaign" | "invoice_template" | "renewal_document" | "other"; label: string }[] = [
     { value: "program_sheet", label: "Program sheet (extract programs)" },

@@ -19,6 +19,35 @@ export type CommissionStudent =
 /** Live row from `upi_courses_staging` (Course Review queue). */
 export type UpiCourseStaging = Database["public"]["Tables"]["upi_courses_staging"]["Row"];
 
+/** Institution lifecycle status (M1 governance). */
+export type InstitutionStatus = "Draft" | "Review" | "Active" | "Inactive" | "Archived";
+
+/** Profile / human verification source types (aligned with fee verification methods). */
+export type ProfileSourceType =
+  | "WEBSITE"
+  | "LOA"
+  | "PARTNER_PORTAL"
+  | "EMAIL"
+  | "MANUAL"
+  | "AGREEMENT"
+  | "OTHER";
+
+export type ApplicationMethod =
+  | "Direct"
+  | "Agent Portal"
+  | "OCAS"
+  | "ApplyBoard"
+  | "IDP"
+  | "Other";
+
+export type InstitutionType =
+  | "Public College"
+  | "Polytechnic"
+  | "University"
+  | "Private College"
+  | "Language School"
+  | "Other";
+
 export interface UpiInstitution {
   id: string;
   name: string;
@@ -31,7 +60,7 @@ export interface UpiInstitution {
   address: string | null;
   city: string | null;
   state_province: string | null;
-  institution_type: string | null;
+  institution_type: InstitutionType | string | null;
   ranking_info: string | null;
   accreditation: string | null;
   established_year: number | null;
@@ -43,6 +72,27 @@ export interface UpiInstitution {
   promotion_notes: string | null;
   notes: string | null;
   metadata: Record<string, unknown>;
+  /** M1 — lifecycle status */
+  institution_status: InstitutionStatus;
+  dli_number: string | null;
+  pgwp_eligible: boolean | null;
+  pal_required: boolean | null;
+  international_student_url: string | null;
+  application_portal_url: string | null;
+  deposit_policy_url: string | null;
+  main_intakes: string[] | null;
+  processing_time: string | null;
+  application_method: ApplicationMethod | string | null;
+  institution_description: string | null;
+  last_loa_verified_at: string | null;
+  profile_source_url: string | null;
+  profile_source_type: ProfileSourceType | null;
+  profile_source_reference: string | null;
+  profile_source_notes: string | null;
+  last_human_verified_at: string | null;
+  last_human_verified_by: string | null;
+  human_verification_method: ProfileSourceType | null;
+  completeness_score: number;
   created_at: string;
   updated_at: string;
 }
