@@ -40,6 +40,28 @@ export type ApplicationMethod =
   | "IDP"
   | "Other";
 
+/** Institution contact row (M2 — `upi_institution_contacts`). */
+export interface UpiInstitutionContact {
+  id: string;
+  institution_id: string;
+  contact_type: string;
+  contact_name: string | null;
+  designation: string | null;
+  department: string | null;
+  email: string | null;
+  phone: string | null;
+  mobile: string | null;
+  country: string | null;
+  notes: string | null;
+  is_primary: boolean;
+  is_active: boolean;
+  sort_order: number;
+  created_by: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export type InstitutionType =
   | "Public College"
   | "Polytechnic"

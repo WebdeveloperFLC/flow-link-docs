@@ -36,6 +36,7 @@ import { InstitutionLogoField } from "../components/InstitutionLogoField";
 import { InstitutionLogo } from "../components/InstitutionLogo";
 import { PartnershipRoutesPanel } from "../components/PartnershipRoutesPanel";
 import { InstitutionFeeSchedulePanel } from "../components/InstitutionFeeSchedulePanel";
+import { InstitutionContactsPanel } from "../components/InstitutionContactsPanel";
 import type { CatalogStatus } from "../types/partnership";
 
 // Sanitize a filename for use as a Supabase Storage object key.
@@ -491,6 +492,7 @@ export default function InstitutionDetailPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="contacts">Contacts</TabsTrigger>
             <TabsTrigger value="sources">Sources</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="fee-schedule">Fee Schedule</TabsTrigger>
@@ -556,6 +558,10 @@ export default function InstitutionDetailPage() {
                 </div>
               )}
             </Card>
+          </TabsContent>
+
+          <TabsContent value="contacts">
+            <InstitutionContactsPanel institutionId={id} canEdit={canEdit} />
           </TabsContent>
 
           <TabsContent value="sources">
