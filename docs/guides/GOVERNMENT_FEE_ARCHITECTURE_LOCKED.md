@@ -4,9 +4,9 @@
 |-------|-------|
 | **Status** | **LOCKED** — design approved; no further government-fee architecture changes without MD review |
 | **Closed** | June 2026 |
-| **Approved** | P2.2 — per owner recommendation |
 | **Canonical document** | [`GOVERNMENT_FEE_MASTER_ARCHITECTURE_V1.md`](./GOVERNMENT_FEE_MASTER_ARCHITECTURE_V1.md) — BR-G1–BR-G14 |
-| **Implementation** | Deferred to P3b/P3c — **after P2.3 MD sign-off** |
+| **MD sign-off** | [`FEE_MASTER_MD_SIGNOFF_P2_3.md`](./FEE_MASTER_MD_SIGNOFF_P2_3.md) — MD-G1–G5 approved |
+| **Implementation** | [`FEE_MASTER_P3_READINESS_REPORT.md`](./FEE_MASTER_P3_READINESS_REPORT.md) |
 
 ---
 
@@ -18,37 +18,13 @@
 | Single write path consolidation | BR-G2, BR-G3, §3.3, §4 |
 | Component-level lines (visa, biometrics, SEVIS, VFS, etc.) | BR-G14, §3.1 |
 | Direct-paid tracking with proof | BR-G6, §6 |
+| Direct-paid tolerance (lesser of 5% or CAD 10 eq.) | MD-G1 / P2.3 C4 |
+| Payment status `EXEMPT` | P2.3 C5 |
 | Collection / trust / revenue separation | BR-G7, §8 |
 | Authority rate governance | §5 |
 | Counselor & accounts workflows | §7 |
 | Government fee data contracts | §10 |
 | Reporting | §9 |
-
----
-
-## Explicit exclusions (government domain)
-
-- **Not** authored in Institution Masters  
-- **Not** subject to Institution Fee Policy Engine (BR-G10)  
-- **Not** discount wallet / Offers Studio (BR-G11)  
-- **Not** bundled into single “government fees” invoice line  
-
----
-
-## Open MD decisions (government — pending P2.3)
-
-Carried to [`FEE_MASTER_MD_SIGNOFF_P2_3.md`](./FEE_MASTER_MD_SIGNOFF_P2_3.md): MD-G1–MD-G5, plus shared MD-3, MD-5.
-
----
-
-## Design phase status
-
-| Phase | Domain | Status |
-|-------|--------|--------|
-| P2.1 | Institution Fee Architecture | **LOCKED** |
-| P2.2 | Government Fee + Direct-Paid | **LOCKED** |
-| P2.3 | Final MD Sign-Off | **In progress** |
-| P3 | Implementation | **Blocked** until P2.3 complete |
 
 ---
 

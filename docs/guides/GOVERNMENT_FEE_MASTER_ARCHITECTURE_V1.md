@@ -213,7 +213,7 @@ Clients often pay government or VFS **directly** (online portal, credit card to 
 | Client pays FL invoice line | `FLC_COLLECTS` | Yes | Yes (when verified) | `PENDING` → `PAID_BY_CLIENT` |
 | Client pays IRCC/VFS direct | `CLIENT_DIRECT` | No | No | `PAID_BY_CLIENT` |
 | FL wire to IRCC on behalf | `FLC_ADVANCE` | Outbound first | On recovery | `PAID_BY_FLC` → reimbursed |
-| Not yet required | — | — | — | `NOT_REQUIRED` |
+| Not yet required / never applicable | — | — | — | `EXEMPT` |
 | Authority fee refunded (A5) | — | — | Reversal | `REFUNDED` |
 
 ### 6.3 Direct-paid proof contract (mandatory fields)
@@ -236,13 +236,13 @@ Clients often pay government or VFS **directly** (online portal, credit card to 
 | Biometrics CAD 85 | Client paid VFS direct | 85 | 0 | VFS appointment receipt |
 | SEVIS USD 350 | Client paid FMJfee.com | 350 | 0 | SEVIS ID confirmation |
 | Visa CAD 235 | On FL invoice, client paid FL | 235 | 235 | FL payment receipt |
-| Biometrics | Not required (exempt) | 0 | 0 | `NOT_REQUIRED` |
+| Biometrics | Never applicable (exempt) | 0 | 0 | `EXEMPT` |
 
 ### 6.5 Case progression rule
 
 **Visa pipeline stages must not advance** on “government fee paid” checkpoints unless:
 
-- `payment_status` ∈ `{ PAID_BY_CLIENT, PAID_BY_FLC, NOT_REQUIRED, WAIVED }`, **or**  
+- `payment_status` ∈ `{ PAID_BY_CLIENT, PAID_BY_FLC, EXEMPT, WAIVED }`, **or**  
 - `collection_path = FLC_COLLECTS` and invoice line paid  
 
 (Configurable per pipeline in P3 — design default: **hard gate** for submission-ready stages.)

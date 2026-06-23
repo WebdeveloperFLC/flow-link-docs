@@ -37,15 +37,13 @@ The following institution fee architecture is **final for design purposes**:
 
 ## Open MD decisions (institution — pending sign-off)
 
-See [`FEE_MASTER_MD_SIGNOFF_P2_3.md`](./FEE_MASTER_MD_SIGNOFF_P2_3.md): MD-6, MD-7, MD-8.
+See [`FEE_MASTER_MD_SIGNOFF_P2_3.md`](./FEE_MASTER_MD_SIGNOFF_P2_3.md): MD-6, MD-7, MD-8 — **approved**.
 
 ---
 
-## Next design phase
+## Next step
 
-**P2.3 Final MD Sign-Off** — [`FEE_MASTER_MD_SIGNOFF_P2_3.md`](./FEE_MASTER_MD_SIGNOFF_P2_3.md)
-
-Government fee architecture: **LOCKED** — [`GOVERNMENT_FEE_ARCHITECTURE_LOCKED.md`](./GOVERNMENT_FEE_ARCHITECTURE_LOCKED.md)
+**P3 implementation** — [`FEE_MASTER_P3_READINESS_REPORT.md`](./FEE_MASTER_P3_READINESS_REPORT.md)
 
 ---
 

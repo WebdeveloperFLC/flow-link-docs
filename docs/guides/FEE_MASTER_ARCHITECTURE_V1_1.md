@@ -44,9 +44,10 @@ V1.1 adds **future data contracts** (field names and semantics only — no SQL, 
 11. [Implementation considerations for P3](#11-implementation-considerations-for-p3)
 12. [Appendix: V1 carry-forward](#12-appendix-v1-carry-forward)
 
-**Institution fee architecture:** [LOCKED — P2.1 complete](./INSTITUTION_FEE_ARCHITECTURE_LOCKED.md)  
-**Government fee architecture:** [LOCKED — P2.2 complete](./GOVERNMENT_FEE_ARCHITECTURE_LOCKED.md)  
-**Next:** [P2.3 MD Sign-Off](./FEE_MASTER_MD_SIGNOFF_P2_3.md) — **implementation blocked until complete**
+**Institution fee architecture:** [LOCKED — P2.1](./INSTITUTION_FEE_ARCHITECTURE_LOCKED.md)  
+**Government fee architecture:** [LOCKED — P2.2](./GOVERNMENT_FEE_ARCHITECTURE_LOCKED.md)  
+**MD sign-off:** [LOCKED — P2.3 complete](./FEE_MASTER_P2_3_LOCKED.md)  
+**P3 readiness:** [Readiness report](./FEE_MASTER_P3_READINESS_REPORT.md)
 
 ---
 
@@ -72,6 +73,8 @@ V1.1 adds **future data contracts** (field names and semantics only — no SQL, 
 | BR-16 | Institution fee policy adjustments are **pass-through audit** (reference vs collected) — **not** Future Link revenue discounts and **not** counselor wallet discounts | **V1.1 policy engine** |
 | BR-17 | Every policy application must audit: base fee, available policy, applied fee, difference, counselor, timestamp, optional reason | **V1.1 policy engine** |
 | BR-18 | Institution fee policies apply only to **institution fee types** (application, deposit, tuition, etc.) — not consultancy/revenue lines | **V1.1 policy engine** |
+| **BR-19** | **`EXEMPT`** = fee never applicable to case/pathway; **`WAIVED`** = was applicable, obligation removed — do not conflate (P2.3 C5) | **P2.3 MD sign-off** |
+| **BR-20** | Direct-paid tolerance: Accounts review when variance exceeds **lesser of 5% or CAD 10 equivalent** (P2.3 C4) | **P2.3 MD sign-off** |
 
 ---
 
@@ -170,28 +173,38 @@ Payment status applies to **non-revenue lines** by default. Revenue (consultancy
 
 | Status | When used |
 |--------|-----------|
-| `NOT_REQUIRED` | Fee not applicable to this case (e.g. biometrics N/A for exempt category); line may be absent or zero |
+| `EXEMPT` | Fee **never applicable** to this case/pathway (structural exemption — e.g. biometrics not required for exempt category). **Not** a waiver. **Preferred term (P2.3).** |
+| `NOT_REQUIRED` | **Legacy alias** — treat as `EXEMPT` on read in P3; do not use for new records |
 | `PENDING` | Obligation exists; not yet satisfied |
 | `PAID_BY_CLIENT` | Client (or payer acting for client) settled — via FL or direct |
 | `PAID_BY_FLC` | Future Link paid vendor/institution/government on client's behalf |
-| `WAIVED` | Obligation removed (institution waiver, promo, policy) |
+| `WAIVED` | Fee **was applicable**; obligation removed (institution waiver, promo, policy) — distinct from `EXEMPT` |
 | `REFUNDED` | Previously paid; refund processed or approved (Phase A4–A5) |
+
+### 3.2a EXEMPT vs WAIVED (locked — P2.3 C5)
+
+| | EXEMPT | WAIVED |
+|---|--------|--------|
+| **Meaning** | Never was an obligation | Was an obligation, then removed |
+| **Example** | Age-exempt from biometrics | Application fee waived under Seneca promo |
+| **Audit** | Exemption reason / rule ref | Policy id or waiver reason |
+| **Trust** | No movement | Usually no collection; see policy |
 
 ### 3.3 State transitions
 
 ```mermaid
 stateDiagram-v2
-  [*] --> NOT_REQUIRED: Fee N/A
+  [*] --> EXEMPT: Never applicable
   [*] --> PENDING: Fee identified
   PENDING --> PAID_BY_CLIENT: Client settles
   PENDING --> PAID_BY_FLC: FL advances
-  PENDING --> WAIVED: Waiver approved
+  PENDING --> WAIVED: Waiver applied
   PAID_BY_CLIENT --> REFUNDED: Refund A5
   PAID_BY_FLC --> REFUNDED: Refund A5
   PAID_BY_FLC --> PAID_BY_CLIENT: Client reimburses FL
+  EXEMPT --> [*]
   WAIVED --> [*]
   REFUNDED --> [*]
-  NOT_REQUIRED --> [*]
 ```
 
 ### 3.4 Examples
@@ -202,7 +215,7 @@ stateDiagram-v2
 | Seneca application fee — via FL invoice | Collected | `PENDING` → `PAID_BY_CLIENT` (on verified payment) |
 | Visa fee — FL wire to IRCC | Advance | `PENDING` → `PAID_BY_FLC` → client reimburses → remains `PAID_BY_FLC` with recoverable cleared |
 | Application fee — partner waiver | Waiver | `PENDING` → `WAIVED` |
-| IELTS — not needed (English exempt) | N/A | `NOT_REQUIRED` |
+| IELTS — not needed (English exempt) | N/A | `EXEMPT` |
 | Visa fee — refund after refusal | Refund | `PAID_BY_CLIENT` → `REFUNDED` |
 
 ### 3.5 Audit implications
@@ -736,7 +749,7 @@ V1 sections retained unchanged: reuse inventory (§4 V1), screen flows (§7 V1),
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `payment_responsibility` | enum | Yes (on send) | `CLIENT` \| `FLC` \| `SPONSOR` \| `INSTITUTION` \| `THIRD_PARTY` |
-| `payment_status` | enum | Yes (pass-through/institution) | §3 values |
+| `payment_status` | enum | Yes (pass-through/institution) | §3 values incl. **EXEMPT** |
 | `collection_path` | enum | Yes | `FLC_COLLECTS` \| `CLIENT_DIRECT` \| `FLC_ADVANCE` |
 | `collection_category_id` | uuid | Yes (on send) | Existing |
 | `accounting_treatment` | enum | Derived | From category |
