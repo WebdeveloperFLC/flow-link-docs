@@ -1,6 +1,6 @@
 # Accounting Hardening Architecture (APPROVED)
 
-> **Status:** Phase A1.5 ready for UAT. Phases A2–A6 deferred until A1.5 UAT passes.  
+> **Status:** Phase A1.5 blocked on accounting prerequisite deploy (bridge + trust tables). See [`ACCOUNTING_A1_5_PREREQ_DEPLOY.md`](./ACCOUNTING_A1_5_PREREQ_DEPLOY.md). Phases A2–A6 deferred until A1.5 UAT passes.  
 > **Document module:** LOCKED — no changes to documents, binders, Service Library document structure.
 
 ---

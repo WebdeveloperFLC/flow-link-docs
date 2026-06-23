@@ -73,6 +73,26 @@ Setup: [`guides/hr-payroll-uat-guide.md`](./guides/hr-payroll-uat-guide.md)
 
 ---
 
+## Accounting A1.5 prerequisites (bridge + trust)
+
+**Required before A1.5 service-removal UAT.** Full detail: [`guides/ACCOUNTING_A1_5_PREREQ_DEPLOY.md`](./guides/ACCOUNTING_A1_5_PREREQ_DEPLOY.md).
+
+| Order | Migration | Purpose |
+|------:|-----------|---------|
+| 1 | `20260515054022_ba101861-e3aa-40a8-b074-a115182a2db9.sql` | `accounting_users` (if missing) |
+| 2 | `20260516060234_26d3217e-8e4e-41f7-8f82-d354fd8e77f0.sql` | `is_accounting_user()` |
+| 3 | `20260517224518_41184534-749f-4f1b-a6f7-537adc676c93.sql` | `accounting_coa` |
+| 4 | `20260517224545_03c8dd52-bb78-487d-8378-a82dc661fc37.sql` | `accounting_journals` |
+| 5 | `20260720120000_accounting_journal_contract.sql` | Journal contract columns |
+| 6 | `20260720120040_accounting_invoice_classification.sql` | **`accounting_crm_invoice_bridge`** |
+| 7 | `20260720120050_accounting_trust_subledger.sql` | **`accounting_trust_entries`** |
+
+**Pre-flight:** `to_regclass('public.accounting_crm_invoice_bridge')` must be non-null after Publish.
+
+**Already deployed (do not republish):** `20260924120000_accounting_hardening_phase_a1.sql`, `20260925120000_accounting_hardening_phase_a1_5.sql`.
+
+---
+
 ## Edge functions (Lovable Publish)
 
 Redeploy when ship touches:
