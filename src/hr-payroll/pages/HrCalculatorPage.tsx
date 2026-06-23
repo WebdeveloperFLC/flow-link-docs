@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useHrPolicies } from "../hooks/useHrRequests";
 import { rpcComputePayroll } from "../hooks/useHrPayroll";
 import { inr } from "../lib/format";
@@ -33,6 +34,7 @@ type ComputeOut = {
   gross_earned: number;
   pf_employee: number;
   esic_employee: number;
+  pt_employee?: number;
   net_salary: number;
 };
 
@@ -158,10 +160,20 @@ export default function HrCalculatorPage() {
   const gross = out?.gross_earned ?? 0;
   const pf = out?.pf_employee ?? 0;
   const esic = out?.esic_employee ?? 0;
+  const pt = out?.pt_employee ?? 0;
   const net = out?.net_salary ?? 0;
 
   return (
-    <div className="grid g2" style={{ gap: 16, alignItems: "start" }}>
+    <div className="page-grid">
+      <div className="card card-wash">
+        <div style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.55 }}>
+          <strong>Formula sandbox</strong> — manual inputs call <code>fn_compute_payroll</code> for
+          what-if scenarios. Production payroll runs on{" "}
+          <Link to="/hr/payroll/verify">Payroll Verification</Link> (Process → Approve → Lock → Mark
+          paid). This page does not write to the salary register.
+        </div>
+      </div>
+      <div className="grid g2" style={{ gap: 16, alignItems: "start" }}>
       <div className="page-grid">
         <div className="card">
           <div className="card-h">
@@ -311,10 +323,12 @@ export default function HrCalculatorPage() {
             <br />
             Gross = {inr(daily)} × {payable} = <span className="res">{inr(gross)}</span>
             <br />
-            Net = Gross + inc/bonus − PF({inr(pf)}) − ESIC({inr(esic)}) ={" "}
+            Net = Gross + inc/bonus − PF({inr(pf)}) − ESIC({inr(esic)})
+            {pt > 0 ? ` − PT(${inr(pt)})` : ""} ={" "}
             <span className="res">{inr(net)}</span>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

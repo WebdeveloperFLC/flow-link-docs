@@ -413,7 +413,31 @@ export type PayrollLineRow = {
   net_salary: number;
   is_overridden: boolean;
   override_json: Record<string, unknown> | null;
+  input_snapshot?: RollupSnapshot | null;
+  formula_mode?: "legacy" | "earned" | string;
+  attendance_earned?: number | null;
+  payroll_days_effective?: number | null;
+  earned_breakdown?: Record<string, unknown> | null;
   employees?: EmployeeRow | null;
+};
+
+/** fn_rollup_inputs / input_snapshot JSON on payroll_lines. */
+export type RollupSnapshot = {
+  working?: number;
+  week_off?: number;
+  present?: number;
+  holiday?: number;
+  late?: number;
+  mispunch?: number;
+  leaves?: number;
+  paid_leaves?: number;
+  comp_off?: number;
+  ul?: number;
+  sandwich?: number;
+  unpaid_training?: number;
+  formula_mode?: string;
+  attendance_earned?: number;
+  payroll_days_effective?: number;
 };
 
 export type AuditLogRow = {

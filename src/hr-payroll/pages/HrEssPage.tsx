@@ -10,7 +10,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
-import { useHrPayrollLine } from "../hooks/useHrPayroll";
+import { useHrPayrollLine, useHrEmployeePayrollHistory } from "../hooks/useHrPayroll";
 import { EmployeeDocumentsPanel } from "../components/employees/EmployeeDocumentsPanel";
 import { useHrLeaveBalances, useHrLeaveRequests } from "../hooks/useHrRequests";
 import {
@@ -32,6 +32,8 @@ import { timezoneForEmployee, todayIsoInTz } from "../lib/employeeTimezone";
 import { essAttendanceStatus } from "../lib/attendanceStatus";
 import { formatMoney } from "../lib/format";
 import { printSalarySlip } from "../lib/salarySlip";
+import { buildStatutoryBreakdown } from "../lib/payrollBreakdown";
+import { PayrollBreakdownPanel } from "../components/payroll/PayrollBreakdownPanel";
 import { ensureMyEmployeeProfile } from "../lib/hrApi";
 import { HR_ORG_ID } from "../lib/constants";
 
@@ -61,6 +63,7 @@ export default function HrEssPage() {
 
   const { data: att = [] } = useHrAttendance(emp?.id, cycle?.start_date, cycle?.end_date);
   const { data: line } = useHrPayrollLine(emp?.id, cycle?.id);
+  const { data: payrollHistory = [] } = useHrEmployeePayrollHistory(emp?.id);
   const { data: leaveBalances = [] } = useHrLeaveBalances(emp?.id);
   const { data: allLeaves = [] } = useHrLeaveRequests();
   const today = todayIsoInTz(tz);
@@ -174,10 +177,18 @@ export default function HrEssPage() {
     ["Bonus", money(line?.bonus ?? 0)],
   ] as const;
 
+  const statutory = line && emp ? buildStatutoryBreakdown(line, emp) : null;
+
   const deductions = [
     ["PF", money(line?.pf_employee ?? 0)],
     ["ESIC", money(line?.esic_employee ?? 0)],
-    ["Other deductions", money(emp.other_deductions ?? 0)],
+    ...(statutory && statutory.ptEmployee > 0
+      ? [["Professional tax (PT)", money(statutory.ptEmployee)] as const]
+      : []),
+    ...(statutory && statutory.tdsLine > 0
+      ? [["TDS / other statutory", money(statutory.tdsLine)] as const]
+      : []),
+    ["Other deductions", money(statutory?.otherDeductions ?? emp.other_deductions ?? 0)],
     ["Late deduction", `${line?.late_deduction ?? 0}d`],
   ] as const;
 
@@ -241,7 +252,7 @@ export default function HrEssPage() {
             </span>
           </Link>
         )}
-        {line && cycle && (
+        {line && cycle && (cycle.status === "Locked" || cycle.status === "Paid") && (
           <button
             type="button"
             className="ess-quick-card ess-quick-slip"
@@ -361,7 +372,63 @@ export default function HrEssPage() {
             <span className="ess-salary-net-label">Net payable this cycle</span>
             <span className="ess-salary-net-val">{money(line?.net_salary ?? 0)}</span>
           </div>
+          {line && cycle && (cycle.status === "Locked" || cycle.status === "Paid") && (
+            <div className="ess-payroll-breakdown">
+              <PayrollBreakdownPanel line={{ ...line, employees: emp }} cycle={cycle} />
+            </div>
+          )}
         </div>
+
+        {payrollHistory.length > 0 && (
+          <div className="card">
+            <div className="card-h">
+              <h3>Payroll history</h3>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Cycle</th>
+                  <th>Status</th>
+                  <th>Payable</th>
+                  <th>Net</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {payrollHistory.map((pl) => (
+                  <tr key={pl.id}>
+                    <td>{pl.payroll_cycles?.label ?? "—"}</td>
+                    <td>{pl.payroll_cycles?.status ?? "—"}</td>
+                    <td style={{ textAlign: "center" }}>{pl.payable_days}</td>
+                    <td className="mono">{money(pl.net_salary)}</td>
+                    <td>
+                      {pl.payroll_cycles &&
+                        (pl.payroll_cycles.status === "Locked" ||
+                          pl.payroll_cycles.status === "Paid") && (
+                          <button
+                            type="button"
+                            className="btn btn-sm"
+                            onClick={() =>
+                              printSalarySlip(emp, pl, {
+                                id: pl.cycle_id,
+                                label: pl.payroll_cycles!.label,
+                                start_date: pl.payroll_cycles!.start_date,
+                                end_date: pl.payroll_cycles!.end_date,
+                                payroll_days: pl.payroll_days,
+                                status: pl.payroll_cycles!.status,
+                              })
+                            }
+                          >
+                            Slip
+                          </button>
+                        )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <div className="card">
           <div className="card-h">

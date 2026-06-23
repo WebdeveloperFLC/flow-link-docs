@@ -10,7 +10,9 @@ export function useHrPayrollLines(cycleId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payroll_lines" as never)
-        .select("*, employees(*, branches(name), companies(name, currency))")
+        .select(
+          "*, employees(*, branches(name), companies(name, currency))",
+        )
         .eq("org_id", HR_ORG_ID)
         .eq("cycle_id", cycleId!);
       if (error) throw error;
@@ -28,7 +30,9 @@ export function useHrPayrollLinesMulti(cycleIds: string[]) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payroll_lines" as never)
-        .select("*, employees(*, branches(name), companies(name, currency))")
+        .select(
+          "*, employees(*, branches(name), companies(name, currency))",
+        )
         .eq("org_id", HR_ORG_ID)
         .in("cycle_id", cycleIds);
       if (error) throw error;

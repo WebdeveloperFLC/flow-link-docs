@@ -12,6 +12,14 @@ import { rebuildPayrollLine, hrAudit, lockPayrollCycle, reopenPayrollCycle, proc
 import { printSalarySlip } from "../lib/salarySlip";
 import { downloadPayrollRegister, linesToRegisterRows, printRegisterPdf, printBatchSalarySlips } from "../lib/payrollExport";
 import {
+  buildBankTransferRows,
+  downloadBankTransferCsv,
+  bankTransferValidation,
+  formatBankTransferSummary,
+} from "../lib/bankTransferExport";
+import { PayrollBreakdownModal } from "../components/payroll/PayrollBreakdownModal";
+import { PayrollWorkflowStepper } from "../components/payroll/PayrollBreakdownPanel";
+import {
   branchesForPayrollCountry,
   companiesForPayrollCountryFilter,
   cyclesInDateRange,
@@ -187,6 +195,7 @@ export default function HrVerifyPage() {
   const [statusFilter, setStatusFilter] = useState<PayrollStatusFilter>("All");
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [ovrLine, setOvrLine] = useState<PayrollLineRow | null>(null);
+  const [breakdownLine, setBreakdownLine] = useState<PayrollLineRow | null>(null);
   const [reopenOpen, setReopenOpen] = useState(false);
   const [reopenReason, setReopenReason] = useState("");
 
@@ -410,8 +419,34 @@ export default function HrVerifyPage() {
     }
     const items = filtered
       .filter((r) => r.employees)
-      .map((r) => ({ emp: r.employees!, line: r }));
+      .map((r) => ({
+        emp: r.employees!,
+        line: r,
+        cycle: cyclesById[r.cycle_id],
+      }));
     printBatchSalarySlips(items, exportLabel);
+  };
+
+  const exportBankTransfer = () => {
+    if (!filtered.length) {
+      fire("No payroll records match the current filters");
+      return;
+    }
+    const rows = buildBankTransferRows(filtered);
+    const { missingBank, unverified, totalNet } = bankTransferValidation(rows);
+    if (missingBank.length) {
+      const proceed = confirm(
+        `${missingBank.length} employee(s) missing bank account/IFSC. Export anyway?`,
+      );
+      if (!proceed) return;
+    } else if (unverified.length) {
+      const proceed = confirm(
+        `${unverified.length} employee(s) have unverified bank details. Export anyway?`,
+      );
+      if (!proceed) return;
+    }
+    downloadBankTransferCsv(rows, exportFileStem);
+    fire(`Bank file exported · ${formatBankTransferSummary(totalNet)}`);
   };
 
   if (!ctxCycle) return <div className="empty">No payroll cycle loaded.</div>;
@@ -466,6 +501,9 @@ export default function HrVerifyPage() {
               <button type="button" className="btn btn-sm" onClick={exportBatchSlips}>
                 ↓ All Slips PDF
               </button>
+              <button type="button" className="btn btn-sm" onClick={exportBankTransfer}>
+                ↓ Bank Transfer CSV
+              </button>
             </>
           )}
           {can("approve") && editable && canRunCycleWorkflow && (
@@ -519,6 +557,15 @@ export default function HrVerifyPage() {
           )}
         </div>
       </div>
+
+      {canRunCycleWorkflow && workflowCycle && (
+        <div className="card" style={{ padding: 16 }}>
+          <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginBottom: 10 }}>
+            Salary processing workflow — review payable-days breakdown before approving.
+          </div>
+          <PayrollWorkflowStepper status={cycleStatus} />
+        </div>
+      )}
 
       <div className="card" style={{ padding: 12 }}>
         <div className="row-flex" style={{ gap: 12, flexWrap: "wrap" }}>
@@ -713,6 +760,14 @@ export default function HrVerifyPage() {
                   <td className="mono strong">{rowMoney(r, r.net_salary)}</td>
                   <td>
                     <div className="row-flex">
+                      <button
+                        type="button"
+                        className="btn btn-sm"
+                        title="View payable days & statutory breakdown"
+                        onClick={() => setBreakdownLine(r)}
+                      >
+                        View
+                      </button>
                       {can("export") && r.employees && (
                         <button
                           type="button"
@@ -777,6 +832,14 @@ export default function HrVerifyPage() {
           {hasCanada && " Canada employees use CPP/EI/tax mapping."}
         </div>
       </div>
+
+      {breakdownLine && (cyclesById[breakdownLine.cycle_id] ?? ctxCycle) && (
+        <PayrollBreakdownModal
+          line={breakdownLine}
+          cycle={(cyclesById[breakdownLine.cycle_id] ?? ctxCycle)!}
+          onClose={() => setBreakdownLine(null)}
+        />
+      )}
 
       {ovrLine && (
         <OverrideModal

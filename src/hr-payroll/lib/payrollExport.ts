@@ -1,3 +1,6 @@
+import { salarySlipHtml } from "./salarySlip";
+import type { EmployeeRow, PayrollCycleRow, PayrollLineRow } from "./types";
+
 export type PayrollRegisterRow = {
   emp_code: string;
   full_name: string;
@@ -26,6 +29,7 @@ export type PayrollRegisterRow = {
   bonus: number;
   pf_employee: number;
   esic_employee: number;
+  pt_employee?: number;
   net_salary: number;
   is_overridden: boolean;
 };
@@ -54,6 +58,7 @@ const HEADERS = [
   "Bonus",
   "PF",
   "ESIC",
+  "PT",
   "Net",
   "Locked",
 ] as const;
@@ -83,6 +88,7 @@ function rowValues(r: PayrollRegisterRow): (string | number)[] {
     r.bonus,
     r.pf_employee,
     r.esic_employee,
+    r.pt_employee ?? 0,
     r.net_salary,
     r.cycle_status === "Locked" ? "Yes" : "No",
   ];
@@ -135,6 +141,7 @@ export function linesToRegisterRows(
     bonus: number;
     pf_employee: number;
     esic_employee: number;
+    pt_employee?: number;
     net_salary: number;
     is_overridden: boolean;
   }>,
@@ -169,6 +176,7 @@ export function linesToRegisterRows(
     bonus: r.bonus,
     pf_employee: r.pf_employee,
     esic_employee: r.esic_employee,
+    pt_employee: r.pt_employee ?? 0,
     net_salary: r.net_salary,
     is_overridden: r.is_overridden,
   }));
@@ -204,8 +212,8 @@ tfoot td{font-weight:700;border-top:2px solid #1a2233}
 <h1>Future Link Consultants</h1>
 <h2>Salary Register · ${cycleLabel}${locked ? '<span class="badge">LOCKED</span>' : ""}</h2>
 <table><thead><tr>${th}</tr></thead><tbody>${body}</tbody>
-<tfoot><tr><td colspan="15" style="text-align:right">Totals</td>
-<td>${fmtInr(totG)}</td><td colspan="4"></td><td>${fmtInr(totN)}</td><td></td></tr></tfoot>
+<tfoot><tr><td colspan="16" style="text-align:right">Totals</td>
+<td>${fmtInr(totG)}</td><td colspan="5"></td><td>${fmtInr(totN)}</td><td></td></tr></tfoot>
 </table></body></html>`;
 }
 
@@ -219,56 +227,32 @@ export function printRegisterPdf(rows: PayrollRegisterRow[], cycleLabel: string,
 
 export function printBatchSalarySlips(
   items: Array<{
-    emp: { full_name: string; emp_code: string; department?: string | null; branches?: { name?: string } | null };
-    line: {
-      payroll_days: number;
-      payable_days: number;
-      daily_rate: number;
-      gross_earned: number;
-      incentive: number;
-      bonus: number;
-      ot_pay?: number;
-      pf_employee: number;
-      esic_employee: number;
-      net_salary: number;
-    };
+    emp: EmployeeRow;
+    line: PayrollLineRow;
+    cycle?: { label: string; payroll_days: number; start_date: string; end_date: string };
   }>,
   cycleLabel: string,
 ) {
   const w = window.open("", "_blank");
   if (!w) return;
   const pages = items
-    .map(({ emp, line }) => {
-      const rows = [
-        ["Employee", `${emp.full_name} (${emp.emp_code})`],
-        ["Department", emp.department ?? "—"],
-        ["Branch", emp.branches?.name ?? "—"],
-        ["Cycle", cycleLabel],
-        ["Payroll Days", String(line.payroll_days)],
-        ["Payable Days", String(line.payable_days)],
-        ["Daily Rate", fmtInr(line.daily_rate)],
-        ["Gross Earned", fmtInr(line.gross_earned)],
-        ["Incentive", fmtInr(line.incentive)],
-        ["Bonus", fmtInr(line.bonus)],
-        ...(line.ot_pay ? [["OT Pay", fmtInr(line.ot_pay)]] : []),
-        ["PF (Employee)", fmtInr(line.pf_employee)],
-        ["ESIC (Employee)", fmtInr(line.esic_employee)],
-        ["Net Salary", fmtInr(line.net_salary)],
-      ];
-      return `<div class="page"><h1>Future Link Consultants</h1><h2>Salary Slip · ${cycleLabel}</h2>
-<table>${rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("")}</table></div>`;
+    .map(({ emp, line, cycle }) => {
+      const c = cycle ?? {
+        label: cycleLabel,
+        payroll_days: line.payroll_days,
+        start_date: "",
+        end_date: "",
+      };
+      const body = salarySlipHtml(emp, line, c as PayrollCycleRow);
+      return body.replace(/<\/?html[^>]*>|<\/?head[^>]*>|<\/?body[^>]*>/gi, "").trim();
     })
+    .map((inner) => `<div class="page">${inner}</div>`)
     .join("");
   w.document.write(`<!DOCTYPE html><html><head><title>Salary Slips — ${cycleLabel}</title>
 <style>
 body{font-family:system-ui,sans-serif;color:#1a2233;margin:0}
 .page{padding:32px;page-break-after:always}
 .page:last-child{page-break-after:auto}
-h1{font-size:20px;margin:0 0 4px}h2{font-size:13px;color:#666;font-weight:500;margin:0 0 24px}
-table{border-collapse:collapse;width:100%;max-width:480px}
-td{padding:8px 0;border-bottom:1px solid #eef0f5;font-size:13px}
-td:first-child{color:#666;width:45%}td:last-child{text-align:right;font-weight:500}
-tr:last-child td{border-bottom:2px solid #1a2233;font-weight:700;font-size:15px}
 </style></head><body>${pages}</body></html>`);
   w.document.close();
   w.print();
