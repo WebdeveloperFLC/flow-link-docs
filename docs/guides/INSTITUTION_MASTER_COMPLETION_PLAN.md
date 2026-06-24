@@ -224,7 +224,16 @@ CREATE UNIQUE INDEX uq_upi_institution_contacts_primary_per_type
 
 ---
 
-## 4. Phase 2 — Institution Fee Master (no structural change)
+## 4. Phase 2 — Backlog (high priority)
+
+Operational enhancements after M3 UI + governance stabilize. **No credentials in Institution or Aggregator master tables.**
+
+| Item | Priority | Doc |
+|------|----------|-----|
+| **Portal Access Vault** — encrypted portal credentials, RBAC, master indicators only | **High** | [`docs/backlog/PORTAL_ACCESS_VAULT.md`](../backlog/PORTAL_ACCESS_VAULT.md) |
+| Institution claim eligibility rules | Medium | [`docs/backlog/INSTITUTION_CLAIM_ELIGIBILITY_RULES.md`](../backlog/INSTITUTION_CLAIM_ELIGIBILITY_RULES.md) |
+
+### 4.1 Phase 2 — Institution Fee Master (no structural change)
 
 `institution_fee_schedule` (ws-2) already supports:
 
@@ -492,6 +501,7 @@ Add to `upi_institutions` (nullable; no jobs, no auto-updates):
 - AI automation / auto-update of fees or commissions
 - Mark Final RPC changes
 - Fee activation blockers
+- **Portal credential storage** — see Phase 2 [`PORTAL_ACCESS_VAULT.md`](../backlog/PORTAL_ACCESS_VAULT.md)
 
 ---
 
