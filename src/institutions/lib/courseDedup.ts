@@ -108,3 +108,73 @@ export async function computeCourseDedupHash(key: string): Promise<string> {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
+
+export type CourseDedupInputs = {
+  institution_id?: string | null;
+  course_title?: string | null;
+  program_level_id?: string | null;
+  program_level?: string | null;
+};
+
+/** Inputs that define the staging dedup identity (must match DB upi_staging_row_dedup_hash). */
+export function courseDedupInputs(
+  row: {
+    institution_id?: string | null;
+    course_title?: string | null;
+    program_level_id?: string | null;
+  },
+  metadata: Record<string, unknown>,
+  programLevelName?: string | null,
+): CourseDedupInputs {
+  return {
+    institution_id: row.institution_id,
+    course_title: row.course_title,
+    program_level_id: row.program_level_id,
+    program_level: resolveCourseDedupLevel(metadata, programLevelName),
+  };
+}
+
+export function courseDedupKeysEqual(a: CourseDedupInputs, b: CourseDedupInputs): boolean {
+  return buildCourseDedupKey(a) === buildCourseDedupKey(b);
+}
+
+export async function computeCourseDedupHashFromInputs(inputs: CourseDedupInputs): Promise<string> {
+  return computeCourseDedupHash(buildCourseDedupKey(inputs));
+}
+
+/**
+ * Decide whether a Course Review save should touch dedup_hash.
+ * Review-only edits (PGWP, notes, status) skip hash updates when identity is unchanged.
+ */
+export async function resolveCourseDedupHashPatch(
+  existing: {
+    dedup_hash?: string | null;
+    institution_id?: string | null;
+    course_title?: string | null;
+    program_level_id?: string | null;
+    metadata?: Record<string, unknown> | null;
+  },
+  draft: {
+    institution_id?: string | null;
+    course_title?: string | null;
+    program_level_id?: string | null;
+  },
+  metadata: Record<string, unknown>,
+  resolveLevelName: (programLevelId: string | null | undefined) => string | null,
+): Promise<{ skip: true } | { skip: false; dedup_hash: string }> {
+  const before = courseDedupInputs(
+    existing,
+    (existing.metadata ?? {}) as Record<string, unknown>,
+    resolveLevelName(existing.program_level_id),
+  );
+  const after = courseDedupInputs(draft, metadata, resolveLevelName(draft.program_level_id));
+  const keyChanged = !courseDedupKeysEqual(before, after);
+  const needsBackfill = !existing.dedup_hash;
+
+  if (!keyChanged && !needsBackfill) return { skip: true };
+
+  const dedup_hash = await computeCourseDedupHashFromInputs(after);
+  if (!keyChanged && dedup_hash === existing.dedup_hash) return { skip: true };
+
+  return { skip: false, dedup_hash };
+}

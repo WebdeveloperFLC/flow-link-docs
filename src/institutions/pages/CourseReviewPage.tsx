@@ -29,11 +29,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { UpiCourseStaging } from "../types/upi";
 import {
-  buildCourseDedupKey,
   campusNamesFromRow,
-  computeCourseDedupHash,
   normalizeCampusFields,
-  resolveCourseDedupLevel,
+  resolveCourseDedupHashPatch,
   rowMatchesCampus,
 } from "../lib/courseDedup";
 import { normalizeInstitutionName } from "../lib/programSheetImport";
@@ -779,28 +777,59 @@ function EditSheet({
         metadata[e.key] = e.value;
       }
     }
-    const levelName = levels.find((l) => l.id === draft.program_level_id)?.name ?? null;
-    const programLevel = resolveCourseDedupLevel(metadata, levelName);
     const campusFields = normalizeCampusFields(draft.campus_name, metadata);
-    const dedup_hash = await computeCourseDedupHash(
-      buildCourseDedupKey({
-        institution_id: draft.institution_id,
-        course_title: draft.course_title,
-        program_level_id: draft.program_level_id,
-        program_level: programLevel,
-      }),
-    );
+    const resolveLevelName = (programLevelId: string | null | undefined) =>
+      levels.find((l) => l.id === programLevelId)?.name ?? null;
+    const dedupPatch = await resolveCourseDedupHashPatch(row, draft, metadata, resolveLevelName);
+
+    if (!dedupPatch.skip) {
+      const { data: conflict, error: conflictError } = await supabase
+        .from("upi_courses_staging")
+        .select("id, course_title")
+        .eq("dedup_hash", dedupPatch.dedup_hash)
+        .neq("id", row.id)
+        .maybeSingle();
+      if (conflictError) {
+        console.error("[CourseReview save] dedup conflict lookup failed", {
+          courseId: row.id,
+          dedup_hash: dedupPatch.dedup_hash,
+          error: conflictError.message,
+        });
+        return toast.error(conflictError.message);
+      }
+      if (conflict) {
+        console.error("[CourseReview save] dedup_hash conflict", {
+          currentId: row.id,
+          currentTitle: row.course_title,
+          existingId: conflict.id,
+          existingTitle: conflict.course_title,
+          dedup_hash: dedupPatch.dedup_hash,
+        });
+        return toast.error(
+          "Cannot save: another staging row already exists for this program identity. Delete or merge the duplicate row first.",
+        );
+      }
+    }
+
     const patch: any = {
       ...draft,
       campus_name: campusFields.campus_name,
       metadata: campusFields.metadata,
-      dedup_hash,
     };
+    if (!dedupPatch.skip) patch.dedup_hash = dedupPatch.dedup_hash;
     delete patch.id;
     delete patch.extracted_at;
     delete patch.updated_at;
     const { error } = await supabase.from("upi_courses_staging").update(patch).eq("id", row.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      console.error("[CourseReview save] update failed", {
+        courseId: row.id,
+        dedup_hash: patch.dedup_hash ?? row.dedup_hash,
+        error: error.message,
+        code: error.code,
+      });
+      return toast.error(error.message);
+    }
     toast.success("Saved");
     onSaved();
     onClose();
