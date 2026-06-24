@@ -5187,6 +5187,13 @@ export type Database = {
             foreignKeyName: "cf_universities_upi_institution_id_fkey"
             columns: ["upi_institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_universities_upi_institution_id_fkey"
+            columns: ["upi_institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -5273,6 +5280,13 @@ export type Database = {
             columns: ["suggested_upi_institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_upi_linkage_candidates_suggested_upi_institution_id_fkey"
+            columns: ["suggested_upi_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -5385,6 +5399,13 @@ export type Database = {
             columns: ["upi_institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_upi_name_aliases_upi_institution_id_fkey"
+            columns: ["upi_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -6781,6 +6802,13 @@ export type Database = {
             foreignKeyName: "client_institution_qualificat_transfer_target_institution__fkey"
             columns: ["transfer_target_institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualificat_transfer_target_institution__fkey"
+            columns: ["transfer_target_institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -6838,6 +6866,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualifications_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -9800,6 +9835,13 @@ export type Database = {
             columns: ["linked_institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_linked_institution_id_fkey"
+            columns: ["linked_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -13742,6 +13784,13 @@ export type Database = {
             foreignKeyName: "institution_fee_schedule_upi_institution_id_fkey"
             columns: ["upi_institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_fee_schedule_upi_institution_id_fkey"
+            columns: ["upi_institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -17283,6 +17332,13 @@ export type Database = {
             foreignKeyName: "qualification_external_events_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualification_external_events_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -19461,6 +19517,13 @@ export type Database = {
             foreignKeyName: "upi_agreements_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_agreements_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -19531,6 +19594,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_ai_suggestions_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -19671,6 +19741,13 @@ export type Database = {
             foreignKeyName: "upi_billing_profiles_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_billing_profiles_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -19738,6 +19815,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_campuses_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -19832,6 +19916,13 @@ export type Database = {
             foreignKeyName: "upi_claim_cycles_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_claim_cycles_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -19919,6 +20010,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_eligibility_configs_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -20133,6 +20231,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_invoices_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -20534,6 +20639,13 @@ export type Database = {
             foreignKeyName: "upi_commission_receipts_context_institution_id_fkey"
             columns: ["context_institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_context_institution_id_fkey"
+            columns: ["context_institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -20542,6 +20654,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -20616,6 +20735,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_remittance_batches_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -20825,6 +20951,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_snapshots_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -21200,6 +21333,13 @@ export type Database = {
             foreignKeyName: "upi_commission_students_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -21348,6 +21488,13 @@ export type Database = {
             foreignKeyName: "upi_commission_transfer_events_from_institution_id_fkey"
             columns: ["from_institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_events_from_institution_id_fkey"
+            columns: ["from_institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -21369,6 +21516,13 @@ export type Database = {
             foreignKeyName: "upi_commission_transfer_events_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_events_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -21377,6 +21531,13 @@ export type Database = {
             columns: ["to_institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_events_to_institution_id_fkey"
+            columns: ["to_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -21498,6 +21659,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commissions_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -21767,6 +21935,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_courses_staging_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -22116,6 +22291,13 @@ export type Database = {
             foreignKeyName: "upi_institution_contacts_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_institution_contacts_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -22230,6 +22412,13 @@ export type Database = {
             foreignKeyName: "upi_institution_sources_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_institution_sources_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -22254,6 +22443,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_institution_tags_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -22613,6 +22809,13 @@ export type Database = {
             foreignKeyName: "upi_invoices_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_invoices_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -22714,6 +22917,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_marketing_campaigns_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -22859,6 +23069,13 @@ export type Database = {
             foreignKeyName: "upi_partnership_routes_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_partnership_routes_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -22949,6 +23166,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_promotions_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -23066,6 +23290,13 @@ export type Database = {
             foreignKeyName: "upi_scholarship_rules_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_scholarship_rules_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -23159,6 +23390,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_sync_jobs_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -23415,6 +23653,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_uploaded_documents_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -24801,6 +25046,13 @@ export type Database = {
             foreignKeyName: "upi_commission_students_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -24923,6 +25175,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_invoices_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -25077,6 +25336,13 @@ export type Database = {
             foreignKeyName: "upi_commission_receipts_context_institution_id_fkey"
             columns: ["context_institution_id"]
             isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_context_institution_id_fkey"
+            columns: ["context_institution_id"]
+            isOneToOne: false
             referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
@@ -25085,6 +25351,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -25143,6 +25416,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
             referencedColumns: ["id"]
           },
           {
@@ -25210,6 +25490,38 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_upi_institution_country_unmapped: {
+        Row: {
+          country_id: string | null
+          country_name: string | null
+          id: string | null
+          name: string | null
+          resolved_iso: string | null
+        }
+        Insert: {
+          country_id?: string | null
+          country_name?: string | null
+          id?: string | null
+          name?: string | null
+          resolved_iso?: never
+        }
+        Update: {
+          country_id?: string | null
+          country_name?: string | null
+          id?: string | null
+          name?: string | null
+          resolved_iso?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_institutions_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "upi_countries"
             referencedColumns: ["id"]
           },
         ]
@@ -28004,6 +28316,10 @@ export type Database = {
       }
       fn_resolve_document_master_code: {
         Args: { p_label: string }
+        Returns: string
+      }
+      fn_resolve_institution_country_iso: {
+        Args: { _country_name: string }
         Returns: string
       }
       fn_resolve_policy: {
