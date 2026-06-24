@@ -26,14 +26,18 @@ import type {
 } from "../types/partnership";
 import {
   channelLabel,
+  DIRECT_ROUTE_EXISTS_MESSAGE,
   expireStaleFeeWaivers,
+  findActiveDirectRoute,
   formatCommissionSummary,
   formatFeeWaiverSummary,
+  formatPartnershipRouteSaveError,
   isApplicationFeeWaiverActive,
   parseCommissionSlabs,
   scorePartnershipRoutes,
   syncInstitutionPartnershipToCourseFinder,
   validateCommissionSlabs,
+  validatePartnershipRouteSave,
 } from "../lib/partnershipRoutes";
 
 type SlabRow = { min_students: string; max_students: string; amount: string };
@@ -171,12 +175,16 @@ export function PartnershipRoutesPanel({
   }, [institutionId]);
 
   const activeRoutes = useMemo(() => routes.filter((r) => r.status === "active"), [routes]);
+  const existingActiveDirectRoute = useMemo(() => findActiveDirectRoute(routes), [routes]);
   const compareScores = useMemo(
     () => scorePartnershipRoutes(activeRoutes, { tuition: Number(compareTuition) || undefined }),
     [activeRoutes, compareTuition],
   );
 
   const openNew = (channel: PartnershipChannelType) => {
+    if (channel === "direct" && existingActiveDirectRoute) {
+      return toast.error(DIRECT_ROUTE_EXISTS_MESSAGE);
+    }
     setEditingId(null);
     const base = emptyRouteForm();
     base.channel_type = channel;
@@ -239,6 +247,17 @@ export function PartnershipRoutesPanel({
       }
     }
 
+    const duplicateErr = validatePartnershipRouteSave(
+      {
+        channel_type: form.channel_type,
+        status: form.status,
+        aggregator_id: form.aggregator_id || null,
+      },
+      routes,
+      editingId,
+    );
+    if (duplicateErr) return toast.error(duplicateErr);
+
     const payload = {
       institution_id: institutionId,
       channel_type: form.channel_type,
@@ -269,7 +288,11 @@ export function PartnershipRoutesPanel({
     const { error } = editingId
       ? await supabase.from("upi_partnership_routes").update(payload).eq("id", editingId)
       : await supabase.from("upi_partnership_routes").insert(payload);
-    if (error) return toast.error(error.message);
+    if (error) {
+      return toast.error(
+        formatPartnershipRouteSaveError(error, { aggregatorName: agg?.name ?? null }),
+      );
+    }
 
     const hasDirect = form.channel_type === "direct" && form.status === "active";
     const { data: inst } = await supabase
@@ -334,24 +357,44 @@ export function PartnershipRoutesPanel({
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {canEdit && (
-          <>
-            <Button size="sm" variant="outline" onClick={() => openNew("direct")}>
-              <Plus className="size-4 mr-1" /> Direct tie-up
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {canEdit && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!!existingActiveDirectRoute}
+                title={existingActiveDirectRoute ? DIRECT_ROUTE_EXISTS_MESSAGE : undefined}
+                onClick={() => openNew("direct")}
+              >
+                <Plus className="size-4 mr-1" /> Direct tie-up
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => openNew("indirect")}>
+                <Plus className="size-4 mr-1" /> Indirect route
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => openNew("student_direct")}>
+                <Plus className="size-4 mr-1" /> Student direct
+              </Button>
+            </>
+          )}
+          {activeRoutes.length >= 2 && (
+            <Button size="sm" variant="secondary" onClick={() => setCompareOpen(true)}>
+              <GitCompare className="size-4 mr-1" /> Compare routes
             </Button>
-            <Button size="sm" variant="outline" onClick={() => openNew("indirect")}>
-              <Plus className="size-4 mr-1" /> Indirect route
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => openNew("student_direct")}>
-              <Plus className="size-4 mr-1" /> Student direct
-            </Button>
-          </>
-        )}
-        {activeRoutes.length >= 2 && (
-          <Button size="sm" variant="secondary" onClick={() => setCompareOpen(true)}>
-            <GitCompare className="size-4 mr-1" /> Compare routes
-          </Button>
+          )}
+        </div>
+        {existingActiveDirectRoute && canEdit && (
+          <p className="text-xs text-muted-foreground">
+            {DIRECT_ROUTE_EXISTS_MESSAGE}{" "}
+            <button
+              type="button"
+              className="text-primary underline underline-offset-2 hover:no-underline"
+              onClick={() => openEdit(existingActiveDirectRoute)}
+            >
+              Edit existing route
+            </button>
+          </p>
         )}
       </div>
 

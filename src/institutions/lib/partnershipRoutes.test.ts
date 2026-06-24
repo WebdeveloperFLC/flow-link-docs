@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   channelLabel,
+  DIRECT_ROUTE_EXISTS_MESSAGE,
+  findActiveDirectRoute,
+  formatPartnershipRouteSaveError,
   formatCommissionSummary,
   getSlabCommissionAmount,
   isApplicationFeeWaiverActive,
   scorePartnershipRoutes,
   validateCommissionSlabs,
+  validatePartnershipRouteSave,
 } from "./partnershipRoutes";
 import type { UpiPartnershipRoute } from "../types/partnership";
 
@@ -125,5 +129,48 @@ describe("application fee waiver", () => {
     expect(isApplicationFeeWaiverActive(route, "2026-06-01")).toBe(true);
     expect(isApplicationFeeWaiverActive(route, "2027-01-01")).toBe(false);
     expect(isApplicationFeeWaiverActive(route, "2025-12-01")).toBe(false);
+  });
+});
+
+describe("direct route uniqueness", () => {
+  const activeDirect = base({
+    id: "direct-1",
+    channel_type: "direct",
+    status: "active",
+    display_name: "Direct tie-up",
+  });
+
+  it("finds active direct route", () => {
+    expect(findActiveDirectRoute([activeDirect])).toEqual(activeDirect);
+    expect(findActiveDirectRoute([activeDirect], "direct-1")).toBeUndefined();
+  });
+
+  it("blocks second active direct route on save", () => {
+    expect(
+      validatePartnershipRouteSave(
+        { channel_type: "direct", status: "active" },
+        [activeDirect],
+      ),
+    ).toBe(DIRECT_ROUTE_EXISTS_MESSAGE);
+  });
+
+  it("allows editing the existing active direct route", () => {
+    expect(
+      validatePartnershipRouteSave(
+        { channel_type: "direct", status: "active" },
+        [activeDirect],
+        "direct-1",
+      ),
+    ).toBeNull();
+  });
+
+  it("maps duplicate key errors to friendly copy", () => {
+    expect(
+      formatPartnershipRouteSaveError({
+        code: "23505",
+        message:
+          'duplicate key value violates unique constraint "idx_upi_partnership_routes_direct_unique"',
+      }),
+    ).toBe(DIRECT_ROUTE_EXISTS_MESSAGE);
   });
 });

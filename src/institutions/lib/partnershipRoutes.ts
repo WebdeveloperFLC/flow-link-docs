@@ -200,3 +200,73 @@ export function channelLabel(type: string): string {
       return type;
   }
 }
+
+export const DIRECT_ROUTE_EXISTS_MESSAGE =
+  "A Direct Tie-Up route already exists for this institution. Edit the existing route instead.";
+
+export function findActiveDirectRoute(
+  routes: UpiPartnershipRoute[],
+  excludeId?: string | null,
+): UpiPartnershipRoute | undefined {
+  return routes.find(
+    (r) => r.channel_type === "direct" && r.status === "active" && r.id !== excludeId,
+  );
+}
+
+export function findActiveIndirectRoute(
+  routes: UpiPartnershipRoute[],
+  aggregatorId: string,
+  excludeId?: string | null,
+): UpiPartnershipRoute | undefined {
+  return routes.find(
+    (r) =>
+      r.channel_type === "indirect" &&
+      r.status === "active" &&
+      r.aggregator_id === aggregatorId &&
+      r.id !== excludeId,
+  );
+}
+
+/** Client-side guard before insert/update (mirrors DB unique indexes). */
+export function validatePartnershipRouteSave(
+  input: {
+    channel_type: string;
+    status: string;
+    aggregator_id?: string | null;
+  },
+  routes: UpiPartnershipRoute[],
+  editingId?: string | null,
+): string | null {
+  if (input.channel_type === "direct" && input.status === "active") {
+    if (findActiveDirectRoute(routes, editingId)) return DIRECT_ROUTE_EXISTS_MESSAGE;
+  }
+  if (input.channel_type === "indirect" && input.status === "active" && input.aggregator_id) {
+    const existing = findActiveIndirectRoute(routes, input.aggregator_id, editingId);
+    if (existing) {
+      const name = existing.aggregator?.name ?? existing.display_name;
+      return `An active indirect route for ${name} already exists. Edit the existing route instead.`;
+    }
+  }
+  return null;
+}
+
+/** Map PostgREST/Postgres errors to user-facing copy. */
+export function formatPartnershipRouteSaveError(
+  error: { code?: string; message: string },
+  options?: { aggregatorName?: string | null },
+): string {
+  const msg = error.message ?? "";
+  const isDuplicate = error.code === "23505" || /duplicate key|unique constraint/i.test(msg);
+  if (!isDuplicate) return msg;
+
+  if (/idx_upi_partnership_routes_direct_unique|direct.*unique/i.test(msg)) {
+    return DIRECT_ROUTE_EXISTS_MESSAGE;
+  }
+  if (/idx_upi_partnership_routes_indirect_unique|indirect.*unique/i.test(msg)) {
+    const agg = options?.aggregatorName?.trim();
+    return agg
+      ? `An active indirect route for ${agg} already exists. Edit the existing route instead.`
+      : "An active indirect route for this aggregator already exists. Edit the existing route instead.";
+  }
+  return "This partnership route already exists. Edit the existing route instead.";
+}
