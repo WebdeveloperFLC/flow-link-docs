@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { formatSupabaseError } from "@/lib/formatSupabaseError";
+import type { PreferredCommunicationMethod } from "@/institutions/lib/institutionContactCountries";
 
 /** Row from `upi_institution_contacts` (M2). */
 export type InstitutionContactRecord = {
@@ -12,7 +13,9 @@ export type InstitutionContactRecord = {
   email: string | null;
   phone: string | null;
   mobile: string | null;
-  country: string | null;
+  country_code: string | null;
+  timezone: string | null;
+  preferred_communication_method: PreferredCommunicationMethod | string | null;
   notes: string | null;
   is_primary: boolean;
   is_active: boolean;
@@ -53,7 +56,10 @@ function mapRow(row: Record<string, unknown>): InstitutionContactRecord {
     email: (row.email as string | null) ?? null,
     phone: (row.phone as string | null) ?? null,
     mobile: (row.mobile as string | null) ?? null,
-    country: (row.country as string | null) ?? null,
+    country_code: (row.country_code as string | null) ?? null,
+    timezone: (row.timezone as string | null) ?? null,
+    preferred_communication_method:
+      (row.preferred_communication_method as PreferredCommunicationMethod | null) ?? null,
     notes: (row.notes as string | null) ?? null,
     is_primary: Boolean(row.is_primary),
     is_active: row.is_active !== false,
@@ -98,7 +104,9 @@ export async function upsertInstitutionContact(
     email: row.email?.trim() || null,
     phone: row.phone?.trim() || null,
     mobile: row.mobile?.trim() || null,
-    country: row.country?.trim() || null,
+    country_code: row.country_code?.trim().toUpperCase() || null,
+    timezone: row.timezone?.trim() || null,
+    preferred_communication_method: row.preferred_communication_method?.trim() || null,
     notes: row.notes?.trim() || null,
     is_primary: row.is_primary,
     is_active: row.is_active,

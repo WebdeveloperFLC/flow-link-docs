@@ -39,6 +39,14 @@ import {
   type InstitutionContactRecord,
 } from "@/institutions/lib/institutionContacts";
 
+import {
+  countryLabelFromCode,
+  PREFERRED_COMMUNICATION_METHODS,
+  SUGGESTED_CONTACT_TIMEZONES,
+  useInstitutionContactCountries,
+  useInstitutionContactCountryOptions,
+} from "@/institutions/lib/institutionContactCountries";
+
 type FormState = {
   contact_type: string;
   contact_name: string;
@@ -47,7 +55,9 @@ type FormState = {
   email: string;
   phone: string;
   mobile: string;
-  country: string;
+  country_code: string;
+  timezone: string;
+  preferred_communication_method: string;
   notes: string;
   is_primary: boolean;
   is_active: boolean;
@@ -62,7 +72,9 @@ const emptyForm = (): FormState => ({
   email: "",
   phone: "",
   mobile: "",
-  country: "",
+  country_code: "",
+  timezone: "",
+  preferred_communication_method: "",
   notes: "",
   is_primary: false,
   is_active: true,
@@ -78,7 +90,9 @@ function formFromRow(row: InstitutionContactRecord): FormState {
     email: row.email ?? "",
     phone: row.phone ?? "",
     mobile: row.mobile ?? "",
-    country: row.country ?? "",
+    country_code: row.country_code ?? "",
+    timezone: row.timezone ?? "",
+    preferred_communication_method: row.preferred_communication_method ?? "",
     notes: row.notes ?? "",
     is_primary: row.is_primary,
     is_active: row.is_active,
@@ -101,6 +115,8 @@ export function InstitutionContactsPanel({
   const [form, setForm] = useState<FormState>(emptyForm());
   const [saving, setSaving] = useState(false);
   const [customType, setCustomType] = useState(false);
+  const countryMaster = useInstitutionContactCountries();
+  const { priority: priorityCountries, rest: restCountries } = useInstitutionContactCountryOptions();
 
   const load = async () => {
     setLoading(true);
@@ -158,7 +174,9 @@ export function InstitutionContactsPanel({
         email: form.email.trim() || null,
         phone: form.phone.trim() || null,
         mobile: form.mobile.trim() || null,
-        country: form.country.trim() || null,
+        country_code: form.country_code.trim().toUpperCase() || null,
+        timezone: form.timezone.trim() || null,
+        preferred_communication_method: form.preferred_communication_method.trim() || null,
         notes: form.notes.trim() || null,
         is_primary: form.is_primary,
         is_active: form.is_active,
@@ -261,6 +279,7 @@ export function InstitutionContactsPanel({
                 <TableHead>Department</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
+                <TableHead>Country</TableHead>
                 <TableHead>Status</TableHead>
                 {canEdit && <TableHead className="w-[120px]" />}
               </TableRow>
@@ -281,6 +300,7 @@ export function InstitutionContactsPanel({
                   <TableCell>{row.department ?? "—"}</TableCell>
                   <TableCell className="max-w-[180px] truncate">{row.email ?? "—"}</TableCell>
                   <TableCell>{row.mobile ?? row.phone ?? "—"}</TableCell>
+                  <TableCell>{countryLabelFromCode(row.country_code, countryMaster) || "—"}</TableCell>
                   <TableCell>
                     <Badge variant={row.is_active ? "default" : "outline"}>
                       {row.is_active ? "Active" : "Inactive"}
@@ -379,7 +399,62 @@ export function InstitutionContactsPanel({
             </div>
             <div className="space-y-1">
               <Label>Country</Label>
-              <Input disabled={!canEdit} value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} />
+              <Select
+                disabled={!canEdit}
+                value={form.country_code || "__none__"}
+                onValueChange={(v) => setForm({ ...form, country_code: v === "__none__" ? "" : v })}
+              >
+                <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">—</SelectItem>
+                  {priorityCountries.length > 0 && (
+                    <>
+                      {priorityCountries.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {restCountries.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Timezone (optional)</Label>
+                <Select
+                  disabled={!canEdit}
+                  value={form.timezone || "__none__"}
+                  onValueChange={(v) => setForm({ ...form, timezone: v === "__none__" ? "" : v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select timezone" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">—</SelectItem>
+                    {SUGGESTED_CONTACT_TIMEZONES.map((tz) => (
+                      <SelectItem key={tz} value={tz}>{tz}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>Preferred communication (optional)</Label>
+                <Select
+                  disabled={!canEdit}
+                  value={form.preferred_communication_method || "__none__"}
+                  onValueChange={(v) =>
+                    setForm({ ...form, preferred_communication_method: v === "__none__" ? "" : v })
+                  }
+                >
+                  <SelectTrigger><SelectValue placeholder="Select method" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">—</SelectItem>
+                    {PREFERRED_COMMUNICATION_METHODS.map((m) => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-1">
               <Label>Notes</Label>

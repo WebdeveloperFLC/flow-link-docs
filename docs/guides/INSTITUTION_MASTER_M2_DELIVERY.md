@@ -30,7 +30,16 @@
 | `email` | text | No | Completeness +5 if any active with email |
 | `phone` | text | No | |
 | `mobile` | text | No | |
-| `country` | text | No | |
+### Contact fields (M2 + M2.1)
+
+| Field | Storage | UI |
+|-------|---------|-----|
+| Contact type | Free text + suggestions | Dropdown + custom |
+| Country | `country_code` → `cf_countries` | CRM countries master dropdown (ISO code) |
+| Timezone | `timezone` text (optional) | Suggested IANA list |
+| Preferred communication | Enum (optional) | Email, Phone, WhatsApp, Teams, Zoom, Portal |
+
+**M2.1 migration:** `20261004120150_upi_institution_contacts_country_standardization.sql` — maps legacy free-text `country` to ISO code, drops text column.
 | `notes` | text | No | |
 | `is_primary` | boolean | No | Multiple primaries allowed — **no unique constraint** |
 | `is_active` | boolean | Default true | Deactivate vs delete |

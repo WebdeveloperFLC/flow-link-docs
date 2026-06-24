@@ -51,7 +51,9 @@ export interface UpiInstitutionContact {
   email: string | null;
   phone: string | null;
   mobile: string | null;
-  country: string | null;
+  country_code: string | null;
+  timezone: string | null;
+  preferred_communication_method: string | null;
   notes: string | null;
   is_primary: boolean;
   is_active: boolean;
