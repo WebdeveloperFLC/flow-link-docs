@@ -14,7 +14,10 @@ COMMENT ON COLUMN public.upi_institutions.approximate_deposit_range IS
   'Does not replace institution_fee_schedule DEPOSIT rows or billing.';
 
 -- Extend readiness view (informational flags for UI hints — not activation gates)
-CREATE OR REPLACE VIEW public.v_upi_institution_profile_readiness AS
+-- DROP required: CREATE OR REPLACE cannot insert columns before existing view columns (42P16).
+DROP VIEW IF EXISTS public.v_upi_institution_profile_readiness;
+
+CREATE VIEW public.v_upi_institution_profile_readiness AS
 SELECT
   i.id,
   i.name,
@@ -39,8 +42,6 @@ SELECT
   i.profile_source_url,
   i.profile_source_type,
   i.profile_source_reference,
-  i.approximate_tuition_range IS NOT NULL AND trim(i.approximate_tuition_range) <> '' AS has_guidance_tuition_range,
-  i.approximate_deposit_range IS NOT NULL AND trim(i.approximate_deposit_range) <> '' AS has_guidance_deposit_range,
   (
     SELECT count(*)::integer
     FROM public.upi_institution_contacts c
@@ -53,7 +54,9 @@ SELECT
       AND c.is_active = true
       AND c.email IS NOT NULL
       AND trim(c.email) <> ''
-  ) AS active_contact_with_email_count
+  ) AS active_contact_with_email_count,
+  i.approximate_tuition_range IS NOT NULL AND trim(i.approximate_tuition_range) <> '' AS has_guidance_tuition_range,
+  i.approximate_deposit_range IS NOT NULL AND trim(i.approximate_deposit_range) <> '' AS has_guidance_deposit_range
 FROM public.upi_institutions i;
 
 COMMENT ON VIEW public.v_upi_institution_profile_readiness IS
