@@ -13,6 +13,7 @@ import { printSalarySlip, isPayrollSlipCycle } from "../lib/salarySlip";
 import { downloadPayrollRegister, linesToRegisterRows, printRegisterPdf, printBatchSalarySlips } from "../lib/payrollExport";
 import {
   buildBankTransferRows,
+  confirmBankTransferExport,
   downloadBankTransferCsv,
   bankTransferValidation,
   formatBankTransferSummary,
@@ -438,18 +439,8 @@ export default function HrVerifyPage() {
       return;
     }
     const rows = buildBankTransferRows(filtered);
-    const { missingBank, unverified, totalNet } = bankTransferValidation(rows);
-    if (missingBank.length) {
-      const proceed = confirm(
-        `${missingBank.length} employee(s) missing bank account/IFSC. Export anyway?`,
-      );
-      if (!proceed) return;
-    } else if (unverified.length) {
-      const proceed = confirm(
-        `${unverified.length} employee(s) have unverified bank details. Export anyway?`,
-      );
-      if (!proceed) return;
-    }
+    const { totalNet } = bankTransferValidation(rows);
+    if (!confirmBankTransferExport(rows)) return;
     downloadBankTransferCsv(rows, exportFileStem);
     fire(`Bank file exported · ${formatBankTransferSummary(totalNet)}`);
   };

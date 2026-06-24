@@ -1,4 +1,4 @@
-import { formatMoney } from "./format";
+import { employeeCurrency, formatMoney } from "./format";
 import type { EmployeeRow, PayrollLineRow } from "./types";
 
 export type BankTransferRow = {
@@ -14,6 +14,23 @@ export type BankTransferRow = {
   hasBankDetails: boolean;
 };
 
+/** Canada EFT: transit → bank_ifsc, institution → bank_branch (no separate schema columns). */
+export function isCanadaPayrollEmployee(e: {
+  payroll_country?: string | null;
+  salary_currency?: string | null;
+}): boolean {
+  return e.payroll_country === "CA" || e.salary_currency === "CAD";
+}
+
+export function employeeHasBankDetails(e: EmployeeRow): boolean {
+  const account = e.bank_account_number?.trim();
+  if (!account) return false;
+  if (isCanadaPayrollEmployee(e)) {
+    return Boolean(e.bank_ifsc?.trim() && e.bank_branch?.trim());
+  }
+  return Boolean(e.bank_ifsc?.trim());
+}
+
 export function buildBankTransferRows(
   lines: Array<PayrollLineRow & { employees?: EmployeeRow | null }>,
 ): BankTransferRow[] {
@@ -21,18 +38,18 @@ export function buildBankTransferRows(
     .filter((l) => l.employees)
     .map((l) => {
       const e = l.employees!;
-      const currency = e.salary_currency ?? "INR";
+      const currency = employeeCurrency(e);
       return {
         empCode: e.emp_code,
         fullName: e.bank_holder_name?.trim() || e.full_name,
         bankName: e.bank_name?.trim() || "",
         accountNumber: e.bank_account_number?.trim() || "",
         ifsc: e.bank_ifsc?.trim() || "",
-        branch: e.bank_branch?.trim() || e.branches?.name || "",
+        branch: e.bank_branch?.trim() || "",
         netSalary: l.net_salary,
         currency,
         bankVerified: e.bank_verified,
-        hasBankDetails: Boolean(e.bank_account_number?.trim() && e.bank_ifsc?.trim()),
+        hasBankDetails: employeeHasBankDetails(e),
       };
     })
     .sort((a, b) => a.empCode.localeCompare(b.empCode));
@@ -105,4 +122,21 @@ export function formatBankTransferSummary(totalNet: Record<string, number>): str
   return Object.entries(totalNet)
     .map(([cur, n]) => formatMoney(n, cur))
     .join(" · ");
+}
+
+/** Shared bank-export confirmation — used by Verify and Salary Register. */
+export function confirmBankTransferExport(rows: BankTransferRow[]): boolean {
+  const { missingBank, unverified } = bankTransferValidation(rows);
+  if (missingBank.length) {
+    const proceed = confirm(
+      `${missingBank.length} employee(s) missing required bank details. Export anyway?`,
+    );
+    if (!proceed) return false;
+  } else if (unverified.length) {
+    const proceed = confirm(
+      `${unverified.length} employee(s) have unverified bank details. Export anyway?`,
+    );
+    if (!proceed) return false;
+  }
+  return true;
 }

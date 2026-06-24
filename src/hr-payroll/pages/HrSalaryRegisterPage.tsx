@@ -5,6 +5,7 @@ import { useHrPayrollLines } from "../hooks/useHrPayroll";
 import { employeeCurrency, formatMoney, initials } from "../lib/format";
 import {
   buildBankTransferRows,
+  confirmBankTransferExport,
   bankTransferValidation,
   downloadBankTransferCsv,
   formatBankTransferSummary,
@@ -67,12 +68,10 @@ export default function HrSalaryRegisterPage() {
   const exportBank = () => {
     if (!cycle || !lines.length) return;
     const bankRows = buildBankTransferRows(lines);
-    const { missingBank, totalNet } = bankTransferValidation(bankRows);
-    if (missingBank.length && !confirm(`${missingBank.length} missing bank details. Export anyway?`)) {
-      return;
-    }
+    const { totalNet } = bankTransferValidation(bankRows);
+    if (!confirmBankTransferExport(bankRows)) return;
     downloadBankTransferCsv(bankRows, cycle.label);
-    fire(`Bank CSV exported · ${formatBankTransferSummary(totalNet)}`);
+    fire(`Bank file exported · ${formatBankTransferSummary(totalNet)}`);
   };
 
   const rowMoney = (line: (typeof lines)[0], n: number) =>

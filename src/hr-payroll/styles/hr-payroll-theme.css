@@ -473,6 +473,7 @@
 [data-hr-payroll] .stat-highlight .stat-val {
   font-size: 28px;
   font-weight: 700;
+  white-space: pre-line;
 }
 [data-hr-payroll] .stat-icon {
   position: absolute;

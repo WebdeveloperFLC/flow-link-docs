@@ -104,7 +104,7 @@ export const HR_SCREEN_TITLES: Record<HrScreenKey, string> = {
   mispunch: "Mispunch Management",
   holiday: "Holiday Calendar",
   payrollCycle: "Payroll Cycle Management",
-  calculator: "Payroll Processing",
+  calculator: "Payroll Calculator",
   verify: "Payroll Verification",
   salaryRegister: "Salary Register",
   payrollHistory: "Payroll History",

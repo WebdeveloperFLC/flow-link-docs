@@ -39,7 +39,7 @@ export const HR_NAV: NavGroup[] = [
   {
     grp: "Payroll",
     items: [
-      { k: "calculator", ic: "∑", t: "Payroll Processing" },
+      { k: "calculator", ic: "∑", t: "Payroll Calculator" },
       { k: "verify", ic: "▤", t: "Payroll Verification" },
       { k: "salaryRegister", ic: "▥", t: "Salary Register" },
       { k: "payrollHistory", ic: "◷", t: "Payroll History" },

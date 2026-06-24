@@ -140,4 +140,58 @@ describe("bankTransferExport", () => {
     expect(csv).toContain("HDFC0001234");
     expect(bankTransferValidation(rows).missingBank).toHaveLength(0);
   });
+
+  it("India requires account number and IFSC", () => {
+    const rows = buildBankTransferRows([
+      {
+        ...baseLine,
+        employees: {
+          emp_code: "IN01",
+          full_name: "India User",
+          bank_account_number: "1234567890",
+          bank_ifsc: "",
+          salary_currency: "INR",
+          payroll_country: "IN",
+        } as import("../../src/hr-payroll/lib/types").EmployeeRow,
+      },
+    ]);
+    expect(rows[0].hasBankDetails).toBe(false);
+    expect(bankTransferValidation(rows).missingBank).toHaveLength(1);
+  });
+
+  it("Canada requires account, transit (ifsc), and institution (branch)", () => {
+    const complete = buildBankTransferRows([
+      {
+        ...baseLine,
+        employees: {
+          emp_code: "CA01",
+          full_name: "Canada User",
+          bank_account_number: "1234567",
+          bank_ifsc: "12345",
+          bank_branch: "003",
+          bank_verified: true,
+          salary_currency: "CAD",
+          payroll_country: "CA",
+        } as import("../../src/hr-payroll/lib/types").EmployeeRow,
+      },
+    ]);
+    expect(complete[0].hasBankDetails).toBe(true);
+    expect(bankTransferValidation(complete).missingBank).toHaveLength(0);
+
+    const missingInstitution = buildBankTransferRows([
+      {
+        ...baseLine,
+        employees: {
+          emp_code: "CA02",
+          full_name: "Canada Incomplete",
+          bank_account_number: "1234567",
+          bank_ifsc: "12345",
+          bank_branch: "",
+          salary_currency: "CAD",
+          payroll_country: "CA",
+        } as import("../../src/hr-payroll/lib/types").EmployeeRow,
+      },
+    ]);
+    expect(missingInstitution[0].hasBankDetails).toBe(false);
+  });
 });

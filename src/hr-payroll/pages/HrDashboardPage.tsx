@@ -22,7 +22,7 @@ import {
   useHrMispunchRequests,
 } from "../hooks/useHrRequests";
 import { Stat } from "../components/ui/Stat";
-import { inr, initials } from "../lib/format";
+import { employeeCurrency, formatMoney, initials } from "../lib/format";
 import { totalPendingApprovals } from "../lib/nav";
 import type { PayrollLineRow } from "../lib/types";
 
@@ -60,12 +60,29 @@ export default function HrDashboardPage() {
           code: e.emp_code,
           branch: e.branches?.name ?? "—",
           net: l?.net_salary ?? 0,
+          currency: employeeCurrency(e),
         };
       }),
     [employees, lineByEmp],
   );
 
-  const liability = rows.reduce((s, r) => s + r.net, 0);
+  const liabilityByCurrency = useMemo(() => {
+    const totals: Record<string, number> = {};
+    for (const r of rows) {
+      totals[r.currency] = (totals[r.currency] ?? 0) + r.net;
+    }
+    return totals;
+  }, [rows]);
+
+  const liabilityDisplay = useMemo(() => {
+    const entries = Object.entries(liabilityByCurrency).filter(([, n]) => n !== 0);
+    if (!entries.length) return "—";
+    return entries
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([cur, n]) => `${cur}: ${formatMoney(n, cur)}`)
+      .join("\n");
+  }, [liabilityByCurrency]);
+
   const pendingTotal = totalPendingApprovals(pendingCounts);
 
   const queue = useMemo(
@@ -178,8 +195,8 @@ export default function HrDashboardPage() {
           variant="highlight"
           tone="indigo"
           lab="Net Payroll"
-          val={inr(liability)}
-          meta="current cycle"
+          val={liabilityDisplay}
+          meta="current cycle · by currency"
         />
         <Stat
           variant="highlight"
@@ -275,7 +292,7 @@ export default function HrDashboardPage() {
               Payroll Cycle Management
             </button>
             <button type="button" className="btn" onClick={() => navigate("/hr/payroll/process")}>
-              Payroll Processing
+              Payroll Calculator
             </button>
             <button type="button" className="btn" onClick={() => navigate("/hr/payroll/verify")}>
               Payroll Verification
@@ -322,7 +339,7 @@ export default function HrDashboardPage() {
                         </div>
                       </td>
                       <td>{r.branch}</td>
-                      <td className="mono strong">{inr(r.net)}</td>
+                      <td className="mono strong">{formatMoney(r.net, r.currency)}</td>
                     </tr>
                   ))}
               </tbody>

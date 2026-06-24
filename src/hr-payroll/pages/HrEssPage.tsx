@@ -30,7 +30,7 @@ import { formatWorkDate } from "../lib/attendanceMetrics";
 import { resolvePunchSession } from "../lib/punchSession";
 import { timezoneForEmployee, todayIsoInTz } from "../lib/employeeTimezone";
 import { essAttendanceStatus } from "../lib/attendanceStatus";
-import { formatMoney } from "../lib/format";
+import { employeeCurrency, formatMoney } from "../lib/format";
 import { printSalarySlip, isPayrollSlipCycle } from "../lib/salarySlip";
 import { buildStatutoryBreakdown } from "../lib/payrollBreakdown";
 import { PayrollBreakdownPanel } from "../components/payroll/PayrollBreakdownPanel";
@@ -87,7 +87,9 @@ export default function HrEssPage() {
   const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, tz, fire);
 
   const attStatus = essAttendanceStatus(todayRow);
-  const money = (n: number) => formatMoney(n, emp?.salary_currency ?? "INR");
+  const currency = employeeCurrency(emp);
+  const isCanada = currency === "CAD" || emp?.payroll_country === "CA";
+  const money = (n: number) => formatMoney(n, currency);
 
   const setupMyProfile = async () => {
     setSetupBusy(true);
@@ -180,10 +182,10 @@ export default function HrEssPage() {
   const statutory = line && emp ? buildStatutoryBreakdown(line, emp) : null;
 
   const deductions = [
-    ["PF", money(line?.pf_employee ?? 0)],
-    ["ESIC", money(line?.esic_employee ?? 0)],
+    [isCanada ? "CPP" : "PF", money(line?.pf_employee ?? 0)],
+    [isCanada ? "EI" : "ESIC", money(line?.esic_employee ?? 0)],
     ...(statutory && statutory.ptEmployee > 0
-      ? [["Professional tax (PT)", money(statutory.ptEmployee)] as const]
+      ? [[isCanada ? "Income Tax" : "Professional tax (PT)", money(statutory.ptEmployee)] as const]
       : []),
     ...(statutory && statutory.tdsLine > 0
       ? [["TDS / other statutory", money(statutory.tdsLine)] as const]
