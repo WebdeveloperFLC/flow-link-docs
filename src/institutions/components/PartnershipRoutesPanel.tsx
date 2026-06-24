@@ -39,6 +39,7 @@ import {
   validateCommissionSlabs,
   validatePartnershipRouteSave,
 } from "../lib/partnershipRoutes";
+import { RecruitmentChannelsSummary } from "./RecruitmentChannelsSummary";
 
 type SlabRow = { min_students: string; max_students: string; amount: string };
 
@@ -323,6 +324,13 @@ export function PartnershipRoutesPanel({
 
   return (
     <Card className="p-6 space-y-4 max-w-3xl">
+      <RecruitmentChannelsSummary
+        institutionId={institutionId}
+        routes={routes}
+        loading={loading}
+        embedded
+      />
+
       <div>
         <div className="text-sm font-medium">Catalog & partnerships</div>
         <p className="text-xs text-muted-foreground mt-1">

@@ -525,6 +525,17 @@ export default function InstitutionDetailPage() {
 
           <TabsContent value="overview" className="space-y-6">
             <OverviewPanel institutionId={id} />
+            <PartnershipRoutesPanel
+              institutionId={id}
+              catalogStatus={(inst.catalog_status ?? "promoted") as CatalogStatus}
+              promotionNotes={inst.promotion_notes ?? null}
+              institutionPortalUrl={inst.application_portal_url}
+              canEdit={canEdit}
+              onCatalogChange={(patch) => {
+                setInst({ ...inst, ...patch });
+                saveInst(patch);
+              }}
+            />
             <InstitutionGovernancePanel
               institution={inst}
               canEdit={canEdit}
@@ -536,17 +547,6 @@ export default function InstitutionDetailPage() {
               canEdit={canEdit}
               onChange={(patch) => setInst({ ...inst, ...patch })}
               onSave={saveInst}
-            />
-            <PartnershipRoutesPanel
-              institutionId={id}
-              catalogStatus={(inst.catalog_status ?? "promoted") as CatalogStatus}
-              promotionNotes={inst.promotion_notes ?? null}
-              institutionPortalUrl={inst.application_portal_url}
-              canEdit={canEdit}
-              onCatalogChange={(patch) => {
-                setInst({ ...inst, ...patch });
-                saveInst(patch);
-              }}
             />
             {Object.keys(inst.metadata ?? {}).length > 0 && (
               <Card className="p-6 space-y-3 max-w-3xl">

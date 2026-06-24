@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CountrySelect } from "@/components/leads/CountrySelect";
 import { InstitutionLogoField } from "./InstitutionLogoField";
-import type { ApplicationMethod, ProfileSourceType, UpiInstitution } from "../types/upi";
+import type { ProfileSourceType, UpiInstitution } from "../types/upi";
 import {
   useInstitutionContactCountries,
 } from "../lib/institutionContactCountries";
@@ -23,15 +23,6 @@ const INSTITUTION_TYPES = [
   "Language School",
   "Other",
 ] as const;
-
-const APPLICATION_METHODS: ApplicationMethod[] = [
-  "Direct",
-  "Agent Portal",
-  "OCAS",
-  "ApplyBoard",
-  "IDP",
-  "Other",
-];
 
 const PROFILE_SOURCE_TYPES: ProfileSourceType[] = [
   "WEBSITE",
@@ -352,28 +343,9 @@ export function InstitutionProfileOverview({ institutionId, inst, canEdit, onCha
               onBlur={(e) => canEdit && void onSave({ processing_time: e.target.value || null })}
             />
           </div>
-          <div className="space-y-1">
-            <Label>Application method</Label>
-            <Select
-              disabled={!canEdit}
-              value={inst.application_method ?? ""}
-              onValueChange={(v) => {
-                onChange({ application_method: v });
-                void onSave({ application_method: v });
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select method" />
-              </SelectTrigger>
-              <SelectContent>
-                {APPLICATION_METHODS.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {m}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <p className="text-xs text-muted-foreground">
+            Application pathways (direct tie-up, aggregators, student direct) are managed in Catalog &amp; partnerships above.
+          </p>
           <div className="space-y-1">
             <Label>Public description</Label>
             <Textarea

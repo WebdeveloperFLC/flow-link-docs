@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   channelLabel,
   DIRECT_ROUTE_EXISTS_MESSAGE,
+  buildRecruitmentChannelSummary,
   findActiveDirectRoute,
   formatPartnershipRouteSaveError,
   formatCommissionSummary,
@@ -172,5 +173,52 @@ describe("direct route uniqueness", () => {
           'duplicate key value violates unique constraint "idx_upi_partnership_routes_direct_unique"',
       }),
     ).toBe(DIRECT_ROUTE_EXISTS_MESSAGE);
+  });
+});
+
+describe("buildRecruitmentChannelSummary", () => {
+  it("lists all active channels and default route", () => {
+    const summary = buildRecruitmentChannelSummary([
+      base({
+        id: "direct",
+        channel_type: "direct",
+        display_name: "Direct tie-up",
+        is_default_route: true,
+      }),
+      base({
+        id: "applyboard",
+        channel_type: "indirect",
+        display_name: "ApplyBoard route",
+        aggregator: { id: "a1", name: "ApplyBoard", short_code: "AB" } as any,
+      }),
+      base({
+        id: "student",
+        channel_type: "student_direct",
+        display_name: "Student applies directly",
+      }),
+    ]);
+
+    expect(summary.directTieUp.active).toBe(true);
+    expect(summary.aggregators.map((a) => a.name)).toEqual(["ApplyBoard"]);
+    expect(summary.studentDirect.active).toBe(true);
+    expect(summary.defaultRoute?.id).toBe("direct");
+    expect(summary.hasAnyActiveChannel).toBe(true);
+  });
+
+  it("shows unavailable channels when only indirect routes exist", () => {
+    const summary = buildRecruitmentChannelSummary([
+      base({
+        id: "navitas",
+        channel_type: "indirect",
+        display_name: "Navitas",
+        aggregator: { id: "n1", name: "Navitas", short_code: null } as any,
+        is_default_route: true,
+      }),
+    ]);
+
+    expect(summary.directTieUp.active).toBe(false);
+    expect(summary.studentDirect.active).toBe(false);
+    expect(summary.aggregators).toHaveLength(1);
+    expect(summary.defaultRoute?.display_name).toBe("Navitas");
   });
 });

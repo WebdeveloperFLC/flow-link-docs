@@ -270,3 +270,46 @@ export function formatPartnershipRouteSaveError(
   }
   return "This partnership route already exists. Edit the existing route instead.";
 }
+
+export type AggregatorChannelSummary = {
+  routeId: string;
+  name: string;
+  displayName: string;
+  isDefault: boolean;
+};
+
+export type RecruitmentChannelSummary = {
+  directTieUp: { active: boolean; route: UpiPartnershipRoute | null };
+  aggregators: AggregatorChannelSummary[];
+  studentDirect: { active: boolean; route: UpiPartnershipRoute | null };
+  defaultRoute: UpiPartnershipRoute | null;
+  hasAnyActiveChannel: boolean;
+};
+
+export function buildRecruitmentChannelSummary(
+  routes: UpiPartnershipRoute[],
+  legacyDirectPartner = false,
+): RecruitmentChannelSummary {
+  const active = routes.filter((r) => r.status === "active");
+  const directRoute = active.find((r) => r.channel_type === "direct") ?? null;
+  const directTieUpActive = !!directRoute || (legacyDirectPartner && active.length === 0);
+  const studentDirectRoute = active.find((r) => r.channel_type === "student_direct") ?? null;
+  const aggregators = active
+    .filter((r) => r.channel_type === "indirect")
+    .map((r) => ({
+      routeId: r.id,
+      name: r.aggregator?.name ?? r.display_name,
+      displayName: r.display_name,
+      isDefault: r.is_default_route,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const defaultRoute = active.find((r) => r.is_default_route) ?? null;
+
+  return {
+    directTieUp: { active: directTieUpActive, route: directRoute },
+    aggregators,
+    studentDirect: { active: !!studentDirectRoute, route: studentDirectRoute },
+    defaultRoute,
+    hasAnyActiveChannel: directTieUpActive || aggregators.length > 0 || !!studentDirectRoute,
+  };
+}
