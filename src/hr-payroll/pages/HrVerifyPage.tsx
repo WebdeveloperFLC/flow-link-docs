@@ -306,6 +306,12 @@ export default function HrVerifyPage() {
   const cycleStatus = workflowCycle?.status ?? "Draft";
   const locked = cycleStatus === "Locked" || cycleStatus === "Paid";
   const editable = canRunCycleWorkflow && ["Draft", "Processed", "Approved"].includes(cycleStatus);
+  const canReopenCycle =
+    canRunCycleWorkflow &&
+    (cycleStatus === "Processed" ||
+      cycleStatus === "Approved" ||
+      cycleStatus === "Locked" ||
+      cycleStatus === "Paid");
 
   const refreshCycle = async () => {
     await qc.invalidateQueries({ queryKey: ["hr-payroll-cycle"] });
@@ -525,19 +531,19 @@ export default function HrVerifyPage() {
                 </button>
               )}
               {cycleStatus === "Locked" && (
-                <>
-                  <button type="button" className="btn btn-good btn-sm" onClick={() => void markPaid()}>
-                    Mark paid
-                  </button>
-                  <button type="button" className="btn btn-sm" onClick={() => setReopenOpen(true)}>
-                    Reopen
-                  </button>
-                </>
+                <button type="button" className="btn btn-good btn-sm" onClick={() => void markPaid()}>
+                  Mark paid
+                </button>
               )}
               {cycleStatus === "Paid" && (
                 <span className="tag" style={{ color: "var(--good)" }}>
                   Disbursement complete
                 </span>
+              )}
+              {canReopenCycle && (
+                <button type="button" className="btn btn-sm" onClick={() => setReopenOpen(true)}>
+                  Reset to Draft
+                </button>
               )}
             </>
           )}
@@ -853,7 +859,7 @@ export default function HrVerifyPage() {
 
       {reopenOpen && (
         <ModalShell
-          title="Reopen payroll cycle"
+          title="Reset payroll cycle to Draft"
           onClose={() => setReopenOpen(false)}
           footer={
             <>
@@ -861,12 +867,13 @@ export default function HrVerifyPage() {
                 Cancel
               </button>
               <button type="button" className="btn btn-primary" onClick={() => void reopenCycle()}>
-                Reopen cycle
+                Reset to Draft
               </button>
             </>
           }
         >
           <p style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 12 }}>
+            Clears Processed / Approved / Locked / Paid status so you can run the payroll workflow again.
             Attendance edits will be allowed again. Provide a reason for the audit trail.
           </p>
           <label className="fld">

@@ -1,6 +1,8 @@
 import {
   buildPayableDaysBreakdown,
+  buildEmployerStatutoryBreakdown,
   buildStatutoryBreakdown,
+  employerStatutorySteps,
   parseRollupSnapshot,
   payableDaysSteps,
   splitAttendanceDays,
@@ -89,6 +91,7 @@ export function PayrollBreakdownPanel({
   const parsed = parseRollupSnapshot(snapshot ?? line.input_snapshot);
   const payable = buildPayableDaysBreakdown(line, cycle, parsed, attendanceSplit);
   const statutory = buildStatutoryBreakdown(line, emp);
+  const employer = buildEmployerStatutoryBreakdown(line, emp);
   const cur = employeeCurrency(emp);
   const money = (n: number) => formatMoney(n, cur);
 
@@ -106,6 +109,16 @@ export function PayrollBreakdownPanel({
           steps={statutorySteps(statutory)}
           money={money}
         />
+      </div>
+      {employer.show && (
+        <StepTable
+          title="Employer statutory contributions"
+          steps={employerStatutorySteps(employer)}
+          money={money}
+        />
+      )}
+      <div className="payroll-bd-formula-hint muted" style={{ fontSize: 12, marginTop: -8 }}>
+        Employer PF/ESIC (or CPP/EI) are company cost — not deducted from employee net pay.
       </div>
       <div className="payroll-bd-formula">
         {payable.formulaMode === "earned" ? (

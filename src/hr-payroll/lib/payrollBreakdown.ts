@@ -45,6 +45,22 @@ export type StatutoryBreakdown = {
   isCanada: boolean;
 };
 
+/** India ESIC rates aligned with fn_compute_payroll (display-only employer share). */
+export const ESIC_EMPLOYEE_RATE = 0.0075;
+export const ESIC_EMPLOYER_RATE = 0.0325;
+export const ESIC_WAGE_CEILING = 21000;
+/** Canada EI employer share ≈ 1.4× employee rate (federal default). */
+export const EI_EMPLOYER_MULTIPLIER = 2.324 / 1.66;
+
+export type EmployerStatutoryBreakdown = {
+  pfEmployer: number;
+  esicEmployer: number;
+  cppEmployer: number;
+  eiEmployer: number;
+  isCanada: boolean;
+  show: boolean;
+};
+
 const UL_MULT = 2;
 
 /** Split Week Off vs Holiday from attendance register (source of truth). */
@@ -162,6 +178,49 @@ export function buildStatutoryBreakdown(
   };
 }
 
+/** Employer statutory — informational only; not part of net pay (D8 report-only). */
+export function buildEmployerStatutoryBreakdown(
+  line: PayrollLineRow,
+  emp: EmployeeRow | null | undefined,
+): EmployerStatutoryBreakdown {
+  const isCanada =
+    emp?.payroll_country === "CA" || emp?.salary_currency === "CAD";
+
+  if (isCanada) {
+    const cppEmployer = line.pf_employee > 0 ? line.pf_employee : 0;
+    const eiEmployer =
+      line.esic_employee > 0
+        ? Math.round(line.esic_employee * EI_EMPLOYER_MULTIPLIER)
+        : 0;
+    return {
+      pfEmployer: 0,
+      esicEmployer: 0,
+      cppEmployer,
+      eiEmployer,
+      isCanada: true,
+      show: cppEmployer > 0 || eiEmployer > 0,
+    };
+  }
+
+  const pfEmployer =
+    emp?.pf_applicable && line.pf_employee > 0 ? line.pf_employee : 0;
+  const esicEmployer =
+    emp?.esic_applicable &&
+    (emp.monthly_gross ?? 0) <= ESIC_WAGE_CEILING &&
+    line.esic_employee > 0
+      ? Math.round(line.gross_earned * ESIC_EMPLOYER_RATE)
+      : 0;
+
+  return {
+    pfEmployer,
+    esicEmployer,
+    cppEmployer: 0,
+    eiEmployer: 0,
+    isCanada: false,
+    show: pfEmployer > 0 || esicEmployer > 0,
+  };
+}
+
 export type BreakdownStep = {
   label: string;
   value: number | string;
@@ -245,5 +304,26 @@ export function statutorySteps(s: StatutoryBreakdown): BreakdownStep[] {
       ? [{ label: "Other deductions", value: s.otherDeductions, tone: "deduct" as const }]
       : []),
     { label: "Net salary", value: s.netSalary, tone: "result" },
+  ];
+}
+
+export function employerStatutorySteps(e: EmployerStatutoryBreakdown): BreakdownStep[] {
+  if (e.isCanada) {
+    return [
+      ...(e.cppEmployer > 0
+        ? [{ label: "CPP (employer)", value: e.cppEmployer, tone: "neutral" as const }]
+        : []),
+      ...(e.eiEmployer > 0
+        ? [{ label: "EI (employer)", value: e.eiEmployer, tone: "neutral" as const }]
+        : []),
+    ];
+  }
+  return [
+    ...(e.pfEmployer > 0
+      ? [{ label: "PF (employer)", value: e.pfEmployer, tone: "neutral" as const }]
+      : []),
+    ...(e.esicEmployer > 0
+      ? [{ label: "ESIC (employer)", value: e.esicEmployer, tone: "neutral" as const }]
+      : []),
   ];
 }

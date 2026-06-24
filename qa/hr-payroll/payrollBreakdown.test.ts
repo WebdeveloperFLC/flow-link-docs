@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildEmployerStatutoryBreakdown,
   buildPayableDaysBreakdown,
   buildStatutoryBreakdown,
   splitAttendanceDays,
@@ -113,6 +114,38 @@ describe("buildStatutoryBreakdown", () => {
     expect(s.isCanada).toBe(true);
     expect(s.ptEmployee).toBe(0);
     expect(s.tdsLine).toBe(320);
+  });
+});
+
+describe("buildEmployerStatutoryBreakdown", () => {
+  it("India — PF employer matches employee; ESIC employer at 3.25%", () => {
+    const e = buildEmployerStatutoryBreakdown(
+      { ...baseLine, gross_earned: 40000, pf_employee: 2520, esic_employee: 300 },
+      {
+        ...({} as import("../../src/hr-payroll/lib/types").EmployeeRow),
+        pf_applicable: true,
+        esic_applicable: true,
+        monthly_gross: 20000,
+        salary_currency: "INR",
+      },
+    );
+    expect(e.pfEmployer).toBe(2520);
+    expect(e.esicEmployer).toBe(1300);
+    expect(e.show).toBe(true);
+  });
+
+  it("Canada — CPP employer matches employee; EI employer scaled", () => {
+    const e = buildEmployerStatutoryBreakdown(
+      { ...baseLine, pf_employee: 268, esic_employee: 75 },
+      {
+        ...({} as import("../../src/hr-payroll/lib/types").EmployeeRow),
+        payroll_country: "CA",
+        salary_currency: "CAD",
+      },
+    );
+    expect(e.cppEmployer).toBe(268);
+    expect(e.eiEmployer).toBe(Math.round(75 * (2.324 / 1.66)));
+    expect(e.show).toBe(true);
   });
 });
 
