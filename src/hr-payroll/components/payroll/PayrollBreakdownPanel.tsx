@@ -52,8 +52,12 @@ function StepTable({
       <table className="payroll-bd-table">
         <tbody>
           {steps.map((s) => {
-            const isNum = typeof s.value === "number";
-            const display = isNum ? (money ? money(s.value) : String(s.value)) : s.value;
+            const display =
+              typeof s.value === "number"
+                ? money
+                  ? money(s.value)
+                  : String(s.value)
+                : s.value;
             return (
               <tr key={s.label} className={s.tone ? `tone-${s.tone}` : undefined}>
                 <td>
