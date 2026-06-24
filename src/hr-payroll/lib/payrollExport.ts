@@ -34,6 +34,18 @@ export type PayrollRegisterRow = {
   pt_employee?: number;
   net_salary: number;
   is_overridden: boolean;
+  salary_package?: number;
+  structure_basic?: number;
+  structure_hra?: number;
+  structure_conveyance?: number;
+  structure_bonus?: number;
+  structure_other_allowances?: number;
+  total_earnings_a?: number;
+  employer_pf?: number;
+  employer_esic?: number;
+  total_employer_cost_b?: number;
+  structure_difference?: number;
+  tds_employee?: number;
 };
 
 const HEADERS = [
@@ -63,6 +75,18 @@ const HEADERS = [
   "PT",
   "Net",
   "Locked",
+  "CTC",
+  "Basic",
+  "HRA",
+  "Conveyance",
+  "StructBonus",
+  "OtherAllow",
+  "TotalA",
+  "ErPF",
+  "ErESIC",
+  "TotalB",
+  "Diff",
+  "TDS",
 ] as const;
 
 /** Columns before Gross (Employee … Daily). */
@@ -103,6 +127,18 @@ function rowValues(r: PayrollRegisterRow): (string | number)[] {
     r.pt_employee ?? 0,
     r.net_salary,
     r.cycle_status === "Locked" || r.cycle_status === "Paid" ? "Yes" : "No",
+    r.salary_package ?? 0,
+    r.structure_basic ?? 0,
+    r.structure_hra ?? 0,
+    r.structure_conveyance ?? 0,
+    r.structure_bonus ?? 0,
+    r.structure_other_allowances ?? 0,
+    r.total_earnings_a ?? 0,
+    r.employer_pf ?? 0,
+    r.employer_esic ?? 0,
+    r.total_employer_cost_b ?? 0,
+    r.structure_difference ?? 0,
+    r.tds_employee ?? 0,
   ];
 }
 
@@ -158,38 +194,11 @@ export function downloadPayrollRegister(
 }
 
 export function linesToRegisterRows(
-  lines: Array<{
-    employees?: {
-      full_name?: string;
-      emp_code?: string;
-      payroll_country?: string;
-      salary_currency?: string;
-      branches?: { name?: string } | null;
-      companies?: { name?: string } | null;
-    } | null;
-    mispunch_count: number;
-    late_count: number;
-    leaves_taken: number;
-    paid_leaves: number;
-    comp_off: number;
-    ul_count: number;
-    sandwich_count: number;
-    unpaid_training: number;
-    ot_minutes?: number;
-    ot_pay?: number;
-    late_deduction: number;
-    mispunch_deduction: number;
-    payable_days: number;
-    daily_rate: number;
-    gross_earned: number;
-    incentive: number;
-    bonus: number;
-    pf_employee: number;
-    esic_employee: number;
-    pt_employee?: number;
-    net_salary: number;
-    is_overridden: boolean;
-  }>,
+  lines: Array<
+    PayrollLineRow & {
+      employees?: EmployeeRow | null;
+    }
+  >,
   cycleLabel: string,
   cycleStatus: string,
 ): PayrollRegisterRow[] {
@@ -230,6 +239,18 @@ export function linesToRegisterRows(
       pt_employee: r.pt_employee ?? 0,
       net_salary: r.net_salary,
       is_overridden: r.is_overridden,
+      salary_package: r.salary_package,
+      structure_basic: r.structure_basic,
+      structure_hra: r.structure_hra,
+      structure_conveyance: r.structure_conveyance,
+      structure_bonus: r.structure_bonus,
+      structure_other_allowances: r.structure_other_allowances,
+      total_earnings_a: r.total_earnings_a ?? r.gross_earned,
+      employer_pf: r.employer_pf,
+      employer_esic: r.employer_esic,
+      total_employer_cost_b: r.total_employer_cost_b,
+      structure_difference: r.structure_difference,
+      tds_employee: r.employees?.tds_applicable ? r.employees?.other_deductions : 0,
     };
   });
 }

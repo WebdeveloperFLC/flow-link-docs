@@ -4,6 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../../lib/constants";
 import { fillSalaryComponents, formatMoney, parseEmergencyContacts, payrollCompanyLabel, weeklyOffDays } from "../../lib/format";
 import {
+  buildMonthlySalaryStructure,
+  DEFAULT_BONUS_PCT,
+  DEFAULT_EMPLOYEE_ESIC_PCT,
+  DEFAULT_EMPLOYER_ESIC_PCT,
+  DEFAULT_EMPLOYEE_PF_PCT,
+  DEFAULT_EMPLOYER_PF_PCT,
+} from "../../lib/salaryStructure";
+import {
   companiesForPayrollRegion,
   defaultPayrollEntityRegion,
   PAYROLL_ENTITY_REGIONS,
@@ -82,16 +90,26 @@ type FormState = {
   shift_change_reason: string;
   salary_currency: string;
   payroll_country: string;
+  salary_package: number | "";
   monthly_gross: number | "";
   basic: number | "";
   hra: number | "";
   conveyance: number | "";
+  bonus_percentage: number | "";
+  other_allowances: number | "";
   special_allow: number | "";
   incentive: number | "";
   bonus: number | "";
   pf_applicable: boolean;
   has_pf_account: boolean;
   has_esic_account: boolean;
+  employer_pf_applicable: boolean;
+  employer_esic_applicable: boolean;
+  employee_pf_pct: number | "";
+  employer_pf_pct: number | "";
+  employee_esic_pct: number | "";
+  employer_esic_pct: number | "";
+  professional_tax_amount: number | "";
   pf_number: string;
   uan: string;
   esic_applicable: boolean;
@@ -155,16 +173,26 @@ function fromEmployee(e: EmployeeRow): FormState {
     shift_change_reason: "",
     salary_currency: e.salary_currency ?? e.companies?.currency ?? "INR",
     payroll_country: e.payroll_country ?? "IN",
+    salary_package: e.salary_package ?? "",
     monthly_gross: e.monthly_gross,
     basic: e.basic,
     hra: e.hra,
     conveyance: e.conveyance,
+    bonus_percentage: e.bonus_percentage ?? DEFAULT_BONUS_PCT,
+    other_allowances: e.other_allowances ?? 0,
     special_allow: e.special_allow,
     incentive: e.incentive,
     bonus: e.bonus,
     pf_applicable: e.pf_applicable,
     has_pf_account: e.has_pf_account ?? e.pf_applicable,
     has_esic_account: e.has_esic_account ?? e.esic_applicable,
+    employer_pf_applicable: e.employer_pf_applicable ?? e.pf_applicable,
+    employer_esic_applicable: e.employer_esic_applicable ?? e.esic_applicable,
+    employee_pf_pct: e.employee_pf_pct ?? DEFAULT_EMPLOYEE_PF_PCT,
+    employer_pf_pct: e.employer_pf_pct ?? DEFAULT_EMPLOYER_PF_PCT,
+    employee_esic_pct: e.employee_esic_pct ?? DEFAULT_EMPLOYEE_ESIC_PCT,
+    employer_esic_pct: e.employer_esic_pct ?? DEFAULT_EMPLOYER_ESIC_PCT,
+    professional_tax_amount: e.professional_tax_amount ?? "",
     pf_number: e.pf_number ?? "",
     uan: e.uan ?? "",
     esic_applicable: e.esic_applicable,
@@ -236,16 +264,26 @@ const blank = (
   shift_change_reason: "",
   salary_currency: firstCo?.currency ?? "INR",
   payroll_country: "IN",
+  salary_package: "",
   monthly_gross: "",
   basic: "",
   hra: "",
   conveyance: "",
+  bonus_percentage: DEFAULT_BONUS_PCT,
+  other_allowances: 0,
   special_allow: "",
   incentive: 0,
   bonus: 0,
   pf_applicable: true,
   has_pf_account: true,
   has_esic_account: false,
+  employer_pf_applicable: true,
+  employer_esic_applicable: false,
+  employee_pf_pct: DEFAULT_EMPLOYEE_PF_PCT,
+  employer_pf_pct: DEFAULT_EMPLOYER_PF_PCT,
+  employee_esic_pct: DEFAULT_EMPLOYEE_ESIC_PCT,
+  employer_esic_pct: DEFAULT_EMPLOYER_ESIC_PCT,
+  professional_tax_amount: "",
   pf_number: "",
   uan: "",
   esic_applicable: false,
@@ -512,16 +550,27 @@ export function EmployeeFormModal({
       shift_id: f.shift_id || null,
       salary_currency: f.salary_currency,
       payroll_country: f.payroll_country,
+      salary_package: f.salary_package === "" ? null : Number(f.salary_package),
       monthly_gross: Number(f.monthly_gross),
       basic: Number(f.basic) || 0,
       hra: Number(f.hra) || 0,
       conveyance: Number(f.conveyance) || 0,
+      bonus_percentage: Number(f.bonus_percentage) || DEFAULT_BONUS_PCT,
+      other_allowances: Number(f.other_allowances) || 0,
       special_allow: Number(f.special_allow) || 0,
       incentive: Number(f.incentive) || 0,
       bonus: Number(f.bonus) || 0,
       pf_applicable: f.has_pf_account ? f.pf_applicable : false,
       has_pf_account: f.has_pf_account,
       has_esic_account: f.has_esic_account,
+      employer_pf_applicable: f.employer_pf_applicable,
+      employer_esic_applicable: f.employer_esic_applicable,
+      employee_pf_pct: Number(f.employee_pf_pct) || DEFAULT_EMPLOYEE_PF_PCT,
+      employer_pf_pct: Number(f.employer_pf_pct) || DEFAULT_EMPLOYER_PF_PCT,
+      employee_esic_pct: Number(f.employee_esic_pct) || DEFAULT_EMPLOYEE_ESIC_PCT,
+      employer_esic_pct: Number(f.employer_esic_pct) || DEFAULT_EMPLOYER_ESIC_PCT,
+      professional_tax_amount:
+        f.professional_tax_amount === "" ? null : Number(f.professional_tax_amount),
       pf_number: f.pf_number || null,
       uan: f.uan || null,
       esic_applicable: f.has_esic_account ? f.esic_applicable : false,
@@ -695,6 +744,31 @@ export function EmployeeFormModal({
     (Number(f.hra) || 0) +
     (Number(f.conveyance) || 0) +
     (Number(f.special_allow) || 0);
+
+  const structurePreview = buildMonthlySalaryStructure({
+    salaryPackage: f.salary_package === "" ? null : Number(f.salary_package),
+    monthlyGross: Number(f.monthly_gross) || 0,
+    basic: Number(f.basic) || 0,
+    hra: Number(f.hra) || 0,
+    conveyance: Number(f.conveyance) || 0,
+    bonusPercentage: Number(f.bonus_percentage) || DEFAULT_BONUS_PCT,
+    otherAllowances: Number(f.other_allowances) || 0,
+    pfApplicable: f.pf_applicable,
+    esicApplicable: f.esic_applicable,
+    employerPfApplicable: f.employer_pf_applicable,
+    employerEsicApplicable: f.employer_esic_applicable,
+    employeePfPct: Number(f.employee_pf_pct) || DEFAULT_EMPLOYEE_PF_PCT,
+    employerPfPct: Number(f.employer_pf_pct) || DEFAULT_EMPLOYER_PF_PCT,
+    employeeEsicPct: Number(f.employee_esic_pct) || DEFAULT_EMPLOYEE_ESIC_PCT,
+    employerEsicPct: Number(f.employer_esic_pct) || DEFAULT_EMPLOYER_ESIC_PCT,
+    professionalTaxAmount:
+      f.professional_tax_amount === "" ? null : Number(f.professional_tax_amount),
+    ptApplicable: f.pt_applicable,
+    tdsApplicable: f.tds_applicable,
+    otherDeductions: Number(f.other_deductions) || 0,
+    payrollCountry: f.payroll_country,
+    salaryCurrency: f.salary_currency,
+  }, ptDefaultAmount);
 
   const existingChequePath =
     chequeRemoved ? null : (sourceEmp?.security_cheque_storage_path ?? null);
@@ -1087,6 +1161,71 @@ export function EmployeeFormModal({
           )}
           {tab === "salary" && (
             <>
+              <div className="sec-label">Salary Structure (CTC)</div>
+              <div className="grid g2" style={{ gap: "0 16px" }}>
+                <label className="fld">
+                  <span className="l">Salary Package (CTC)</span>
+                  <input
+                    className="input mono"
+                    type="number"
+                    value={f.salary_package}
+                    onChange={(e) =>
+                      set("salary_package", e.target.value === "" ? "" : parseFloat(e.target.value))
+                    }
+                    placeholder="Optional — defaults to monthly gross"
+                  />
+                </label>
+                <label className="fld">
+                  <span className="l">Bonus Percentage (%)</span>
+                  <input
+                    className="input mono"
+                    type="number"
+                    step="0.01"
+                    value={f.bonus_percentage}
+                    onChange={(e) =>
+                      set("bonus_percentage", e.target.value === "" ? "" : parseFloat(e.target.value))
+                    }
+                  />
+                </label>
+                {(["basic", "hra", "conveyance"] as const).map((k) => (
+                  <label key={k} className="fld">
+                    <span className="l">{k === "basic" ? "Basic Salary" : k === "hra" ? "HRA" : "Conveyance Allowance"}</span>
+                    <input
+                      className="input mono"
+                      type="number"
+                      value={f[k]}
+                      onChange={(e) =>
+                        set(k, e.target.value === "" ? "" : parseFloat(e.target.value))
+                      }
+                    />
+                  </label>
+                ))}
+                <label className="fld">
+                  <span className="l">Other Allowances</span>
+                  <input
+                    className="input mono"
+                    type="number"
+                    value={f.other_allowances}
+                    onChange={(e) =>
+                      set("other_allowances", e.target.value === "" ? "" : parseFloat(e.target.value))
+                    }
+                  />
+                </label>
+              </div>
+              <div className="card" style={{ padding: 12, marginTop: 12, background: "var(--paper)" }}>
+                <div className="sec-label" style={{ marginTop: 0 }}>Calculated structure</div>
+                <div className="grid g2" style={{ gap: 4, fontSize: 13 }}>
+                  <span>Bonus Amount</span>
+                  <span className="mono">{formatMoney(structurePreview.bonusAmount, f.salary_currency)}</span>
+                  <span className="strong">Total Earnings (A)</span>
+                  <span className="mono strong">{formatMoney(structurePreview.totalEarningsA, f.salary_currency)}</span>
+                  <span>Total Employer Cost (B)</span>
+                  <span className="mono">{formatMoney(structurePreview.totalEmployerCostB, f.salary_currency)}</span>
+                  <span>Difference (CTC − A − B)</span>
+                  <span className="mono">{formatMoney(structurePreview.difference, f.salary_currency)}</span>
+                </div>
+              </div>
+              <div className="sec-label" style={{ marginTop: 16 }}>Legacy salary fields (unchanged)</div>
               <label className="fld">
                 <span className="l">
                   Monthly Gross Salary ({f.salary_currency === "CAD" ? "CAD" : "₹"}) — fills components
@@ -1176,6 +1315,73 @@ export function EmployeeFormModal({
                 </label>
               )}
               {T("esic_number", "ESIC Number")}
+              <div className="sec-label">Employer contributions</div>
+              <label className="row-flex" style={{ fontSize: 13, marginBottom: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={f.employer_pf_applicable}
+                  onChange={(e) => set("employer_pf_applicable", e.target.checked)}
+                />
+                Employer PF Applicable
+              </label>
+              <label className="row-flex" style={{ fontSize: 13, marginBottom: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={f.employer_esic_applicable}
+                  onChange={(e) => set("employer_esic_applicable", e.target.checked)}
+                />
+                Employer ESIC Applicable
+              </label>
+              <div className="grid g2" style={{ gap: "0 16px" }}>
+                <label className="fld">
+                  <span className="l">Employee PF %</span>
+                  <input
+                    className="input mono"
+                    type="number"
+                    step="0.01"
+                    value={f.employee_pf_pct}
+                    onChange={(e) =>
+                      set("employee_pf_pct", e.target.value === "" ? "" : parseFloat(e.target.value))
+                    }
+                  />
+                </label>
+                <label className="fld">
+                  <span className="l">Employer PF %</span>
+                  <input
+                    className="input mono"
+                    type="number"
+                    step="0.01"
+                    value={f.employer_pf_pct}
+                    onChange={(e) =>
+                      set("employer_pf_pct", e.target.value === "" ? "" : parseFloat(e.target.value))
+                    }
+                  />
+                </label>
+                <label className="fld">
+                  <span className="l">Employee ESIC %</span>
+                  <input
+                    className="input mono"
+                    type="number"
+                    step="0.001"
+                    value={f.employee_esic_pct}
+                    onChange={(e) =>
+                      set("employee_esic_pct", e.target.value === "" ? "" : parseFloat(e.target.value))
+                    }
+                  />
+                </label>
+                <label className="fld">
+                  <span className="l">Employer ESIC %</span>
+                  <input
+                    className="input mono"
+                    type="number"
+                    step="0.01"
+                    value={f.employer_esic_pct}
+                    onChange={(e) =>
+                      set("employer_esic_pct", e.target.value === "" ? "" : parseFloat(e.target.value))
+                    }
+                  />
+                </label>
+              </div>
               <div className="sec-label">Professional Tax</div>
               <label className="row-flex" style={{ fontSize: 13, marginBottom: 8 }}>
                 <input
@@ -1184,6 +1390,21 @@ export function EmployeeFormModal({
                   onChange={(e) => set("pt_applicable", e.target.checked)}
                 />
                 PT Applicable (default ₹{ptDefaultAmount.toLocaleString("en-IN")} — change in Payroll Config)
+              </label>
+              <label className="fld">
+                <span className="l">Professional Tax Amount (override)</span>
+                <input
+                  className="input mono"
+                  type="number"
+                  value={f.professional_tax_amount}
+                  onChange={(e) =>
+                    set(
+                      "professional_tax_amount",
+                      e.target.value === "" ? "" : parseFloat(e.target.value),
+                    )
+                  }
+                  placeholder={`Default ₹${ptDefaultAmount}`}
+                />
               </label>
               <div className="sec-label">Other deductions</div>
               <div className="grid g2" style={{ gap: "0 16px" }}>

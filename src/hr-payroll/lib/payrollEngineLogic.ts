@@ -37,7 +37,105 @@ export type PayrollEngineInput = {
   formulaMode?: "legacy" | "earned";
   payrollDaysEffective?: number;
   attendanceEarned?: number;
+  /** Phase 1 salary structure — when true, uses structure fields (India only) */
+  structureEnabled?: boolean;
+  structure?: SalaryStructureResolved;
 };
+
+/** Monthly structure resolved from employee master (mirrors fn_resolve_employee_salary_structure). */
+export type SalaryStructureResolved = {
+  salaryPackage: number;
+  basic: number;
+  hra: number;
+  conveyance: number;
+  bonusPercentage: number;
+  bonusAmount: number;
+  otherAllowances: number;
+  totalEarningsA: number;
+  employeePfPct: number;
+  employerPfPct: number;
+  employeeEsicPct: number;
+  employerEsicPct: number;
+  employerPfApplicable: boolean;
+  employerEsicApplicable: boolean;
+  ptAmount: number;
+  employerPf: number;
+  employerEsic: number;
+  totalEmployerCostB: number;
+  structureDifference: number;
+};
+
+export function resolveEmployeeSalaryStructure(
+  emp: {
+    salaryPackage?: number | null;
+    basic?: number;
+    hra?: number;
+    conveyance?: number;
+    bonusPercentage?: number | null;
+    otherAllowances?: number;
+    pfApplicable?: boolean;
+    esicApplicable?: boolean;
+    employerPfApplicable?: boolean;
+    employerEsicApplicable?: boolean;
+    employeePfPct?: number;
+    employerPfPct?: number;
+    employeeEsicPct?: number;
+    employerEsicPct?: number;
+    ptApplicable?: boolean;
+    professionalTaxAmount?: number | null;
+  },
+  ptDefault = 200,
+): SalaryStructureResolved {
+  const basic = emp.basic ?? 0;
+  const hra = emp.hra ?? 0;
+  const conveyance = emp.conveyance ?? 0;
+  const other = emp.otherAllowances ?? 0;
+  const bonusPct = emp.bonusPercentage ?? 8.33;
+  const bonusAmount = Math.round((basic * bonusPct) / 100);
+  const totalEarningsA = basic + hra + conveyance + bonusAmount + other;
+  const salaryPackage = emp.salaryPackage ?? totalEarningsA;
+  const pfWage = Math.min(basic, 15000);
+  const ptAmount =
+    emp.ptApplicable ? (emp.professionalTaxAmount ?? ptDefault) : 0;
+
+  let employerPf = 0;
+  let employerEsic = 0;
+  if ((emp.employerPfApplicable ?? emp.pfApplicable) && emp.pfApplicable) {
+    employerPf = Math.round((pfWage * (emp.employerPfPct ?? 12)) / 100);
+  }
+  if (
+    (emp.employerEsicApplicable ?? emp.esicApplicable) &&
+    emp.esicApplicable &&
+    totalEarningsA <= 21000
+  ) {
+    employerEsic = Math.round((totalEarningsA * (emp.employerEsicPct ?? 3.25)) / 100);
+  }
+
+  const totalEmployerCostB = employerPf + employerEsic;
+  const structureDifference = Math.round(salaryPackage - (totalEarningsA + totalEmployerCostB));
+
+  return {
+    salaryPackage,
+    basic,
+    hra,
+    conveyance,
+    bonusPercentage: bonusPct,
+    bonusAmount,
+    otherAllowances: other,
+    totalEarningsA,
+    employeePfPct: emp.employeePfPct ?? 12,
+    employerPfPct: emp.employerPfPct ?? 12,
+    employeeEsicPct: emp.employeeEsicPct ?? 0.75,
+    employerEsicPct: emp.employerEsicPct ?? 3.25,
+    employerPfApplicable: emp.employerPfApplicable ?? !!emp.pfApplicable,
+    employerEsicApplicable: emp.employerEsicApplicable ?? !!emp.esicApplicable,
+    ptAmount,
+    employerPf,
+    employerEsic,
+    totalEmployerCostB,
+    structureDifference,
+  };
+}
 
 export type PayrollEngineResult = {
   lateDeduction: number;
@@ -51,6 +149,18 @@ export type PayrollEngineResult = {
   incentive: number;
   bonus: number;
   netSalary: number;
+  salaryStructureMode?: boolean;
+  salaryPackage?: number;
+  structureBasic?: number;
+  structureHra?: number;
+  structureConveyance?: number;
+  structureBonus?: number;
+  structureOtherAllowances?: number;
+  totalEarningsA?: number;
+  employerPf?: number;
+  employerEsic?: number;
+  totalEmployerCostB?: number;
+  structureDifference?: number;
 };
 
 export function lateDeductionDays(late: number): number {
@@ -95,25 +205,57 @@ export function canadaIncomeTax(
   return Math.round(tax / 12);
 }
 
-export function computePayroll(input: PayrollEngineInput): PayrollEngineResult {
+export type SalaryPayableDaysResult = {
+  formulaMode: "legacy" | "earned";
+  payrollDays: number;
+  payrollDaysEffective?: number | null;
+  attendanceEarned?: number | null;
+  leavesTaken: number;
+  paidLeaves: number;
+  compOff: number;
+  lateCount: number;
+  lateDeduction: number;
+  mispunchCount: number;
+  mispunchDeduction: number;
+  ulCount: number;
+  ulDeductionDays: number;
+  sandwichDeduction: number;
+  unpaidTraining: number;
+  payableDays: number;
+  dailyRateDivisor: number;
+};
+
+/** Step 1 — attendance-driven payable days (mirrors fn_compute_salary_payable_days). */
+export function computeSalaryPayableDays(input: {
+  payrollDays: number;
+  leaves?: number;
+  paidLeaves?: number;
+  late?: number;
+  ul?: number;
+  sandwich?: number;
+  mispunch?: number;
+  compoff?: number;
+  unpaidTraining?: number;
+  ulMult?: number;
+  formulaMode?: "legacy" | "earned";
+  payrollDaysEffective?: number;
+  attendanceEarned?: number;
+}): SalaryPayableDaysResult {
   const k = lateDeductionDays(input.late ?? 0);
-  const n = mispunchDeductionDays(input.mispunch ?? 0, input.freeMispunch ?? 2);
+  const n = mispunchDeductionDays(input.mispunch ?? 0);
   const ulMult = input.ulMult ?? 2;
   const formulaMode = input.formulaMode ?? "legacy";
+  const ulDed = (input.ul ?? 0) * ulMult;
 
   let payable: number;
-  let daily: number;
+  let divisor: number;
+  let attendanceEarned: number | null = null;
 
   if (formulaMode === "earned") {
+    attendanceEarned = input.attendanceEarned ?? 0;
     payable =
-      (input.attendanceEarned ?? 0) -
-      k -
-      (input.ul ?? 0) * ulMult -
-      (input.sandwich ?? 0) -
-      n -
-      (input.unpaidTraining ?? 0);
-    const divisor = input.payrollDaysEffective ?? input.payrollDays;
-    daily = Math.round((input.monthly / divisor) * 100) / 100;
+      attendanceEarned - k - ulDed - (input.sandwich ?? 0) - n - (input.unpaidTraining ?? 0);
+    divisor = input.payrollDaysEffective ?? input.payrollDays;
   } else {
     payable =
       input.payrollDays -
@@ -121,21 +263,134 @@ export function computePayroll(input: PayrollEngineInput): PayrollEngineResult {
       (input.paidLeaves ?? 0) +
       (input.compoff ?? 0) -
       k -
-      (input.ul ?? 0) * ulMult -
+      ulDed -
       (input.sandwich ?? 0) -
       n -
       (input.unpaidTraining ?? 0);
-    daily = Math.round((input.monthly / input.payrollDays) * 100) / 100;
+    divisor = input.payrollDays;
   }
-  const gross = Math.round(daily * payable);
-  const basic = input.basic ?? Math.round(input.monthly * 0.5);
-  const incentive = input.incentive ?? 0;
-  const bonus = input.bonus ?? 0;
 
+  return {
+    formulaMode,
+    payrollDays: input.payrollDays,
+    payrollDaysEffective: input.payrollDaysEffective ?? null,
+    attendanceEarned,
+    leavesTaken: input.leaves ?? 0,
+    paidLeaves: input.paidLeaves ?? 0,
+    compOff: input.compoff ?? 0,
+    lateCount: input.late ?? 0,
+    lateDeduction: k,
+    mispunchCount: input.mispunch ?? 0,
+    mispunchDeduction: n,
+    ulCount: input.ul ?? 0,
+    ulDeductionDays: ulDed,
+    sandwichDeduction: input.sandwich ?? 0,
+    unpaidTraining: input.unpaidTraining ?? 0,
+    payableDays: Math.round(payable * 100) / 100,
+    dailyRateDivisor: divisor,
+  };
+}
+
+export function computePayroll(input: PayrollEngineInput): PayrollEngineResult {
+  const payableResult = computeSalaryPayableDays({
+    payrollDays: input.payrollDays,
+    leaves: input.leaves,
+    paidLeaves: input.paidLeaves,
+    late: input.late,
+    ul: input.ul,
+    sandwich: input.sandwich,
+    mispunch: input.mispunch,
+    compoff: input.compoff,
+    unpaidTraining: input.unpaidTraining,
+    ulMult: input.ulMult,
+    formulaMode: input.formulaMode,
+    payrollDaysEffective: input.payrollDaysEffective,
+    attendanceEarned: input.attendanceEarned,
+  });
+
+  const k = payableResult.lateDeduction;
+  const n = payableResult.mispunchDeduction;
+  const payable = payableResult.payableDays;
+  const divisor = payableResult.dailyRateDivisor;
   const isCanada = input.payrollCountry === "CA";
+  const pfCeiling = 15000;
+  const esicCeiling = 21000;
+  const incentive = input.incentive ?? 0;
+
+  // Salary ALWAYS from monthly_gross (never CTC / structure Total A)
+  const daily = Math.round((input.monthly / divisor) * 100) / 100;
+  const gross = Math.round(daily * payable);
+
+  // ---- Statutory with structure rates (India) — gross already set from payable days ----
+  if (input.structureEnabled && !isCanada && input.structure) {
+    const s = input.structure;
+    const factor = divisor > 0 ? payable / divisor : 0;
+    const esicMonthly = s.totalEarningsA;
+
+    const structureBasic = Math.round(s.basic * factor);
+    const structureHra = Math.round(s.hra * factor);
+    const structureConveyance = Math.round(s.conveyance * factor);
+    const structureBonus = Math.round(s.bonusAmount * factor);
+    const structureOther = Math.round(s.otherAllowances * factor);
+
+    const pfWage = Math.min(structureBasic, pfCeiling);
+    const pfEmployee =
+      input.pfApplicable !== false
+        ? Math.round((pfWage * s.employeePfPct) / 100)
+        : 0;
+    const esicEmployee =
+      input.esicApplicable && esicMonthly <= esicCeiling
+        ? Math.round((gross * s.employeeEsicPct) / 100)
+        : 0;
+    let ptEmployee = input.ptApplicable === true ? s.ptAmount : 0;
+    if (input.tdsApplicable) {
+      ptEmployee += input.otherDeductions ?? 0;
+    }
+
+    const employerPf =
+      s.employerPfApplicable && input.pfApplicable !== false
+        ? Math.round((pfWage * s.employerPfPct) / 100)
+        : 0;
+    const employerEsic =
+      s.employerEsicApplicable && input.esicApplicable && esicMonthly <= esicCeiling
+        ? Math.round((gross * s.employerEsicPct) / 100)
+        : 0;
+
+    const netSalary = Math.round(gross + incentive - pfEmployee - esicEmployee - ptEmployee);
+
+    return {
+      lateDeduction: k,
+      mispunchDeduction: n,
+      payableDays: payable,
+      dailyRate: daily,
+      grossEarned: gross,
+      pfEmployee,
+      esicEmployee,
+      ptEmployee,
+      incentive,
+      bonus: 0,
+      netSalary,
+      salaryStructureMode: true,
+      salaryPackage: s.salaryPackage,
+      structureBasic,
+      structureHra,
+      structureConveyance,
+      structureBonus,
+      structureOtherAllowances: structureOther,
+      totalEarningsA: gross,
+      employerPf,
+      employerEsic,
+      totalEmployerCostB: s.totalEmployerCostB,
+      structureDifference: s.structureDifference,
+    };
+  }
+
+  // ---- Legacy statutory path ----
   let pfEmployee: number;
   let esicEmployee: number;
   let ptEmployee: number;
+  const basic = input.basic ?? Math.round(input.monthly * 0.5);
+  const bonus = input.bonus ?? 0;
 
   if (isCanada) {
     const cppRate = input.cppRate ?? 0.0595;
@@ -166,7 +421,7 @@ export function computePayroll(input: PayrollEngineInput): PayrollEngineResult {
   return {
     lateDeduction: k,
     mispunchDeduction: n,
-    payableDays: Math.round(payable * 100) / 100,
+    payableDays: payable,
     dailyRate: daily,
     grossEarned: gross,
     pfEmployee,
@@ -175,6 +430,7 @@ export function computePayroll(input: PayrollEngineInput): PayrollEngineResult {
     incentive,
     bonus,
     netSalary,
+    salaryStructureMode: false,
   };
 }
 
@@ -235,6 +491,139 @@ export const PAYROLL_TEST_VECTORS: PayrollTestVector[] = [
       ],
     },
     expected: { grossEarned: 6000, pfEmployee: 357, esicEmployee: 100, ptEmployee: 974, netSalary: 4569 },
+  },
+];
+
+/** Salary structure engine vectors — structure mode ON (TV-STRUCT-*) */
+export const PAYROLL_STRUCTURE_TEST_VECTORS: PayrollTestVector[] = [
+  {
+    id: "TV-STRUCT-01",
+    input: {
+      payrollDays: 30,
+      monthly: 42000,
+      basic: 27500,
+      structureEnabled: true,
+      pfApplicable: true,
+      ptApplicable: true,
+      structure: resolveEmployeeSalaryStructure({
+        salaryPackage: 55062,
+        basic: 27500,
+        hra: 11000,
+        bonusPercentage: 8.33,
+        pfApplicable: true,
+        employerPfApplicable: true,
+        ptApplicable: true,
+        professionalTaxAmount: 200,
+      }),
+    },
+    expected: {
+      payableDays: 30,
+      dailyRate: 1400,
+      grossEarned: 42000,
+      structureBonus: 2291,
+      pfEmployee: 1800,
+      ptEmployee: 200,
+      netSalary: 40000,
+      salaryStructureMode: true,
+      structureDifference: 12471,
+      bonus: 0,
+    },
+  },
+  {
+    id: "TV-STRUCT-02",
+    input: {
+      payrollDays: 30,
+      monthly: 42000,
+      basic: 30000,
+      structureEnabled: true,
+      pfApplicable: true,
+      structure: resolveEmployeeSalaryStructure({
+        salaryPackage: 55062,
+        basic: 30000,
+        hra: 11000,
+        bonusPercentage: 8.33,
+        pfApplicable: true,
+        employerPfApplicable: true,
+      }),
+    },
+    expected: {
+      grossEarned: 42000,
+      structureBonus: 2499,
+      pfEmployee: 1800,
+      netSalary: 40200,
+      structureDifference: 9763,
+    },
+  },
+  {
+    id: "TV-STRUCT-03",
+    input: {
+      payrollDays: 30,
+      monthly: 18000,
+      basic: 9000,
+      structureEnabled: true,
+      pfApplicable: true,
+      esicApplicable: true,
+      structure: resolveEmployeeSalaryStructure({
+        basic: 9000,
+        hra: 8250,
+        bonusPercentage: 8.33,
+        pfApplicable: true,
+        esicApplicable: true,
+        employerPfApplicable: true,
+        employerEsicApplicable: true,
+        employeePfPct: 12,
+        employeeEsicPct: 0.75,
+      }),
+    },
+    expected: {
+      grossEarned: 18000,
+      pfEmployee: 1080,
+      esicEmployee: 135,
+      netSalary: 16785,
+    },
+  },
+  {
+    id: "TV-STRUCT-04",
+    input: {
+      payrollDays: 30,
+      monthly: 42000,
+      basic: 27500,
+      structureEnabled: true,
+      pfApplicable: true,
+      structure: resolveEmployeeSalaryStructure({
+        basic: 27500,
+        hra: 11000,
+        bonusPercentage: 8.33,
+        pfApplicable: true,
+        employeePfPct: 10,
+      }),
+    },
+    expected: {
+      grossEarned: 42000,
+      pfEmployee: 1500,
+      netSalary: 40500,
+    },
+  },
+  {
+    id: "TV-STRUCT-05",
+    input: {
+      payrollDays: 30,
+      monthly: 42000,
+      basic: 27500,
+      bonus: 5000,
+      structureEnabled: true,
+      pfApplicable: true,
+      structure: resolveEmployeeSalaryStructure({
+        basic: 27500,
+        hra: 11000,
+        bonusPercentage: 8.33,
+        pfApplicable: true,
+      }),
+    },
+    expected: {
+      bonus: 0,
+      grossEarned: 42000,
+    },
   },
 ];
 

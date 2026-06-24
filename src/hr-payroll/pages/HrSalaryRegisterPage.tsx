@@ -124,12 +124,18 @@ export default function HrSalaryRegisterPage() {
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ minWidth: 1100 }}>
+            <table style={{ minWidth: 1800 }}>
               <thead>
                 <tr>
                   <th>Employee</th>
                   <th>Branch</th>
                   <th>Payable</th>
+                  <th>CTC</th>
+                  <th>Total (A)</th>
+                  <th>Er PF</th>
+                  <th>Er ESIC</th>
+                  <th>Cost (B)</th>
+                  <th>Diff</th>
                   <th>Gross</th>
                   <th>{dedLabels.pf}</th>
                   <th>{dedLabels.esic}</th>
@@ -158,6 +164,12 @@ export default function HrSalaryRegisterPage() {
                       </td>
                       <td>{r.branch_name ?? "—"}</td>
                       <td style={{ textAlign: "center", fontWeight: 600 }}>{r.payable_days}</td>
+                      <td className="mono">{rowMoney(line, r.salary_package ?? 0)}</td>
+                      <td className="mono">{rowMoney(line, r.total_earnings_a ?? r.gross_earned)}</td>
+                      <td className="mono">{rowMoney(line, r.employer_pf ?? 0)}</td>
+                      <td className="mono">{rowMoney(line, r.employer_esic ?? 0)}</td>
+                      <td className="mono">{rowMoney(line, r.total_employer_cost_b ?? 0)}</td>
+                      <td className="mono">{rowMoney(line, r.structure_difference ?? 0)}</td>
                       <td className="mono">{rowMoney(line, r.gross_earned)}</td>
                       <td className="mono">{rowMoney(line, r.pf_employee)}</td>
                       <td className="mono">{rowMoney(line, r.esic_employee)}</td>

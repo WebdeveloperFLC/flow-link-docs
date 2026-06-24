@@ -54,11 +54,17 @@ const REQUIRED_MIGRATIONS = [
   "20260722120100_hr_payroll_attendance_dynamic_shift_thresholds.sql",
   "20260722120200_hr_payroll_weekly_off_automation.sql",
   "20260727120000_hr_payroll_phase_c_earned_days_engine.sql",
+  "20260728120000_hr_payroll_salary_structure_statutory.sql",
+  "20260729120000_hr_payroll_salary_structure_engine.sql",
+  "20260730120000_hr_payroll_salary_payable_days_engine.sql",
 ];
 
 const REQUIRED_RPCS = [
   "fn_compute_payroll",
   "fn_build_payroll_line",
+  "fn_resolve_employee_salary_structure",
+  "fn_employee_salary_structure_enabled",
+  "fn_compute_salary_payable_days",
   "fn_start_attendance_day",
   "fn_record_punch",
   "fn_export_payroll_register",
@@ -555,5 +561,32 @@ describe("HR Payroll module contract", () => {
     expect(spec).toContain("2.0");
     const resolver = readFileSync(join(ROOT, "src/hr-payroll/lib/earnedDaysResolver.ts"), "utf8");
     expect(resolver).toContain("HR_PAYROLL_PHASE_C_LOCKED_SPEC.md");
+  });
+
+  it("migration salary structure engine (Phase 1)", () => {
+    const schema = readFileSync(
+      join(MIGRATIONS, "20260728120000_hr_payroll_salary_structure_statutory.sql"),
+      "utf8",
+    );
+    expect(schema).toContain("salary_structure_enabled");
+    expect(schema).toContain("structure_difference");
+    const engine = readFileSync(
+      join(MIGRATIONS, "20260729120000_hr_payroll_salary_structure_engine.sql"),
+      "utf8",
+    );
+    expect(engine).toContain("fn_resolve_employee_salary_structure");
+    expect(engine).toContain("p_structure_enabled");
+    expect(engine).toContain("salary_structure_mode");
+    expect(engine).toContain("calc_snapshot");
+  });
+
+  it("migration salary payable days engine (Phase 2A)", () => {
+    const m = readFileSync(
+      join(MIGRATIONS, "20260730120000_hr_payroll_salary_payable_days_engine.sql"),
+      "utf8",
+    );
+    expect(m).toContain("fn_compute_salary_payable_days");
+    expect(m).toContain("payable_days_breakdown");
+    expect(m).toContain("e.monthly_gross");
   });
 });

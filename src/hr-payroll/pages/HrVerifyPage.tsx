@@ -517,17 +517,17 @@ export default function HrVerifyPage() {
             <>
               {cycleStatus === "Draft" && (
                 <button type="button" className="btn btn-primary btn-sm" onClick={() => void processCycle()}>
-                  1. Process
+                  Process salary
                 </button>
               )}
               {cycleStatus === "Processed" && (
                 <button type="button" className="btn btn-primary btn-sm" onClick={() => void approveCycle()}>
-                  2. Approve
+                  Approve
                 </button>
               )}
               {cycleStatus === "Approved" && (
                 <button type="button" className="btn btn-primary btn-sm" onClick={() => void lockCycle()}>
-                  3. Lock
+                  Lock payroll
                 </button>
               )}
               {cycleStatus === "Locked" && (
@@ -563,7 +563,8 @@ export default function HrVerifyPage() {
       {canRunCycleWorkflow && workflowCycle && (
         <div className="card" style={{ padding: 16 }}>
           <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginBottom: 10 }}>
-            Salary processing workflow — review payable-days breakdown before approving.
+            Attendance → Payable Days → Verify → Process salary → Approve → Lock → Paid.
+            Salary is computed from <strong>monthly gross × payable days</strong>, never from CTC.
           </div>
           <PayrollWorkflowStepper status={cycleStatus} />
         </div>

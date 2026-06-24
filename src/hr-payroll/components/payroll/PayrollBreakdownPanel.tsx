@@ -5,33 +5,42 @@ import {
   employerStatutorySteps,
   parseRollupSnapshot,
   payableDaysSteps,
+  salaryProcessingSteps,
   splitAttendanceDays,
   statutorySteps,
   type BreakdownStep,
 } from "../../lib/payrollBreakdown";
+import { structureStepsFromLine } from "../../lib/payrollLineStructure";
 import { employeeCurrency, formatMoney } from "../../lib/format";
 import type { PayrollCycleRow, PayrollLineRow } from "../../lib/types";
 
-const STEPS = ["Draft", "Processed", "Approved", "Locked", "Paid"] as const;
+export const PAYROLL_WORKFLOW_STEPS = [
+  { status: "Draft", label: "Payable Days Review", hint: "Verify attendance → payable days" },
+  { status: "Processed", label: "Salary Processed", hint: "Gross & statutory computed" },
+  { status: "Approved", label: "HR Approved", hint: "Ready to lock" },
+  { status: "Locked", label: "Locked", hint: "Snapshots frozen" },
+  { status: "Paid", label: "Paid", hint: "Disbursement complete" },
+] as const;
 
 export function PayrollWorkflowStepper({ status }: { status: string }) {
-  const idx = STEPS.indexOf(status as (typeof STEPS)[number]);
+  const idx = PAYROLL_WORKFLOW_STEPS.findIndex((s) => s.status === status);
   const active = idx >= 0 ? idx : 0;
 
   return (
     <div className="payroll-workflow-stepper" role="list" aria-label="Payroll processing workflow">
-      {STEPS.map((label, i) => {
+      {PAYROLL_WORKFLOW_STEPS.map((step, i) => {
         const done = i < active;
         const current = i === active;
         return (
           <div
-            key={label}
+            key={step.status}
             role="listitem"
             className={`payroll-wf-step${done ? " is-done" : ""}${current ? " is-current" : ""}`}
+            title={step.hint}
           >
             <span className="payroll-wf-dot">{done ? "✓" : i + 1}</span>
-            <span className="payroll-wf-label">{label}</span>
-            {i < STEPS.length - 1 && <span className="payroll-wf-line" aria-hidden />}
+            <span className="payroll-wf-label">{step.label}</span>
+            {i < PAYROLL_WORKFLOW_STEPS.length - 1 && <span className="payroll-wf-line" aria-hidden />}
           </div>
         );
       })}
@@ -92,6 +101,18 @@ export function PayrollBreakdownPanel({
   const payable = buildPayableDaysBreakdown(line, cycle, parsed, attendanceSplit);
   const statutory = buildStatutoryBreakdown(line, emp);
   const employer = buildEmployerStatutoryBreakdown(line, emp);
+  const structureSteps: BreakdownStep[] = structureStepsFromLine(line).map((s) => ({
+    label: s.label,
+    value: s.value,
+    tone:
+      s.group === "deduct"
+        ? "deduct"
+        : s.group === "total" || s.group === "result"
+          ? "result"
+          : s.group === "add"
+            ? "add"
+            : "neutral",
+  }));
   const cur = employeeCurrency(emp);
   const money = (n: number) => formatMoney(n, cur);
 
@@ -103,12 +124,18 @@ export function PayrollBreakdownPanel({
         </div>
       )}
       <div className="payroll-bd-grid">
-        <StepTable title="Payable days calculation" steps={payableDaysSteps(payable)} />
-        <StepTable
-          title="Salary & statutory deductions"
-          steps={statutorySteps(statutory)}
-          money={money}
-        />
+        <StepTable title="1. Salary payable days (attendance-driven)" steps={payableDaysSteps(payable)} />
+        <StepTable title="2. Salary processing" steps={salaryProcessingSteps(line)} money={money} />
+      </div>
+      <div className="payroll-bd-grid">
+        <StepTable title="3. Statutory deductions & net" steps={statutorySteps(statutory)} money={money} />
+        {line.salary_structure_mode && structureSteps.length > 0 && (
+          <StepTable
+            title="Structure breakdown (from line — informational)"
+            steps={structureSteps}
+            money={money}
+          />
+        )}
       </div>
       {employer.show && (
         <StepTable
@@ -118,22 +145,12 @@ export function PayrollBreakdownPanel({
         />
       )}
       <div className="payroll-bd-formula-hint muted" style={{ fontSize: 12, marginTop: -8 }}>
-        Employer PF/ESIC (or CPP/EI) are company cost — not deducted from employee net pay.
+        Sequence: Attendance → Payable Days → Salary (monthly gross × payable) → Statutory → Net.
+        Employer PF/ESIC are company cost — not deducted from employee net pay.
       </div>
       <div className="payroll-bd-formula">
-        {payable.formulaMode === "earned" ? (
-          <>
-            <strong>Earned mode:</strong> Payable = Attendance earned − late ded − (UL×2) − sandwich −
-            mispunch ded − unpaid training. Daily = monthly ÷ effective payroll days.
-          </>
-        ) : (
-          <>
-            <strong>Legacy mode:</strong> Payable = Payroll days − leaves + paid leaves + comp-off −
-            late ded − (UL×2) − sandwich − mispunch ded − unpaid training.{" "}
-            <strong>Gross</strong> = daily × payable. <strong>Net</strong> = gross + incentive +
-            bonus − PF − ESIC − PT/TDS − other.
-          </>
-        )}
+        <strong>Net salary</strong> = {money(line.gross_earned)} + additions − deductions ={" "}
+        <strong>{money(line.net_salary)}</strong>
       </div>
     </div>
   );

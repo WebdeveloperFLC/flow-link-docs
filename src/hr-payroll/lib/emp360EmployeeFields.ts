@@ -9,6 +9,7 @@ import {
 } from "./format";
 import { employmentTypeLabel } from "./emp360Filters";
 import { formatSecurityChequeUploadedAt } from "./securityCheque";
+import { buildMonthlySalaryStructure, employeeToStructureInput } from "./salaryStructure";
 
 type Row = [string, string | ReactNode];
 
@@ -98,11 +99,19 @@ export function buildEmp360InfoSections(args: BuildArgs) {
     row("Weekly off pattern", weeklyOff),
   ];
 
+  const salaryStructure = buildMonthlySalaryStructure(employeeToStructureInput(emp));
+
   const salary: Row[] = [
-    row("Monthly gross", money(emp.monthly_gross)),
-    row("Basic", money(emp.basic)),
-    row("HRA", money(emp.hra)),
-    row("Conveyance", money(emp.conveyance)),
+    row("Salary package (CTC)", money(salaryStructure.salaryPackage)),
+    row("Basic", money(salaryStructure.basic)),
+    row("HRA", money(salaryStructure.hra)),
+    row("Conveyance", money(salaryStructure.conveyance)),
+    row(`Bonus (${salaryStructure.bonusPercentage}%)`, money(salaryStructure.bonusAmount)),
+    row("Other allowances", money(salaryStructure.otherAllowances)),
+    row("Total earnings (A)", money(salaryStructure.totalEarningsA)),
+    row("Employer cost (B)", money(salaryStructure.totalEmployerCostB)),
+    row("Difference (CTC − A − B)", money(salaryStructure.difference)),
+    row("Monthly gross (legacy)", money(emp.monthly_gross)),
     row("Special allowance", money(emp.special_allow)),
     row("Incentive", money(emp.incentive)),
     row("Bonus", money(emp.bonus)),
@@ -110,6 +119,16 @@ export function buildEmp360InfoSections(args: BuildArgs) {
   ];
 
   const statutory: Row[] = [
+    row("Employer PF applicable", yn(emp.employer_pf_applicable ?? emp.pf_applicable)),
+    row("Employer ESIC applicable", yn(emp.employer_esic_applicable ?? emp.esic_applicable)),
+    row("Employee PF %", emp.employee_pf_pct != null ? `${emp.employee_pf_pct}%` : "12%"),
+    row("Employer PF %", emp.employer_pf_pct != null ? `${emp.employer_pf_pct}%` : "12%"),
+    row("Employee ESIC %", emp.employee_esic_pct != null ? `${emp.employee_esic_pct}%` : "0.75%"),
+    row("Employer ESIC %", emp.employer_esic_pct != null ? `${emp.employer_esic_pct}%` : "3.25%"),
+    row(
+      "Professional tax amount",
+      emp.professional_tax_amount != null ? money(emp.professional_tax_amount) : "Default",
+    ),
     row("PF applicable", yn(emp.pf_applicable)),
     row("Has PF account", yn(emp.has_pf_account)),
     row("PF number", emp.pf_number),

@@ -128,15 +128,26 @@ export type EmployeeRow = {
   salary_currency?: string;
   payroll_country?: string;
   monthly_gross: number;
+  /** CTC / salary package — optional; UI falls back to monthly_gross. */
+  salary_package?: number | null;
   basic: number;
   hra: number;
   conveyance: number;
   special_allow: number;
+  bonus_percentage?: number | null;
+  other_allowances?: number | null;
   incentive: number;
   bonus: number;
   pf_applicable: boolean;
   has_pf_account?: boolean;
   has_esic_account?: boolean;
+  employer_pf_applicable?: boolean;
+  employer_esic_applicable?: boolean;
+  employee_pf_pct?: number | null;
+  employer_pf_pct?: number | null;
+  employee_esic_pct?: number | null;
+  employer_esic_pct?: number | null;
+  professional_tax_amount?: number | null;
   pf_number: string | null;
   uan: string | null;
   esic_applicable: boolean;
@@ -411,6 +422,20 @@ export type PayrollLineRow = {
   esic_employee: number;
   pt_employee?: number;
   net_salary: number;
+  /** Persisted by engine when salary_structure_enabled on employee. */
+  salary_structure_mode?: boolean;
+  salary_package?: number;
+  structure_basic?: number;
+  structure_hra?: number;
+  structure_conveyance?: number;
+  structure_bonus?: number;
+  structure_other_allowances?: number;
+  total_earnings_a?: number;
+  employer_pf?: number;
+  employer_esic?: number;
+  total_employer_cost_b?: number;
+  structure_difference?: number;
+  tds_employee?: number;
   is_overridden: boolean;
   override_json: Record<string, unknown> | null;
   input_snapshot?: RollupSnapshot | null;
@@ -418,6 +443,8 @@ export type PayrollLineRow = {
   attendance_earned?: number | null;
   payroll_days_effective?: number | null;
   earned_breakdown?: Record<string, unknown> | null;
+  payable_days_breakdown?: Record<string, unknown> | null;
+  calc_snapshot?: Record<string, unknown> | null;
   employees?: EmployeeRow | null;
 };
 

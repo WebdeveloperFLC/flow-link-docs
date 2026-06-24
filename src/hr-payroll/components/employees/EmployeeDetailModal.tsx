@@ -5,6 +5,7 @@ import { useHrCrmStaff, useCrmProfile } from "../../hooks/useHrTeam";
 import { displayEmployeeName, formatMoney, initials, parseEmergencyContacts, payrollCompanyLabel } from "../../lib/format";
 import { downloadHrDocument, getHrDocumentSignedUrl } from "../../lib/hrStorage";
 import { formatSecurityChequeUploadedAt } from "../../lib/securityCheque";
+import { buildMonthlySalaryStructure, employeeToStructureInput } from "../../lib/salaryStructure";
 import { useSalaryRevisions } from "../../hooks/useSalaryRevisions";
 import type { EmployeeRow } from "../../lib/types";
 import { EmployeeDocumentsPanel } from "./EmployeeDocumentsPanel";
@@ -23,6 +24,7 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
   const { data: employeeAssets = [], isLoading: assetsLoading } = useEmployeeAssets(emp.id);
   const currency = emp.salary_currency ?? emp.companies?.currency ?? "INR";
   const money = (n: number) => formatMoney(n, currency);
+  const structure = buildMonthlySalaryStructure(employeeToStructureInput(emp));
   const contacts = parseEmergencyContacts(emp.emergency_contacts);
   const reportingManager = emp.reporting_mgr_id
     ? employees.find((e) => e.id === emp.reporting_mgr_id)
@@ -194,6 +196,41 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
           )}
           {tab === "salary" && (
             <>
+              <div className="sec-label" style={{ marginBottom: 8 }}>
+                Salary structure (CTC)
+              </div>
+              <div className="grid g2" style={{ gap: 10, marginBottom: 14 }}>
+                {[
+                  ["Salary Package (CTC)", money(structure.salaryPackage)],
+                  ["Basic", money(structure.basic)],
+                  ["HRA", money(structure.hra)],
+                  ["Conveyance", money(structure.conveyance)],
+                  [`Bonus (${structure.bonusPercentage}%)`, money(structure.bonusAmount)],
+                  ["Other Allowances", money(structure.otherAllowances)],
+                  ["Total Earnings (A)", money(structure.totalEarningsA)],
+                  ["Employer Cost (B)", money(structure.totalEmployerCostB)],
+                  ["Difference (CTC − A − B)", money(structure.difference)],
+                ].map(([k, v]) => (
+                  <div
+                    key={k}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "10px 13px",
+                      background: "var(--paper)",
+                      borderRadius: 9,
+                    }}
+                  >
+                    <span style={{ fontSize: 12, color: "var(--mut)", fontWeight: 600 }}>{k}</span>
+                    <span className="mono" style={{ fontSize: 13 }}>
+                      {v}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="sec-label" style={{ marginBottom: 8 }}>
+                Legacy compensation fields
+              </div>
               <div className="grid g2" style={{ gap: 10, marginBottom: 14 }}>
                 {[
                   ["Monthly Gross", money(emp.monthly_gross)],
@@ -251,6 +288,13 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
           {tab === "statutory" && (
             <div className="grid" style={{ gap: 10 }}>
               {[
+                ["Employer PF Applicable", emp.employer_pf_applicable ?? emp.pf_applicable ? "Yes" : "No"],
+                ["Employer ESIC Applicable", emp.employer_esic_applicable ?? emp.esic_applicable ? "Yes" : "No"],
+                ["Employee PF %", `${emp.employee_pf_pct ?? 12}%`],
+                ["Employer PF %", `${emp.employer_pf_pct ?? 12}%`],
+                ["Employee ESIC %", `${emp.employee_esic_pct ?? 0.75}%`],
+                ["Employer ESIC %", `${emp.employer_esic_pct ?? 3.25}%`],
+                ["Professional Tax Amount", emp.professional_tax_amount != null ? money(emp.professional_tax_amount) : "Default"],
                 ["PF Account", emp.has_pf_account ? "Yes" : "No"],
                 ["PF Applicable", emp.pf_applicable ? "Yes" : "No"],
                 ["PF Number", emp.pf_number],

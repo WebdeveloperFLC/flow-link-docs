@@ -186,6 +186,19 @@ export function buildEmployerStatutoryBreakdown(
   const isCanada =
     emp?.payroll_country === "CA" || emp?.salary_currency === "CAD";
 
+  if (line.salary_structure_mode && !isCanada) {
+    const pfEmployer = line.employer_pf ?? 0;
+    const esicEmployer = line.employer_esic ?? 0;
+    return {
+      pfEmployer,
+      esicEmployer,
+      cppEmployer: 0,
+      eiEmployer: 0,
+      isCanada: false,
+      show: pfEmployer > 0 || esicEmployer > 0,
+    };
+  }
+
   if (isCanada) {
     const cppEmployer = line.pf_employee > 0 ? line.pf_employee : 0;
     const eiEmployer =
@@ -304,6 +317,21 @@ export function statutorySteps(s: StatutoryBreakdown): BreakdownStep[] {
       ? [{ label: "Other deductions", value: s.otherDeductions, tone: "deduct" as const }]
       : []),
     { label: "Net salary", value: s.netSalary, tone: "result" },
+  ];
+}
+
+/** Salary processing — always from monthly_gross × payable days (persisted on line). */
+export function salaryProcessingSteps(line: PayrollLineRow): BreakdownStep[] {
+  return [
+    { label: "Monthly gross (wage base)", value: line.monthly_gross, tone: "neutral" },
+    { label: "Daily rate", value: line.daily_rate, tone: "neutral" },
+    { label: "Payable days", value: line.payable_days, tone: "neutral" },
+    {
+      label: "Gross earned",
+      value: line.gross_earned,
+      tone: "result",
+      hint: "daily rate × payable days — not from CTC",
+    },
   ];
 }
 
