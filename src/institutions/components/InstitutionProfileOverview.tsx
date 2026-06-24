@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +12,7 @@ import type { ApplicationMethod, ProfileSourceType, UpiInstitution } from "../ty
 import {
   useInstitutionContactCountries,
 } from "../lib/institutionContactCountries";
-import { isInstitutionCanada, resolveInstitutionCountryFromLabel } from "../lib/institutionCountry";
+import { isInstitutionCanada, resolveInstitutionCountryFromLabel, fetchUpiCountryIso } from "../lib/institutionCountry";
 import { cn } from "@/lib/utils";
 
 const INSTITUTION_TYPES = [
@@ -69,9 +69,21 @@ type Props = {
 
 export function InstitutionProfileOverview({ institutionId, inst, canEdit, onChange, onSave }: Props) {
   const countries = useInstitutionContactCountries();
+  const [countryIso, setCountryIso] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void fetchUpiCountryIso(inst.country_id).then((iso) => {
+      if (alive) setCountryIso(iso);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [inst.country_id]);
+
   const isCanada = useMemo(
-    () => isInstitutionCanada(inst.country_name, countries),
-    [inst.country_name, countries],
+    () => isInstitutionCanada(inst.country_name, countries, countryIso),
+    [inst.country_name, countries, countryIso],
   );
 
   const intakes = inst.main_intakes ?? [];
