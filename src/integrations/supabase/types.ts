@@ -760,6 +760,108 @@ export type Database = {
           },
         ]
       }
+      accounting_crm_invoice_bridge: {
+        Row: {
+          aggregator_id: string | null
+          application_id: string | null
+          branch_id: string
+          classification_status: string
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          entity_id: string
+          id: string
+          institution_id: string | null
+          invoice_id: string
+          journal_id: string | null
+          posted_at: string | null
+          student_id: string | null
+          total_revenue: number
+          total_tax: number
+          total_trust: number
+          updated_at: string
+        }
+        Insert: {
+          aggregator_id?: string | null
+          application_id?: string | null
+          branch_id: string
+          classification_status?: string
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entity_id: string
+          id?: string
+          institution_id?: string | null
+          invoice_id: string
+          journal_id?: string | null
+          posted_at?: string | null
+          student_id?: string | null
+          total_revenue?: number
+          total_tax?: number
+          total_trust?: number
+          updated_at?: string
+        }
+        Update: {
+          aggregator_id?: string | null
+          application_id?: string | null
+          branch_id?: string
+          classification_status?: string
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entity_id?: string
+          id?: string
+          institution_id?: string | null
+          invoice_id?: string
+          journal_id?: string | null
+          posted_at?: string | null
+          student_id?: string | null
+          total_revenue?: number
+          total_tax?: number
+          total_trust?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_crm_invoice_bridge_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_crm_invoice_bridge_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_crm_invoice_bridge_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: true
+            referencedRelation: "client_invoice_aging"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "accounting_crm_invoice_bridge_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: true
+            referencedRelation: "client_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_crm_invoice_bridge_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_documents: {
         Row: {
           approval_status: string
@@ -1001,16 +1103,69 @@ export type Database = {
           },
         ]
       }
+      accounting_invoice_line_classifications: {
+        Row: {
+          bridge_id: string
+          classification: string
+          created_at: string
+          gross_amount: number
+          id: string
+          line_index: number
+          line_label: string | null
+          net_amount: number
+          role_key: string
+          tax_amount: number
+          tax_code: string | null
+        }
+        Insert: {
+          bridge_id: string
+          classification?: string
+          created_at?: string
+          gross_amount?: number
+          id?: string
+          line_index: number
+          line_label?: string | null
+          net_amount?: number
+          role_key: string
+          tax_amount?: number
+          tax_code?: string | null
+        }
+        Update: {
+          bridge_id?: string
+          classification?: string
+          created_at?: string
+          gross_amount?: number
+          id?: string
+          line_index?: number
+          line_label?: string | null
+          net_amount?: number
+          role_key?: string
+          tax_amount?: number
+          tax_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_invoice_line_classifications_bridge_id_fkey"
+            columns: ["bridge_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_crm_invoice_bridge"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_journal_lines: {
         Row: {
           account_code: string | null
           account_id: string | null
           account_name: string | null
+          account_role: string | null
           branch: string | null
+          branch_id: string | null
           created_at: string
           credit: number | null
           debit: number | null
           description: string | null
+          entity_id: string | null
           id: string
           journal_id: string
           line_number: number
@@ -1020,11 +1175,14 @@ export type Database = {
           account_code?: string | null
           account_id?: string | null
           account_name?: string | null
+          account_role?: string | null
           branch?: string | null
+          branch_id?: string | null
           created_at?: string
           credit?: number | null
           debit?: number | null
           description?: string | null
+          entity_id?: string | null
           id?: string
           journal_id: string
           line_number: number
@@ -1034,11 +1192,14 @@ export type Database = {
           account_code?: string | null
           account_id?: string | null
           account_name?: string | null
+          account_role?: string | null
           branch?: string | null
+          branch_id?: string | null
           created_at?: string
           credit?: number | null
           debit?: number | null
           description?: string | null
+          entity_id?: string | null
           id?: string
           journal_id?: string
           line_number?: number
@@ -1063,21 +1224,34 @@ export type Database = {
       }
       accounting_journals: {
         Row: {
+          aggregator_id: string | null
+          application_id: string | null
+          attachment_path: string | null
+          branch_id: string | null
           created_at: string
           created_by: string | null
           currency: string | null
           entity: string
+          entity_id: string | null
           entry_date: string
           fx_rate: number | null
           id: string
+          institution_id: string | null
           is_balanced: boolean | null
+          is_reversal: boolean
           journal_number: string
           narration: string
           posted_at: string | null
           posted_by: string | null
+          posting_date: string | null
           reference: string | null
+          reversal_of_journal_id: string | null
+          reversed_by_journal_id: string | null
+          source_module: string
+          source_record_id: string | null
           source_type: string | null
           status: string | null
+          student_id: string | null
           total_credit: number | null
           total_debit: number | null
           updated_at: string
@@ -1086,21 +1260,34 @@ export type Database = {
           voided_by: string | null
         }
         Insert: {
+          aggregator_id?: string | null
+          application_id?: string | null
+          attachment_path?: string | null
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string | null
           entity: string
+          entity_id?: string | null
           entry_date: string
           fx_rate?: number | null
           id?: string
+          institution_id?: string | null
           is_balanced?: boolean | null
+          is_reversal?: boolean
           journal_number: string
           narration: string
           posted_at?: string | null
           posted_by?: string | null
+          posting_date?: string | null
           reference?: string | null
+          reversal_of_journal_id?: string | null
+          reversed_by_journal_id?: string | null
+          source_module?: string
+          source_record_id?: string | null
           source_type?: string | null
           status?: string | null
+          student_id?: string | null
           total_credit?: number | null
           total_debit?: number | null
           updated_at?: string
@@ -1109,21 +1296,34 @@ export type Database = {
           voided_by?: string | null
         }
         Update: {
+          aggregator_id?: string | null
+          application_id?: string | null
+          attachment_path?: string | null
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string | null
           entity?: string
+          entity_id?: string | null
           entry_date?: string
           fx_rate?: number | null
           id?: string
+          institution_id?: string | null
           is_balanced?: boolean | null
+          is_reversal?: boolean
           journal_number?: string
           narration?: string
           posted_at?: string | null
           posted_by?: string | null
+          posting_date?: string | null
           reference?: string | null
+          reversal_of_journal_id?: string | null
+          reversed_by_journal_id?: string | null
+          source_module?: string
+          source_record_id?: string | null
           source_type?: string | null
           status?: string | null
+          student_id?: string | null
           total_credit?: number | null
           total_debit?: number | null
           updated_at?: string
@@ -1159,6 +1359,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_counselor_productivity"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_journals_reversal_of_journal_id_fkey"
+            columns: ["reversal_of_journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_journals_reversed_by_journal_id_fkey"
+            columns: ["reversed_by_journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "accounting_journals_voided_by_fkey"
@@ -1518,6 +1732,116 @@ export type Database = {
             columns: ["payment_journal_id"]
             isOneToOne: false
             referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_trust_accounts: {
+        Row: {
+          balance: number
+          branch_id: string
+          client_id: string
+          created_at: string
+          currency: string
+          entity_id: string
+          id: string
+          role_key: string
+          student_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          branch_id: string
+          client_id: string
+          created_at?: string
+          currency?: string
+          entity_id: string
+          id?: string
+          role_key: string
+          student_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          branch_id?: string
+          client_id?: string
+          created_at?: string
+          currency?: string
+          entity_id?: string
+          id?: string
+          role_key?: string
+          student_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      accounting_trust_entries: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          entry_type: string
+          id: string
+          journal_id: string | null
+          memo: string | null
+          source_module: string
+          source_record_id: string | null
+          trust_account_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entry_type: string
+          id?: string
+          journal_id?: string | null
+          memo?: string | null
+          source_module: string
+          source_record_id?: string | null
+          trust_account_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entry_type?: string
+          id?: string
+          journal_id?: string | null
+          memo?: string | null
+          source_module?: string
+          source_record_id?: string | null
+          trust_account_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_trust_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_entries_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_entries_trust_account_id_fkey"
+            columns: ["trust_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_trust_accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -4601,6 +4925,7 @@ export type Database = {
       }
       cf_courses: {
         Row: {
+          application_fee: number | null
           applications_open: boolean
           apply_url: string | null
           backlogs_allowed: number | null
@@ -4643,6 +4968,7 @@ export type Database = {
           work_experience_required: boolean
         }
         Insert: {
+          application_fee?: number | null
           applications_open?: boolean
           apply_url?: string | null
           backlogs_allowed?: number | null
@@ -4685,6 +5011,7 @@ export type Database = {
           work_experience_required?: boolean
         }
         Update: {
+          application_fee?: number | null
           applications_open?: boolean
           apply_url?: string | null
           backlogs_allowed?: number | null
@@ -4856,6 +5183,13 @@ export type Database = {
             referencedRelation: "upi_institutions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cf_universities_upi_institution_id_fkey"
+            columns: ["upi_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
         ]
       }
       cf_upi_linkage_candidates: {
@@ -4939,6 +5273,13 @@ export type Database = {
             columns: ["suggested_upi_institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_upi_linkage_candidates_suggested_upi_institution_id_fkey"
+            columns: ["suggested_upi_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
         ]
@@ -5044,6 +5385,13 @@ export type Database = {
             columns: ["upi_institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_upi_name_aliases_upi_institution_id_fkey"
+            columns: ["upi_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
         ]
@@ -6284,6 +6632,8 @@ export type Database = {
       }
       client_institution_qualifications: {
         Row: {
+          application_fee: number | null
+          application_fee_currency: string | null
           application_source: Database["public"]["Enums"]["application_source"]
           campus_name: string | null
           cf_client_program_id: string | null
@@ -6297,6 +6647,7 @@ export type Database = {
           duplicate_override_by: string | null
           duplicate_override_reason: string | null
           duration_months: number | null
+          fee_snapshot_jsonb: Json | null
           hold_reason_code:
             | Database["public"]["Enums"]["qualification_hold_reason_code"]
             | null
@@ -6310,6 +6661,7 @@ export type Database = {
           intake_date: string | null
           intake_term: string
           intake_year: number | null
+          partnership_route_id: string | null
           program_code: string | null
           program_name: string | null
           qualification_owner_user_id: string | null
@@ -6326,6 +6678,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          application_fee?: number | null
+          application_fee_currency?: string | null
           application_source?: Database["public"]["Enums"]["application_source"]
           campus_name?: string | null
           cf_client_program_id?: string | null
@@ -6339,6 +6693,7 @@ export type Database = {
           duplicate_override_by?: string | null
           duplicate_override_reason?: string | null
           duration_months?: number | null
+          fee_snapshot_jsonb?: Json | null
           hold_reason_code?:
             | Database["public"]["Enums"]["qualification_hold_reason_code"]
             | null
@@ -6352,6 +6707,7 @@ export type Database = {
           intake_date?: string | null
           intake_term: string
           intake_year?: number | null
+          partnership_route_id?: string | null
           program_code?: string | null
           program_name?: string | null
           qualification_owner_user_id?: string | null
@@ -6368,6 +6724,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          application_fee?: number | null
+          application_fee_currency?: string | null
           application_source?: Database["public"]["Enums"]["application_source"]
           campus_name?: string | null
           cf_client_program_id?: string | null
@@ -6381,6 +6739,7 @@ export type Database = {
           duplicate_override_by?: string | null
           duplicate_override_reason?: string | null
           duration_months?: number | null
+          fee_snapshot_jsonb?: Json | null
           hold_reason_code?:
             | Database["public"]["Enums"]["qualification_hold_reason_code"]
             | null
@@ -6394,6 +6753,7 @@ export type Database = {
           intake_date?: string | null
           intake_term?: string
           intake_year?: number | null
+          partnership_route_id?: string | null
           program_code?: string | null
           program_name?: string | null
           qualification_owner_user_id?: string | null
@@ -6415,6 +6775,13 @@ export type Database = {
             columns: ["transfer_target_institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualificat_transfer_target_institution__fkey"
+            columns: ["transfer_target_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -6471,6 +6838,20 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualifications_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_institution_qualifications_partnership_route_id_fkey"
+            columns: ["partnership_route_id"]
+            isOneToOne: false
+            referencedRelation: "upi_partnership_routes"
             referencedColumns: ["id"]
           },
           {
@@ -7301,6 +7682,9 @@ export type Database = {
           bank_reconciled_by: string | null
           bank_reconciliation_ref: string | null
           branch_id: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           client_id: string
           collected_by: string | null
           converted_by: string | null
@@ -7388,6 +7772,9 @@ export type Database = {
           bank_reconciled_by?: string | null
           bank_reconciliation_ref?: string | null
           branch_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           client_id: string
           collected_by?: string | null
           converted_by?: string | null
@@ -7475,6 +7862,9 @@ export type Database = {
           bank_reconciled_by?: string | null
           bank_reconciliation_ref?: string | null
           branch_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           client_id?: string
           collected_by?: string | null
           converted_by?: string | null
@@ -9410,6 +9800,13 @@ export type Database = {
             columns: ["linked_institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_linked_institution_id_fkey"
+            columns: ["linked_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -13239,6 +13636,131 @@ export type Database = {
           },
         ]
       }
+      institution_fee_schedule: {
+        Row: {
+          amount: number
+          collection_category_id: string | null
+          confidence_score: number | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          detected_source_reference: string | null
+          effective_from: string
+          effective_to: string | null
+          fee_accuracy: string
+          fee_type: string
+          id: string
+          last_verified_at: string | null
+          notes: string | null
+          partnership_route_id: string | null
+          program_id: string | null
+          source_url: string | null
+          status: string
+          updated_at: string
+          upi_institution_id: string
+          verification_method: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          amount: number
+          collection_category_id?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          detected_source_reference?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          fee_accuracy?: string
+          fee_type: string
+          id?: string
+          last_verified_at?: string | null
+          notes?: string | null
+          partnership_route_id?: string | null
+          program_id?: string | null
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+          upi_institution_id: string
+          verification_method?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          amount?: number
+          collection_category_id?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          detected_source_reference?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          fee_accuracy?: string
+          fee_type?: string
+          id?: string
+          last_verified_at?: string | null
+          notes?: string | null
+          partnership_route_id?: string | null
+          program_id?: string | null
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+          upi_institution_id?: string
+          verification_method?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "institution_fee_schedule_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_fee_schedule_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "institution_fee_schedule_partnership_route_id_fkey"
+            columns: ["partnership_route_id"]
+            isOneToOne: false
+            referencedRelation: "upi_partnership_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_fee_schedule_upi_institution_id_fkey"
+            columns: ["upi_institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_fee_schedule_upi_institution_id_fkey"
+            columns: ["upi_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_fee_schedule_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_fee_schedule_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       integration_settings: {
         Row: {
           auto_on_open: boolean
@@ -16758,6 +17280,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "qualification_external_events_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "qualification_external_events_qualification_id_fkey"
             columns: ["qualification_id"]
             isOneToOne: false
@@ -18928,6 +19457,13 @@ export type Database = {
             referencedRelation: "upi_institutions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "upi_agreements_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
         ]
       }
       upi_ai_suggestions: {
@@ -18995,6 +19531,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_ai_suggestions_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -19124,6 +19667,13 @@ export type Database = {
             referencedRelation: "upi_institutions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "upi_billing_profiles_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
         ]
       }
       upi_campuses: {
@@ -19188,6 +19738,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_campuses_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
         ]
@@ -19269,6 +19826,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_claim_cycles_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -19355,6 +19919,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_eligibility_configs_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -19562,6 +20133,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_invoices_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -19953,10 +20531,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "upi_commission_receipts_context_institution_id_fkey"
+            columns: ["context_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_commission_receipts_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -20024,6 +20616,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_remittance_batches_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
         ]
@@ -20226,6 +20825,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_snapshots_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -20591,6 +21197,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_commission_students_last_receipt_id_fkey"
             columns: ["last_receipt_id"]
             isOneToOne: false
@@ -20732,6 +21345,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "upi_commission_transfer_events_from_institution_id_fkey"
+            columns: ["from_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_commission_transfer_events_from_route_id_fkey"
             columns: ["from_route_id"]
             isOneToOne: false
@@ -20746,10 +21366,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "upi_commission_transfer_events_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_commission_transfer_events_to_institution_id_fkey"
             columns: ["to_institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_transfer_events_to_institution_id_fkey"
+            columns: ["to_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -20864,6 +21498,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commissions_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -21129,6 +21770,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "upi_courses_staging_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_courses_staging_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
@@ -21368,6 +22016,125 @@ export type Database = {
           },
         ]
       }
+      upi_institution_contacts: {
+        Row: {
+          contact_name: string | null
+          contact_type: string
+          country_code: string | null
+          created_at: string
+          created_by: string | null
+          department: string | null
+          designation: string | null
+          email: string | null
+          id: string
+          institution_id: string
+          is_active: boolean
+          is_primary: boolean
+          mobile: string | null
+          notes: string | null
+          phone: string | null
+          preferred_communication_method: string | null
+          sort_order: number
+          timezone: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          contact_name?: string | null
+          contact_type: string
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          designation?: string | null
+          email?: string | null
+          id?: string
+          institution_id: string
+          is_active?: boolean
+          is_primary?: boolean
+          mobile?: string | null
+          notes?: string | null
+          phone?: string | null
+          preferred_communication_method?: string | null
+          sort_order?: number
+          timezone?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          contact_name?: string | null
+          contact_type?: string
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          designation?: string | null
+          email?: string | null
+          id?: string
+          institution_id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          mobile?: string | null
+          notes?: string | null
+          phone?: string | null
+          preferred_communication_method?: string | null
+          sort_order?: number
+          timezone?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_institution_contacts_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "cf_countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "upi_institution_contacts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_institution_contacts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "upi_institution_contacts_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_institution_contacts_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_institution_contacts_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_institution_contacts_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       upi_institution_sources: {
         Row: {
           confidence_score: number | null
@@ -21459,6 +22226,13 @@ export type Database = {
             referencedRelation: "upi_institutions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "upi_institution_sources_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
         ]
       }
       upi_institution_tags: {
@@ -21483,6 +22257,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "upi_institution_tags_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_institution_tags_tag_id_fkey"
             columns: ["tag_id"]
             isOneToOne: false
@@ -21495,23 +22276,43 @@ export type Database = {
         Row: {
           accreditation: string | null
           address: string | null
+          application_method: string | null
+          application_portal_url: string | null
           catalog_status: string
           city: string | null
+          completeness_score: number
           country_id: string | null
           country_name: string | null
           created_at: string | null
+          deposit_policy_url: string | null
+          dli_number: string | null
           email: string | null
           established_year: number | null
+          human_verification_method: string | null
           id: string
+          institution_description: string | null
+          institution_status: string
           institution_type: string | null
+          international_student_url: string | null
           is_active: boolean | null
           is_partner: boolean | null
+          last_human_verified_at: string | null
+          last_human_verified_by: string | null
+          last_loa_verified_at: string | null
           logo_url: string | null
+          main_intakes: string[] | null
           metadata: Json | null
           name: string
           notes: string | null
+          pal_required: boolean | null
           partner_since: string | null
+          pgwp_eligible: boolean | null
           phone: string | null
+          processing_time: string | null
+          profile_source_notes: string | null
+          profile_source_reference: string | null
+          profile_source_type: string | null
+          profile_source_url: string | null
           promotion_notes: string | null
           ranking_info: string | null
           slug: string | null
@@ -21523,23 +22324,43 @@ export type Database = {
         Insert: {
           accreditation?: string | null
           address?: string | null
+          application_method?: string | null
+          application_portal_url?: string | null
           catalog_status?: string
           city?: string | null
+          completeness_score?: number
           country_id?: string | null
           country_name?: string | null
           created_at?: string | null
+          deposit_policy_url?: string | null
+          dli_number?: string | null
           email?: string | null
           established_year?: number | null
+          human_verification_method?: string | null
           id?: string
+          institution_description?: string | null
+          institution_status?: string
           institution_type?: string | null
+          international_student_url?: string | null
           is_active?: boolean | null
           is_partner?: boolean | null
+          last_human_verified_at?: string | null
+          last_human_verified_by?: string | null
+          last_loa_verified_at?: string | null
           logo_url?: string | null
+          main_intakes?: string[] | null
           metadata?: Json | null
           name: string
           notes?: string | null
+          pal_required?: boolean | null
           partner_since?: string | null
+          pgwp_eligible?: boolean | null
           phone?: string | null
+          processing_time?: string | null
+          profile_source_notes?: string | null
+          profile_source_reference?: string | null
+          profile_source_type?: string | null
+          profile_source_url?: string | null
           promotion_notes?: string | null
           ranking_info?: string | null
           slug?: string | null
@@ -21551,23 +22372,43 @@ export type Database = {
         Update: {
           accreditation?: string | null
           address?: string | null
+          application_method?: string | null
+          application_portal_url?: string | null
           catalog_status?: string
           city?: string | null
+          completeness_score?: number
           country_id?: string | null
           country_name?: string | null
           created_at?: string | null
+          deposit_policy_url?: string | null
+          dli_number?: string | null
           email?: string | null
           established_year?: number | null
+          human_verification_method?: string | null
           id?: string
+          institution_description?: string | null
+          institution_status?: string
           institution_type?: string | null
+          international_student_url?: string | null
           is_active?: boolean | null
           is_partner?: boolean | null
+          last_human_verified_at?: string | null
+          last_human_verified_by?: string | null
+          last_loa_verified_at?: string | null
           logo_url?: string | null
+          main_intakes?: string[] | null
           metadata?: Json | null
           name?: string
           notes?: string | null
+          pal_required?: boolean | null
           partner_since?: string | null
+          pgwp_eligible?: boolean | null
           phone?: string | null
+          processing_time?: string | null
+          profile_source_notes?: string | null
+          profile_source_reference?: string | null
+          profile_source_type?: string | null
+          profile_source_url?: string | null
           promotion_notes?: string | null
           ranking_info?: string | null
           slug?: string | null
@@ -21583,6 +22424,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "upi_countries"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_institutions_last_human_verified_by_fkey"
+            columns: ["last_human_verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_institutions_last_human_verified_by_fkey"
+            columns: ["last_human_verified_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -21754,6 +22609,13 @@ export type Database = {
             referencedRelation: "upi_institutions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "upi_invoices_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
         ]
       }
       upi_language_requirements: {
@@ -21852,6 +22714,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_marketing_campaigns_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -21986,6 +22855,13 @@ export type Database = {
             referencedRelation: "upi_institutions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "upi_partnership_routes_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
         ]
       }
       upi_program_levels: {
@@ -22073,6 +22949,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_promotions_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
         ]
@@ -22179,6 +23062,13 @@ export type Database = {
             referencedRelation: "upi_institutions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "upi_scholarship_rules_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
         ]
       }
       upi_study_areas: {
@@ -22269,6 +23159,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_sync_jobs_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -22518,6 +23415,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_uploaded_documents_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -23893,6 +24797,13 @@ export type Database = {
             referencedRelation: "upi_institutions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
         ]
       }
       v_clients_masked: {
@@ -24012,6 +24923,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_invoices_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
         ]
@@ -24156,10 +25074,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "upi_commission_receipts_context_institution_id_fkey"
+            columns: ["context_institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "upi_commission_receipts_institution_id_fkey"
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_receipts_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
           {
@@ -24211,6 +25143,13 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
             referencedColumns: ["id"]
           },
         ]
@@ -24272,6 +25211,87 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_upi_institution_profile_readiness: {
+        Row: {
+          active_contact_count: number | null
+          active_contact_with_email_count: number | null
+          completeness_score: number | null
+          dli_ok: boolean | null
+          has_application_portal: boolean | null
+          has_deposit_policy_url: boolean | null
+          has_official_website: boolean | null
+          human_verification_method: string | null
+          id: string | null
+          institution_status: string | null
+          is_canada: boolean | null
+          last_human_verified_at: string | null
+          last_human_verified_by: string | null
+          last_loa_verified_at: string | null
+          name: string | null
+          pgwp_ok: boolean | null
+          profile_source_reference: string | null
+          profile_source_type: string | null
+          profile_source_url: string | null
+        }
+        Insert: {
+          active_contact_count?: never
+          active_contact_with_email_count?: never
+          completeness_score?: number | null
+          dli_ok?: never
+          has_application_portal?: never
+          has_deposit_policy_url?: never
+          has_official_website?: never
+          human_verification_method?: string | null
+          id?: string | null
+          institution_status?: string | null
+          is_canada?: never
+          last_human_verified_at?: string | null
+          last_human_verified_by?: string | null
+          last_loa_verified_at?: string | null
+          name?: string | null
+          pgwp_ok?: never
+          profile_source_reference?: string | null
+          profile_source_type?: string | null
+          profile_source_url?: string | null
+        }
+        Update: {
+          active_contact_count?: never
+          active_contact_with_email_count?: never
+          completeness_score?: number | null
+          dli_ok?: never
+          has_application_portal?: never
+          has_deposit_policy_url?: never
+          has_official_website?: never
+          human_verification_method?: string | null
+          id?: string | null
+          institution_status?: string | null
+          is_canada?: never
+          last_human_verified_at?: string | null
+          last_human_verified_by?: string | null
+          last_loa_verified_at?: string | null
+          name?: string | null
+          pgwp_ok?: never
+          profile_source_reference?: string | null
+          profile_source_type?: string | null
+          profile_source_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_institutions_last_human_verified_by_fkey"
+            columns: ["last_human_verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_institutions_last_human_verified_by_fkey"
+            columns: ["last_human_verified_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -25489,6 +26509,16 @@ export type Database = {
         Args: { _payment_id: string; _service_library_id: string }
         Returns: Json
       }
+      fn_cleanup_pre_financial_service_drafts: {
+        Args: {
+          p_actor_id?: string
+          p_client_id: string
+          p_match_keys?: string[]
+          p_reason?: string
+          p_service_code: string
+        }
+        Returns: Json
+      }
       fn_clear_client_attribution_splits: {
         Args: { _actor_id?: string; _client_id: string }
         Returns: Json
@@ -25710,6 +26740,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      fn_compute_upi_institution_completeness_score: {
+        Args: { _row: Database["public"]["Tables"]["upi_institutions"]["Row"] }
+        Returns: number
       }
       fn_convert: {
         Args: {
@@ -26307,6 +27341,11 @@ export type Database = {
         Returns: boolean
       }
       fn_is_leave_eligible: { Args: { p_employee: string }; Returns: boolean }
+      fn_jsonb_line_is_billable: { Args: { p_line: Json }; Returns: boolean }
+      fn_jsonb_line_matches_service_keys: {
+        Args: { p_keys: string[]; p_line: Json }
+        Returns: boolean
+      }
       fn_late_deduction:
         | { Args: { p_late: number }; Returns: number }
         | { Args: { p_late: number; p_policy?: Json }; Returns: number }
@@ -26769,6 +27808,10 @@ export type Database = {
       }
       fn_rebind_ph_demo_wallets: { Args: never; Returns: undefined }
       fn_rebuild_cycle_lines: { Args: { p_cycle: string }; Returns: number }
+      fn_recalc_invoice_amount_from_lines: {
+        Args: { p_line_items: Json }
+        Returns: number
+      }
       fn_receipt_summary: { Args: { p_receipt_id: string }; Returns: Json }
       fn_record_application_submitted: {
         Args: { p_qualification_id: string; p_submitted_date?: string }
@@ -27391,6 +28434,10 @@ export type Database = {
           p_remittance_reference?: string
         }
         Returns: undefined
+      }
+      fn_upi_institution_is_canada: {
+        Args: { _row: Database["public"]["Tables"]["upi_institutions"]["Row"] }
+        Returns: boolean
       }
       fn_upsert_application_reference: {
         Args: { p_payload: Json }
