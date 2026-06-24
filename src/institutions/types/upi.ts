@@ -77,6 +77,7 @@ export interface UpiInstitution {
   name: string;
   slug: string | null;
   country_name: string | null;
+  country_id: string | null;
   website_url: string | null;
   logo_url: string | null;
   phone: string | null;
@@ -117,6 +118,8 @@ export interface UpiInstitution {
   last_human_verified_by: string | null;
   human_verification_method: ProfileSourceType | null;
   completeness_score: number;
+  approximate_tuition_range: string | null;
+  approximate_deposit_range: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -11,9 +11,13 @@ import { Plus, Globe, Sparkles, Loader2 } from "lucide-react";
 import { fetchMissingInstitutionLogos } from "../lib/fetchInstitutionLogo";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import type { UpiInstitution } from "../types/upi";
+import type { InstitutionStatus, UpiInstitution } from "../types/upi";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { InstitutionLogo } from "../components/InstitutionLogo";
+import { InstitutionStatusBadge } from "../components/InstitutionStatusBadge";
+import { CountrySelect } from "@/components/leads/CountrySelect";
+import { useInstitutionContactCountries } from "../lib/institutionContactCountries";
+import { resolveInstitutionCountryFromLabel } from "../lib/institutionCountry";
 import {
   PartnershipChannelBadges,
   type InstitutionRouteBadge,
@@ -21,7 +25,9 @@ import {
 import { findDuplicateInstitution } from "../lib/institutionDedup";
 
 const LIST_COLUMNS =
-  "id,name,country_name,institution_type,is_partner,is_active,website_url,logo_url" as const;
+  "id,name,country_name,country_id,institution_type,institution_status,is_partner,is_active,website_url,logo_url,completeness_score,catalog_status" as const;
+
+type ListFilter = "all" | "partners" | InstitutionStatus;
 
 function supabaseErrMsg(error: { message?: string; details?: string; code?: string } | null): string {
   if (!error) return "Request failed";
@@ -52,14 +58,17 @@ async function fetchCourseReviewStats(): Promise<{ courses: number; pending: num
   };
 }
 
+const STATUS_FILTERS: ListFilter[] = ["all", "partners", "Draft", "Review", "Active", "Inactive", "Archived"];
+
 export default function InstitutionsListPage() {
   const navigate = useNavigate();
   const { canEdit } = useModulePermission("institutions");
+  const countries = useInstitutionContactCountries();
   const [items, setItems] = useState<UpiInstitution[]>([]);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<"all" | "partners" | "active" | "inactive">("all");
+  const [filter, setFilter] = useState<ListFilter>("all");
   const [stats, setStats] = useState({ total: 0, partners: 0, courses: 0, pending: 0 });
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -154,8 +163,18 @@ export default function InstitutionsListPage() {
       navigate(`/institutions/${dup.id}`);
       return;
     }
+    let countryPatch: { country_name: string; country_id: string | null };
+    try {
+      countryPatch = await resolveInstitutionCountryFromLabel(country.trim(), countries);
+    } catch (e) {
+      return toast.error(e instanceof Error ? e.message : "Could not resolve country");
+    }
     const { error } = await supabase.from("upi_institutions").insert({
-      name: name.trim(), country_name: country.trim() || null, website_url: website.trim() || null,
+      name: name.trim(),
+      country_name: countryPatch.country_name,
+      country_id: countryPatch.country_id,
+      website_url: website.trim() || null,
+      institution_status: "Draft",
     });
     if (error) {
       if (error.code === "23505") {
@@ -164,16 +183,25 @@ export default function InstitutionsListPage() {
       return toast.error(error.message);
     }
     toast.success("Institution created");
-    setName(""); setCountry(""); setWebsite(""); setOpen(false); load();
+    setName("");
+    setCountry("");
+    setWebsite("");
+    setOpen(false);
+    load();
   };
 
   const filtered = items.filter((i) => {
     if (filter === "partners" && !i.is_partner) return false;
-    if (filter === "active" && !i.is_active) return false;
-    if (filter === "inactive" && i.is_active) return false;
-    if (q && !`${i.name} ${i.country_name ?? ""} ${i.institution_type ?? ""}`.toLowerCase().includes(q.toLowerCase())) return false;
+    if (filter !== "all" && filter !== "partners" && (i.institution_status ?? "Draft") !== filter) return false;
+    if (q && !`${i.name} ${i.country_name ?? ""} ${i.institution_type ?? ""} ${i.institution_status ?? ""}`.toLowerCase().includes(q.toLowerCase())) return false;
     return true;
   });
+
+  const filterLabel = (f: ListFilter) => {
+    if (f === "all") return "All";
+    if (f === "partners") return "Partners";
+    return f;
+  };
 
   return (
     <AppLayout>
@@ -206,10 +234,17 @@ export default function InstitutionsListPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Input className="max-w-sm" placeholder="Search by name, country, type…" value={q} onChange={(e) => setQ(e.target.value)} />
-          <div className="flex gap-1">
-            {(["all","partners","active","inactive"] as const).map((f) => (
-              <Button key={f} size="sm" variant={filter === f ? "default" : "outline"} onClick={() => setFilter(f)} className="capitalize">{f}</Button>
+          <Input className="max-w-sm" placeholder="Search by name, country, type, status…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <div className="flex flex-wrap gap-1">
+            {STATUS_FILTERS.map((f) => (
+              <Button
+                key={f}
+                size="sm"
+                variant={filter === f ? "default" : "outline"}
+                onClick={() => setFilter(f)}
+              >
+                {filterLabel(f)}
+              </Button>
             ))}
           </div>
           <div className="flex-1" />
@@ -219,18 +254,28 @@ export default function InstitutionsListPage() {
               Fetch missing logos ({missingLogoCount})
             </Button>
           )}
-          {canEdit && <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button><Plus className="size-4" /> Add institution</Button></DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Add institution</DialogTitle></DialogHeader>
-              <div className="space-y-3">
-                <Input placeholder="Name *" value={name} onChange={(e) => setName(e.target.value)} />
-                <Input placeholder="Country (required for same-name institutions)" value={country} onChange={(e) => setCountry(e.target.value)} />
-                <Input placeholder="Website URL" value={website} onChange={(e) => setWebsite(e.target.value)} />
-              </div>
-              <DialogFooter><Button onClick={create}>Create</Button></DialogFooter>
-            </DialogContent>
-          </Dialog>}
+          {canEdit && (
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="size-4" /> Add institution
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add institution</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <Input placeholder="Name *" value={name} onChange={(e) => setName(e.target.value)} />
+                  <CountrySelect value={country} onChange={setCountry} placeholder="Country *" />
+                  <Input placeholder="Website URL" value={website} onChange={(e) => setWebsite(e.target.value)} />
+                </div>
+                <DialogFooter>
+                  <Button onClick={create}>Create</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -241,14 +286,23 @@ export default function InstitutionsListPage() {
                   <InstitutionLogo url={i.logo_url} name={i.name} size="md" />
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold truncate">{i.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">{i.country_name ?? "—"} · {i.institution_type ?? "—"}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {i.country_name ?? "—"} · {i.institution_type ?? "—"}
+                    </div>
                     <PartnershipChannelBadges
                       routes={routesByInst.get(i.id) ?? []}
                       legacyDirectPartner={i.is_partner}
                     />
-                    <div className="flex gap-1 mt-1 flex-wrap">
-                      {!i.is_active && <Badge variant="secondary" className="text-[10px]">Inactive</Badge>}
-                      {i.website_url && <Badge variant="outline" className="text-[10px] gap-1"><Globe className="size-3" /> Web</Badge>}
+                    <div className="flex gap-1 mt-1.5 flex-wrap items-center">
+                      <InstitutionStatusBadge status={i.institution_status ?? "Draft"} />
+                      <Badge variant="outline" className="text-[10px] tabular-nums">
+                        {Math.round(Number(i.completeness_score ?? 0))}%
+                      </Badge>
+                      {i.website_url && (
+                        <Badge variant="outline" className="text-[10px] gap-1">
+                          <Globe className="size-3" /> Web
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -259,7 +313,7 @@ export default function InstitutionsListPage() {
             <div className="col-span-full text-center text-sm text-muted-foreground py-12">Loading institutions…</div>
           )}
           {!loading && filtered.length === 0 && !listError && (
-            <div className="col-span-full text-center text-sm text-muted-foreground py-12">No institutions yet.</div>
+            <div className="col-span-full text-center text-sm text-muted-foreground py-12">No institutions match this filter.</div>
           )}
         </div>
       </div>

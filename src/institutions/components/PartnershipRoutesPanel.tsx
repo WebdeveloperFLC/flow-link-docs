@@ -120,12 +120,14 @@ export function PartnershipRoutesPanel({
   institutionId,
   catalogStatus,
   promotionNotes,
+  institutionPortalUrl,
   canEdit,
   onCatalogChange,
 }: {
   institutionId: string;
   catalogStatus: CatalogStatus;
   promotionNotes: string | null;
+  institutionPortalUrl?: string | null;
   canEdit: boolean;
   onCatalogChange: (patch: { catalog_status?: CatalogStatus; promotion_notes?: string | null }) => void;
 }) {
@@ -301,14 +303,13 @@ export function PartnershipRoutesPanel({
       <div>
         <div className="text-sm font-medium">Catalog & partnerships</div>
         <p className="text-xs text-muted-foreground mt-1">
-          Promote institutions without any tie-up (e.g. public German universities), or add direct and indirect
-          routes to compare offers.
+          Course Finder catalog visibility is independent of institution governance status. Add direct, indirect, or student-direct routes below.
         </p>
       </div>
 
       <div className="space-y-2 border rounded-lg p-3 bg-muted/20">
         <div className="flex items-center justify-between gap-3">
-          <Label className="text-sm">Show in catalog / Course Finder</Label>
+          <Label className="text-sm">Course Finder catalog visibility</Label>
           <Select
             disabled={!canEdit}
             value={catalogStatus}
@@ -625,11 +626,17 @@ export function PartnershipRoutesPanel({
               </div>
             </div>
             <div className="space-y-1">
-              <Label>Portal URL</Label>
+              <Label>Portal URL (override)</Label>
               <Input
+                placeholder={institutionPortalUrl?.trim() || "Defaults to institution application portal when blank"}
                 value={form.application_portal_url}
                 onChange={(e) => setForm({ ...form, application_portal_url: e.target.value })}
               />
+              {institutionPortalUrl?.trim() && (
+                <p className="text-xs text-muted-foreground">
+                  Institution default: {institutionPortalUrl}
+                </p>
+              )}
             </div>
             <div className="space-y-1">
               <Label>Application fee (standard)</Label>

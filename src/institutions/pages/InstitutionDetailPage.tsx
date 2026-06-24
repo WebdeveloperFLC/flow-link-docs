@@ -32,11 +32,13 @@ import { Lock } from "lucide-react";
 import { ALLOW_TEST_DELETIONS, CONFIDENTIAL_SOURCE_TYPES, isConfidentialDocKind } from "../config";
 import { isSupabaseNotFound } from "../lib/scope";
 import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
-import { InstitutionLogoField } from "../components/InstitutionLogoField";
 import { InstitutionLogo } from "../components/InstitutionLogo";
 import { PartnershipRoutesPanel } from "../components/PartnershipRoutesPanel";
 import { InstitutionFeeSchedulePanel } from "../components/InstitutionFeeSchedulePanel";
 import { InstitutionContactsPanel } from "../components/InstitutionContactsPanel";
+import { InstitutionGovernancePanel } from "../components/InstitutionGovernancePanel";
+import { InstitutionProfileOverview } from "../components/InstitutionProfileOverview";
+import { InstitutionStatusBadge } from "../components/InstitutionStatusBadge";
 import type { CatalogStatus } from "../types/partnership";
 
 // Sanitize a filename for use as a Supabase Storage object key.
@@ -120,10 +122,6 @@ export default function InstitutionDetailPage() {
   const [asking, setAsking] = useState(false);
   const [campaignPromo, setCampaignPromo] = useState<{ id: string; title: string } | null>(null);
   const [reviewDoc, setReviewDoc] = useState<any | null>(null);
-
-  const INSTITUTION_TYPES = [
-    "Public College", "Polytechnic", "University", "Private College", "Language School", "Other",
-  ] as const;
 
   const DOC_KIND_OPTIONS: { value: DocKind | "promotion_campaign" | "invoice_template" | "renewal_document" | "other"; label: string }[] = [
     { value: "program_sheet", label: "Program sheet (extract programs)" },
@@ -213,8 +211,17 @@ export default function InstitutionDetailPage() {
   const saveInst = async (patch: Partial<UpiInstitution>) => {
     if (!canEdit) return toast.error("View-only access — cannot save changes");
     if (!inst) return;
-    const { error } = await supabase.from("upi_institutions").update(patch as any).eq("id", inst.id);
-    if (error) toast.error(error.message); else { setInst({ ...inst, ...patch }); toast.success("Saved"); }
+    const { data, error } = await supabase
+      .from("upi_institutions")
+      .update(patch as any)
+      .eq("id", inst.id)
+      .select("*")
+      .single();
+    if (error) toast.error(error.message);
+    else if (data) {
+      setInst(data as UpiInstitution);
+      toast.success("Saved");
+    }
   };
 
   const addSource = async () => {
@@ -487,7 +494,16 @@ export default function InstitutionDetailPage() {
         description={`${inst.country_name ?? "—"} · ${inst.institution_type ?? "—"}`}
         actions={<InstitutionLogo url={inst.logo_url} name={inst.name} size="lg" />}
       />
-      <div className="p-8">
+      <div className="px-8 -mt-2 pb-2 flex flex-wrap items-center gap-2">
+        <InstitutionStatusBadge status={inst.institution_status} className="text-xs" />
+        <Badge variant="outline" className="text-xs tabular-nums">
+          {Math.round(Number(inst.completeness_score ?? 0))}% complete
+        </Badge>
+        <Badge variant="outline" className="text-xs capitalize">
+          CF catalog: {inst.catalog_status ?? "promoted"}
+        </Badge>
+      </div>
+      <div className="p-8 pt-4">
         {!canEdit && <div className="mb-6"><ViewOnlyNotice /></div>}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex flex-wrap h-auto">
@@ -509,55 +525,44 @@ export default function InstitutionDetailPage() {
 
           <TabsContent value="overview" className="space-y-6">
             <OverviewPanel institutionId={id} />
-            <Card className="p-6 space-y-3 max-w-2xl">
-              <div className="text-sm font-medium">Institution profile</div>
-              <InstitutionLogoField
-                institutionId={id}
-                institutionName={inst.name}
-                logoUrl={inst.logo_url}
-                websiteUrl={inst.website_url}
-                canEdit={canEdit}
-                onUpdated={(logo_url) => setInst({ ...inst, logo_url })}
-              />
-              <Input value={inst.name} disabled={!canEdit} onChange={(e) => setInst({ ...inst, name: e.target.value })} onBlur={(e) => canEdit && saveInst({ name: e.target.value })} />
-              <Input placeholder="Country" disabled={!canEdit} value={inst.country_name ?? ""} onChange={(e) => setInst({ ...inst, country_name: e.target.value })} onBlur={(e) => canEdit && saveInst({ country_name: e.target.value })} />
-              <Input placeholder="Website" disabled={!canEdit} value={inst.website_url ?? ""} onChange={(e) => setInst({ ...inst, website_url: e.target.value })} onBlur={(e) => canEdit && saveInst({ website_url: e.target.value })} />
-              <Input placeholder="Email" disabled={!canEdit} value={inst.email ?? ""} onChange={(e) => setInst({ ...inst, email: e.target.value })} onBlur={(e) => canEdit && saveInst({ email: e.target.value })} />
-              <Input placeholder="Phone" disabled={!canEdit} value={inst.phone ?? ""} onChange={(e) => setInst({ ...inst, phone: e.target.value })} onBlur={(e) => canEdit && saveInst({ phone: e.target.value })} />
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">Type</label>
-                <Select disabled={!canEdit} value={inst.institution_type ?? ""} onValueChange={(v) => { setInst({ ...inst, institution_type: v }); saveInst({ institution_type: v }); }}>
-                  <SelectTrigger><SelectValue placeholder="Pick institution type" /></SelectTrigger>
-                  <SelectContent>
-                    {INSTITUTION_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Textarea placeholder="Notes" disabled={!canEdit} value={inst.notes ?? ""} onChange={(e) => setInst({ ...inst, notes: e.target.value })} onBlur={(e) => canEdit && saveInst({ notes: e.target.value })} />
-              <PartnershipRoutesPanel
-                institutionId={id}
-                catalogStatus={(inst.catalog_status ?? "promoted") as CatalogStatus}
-                promotionNotes={inst.promotion_notes ?? null}
-                canEdit={canEdit}
-                onCatalogChange={(patch) => {
-                  setInst({ ...inst, ...patch });
-                  saveInst(patch);
-                }}
-              />
-              {Object.keys(inst.metadata ?? {}).length > 0 && (
-                <div className="border-t pt-3">
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Discovered fields (metadata)</div>
-                  <div className="space-y-1">
-                    {Object.entries(inst.metadata).map(([k, v]) => (
-                      <div key={k} className="text-sm flex justify-between gap-3">
-                        <span className="text-muted-foreground">{k}</span>
-                        <span className="truncate">{String(v)}</span>
-                      </div>
-                    ))}
-                  </div>
+            <InstitutionGovernancePanel
+              institution={inst}
+              canEdit={canEdit}
+              onStatusApplied={() => { void load(); }}
+            />
+            <InstitutionProfileOverview
+              institutionId={id}
+              inst={inst}
+              canEdit={canEdit}
+              onChange={(patch) => setInst({ ...inst, ...patch })}
+              onSave={saveInst}
+            />
+            <PartnershipRoutesPanel
+              institutionId={id}
+              catalogStatus={(inst.catalog_status ?? "promoted") as CatalogStatus}
+              promotionNotes={inst.promotion_notes ?? null}
+              institutionPortalUrl={inst.application_portal_url}
+              canEdit={canEdit}
+              onCatalogChange={(patch) => {
+                setInst({ ...inst, ...patch });
+                saveInst(patch);
+              }}
+            />
+            {Object.keys(inst.metadata ?? {}).length > 0 && (
+              <Card className="p-6 space-y-3 max-w-3xl">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                  Discovered fields (metadata)
                 </div>
-              )}
-            </Card>
+                <div className="space-y-1">
+                  {Object.entries(inst.metadata).map(([k, v]) => (
+                    <div key={k} className="text-sm flex justify-between gap-3">
+                      <span className="text-muted-foreground">{k}</span>
+                      <span className="truncate">{String(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="contacts">
