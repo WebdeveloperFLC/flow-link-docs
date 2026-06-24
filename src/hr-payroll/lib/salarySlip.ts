@@ -1,6 +1,8 @@
-import type { EmployeeRow, PayrollCycleRow, PayrollLineRow } from "../lib/types";
+import type { EmployeeRow, PayrollCycleRow, PayrollLineRow } from "./types";
 import { buildPayableDaysBreakdown, buildStatutoryBreakdown } from "./payrollBreakdown";
 import { employeeCurrency, formatMoney } from "./format";
+
+export { isPayrollSlipCycle } from "./payrollSlipPolicy";
 
 export function salarySlipHtml(
   emp: EmployeeRow,
@@ -39,9 +41,13 @@ export function salarySlipHtml(
     ...(line.ot_pay && line.ot_pay > 0 ? [["OT pay", money(line.ot_pay)]] as const : []),
     [isCanada ? "CPP (employee)" : "PF (employee)", money(line.pf_employee)],
     [isCanada ? "EI (employee)" : "ESIC (employee)", money(line.esic_employee)],
-    ...(stat.ptEmployee > 0
-      ? [[isCanada ? "Tax & other" : "Professional tax (PT)", money(stat.ptEmployee)]] as const
-      : []),
+    ...(isCanada
+      ? (line.pt_employee ?? 0) > 0
+        ? [["Income tax", money(line.pt_employee!)] as const]
+        : []
+      : stat.ptEmployee > 0
+        ? [["Professional tax (PT)", money(stat.ptEmployee)] as const]
+        : []),
     ...(stat.tdsLine > 0 && !isCanada
       ? [["TDS / other statutory", money(stat.tdsLine)]] as const
       : []),

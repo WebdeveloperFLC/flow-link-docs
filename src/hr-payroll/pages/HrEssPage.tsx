@@ -31,7 +31,7 @@ import { resolvePunchSession } from "../lib/punchSession";
 import { timezoneForEmployee, todayIsoInTz } from "../lib/employeeTimezone";
 import { essAttendanceStatus } from "../lib/attendanceStatus";
 import { formatMoney } from "../lib/format";
-import { printSalarySlip } from "../lib/salarySlip";
+import { printSalarySlip, isPayrollSlipCycle } from "../lib/salarySlip";
 import { buildStatutoryBreakdown } from "../lib/payrollBreakdown";
 import { PayrollBreakdownPanel } from "../components/payroll/PayrollBreakdownPanel";
 import { ensureMyEmployeeProfile } from "../lib/hrApi";
@@ -338,7 +338,7 @@ export default function HrEssPage() {
         <div className="card ess-salary-card">
           <div className="ess-salary-head card-h">
             <h3>Salary breakdown</h3>
-            {line && cycle && (
+            {line && cycle && isPayrollSlipCycle(cycle.status) && (
               <button
                 type="button"
                 className="btn btn-sm"

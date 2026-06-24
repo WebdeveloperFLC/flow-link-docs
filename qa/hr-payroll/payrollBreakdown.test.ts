@@ -99,6 +99,21 @@ describe("buildStatutoryBreakdown", () => {
     expect(s.tdsLine).toBe(500);
     expect(s.otherDeductions).toBe(0);
   });
+
+  it("maps Canada income tax to tdsLine from pt_employee", () => {
+    const s = buildStatutoryBreakdown(
+      { ...baseLine, pt_employee: 320 },
+      {
+        ...({} as import("../../src/hr-payroll/lib/types").EmployeeRow),
+        payroll_country: "CA",
+        salary_currency: "CAD",
+        tds_applicable: true,
+      },
+    );
+    expect(s.isCanada).toBe(true);
+    expect(s.ptEmployee).toBe(0);
+    expect(s.tdsLine).toBe(320);
+  });
 });
 
 describe("bankTransferExport", () => {

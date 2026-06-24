@@ -1,4 +1,5 @@
 import { salarySlipHtml } from "./salarySlip";
+import { formatMoney } from "./format";
 import type { EmployeeRow, PayrollCycleRow, PayrollLineRow } from "./types";
 
 export type PayrollRegisterRow = {
@@ -10,6 +11,7 @@ export type PayrollRegisterRow = {
   branch_name: string | null;
   cycle_label: string;
   cycle_status: string;
+  currency?: string;
   mispunch_count: number;
   late_count: number;
   leaves_taken: number;
@@ -63,6 +65,16 @@ const HEADERS = [
   "Locked",
 ] as const;
 
+/** Columns before Gross (Employee … Daily). */
+export const REGISTER_GROSS_COL_INDEX = 18;
+
+/** Escape CSV/TSV cell values for Excel. */
+export function csvEscapeCell(v: string | number): string {
+  const s = String(v);
+  if (/[",\n\r\t]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
 function rowValues(r: PayrollRegisterRow): (string | number)[] {
   return [
     r.full_name,
@@ -90,8 +102,38 @@ function rowValues(r: PayrollRegisterRow): (string | number)[] {
     r.esic_employee,
     r.pt_employee ?? 0,
     r.net_salary,
-    r.cycle_status === "Locked" ? "Yes" : "No",
+    r.cycle_status === "Locked" || r.cycle_status === "Paid" ? "Yes" : "No",
   ];
+}
+
+/** Merge server export rows with client PT (and currency) from payroll lines. */
+export function mergeRegisterExportWithClientPt(
+  serverRows: PayrollRegisterRow[],
+  clientRows: PayrollRegisterRow[],
+): PayrollRegisterRow[] {
+  const byCode = new Map(clientRows.map((r) => [r.emp_code, r]));
+  return serverRows.map((row) => {
+    const client = byCode.get(row.emp_code);
+    if (!client) return row;
+    return {
+      ...row,
+      pt_employee: client.pt_employee ?? row.pt_employee ?? 0,
+      currency: client.currency ?? row.currency,
+    };
+  });
+}
+
+export function registerTotalsByCurrency(
+  rows: PayrollRegisterRow[],
+): Record<string, { gross: number; net: number }> {
+  const acc: Record<string, { gross: number; net: number }> = {};
+  for (const r of rows) {
+    const cur = r.currency ?? "INR";
+    if (!acc[cur]) acc[cur] = { gross: 0, net: 0 };
+    acc[cur].gross += r.gross_earned;
+    acc[cur].net += r.net_salary;
+  }
+  return acc;
 }
 
 export function downloadPayrollRegister(
@@ -100,11 +142,12 @@ export function downloadPayrollRegister(
   fmt: "CSV" | "Excel",
 ) {
   const sep = fmt === "CSV" ? "," : "\t";
+  const bom = fmt === "CSV" ? "\uFEFF" : "";
   const csv = [
     HEADERS.join(sep),
-    ...rows.map((r) => rowValues(r).join(sep)),
+    ...rows.map((r) => rowValues(r).map(csvEscapeCell).join(sep)),
   ].join("\n");
-  const blob = new Blob([csv], {
+  const blob = new Blob([bom + csv], {
     type: fmt === "CSV" ? "text/csv;charset=utf-8" : "application/vnd.ms-excel",
   });
   const a = document.createElement("a");
@@ -119,6 +162,8 @@ export function linesToRegisterRows(
     employees?: {
       full_name?: string;
       emp_code?: string;
+      payroll_country?: string;
+      salary_currency?: string;
       branches?: { name?: string } | null;
       companies?: { name?: string } | null;
     } | null;
@@ -148,47 +193,61 @@ export function linesToRegisterRows(
   cycleLabel: string,
   cycleStatus: string,
 ): PayrollRegisterRow[] {
-  return lines.map((r) => ({
-    emp_code: r.employees?.emp_code ?? "",
-    full_name: r.employees?.full_name ?? "",
-    designation: null,
-    department: null,
-    company_name: r.employees?.companies?.name ?? null,
-    branch_name: r.employees?.branches?.name ?? null,
-    cycle_label: cycleLabel,
-    cycle_status: cycleStatus,
-    mispunch_count: r.mispunch_count,
-    late_count: r.late_count,
-    leaves_taken: r.leaves_taken,
-    paid_leaves: r.paid_leaves,
-    comp_off: r.comp_off,
-    ul_count: r.ul_count,
-    sandwich_count: r.sandwich_count,
-    unpaid_training: r.unpaid_training,
-    ot_minutes: r.ot_minutes ?? 0,
-    ot_pay: r.ot_pay ?? 0,
-    late_deduction: r.late_deduction,
-    mispunch_deduction: r.mispunch_deduction,
-    payable_days: r.payable_days,
-    daily_rate: r.daily_rate,
-    gross_earned: r.gross_earned,
-    incentive: r.incentive,
-    bonus: r.bonus,
-    pf_employee: r.pf_employee,
-    esic_employee: r.esic_employee,
-    pt_employee: r.pt_employee ?? 0,
-    net_salary: r.net_salary,
-    is_overridden: r.is_overridden,
-  }));
+  return lines.map((r) => {
+    const emp = r.employees;
+    const currency =
+      emp?.salary_currency ??
+      (emp?.payroll_country === "CA" ? "CAD" : "INR");
+    return {
+      emp_code: emp?.emp_code ?? "",
+      full_name: emp?.full_name ?? "",
+      designation: null,
+      department: null,
+      company_name: emp?.companies?.name ?? null,
+      branch_name: emp?.branches?.name ?? null,
+      cycle_label: cycleLabel,
+      cycle_status: cycleStatus,
+      currency,
+      mispunch_count: r.mispunch_count,
+      late_count: r.late_count,
+      leaves_taken: r.leaves_taken,
+      paid_leaves: r.paid_leaves,
+      comp_off: r.comp_off,
+      ul_count: r.ul_count,
+      sandwich_count: r.sandwich_count,
+      unpaid_training: r.unpaid_training,
+      ot_minutes: r.ot_minutes ?? 0,
+      ot_pay: r.ot_pay ?? 0,
+      late_deduction: r.late_deduction,
+      mispunch_deduction: r.mispunch_deduction,
+      payable_days: r.payable_days,
+      daily_rate: r.daily_rate,
+      gross_earned: r.gross_earned,
+      incentive: r.incentive,
+      bonus: r.bonus,
+      pf_employee: r.pf_employee,
+      esic_employee: r.esic_employee,
+      pt_employee: r.pt_employee ?? 0,
+      net_salary: r.net_salary,
+      is_overridden: r.is_overridden,
+    };
+  });
 }
 
-function fmtInr(n: number): string {
-  return `₹${Math.round(n).toLocaleString("en-IN")}`;
+export function registerPdfFooterHtml(rows: PayrollRegisterRow[]): string {
+  const totals = registerTotalsByCurrency(rows);
+  return Object.entries(totals)
+    .map(
+      ([cur, t]) =>
+        `<tr><td colspan="${REGISTER_GROSS_COL_INDEX}" style="text-align:right">Totals (${cur})</td>` +
+        `<td>${formatMoney(t.gross, cur)}</td>` +
+        `<td colspan="5"></td>` +
+        `<td>${formatMoney(t.net, cur)}</td><td></td></tr>`,
+    )
+    .join("");
 }
 
-function registerPdfHtml(rows: PayrollRegisterRow[], cycleLabel: string, locked: boolean) {
-  const totG = rows.reduce((s, r) => s + r.gross_earned, 0);
-  const totN = rows.reduce((s, r) => s + r.net_salary, 0);
+export function registerPdfHtml(rows: PayrollRegisterRow[], cycleLabel: string, locked: boolean) {
   const th = HEADERS.map((h) => `<th>${h}</th>`).join("");
   const body = rows
     .map(
@@ -198,6 +257,7 @@ function registerPdfHtml(rows: PayrollRegisterRow[], cycleLabel: string, locked:
           .join("")}</tr>`,
     )
     .join("");
+  const footer = registerPdfFooterHtml(rows);
   return `<!DOCTYPE html><html><head><title>Salary Register — ${cycleLabel}</title>
 <style>
 body{font-family:system-ui,sans-serif;padding:24px;color:#1a2233;font-size:11px}
@@ -212,8 +272,7 @@ tfoot td{font-weight:700;border-top:2px solid #1a2233}
 <h1>Future Link Consultants</h1>
 <h2>Salary Register · ${cycleLabel}${locked ? '<span class="badge">LOCKED</span>' : ""}</h2>
 <table><thead><tr>${th}</tr></thead><tbody>${body}</tbody>
-<tfoot><tr><td colspan="16" style="text-align:right">Totals</td>
-<td>${fmtInr(totG)}</td><td colspan="5"></td><td>${fmtInr(totN)}</td><td></td></tr></tfoot>
+<tfoot>${footer}</tfoot>
 </table></body></html>`;
 }
 

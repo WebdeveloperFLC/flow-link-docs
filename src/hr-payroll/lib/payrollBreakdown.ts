@@ -233,9 +233,11 @@ export function statutorySteps(s: StatutoryBreakdown): BreakdownStep[] {
     ...(s.otPay > 0 ? [{ label: "OT pay", value: s.otPay, tone: "add" as const }] : []),
     { label: pfLabel, value: s.pfEmployee, tone: "deduct" },
     { label: esicLabel, value: s.esicEmployee, tone: "deduct" },
-    ...(s.ptEmployee > 0
-      ? [{ label: taxLabel, value: s.ptEmployee, tone: "deduct" as const }]
-      : []),
+    ...(s.isCanada && s.tdsLine > 0
+      ? [{ label: "Income tax", value: s.tdsLine, tone: "deduct" as const }]
+      : s.ptEmployee > 0
+        ? [{ label: taxLabel, value: s.ptEmployee, tone: "deduct" as const }]
+        : []),
     ...(s.tdsLine > 0 && !s.isCanada
       ? [{ label: "TDS / other statutory", value: s.tdsLine, tone: "deduct" as const }]
       : []),

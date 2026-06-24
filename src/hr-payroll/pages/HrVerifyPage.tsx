@@ -9,7 +9,7 @@ import { ModalShell } from "../components/ui/ModalShell";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { formatMoney, employeeCurrency, payrollCompanyLabel } from "../lib/format";
 import { rebuildPayrollLine, hrAudit, lockPayrollCycle, reopenPayrollCycle, processPayrollCycle, approvePayrollCycle, markPayrollPaid, rebuildPayrollCycle } from "../lib/hrApi";
-import { printSalarySlip } from "../lib/salarySlip";
+import { printSalarySlip, isPayrollSlipCycle } from "../lib/salarySlip";
 import { downloadPayrollRegister, linesToRegisterRows, printRegisterPdf, printBatchSalarySlips } from "../lib/payrollExport";
 import {
   buildBankTransferRows,
@@ -423,7 +423,12 @@ export default function HrVerifyPage() {
         emp: r.employees!,
         line: r,
         cycle: cyclesById[r.cycle_id],
-      }));
+      }))
+      .filter((item) => item.cycle && isPayrollSlipCycle(item.cycle.status));
+    if (!items.length) {
+      fire("Salary slips are available only for Locked or Paid cycles");
+      return;
+    }
     printBatchSalarySlips(items, exportLabel);
   };
 
@@ -523,9 +528,9 @@ export default function HrVerifyPage() {
                   2. Approve
                 </button>
               )}
-              {(cycleStatus === "Approved" || cycleStatus === "Draft") && (
+              {cycleStatus === "Approved" && (
                 <button type="button" className="btn btn-primary btn-sm" onClick={() => void lockCycle()}>
-                  {cycleStatus === "Draft" ? "Quick lock" : "3. Lock"}
+                  3. Lock
                 </button>
               )}
               {cycleStatus === "Locked" && (
@@ -768,18 +773,23 @@ export default function HrVerifyPage() {
                       >
                         View
                       </button>
-                      {can("export") && r.employees && (
-                        <button
-                          type="button"
-                          className="btn btn-sm"
-                          onClick={() => {
-                            const slipCycle = cyclesById[r.cycle_id] ?? workflowCycle;
-                            if (slipCycle) printSalarySlip(r.employees!, r, slipCycle);
-                          }}
-                        >
-                          Slip
-                        </button>
-                      )}
+                      {can("export") && r.employees && (() => {
+                        const slipCycle = cyclesById[r.cycle_id] ?? workflowCycle;
+                        const slipOk = slipCycle && isPayrollSlipCycle(slipCycle.status);
+                        return slipOk ? (
+                          <button
+                            type="button"
+                            className="btn btn-sm"
+                            onClick={() => printSalarySlip(r.employees!, r, slipCycle!)}
+                          >
+                            Slip
+                          </button>
+                        ) : (
+                          <span className="muted" style={{ fontSize: 10 }} title="Lock payroll to print slips">
+                            —
+                          </span>
+                        );
+                      })()}
                       {can("override") ? (
                         <button
                           type="button"

@@ -1,5 +1,5 @@
 import { StatusBadge } from "../../components/ui/StatusBadge";
-import { printSalarySlip } from "../../lib/salarySlip";
+import { printSalarySlip, isPayrollSlipCycle } from "../../lib/salarySlip";
 import { employeeCurrency, formatMoney } from "../../lib/format";
 import type { EmployeePayrollHistoryLine } from "../../hooks/useHrPayroll";
 import type { EmployeeRow, PayrollCycleRow } from "../../lib/types";
@@ -48,7 +48,7 @@ export function Emp360PayrollHistoryTable({ employee, rows, canExport }: Props) 
                   {cycle?.status ? <StatusBadge status={cycle.status} /> : "—"}
                 </td>
                 <td>
-                  {canExport && cycle ? (
+                  {canExport && cycle && isPayrollSlipCycle(cycle.status) ? (
                     <button
                       type="button"
                       className="btn btn-sm"

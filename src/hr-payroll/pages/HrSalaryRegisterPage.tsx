@@ -12,6 +12,7 @@ import {
 import {
   downloadPayrollRegister,
   linesToRegisterRows,
+  mergeRegisterExportWithClientPt,
   printRegisterPdf,
   type PayrollRegisterRow,
 } from "../lib/payrollExport";
@@ -35,11 +36,14 @@ export default function HrSalaryRegisterPage() {
     : { pf: "PF", esic: "ESIC", pt: "PT" };
 
   const exportRegister = async (fmt: "CSV" | "Excel") => {
-    if (!cycle?.id) return;
+    if (!cycle?.id || !rows.length) {
+      fire("No payroll lines to export");
+      return;
+    }
     try {
       const exported = await fetchPayrollRegisterExport(cycle.id);
       if (exported.length > 0) {
-        downloadPayrollRegister(exported, cycle.label, fmt);
+        downloadPayrollRegister(mergeRegisterExportWithClientPt(exported, rows), cycle.label, fmt);
         fire(`${fmt} exported`);
         return;
       }
