@@ -51,6 +51,7 @@ import {
   type ServiceDocumentStructure,
 } from "@/lib/service-library/documentStructure";
 import { cn } from "@/lib/utils";
+import { DocumentTypeSearchPicker } from "./DocumentTypeSearchPicker";
 
 type Props = {
   structure: ServiceDocumentStructure | undefined;
