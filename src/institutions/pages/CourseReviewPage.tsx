@@ -41,6 +41,14 @@ import {
   rowMatchesCampus,
 } from "../lib/courseDedup";
 import { normalizeInstitutionName } from "../lib/programSheetImport";
+import {
+  buildStagingSearchHaystack,
+  escapeIlikePattern,
+  mergeStagingRowsById,
+  resolveInstitutionIdsFromSearch,
+  rowMatchesInstitution,
+  rowMatchesSearchTokens,
+} from "../lib/courseReviewFilters";
 
 const STATUSES = ["pending_review", "approved", "rejected", "published", "needs_update"];
 const MANUAL_STATUSES = ["pending_review", "approved", "rejected", "needs_update"];
@@ -179,60 +187,123 @@ export default function CourseReviewPage() {
   const [levels, setLevels] = useState<{ id: string; name: string }[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
   const [searchText, setSearchText] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<UpiCourseStaging | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [auxError, setAuxError] = useState<string | null>(null);
   const loadSeq = useRef(0);
+  const prevInstFilterRef = useRef(instFilter);
+
+  const applyStagingQueryFilters = (q: ReturnType<typeof supabase.from>) => {
+    let next = q;
+    if (statusFilter !== "all") next = next.eq("review_status", statusFilter);
+    if (levelFilter === "unclassified") next = next.is("program_level_id", null);
+    else if (levelFilter !== "all") next = next.eq("program_level_id", levelFilter);
+    return next;
+  };
 
   const load = async () => {
     const seq = ++loadSeq.current;
     setLoading(true);
     setLoadError(null);
 
-    let q = supabase
-      .from("upi_courses_staging")
-      .select("*")
-      .order("extracted_at", { ascending: false });
+    const orderOpts = { ascending: false as const };
+    const searchInstIds =
+      instFilter === "all" ? resolveInstitutionIdsFromSearch(institutions, debouncedSearch) : [];
 
-    if (statusFilter !== "all") q = q.eq("review_status", statusFilter);
-    if (instFilter !== "all") {
-      q = q.eq("institution_id", instFilter);
-    } else if (countryFilter !== "all") {
-      const matchingIds = filterInstitutionsByCountry(institutions, countryFilter).map((i) => i.id);
-      if (matchingIds.length === 0) {
+    try {
+      if (instFilter !== "all") {
+        const inst = institutions.find((i) => i.id === instFilter);
+        const byId = applyStagingQueryFilters(
+          supabase.from("upi_courses_staging").select("*").eq("institution_id", instFilter),
+        )
+          .order("extracted_at", orderOpts)
+          .limit(5000);
+
+        const requests = [byId];
+        if (inst?.name?.trim()) {
+          const pattern = `%${escapeIlikePattern(inst.name.trim())}%`;
+          requests.push(
+            applyStagingQueryFilters(
+              supabase
+                .from("upi_courses_staging")
+                .select("*")
+                .filter("metadata->>institute_name", "ilike", pattern),
+            )
+              .order("extracted_at", orderOpts)
+              .limit(5000),
+          );
+        }
+
+        const results = await Promise.all(requests);
         if (seq !== loadSeq.current) return;
-        setRows([]);
-        setSelected(new Set());
-        setLoading(false);
-        return;
+
+        const error = results.find((r) => r.error)?.error;
+        if (error) {
+          const msg = error.message?.trim() || error.details || "Could not load courses";
+          setLoadError(msg);
+          toast.error(msg);
+          setRows([]);
+        } else {
+          let list = mergeStagingRowsById(...results.map((r) => (r.data ?? []) as UpiCourseStaging[]));
+          if (inst) {
+            list = list.filter((r) => rowMatchesInstitution(r, instFilter, inst.name));
+          } else {
+            list = list.filter((r) => r.institution_id === instFilter);
+          }
+          setRows(list);
+        }
+      } else {
+        let q = applyStagingQueryFilters(supabase.from("upi_courses_staging").select("*")).order(
+          "extracted_at",
+          orderOpts,
+        );
+
+        if (searchInstIds.length > 0) {
+          q = q.in("institution_id", searchInstIds);
+          q = q.limit(5000);
+        } else if (countryFilter !== "all") {
+          if (institutions.length === 0) {
+            if (seq !== loadSeq.current) return;
+            setLoading(false);
+            return;
+          }
+          const matchingIds = filterInstitutionsByCountry(institutions, countryFilter).map((i) => i.id);
+          if (matchingIds.length === 0) {
+            if (seq !== loadSeq.current) return;
+            setRows([]);
+            setSelected(new Set());
+            setLoading(false);
+            return;
+          }
+          q = q.in("institution_id", matchingIds);
+          q = q.limit(5000);
+        } else {
+          q = q.limit(2000);
+        }
+
+        const { data, error } = await q;
+        if (seq !== loadSeq.current) return;
+
+        if (error) {
+          const msg = error.message?.trim() || error.details || "Could not load courses";
+          setLoadError(msg);
+          toast.error(msg);
+          setRows([]);
+        } else {
+          setRows((data ?? []) as UpiCourseStaging[]);
+        }
       }
-      q = q.in("institution_id", matchingIds);
-    }
-
-    if (levelFilter === "unclassified") q = q.is("program_level_id", null);
-    else if (levelFilter !== "all") q = q.eq("program_level_id", levelFilter);
-
-    // Institution filter is applied server-side; cap only unscoped lists.
-    if (instFilter === "all" && countryFilter === "all") q = q.limit(2000);
-    else q = q.limit(5000);
-
-    const { data, error } = await q;
-    if (seq !== loadSeq.current) return;
-
-    if (error) {
-      const msg = error.message?.trim() || error.details || "Could not load courses";
+    } catch (e) {
+      if (seq !== loadSeq.current) return;
+      const msg = e instanceof Error ? e.message : "Could not load courses";
       setLoadError(msg);
       toast.error(msg);
       setRows([]);
-    } else {
-      let list = (data ?? []) as UpiCourseStaging[];
-      if (instFilter !== "all") {
-        list = list.filter((r) => r.institution_id === instFilter);
-      }
-      setRows(list);
     }
+
     setSelected(new Set());
     setLoading(false);
   };
@@ -264,8 +335,12 @@ export default function CourseReviewPage() {
     loadAux();
   }, []);
   useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedSearch(searchText), 300);
+    return () => window.clearTimeout(t);
+  }, [searchText]);
+  useEffect(() => {
     load();
-  }, [statusFilter, instFilter, levelFilter, countryFilter, institutions]);
+  }, [statusFilter, instFilter, levelFilter, countryFilter, institutions, debouncedSearch]);
 
   const institutionsForCountry = useMemo(
     () => filterInstitutionsByCountry(institutions, countryFilter),
@@ -293,6 +368,20 @@ export default function CourseReviewPage() {
         { replace: true },
       );
     }
+  }, [instFilter, programGroupFilter, setSearchParams]);
+
+  useEffect(() => {
+    if (prevInstFilterRef.current === instFilter) return;
+    prevInstFilterRef.current = instFilter;
+    if (programGroupFilter === "all") return;
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("group");
+        return next;
+      },
+      { replace: true },
+    );
   }, [instFilter, programGroupFilter, setSearchParams]);
 
   const setProgramGroupFilter = (key: string | null) => {
@@ -357,10 +446,17 @@ export default function CourseReviewPage() {
     }).length;
   }, [rows, instName]);
 
+  const selectedInstitution = useMemo(
+    () => (instFilter !== "all" ? institutions.find((i) => i.id === instFilter) ?? null : null),
+    [instFilter, institutions],
+  );
+
   const visibleRows = useMemo(() => {
     let list = rows;
     if (instFilter !== "all") {
-      list = list.filter((r) => r.institution_id === instFilter);
+      list = list.filter((r) =>
+        rowMatchesInstitution(r, instFilter, selectedInstitution?.name ?? null),
+      );
     }
     if (campusFilter !== "all") {
       list = list.filter((r) => rowMatchesCampus(r, campusFilter));
@@ -377,38 +473,13 @@ export default function CourseReviewPage() {
     const tokens = searchText.trim().toLowerCase().split(/\s+/).filter(Boolean);
     if (tokens.length) {
       list = list.filter((r) => {
-        const parts: (string | number | null | undefined)[] = [
-          r.course_title,
-          r.course_description,
-          campusNamesFromRow(r).join(" "),
-          r.campus_name,
-          r.city,
-          r.state_province,
-          r.country_name,
-          r.currency,
-          r.gpa_requirement,
-          r.source_url,
-          r.source_identifier,
-          r.review_status,
-          r.ielts_overall,
-          r.toefl_overall,
-          r.pte_overall,
-          r.duolingo_overall,
-          deliveryMode(r),
-          Array.isArray(r.intake_months) ? r.intake_months.join(" ") : "",
-          r.is_pgwp_eligible === true ? "yes pgwp eligible" : r.is_pgwp_eligible === false ? "no pgwp" : "",
-          instName(r.institution_id),
-          instCountry(r.institution_id),
-          levelName(r.program_level_id),
-        ];
-        try {
-          parts.push(JSON.stringify(r.metadata ?? {}));
-        } catch {}
-        const hay = parts
-          .filter((v) => v !== null && v !== undefined && v !== "")
-          .join(" ")
-          .toLowerCase();
-        return tokens.every((t) => hay.includes(t));
+        const hay = buildStagingSearchHaystack(r, {
+          instName,
+          instCountry,
+          levelName,
+          deliveryMode,
+        });
+        return rowMatchesSearchTokens(r, tokens, hay);
       });
     }
 
@@ -429,16 +500,12 @@ export default function CourseReviewPage() {
     confidenceMinFilter,
     sortFilter,
     instFilter,
+    selectedInstitution,
   ]);
 
   const programGroups = useMemo(
     () => buildProgramGroups(visibleRows, levelName),
     [visibleRows, levelName],
-  );
-
-  const selectedInstitution = useMemo(
-    () => (instFilter !== "all" ? institutions.find((i) => i.id === instFilter) ?? null : null),
-    [instFilter, institutions],
   );
 
   const groupFilteredRows = useMemo(() => {
@@ -449,7 +516,7 @@ export default function CourseReviewPage() {
   useEffect(() => {
     if (programGroupFilter === "all") return;
     const valid = programGroups.some((g) => g.key === programGroupFilter);
-    if (!valid && programGroups.length >= 0) {
+    if (!valid) {
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev);
@@ -549,8 +616,8 @@ export default function CourseReviewPage() {
           <InstitutionProgramContextHeader
             institution={selectedInstitution}
             programGroupCount={programGroups.length}
-            offeringCount={visibleRows.length}
-            pendingCount={visibleRows.filter((r) => r.review_status === "pending_review").length}
+            offeringCount={groupFilteredRows.length}
+            pendingCount={groupFilteredRows.filter((r) => r.review_status === "pending_review").length}
           />
         ) : (
           <Card className="p-4 border-dashed bg-muted/20">
