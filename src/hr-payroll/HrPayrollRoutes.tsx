@@ -11,6 +11,7 @@ import HrEmp360LeaveHistoryPage from "./pages/emp360/HrEmp360LeaveHistoryPage";
 import HrEmp360PayrollHistoryPage from "./pages/emp360/HrEmp360PayrollHistoryPage";
 import HrEmp360TrainingPage from "./pages/emp360/HrEmp360TrainingPage";
 import HrEmp360DocumentsPage from "./pages/emp360/HrEmp360DocumentsPage";
+import HrEmp360PolicyBundlePage from "./pages/emp360/HrEmp360PolicyBundlePage";
 import HrEmployeesPage from "./pages/HrEmployeesPage";
 import HrShiftsPage from "./pages/HrShiftsPage";
 import HrTrainingPage from "./pages/HrTrainingPage";
@@ -40,6 +41,15 @@ import HrSalaryRegisterPage from "./pages/HrSalaryRegisterPage";
 import HrPayrollHistoryPage from "./pages/HrPayrollHistoryPage";
 import HrEmployeeCategoriesPage from "./pages/HrEmployeeCategoriesPage";
 import HrCrmMasterLinkPage from "./pages/HrCrmMasterLinkPage";
+import HrAdminHubPage from "./pages/admin/HrAdminHubPage";
+import HrMasterDataHubPage from "./pages/admin/HrMasterDataHubPage";
+import HrMasterDataDomainPage from "./pages/admin/HrMasterDataDomainPage";
+import HrCompaniesAdminPage from "./pages/admin/HrCompaniesAdminPage";
+import HrAdminCrmMasterPage from "./pages/admin/HrAdminCrmMasterPage";
+import WpmsHubPage from "./pages/wpms/WpmsHubPage";
+import WpmsPoliciesPage from "./pages/wpms/WpmsPoliciesPage";
+import WpmsBundlesPage from "./pages/wpms/WpmsBundlesPage";
+import WpmsAssignPage from "./pages/wpms/WpmsAssignPage";
 
 export default function HrPayrollRoutes() {
   return (
@@ -56,6 +66,7 @@ export default function HrPayrollRoutes() {
             <Route path="payroll" element={<HrEmp360PayrollHistoryPage />} />
             <Route path="training" element={<HrEmp360TrainingPage />} />
             <Route path="documents" element={<HrEmp360DocumentsPage />} />
+            <Route path="policy-bundle" element={<HrEmp360PolicyBundlePage />} />
           </Route>
 
           {/* People */}
@@ -114,6 +125,18 @@ export default function HrPayrollRoutes() {
           <Route path="audit" element={<Navigate to="/hr/config/audit" replace />} />
 
           <Route path="import" element={<HrImportPage />} />
+
+          {/* Administration — Master Data + WPMS */}
+          <Route path="admin" element={<HrAdminHubPage />} />
+          <Route path="admin/master-data" element={<HrMasterDataHubPage />} />
+          <Route path="admin/master-data/companies" element={<HrCompaniesAdminPage />} />
+          <Route path="admin/master-data/crm/:section" element={<HrAdminCrmMasterPage />} />
+          <Route path="admin/master-data/:domain" element={<HrMasterDataDomainPage />} />
+          <Route path="admin/wpms" element={<WpmsHubPage />} />
+          <Route path="admin/wpms/policies" element={<WpmsPoliciesPage />} />
+          <Route path="admin/wpms/bundles" element={<WpmsBundlesPage />} />
+          <Route path="admin/wpms/assign" element={<WpmsAssignPage />} />
+
           <Route path="*" element={<Navigate to="/hr" replace />} />
         </Route>
       </Routes>

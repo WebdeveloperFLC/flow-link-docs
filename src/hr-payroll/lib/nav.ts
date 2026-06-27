@@ -54,6 +54,14 @@ export const HR_NAV: NavGroup[] = [
     items: [{ k: "reports", ic: "▦", t: "Reports" }],
   },
   {
+    grp: "Administration",
+    items: [
+      { k: "admin", ic: "⚙", t: "Administration" },
+      { k: "masterData", ic: "▦", t: "Master Data" },
+      { k: "wpms", ic: "◈", t: "WPMS" },
+    ],
+  },
+  {
     grp: "Configuration",
     items: [
       { k: "config", ic: "⚙", t: "Configuration" },
@@ -93,6 +101,10 @@ export function screenKeyFromPath(pathname: string): HrScreenKey {
   if (pathname.startsWith("/hr/late")) return "late";
   if (pathname.startsWith("/hr/mispunch")) return "mispunch";
   if (pathname.startsWith("/hr/holidays")) return "holiday";
+
+  if (pathname.startsWith("/hr/admin/wpms")) return "wpms";
+  if (pathname.startsWith("/hr/admin/master-data")) return "masterData";
+  if (pathname.startsWith("/hr/admin")) return "admin";
 
   if (pathname.startsWith("/hr/config/shifts") || pathname.startsWith("/hr/shifts")) return "shifts";
   if (pathname.startsWith("/hr/config/document-types") || pathname.startsWith("/hr/document-types"))

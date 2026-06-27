@@ -18,14 +18,20 @@ const COPY: Record<string, { title: string; description: string; note?: string }
   },
 };
 
-export default function HrCrmMasterLinkPage({ kind }: { kind: keyof typeof COPY }) {
+export default function HrCrmMasterLinkPage({
+  kind,
+  backTo = "/hr/config",
+}: {
+  kind: keyof typeof COPY;
+  backTo?: string;
+}) {
   const meta = COPY[kind];
   const section = kind === "branches" ? "__branches" : kind === "departments" ? "__departments" : "__designations";
 
   return (
     <div className="grid" style={{ gap: 16 }}>
-      <Link to="/hr/config" className="btn btn-sm" style={{ alignSelf: "flex-start" }}>
-        ← Configuration hub
+      <Link to={backTo} className="btn btn-sm" style={{ alignSelf: "flex-start" }}>
+        ← Back
       </Link>
       <div className="card">
         <div className="card-h">

@@ -103,6 +103,9 @@ export const DEFAULT_ACCESS_BY_ROLE: Record<
       shifts: false,
       roles: false,
       audit: false,
+      admin: false,
+      masterData: false,
+      wpms: false,
     },
   },
   Employee: {
@@ -140,6 +143,9 @@ export const DEFAULT_ACCESS_BY_ROLE: Record<
       shifts: false,
       roles: false,
       audit: false,
+      admin: false,
+      masterData: false,
+      wpms: false,
     },
   },
 };

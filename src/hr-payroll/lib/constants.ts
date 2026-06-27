@@ -59,6 +59,9 @@ export const ALL_HR_SCREENS = [
   "shifts",
   "roles",
   "audit",
+  "admin",
+  "masterData",
+  "wpms",
 ] as const;
 
 export type HrScreenKey = (typeof ALL_HR_SCREENS)[number];
@@ -88,6 +91,9 @@ export const HR_SCREEN_ROUTES: Record<HrScreenKey, string> = {
   shifts: "/hr/config/shifts",
   roles: "/hr/config/roles",
   audit: "/hr/config/audit",
+  admin: "/hr/admin",
+  masterData: "/hr/admin/master-data",
+  wpms: "/hr/admin/wpms",
 };
 
 export const HR_SCREEN_TITLES: Record<HrScreenKey, string> = {
@@ -115,6 +121,9 @@ export const HR_SCREEN_TITLES: Record<HrScreenKey, string> = {
   shifts: "Shift Master",
   roles: "Roles & Access",
   audit: "Audit Logs",
+  admin: "Administration",
+  masterData: "Master Data",
+  wpms: "WPMS",
 };
 
 export const COMPANIES = [

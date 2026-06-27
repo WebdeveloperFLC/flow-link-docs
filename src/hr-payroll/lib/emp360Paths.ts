@@ -11,7 +11,13 @@ export function emp360ProfilePath(employeeId: string, search?: string) {
   return `/hr/employee/${employeeId}${search ?? ""}`;
 }
 
-export type Emp360DetailSection = "attendance" | "leaves" | "payroll" | "training" | "documents";
+export type Emp360DetailSection =
+  | "attendance"
+  | "leaves"
+  | "payroll"
+  | "training"
+  | "documents"
+  | "policy-bundle";
 
 export function emp360DetailPath(
   employeeId: string,
@@ -27,4 +33,5 @@ export const EMP360_DETAIL_LABELS: Record<Emp360DetailSection, string> = {
   payroll: "Payroll history",
   training: "Training history",
   documents: "Documents",
+  "policy-bundle": "Policy bundle",
 };

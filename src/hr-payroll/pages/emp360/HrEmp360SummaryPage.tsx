@@ -13,6 +13,8 @@ import { Emp360LeaveSummaryCard } from "../../components/emp360/Emp360LeaveSumma
 import { Emp360PayrollHistoryCard } from "../../components/emp360/Emp360PayrollHistoryCard";
 import { Emp360TrainingCard } from "../../components/emp360/Emp360TrainingCard";
 import { Emp360DocumentsCard } from "../../components/emp360/Emp360DocumentsCard";
+import { Emp360PolicyBundleCard } from "../../components/emp360/Emp360PolicyBundleCard";
+import { useWpmsAssignmentHistory, useWpmsAssignments, useWpmsBundles } from "../../hooks/useWpms";
 import { Emp360EmployeeDetails } from "../../components/emp360/Emp360EmployeeDetails";
 import { Emp360ActivityTimeline } from "../../components/emp360/Emp360ActivityTimeline";
 import { rollupAttendance } from "../../lib/emp360Rollups";
@@ -39,6 +41,15 @@ export default function HrEmp360SummaryPage() {
     limit: 50,
   });
   const { data: employeeAssets = [], isLoading: assetsLoading } = useEmployeeAssets(emp.id);
+  const { data: wpmsBundles = [] } = useWpmsBundles();
+  const { data: wpmsAssignments = [] } = useWpmsAssignments(emp.id);
+  const { data: wpmsHistory = [] } = useWpmsAssignmentHistory(emp.id);
+
+  const currentWpmsBundle = useMemo(() => {
+    const current = wpmsAssignments.find((a) => a.is_current);
+    if (!current) return null;
+    return wpmsBundles.find((b) => b.id === current.bundle_id) ?? null;
+  }, [wpmsAssignments, wpmsBundles]);
 
   const training = useMemo(
     () => allTraining.filter((t) => t.employee_id === emp.id),
@@ -78,6 +89,12 @@ export default function HrEmp360SummaryPage() {
           employee={emp}
           employeeId={emp.id}
           profileSearch={profileSearch}
+        />
+        <Emp360PolicyBundleCard
+          employeeId={emp.id}
+          profileSearch={profileSearch}
+          currentBundle={currentWpmsBundle}
+          historyCount={wpmsHistory.length}
         />
       </div>
 

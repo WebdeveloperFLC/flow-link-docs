@@ -57,6 +57,7 @@ const REQUIRED_MIGRATIONS = [
   "20260728120000_hr_payroll_salary_structure_statutory.sql",
   "20260729120000_hr_payroll_salary_structure_engine.sql",
   "20260730120000_hr_payroll_salary_payable_days_engine.sql",
+  "20260731120000_hr_wpms_master_data_foundation.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -87,6 +88,9 @@ const REQUIRED_RPCS = [
   "fn_request_training_completion",
   "fn_complete_training_direct",
   "fn_finalize_training_on_approve",
+  "fn_wpms_assign_bundle",
+  "fn_wpms_bulk_assign_bundle",
+  "fn_wpms_log_event",
 ];
 
 const REQUIRED_PAGES = [
