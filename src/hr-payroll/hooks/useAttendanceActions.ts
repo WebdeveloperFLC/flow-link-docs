@@ -53,6 +53,21 @@ export function useAttendanceActions(
 
   const addToday = async (employeeId: string, empName: string) => {
     const work_date = todayIsoInTz(timezone);
+    const { data: existing, error: lookupError } = await supabase
+      .from("attendance" as never)
+      .select("id")
+      .eq("employee_id", employeeId)
+      .eq("work_date", work_date)
+      .maybeSingle();
+    if (lookupError) {
+      fire(lookupError.message);
+      return;
+    }
+    if (existing) {
+      fire("Today's attendance row already exists");
+      await invalidate(employeeId);
+      return;
+    }
     const { error } = await supabase.from("attendance" as never).insert({
       org_id: HR_ORG_ID,
       employee_id: employeeId,

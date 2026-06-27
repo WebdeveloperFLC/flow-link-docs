@@ -579,6 +579,7 @@ export function EmployeeFormModal({
       tds_applicable: f.tds_applicable,
       lwf_applicable: f.lwf_applicable,
       other_deductions: Number(f.other_deductions) || 0,
+      employment_type: sourceEmp?.employment_type ?? "Full time - Permanent",
       bank_holder_name: f.bank_holder_name || null,
       bank_name: f.bank_name || null,
       bank_account_number: f.bank_account_number || null,
@@ -588,9 +589,9 @@ export function EmployeeFormModal({
       bank_verified: f.bank_verified,
       security_cheque_status: f.security_cheque_status,
       security_cheque_reason: reasonValue,
-      staff_id: f.staff_id || null,
     };
 
+    const staffToLink = f.staff_id || null;
     const auditTarget = `${f.emp_code.trim()} · ${fullName}`;
     const actor = await getHrActorInfo();
     const wasBankVerified = sourceEmp?.bank_verified ?? false;
@@ -644,6 +645,14 @@ export function EmployeeFormModal({
         if (error) throw error;
         employeeId = (data as { id: string }).id;
         fire(`Employee ${fullName} added`);
+      }
+
+      if (employeeId && staffToLink !== (sourceEmp?.staff_id ?? null)) {
+        const { error: linkError } = await supabase.rpc("fn_link_employee_staff" as never, {
+          p_employee_id: employeeId,
+          p_staff_id: staffToLink,
+        } as never);
+        if (linkError) throw linkError;
       }
 
       if (employeeId) {

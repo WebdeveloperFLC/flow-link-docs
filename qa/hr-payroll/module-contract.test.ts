@@ -61,6 +61,7 @@ const REQUIRED_MIGRATIONS = [
   "20260732120000_hr_wtm_attendance_foundation.sql",
   "20260733120000_hr_aems_pack22.sql",
   "20260734120000_hr_wre_pack23.sql",
+  "20260735120000_hr_wtm_smoke_p1_fixes.sql",
 ];
 
 const REQUIRED_RPCS = [
