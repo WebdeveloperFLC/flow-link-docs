@@ -67,20 +67,10 @@ Deno.serve(async (req) => {
       throw error;
     }
 
-    // Always sweep promotions (any doc type may reveal a promo, brochures included)
-    let promosResult: any = null;
-    try {
-      const { data: pr } = await supabase.functions.invoke("upi-detect-promotions", {
-        body: { document_id, institution_id },
-      });
-      promosResult = pr ?? null;
-    } catch (_) { /* non-fatal */ }
-
     const aggregated = {
       route,
       programs_found: Number((data as any)?.found ?? (data as any)?.count ?? 0),
       programs_upserted: Number((data as any)?.upserted ?? 0),
-      promotions_found: Number(promosResult?.found ?? 0),
       extraction_meta: (data as any)?.extraction_meta ?? null,
       confidence: Number((data as any)?.confidence ?? 0),
       pageCount: (data as any)?.pageCount ?? null,
@@ -92,7 +82,6 @@ Deno.serve(async (req) => {
     const anythingFound =
       aggregated.programs_found > 0 ||
       aggregated.programs_upserted > 0 ||
-      aggregated.promotions_found > 0 ||
       doc_kind === "agreement"; // agreement extractor doesn't return found count
     await supabase.from("upi_document_pipeline_events").insert({
       document_id,

@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { usePromotions } from "../hooks/useInstitutionData";
 import { OpportunityCard, type OpportunityRecord } from "./OpportunityCard";
+import { PROMOTIONS_EMPTY_MESSAGE } from "../lib/promotionsConstants";
 
 function asStringArray(v: unknown): string[] {
   if (Array.isArray(v)) return v.map(String).filter(Boolean);
@@ -20,6 +21,7 @@ export function CurrentOpportunitiesPanel({
   institutionName,
   fieldOfStudy,
   compact = false,
+  hideWhenEmpty = false,
   title = "Current opportunities",
 }: {
   institutionId: string;
@@ -27,6 +29,8 @@ export function CurrentOpportunitiesPanel({
   /** When set, prefer promotions targeting this program field. */
   fieldOfStudy?: string;
   compact?: boolean;
+  /** When true, render nothing if there are no active promotions (Course Finder). */
+  hideWhenEmpty?: boolean;
   title?: string;
 }) {
   const { data: promos, loading } = usePromotions(institutionId) as {
@@ -37,21 +41,33 @@ export function CurrentOpportunitiesPanel({
   const active = (promos ?? []).filter((p) => p.is_active !== false && matchesFieldOfStudy(p, fieldOfStudy));
 
   if (loading) {
+    if (hideWhenEmpty) return null;
     return (
       <div className={compact ? "py-2 text-sm text-muted-foreground" : "p-6 text-center text-sm text-muted-foreground"}>
-        Loading opportunities…
+        Loading promotions…
       </div>
     );
   }
 
-  if (compact) {
-    if (active.length === 0) {
-      return (
-        <p className="text-sm text-muted-foreground italic">
-          No active offers on file — institution promotions will surface here when available.
-        </p>
-      );
+  if (active.length === 0) {
+    if (hideWhenEmpty) return null;
+    if (compact) {
+      return <p className="text-sm text-muted-foreground">{PROMOTIONS_EMPTY_MESSAGE}</p>;
     }
+    return (
+      <Card className="p-4 space-y-3">
+        <div>
+          <div className="text-sm font-medium">{title}</div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Scholarships, fee waivers, discounts, and special offers — user-managed only.
+          </p>
+        </div>
+        <p className="text-sm text-muted-foreground py-4 text-center">{PROMOTIONS_EMPTY_MESSAGE}</p>
+      </Card>
+    );
+  }
+
+  if (compact) {
     return (
       <div className="space-y-2">
         {active.map((p) => (
@@ -66,21 +82,14 @@ export function CurrentOpportunitiesPanel({
       <div>
         <div className="text-sm font-medium">{title}</div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Scholarships, fee waivers, discounts, and promotions — AI auto-population reserved for a future sprint.
+          Scholarships, fee waivers, discounts, and special offers — user-managed only.
         </p>
       </div>
-
-      {active.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-4 text-center">
-          No active opportunities on file. Add promotions or upload knowledge sources to detect offers later.
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {active.map((p) => (
-            <OpportunityCard key={p.id} opportunity={p} institutionName={institutionName} />
-          ))}
-        </div>
-      )}
+      <div className="space-y-2">
+        {active.map((p) => (
+          <OpportunityCard key={p.id} opportunity={p} institutionName={institutionName} />
+        ))}
+      </div>
     </Card>
   );
 }

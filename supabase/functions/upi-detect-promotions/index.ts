@@ -1,20 +1,19 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { extractFileText, buildAiContent } from "../_shared/extractFileText.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYS = `You scan study-abroad documents for promotions (application fee waivers, bonus commission, free GIC, scholarships, seasonal campaigns). Return zero or more structured promotions with promo_type from: scholarship, pr_pathway, low_ielts, coop, seasonal, high_demand, affordable, work_permit, fast_track, general.`;
-
+/**
+ * FLEOS: Promotions are user-managed — AI must not auto-create rows in upi_promotions.
+ * Extraction from uploads may return in a future sprint after explicit user approval.
+ */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const { document_id, institution_id } = await req.json();
+    const { document_id } = await req.json();
     if (!document_id) throw new Error("document_id required");
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -22,91 +21,26 @@ Deno.serve(async (req) => {
     );
 
     const { data: doc } = await supabase
-      .from("upi_uploaded_documents").select("*").eq("id", document_id).single();
+      .from("upi_uploaded_documents")
+      .select("id")
+      .eq("id", document_id)
+      .maybeSingle();
     if (!doc) throw new Error("doc not found");
 
-    let rawText = (doc.raw_text ?? "").trim();
-    let extracted = { text: rawText } as Awaited<ReturnType<typeof extractFileText>>;
-    if (!rawText && doc.file_path) {
-      const { data: file } = await supabase.storage.from("institution-documents").download(doc.file_path);
-      if (file) {
-        extracted = await extractFileText(file, { mime: doc.mime_type, fileName: doc.file_name });
-        rawText = extracted.text;
-      }
-    }
-    if (!rawText && !extracted.inlineBase64) {
-      return new Response(JSON.stringify({ ok: true, found: 0 }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-    const userText = `File: ${doc.file_name}\n\n${rawText.slice(0, 50000) || "(no embedded text — see attached file)"}`;
-    const userContent = buildAiContent(userText, extracted);
-
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: SYS },
-          { role: "user", content: userContent },
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "submit_promotions",
-            parameters: {
-              type: "object",
-              properties: {
-                promotions: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      title: { type: "string" },
-                      promo_type: { type: "string" },
-                      description: { type: "string" },
-                      valid_from: { type: "string" },
-                      valid_to: { type: "string" },
-                      target_countries: { type: "array", items: { type: "string" } },
-                      conditions: { type: "object" },
-                    },
-                    required: ["title", "promo_type"],
-                  },
-                },
-              },
-              required: ["promotions"],
-            },
-          },
-        }],
-        tool_choice: { type: "function", function: { name: "submit_promotions" } },
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        found: 0,
+        inserted: 0,
+        disabled: true,
+        message: "Automatic promotion detection is disabled. Create promotions manually or import them.",
       }),
-    });
-    if (!aiRes.ok) throw new Error(`AI ${aiRes.status}`);
-    const aiJson = await aiRes.json();
-    const args = JSON.parse(aiJson.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments ?? "{}");
-    const promos = Array.isArray(args.promotions) ? args.promotions : [];
-    if (promos.length) {
-      await supabase.from("upi_promotions").insert(
-        promos.map((p: any) => ({
-          institution_id,
-          title: p.title,
-          promo_type: p.promo_type ?? "general",
-          description: p.description,
-          valid_from: p.valid_from || null,
-          valid_to: p.valid_to || null,
-          target_countries: p.target_countries ?? [],
-          conditions: p.conditions ?? {},
-          is_active: true,
-          auto_detected: true,
-          detection_source: `document:${document_id}`,
-        })),
-      );
-    }
-    return new Response(JSON.stringify({ ok: true, found: promos.length }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (e) {
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

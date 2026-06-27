@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Gift, Percent, Tag, CalendarDays, Building2, FileText, Globe } from "lucide-react";
+import { formatPromotionSource } from "../lib/promotionsConstants";
 
 export type OpportunityRecord = {
   id: string;
@@ -54,9 +55,10 @@ export function OpportunityCard({
   const disciplines = asStringArray(p.target_disciplines);
   const countries = asStringArray(p.target_countries);
   const priority = priorityLabel(p.metadata ?? null);
-  const source = p.auto_detected
-    ? p.detection_source ?? "AI detected"
-    : "Manual entry";
+  const meta = (p.metadata ?? {}) as Record<string, unknown>;
+  const source = formatPromotionSource(
+    String(meta.source_type ?? (p.detection_source?.startsWith("manual:") ? p.detection_source.slice(7) : "manual")),
+  );
 
   return (
     <div className={`rounded-md border p-3 space-y-2 ${compact ? "text-xs" : ""}`}>

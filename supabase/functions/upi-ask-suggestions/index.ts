@@ -99,7 +99,10 @@ Deno.serve(async (req) => {
     const args = j?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
     const parsed = args ? JSON.parse(args) : { answer: "", suggestions: [] };
 
-    const suggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions : [];
+    const suggestions = (Array.isArray(parsed.suggestions) ? parsed.suggestions : []).filter(
+      (s: { suggestion_type?: string }) =>
+        s.suggestion_type !== "promotion" && s.suggestion_type !== "scholarship",
+    );
     if (suggestions.length > 0) {
       await supabase.from("upi_ai_suggestions").insert(
         suggestions.map((s: any) => ({

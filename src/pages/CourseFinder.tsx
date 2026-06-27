@@ -33,6 +33,7 @@ import {
 } from "@/lib/courseFinderSummaries";
 import { OfficialResourcesPanel } from "@/institutions/components/OfficialResourcesPanel";
 import { CurrentOpportunitiesPanel } from "@/institutions/components/CurrentOpportunitiesPanel";
+import { usePromotions } from "@/institutions/hooks/useInstitutionData";
 import {
   officialResourcesFromCfCourse,
   readInstitutionOfficialResources,
@@ -764,6 +765,31 @@ const ResultCard = ({
   </Card>
 );
 
+const CourseFinderOffersBlock = ({
+  institutionId,
+  institutionName,
+  fieldOfStudy,
+}: {
+  institutionId: string;
+  institutionName: string;
+  fieldOfStudy?: string | null;
+}) => {
+  const { data: promos, loading } = usePromotions(institutionId) as { data: { is_active?: boolean }[]; loading: boolean };
+  const hasActive = (promos ?? []).some((p) => p.is_active !== false);
+  if (loading || !hasActive) return null;
+  return (
+    <Section title="Current offers">
+      <CurrentOpportunitiesPanel
+        institutionId={institutionId}
+        institutionName={institutionName}
+        fieldOfStudy={fieldOfStudy ?? undefined}
+        compact
+        hideWhenEmpty
+      />
+    </Section>
+  );
+};
+
 const CourseDetail = ({
   c,
   institutionResources,
@@ -832,22 +858,13 @@ const CourseDetail = ({
       </p>
     </Section>
 
-    <Section title="Current offers">
-      {institutionId ? (
-        <CurrentOpportunitiesPanel
-          institutionId={institutionId}
-          institutionName={c.university.name}
-          fieldOfStudy={c.field_of_study}
-          compact
-        />
-      ) : (
-        <p className="text-sm text-muted-foreground italic">
-          {c.scholarship_available
-            ? "Scholarship flagged — see official scholarship page for details."
-            : "No institution link — offers unavailable until catalog is synced."}
-        </p>
-      )}
-    </Section>
+    {institutionId ? (
+      <CourseFinderOffersBlock
+        institutionId={institutionId}
+        institutionName={c.university.name}
+        fieldOfStudy={c.field_of_study}
+      />
+    ) : null}
 
     <OfficialResourcesPanel
       resources={officialResources}

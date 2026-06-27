@@ -29,7 +29,7 @@ export const DOC_KIND_TO_EXTRACTOR = {
   program_sheet: "upi-extract-programs-from-doc",
   agreement: "upi-analyze-agreement",
   commission_sheet: "upi-extract-commission-sheet",
-  brochure: "upi-detect-promotions",
+  brochure: "upi-extract-programs-from-doc",
 } as const;
 
 export type DocKind = keyof typeof DOC_KIND_TO_EXTRACTOR;
