@@ -112,6 +112,61 @@ function canonicalTitle(title: string, level?: string): string {
   return s;
 }
 
+function normalizeProgramCode(code: unknown): string | null {
+  const c = String(code ?? "").trim().toUpperCase();
+  return c || null;
+}
+
+function normalizeCredential(credential: unknown): string {
+  return String(credential ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+type StagingExisting = {
+  id: string;
+  review_status: string | null;
+  metadata: Record<string, unknown> | null;
+  campus_name: string | null;
+  dedup_hash?: string | null;
+  course_title?: string | null;
+  program_level_id?: string | null;
+};
+
+function findSmartImportExisting(
+  rows: StagingExisting[],
+  institutionId: string,
+  courseTitle: string,
+  metadata: Record<string, unknown>,
+  resolveText: (metadata: Record<string, unknown>, programLevelId: unknown) => string,
+  programLevelId: unknown,
+): StagingExisting | null {
+  const code = normalizeProgramCode(metadata.program_code);
+  if (code) {
+    const byCode = rows.find((row) =>
+      normalizeProgramCode((row.metadata as Record<string, unknown> | null)?.program_code) === code
+    );
+    if (byCode) return byCode;
+  }
+  const levelRaw = resolveText(metadata, programLevelId);
+  const titleKey = canonicalTitle(courseTitle, levelRaw);
+  const credKey = normalizeCredential(levelRaw);
+  return rows.find((row) => {
+    const rowLevel = resolveText((row.metadata as Record<string, unknown>) ?? {}, row.program_level_id);
+    return canonicalTitle(String(row.course_title ?? ""), rowLevel) === titleKey
+      && normalizeCredential(rowLevel) === credKey;
+  }) ?? null;
+}
+
+async function loadInstitutionStagingRows(
+  supabase: ReturnType<typeof createClient>,
+  institutionId: string,
+): Promise<StagingExisting[]> {
+  const { data } = await supabase
+    .from("upi_courses_staging")
+    .select("id, review_status, metadata, campus_name, dedup_hash, course_title, program_level_id")
+    .eq("institution_id", institutionId);
+  return (data ?? []) as StagingExisting[];
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -136,9 +191,26 @@ Deno.serve(async (req) => {
       .from("upi_program_levels").select("id,name");
     const { resolveId, resolveText } = buildLevelResolver((levelRows ?? []) as any);
 
+    const hasSmartImport = courses.some((c: Record<string, unknown>) =>
+      (c.metadata as Record<string, unknown> | undefined)?.import_source === "smart_program_import"
+      || c._staging_id
+    );
+    let institutionRowsCache: StagingExisting[] | null = null;
+    const getInstitutionRows = async () => {
+      if (!institutionRowsCache) {
+        institutionRowsCache = await loadInstitutionStagingRows(supabase, institution_id);
+      }
+      return institutionRowsCache;
+    };
+
     let upserted = 0, rejected = 0;
-    for (const raw of courses) {
+    for (const rawCourse of courses) {
       try {
+        const raw = { ...(rawCourse as Record<string, unknown>) };
+        const stagingIdOverride = String(raw._staging_id ?? raw.staging_id ?? "").trim() || null;
+        delete raw._staging_id;
+        delete raw.staging_id;
+
         const known: Record<string, unknown> = { institution_id, source_id, job_id };
         const metadata: Record<string, unknown> = {};
         for (const [k, v] of Object.entries(raw)) {
@@ -160,8 +232,6 @@ Deno.serve(async (req) => {
           continue;
         }
         if (!rowCountry && instCountry) known.country_name = instCountry;
-        // Resolve free-text program_level (kept in metadata) to FK so the
-        // Course Review level filter can find these rows.
         if (!known.program_level_id) {
           const fromMeta = (metadata as any).program_level;
           const lvlId = resolveId(fromMeta);
@@ -170,13 +240,35 @@ Deno.serve(async (req) => {
         const levelRaw = resolveText(metadata, known.program_level_id);
         const levelText = levelRaw.toLowerCase().trim();
         const titleKey = canonicalTitle(String(known.course_title), levelRaw);
-        // Dedup by institution + canonical title + level (campuses merged onto one row).
         const dedup = await sha256Hex(
           `${known.institution_id ?? ""}||${titleKey}||${known.program_level_id ?? ""}||${levelText}`,
         );
 
-        const { data: existing } = await supabase.from("upi_courses_staging")
-          .select("id, review_status, metadata, campus_name").eq("dedup_hash", dedup).maybeSingle();
+        let existing: StagingExisting | null = null;
+        if (stagingIdOverride) {
+          const { data: byId } = await supabase.from("upi_courses_staging")
+            .select("id, review_status, metadata, campus_name, dedup_hash, course_title, program_level_id")
+            .eq("id", stagingIdOverride)
+            .eq("institution_id", institution_id)
+            .maybeSingle();
+          existing = (byId as StagingExisting | null) ?? null;
+        } else if (metadata.import_source === "smart_program_import") {
+          const rows = await getInstitutionRows();
+          existing = findSmartImportExisting(
+            rows,
+            institution_id,
+            String(known.course_title),
+            metadata,
+            resolveText,
+            known.program_level_id,
+          );
+        } else {
+          const { data: byDedup } = await supabase.from("upi_courses_staging")
+            .select("id, review_status, metadata, campus_name, dedup_hash, course_title, program_level_id")
+            .eq("dedup_hash", dedup)
+            .maybeSingle();
+          existing = (byDedup as StagingExisting | null) ?? null;
+        }
 
         const review_status = existing?.review_status === "published" ? "needs_update" : "pending_review";
         const mergedCampuses = mergeCampusLists(
@@ -186,15 +278,35 @@ Deno.serve(async (req) => {
         if (mergedCampuses.length) {
           known.campus_name = mergedCampuses.join(", ");
         }
-        // Merge metadata: keep prior keys, overwrite with new non-null values.
         const mergedMeta = {
           ...((existing?.metadata as any) ?? {}),
           ...metadata,
           campus_names: mergedCampuses,
         };
-        const payload = { ...known, dedup_hash: dedup, metadata: mergedMeta, review_status, updated_at: new Date().toISOString() };
+        const payload = {
+          ...known,
+          dedup_hash: dedup,
+          metadata: mergedMeta,
+          review_status,
+          updated_at: new Date().toISOString(),
+        };
 
-        const { error } = await supabase.from("upi_courses_staging").upsert(payload, { onConflict: "dedup_hash" });
+        let error: { message: string } | null = null;
+        if (existing?.id) {
+          const result = await supabase.from("upi_courses_staging").update(payload).eq("id", existing.id);
+          error = result.error;
+          if (!error && hasSmartImport && institutionRowsCache) {
+            const idx = institutionRowsCache.findIndex((r) => r.id === existing!.id);
+            if (idx >= 0) institutionRowsCache[idx] = { ...existing, ...payload, id: existing.id } as StagingExisting;
+          }
+        } else {
+          const result = await supabase.from("upi_courses_staging").upsert(payload, { onConflict: "dedup_hash" });
+          error = result.error;
+          if (!error && hasSmartImport && institutionRowsCache) {
+            institutionRowsCache.push({ id: "", review_status, metadata: mergedMeta, campus_name: String(known.campus_name ?? null), dedup_hash: dedup, course_title: String(known.course_title), program_level_id: known.program_level_id as string | null });
+          }
+        }
+
         if (error) {
           rejected++;
           if (job_id) await supabase.from("upi_sync_logs").insert({ job_id, level: "error", message: error.message, detail: { course_title: known.course_title } });

@@ -34,7 +34,7 @@ import {
   type SmartProgramRecord,
 } from "@/institutions/lib/smartProgramImport";
 
-type WizardStep = "method" | "preview" | "compare" | "import";
+type WizardStep = "method" | "preview" | "compare" | "import" | "done";
 
 const METHODS: Array<{
   id: SmartImportMethod;
@@ -91,13 +91,15 @@ export function SmartProgramImportWizard({
   const [pasteText, setPasteText] = useState("");
   const [records, setRecords] = useState<SmartProgramRecord[]>([]);
   const [compareSummary, setCompareSummary] = useState<ProgramCompareSummary | null>(null);
+  const [importResult, setImportResult] = useState<ProgramCompareSummary | null>(null);
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const levelNameById = useMemo(() => new Map(programLevels.map((l) => [l.id, l.name])), [programLevels]);
   const resolveLevelName = (id: string | null | undefined) => levelNameById.get(String(id ?? "")) ?? null;
 
-  const counts = compareSummary ? formatCompareCounts(compareSummary) : null;
+  const summaryForDisplay = step === "done" ? importResult : compareSummary;
+  const counts = summaryForDisplay ? formatCompareCounts(summaryForDisplay) : null;
 
   const reset = () => {
     setStep("method");
@@ -105,6 +107,7 @@ export function SmartProgramImportWizard({
     setPasteText("");
     setRecords([]);
     setCompareSummary(null);
+    setImportResult(null);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -142,10 +145,10 @@ export function SmartProgramImportWizard({
     }
   };
 
-  const goCompare = async () => {
+  const goCompare = () => {
     setBusy(true);
     try {
-      const summary = await compareSmartImportRecords(
+      const summary = compareSmartImportRecords(
         records,
         institutionId,
         existingPrograms,
@@ -175,18 +178,14 @@ export function SmartProgramImportWizard({
         body: { courses: toImport, institution_id: institutionId },
       });
       if (error) throw new Error(error.message);
-      const upserted = (data as { upserted?: number })?.upserted ?? 0;
       const rejected = (data as { rejected?: number })?.rejected ?? 0;
       toast.dismiss(t);
-      if (upserted > 0) {
-        toast.success(`Imported ${upserted} program${upserted === 1 ? "" : "s"} to ${institutionName}`);
-      }
-      if (rejected > 0) {
-        toast.warning(`${rejected} row${rejected === 1 ? "" : "s"} rejected`);
-      }
-      setOpen(false);
-      reset();
+      setImportResult(compareSummary);
+      setStep("done");
       onImported();
+      if (rejected > 0) {
+        toast.warning(`${rejected} row${rejected === 1 ? "" : "s"} rejected by server`);
+      }
     } catch (e) {
       toast.dismiss(t);
       toast.error(e instanceof Error ? e.message : "Import failed");
@@ -228,13 +227,14 @@ export function SmartProgramImportWizard({
           </DialogHeader>
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {(["method", "preview", "compare", "import"] as WizardStep[]).map((s, idx) => {
-              const labels = ["Method", "Preview", "Compare", "Import"];
+            {(["method", "preview", "compare", "import", "done"] as WizardStep[]).map((s, idx) => {
+              const labels = ["Method", "Preview", "Compare", "Import", "Done"];
               const active = step === s;
               const done =
                 (s === "method" && step !== "method") ||
-                (s === "preview" && (step === "compare" || step === "import")) ||
-                (s === "compare" && step === "import");
+                (s === "preview" && !["method", "preview"].includes(step)) ||
+                (s === "compare" && ["import", "done"].includes(step)) ||
+                (s === "import" && step === "done");
               return (
                 <div key={s} className="flex items-center gap-2">
                   {idx > 0 ? <span className="text-border">→</span> : null}
@@ -323,6 +323,7 @@ export function SmartProgramImportWizard({
                         <th className="text-left p-2 font-medium">Credential</th>
                         <th className="text-left p-2 font-medium">Intakes</th>
                         <th className="text-left p-2 font-medium">URL</th>
+                        <th className="text-left p-2 font-medium">URL detected</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -334,6 +335,13 @@ export function SmartProgramImportWizard({
                           <td className="p-2">{r.credential ?? "—"}</td>
                           <td className="p-2">{r.intakes.length ? r.intakes.join(", ") : "—"}</td>
                           <td className="p-2 max-w-[140px] truncate">{r.programUrl ?? "—"}</td>
+                          <td className="p-2">
+                            {r.urlDetected ? (
+                              <Badge variant="secondary" className="text-[10px]">Yes</Badge>
+                            ) : (
+                              <span className="text-muted-foreground">No</span>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -342,23 +350,30 @@ export function SmartProgramImportWizard({
               </div>
             )}
 
-            {step === "compare" && compareSummary && counts && (
+            {(step === "compare" || step === "done") && summaryForDisplay && counts && (
               <div className="space-y-4">
+                {step === "done" ? (
+                  <div className="flex items-center gap-2 text-sm text-primary">
+                    <CheckCircle2 className="size-4" />
+                    Import complete for {institutionName}.
+                  </div>
+                ) : null}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <CardStat label="New Programs" value={counts.new} tone="primary" />
                   <CardStat label="Updated Programs" value={counts.updated} tone="warn" />
                   <CardStat label="Unchanged" value={counts.unchanged} tone="muted" />
                   <CardStat label="Errors" value={counts.errors} tone="destructive" />
                 </div>
-                <CompareList title="New Programs" items={compareSummary.new} />
-                <CompareList title="Updated Programs" items={compareSummary.updated} showChanges />
-                {compareSummary.errors.length > 0 ? (
-                  <CompareList title="Errors" items={compareSummary.errors} isError />
+                <CompareList title="New Programs" items={summaryForDisplay.new} />
+                <CompareList title="Updated Programs" items={summaryForDisplay.updated} showChanges />
+                <CompareList title="Unchanged Programs" items={summaryForDisplay.unchanged} />
+                {summaryForDisplay.errors.length > 0 ? (
+                  <CompareList title="Errors" items={summaryForDisplay.errors} isError />
                 ) : null}
-                {counts.new + counts.updated === 0 ? (
+                {step === "compare" && counts.new + counts.updated === 0 ? (
                   <p className="text-sm text-muted-foreground flex items-center gap-2">
                     <AlertCircle className="size-4" />
-                    Nothing new to import — adjust your data or update existing programs manually.
+                    Nothing new to import — all programs match existing master data.
                   </p>
                 ) : null}
               </div>
@@ -408,6 +423,16 @@ export function SmartProgramImportWizard({
                   {counts && counts.new + counts.updated === 1 ? "" : "s"}
                 </Button>
               </>
+            )}
+            {step === "done" && (
+              <Button
+                onClick={() => {
+                  setOpen(false);
+                  reset();
+                }}
+              >
+                Close
+              </Button>
             )}
           </DialogFooter>
         </DialogContent>
