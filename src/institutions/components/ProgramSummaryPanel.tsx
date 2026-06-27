@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { OfficialResourcesPanel } from "./OfficialResourcesPanel";
-import type { ProgramSummary, AvailabilityOffering } from "../lib/programSummary";
+import type { ProgramSummary, AvailabilityOffering } from "@/institutions/lib/programSummary";
 
 function SummaryRow({ label, value }: { label: string; value: ReactNode }) {
   return (

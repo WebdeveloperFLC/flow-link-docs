@@ -15,7 +15,7 @@ import {
   groupProgramSheetRows,
   matchInstitutionId,
   parseProgramSheetFile,
-} from "../lib/programSheetImport";
+} from "@/institutions/lib/programSheetImport";
 import { fetchInstitutionLogos } from "../lib/fetchInstitutionLogo";
 
 type Inst = { id: string; name: string; country_name?: string | null; logo_url?: string | null; website_url?: string | null };

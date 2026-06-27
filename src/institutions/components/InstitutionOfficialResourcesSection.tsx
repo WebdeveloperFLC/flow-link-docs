@@ -1,10 +1,10 @@
 import {
   buildInstitutionOfficialResourcesPatch,
   readInstitutionOfficialResources,
-} from "../lib/officialResources";
-import type { UpiInstitution } from "../types/upi";
-import type { InstitutionOfficialResources } from "../types/officialResources";
-import { OfficialResourcesPanel } from "./OfficialResourcesPanel";
+} from "@/institutions/lib/officialResources";
+import type { UpiInstitution } from "@/institutions/types/upi";
+import type { InstitutionOfficialResources } from "@/institutions/types/officialResources";
+import { InstitutionOfficialResourcesPanel } from "./OfficialResourcesPanel";
 
 type Props = {
   inst: UpiInstitution;
@@ -27,8 +27,7 @@ export function InstitutionOfficialResourcesSection({ inst, canEdit, onChange, o
   };
 
   return (
-    <OfficialResourcesPanel
-      scope="institution"
+    <InstitutionOfficialResourcesPanel
       institutionResources={resources}
       canEdit={canEdit}
       onInstitutionChange={update}

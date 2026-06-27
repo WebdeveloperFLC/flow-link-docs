@@ -2,7 +2,7 @@ import { Layers, ListTree } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { ProgramGroupSummary } from "../lib/programGroups";
+import type { ProgramGroupSummary } from "@/institutions/lib/programGroups";
 
 export function ProgramGroupsNavPanel({
   groups,

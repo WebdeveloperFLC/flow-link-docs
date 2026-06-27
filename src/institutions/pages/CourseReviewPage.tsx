@@ -20,7 +20,7 @@ import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
 import { ImportProgramSheetButton } from "../components/ImportProgramSheetButton";
 import { ExportMenu } from "@/components/export/ExportMenu";
 import { useExportDataset } from "@/components/export/useExportDataset";
-import { buildProgramExportColumns } from "../lib/programExportColumns";
+import { buildProgramExportColumns } from "@/institutions/lib/programExportColumns";
 import { CourseReviewList } from "../components/CourseReviewList";
 import { InstitutionProgramContextHeader } from "../components/InstitutionProgramContextHeader";
 import { ProgramGroupsNavPanel } from "../components/ProgramGroupsNavPanel";
@@ -30,11 +30,11 @@ import { WorkspaceToolbar } from "@/components/workspace/WorkspaceToolbar";
 import {
   buildProgramSummaryFromOfferings,
   buildAvailabilityFromOfferings,
-} from "../lib/programSummary";
+} from "@/institutions/lib/programSummary";
 import {
   buildProgramGroups,
   filterRowsByProgramGroup,
-} from "../lib/programGroups";
+} from "@/institutions/lib/programGroups";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -50,7 +50,7 @@ import {
   resolveCourseDedupHashPatch,
   rowMatchesCampus,
 } from "../lib/courseDedup";
-import { normalizeInstitutionName } from "../lib/programSheetImport";
+import { normalizeInstitutionName } from "@/institutions/lib/programSheetImport";
 import {
   buildStagingSearchHaystack,
   escapeIlikePattern,
