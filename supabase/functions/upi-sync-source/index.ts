@@ -15,6 +15,57 @@ const BATCH_PAUSE_MS = 150;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+const DOCUMENT_SOURCE_TYPES = new Set([
+  "pdf_brochure", "excel_sheet", "csv_feed", "uploaded_email",
+  "program_sheet", "brochure", "agreement", "commission_sheet", "promotion_campaign",
+]);
+const URL_SOURCE_TYPES = new Set([
+  "website_url", "listing_page", "scholarship_page", "tuition_page",
+  "international_page", "sitemap", "api_endpoint", "json_feed",
+]);
+
+function metaRecord(metadata: unknown): Record<string, unknown> {
+  return metadata && typeof metadata === "object" && !Array.isArray(metadata)
+    ? (metadata as Record<string, unknown>)
+    : {};
+}
+
+function readProcessingPolicy(source: {
+  source_type?: string | null;
+  document_id?: string | null;
+  url?: string | null;
+  metadata?: unknown;
+}): "reference_only" | "ai_extract_once" | "manual_sync" {
+  const stored = metaRecord(source.metadata).processing_policy;
+  if (stored === "reference_only" || stored === "ai_extract_once" || stored === "manual_sync") {
+    return stored;
+  }
+  if (source.document_id || DOCUMENT_SOURCE_TYPES.has(source.source_type ?? "")) return "ai_extract_once";
+  if (URL_SOURCE_TYPES.has(source.source_type ?? "") || Boolean(source.url?.trim())) return "reference_only";
+  return "manual_sync";
+}
+
+function canSyncSource(source: {
+  source_type?: string | null;
+  document_id?: string | null;
+  url?: string | null;
+  metadata?: unknown;
+  last_synced_at?: string | null;
+}): boolean {
+  const policy = readProcessingPolicy(source);
+  if (policy === "reference_only") return false;
+  if (policy === "ai_extract_once") {
+    const meta = metaRecord(source.metadata);
+    if (meta.ai_extract_completed_at) return false;
+    if (source.last_synced_at) return false;
+  }
+  return true;
+}
+
+function buildAiExtractCompletedPatch(source: { metadata?: unknown }): Record<string, unknown> {
+  return { ...metaRecord(source.metadata), ai_extract_completed_at: new Date().toISOString() };
+}
+
 const LISTY_URL_HINTS = ["/programs", "/program/", "/courses", "/course/", "/study", "/academics", "/list", "/faculties", "/schools", "/area-of-study"];
 const SKIP_URL_HINTS = ["/news", "/blog", "/events", "/about", "/contact", "/login", "/apply-now", "/staff", "/faculty-staff", "/library", "/alumni", "/giving", "/parents", "/media", "/privacy", "/terms"];
 
@@ -364,6 +415,14 @@ Deno.serve(async (req) => {
     if (!source.url && !source.document_id) {
       throw new Error("Source has no URL or linked document to process");
     }
+    if (!canSyncSource(source)) {
+      const policy = readProcessingPolicy(source);
+      throw new Error(
+        policy === "reference_only"
+          ? "Processing policy is Reference Only — sync is not allowed for this source."
+          : "AI Extract Once already completed for this source.",
+      );
+    }
 
     if (existing_job_id) {
       job_id = existing_job_id;
@@ -430,6 +489,9 @@ Deno.serve(async (req) => {
           pages_scanned: meta?.pagesSucceeded ?? null,
           pages_found: meta?.pageCount ?? null,
           confidence_score: Math.max(0, Math.min(100, Math.round(Number(agg?.raw?.confidence ?? 0)))),
+          ...(readProcessingPolicy(source) === "ai_extract_once"
+            ? { metadata: buildAiExtractCompletedPatch(source) }
+            : {}),
         }).eq("id", source.id);
         return new Response(JSON.stringify({
           ok: true,
@@ -613,6 +675,9 @@ Deno.serve(async (req) => {
         crawl_status: "completed", last_synced_at: new Date().toISOString(),
         pages_scanned: pagesScanned, pages_found: pagesScanned,
         extracted_records_count: upserted,
+        ...(readProcessingPolicy(source) === "ai_extract_once"
+          ? { metadata: buildAiExtractCompletedPatch(source) }
+          : {}),
       }).eq("id", source.id);
       await logMsg(supabase, job_id!, "info", `Fallback upserted ${upserted}, rejected ${rejected}`);
     })();

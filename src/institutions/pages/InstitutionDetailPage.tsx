@@ -42,6 +42,20 @@ import { InstitutionOfficialResourcesSection } from "../components/InstitutionOf
 import { CurrentOpportunitiesPanel } from "../components/CurrentOpportunitiesPanel";
 import { KnowledgeInboxArchitecturePanel, knowledgeInboxStatusBadge } from "../components/KnowledgeInboxArchitecturePanel";
 import { InstitutionStatusBadge } from "../components/InstitutionStatusBadge";
+import {
+  buildAiExtractCompletedPatch,
+  buildProcessingPolicyPatch,
+  canSyncNow,
+  defaultProcessingPolicy,
+  readProcessingPolicy,
+  shouldIncludeInSyncAll,
+} from "@/institutions/lib/sourceProcessingPolicy";
+import {
+  SourceProcessingPolicyBadge,
+  SourceProcessingPolicySelect,
+} from "@/institutions/components/SourceProcessingPolicyControl";
+import type { ProcessingPolicy } from "@/institutions/types/knowledgeSources";
+import { PROCESSING_POLICIES, PROCESSING_POLICY_HINTS, PROCESSING_POLICY_LABELS } from "@/institutions/types/knowledgeSources";
 import type { CatalogStatus } from "../types/partnership";
 
 // Sanitize a filename for use as a Supabase Storage object key.
@@ -80,6 +94,7 @@ export default function InstitutionDetailPage() {
   const [newSourceUrl, setNewSourceUrl] = useState("");
   const [newSourceType, setNewSourceType] = useState("website_url");
   const [newSourceDocId, setNewSourceDocId] = useState<string>("");
+  const [newSourcePolicy, setNewSourcePolicy] = useState<ProcessingPolicy | "">("");
   const [highlightSourceId, setHighlightSourceId] = useState<string | null>(null);
   const [syncingAll, setSyncingAll] = useState(false);
   const [syncingSourceIds, setSyncingSourceIds] = useState<Set<string>>(new Set());
@@ -262,6 +277,19 @@ export default function InstitutionDetailPage() {
       }
       insertPayload.url = raw;
     }
+    const effectivePolicy =
+      newSourcePolicy ||
+      defaultProcessingPolicy({
+        source_type: newSourceType,
+        document_id: insertPayload.document_id,
+        url: insertPayload.url,
+        metadata: {},
+      });
+    insertPayload.metadata = buildProcessingPolicyPatch(
+      { source_type: newSourceType, metadata: {} },
+      effectivePolicy,
+    );
+    insertPayload.crawl_status = "idle";
     const { data, error } = await supabase
       .from("upi_institution_sources")
       .insert(insertPayload)
@@ -270,6 +298,7 @@ export default function InstitutionDetailPage() {
     if (error) return toast.error(`Add source failed: ${error.message}`);
     setNewSourceUrl("");
     setNewSourceDocId("");
+    setNewSourcePolicy("");
     await load();
     if (data?.id) {
       setHighlightSourceId(data.id);
@@ -277,8 +306,30 @@ export default function InstitutionDetailPage() {
         document.getElementById(`source-row-${data.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 50);
       setTimeout(() => setHighlightSourceId(null), 2500);
+      const added = data as UpiSource;
+      const policy = readProcessingPolicy(added);
+      if (policy === "reference_only") {
+        toast.success("Source added as reference link — not crawled automatically");
+      } else if (policy === "ai_extract_once") {
+        toast.success("Source added — running one-time AI extraction…");
+        void syncNow(added, true);
+      } else {
+        toast.success("Source added — click Sync now when ready to extract");
+      }
+      return;
     }
-    toast.success("Source added — click Sync now to extract programs");
+    toast.success("Source added");
+  };
+
+  const updateProcessingPolicy = async (source: UpiSource, policy: ProcessingPolicy) => {
+    if (!canEdit) return toast.error("View-only access — cannot update processing policy");
+    const { error } = await supabase
+      .from("upi_institution_sources")
+      .update({ metadata: buildProcessingPolicyPatch(source, policy) as any })
+      .eq("id", source.id);
+    if (error) return toast.error(error.message);
+    toast.success(`Processing policy set to ${PROCESSING_POLICY_LABELS[policy]}`);
+    await load();
   };
 
   const pollSyncJob = async (jobId: string) => {
@@ -297,6 +348,17 @@ export default function InstitutionDetailPage() {
 
   const syncNow = async (source: UpiSource, quiet = false) => {
     if (!canEdit) return 0;
+    if (!canSyncNow(source)) {
+      const policy = readProcessingPolicy(source);
+      if (!quiet) {
+        if (policy === "reference_only") {
+          toast.error("Reference Only — this link is not extracted. Change policy to Manual Sync to run Sync now.");
+        } else {
+          toast.info("AI Extract Once already completed for this source.");
+        }
+      }
+      return 0;
+    }
     if (!quiet) toast.info("Sync started — watching job status…");
     setSyncingSourceIds((prev) => new Set(prev).add(source.id));
     await supabase.from("upi_institution_sources").update({ crawl_status: "queued" }).eq("id", source.id);
@@ -321,6 +383,12 @@ export default function InstitutionDetailPage() {
       toast.error(job.error_summary ?? "Sync failed");
       return 0;
     }
+    if (readProcessingPolicy(source) === "ai_extract_once") {
+      await supabase
+        .from("upi_institution_sources")
+        .update({ metadata: buildAiExtractCompletedPatch(source) as any })
+        .eq("id", source.id);
+    }
     const upserted = job.records_upserted ?? 0;
     if (!quiet) toast.success(`Sync ${job.status} — ${upserted} course(s) staged for review`);
     return upserted;
@@ -332,6 +400,7 @@ export default function InstitutionDetailPage() {
     setSyncingAll(true);
     let total = 0;
     for (const s of sources) {
+      if (!shouldIncludeInSyncAll(s)) continue;
       // Skip sources that are already known to be blocked — user can retry manually
       if (s.crawl_status === "failed" && /blocks automated fetch|cloudflare|credits exhausted/i.test(sourceErrors[s.id] ?? "")) {
         continue;
@@ -623,12 +692,19 @@ export default function InstitutionDetailPage() {
                   ? docs.filter((d: any) => (d.metadata?.doc_kind ?? "") === wantedKind)
                   : docs
                 ).filter((d: any) => canSeeCommissions || !isConfidentialDocKind(d.metadata?.doc_kind));
+                const suggestedPolicy = defaultProcessingPolicy({
+                  source_type: newSourceType,
+                  document_id: isDocType && newSourceDocId ? newSourceDocId : undefined,
+                  url: !isDocType ? newSourceUrl.trim() || undefined : undefined,
+                  metadata: {},
+                });
+                const addFormPolicy = newSourcePolicy || suggestedPolicy;
                 return (
                   <>
                     <select
                       className="h-10 px-3 rounded-md border bg-background text-sm"
                       value={newSourceType}
-                      onChange={(e) => { setNewSourceType(e.target.value); setNewSourceDocId(""); }}
+                      onChange={(e) => { setNewSourceType(e.target.value); setNewSourceDocId(""); setNewSourcePolicy(""); }}
                     >
                       {SOURCE_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value}>{o.label}</option>
@@ -675,6 +751,28 @@ export default function InstitutionDetailPage() {
                         onKeyDown={(e) => e.key === "Enter" && addSource()}
                       />
                     )}
+                    <div className="flex flex-col gap-1 min-w-[11rem]">
+                      <label className="text-[10px] text-muted-foreground uppercase tracking-wide">Processing Policy</label>
+                      <Select
+                        value={addFormPolicy}
+                        disabled={!canEdit}
+                        onValueChange={(v) => setNewSourcePolicy(v as ProcessingPolicy)}
+                      >
+                        <SelectTrigger className="h-10 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PROCESSING_POLICIES.map((p) => (
+                            <SelectItem key={p} value={p} className="text-xs">
+                              {PROCESSING_POLICY_LABELS[p]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[10px] text-muted-foreground leading-snug max-w-[14rem]">
+                        {PROCESSING_POLICY_HINTS[addFormPolicy]}
+                      </p>
+                    </div>
                     <Button onClick={addSource} disabled={!canEdit}><Plus className="size-4" /> Add source</Button>
                   </>
                 );
@@ -694,17 +792,19 @@ export default function InstitutionDetailPage() {
               {sources.map((s) => {
                 const isSyncing = syncingSourceIds.has(s.id) || s.crawl_status === "queued" || s.crawl_status === "running";
                 const sourceError = sourceErrors[s.id];
+                const syncEligible = canSyncNow(s);
                 return (
                 <Card
                   key={s.id}
                   id={`source-row-${s.id}`}
-                  className={`p-4 flex items-center gap-4 transition-colors ${highlightSourceId === s.id ? "ring-2 ring-primary bg-primary/5" : ""}`}
+                  className={`p-4 flex flex-wrap items-center gap-4 transition-colors ${highlightSourceId === s.id ? "ring-2 ring-primary bg-primary/5" : ""}`}
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">
-                      {(s as any).name ?? s.url ?? s.file_path}
+                  <div className="flex-1 min-w-[12rem]">
+                    <div className="font-medium truncate flex items-center gap-2 flex-wrap">
+                      <span className="truncate">{(s as any).name ?? s.url ?? s.file_path}</span>
+                      <SourceProcessingPolicyBadge source={s} />
                       {(s as any).document_id && (
-                        <span className="ml-2 text-xs text-muted-foreground">(from Knowledge Sources)</span>
+                        <span className="text-xs text-muted-foreground">(from Knowledge Sources)</span>
                       )}
                     </div>
                     <div className="text-xs text-muted-foreground">{s.source_type} · {s.crawl_status} · {s.pages_scanned}/{s.pages_found} pages · {s.confidence_score}% confidence</div>
@@ -712,8 +812,18 @@ export default function InstitutionDetailPage() {
                       <div className="mt-1 text-xs text-destructive line-clamp-2">{sourceError}</div>
                     )}
                   </div>
+                  <SourceProcessingPolicySelect
+                    source={s}
+                    canEdit={canEdit}
+                    onChange={(policy) => updateProcessingPolicy(s, policy)}
+                  />
                   <Badge variant={s.crawl_status === "completed" ? "default" : s.crawl_status === "failed" ? "destructive" : "secondary"}>{s.crawl_status}</Badge>
-                  <Button onClick={() => syncNow(s)} className="shrink-0" disabled={!canEdit || isSyncing}>
+                  <Button
+                    onClick={() => syncNow(s)}
+                    className="shrink-0"
+                    disabled={!canEdit || isSyncing || !syncEligible}
+                    title={!syncEligible ? PROCESSING_POLICY_HINTS[readProcessingPolicy(s)] : undefined}
+                  >
                     <RefreshCw className={`size-4 ${isSyncing ? "animate-spin" : ""}`} /> {isSyncing ? "Syncing" : "Sync now"}
                   </Button>
                   {canEdit && (
@@ -729,7 +839,7 @@ export default function InstitutionDetailPage() {
                     <ArrowUp className="size-6 text-primary animate-bounce" />
                     <div className="font-medium">No sources yet</div>
                     <div className="text-sm text-muted-foreground max-w-md">
-                      Paste a program-listing URL above (e.g. <code className="text-xs">https://conestogac.on.ca/fulltime-programs</code>), click <strong>Add source</strong>, then a <strong>Sync now</strong> button will appear on the new row.
+                      Add a website URL as a <strong>reference link</strong> (default — not crawled), or link an uploaded document for one-time AI extraction. Change <strong>Processing Policy</strong> on any row to enable <strong>Manual Sync</strong>.
                     </div>
                     <Button variant="outline" size="sm" className="mt-2" onClick={() => urlInputRef.current?.focus()}>
                       Focus URL field

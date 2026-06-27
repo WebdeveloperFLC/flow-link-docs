@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/card";
-import { Sparkles, BrainCircuit } from "lucide-react";
+import { Sparkles, BrainCircuit, Link2 } from "lucide-react";
 import { KNOWLEDGE_SOURCE_STATUSES } from "../types/officialResources";
 import { mapPipelineToKnowledgeStatus } from "../lib/officialResources";
+import { PROCESSING_POLICIES, PROCESSING_POLICY_HINTS, PROCESSING_POLICY_LABELS } from "../types/knowledgeSources";
 
 const STATUS_HINT: Record<(typeof KNOWLEDGE_SOURCE_STATUSES)[number], string> = {
   Pending: "Uploaded — awaiting AI processing",
@@ -32,9 +33,21 @@ export function KnowledgeSourcesArchitecturePanel() {
           Knowledge Sources
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          Uploaded files are knowledge sources — {SOURCE_TYPES.join(", ")}. AI extraction is reserved for a
-          future sprint; existing upload and review flows remain unchanged.
+          Uploaded files ({SOURCE_TYPES.join(", ")}) and website URLs are knowledge sources. Each source has a
+          <strong> Processing Policy</strong> that controls whether AI extraction runs automatically.
         </p>
+      </div>
+
+      <div className="grid sm:grid-cols-3 gap-2">
+        {PROCESSING_POLICIES.map((policy) => (
+          <div key={policy} className="rounded-md border bg-background p-2.5">
+            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+              {policy === "reference_only" ? <Link2 className="size-3" /> : null}
+              {PROCESSING_POLICY_LABELS[policy]}
+            </span>
+            <p className="text-[11px] text-muted-foreground leading-snug mt-1">{PROCESSING_POLICY_HINTS[policy]}</p>
+          </div>
+        ))}
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -50,10 +63,10 @@ export function KnowledgeSourcesArchitecturePanel() {
         <div className="flex items-start gap-2">
           <BrainCircuit className="size-4 text-primary mt-0.5 shrink-0" />
           <div>
-            <div className="text-xs font-semibold">AI Processing (architecture only)</div>
+            <div className="text-xs font-semibold">AI Processing</div>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              Slot for automated extraction, opportunity detection, and publish suggestions. No extraction
-              runs in v1.0.
+              Website URLs default to Reference Only — never auto-crawled. AI extraction runs for uploaded
+              documents (AI Extract Once) or when you click Sync now on Manual Sync sources.
             </p>
           </div>
         </div>
