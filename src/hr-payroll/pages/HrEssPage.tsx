@@ -245,6 +245,15 @@ export default function HrEssPage() {
             </span>
           </Link>
         )}
+        {can("apply") && (
+          <Link to="/hr/me/exceptions" className="ess-quick-card ess-quick-attendance">
+            <span className="ess-quick-icon"><ClipboardCheck size={18} strokeWidth={2.25} /></span>
+            <span>
+              <div className="ess-quick-label">Attendance exceptions</div>
+              <div className="ess-quick-hint">Submit & track requests</div>
+            </span>
+          </Link>
+        )}
         {canSee("attendance") && (
           <Link to="/hr/attendance" className="ess-quick-card ess-quick-attendance">
             <span className="ess-quick-icon"><ClipboardCheck size={18} strokeWidth={2.25} /></span>

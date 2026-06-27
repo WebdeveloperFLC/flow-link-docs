@@ -106,6 +106,8 @@ export const DEFAULT_ACCESS_BY_ROLE: Record<
       admin: false,
       masterData: false,
       wpms: false,
+      attendanceExceptions: true,
+      incidentRegister: false,
     },
   },
   Employee: {
@@ -146,6 +148,8 @@ export const DEFAULT_ACCESS_BY_ROLE: Record<
       admin: false,
       masterData: false,
       wpms: false,
+      attendanceExceptions: true,
+      incidentRegister: false,
     },
   },
 };

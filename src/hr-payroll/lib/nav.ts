@@ -92,6 +92,7 @@ export function screenKeyFromPath(pathname: string): HrScreenKey {
   if (pathname.startsWith("/hr/payroll/history")) return "payrollHistory";
   if (pathname.startsWith("/hr/payroll")) return "verify";
 
+  if (pathname.startsWith("/hr/attendance/exceptions")) return "attendanceExceptions";
   if (pathname.startsWith("/hr/attendance/compoff")) return "compoff";
   if (pathname.startsWith("/hr/attendance/late")) return "late";
   if (pathname.startsWith("/hr/attendance/mispunch")) return "mispunch";
@@ -102,6 +103,7 @@ export function screenKeyFromPath(pathname: string): HrScreenKey {
   if (pathname.startsWith("/hr/mispunch")) return "mispunch";
   if (pathname.startsWith("/hr/holidays")) return "holiday";
 
+  if (pathname.startsWith("/hr/admin/incidents")) return "incidentRegister";
   if (pathname.startsWith("/hr/admin/wpms")) return "wpms";
   if (pathname.startsWith("/hr/admin/master-data")) return "masterData";
   if (pathname.startsWith("/hr/admin")) return "admin";

@@ -59,6 +59,7 @@ const REQUIRED_MIGRATIONS = [
   "20260730120000_hr_payroll_salary_payable_days_engine.sql",
   "20260731120000_hr_wpms_master_data_foundation.sql",
   "20260732120000_hr_wtm_attendance_foundation.sql",
+  "20260733120000_hr_aems_pack22.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -99,6 +100,13 @@ const REQUIRED_RPCS = [
   "fn_wtm_get_session",
   "fn_wtm_log_event",
   "fn_wtm_sync_attendance_rollup",
+  "fn_aems_submit_exception",
+  "fn_aems_hr_action",
+  "fn_aems_manual_attendance",
+  "fn_aems_bulk_process",
+  "fn_aems_register_evidence",
+  "fn_aems_apply_session_correction",
+  "fn_aems_find_matching_incidents",
 ];
 
 const REQUIRED_PAGES = [

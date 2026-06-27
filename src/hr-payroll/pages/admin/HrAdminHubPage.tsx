@@ -13,6 +13,11 @@ const ADMIN_SECTIONS = [
     route: "/hr/admin/wpms",
   },
   {
+    title: "Workforce Incident Register",
+    description: "Office-wide operational incidents — internet, power, server outages",
+    route: "/hr/admin/incidents",
+  },
+  {
     title: "Configuration Hub",
     description: "Legacy operational policy editors (shift, leave rules, statutory)",
     route: "/hr/config",

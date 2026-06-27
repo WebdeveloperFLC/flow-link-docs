@@ -63,6 +63,8 @@ export const MASTER_DOMAIN_REGISTRY: MasterDomainDef[] = [
   { id: "late_policy_template", title: "Late Policy Templates", description: "Late slab templates", categoryId: "attendance", source: "hr_masters", route: "/hr/admin/master-data/late_policy_template", domain: "late_policy_template" },
   { id: "break_policy_template", title: "Break Policy Templates", description: "Break window templates", categoryId: "attendance", source: "hr_masters", route: "/hr/admin/master-data/break_policy_template", domain: "break_policy_template" },
   { id: "attendance_status", title: "Attendance Statuses", description: "Present, half day, absent, etc.", categoryId: "attendance", source: "hr_masters", route: "/hr/admin/master-data/attendance_status", domain: "attendance_status" },
+  { id: "attendance_exception_type", title: "Attendance Exception Types", description: "AEMS exception type catalog", categoryId: "attendance", source: "hr_masters", route: "/hr/admin/master-data/attendance_exception_type", domain: "attendance_exception_type" },
+  { id: "workforce_incident_type", title: "Workforce Incident Types", description: "Branch incident register types", categoryId: "attendance", source: "hr_masters", route: "/hr/admin/master-data/workforce_incident_type", domain: "workforce_incident_type" },
   // Leave
   { id: "leave_type", title: "Leave Types", description: "Casual, sick, unpaid, earned", categoryId: "leave", source: "hr_masters", route: "/hr/admin/master-data/leave_type", domain: "leave_type" },
   { id: "leave_category", title: "Leave Categories", description: "Paid vs unpaid groupings", categoryId: "leave", source: "hr_masters", route: "/hr/admin/master-data/leave_category", domain: "leave_category" },

@@ -51,6 +51,8 @@ import WpmsPoliciesPage from "./pages/wpms/WpmsPoliciesPage";
 import WpmsBundlesPage from "./pages/wpms/WpmsBundlesPage";
 import WpmsAssignPage from "./pages/wpms/WpmsAssignPage";
 import WtmEssHistoryPage from "./pages/wtm/WtmEssHistoryPage";
+import AemsEssExceptionsPage, { AemsHrReviewPage } from "./pages/aems/AemsExceptionsPage";
+import AemsIncidentRegisterPage from "./pages/aems/AemsIncidentRegisterPage";
 
 export default function HrPayrollRoutes() {
   return (
@@ -60,6 +62,7 @@ export default function HrPayrollRoutes() {
           <Route index element={<HrDashboardPage />} />
           <Route path="me" element={<HrEssPage />} />
           <Route path="me/time-history" element={<WtmEssHistoryPage />} />
+          <Route path="me/exceptions" element={<AemsEssExceptionsPage />} />
           <Route path="employee" element={<HrEmp360ListPage />} />
           <Route path="employee/:id" element={<HrEmp360Layout />}>
             <Route index element={<HrEmp360SummaryPage />} />
@@ -80,6 +83,7 @@ export default function HrPayrollRoutes() {
           <Route path="attendance" element={<AttendanceModuleLayout />}>
             <Route index element={<AttendanceIndexRedirect />} />
             <Route path="records" element={<HrAttendancePage />} />
+            <Route path="exceptions" element={<AemsHrReviewPage />} />
             <Route path="compoff" element={<HrCompoffPage />} />
             <Route path="late" element={<HrLatePage />} />
             <Route path="mispunch" element={<HrMispunchPage />} />
@@ -138,6 +142,7 @@ export default function HrPayrollRoutes() {
           <Route path="admin/wpms/policies" element={<WpmsPoliciesPage />} />
           <Route path="admin/wpms/bundles" element={<WpmsBundlesPage />} />
           <Route path="admin/wpms/assign" element={<WpmsAssignPage />} />
+          <Route path="admin/incidents" element={<AemsIncidentRegisterPage />} />
 
           <Route path="*" element={<Navigate to="/hr" replace />} />
         </Route>

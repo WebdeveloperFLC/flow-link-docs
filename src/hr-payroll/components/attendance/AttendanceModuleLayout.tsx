@@ -3,6 +3,7 @@ import { HrSectionTabs } from "../ui/HrSectionTabs";
 
 const ATTENDANCE_TABS = [
   { id: "records", label: "Attendance Records", route: "/hr/attendance/records" },
+  { id: "exceptions", label: "Exception Queue", route: "/hr/attendance/exceptions" },
   { id: "compoff", label: "Comp-Off Management", route: "/hr/attendance/compoff" },
   { id: "late", label: "Late Coming", route: "/hr/attendance/late" },
   { id: "mispunch", label: "Mispunch Management", route: "/hr/attendance/mispunch" },
