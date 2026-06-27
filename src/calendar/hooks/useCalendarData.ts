@@ -33,10 +33,38 @@ export function useUpsertProfile() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (patch: Partial<CalendarProfile> & { booking_slug?: string; full_name?: string; timezone?: string }) => {
-      const body = { ...patch, user_id: user!.id };
+      // Check whether a profile row already exists. If so, do an UPDATE
+      // so we never send a partial payload through an INSERT (which would
+      // violate NOT NULL on columns like full_name).
+      const { data: existing, error: selErr } = await (supabase as any)
+        .from("calendar_profiles")
+        .select("id, full_name")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (selErr) throw selErr;
+
+      if (existing) {
+        const { data, error } = await (supabase as any)
+          .from("calendar_profiles")
+          .update(patch)
+          .eq("user_id", user!.id)
+          .select()
+          .single();
+        if (error) throw error;
+        return data as CalendarProfile;
+      }
+
+      // No existing row → defensive: ensure full_name is present before insert.
+      const fullName =
+        (patch.full_name ?? "").trim() ||
+        (user!.user_metadata as any)?.full_name ||
+        (user!.user_metadata as any)?.name ||
+        user!.email ||
+        "User";
+      const body = { ...patch, full_name: fullName, user_id: user!.id };
       const { data, error } = await (supabase as any)
         .from("calendar_profiles")
-        .upsert(body, { onConflict: "user_id" })
+        .insert(body)
         .select()
         .single();
       if (error) throw error;

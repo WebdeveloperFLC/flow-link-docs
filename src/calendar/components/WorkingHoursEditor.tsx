@@ -5,18 +5,59 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { WEEKDAYS } from "../lib/calendarTypes";
-import { useAvailability, useSaveAvailability, useDeleteAvailability } from "../hooks/useCalendarData";
+import { useAvailability, useSaveAvailability, useDeleteAvailability, useCalendarProfile } from "../hooks/useCalendarData";
+
+// "HH:mm" helpers — bare wall-clock math, no timezone involved.
+const toMin = (t: string) => {
+  const [h, m] = t.slice(0, 5).split(":").map(Number);
+  return h * 60 + m;
+};
+const fromMin = (m: number) => {
+  const mm = Math.max(0, Math.min(24 * 60, m));
+  const h = Math.floor(mm / 60).toString().padStart(2, "0");
+  const r = (mm % 60).toString().padStart(2, "0");
+  return `${h}:${r}`;
+};
 
 export function WorkingHoursEditor() {
   const { data: rows = [] } = useAvailability();
+  const { data: profile } = useCalendarProfile();
   const save = useSaveAvailability();
   const del = useDeleteAvailability();
 
   const byDay = (d: number) => rows.filter((r) => r.day_of_week === d);
 
   const add = async (d: number) => {
+    // Seeding rules (no hardcoded 09–17 unless absolutely necessary):
+    // 1. Continue from the previous slot for the same day, using its duration.
+    // 2. Else use this employee's profile-level default working window.
+    // 3. Else fall back to 09:00–17:00.
+    const dayRows = byDay(d).slice().sort((a, b) => a.start_time.localeCompare(b.start_time));
+    let start = "09:00";
+    let end = "17:00";
+
+    if (dayRows.length > 0) {
+      const last = dayRows[dayRows.length - 1];
+      const lastStart = toMin(last.start_time);
+      const lastEnd = toMin(last.end_time);
+      const dur = Math.max(15, lastEnd - lastStart);
+      const ns = lastEnd;
+      const ne = Math.min(24 * 60, ns + dur);
+      if (ne > ns) {
+        start = fromMin(ns);
+        end = fromMin(ne);
+      }
+    } else {
+      const pStart = (profile as any)?.default_start_time as string | undefined;
+      const pEnd = (profile as any)?.default_end_time as string | undefined;
+      if (pStart && pEnd) {
+        start = pStart.slice(0, 5);
+        end = pEnd.slice(0, 5);
+      }
+    }
+
     try {
-      await save.mutateAsync({ day_of_week: d, start_time: "09:00", end_time: "17:00", is_active: true });
+      await save.mutateAsync({ day_of_week: d, start_time: start, end_time: end, is_active: true });
     } catch (e: any) { toast.error(e.message); }
   };
 
