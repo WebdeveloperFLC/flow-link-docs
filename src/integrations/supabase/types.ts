@@ -1528,6 +1528,13 @@ export type Database = {
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "accounting_payouts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
         ]
       }
       accounting_petty_cash: {
@@ -2086,6 +2093,144 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      aems_exception_evidence: {
+        Row: {
+          created_at: string
+          employee_id: string
+          exception_id: string
+          file_name: string
+          file_size_bytes: number | null
+          id: string
+          mime: string | null
+          notes: string | null
+          org_id: string
+          storage_path: string
+          uploaded_by: string | null
+          uploaded_by_label: string | null
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          exception_id: string
+          file_name: string
+          file_size_bytes?: number | null
+          id?: string
+          mime?: string | null
+          notes?: string | null
+          org_id: string
+          storage_path: string
+          uploaded_by?: string | null
+          uploaded_by_label?: string | null
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          exception_id?: string
+          file_name?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime?: string | null
+          notes?: string | null
+          org_id?: string
+          storage_path?: string
+          uploaded_by?: string | null
+          uploaded_by_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aems_exception_evidence_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aems_exception_evidence_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "aems_exception_evidence_exception_id_fkey"
+            columns: ["exception_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_exceptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aems_exception_history: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_label: string | null
+          comment: string | null
+          created_at: string
+          exception_id: string
+          id: string
+          new_clock_in: string | null
+          new_clock_out: string | null
+          new_status:
+            | Database["public"]["Enums"]["aems_exception_status"]
+            | null
+          org_id: string
+          prev_clock_in: string | null
+          prev_clock_out: string | null
+          prev_status:
+            | Database["public"]["Enums"]["aems_exception_status"]
+            | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_label?: string | null
+          comment?: string | null
+          created_at?: string
+          exception_id: string
+          id?: string
+          new_clock_in?: string | null
+          new_clock_out?: string | null
+          new_status?:
+            | Database["public"]["Enums"]["aems_exception_status"]
+            | null
+          org_id: string
+          prev_clock_in?: string | null
+          prev_clock_out?: string | null
+          prev_status?:
+            | Database["public"]["Enums"]["aems_exception_status"]
+            | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_label?: string | null
+          comment?: string | null
+          created_at?: string
+          exception_id?: string
+          id?: string
+          new_clock_in?: string | null
+          new_clock_out?: string | null
+          new_status?:
+            | Database["public"]["Enums"]["aems_exception_status"]
+            | null
+          org_id?: string
+          prev_clock_in?: string | null
+          prev_clock_out?: string | null
+          prev_status?:
+            | Database["public"]["Enums"]["aems_exception_status"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aems_exception_history_exception_id_fkey"
+            columns: ["exception_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_exceptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ai_help_conversations: {
         Row: {
@@ -3401,6 +3546,138 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      attendance_exceptions: {
+        Row: {
+          approved_clock_in: string | null
+          approved_clock_out: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          description: string
+          employee_id: string
+          exception_type_code: string
+          id: string
+          incident_id: string | null
+          is_bulk: boolean
+          is_manual: boolean
+          latest_comment: string | null
+          modified_by: string | null
+          modified_by_label: string | null
+          org_id: string
+          original_clock_in: string | null
+          original_clock_out: string | null
+          requested_clock_in: string | null
+          requested_clock_out: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          resolved_by_label: string | null
+          session_id: string | null
+          status: Database["public"]["Enums"]["aems_exception_status"]
+          submitted_at: string | null
+          updated_at: string
+          work_date: string
+        }
+        Insert: {
+          approved_clock_in?: string | null
+          approved_clock_out?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
+          description: string
+          employee_id: string
+          exception_type_code: string
+          id?: string
+          incident_id?: string | null
+          is_bulk?: boolean
+          is_manual?: boolean
+          latest_comment?: string | null
+          modified_by?: string | null
+          modified_by_label?: string | null
+          org_id: string
+          original_clock_in?: string | null
+          original_clock_out?: string | null
+          requested_clock_in?: string | null
+          requested_clock_out?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolved_by_label?: string | null
+          session_id?: string | null
+          status?: Database["public"]["Enums"]["aems_exception_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          work_date: string
+        }
+        Update: {
+          approved_clock_in?: string | null
+          approved_clock_out?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
+          description?: string
+          employee_id?: string
+          exception_type_code?: string
+          id?: string
+          incident_id?: string | null
+          is_bulk?: boolean
+          is_manual?: boolean
+          latest_comment?: string | null
+          modified_by?: string | null
+          modified_by_label?: string | null
+          org_id?: string
+          original_clock_in?: string | null
+          original_clock_out?: string | null
+          requested_clock_in?: string | null
+          requested_clock_out?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolved_by_label?: string | null
+          session_id?: string | null
+          status?: Database["public"]["Enums"]["aems_exception_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_exceptions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_exceptions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "attendance_exceptions_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_exceptions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "wtm_attendance_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -9982,6 +10259,13 @@ export type Database = {
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "compoff_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
         ]
       }
       counselor_performance_scores: {
@@ -11594,6 +11878,71 @@ export type Database = {
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      employee_shift_history: {
+        Row: {
+          change_reason: string | null
+          changed_by: string | null
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          employee_id: string
+          id: string
+          org_id: string
+          shift_id: string
+        }
+        Insert: {
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string
+          effective_from: string
+          effective_to?: string | null
+          employee_id: string
+          id?: string
+          org_id: string
+          shift_id: string
+        }
+        Update: {
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          employee_id?: string
+          id?: string
+          org_id?: string
+          shift_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_shift_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_shift_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_shift_history_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
         ]
       }
       employees: {
@@ -11619,13 +11968,17 @@ export type Database = {
           created_at: string
           date_of_joining: string | null
           department: string | null
+          department_id: string | null
           designation: string | null
+          designation_id: string | null
           dob: string | null
           email: string | null
           emergency: string | null
           emergency_contacts: Json
           emp_code: string
+          employee_category_id: string | null
           employment_type: string
+          employment_type_id: string | null
           esic_applicable: boolean
           esic_number: string | null
           exit_date: string | null
@@ -11673,6 +12026,7 @@ export type Database = {
           uan: string | null
           updated_at: string
           work_week: Database["public"]["Enums"]["work_week"]
+          wpms_current_bundle_id: string | null
         }
         Insert: {
           addr_current?: string | null
@@ -11696,13 +12050,17 @@ export type Database = {
           created_at?: string
           date_of_joining?: string | null
           department?: string | null
+          department_id?: string | null
           designation?: string | null
+          designation_id?: string | null
           dob?: string | null
           email?: string | null
           emergency?: string | null
           emergency_contacts?: Json
           emp_code: string
+          employee_category_id?: string | null
           employment_type?: string
+          employment_type_id?: string | null
           esic_applicable?: boolean
           esic_number?: string | null
           exit_date?: string | null
@@ -11750,6 +12108,7 @@ export type Database = {
           uan?: string | null
           updated_at?: string
           work_week?: Database["public"]["Enums"]["work_week"]
+          wpms_current_bundle_id?: string | null
         }
         Update: {
           addr_current?: string | null
@@ -11773,13 +12132,17 @@ export type Database = {
           created_at?: string
           date_of_joining?: string | null
           department?: string | null
+          department_id?: string | null
           designation?: string | null
+          designation_id?: string | null
           dob?: string | null
           email?: string | null
           emergency?: string | null
           emergency_contacts?: Json
           emp_code?: string
+          employee_category_id?: string | null
           employment_type?: string
+          employment_type_id?: string | null
           esic_applicable?: boolean
           esic_number?: string | null
           exit_date?: string | null
@@ -11827,6 +12190,7 @@ export type Database = {
           uan?: string | null
           updated_at?: string
           work_week?: Database["public"]["Enums"]["work_week"]
+          wpms_current_bundle_id?: string | null
         }
         Relationships: [
           {
@@ -11844,11 +12208,46 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "employees_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_designation_id_fkey"
+            columns: ["designation_id"]
+            isOneToOne: false
+            referencedRelation: "designations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_employee_category_id_fkey"
+            columns: ["employee_category_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employee_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_employment_type_id_fkey"
+            columns: ["employment_type_id"]
+            isOneToOne: false
+            referencedRelation: "hr_masters"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "employees_reporting_mgr_id_fkey"
             columns: ["reporting_mgr_id"]
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_reporting_mgr_id_fkey"
+            columns: ["reporting_mgr_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
           },
           {
             foreignKeyName: "employees_shift_id_fkey"
@@ -12258,30 +12657,45 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          created_by: string | null
+          created_by_label: string | null
           id: string
           is_active: boolean
           label: string
+          modified_by: string | null
+          modified_by_label: string | null
           org_id: string
+          remarks: string | null
           sort_order: number
           updated_at: string
         }
         Insert: {
           code: string
           created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
           id?: string
           is_active?: boolean
           label: string
+          modified_by?: string | null
+          modified_by_label?: string | null
           org_id: string
+          remarks?: string | null
           sort_order?: number
           updated_at?: string
         }
         Update: {
           code?: string
           created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
           id?: string
           is_active?: boolean
           label?: string
+          modified_by?: string | null
+          modified_by_label?: string | null
           org_id?: string
+          remarks?: string | null
           sort_order?: number
           updated_at?: string
         }
@@ -12292,13 +12706,18 @@ export type Database = {
           attendance_rules_apply: boolean
           code: string
           created_at: string
+          created_by: string | null
+          created_by_label: string | null
           id: string
           is_active: boolean
           label: string
           leave_accrual_eligible: boolean
           leave_eligible: boolean
+          modified_by: string | null
+          modified_by_label: string | null
           org_id: string
           payroll_rules_apply: boolean
+          remarks: string | null
           sort_order: number
           updated_at: string
         }
@@ -12306,13 +12725,18 @@ export type Database = {
           attendance_rules_apply?: boolean
           code: string
           created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
           id?: string
           is_active?: boolean
           label: string
           leave_accrual_eligible?: boolean
           leave_eligible?: boolean
+          modified_by?: string | null
+          modified_by_label?: string | null
           org_id: string
           payroll_rules_apply?: boolean
+          remarks?: string | null
           sort_order?: number
           updated_at?: string
         }
@@ -12320,14 +12744,73 @@ export type Database = {
           attendance_rules_apply?: boolean
           code?: string
           created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
           id?: string
           is_active?: boolean
           label?: string
           leave_accrual_eligible?: boolean
           leave_eligible?: boolean
+          modified_by?: string | null
+          modified_by_label?: string | null
           org_id?: string
           payroll_rules_apply?: boolean
+          remarks?: string | null
           sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      hr_masters: {
+        Row: {
+          code: string
+          config: Json
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          display_order: number
+          domain: string
+          id: string
+          is_active: boolean
+          label: string
+          modified_by: string | null
+          modified_by_label: string | null
+          org_id: string
+          remarks: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
+          display_order?: number
+          domain: string
+          id?: string
+          is_active?: boolean
+          label: string
+          modified_by?: string | null
+          modified_by_label?: string | null
+          org_id: string
+          remarks?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
+          display_order?: number
+          domain?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          modified_by?: string | null
+          modified_by_label?: string | null
+          org_id?: string
+          remarks?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -13921,6 +14404,13 @@ export type Database = {
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "late_exemptions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
         ]
       }
       lead_followup_log: {
@@ -14416,6 +14906,13 @@ export type Database = {
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "leave_balances_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
         ]
       }
       leave_requests: {
@@ -14490,6 +14987,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
           },
         ]
       }
@@ -14644,6 +15148,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mispunch_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
           },
         ]
       }
@@ -16154,6 +16665,79 @@ export type Database = {
         }
         Relationships: []
       }
+      payroll_freeze_exceptions: {
+        Row: {
+          change_reason: string | null
+          change_type: Database["public"]["Enums"]["payroll_freeze_change_type"]
+          created_at: string
+          cycle_id: string | null
+          employee_id: string | null
+          id: string
+          org_id: string
+          payload: Json
+          requested_by: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          work_date: string | null
+        }
+        Insert: {
+          change_reason?: string | null
+          change_type: Database["public"]["Enums"]["payroll_freeze_change_type"]
+          created_at?: string
+          cycle_id?: string | null
+          employee_id?: string | null
+          id?: string
+          org_id: string
+          payload?: Json
+          requested_by?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          work_date?: string | null
+        }
+        Update: {
+          change_reason?: string | null
+          change_type?: Database["public"]["Enums"]["payroll_freeze_change_type"]
+          created_at?: string
+          cycle_id?: string | null
+          employee_id?: string | null
+          id?: string
+          org_id?: string
+          payload?: Json
+          requested_by?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          work_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_freeze_exceptions_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_freeze_exceptions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_freeze_exceptions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       payroll_line_snapshots: {
         Row: {
           cycle_id: string
@@ -16202,6 +16786,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_line_snapshots_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
           },
         ]
       }
@@ -16328,6 +16919,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_lines_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
           },
         ]
       }
@@ -16585,6 +17183,7 @@ export type Database = {
           deleted_at: string | null
           department_id: string | null
           designation: string | null
+          designation_id: string | null
           email: string | null
           first_name: string | null
           full_name: string | null
@@ -16601,6 +17200,7 @@ export type Database = {
           deleted_at?: string | null
           department_id?: string | null
           designation?: string | null
+          designation_id?: string | null
           email?: string | null
           first_name?: string | null
           full_name?: string | null
@@ -16617,6 +17217,7 @@ export type Database = {
           deleted_at?: string | null
           department_id?: string | null
           designation?: string | null
+          designation_id?: string | null
           email?: string | null
           first_name?: string | null
           full_name?: string | null
@@ -16639,6 +17240,13 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_designation_id_fkey"
+            columns: ["designation_id"]
+            isOneToOne: false
+            referencedRelation: "designations"
             referencedColumns: ["id"]
           },
         ]
@@ -17925,6 +18533,13 @@ export type Database = {
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "salary_revision_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
         ]
       }
       salary_slips: {
@@ -17969,6 +18584,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salary_slips_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
           },
           {
             foreignKeyName: "salary_slips_payroll_line_id_fkey"
@@ -19307,6 +19929,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
           },
         ]
       }
@@ -22474,6 +23103,8 @@ export type Database = {
           address: string | null
           application_method: string | null
           application_portal_url: string | null
+          approximate_deposit_range: string | null
+          approximate_tuition_range: string | null
           catalog_status: string
           city: string | null
           completeness_score: number
@@ -22522,6 +23153,8 @@ export type Database = {
           address?: string | null
           application_method?: string | null
           application_portal_url?: string | null
+          approximate_deposit_range?: string | null
+          approximate_tuition_range?: string | null
           catalog_status?: string
           city?: string | null
           completeness_score?: number
@@ -22570,6 +23203,8 @@ export type Database = {
           address?: string | null
           application_method?: string | null
           application_portal_url?: string | null
+          approximate_deposit_range?: string | null
+          approximate_tuition_range?: string | null
           catalog_status?: string
           city?: string | null
           completeness_score?: number
@@ -22948,12 +23583,16 @@ export type Database = {
           aggregator_institution_code: string | null
           agreement_id: string | null
           application_fee: number | null
+          application_fee_waiver: boolean
+          application_fee_waiver_from: string | null
+          application_fee_waiver_to: string | null
           application_portal_url: string | null
           bonus_notes: string | null
           channel_type: string
           commission_currency: string | null
           commission_model: string | null
           commission_rate: number | null
+          commission_slabs: Json
           created_at: string
           default_commission_id: string | null
           display_name: string
@@ -22979,12 +23618,16 @@ export type Database = {
           aggregator_institution_code?: string | null
           agreement_id?: string | null
           application_fee?: number | null
+          application_fee_waiver?: boolean
+          application_fee_waiver_from?: string | null
+          application_fee_waiver_to?: string | null
           application_portal_url?: string | null
           bonus_notes?: string | null
           channel_type: string
           commission_currency?: string | null
           commission_model?: string | null
           commission_rate?: number | null
+          commission_slabs?: Json
           created_at?: string
           default_commission_id?: string | null
           display_name: string
@@ -23010,12 +23653,16 @@ export type Database = {
           aggregator_institution_code?: string | null
           agreement_id?: string | null
           application_fee?: number | null
+          application_fee_waiver?: boolean
+          application_fee_waiver_from?: string | null
+          application_fee_waiver_to?: string | null
           application_portal_url?: string | null
           bonus_notes?: string | null
           channel_type?: string
           commission_currency?: string | null
           commission_model?: string | null
           commission_rate?: number | null
+          commission_slabs?: Json
           created_at?: string
           default_commission_id?: string | null
           display_name?: string
@@ -24759,6 +25406,906 @@ export type Database = {
         }
         Relationships: []
       }
+      workforce_incidents: {
+        Row: {
+          branch_id: string | null
+          closed_at: string | null
+          closed_by: string | null
+          closed_by_label: string | null
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          description: string
+          end_at: string | null
+          id: string
+          incident_code: string
+          incident_type_code: string
+          org_id: string
+          start_at: string
+          status: Database["public"]["Enums"]["aems_incident_status"]
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closed_by_label?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
+          description: string
+          end_at?: string | null
+          id?: string
+          incident_code: string
+          incident_type_code: string
+          org_id: string
+          start_at: string
+          status?: Database["public"]["Enums"]["aems_incident_status"]
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closed_by_label?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
+          description?: string
+          end_at?: string | null
+          id?: string
+          incident_code?: string
+          incident_type_code?: string
+          org_id?: string
+          start_at?: string
+          status?: Database["public"]["Enums"]["aems_incident_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      workforce_timeline_events: {
+        Row: {
+          actor_id: string | null
+          actor_label: string | null
+          break_id: string | null
+          created_at: string
+          employee_id: string
+          event_type: string
+          id: string
+          org_id: string
+          payload: Json
+          session_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_label?: string | null
+          break_id?: string | null
+          created_at?: string
+          employee_id: string
+          event_type: string
+          id?: string
+          org_id: string
+          payload?: Json
+          session_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          actor_label?: string | null
+          break_id?: string | null
+          created_at?: string
+          employee_id?: string
+          event_type?: string
+          id?: string
+          org_id?: string
+          payload?: Json
+          session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workforce_timeline_events_break_id_fkey"
+            columns: ["break_id"]
+            isOneToOne: false
+            referencedRelation: "wtm_attendance_breaks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workforce_timeline_events_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workforce_timeline_events_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "workforce_timeline_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "wtm_attendance_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wpms_bundle_assignment_history: {
+        Row: {
+          changed_by: string | null
+          changed_by_label: string | null
+          created_at: string
+          effective_date: string
+          employee_id: string
+          id: string
+          new_bundle_id: string
+          org_id: string
+          previous_bundle_id: string | null
+          reason: string | null
+        }
+        Insert: {
+          changed_by?: string | null
+          changed_by_label?: string | null
+          created_at?: string
+          effective_date: string
+          employee_id: string
+          id?: string
+          new_bundle_id: string
+          org_id: string
+          previous_bundle_id?: string | null
+          reason?: string | null
+        }
+        Update: {
+          changed_by?: string | null
+          changed_by_label?: string | null
+          created_at?: string
+          effective_date?: string
+          employee_id?: string
+          id?: string
+          new_bundle_id?: string
+          org_id?: string
+          previous_bundle_id?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wpms_bundle_assignment_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wpms_bundle_assignment_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "wpms_bundle_assignment_history_new_bundle_id_fkey"
+            columns: ["new_bundle_id"]
+            isOneToOne: false
+            referencedRelation: "wpms_policy_bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wpms_bundle_assignment_history_previous_bundle_id_fkey"
+            columns: ["previous_bundle_id"]
+            isOneToOne: false
+            referencedRelation: "wpms_policy_bundles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wpms_employee_bundle_assignments: {
+        Row: {
+          assigned_by: string | null
+          assigned_by_label: string | null
+          bundle_id: string
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          employee_id: string
+          id: string
+          is_current: boolean
+          org_id: string
+          reason: string | null
+        }
+        Insert: {
+          assigned_by?: string | null
+          assigned_by_label?: string | null
+          bundle_id: string
+          created_at?: string
+          effective_from: string
+          effective_to?: string | null
+          employee_id: string
+          id?: string
+          is_current?: boolean
+          org_id: string
+          reason?: string | null
+        }
+        Update: {
+          assigned_by?: string | null
+          assigned_by_label?: string | null
+          bundle_id?: string
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          employee_id?: string
+          id?: string
+          is_current?: boolean
+          org_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wpms_employee_bundle_assignments_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "wpms_policy_bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wpms_employee_bundle_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wpms_employee_bundle_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      wpms_events: {
+        Row: {
+          actor_id: string | null
+          actor_label: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          event_type: string
+          id: string
+          org_id: string
+          payload: Json
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_label?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type: string
+          id?: string
+          org_id: string
+          payload?: Json
+        }
+        Update: {
+          actor_id?: string | null
+          actor_label?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type?: string
+          id?: string
+          org_id?: string
+          payload?: Json
+        }
+        Relationships: []
+      }
+      wpms_policies: {
+        Row: {
+          code: string
+          config: Json
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          effective_from: string
+          effective_to: string | null
+          id: string
+          is_active: boolean
+          modified_by: string | null
+          modified_by_label: string | null
+          name: string
+          notes: string | null
+          org_id: string
+          policy_kind: Database["public"]["Enums"]["wpms_policy_kind"]
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          code: string
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          is_active?: boolean
+          modified_by?: string | null
+          modified_by_label?: string | null
+          name: string
+          notes?: string | null
+          org_id: string
+          policy_kind: Database["public"]["Enums"]["wpms_policy_kind"]
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          code?: string
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          is_active?: boolean
+          modified_by?: string | null
+          modified_by_label?: string | null
+          name?: string
+          notes?: string | null
+          org_id?: string
+          policy_kind?: Database["public"]["Enums"]["wpms_policy_kind"]
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      wpms_policy_bundles: {
+        Row: {
+          attendance_policy_id: string | null
+          bonus_policy_id: string | null
+          code: string
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          description: string | null
+          effective_from: string
+          effective_to: string | null
+          holiday_calendar_id: string | null
+          id: string
+          is_active: boolean
+          leave_policy_id: string | null
+          modified_by: string | null
+          modified_by_label: string | null
+          name: string
+          notes: string | null
+          org_id: string
+          payroll_policy_id: string | null
+          salary_template_id: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          attendance_policy_id?: string | null
+          bonus_policy_id?: string | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
+          description?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          holiday_calendar_id?: string | null
+          id?: string
+          is_active?: boolean
+          leave_policy_id?: string | null
+          modified_by?: string | null
+          modified_by_label?: string | null
+          name: string
+          notes?: string | null
+          org_id: string
+          payroll_policy_id?: string | null
+          salary_template_id?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          attendance_policy_id?: string | null
+          bonus_policy_id?: string | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
+          description?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          holiday_calendar_id?: string | null
+          id?: string
+          is_active?: boolean
+          leave_policy_id?: string | null
+          modified_by?: string | null
+          modified_by_label?: string | null
+          name?: string
+          notes?: string | null
+          org_id?: string
+          payroll_policy_id?: string | null
+          salary_template_id?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wpms_policy_bundles_attendance_policy_id_fkey"
+            columns: ["attendance_policy_id"]
+            isOneToOne: false
+            referencedRelation: "wpms_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wpms_policy_bundles_bonus_policy_id_fkey"
+            columns: ["bonus_policy_id"]
+            isOneToOne: false
+            referencedRelation: "wpms_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wpms_policy_bundles_holiday_calendar_id_fkey"
+            columns: ["holiday_calendar_id"]
+            isOneToOne: false
+            referencedRelation: "wpms_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wpms_policy_bundles_leave_policy_id_fkey"
+            columns: ["leave_policy_id"]
+            isOneToOne: false
+            referencedRelation: "wpms_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wpms_policy_bundles_payroll_policy_id_fkey"
+            columns: ["payroll_policy_id"]
+            isOneToOne: false
+            referencedRelation: "wpms_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wpms_policy_bundles_salary_template_id_fkey"
+            columns: ["salary_template_id"]
+            isOneToOne: false
+            referencedRelation: "wpms_policies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wre_evaluations: {
+        Row: {
+          attendance_policy_id: string | null
+          attendance_policy_version: number | null
+          bundle_id: string | null
+          bundle_version: number | null
+          early_exit_minutes: number
+          employee_id: string
+          evaluated_at: string
+          evaluated_by: string | null
+          evaluated_by_label: string | null
+          holiday_policy_id: string | null
+          holiday_policy_version: number | null
+          id: string
+          input_snapshot: Json
+          is_mispunch: boolean
+          late_minutes: number
+          monthly_late_minutes: number
+          operational_status: Database["public"]["Enums"]["wtm_session_status"]
+          org_id: string
+          overtime_minutes: number
+          payroll_status: Database["public"]["Enums"]["wtm_payroll_status"]
+          policy_config: Json
+          remaining_grace_minutes: number
+          result: Json
+          session_id: string | null
+          shift_id: string | null
+          shift_snapshot: Json
+          superseded_by: string | null
+          trigger: Database["public"]["Enums"]["wre_eval_trigger"]
+          trigger_ref_id: string | null
+          work_date: string
+        }
+        Insert: {
+          attendance_policy_id?: string | null
+          attendance_policy_version?: number | null
+          bundle_id?: string | null
+          bundle_version?: number | null
+          early_exit_minutes?: number
+          employee_id: string
+          evaluated_at?: string
+          evaluated_by?: string | null
+          evaluated_by_label?: string | null
+          holiday_policy_id?: string | null
+          holiday_policy_version?: number | null
+          id?: string
+          input_snapshot?: Json
+          is_mispunch?: boolean
+          late_minutes?: number
+          monthly_late_minutes?: number
+          operational_status?: Database["public"]["Enums"]["wtm_session_status"]
+          org_id: string
+          overtime_minutes?: number
+          payroll_status?: Database["public"]["Enums"]["wtm_payroll_status"]
+          policy_config?: Json
+          remaining_grace_minutes?: number
+          result?: Json
+          session_id?: string | null
+          shift_id?: string | null
+          shift_snapshot?: Json
+          superseded_by?: string | null
+          trigger: Database["public"]["Enums"]["wre_eval_trigger"]
+          trigger_ref_id?: string | null
+          work_date: string
+        }
+        Update: {
+          attendance_policy_id?: string | null
+          attendance_policy_version?: number | null
+          bundle_id?: string | null
+          bundle_version?: number | null
+          early_exit_minutes?: number
+          employee_id?: string
+          evaluated_at?: string
+          evaluated_by?: string | null
+          evaluated_by_label?: string | null
+          holiday_policy_id?: string | null
+          holiday_policy_version?: number | null
+          id?: string
+          input_snapshot?: Json
+          is_mispunch?: boolean
+          late_minutes?: number
+          monthly_late_minutes?: number
+          operational_status?: Database["public"]["Enums"]["wtm_session_status"]
+          org_id?: string
+          overtime_minutes?: number
+          payroll_status?: Database["public"]["Enums"]["wtm_payroll_status"]
+          policy_config?: Json
+          remaining_grace_minutes?: number
+          result?: Json
+          session_id?: string | null
+          shift_id?: string | null
+          shift_snapshot?: Json
+          superseded_by?: string | null
+          trigger?: Database["public"]["Enums"]["wre_eval_trigger"]
+          trigger_ref_id?: string | null
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wre_evaluations_attendance_policy_id_fkey"
+            columns: ["attendance_policy_id"]
+            isOneToOne: false
+            referencedRelation: "wpms_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wre_evaluations_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "wpms_policy_bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wre_evaluations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wre_evaluations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "wre_evaluations_holiday_policy_id_fkey"
+            columns: ["holiday_policy_id"]
+            isOneToOne: false
+            referencedRelation: "wpms_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wre_evaluations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "wtm_attendance_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wre_evaluations_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wre_evaluations_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "wre_evaluations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wtm_attendance_breaks: {
+        Row: {
+          break_duration_min: number
+          break_in: string | null
+          break_in_at: string | null
+          break_out: string
+          break_out_at: string
+          created_at: string
+          id: string
+          org_id: string
+          sequence_no: number
+          session_id: string
+        }
+        Insert: {
+          break_duration_min?: number
+          break_in?: string | null
+          break_in_at?: string | null
+          break_out: string
+          break_out_at?: string
+          created_at?: string
+          id?: string
+          org_id: string
+          sequence_no?: number
+          session_id: string
+        }
+        Update: {
+          break_duration_min?: number
+          break_in?: string | null
+          break_in_at?: string | null
+          break_out?: string
+          break_out_at?: string
+          created_at?: string
+          id?: string
+          org_id?: string
+          sequence_no?: number
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wtm_attendance_breaks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "wtm_attendance_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wtm_attendance_sessions: {
+        Row: {
+          attendance_id: string | null
+          attendance_status: Database["public"]["Enums"]["wtm_attendance_status"]
+          break_duration_min: number
+          clock_in: string | null
+          clock_in_at: string | null
+          clock_out: string | null
+          clock_out_at: string | null
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          device_info: Json
+          employee_id: string
+          id: string
+          is_mispunch: boolean
+          latest_evaluation_id: string | null
+          modified_by: string | null
+          modified_by_label: string | null
+          org_id: string
+          payroll_status:
+            | Database["public"]["Enums"]["wtm_payroll_status"]
+            | null
+          session_status: Database["public"]["Enums"]["wtm_session_status"]
+          shift_id: string | null
+          updated_at: string
+          work_date: string
+          working_duration_min: number
+        }
+        Insert: {
+          attendance_id?: string | null
+          attendance_status?: Database["public"]["Enums"]["wtm_attendance_status"]
+          break_duration_min?: number
+          clock_in?: string | null
+          clock_in_at?: string | null
+          clock_out?: string | null
+          clock_out_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
+          device_info?: Json
+          employee_id: string
+          id?: string
+          is_mispunch?: boolean
+          latest_evaluation_id?: string | null
+          modified_by?: string | null
+          modified_by_label?: string | null
+          org_id: string
+          payroll_status?:
+            | Database["public"]["Enums"]["wtm_payroll_status"]
+            | null
+          session_status?: Database["public"]["Enums"]["wtm_session_status"]
+          shift_id?: string | null
+          updated_at?: string
+          work_date: string
+          working_duration_min?: number
+        }
+        Update: {
+          attendance_id?: string | null
+          attendance_status?: Database["public"]["Enums"]["wtm_attendance_status"]
+          break_duration_min?: number
+          clock_in?: string | null
+          clock_in_at?: string | null
+          clock_out?: string | null
+          clock_out_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_label?: string | null
+          device_info?: Json
+          employee_id?: string
+          id?: string
+          is_mispunch?: boolean
+          latest_evaluation_id?: string | null
+          modified_by?: string | null
+          modified_by_label?: string | null
+          org_id?: string
+          payroll_status?:
+            | Database["public"]["Enums"]["wtm_payroll_status"]
+            | null
+          session_status?: Database["public"]["Enums"]["wtm_session_status"]
+          shift_id?: string | null
+          updated_at?: string
+          work_date?: string
+          working_duration_min?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wtm_attendance_sessions_attendance_id_fkey"
+            columns: ["attendance_id"]
+            isOneToOne: false
+            referencedRelation: "attendance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wtm_attendance_sessions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wtm_attendance_sessions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "wtm_attendance_sessions_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wtm_attendance_snapshots: {
+        Row: {
+          attendance_policy_version: number | null
+          break_duration_min: number
+          bundle_version: number | null
+          clock_in: string | null
+          clock_out: string | null
+          early_exit_minutes: number
+          employee_id: string
+          evaluation_id: string
+          holiday_policy_version: number | null
+          id: string
+          is_mispunch: boolean
+          late_minutes: number
+          monthly_late_minutes: number
+          operational_status: Database["public"]["Enums"]["wtm_session_status"]
+          org_id: string
+          overtime_minutes: number
+          payroll_status: Database["public"]["Enums"]["wtm_payroll_status"]
+          remaining_grace_minutes: number
+          session_id: string
+          shift_id: string | null
+          snapshot_at: string
+          version: number
+          work_date: string
+          working_duration_min: number
+        }
+        Insert: {
+          attendance_policy_version?: number | null
+          break_duration_min?: number
+          bundle_version?: number | null
+          clock_in?: string | null
+          clock_out?: string | null
+          early_exit_minutes?: number
+          employee_id: string
+          evaluation_id: string
+          holiday_policy_version?: number | null
+          id?: string
+          is_mispunch?: boolean
+          late_minutes?: number
+          monthly_late_minutes?: number
+          operational_status: Database["public"]["Enums"]["wtm_session_status"]
+          org_id: string
+          overtime_minutes?: number
+          payroll_status: Database["public"]["Enums"]["wtm_payroll_status"]
+          remaining_grace_minutes?: number
+          session_id: string
+          shift_id?: string | null
+          snapshot_at?: string
+          version?: number
+          work_date: string
+          working_duration_min?: number
+        }
+        Update: {
+          attendance_policy_version?: number | null
+          break_duration_min?: number
+          bundle_version?: number | null
+          clock_in?: string | null
+          clock_out?: string | null
+          early_exit_minutes?: number
+          employee_id?: string
+          evaluation_id?: string
+          holiday_policy_version?: number | null
+          id?: string
+          is_mispunch?: boolean
+          late_minutes?: number
+          monthly_late_minutes?: number
+          operational_status?: Database["public"]["Enums"]["wtm_session_status"]
+          org_id?: string
+          overtime_minutes?: number
+          payroll_status?: Database["public"]["Enums"]["wtm_payroll_status"]
+          remaining_grace_minutes?: number
+          session_id?: string
+          shift_id?: string | null
+          snapshot_at?: string
+          version?: number
+          work_date?: string
+          working_duration_min?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wtm_attendance_snapshots_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wtm_attendance_snapshots_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "wtm_attendance_snapshots_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "wre_evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wtm_attendance_snapshots_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "wtm_attendance_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       accounting_vendors_safe: {
@@ -25434,6 +26981,20 @@ export type Database = {
           },
         ]
       }
+      v_hr_employee_category_review: {
+        Row: {
+          branch_name: string | null
+          date_of_joining: string | null
+          department: string | null
+          emp_code: string | null
+          employee_id: string | null
+          employment_type: string | null
+          full_name: string | null
+          org_id: string | null
+          status: Database["public"]["Enums"]["emp_status"] | null
+        }
+        Relationships: []
+      }
       v_payroll_preview: {
         Row: {
           basic: number | null
@@ -25492,6 +27053,13 @@ export type Database = {
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "payroll_lines_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_hr_employee_category_review"
+            referencedColumns: ["employee_id"]
+          },
         ]
       }
       v_upi_institution_country_unmapped: {
@@ -25534,6 +27102,8 @@ export type Database = {
           dli_ok: boolean | null
           has_application_portal: boolean | null
           has_deposit_policy_url: boolean | null
+          has_guidance_deposit_range: boolean | null
+          has_guidance_tuition_range: boolean | null
           has_official_website: boolean | null
           human_verification_method: string | null
           id: string | null
@@ -25555,6 +27125,8 @@ export type Database = {
           dli_ok?: never
           has_application_portal?: never
           has_deposit_policy_url?: never
+          has_guidance_deposit_range?: never
+          has_guidance_tuition_range?: never
           has_official_website?: never
           human_verification_method?: string | null
           id?: string | null
@@ -25576,6 +27148,8 @@ export type Database = {
           dli_ok?: never
           has_application_portal?: never
           has_deposit_policy_url?: never
+          has_guidance_deposit_range?: never
+          has_guidance_tuition_range?: never
           has_official_website?: never
           human_verification_method?: string | null
           id?: string | null
@@ -26434,6 +28008,7 @@ export type Database = {
         }
         Returns: string
       }
+      expire_upi_route_fee_waivers: { Args: never; Returns: number }
       fn_accrue_leave_balances: {
         Args: { p_org: string; p_year?: number }
         Returns: number
@@ -26466,6 +28041,282 @@ export type Database = {
       fn_admin_void_incentive_run: {
         Args: { _reason: string; _run_id: string }
         Returns: Json
+      }
+      fn_aems_apply_session_correction: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_clock_in: string
+          p_clock_out: string
+          p_exception_id: string
+        }
+        Returns: {
+          attendance_id: string | null
+          attendance_status: Database["public"]["Enums"]["wtm_attendance_status"]
+          break_duration_min: number
+          clock_in: string | null
+          clock_in_at: string | null
+          clock_out: string | null
+          clock_out_at: string | null
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          device_info: Json
+          employee_id: string
+          id: string
+          is_mispunch: boolean
+          latest_evaluation_id: string | null
+          modified_by: string | null
+          modified_by_label: string | null
+          org_id: string
+          payroll_status:
+            | Database["public"]["Enums"]["wtm_payroll_status"]
+            | null
+          session_status: Database["public"]["Enums"]["wtm_session_status"]
+          shift_id: string | null
+          updated_at: string
+          work_date: string
+          working_duration_min: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "wtm_attendance_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_aems_bulk_process: {
+        Args: {
+          p_action: string
+          p_actor_id?: string
+          p_actor_label?: string
+          p_comment: string
+          p_exception_ids: string[]
+        }
+        Returns: Json
+      }
+      fn_aems_find_matching_incidents: {
+        Args: { p_at?: string; p_branch_id: string; p_org: string }
+        Returns: {
+          branch_id: string | null
+          closed_at: string | null
+          closed_by: string | null
+          closed_by_label: string | null
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          description: string
+          end_at: string | null
+          id: string
+          incident_code: string
+          incident_type_code: string
+          org_id: string
+          start_at: string
+          status: Database["public"]["Enums"]["aems_incident_status"]
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "workforce_incidents"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      fn_aems_hr_action: {
+        Args: {
+          p_action: string
+          p_actor_id?: string
+          p_actor_label?: string
+          p_comment: string
+          p_exception_id: string
+          p_modified_clock_in?: string
+          p_modified_clock_out?: string
+        }
+        Returns: {
+          approved_clock_in: string | null
+          approved_clock_out: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          description: string
+          employee_id: string
+          exception_type_code: string
+          id: string
+          incident_id: string | null
+          is_bulk: boolean
+          is_manual: boolean
+          latest_comment: string | null
+          modified_by: string | null
+          modified_by_label: string | null
+          org_id: string
+          original_clock_in: string | null
+          original_clock_out: string | null
+          requested_clock_in: string | null
+          requested_clock_out: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          resolved_by_label: string | null
+          session_id: string | null
+          status: Database["public"]["Enums"]["aems_exception_status"]
+          submitted_at: string | null
+          updated_at: string
+          work_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance_exceptions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_aems_log_history: {
+        Args: {
+          p_action: string
+          p_actor_id?: string
+          p_actor_label?: string
+          p_comment?: string
+          p_exception_id: string
+          p_new_in?: string
+          p_new_out?: string
+          p_new_status?: Database["public"]["Enums"]["aems_exception_status"]
+          p_prev_in?: string
+          p_prev_out?: string
+          p_prev_status?: Database["public"]["Enums"]["aems_exception_status"]
+        }
+        Returns: string
+      }
+      fn_aems_manual_attendance: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_clock_in: string
+          p_clock_out: string
+          p_comment: string
+          p_employee: string
+          p_reason: string
+          p_work_date: string
+        }
+        Returns: {
+          approved_clock_in: string | null
+          approved_clock_out: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          description: string
+          employee_id: string
+          exception_type_code: string
+          id: string
+          incident_id: string | null
+          is_bulk: boolean
+          is_manual: boolean
+          latest_comment: string | null
+          modified_by: string | null
+          modified_by_label: string | null
+          org_id: string
+          original_clock_in: string | null
+          original_clock_out: string | null
+          requested_clock_in: string | null
+          requested_clock_out: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          resolved_by_label: string | null
+          session_id: string | null
+          status: Database["public"]["Enums"]["aems_exception_status"]
+          submitted_at: string | null
+          updated_at: string
+          work_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance_exceptions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_aems_register_evidence: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_exception_id: string
+          p_file_name: string
+          p_file_size?: number
+          p_mime?: string
+          p_notes?: string
+          p_storage_path: string
+        }
+        Returns: {
+          created_at: string
+          employee_id: string
+          exception_id: string
+          file_name: string
+          file_size_bytes: number | null
+          id: string
+          mime: string | null
+          notes: string | null
+          org_id: string
+          storage_path: string
+          uploaded_by: string | null
+          uploaded_by_label: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "aems_exception_evidence"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_aems_submit_exception: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_description: string
+          p_employee: string
+          p_exception_type_code: string
+          p_incident_id?: string
+          p_requested_clock_in?: string
+          p_requested_clock_out?: string
+          p_submit?: boolean
+          p_work_date: string
+        }
+        Returns: {
+          approved_clock_in: string | null
+          approved_clock_out: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          description: string
+          employee_id: string
+          exception_type_code: string
+          id: string
+          incident_id: string | null
+          is_bulk: boolean
+          is_manual: boolean
+          latest_comment: string | null
+          modified_by: string | null
+          modified_by_label: string | null
+          org_id: string
+          original_clock_in: string | null
+          original_clock_out: string | null
+          requested_clock_in: string | null
+          requested_clock_out: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          resolved_by_label: string | null
+          session_id: string | null
+          status: Database["public"]["Enums"]["aems_exception_status"]
+          submitted_at: string | null
+          updated_at: string
+          work_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance_exceptions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       fn_allocate_from_branch_pool: {
         Args: {
@@ -27320,6 +29171,10 @@ export type Database = {
             Args: { _currency: string; _period_key?: string; _purpose?: string }
             Returns: number
           }
+      fn_employee_shift_at: {
+        Args: { p_date: string; p_employee: string }
+        Returns: string
+      }
       fn_enroll_offer_journey: {
         Args: { _client_id?: string; _journey_id: string; _lead_id?: string }
         Returns: string
@@ -27348,13 +29203,17 @@ export type Database = {
           created_at: string
           date_of_joining: string | null
           department: string | null
+          department_id: string | null
           designation: string | null
+          designation_id: string | null
           dob: string | null
           email: string | null
           emergency: string | null
           emergency_contacts: Json
           emp_code: string
+          employee_category_id: string | null
           employment_type: string
+          employment_type_id: string | null
           esic_applicable: boolean
           esic_number: string | null
           exit_date: string | null
@@ -27402,6 +29261,7 @@ export type Database = {
           uan: string | null
           updated_at: string
           work_week: Database["public"]["Enums"]["work_week"]
+          wpms_current_bundle_id: string | null
         }
         SetofOptions: {
           from: "*"
@@ -27750,6 +29610,21 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      fn_locked_payroll_cycle_for_date: {
+        Args: { p_date: string; p_org: string }
+        Returns: string
+      }
+      fn_log_payroll_freeze_exception: {
+        Args: {
+          p_change_type: Database["public"]["Enums"]["payroll_freeze_change_type"]
+          p_date: string
+          p_employee: string
+          p_org: string
+          p_payload?: Json
+          p_reason?: string
+        }
+        Returns: string
       }
       fn_map_crm_role_to_hr: {
         Args: { p_crm_role: string; p_org: string }
@@ -28109,6 +29984,16 @@ export type Database = {
           p_to: Database["public"]["Enums"]["qualification_lifecycle_status"]
         }
         Returns: boolean
+      }
+      fn_raise_if_payroll_frozen: {
+        Args: {
+          p_change_type: Database["public"]["Enums"]["payroll_freeze_change_type"]
+          p_date: string
+          p_employee: string
+          p_org: string
+          p_payload?: Json
+        }
+        Returns: undefined
       }
       fn_reassign_qualification_owner: {
         Args: {
@@ -28755,6 +30640,14 @@ export type Database = {
         Args: { _row: Database["public"]["Tables"]["upi_institutions"]["Row"] }
         Returns: boolean
       }
+      fn_upi_institution_set_status: {
+        Args: {
+          p_force_warnings?: boolean
+          p_institution_id: string
+          p_status: string
+        }
+        Returns: Json
+      }
       fn_upsert_application_reference: {
         Args: { p_payload: Json }
         Returns: string
@@ -28846,6 +30739,10 @@ export type Database = {
         }
         Returns: Json
       }
+      fn_validate_upi_institution_activation: {
+        Args: { _institution_id: string }
+        Returns: Json
+      }
       fn_void_commission_receipt: {
         Args: { p_reason?: string; p_receipt_id: string }
         Returns: undefined
@@ -28888,6 +30785,340 @@ export type Database = {
       fn_workflow_config: {
         Args: { p_as_of?: string; p_org: string }
         Returns: Json
+      }
+      fn_wpms_assign_bundle: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_bundle_id: string
+          p_effective_from?: string
+          p_employee_id: string
+          p_org: string
+          p_reason?: string
+        }
+        Returns: string
+      }
+      fn_wpms_bulk_assign_bundle: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_branch_id?: string
+          p_bundle_id: string
+          p_department_id?: string
+          p_dry_run?: boolean
+          p_effective_from?: string
+          p_employee_ids?: string[]
+          p_employment_type_id?: string
+          p_org: string
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      fn_wpms_employee_bundle_at: {
+        Args: { p_as_of?: string; p_employee: string }
+        Returns: string
+      }
+      fn_wpms_log_event: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_entity_id?: string
+          p_entity_type?: string
+          p_event_type: string
+          p_org: string
+          p_payload?: Json
+        }
+        Returns: string
+      }
+      fn_wpms_policy_config_at: {
+        Args: {
+          p_as_of?: string
+          p_employee: string
+          p_kind: Database["public"]["Enums"]["wpms_policy_kind"]
+        }
+        Returns: Json
+      }
+      fn_wre_evaluate_session: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_session_id: string
+          p_trigger?: Database["public"]["Enums"]["wre_eval_trigger"]
+          p_trigger_ref?: string
+        }
+        Returns: {
+          attendance_policy_id: string | null
+          attendance_policy_version: number | null
+          bundle_id: string | null
+          bundle_version: number | null
+          early_exit_minutes: number
+          employee_id: string
+          evaluated_at: string
+          evaluated_by: string | null
+          evaluated_by_label: string | null
+          holiday_policy_id: string | null
+          holiday_policy_version: number | null
+          id: string
+          input_snapshot: Json
+          is_mispunch: boolean
+          late_minutes: number
+          monthly_late_minutes: number
+          operational_status: Database["public"]["Enums"]["wtm_session_status"]
+          org_id: string
+          overtime_minutes: number
+          payroll_status: Database["public"]["Enums"]["wtm_payroll_status"]
+          policy_config: Json
+          remaining_grace_minutes: number
+          result: Json
+          session_id: string | null
+          shift_id: string | null
+          shift_snapshot: Json
+          superseded_by: string | null
+          trigger: Database["public"]["Enums"]["wre_eval_trigger"]
+          trigger_ref_id: string | null
+          work_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "wre_evaluations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_wre_reevaluate: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_dry_run?: boolean
+          p_employee?: string
+          p_from: string
+          p_org: string
+          p_reason?: string
+          p_to: string
+        }
+        Returns: Json
+      }
+      fn_wtm_break_in: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_session: string
+          p_time?: string
+        }
+        Returns: {
+          break_duration_min: number
+          break_in: string | null
+          break_in_at: string | null
+          break_out: string
+          break_out_at: string
+          created_at: string
+          id: string
+          org_id: string
+          sequence_no: number
+          session_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "wtm_attendance_breaks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_wtm_break_out: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_session: string
+          p_time?: string
+        }
+        Returns: {
+          break_duration_min: number
+          break_in: string | null
+          break_in_at: string | null
+          break_out: string
+          break_out_at: string
+          created_at: string
+          id: string
+          org_id: string
+          sequence_no: number
+          session_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "wtm_attendance_breaks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_wtm_clock_in: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_employee: string
+          p_meta?: Json
+          p_time?: string
+          p_work_date?: string
+        }
+        Returns: {
+          attendance_id: string | null
+          attendance_status: Database["public"]["Enums"]["wtm_attendance_status"]
+          break_duration_min: number
+          clock_in: string | null
+          clock_in_at: string | null
+          clock_out: string | null
+          clock_out_at: string | null
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          device_info: Json
+          employee_id: string
+          id: string
+          is_mispunch: boolean
+          latest_evaluation_id: string | null
+          modified_by: string | null
+          modified_by_label: string | null
+          org_id: string
+          payroll_status:
+            | Database["public"]["Enums"]["wtm_payroll_status"]
+            | null
+          session_status: Database["public"]["Enums"]["wtm_session_status"]
+          shift_id: string | null
+          updated_at: string
+          work_date: string
+          working_duration_min: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "wtm_attendance_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_wtm_clock_out: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_meta?: Json
+          p_session: string
+          p_time?: string
+        }
+        Returns: {
+          attendance_id: string | null
+          attendance_status: Database["public"]["Enums"]["wtm_attendance_status"]
+          break_duration_min: number
+          clock_in: string | null
+          clock_in_at: string | null
+          clock_out: string | null
+          clock_out_at: string | null
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          device_info: Json
+          employee_id: string
+          id: string
+          is_mispunch: boolean
+          latest_evaluation_id: string | null
+          modified_by: string | null
+          modified_by_label: string | null
+          org_id: string
+          payroll_status:
+            | Database["public"]["Enums"]["wtm_payroll_status"]
+            | null
+          session_status: Database["public"]["Enums"]["wtm_session_status"]
+          shift_id: string | null
+          updated_at: string
+          work_date: string
+          working_duration_min: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "wtm_attendance_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_wtm_get_session: {
+        Args: { p_employee: string; p_work_date?: string }
+        Returns: {
+          attendance_id: string | null
+          attendance_status: Database["public"]["Enums"]["wtm_attendance_status"]
+          break_duration_min: number
+          clock_in: string | null
+          clock_in_at: string | null
+          clock_out: string | null
+          clock_out_at: string | null
+          created_at: string
+          created_by: string | null
+          created_by_label: string | null
+          device_info: Json
+          employee_id: string
+          id: string
+          is_mispunch: boolean
+          latest_evaluation_id: string | null
+          modified_by: string | null
+          modified_by_label: string | null
+          org_id: string
+          payroll_status:
+            | Database["public"]["Enums"]["wtm_payroll_status"]
+            | null
+          session_status: Database["public"]["Enums"]["wtm_session_status"]
+          shift_id: string | null
+          updated_at: string
+          work_date: string
+          working_duration_min: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "wtm_attendance_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_wtm_log_event: {
+        Args: {
+          p_actor_id?: string
+          p_actor_label?: string
+          p_break_id?: string
+          p_employee_id: string
+          p_event_type: string
+          p_org: string
+          p_payload?: Json
+          p_session_id?: string
+        }
+        Returns: string
+      }
+      fn_wtm_recalc_session_durations: {
+        Args: { p_session_id: string }
+        Returns: undefined
+      }
+      fn_wtm_sync_attendance_rollup: {
+        Args: { p_session_id: string }
+        Returns: {
+          break_end: string | null
+          break_min: number | null
+          break_start: string | null
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          employee_id: string
+          ess_unavailable: boolean
+          id: string
+          is_mispunch: boolean
+          note: string | null
+          off_shift_min: number
+          org_id: string
+          shift_work_min: number
+          source: string
+          status: Database["public"]["Enums"]["att_status"]
+          updated_at: string
+          work_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       generate_client_file_number: { Args: never; Returns: string }
       generate_client_registration_number: { Args: never; Returns: string }
@@ -29302,6 +31533,15 @@ export type Database = {
       }
     }
     Enums: {
+      aems_exception_status:
+        | "Draft"
+        | "Submitted"
+        | "Under Review"
+        | "Approved"
+        | "Rejected"
+        | "Returned for Clarification"
+        | "Closed"
+      aems_incident_status: "Open" | "Active" | "Closed"
       app_role:
         | "admin"
         | "counselor"
@@ -29494,6 +31734,12 @@ export type Database = {
         | "expired"
         | "archived"
       payout_status: "pending" | "approved" | "processed" | "paid" | "cancelled"
+      payroll_freeze_change_type:
+        | "attendance"
+        | "leave"
+        | "late"
+        | "mispunch"
+        | "shift_assignment"
       payroll_status: "Draft" | "Locked" | "Paid" | "Processed" | "Approved"
       person_role:
         | "applicant"
@@ -29539,6 +31785,42 @@ export type Database = {
       wallet_rollover_policy: "expire" | "partial" | "full"
       wallet_spend_order: "strategic_first" | "personal_first" | "parallel"
       work_week: "6-Day" | "5-Day"
+      wpms_policy_kind:
+        | "attendance"
+        | "leave"
+        | "payroll"
+        | "salary_template"
+        | "bonus"
+        | "holiday_calendar"
+      wre_eval_trigger:
+        | "clock_out"
+        | "aems_correction"
+        | "manual_reeval"
+        | "policy_change"
+        | "calendar_change"
+      wtm_attendance_status:
+        | "Present"
+        | "Half Day"
+        | "Absent"
+        | "Holiday"
+        | "Weekly Off"
+      wtm_payroll_status:
+        | "Present"
+        | "Half Day"
+        | "Absent"
+        | "Paid Leave"
+        | "Unpaid Leave"
+        | "Holiday"
+        | "Weekly Off"
+      wtm_session_status:
+        | "Pending"
+        | "Working"
+        | "On Break"
+        | "Completed"
+        | "Locked"
+        | "Exception"
+        | "Holiday"
+        | "Weekly Off"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -29666,6 +31948,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      aems_exception_status: [
+        "Draft",
+        "Submitted",
+        "Under Review",
+        "Approved",
+        "Rejected",
+        "Returned for Clarification",
+        "Closed",
+      ],
+      aems_incident_status: ["Open", "Active", "Closed"],
       app_role: [
         "admin",
         "counselor",
@@ -29880,6 +32172,13 @@ export const Constants = {
         "archived",
       ],
       payout_status: ["pending", "approved", "processed", "paid", "cancelled"],
+      payroll_freeze_change_type: [
+        "attendance",
+        "leave",
+        "late",
+        "mispunch",
+        "shift_assignment",
+      ],
       payroll_status: ["Draft", "Locked", "Paid", "Processed", "Approved"],
       person_role: [
         "applicant",
@@ -29930,6 +32229,47 @@ export const Constants = {
       wallet_rollover_policy: ["expire", "partial", "full"],
       wallet_spend_order: ["strategic_first", "personal_first", "parallel"],
       work_week: ["6-Day", "5-Day"],
+      wpms_policy_kind: [
+        "attendance",
+        "leave",
+        "payroll",
+        "salary_template",
+        "bonus",
+        "holiday_calendar",
+      ],
+      wre_eval_trigger: [
+        "clock_out",
+        "aems_correction",
+        "manual_reeval",
+        "policy_change",
+        "calendar_change",
+      ],
+      wtm_attendance_status: [
+        "Present",
+        "Half Day",
+        "Absent",
+        "Holiday",
+        "Weekly Off",
+      ],
+      wtm_payroll_status: [
+        "Present",
+        "Half Day",
+        "Absent",
+        "Paid Leave",
+        "Unpaid Leave",
+        "Holiday",
+        "Weekly Off",
+      ],
+      wtm_session_status: [
+        "Pending",
+        "Working",
+        "On Break",
+        "Completed",
+        "Locked",
+        "Exception",
+        "Holiday",
+        "Weekly Off",
+      ],
     },
   },
 } as const
