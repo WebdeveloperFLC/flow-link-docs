@@ -281,7 +281,7 @@ function buildUpiCards(module: DashboardModuleData): KpiItem[] {
   return [
     { label: "Active Institutions", value: module.upi.institutions, icon: Building2, tone: "institutions", to: "/institutions" },
     { label: "Partner Institutions", value: module.upi.partners, icon: Handshake, tone: "binders", to: "/institutions" },
-    { label: "Courses Pending Review", value: module.upi.coursesPending, icon: ListChecks, tone: "review", to: "/institutions/review" },
+    { label: "Courses Pending Review", value: module.upi.coursesPending, icon: ListChecks, tone: "review", to: "/institutions/review?status=pending_review" },
     { label: "AI Suggestions Pending", value: module.upi.suggestionsPending, icon: Sparkles, tone: "ai", to: "/institutions/suggestions" },
     {
       label: "Commission Expected",

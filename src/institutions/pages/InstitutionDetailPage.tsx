@@ -345,7 +345,7 @@ export default function InstitutionDetailPage() {
 
   const deleteSource = async (s: UpiSource) => {
     if (!canEdit) return toast.error("View-only access — cannot delete sources");
-    if (!confirm(`Delete this source?\n\n${s.url ?? s.file_path}\n\nExtracted programs will remain in Course Review.`)) return;
+    if (!confirm(`Delete this source?\n\n${s.url ?? s.file_path}\n\nExtracted programs will remain in the Program Workspace.`)) return;
     const { error } = await supabase.from("upi_institution_sources").delete().eq("id", s.id);
     if (error) return toast.error(error.message);
     toast.success("Source deleted");
@@ -676,7 +676,7 @@ export default function InstitutionDetailPage() {
               )}
               <Button asChild variant="outline">
                 <Link to={`/institutions/review?institutionId=${id}`}>
-                  <BookOpen className="size-4" /> View programs
+                  <BookOpen className="size-4" /> Program Workspace
                 </Link>
               </Button>
             </Card>

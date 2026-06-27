@@ -42,7 +42,7 @@ export function InstitutionLogoField({
     try {
       const url = await uploadInstitutionLogo(institutionId, file);
       onUpdated(url);
-      toast.success("Logo uploaded — visible in Course Review and Course Finder");
+      toast.success("Logo uploaded — visible in Program Workspace and Course Finder");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -123,7 +123,7 @@ export function InstitutionLogoField({
         <InstitutionLogo url={logoUrl} name={institutionName} size="lg" />
         <div className="flex-1 space-y-2 min-w-0">
           <p className="text-xs text-muted-foreground">
-            Shown on Course Review, institution pages, and Course Finder after publish.
+            Shown in Program Workspace, institution pages, and Course Finder after publish.
             {websiteUrl?.trim() ? " Auto-fetch uses favicon services (add VITE_LOGO_DEV_TOKEN for higher-quality logos)." : ""}
           </p>
           {canEdit && (

@@ -19,6 +19,12 @@ import { useModulePermission } from "@/hooks/useModulePermission";
 import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
 import { ImportProgramSheetButton } from "../components/ImportProgramSheetButton";
 import { CourseReviewList } from "../components/CourseReviewList";
+import { InstitutionProgramContextHeader } from "../components/InstitutionProgramContextHeader";
+import { ProgramGroupsNavPanel } from "../components/ProgramGroupsNavPanel";
+import {
+  buildProgramGroups,
+  filterRowsByProgramGroup,
+} from "../lib/programGroups";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -116,6 +122,10 @@ type InstitutionOption = {
   name: string;
   country_name: string | null;
   logo_url?: string | null;
+  website_url?: string | null;
+  city?: string | null;
+  institution_type?: string | null;
+  institution_status?: string | null;
 };
 
 function filterInstitutionsByCountry(institutions: InstitutionOption[], countryFilter: string) {
@@ -161,6 +171,7 @@ export default function CourseReviewPage() {
   const pgwpFilter = searchParams.get("pgwp") ?? FILTER_DEFAULTS.pgwp;
   const confidenceMinFilter = searchParams.get("confidenceMin") ?? FILTER_DEFAULTS.confidenceMin;
   const sortFilter = searchParams.get("sort") ?? FILTER_DEFAULTS.sort;
+  const programGroupFilter = searchParams.get("group") ?? "all";
   const [viewMode, setViewMode] = useState<"table" | "cards">(loadViewMode);
   const [visibleColumns, setVisibleColumns] = useState<Set<ColumnId>>(loadVisibleColumns);
   const [rows, setRows] = useState<UpiCourseStaging[]>([]);
@@ -227,7 +238,10 @@ export default function CourseReviewPage() {
   };
   const loadAux = async () => {
     const [i, l] = await Promise.all([
-      supabase.from("upi_institutions").select("id,name,country_name,logo_url,website_url").order("name"),
+      supabase
+        .from("upi_institutions")
+        .select("id,name,country_name,logo_url,website_url,city,institution_type,institution_status")
+        .order("name"),
       supabase.from("upi_program_levels").select("id,name").order("sort_order"),
     ]);
     const err = i.error ?? l.error;
@@ -267,6 +281,32 @@ export default function CourseReviewPage() {
         : inst?.country_name === countryFilter;
     if (!valid) setListFilter(setSearchParams, "institutionId", "all");
   }, [instFilter, countryFilter, institutions, setSearchParams]);
+
+  useEffect(() => {
+    if (instFilter === "all" && programGroupFilter !== "all") {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete("group");
+          return next;
+        },
+        { replace: true },
+      );
+    }
+  }, [instFilter, programGroupFilter, setSearchParams]);
+
+  const setProgramGroupFilter = (key: string | null) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (!key || key === "all") next.delete("group");
+        else next.set("group", key);
+        return next;
+      },
+      { replace: true },
+    );
+    setSelected(new Set());
+  };
 
   const campuses = useMemo(() => {
     const set = new Set<string>();
@@ -391,6 +431,36 @@ export default function CourseReviewPage() {
     instFilter,
   ]);
 
+  const programGroups = useMemo(
+    () => buildProgramGroups(visibleRows, levelName),
+    [visibleRows, levelName],
+  );
+
+  const selectedInstitution = useMemo(
+    () => (instFilter !== "all" ? institutions.find((i) => i.id === instFilter) ?? null : null),
+    [instFilter, institutions],
+  );
+
+  const groupFilteredRows = useMemo(() => {
+    if (programGroupFilter === "all") return visibleRows;
+    return filterRowsByProgramGroup(visibleRows, programGroupFilter);
+  }, [visibleRows, programGroupFilter]);
+
+  useEffect(() => {
+    if (programGroupFilter === "all") return;
+    const valid = programGroups.some((g) => g.key === programGroupFilter);
+    if (!valid && programGroups.length >= 0) {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete("group");
+          return next;
+        },
+        { replace: true },
+      );
+    }
+  }, [programGroupFilter, programGroups, setSearchParams]);
+
   const setStatus = async (ids: string[], status: string) => {
     if (!canEdit) return toast.error("View-only access — cannot update review status");
     if (!ids.length) return;
@@ -457,16 +527,16 @@ export default function CourseReviewPage() {
     setSelected(s);
   };
   const toggleAll = () => {
-    if (selected.size === visibleRows.length) setSelected(new Set());
-    else setSelected(new Set(visibleRows.map((r) => r.id)));
+    if (selected.size === groupFilteredRows.length) setSelected(new Set());
+    else setSelected(new Set(groupFilteredRows.map((r) => r.id)));
   };
   const selectedIds = Array.from(selected);
 
   return (
     <AppLayout>
       <PageHeader
-        title="Course Review"
-        description="Review, import, and publish programs to Course Finder."
+        title="Institution Program Workspace"
+        description="Review program groups and offerings, import from sheets, and publish to Course Finder."
       />
       <div className="p-6 space-y-4">
         {(loadError || auxError) && (
@@ -474,7 +544,22 @@ export default function CourseReviewPage() {
             {loadError ?? auxError}
           </Card>
         )}
-        {!canEdit && <ViewOnlyNotice label="Institutions (Course Review)" />}
+        {!canEdit && <ViewOnlyNotice label="Institutions (Program Workspace)" />}
+        {selectedInstitution ? (
+          <InstitutionProgramContextHeader
+            institution={selectedInstitution}
+            programGroupCount={programGroups.length}
+            offeringCount={visibleRows.length}
+            pendingCount={visibleRows.filter((r) => r.review_status === "pending_review").length}
+          />
+        ) : (
+          <Card className="p-4 border-dashed bg-muted/20">
+            <p className="text-sm text-muted-foreground">
+              Select an <strong>institution</strong> in the filters below to show the institution context header
+              and program group navigation. All institutions view remains available for cross-school review.
+            </p>
+          </Card>
+        )}
         {mismatchCount > 0 && (
           <Card className="p-4 flex items-start gap-3 border-amber-500/40 bg-amber-500/5">
             <Info className="size-4 text-amber-600 mt-0.5 shrink-0" />
@@ -701,28 +786,53 @@ export default function CourseReviewPage() {
           )}
         </Card>
 
-        <CourseReviewList
-          rows={visibleRows}
-          loading={loading}
-          loadError={loadError}
-          searchText={searchText}
-          statusFilter={statusFilter}
-          viewMode={viewMode}
-          visibleColumns={visibleColumns}
-          canEdit={canEdit}
-          selected={selected}
-          instName={instName}
-          instCountry={instCountry}
-          instLogo={instLogo}
-          levelName={levelName}
-          onToggle={toggle}
-          onToggleAll={toggleAll}
-          onApprove={(id) => setStatus([id], "approved")}
-          onReject={(id) => setStatus([id], "rejected")}
-          onEdit={setEditing}
-          onDelete={(id) => deleteRows([id])}
-          onPublish={(id) => publish([id])}
-        />
+        <div className="flex flex-col lg:flex-row gap-4 items-start">
+          {instFilter !== "all" ? (
+            <ProgramGroupsNavPanel
+              className="w-full lg:w-72 shrink-0"
+              groups={programGroups}
+              selectedKey={programGroupFilter === "all" ? null : programGroupFilter}
+              onSelect={setProgramGroupFilter}
+              totalOfferings={visibleRows.length}
+            />
+          ) : null}
+          <div className="flex-1 min-w-0 w-full">
+            {programGroupFilter !== "all" && (
+              <div className="mb-3 text-xs text-muted-foreground">
+                Showing offerings for one program group ·{" "}
+                <button
+                  type="button"
+                  className="text-primary hover:underline"
+                  onClick={() => setProgramGroupFilter(null)}
+                >
+                  Show all groups
+                </button>
+              </div>
+            )}
+            <CourseReviewList
+              rows={groupFilteredRows}
+              loading={loading}
+              loadError={loadError}
+              searchText={searchText}
+              statusFilter={statusFilter}
+              viewMode={viewMode}
+              visibleColumns={visibleColumns}
+              canEdit={canEdit}
+              selected={selected}
+              instName={instName}
+              instCountry={instCountry}
+              instLogo={instLogo}
+              levelName={levelName}
+              onToggle={toggle}
+              onToggleAll={toggleAll}
+              onApprove={(id) => setStatus([id], "approved")}
+              onReject={(id) => setStatus([id], "rejected")}
+              onEdit={setEditing}
+              onDelete={(id) => deleteRows([id])}
+              onPublish={(id) => publish([id])}
+            />
+          </div>
+        </div>
       </div>
 
       <EditSheet
@@ -856,7 +966,7 @@ function EditSheet({
     <Sheet open={!!row} onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>{canEdit ? "Edit course" : "View course"}</SheetTitle>
+          <SheetTitle>{canEdit ? "Edit program offering" : "View program offering"}</SheetTitle>
         </SheetHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-1">

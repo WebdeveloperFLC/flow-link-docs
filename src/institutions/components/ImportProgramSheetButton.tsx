@@ -116,7 +116,7 @@ export function ImportProgramSheetButton({
           description: "Create the institution first, then re-import those rows.",
         });
       } else if (upserted > 0) {
-        toast.success(`Imported ${upserted} program${upserted === 1 ? "" : "s"} to Course Review`);
+        toast.success(`Imported ${upserted} program${upserted === 1 ? "" : "s"} to Program Workspace`);
       } else {
         toast.error("Nothing imported — check file format and institution names");
       }
@@ -176,7 +176,7 @@ export function ImportProgramSheetButton({
               Cancel
             </Button>
             <Button onClick={runImport} disabled={busy || preview.every((p) => !p.matched)}>
-              <Upload className="size-4 mr-1" /> {busy ? "Importing…" : "Import to Course Review"}
+              <Upload className="size-4 mr-1" /> {busy ? "Importing…" : "Import to Workspace"}
             </Button>
           </DialogFooter>
         </DialogContent>

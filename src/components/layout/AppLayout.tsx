@@ -232,7 +232,7 @@ const accountingNav: NavItem[] = [
 
 const institutionsNav: NavItem[] = [
   { to: "/institutions", icon: School, label: "Institutions", end: true },
-  { to: "/institutions/review", icon: ListChecks, label: "Course Review" },
+  { to: "/institutions/review", icon: ListChecks, label: "Program Workspace" },
   { to: "/institutions/linkage", icon: Link2, label: "CF ↔ UPI Linkage" },
   { to: "/institutions/suggestions", icon: Lightbulb, label: "AI Suggestions" },
 ];

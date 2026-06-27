@@ -218,7 +218,7 @@ export function InstitutionFeeSchedulePanel({
             <div className="font-medium">Institution Fee Schedule</div>
             <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
               Default institution fees used when no program or route override applies.
-              Program fees are edited on Course Review; route application fees stay on Overview → Partnership routes.
+              Program fees are edited in Program Workspace; route application fees stay on Overview → Partnership routes.
             </p>
           </div>
           {canEdit && (
