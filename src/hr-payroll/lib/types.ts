@@ -282,6 +282,7 @@ export type HolidayRow = {
   name: string;
   type: string;
   branch_id: string | null;
+  branch_ids?: string[] | null;
   applicable_tags?: string[] | null;
   branches?: { name: string; country?: string | null } | null;
 };

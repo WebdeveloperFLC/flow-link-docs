@@ -33,6 +33,7 @@ function TrainingModal({
     employee_id: employees[0]?.id ?? "",
     type: "Paid Training",
     training_ref: "",
+    remarks: "",
     duration: "30 days",
     unpaid_days: 0,
     start_date: "",
@@ -58,6 +59,7 @@ function TrainingModal({
         start_date: f.start_date || null,
         end_date: f.end_date || null,
         training_ref: f.training_ref.trim() || null,
+        remarks: f.remarks.trim() || null,
         created_by_id: actor.id,
         created_by_label: actor.label,
       });
@@ -153,6 +155,16 @@ function TrainingModal({
           />
         </label>
       </div>
+      <label className="fld">
+        <span className="l">Remarks</span>
+        <textarea
+          className="input"
+          rows={2}
+          placeholder="Optional assignment notes for HR / manager"
+          value={f.remarks}
+          onChange={(e) => setF({ ...f, remarks: e.target.value })}
+        />
+      </label>
       {err && (
         <p style={{ color: "var(--rose)", fontSize: 13, marginTop: 8 }}>{err}</p>
       )}

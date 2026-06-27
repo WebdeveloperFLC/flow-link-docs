@@ -1,4 +1,5 @@
 import type { BranchRow, EmployeeRow, HolidayRow } from "./types";
+import { holidayAppliesToBranch } from "./holidayBranchUtils";
 
 export const HOLIDAY_COUNTRY_OPTIONS = [
   { value: "All", label: "All Countries" },
@@ -52,7 +53,7 @@ export function filterHolidays(
 ): HolidayRow[] {
   return holidays.filter((h) => {
     if (!holidayMatchesCountry(h, country, branchesById)) return false;
-    if (branchId !== "All" && h.branch_id !== branchId) return false;
+    if (branchId !== "All" && !holidayAppliesToBranch(h, branchId)) return false;
     if (typeFilter !== "All" && h.type !== typeFilter) return false;
     return true;
   });
@@ -104,7 +105,7 @@ export function holidayMatchesEmployee(
   const country = employeeHolidayCountry(emp);
   if (!holidayMatchesCountry(holiday, country, branchesById)) return false;
 
-  if (holiday.branch_id && emp.branch_id && holiday.branch_id !== emp.branch_id) {
+  if (emp.branch_id && !holidayAppliesToBranch(holiday, emp.branch_id)) {
     return false;
   }
 

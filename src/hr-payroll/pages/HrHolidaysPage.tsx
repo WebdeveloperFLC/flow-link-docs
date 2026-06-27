@@ -46,7 +46,7 @@ function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: 
     name: "",
     holiday_date: "",
     type: "Festival",
-    branch_id: "",
+    branch_ids: [] as string[],
     applicable_tags: ["6-Day", "Day", "permanent"] as string[],
   });
   const [err, setErr] = useState<Record<string, string>>({});
@@ -58,12 +58,14 @@ function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: 
     setErr(e);
     if (Object.keys(e).length) return;
 
+    const branchIds = f.branch_ids.length ? f.branch_ids : null;
     const { error } = await supabase.from("holidays" as never).insert({
       org_id: HR_ORG_ID,
       name: f.name.trim(),
       holiday_date: f.holiday_date,
       type: f.type,
-      branch_id: f.branch_id || null,
+      branch_id: branchIds?.length === 1 ? branchIds[0] : null,
+      branch_ids: branchIds,
       applicable_tags: f.applicable_tags,
     } as never);
     if (error) {
@@ -118,19 +120,26 @@ function HolidayModal({ onClose, onSaved }: { onClose: () => void; onSaved: (m: 
         </label>
       </div>
       <label className="fld">
-        <span className="l">Applies To (branch)</span>
-        <select
-          className="input"
-          value={f.branch_id}
-          onChange={(e) => setF({ ...f, branch_id: e.target.value })}
-        >
-          <option value="">All branches</option>
+        <span className="l">Applies to branches (leave empty = all branches)</span>
+        <div className="row-flex" style={{ flexWrap: "wrap", gap: 8, marginTop: 6 }}>
           {(ref?.branches ?? []).map((b) => (
-            <option key={b.id} value={b.id}>
+            <label key={b.id} className="row-flex" style={{ fontSize: 12.5, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={f.branch_ids.includes(b.id)}
+                onChange={(e) => {
+                  setF((prev) => ({
+                    ...prev,
+                    branch_ids: e.target.checked
+                      ? [...prev.branch_ids, b.id]
+                      : prev.branch_ids.filter((id) => id !== b.id),
+                  }));
+                }}
+              />
               {b.name}
-            </option>
+            </label>
           ))}
-        </select>
+        </div>
       </label>
       <label className="fld">
         <span className="l">Applicable tags (work week / employee category)</span>

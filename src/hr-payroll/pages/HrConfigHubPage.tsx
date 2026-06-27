@@ -81,11 +81,9 @@ export default function HrConfigHubPage() {
           Payroll Cycle, etc.) for live policy editing.
           <br />
           <span style={{ marginTop: 8, display: "inline-block" }}>
-            <strong>Master data:</strong> Branch, Department, and Designation are in{" "}
-            <Link to="/masters" style={{ color: "var(--brand)" }}>CRM Masters</Link> (shared with HR).
-            Employee Category and HR Document Types are HR-only.{" "}
-            <strong>Permissions:</strong> CRM Users controls HR access; Team &amp; Roles controls
-            in-module screens.
+            <strong>Master data:</strong> Branch, Department, Designation, and Employee Category are maintained once under{" "}
+            <Link to="/hr/admin/master-data" style={{ color: "var(--brand)" }}>Master Data Administration</Link>.
+            Configuration links there — no duplicate master screens.
           </span>
         </div>
       </div>
@@ -103,14 +101,14 @@ export default function HrConfigHubPage() {
             </div>
             <div className="grid g3" style={{ gap: 12 }}>
               {sections.map((s) => {
-                const href = s.crmMaster ? `/masters?section=${s.crmMaster}` : s.route;
+                const href = s.masterDataRoute ?? (s.crmMaster ? `/masters?section=${s.crmMaster}` : s.route);
                 return (
                   <ConfigHubCard
                     key={s.id}
                     title={s.title}
                     description={s.description}
                     href={href}
-                    crmMaster={!!s.crmMaster}
+                    crmMaster={!!s.crmMaster && !s.masterDataRoute}
                     comingSoon={s.comingSoon}
                   />
                 );

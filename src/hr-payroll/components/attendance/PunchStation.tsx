@@ -105,13 +105,20 @@ export function PunchStation({
             {hhmmss} <span className="ess-punch-tz">{tzLabel}</span>
           </div>
           <div className="ess-punch-meta">
-            {formatDateLongInTz(timezone, clock)} · No row for {todayDate} yet — start your day to check in (any time, 24h).
+            {formatDateLongInTz(timezone, clock)} · No attendance row for {todayDate}.
+            {canPunch
+              ? " Click Start today to create today's row and check in."
+              : " Ask HR to add today's row or grant punch permissions."}
           </div>
         </div>
-        {canPunch && (
+        {canPunch ? (
           <button type="button" className="ess-punch-start-btn" onClick={onStartDay}>
             ● Start today & Check In
           </button>
+        ) : (
+          <span className="tag" style={{ alignSelf: "center" }}>
+            Punch disabled — manage_emp or apply permission required
+          </span>
         )}
       </div>
     );

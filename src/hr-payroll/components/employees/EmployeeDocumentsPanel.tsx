@@ -28,7 +28,7 @@ export function EmployeeDocumentsPanel({
   const docTypeLabels = useHrDocumentTypeLabels();
   const [docType, setDocType] = useState<string>("");
   const [uploading, setUploading] = useState(false);
-  const { data: docs = [], isLoading } = useHrDocuments(emp.id);
+  const { data: docs = [], isLoading } = useHrDocuments(emp.id, true);
 
   useEffect(() => {
     if (!docType && docTypeLabels.length) setDocType(docTypeLabels[0]);
@@ -149,7 +149,7 @@ export function EmployeeDocumentsPanel({
       ) : docs.length === 0 ? (
         <div className="empty">
           <div className="ico">📄</div>
-          No documents on file.
+          No HR statutory or company documents on file. Leave and workflow attachments are kept with their requests.
         </div>
       ) : essOnly ? (
         <div className="grid" style={{ gap: 8 }}>

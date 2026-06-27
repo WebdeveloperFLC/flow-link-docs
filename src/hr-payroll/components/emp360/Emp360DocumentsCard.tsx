@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function Emp360DocumentsCard({ employee, employeeId, profileSearch }: Props) {
-  const { data: docs = [], isLoading } = useHrDocuments(employee.id);
+  const { data: docs = [], isLoading } = useHrDocuments(employee.id, true);
 
   return (
     <Emp360SummaryCard

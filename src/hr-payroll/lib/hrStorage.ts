@@ -20,6 +20,16 @@ export function hrDocStoragePath(employeeId: string, fileName: string): string {
   return `${HR_ORG_ID}/${employeeId}/${Date.now()}-${safe}`;
 }
 
+export async function uploadCompoffEvidence(employeeId: string, file: File): Promise<string> {
+  const storagePath = hrDocStoragePath(employeeId, file.name);
+  const { error } = await supabase.storage.from("hr-docs").upload(storagePath, file, {
+    upsert: false,
+    contentType: file.type || undefined,
+  });
+  if (error) throw error;
+  return storagePath;
+}
+
 export async function uploadHrDocument(
   employeeId: string,
   file: File,

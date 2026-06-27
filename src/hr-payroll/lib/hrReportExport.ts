@@ -1,5 +1,12 @@
 export type ReportExportRow = (string | number)[];
 
+/** Escape CSV/TSV cell values for Excel (UTF-8 safe). */
+export function csvEscapeCell(v: string | number): string {
+  const s = String(v);
+  if (/[",\n\r\t]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
 export function downloadReportTable(
   headers: readonly string[],
   rows: ReportExportRow[],
@@ -7,9 +14,13 @@ export function downloadReportTable(
   fmt: "CSV" | "Excel",
 ) {
   const sep = fmt === "CSV" ? "," : "\t";
-  const csv = [headers.join(sep), ...rows.map((r) => r.join(sep))].join("\n");
-  const blob = new Blob([csv], {
-    type: fmt === "CSV" ? "text/csv;charset=utf-8" : "application/vnd.ms-excel",
+  const bom = "\uFEFF";
+  const csv = [
+    headers.map(csvEscapeCell).join(sep),
+    ...rows.map((r) => r.map(csvEscapeCell).join(sep)),
+  ].join("\n");
+  const blob = new Blob([bom + csv], {
+    type: fmt === "CSV" ? "text/csv;charset=utf-8" : "application/vnd.ms-excel;charset=utf-8",
   });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -26,7 +37,7 @@ function reportHtml(
   recordCount: number,
 ) {
   const th = headers.map((h) => `<th>${h}</th>`).join("");
-  return `<!DOCTYPE html><html><head><title>${title}</title>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
 <style>
 body{font-family:system-ui,sans-serif;padding:24px;color:#1a2233;font-size:11px}
 h1{font-size:18px;margin:0}h2{font-size:12px;color:#666;font-weight:500;margin:4px 0 16px}
@@ -49,7 +60,7 @@ export function printReportTable(
   rows: ReportExportRow[],
 ) {
   const body = rows
-    .map((r) => `<tr>${r.map((v) => `<td>${v}</td>`).join("")}</tr>`)
+    .map((r) => `<tr>${r.map((v) => `<td>${String(v).replace(/</g, "&lt;")}</td>`).join("")}</tr>`)
     .join("");
   const w = window.open("", "_blank");
   if (!w) return;

@@ -11,6 +11,7 @@ import {
   useHrTrainingRecords,
   useHrApprovals,
 } from "../hooks/useHrRequests";
+import { useHrEmployees } from "../hooks/useHrEmployees";
 import { Stat } from "../components/ui/Stat";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { ApprovalTrail } from "../components/ui/ApprovalTrail";
@@ -93,6 +94,13 @@ export default function HrApprovalsPage() {
   const { data: late = [] } = useHrLateExemptions();
   const { data: mispunch = [] } = useHrMispunchRequests();
   const { data: training = [] } = useHrTrainingRecords();
+  const { data: employees = [] } = useHrEmployees();
+
+  const [filterSearch, setFilterSearch] = useState("");
+  const [filterBranch, setFilterBranch] = useState("All");
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+  const [filterStatus, setFilterStatus] = useState("Pending");
 
   const payrollPending =
     cycle?.status === "Draft" || cycle?.status === "Processed" ? 1 : 0;
@@ -140,7 +148,24 @@ export default function HrApprovalsPage() {
   const [viewRow, setViewRow] = useState<QueueRow | null>(null);
   const [rejectRow, setRejectRow] = useState<QueueRow | null>(null);
   const [rejectComment, setRejectComment] = useState("");
+  const [approveRow, setApproveRow] = useState<QueueRow | null>(null);
+  const [approveComment, setApproveComment] = useState("");
+  const [clarifyMode, setClarifyMode] = useState(false);
   const [acting, setActing] = useState(false);
+
+  const empById = useMemo(() => {
+    const m = new Map<string, (typeof employees)[0]>();
+    for (const e of employees) m.set(e.id, e);
+    return m;
+  }, [employees]);
+
+  const branchOptions = useMemo(() => {
+    const names = new Map<string, string>();
+    for (const e of employees) {
+      if (e.branch_id && e.branches?.name) names.set(e.branch_id, e.branches.name);
+    }
+    return [...names.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [employees]);
 
   const invalidateAll = async () => {
     await qc.invalidateQueries({ queryKey: ["hr-leaves"] });
@@ -235,6 +260,34 @@ export default function HrApprovalsPage() {
     cycle,
   ]);
 
+  const requestDate = (row: QueueRow): string => {
+    if (row.leave) return row.leave.from_date;
+    if (row.compoff) return row.compoff.worked_date;
+    if (row.late) return row.late.late_date;
+    if (row.mispunch) return row.mispunch.punch_date;
+    if (row.training) return row.training.start_date ?? "";
+    return "";
+  };
+
+  const filteredRows = useMemo(() => {
+    const q = filterSearch.trim().toLowerCase();
+    return rows.filter((row) => {
+      if (filterStatus !== "All" && row.status !== filterStatus) return false;
+      if (q) {
+        const hay = `${row.employeeName} ${row.details}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      if (filterBranch !== "All" && row.employeeId) {
+        const emp = empById.get(row.employeeId);
+        if (emp?.branch_id !== filterBranch) return false;
+      }
+      const d = requestDate(row);
+      if (filterFrom && d && d < filterFrom) return false;
+      if (filterTo && d && d > filterTo) return false;
+      return true;
+    });
+  }, [rows, filterSearch, filterBranch, filterFrom, filterTo, filterStatus, empById]);
+
   const approveEntity = async (row: QueueRow, comment?: string) => {
     setActing(true);
     try {
@@ -287,6 +340,7 @@ export default function HrApprovalsPage() {
         }
       }
       setViewRow(null);
+      setApproveRow(null);
       await invalidateAll();
     } catch (e) {
       fire(e instanceof Error ? e.message : "Approval failed");
@@ -300,30 +354,34 @@ export default function HrApprovalsPage() {
     setActing(true);
     try {
       const comment = rejectComment.trim() || undefined;
+      const finalComment = clarifyMode
+        ? `Clarification requested: ${comment ?? "Please provide more details"}`
+        : comment;
       if (rejectRow.category === "leave" && rejectRow.leave) {
-        await processApprovalDecision("leave", rejectRow.id, "Rejected", comment);
+        await processApprovalDecision("leave", rejectRow.id, "Rejected", finalComment);
         if (comment) {
           await supabase
             .from("leave_requests" as never)
             .update({ rejection_reason: comment } as never)
             .eq("id", rejectRow.id);
         }
-        fire("Leave rejected");
+        fire(clarifyMode ? "Sent back for clarification" : "Leave rejected");
       } else if (rejectRow.category === "compoff" && rejectRow.compoff) {
-        await processApprovalDecision("compoff", rejectRow.id, "Rejected", comment);
-        fire("Comp-off rejected");
+        await processApprovalDecision("compoff", rejectRow.id, "Rejected", finalComment);
+        fire(clarifyMode ? "Sent back for clarification" : "Comp-off rejected");
       } else if (rejectRow.category === "late" && rejectRow.late) {
-        await processApprovalDecision("late", rejectRow.id, "Rejected", comment);
-        fire("Late exemption rejected");
+        await processApprovalDecision("late", rejectRow.id, "Rejected", finalComment);
+        fire(clarifyMode ? "Sent back for clarification" : "Late exemption rejected");
       } else if (rejectRow.category === "mispunch" && rejectRow.mispunch) {
-        await processApprovalDecision("mispunch", rejectRow.id, "Rejected", comment);
-        fire("Mispunch rejected");
+        await processApprovalDecision("mispunch", rejectRow.id, "Rejected", finalComment);
+        fire(clarifyMode ? "Sent back for clarification" : "Mispunch rejected");
       } else if (rejectRow.category === "training" && rejectRow.training) {
         await decideTrainingCompletion(rejectRow.training, "Rejected");
         fire("Training rejected");
       }
       setRejectRow(null);
       setRejectComment("");
+      setClarifyMode(false);
       setViewRow(null);
       await invalidateAll();
     } catch (e) {
@@ -373,7 +431,29 @@ export default function HrApprovalsPage() {
           <h3 style={{ fontSize: 15 }}>
             {CATEGORIES.find((c) => c.id === selected)?.title ?? "Pending"}
           </h3>
-          <span className="tag">{rows.length} pending</span>
+          <span className="tag">{filteredRows.length} pending</span>
+        </div>
+
+        <div className="card-h" style={{ padding: "0 16px 12px", flexWrap: "wrap", gap: 10 }}>
+          <input
+            className="input"
+            placeholder="Search employee or details…"
+            value={filterSearch}
+            onChange={(e) => setFilterSearch(e.target.value)}
+            style={{ minWidth: 200, flex: 1 }}
+          />
+          <select className="input" value={filterBranch} onChange={(e) => setFilterBranch(e.target.value)}>
+            <option value="All">All branches</option>
+            {branchOptions.map(([id, name]) => (
+              <option key={id} value={id}>{name}</option>
+            ))}
+          </select>
+          <input className="input" type="date" value={filterFrom} onChange={(e) => setFilterFrom(e.target.value)} title="From date" />
+          <input className="input" type="date" value={filterTo} onChange={(e) => setFilterTo(e.target.value)} title="To date" />
+          <select className="input" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+            <option value="Pending">Pending</option>
+            <option value="All">All statuses</option>
+          </select>
         </div>
 
         {!canApprove && selected !== "payroll" && (
@@ -382,7 +462,7 @@ export default function HrApprovalsPage() {
           </div>
         )}
 
-        {rows.length === 0 ? (
+        {filteredRows.length === 0 ? (
           <div className="empty">
             <div className="ico">✓</div>
             No pending items in this queue.
@@ -398,7 +478,7 @@ export default function HrApprovalsPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {filteredRows.map((row) => (
                 <tr key={row.id}>
                   <td>
                     {row.employeeId ? (
@@ -420,9 +500,24 @@ export default function HrApprovalsPage() {
                             type="button"
                             className="btn btn-sm btn-good"
                             disabled={acting}
-                            onClick={() => void approveEntity(row)}
+                            onClick={() => {
+                              setApproveRow(row);
+                              setApproveComment("");
+                            }}
                           >
                             Approve
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm"
+                            disabled={acting}
+                            onClick={() => {
+                              setRejectRow(row);
+                              setRejectComment("");
+                              setClarifyMode(true);
+                            }}
+                          >
+                            Clarify
                           </button>
                           <button
                             type="button"
@@ -431,6 +526,7 @@ export default function HrApprovalsPage() {
                             onClick={() => {
                               setRejectRow(row);
                               setRejectComment("");
+                              setClarifyMode(false);
                             }}
                           >
                             Reject
@@ -542,26 +638,69 @@ export default function HrApprovalsPage() {
           </ModalShell>
         )}
 
-      {rejectRow && (
+      {approveRow && (
         <ModalShell
-          title="Reject with remarks"
-          onClose={() => setRejectRow(null)}
+          title="Approve with remarks"
+          onClose={() => setApproveRow(null)}
           footer={
             <>
-              <button type="button" className="btn" onClick={() => setRejectRow(null)}>Cancel</button>
+              <button type="button" className="btn" onClick={() => setApproveRow(null)}>Cancel</button>
               <button
                 type="button"
-                className="btn btn-bad"
+                className="btn btn-good"
                 disabled={acting}
-                onClick={() => void rejectEntity()}
+                onClick={() => void approveEntity(approveRow, approveComment.trim() || undefined)}
               >
-                Confirm reject
+                Confirm approve
               </button>
             </>
           }
         >
           <label className="fld">
             <span className="l">Remarks (optional)</span>
+            <textarea
+              className="input"
+              rows={3}
+              value={approveComment}
+              onChange={(e) => setApproveComment(e.target.value)}
+              placeholder="Approval note for audit trail"
+            />
+          </label>
+        </ModalShell>
+      )}
+
+      {rejectRow && (
+        <ModalShell
+          title={clarifyMode ? "Return for clarification" : "Reject with remarks"}
+          onClose={() => {
+            setRejectRow(null);
+            setClarifyMode(false);
+          }}
+          footer={
+            <>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  setRejectRow(null);
+                  setClarifyMode(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-bad"
+                disabled={acting || (clarifyMode && !rejectComment.trim())}
+                onClick={() => void rejectEntity()}
+              >
+                {clarifyMode ? "Send back" : "Confirm reject"}
+              </button>
+            </>
+          }
+        >
+          <label className="fld">
+            <span className="l">{clarifyMode ? "Clarification required" : "Remarks (optional)"}</span>
             <textarea
               className="input"
               rows={3}

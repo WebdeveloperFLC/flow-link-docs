@@ -11,6 +11,8 @@ export type ConfigSection = {
   configureOnly?: boolean;
   /** CRM Masters section key — hub links to /masters instead of /hr/config */
   crmMaster?: "__branches" | "__departments" | "__designations";
+  /** Master Data Administration route — no duplicate CRUD screen in Config */
+  masterDataRoute?: string;
   /** UI-only — section opens a placeholder page (not yet editable). */
   comingSoon?: boolean;
 };
@@ -35,35 +37,13 @@ export const HR_CONFIG_CATEGORIES: ConfigCategory[] = [
         comingSoon: true,
       },
       {
-        id: "branches",
-        title: "Branch Master",
-        description: "CRM shared — office locations used by HR, Leads, Clients, and Accounting",
-        route: "/hr/config/branches",
+        id: "org-masters",
+        title: "Organization Masters",
+        description:
+          "Branch, Department, Designation, and Employee Category — single maintenance in Master Data Administration",
+        route: "/hr/admin/master-data",
         configureOnly: true,
-        crmMaster: "__branches",
-      },
-      {
-        id: "departments",
-        title: "Department Master",
-        description: "CRM shared — internal departments for Users and HR employee records",
-        route: "/hr/config/departments",
-        configureOnly: true,
-        crmMaster: "__departments",
-      },
-      {
-        id: "designations",
-        title: "Designation Master",
-        description: "CRM shared — job titles for Users and HR Payroll (single source)",
-        route: "/hr/config/designations",
-        configureOnly: true,
-        crmMaster: "__designations",
-      },
-      {
-        id: "categories",
-        title: "Employee Category Master",
-        description: "HR-specific — leave, accrual, attendance, and payroll rule groupings",
-        route: "/hr/config/categories",
-        configureOnly: true,
+        masterDataRoute: "/hr/admin/master-data",
       },
     ],
   },

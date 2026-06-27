@@ -41,6 +41,7 @@ import {
 import { useHrCrmStaff, useCrmProfile } from "../../hooks/useHrTeam";
 import { useHrPolicies } from "../../hooks/useHrRequests";
 import { useHrAccess } from "../../context/HrPayrollProvider";
+import { formatEmployeeSaveError } from "../../lib/employeeSaveErrors";
 
 type FormTab = "basic" | "employment" | "shift" | "salary" | "statutory" | "bank" | "assets";
 
@@ -503,6 +504,43 @@ export function EmployeeFormModal({
     }
 
     setSaving(true);
+    const empCode = f.emp_code.trim();
+    const staffToLinkPre = f.staff_id || null;
+
+    try {
+      if (!emp) {
+        const { data: dupCode } = await supabase
+          .from("employees" as never)
+          .select("id")
+          .eq("org_id", HR_ORG_ID)
+          .eq("emp_code", empCode)
+          .maybeSingle();
+        if (dupCode) {
+          fire("Employee code already exists. Use a unique code.");
+          setSaving(false);
+          return;
+        }
+      }
+      if (staffToLinkPre && staffToLinkPre !== (sourceEmp?.staff_id ?? null)) {
+        const { data: linked } = await supabase
+          .from("employees" as never)
+          .select("id, emp_code")
+          .eq("staff_id", staffToLinkPre)
+          .maybeSingle();
+        if (linked && (linked as { id: string }).id !== emp?.id) {
+          fire(
+            `This CRM login is already linked to employee ${(linked as { emp_code: string }).emp_code}. Unlink it first.`,
+          );
+          setSaving(false);
+          return;
+        }
+      }
+    } catch (pre) {
+      fire(formatEmployeeSaveError(pre));
+      setSaving(false);
+      return;
+    }
+
     const fullName = [f.first_name, f.middle_name, f.last_name]
       .map((s) => s.trim())
       .filter(Boolean)
@@ -565,13 +603,13 @@ export function EmployeeFormModal({
       has_esic_account: f.has_esic_account,
       employer_pf_applicable: f.employer_pf_applicable,
       employer_esic_applicable: f.employer_esic_applicable,
-      employee_pf_pct: Number(f.employee_pf_pct) || DEFAULT_EMPLOYEE_PF_PCT,
-      employer_pf_pct: Number(f.employer_pf_pct) || DEFAULT_EMPLOYER_PF_PCT,
-      employee_esic_pct: Number(f.employee_esic_pct) || DEFAULT_EMPLOYEE_ESIC_PCT,
-      employer_esic_pct: Number(f.employer_esic_pct) || DEFAULT_EMPLOYER_ESIC_PCT,
+      employee_pf_pct: DEFAULT_EMPLOYEE_PF_PCT,
+      employer_pf_pct: DEFAULT_EMPLOYER_PF_PCT,
+      employee_esic_pct: DEFAULT_EMPLOYEE_ESIC_PCT,
+      employer_esic_pct: DEFAULT_EMPLOYER_ESIC_PCT,
       professional_tax_amount:
         f.professional_tax_amount === "" ? null : Number(f.professional_tax_amount),
-      pf_number: f.pf_number || null,
+      pf_number: f.pf_number.trim() || null,
       uan: f.uan || null,
       esic_applicable: f.has_esic_account ? f.esic_applicable : false,
       esic_number: f.esic_number || null,
@@ -652,7 +690,7 @@ export function EmployeeFormModal({
           p_employee_id: employeeId,
           p_staff_id: staffToLink,
         } as never);
-        if (linkError) throw linkError;
+        if (linkError) throw Object.assign(linkError, { __hrLink: true });
       }
 
       if (employeeId) {
@@ -738,7 +776,9 @@ export function EmployeeFormModal({
       await qc.invalidateQueries({ queryKey: ["hr-crm-staff"] });
       onClose();
     } catch (ex) {
-      fire(ex instanceof Error ? ex.message : "Save failed");
+      const linkCtx =
+        ex && typeof ex === "object" && "__hrLink" in ex ? ("link" as const) : undefined;
+      fire(formatEmployeeSaveError(ex, linkCtx));
     } finally {
       setSaving(false);
     }
@@ -1170,7 +1210,19 @@ export function EmployeeFormModal({
           )}
           {tab === "salary" && (
             <>
-              <div className="sec-label">Salary Structure (CTC)</div>
+              <div className="sec-label">Salary Structure (single source — drives payroll)</div>
+              <label className="fld">
+                <span className="l">
+                  Monthly Gross Salary ({f.salary_currency === "CAD" ? "CAD" : "₹"})
+                </span>
+                <input
+                  className={`input mono${err.monthly ? " err" : ""}`}
+                  type="number"
+                  value={f.monthly_gross}
+                  onChange={(e) => fillComponents(e.target.value)}
+                />
+                {err.monthly && <div className="errmsg">{err.monthly}</div>}
+              </label>
               <div className="grid g2" style={{ gap: "0 16px" }}>
                 <label className="fld">
                   <span className="l">Salary Package (CTC)</span>
@@ -1196,19 +1248,29 @@ export function EmployeeFormModal({
                     }
                   />
                 </label>
-                {(["basic", "hra", "conveyance"] as const).map((k) => (
-                  <label key={k} className="fld">
-                    <span className="l">{k === "basic" ? "Basic Salary" : k === "hra" ? "HRA" : "Conveyance Allowance"}</span>
-                    <input
-                      className="input mono"
-                      type="number"
-                      value={f[k]}
-                      onChange={(e) =>
-                        set(k, e.target.value === "" ? "" : parseFloat(e.target.value))
-                      }
-                    />
-                  </label>
-                ))}
+                {(["basic", "hra", "conveyance", "special_allow", "incentive", "bonus"] as const).map(
+                  (k) => (
+                    <label key={k} className="fld">
+                      <span className="l">
+                        {k === "basic"
+                          ? "Basic Salary"
+                          : k === "hra"
+                            ? "HRA"
+                            : k === "conveyance"
+                              ? "Conveyance Allowance"
+                              : k.replace("_", " ")}
+                      </span>
+                      <input
+                        className="input mono"
+                        type="number"
+                        value={f[k]}
+                        onChange={(e) =>
+                          set(k, e.target.value === "" ? "" : parseFloat(e.target.value))
+                        }
+                      />
+                    </label>
+                  ),
+                )}
                 <label className="fld">
                   <span className="l">Other Allowances</span>
                   <input
@@ -1220,6 +1282,18 @@ export function EmployeeFormModal({
                     }
                   />
                 </label>
+              </div>
+              <div
+                style={{
+                  fontSize: 12.5,
+                  color: grossComp === Number(f.monthly_gross) ? "var(--good)" : "var(--clay)",
+                  marginTop: 8,
+                }}
+              >
+                Components total: {formatMoney(grossComp, f.salary_currency)}{" "}
+                {grossComp === Number(f.monthly_gross)
+                  ? "✓ matches gross"
+                  : `(gross is ${formatMoney(Number(f.monthly_gross) || 0, f.salary_currency)})`}
               </div>
               <div className="card" style={{ padding: 12, marginTop: 12, background: "var(--paper)" }}>
                 <div className="sec-label" style={{ marginTop: 0 }}>Calculated structure</div>
@@ -1233,49 +1307,6 @@ export function EmployeeFormModal({
                   <span>Difference (CTC − A − B)</span>
                   <span className="mono">{formatMoney(structurePreview.difference, f.salary_currency)}</span>
                 </div>
-              </div>
-              <div className="sec-label" style={{ marginTop: 16 }}>Legacy salary fields (unchanged)</div>
-              <label className="fld">
-                <span className="l">
-                  Monthly Gross Salary ({f.salary_currency === "CAD" ? "CAD" : "₹"}) — fills components
-                </span>
-                <input
-                  className={`input mono${err.monthly ? " err" : ""}`}
-                  type="number"
-                  value={f.monthly_gross}
-                  onChange={(e) => fillComponents(e.target.value)}
-                />
-                {err.monthly && <div className="errmsg">{err.monthly}</div>}
-              </label>
-              <div className="sec-label">Components</div>
-              <div className="grid g2" style={{ gap: "0 16px" }}>
-                {(["basic", "hra", "conveyance", "special_allow", "incentive", "bonus"] as const).map(
-                  (k) => (
-                    <label key={k} className="fld">
-                      <span className="l">{k.replace("_", " ")}</span>
-                      <input
-                        className="input mono"
-                        type="number"
-                        value={f[k]}
-                        onChange={(e) =>
-                          set(k, e.target.value === "" ? "" : parseFloat(e.target.value))
-                        }
-                      />
-                    </label>
-                  ),
-                )}
-              </div>
-              <div
-                style={{
-                  fontSize: 12.5,
-                  color: grossComp === Number(f.monthly_gross) ? "var(--good)" : "var(--clay)",
-                  marginTop: 4,
-                }}
-              >
-                Components total: {formatMoney(grossComp, f.salary_currency)}{" "}
-                {grossComp === Number(f.monthly_gross)
-                  ? "✓ matches gross"
-                  : `(gross is ${formatMoney(Number(f.monthly_gross) || 0, f.salary_currency)})`}
               </div>
             </>
           )}
@@ -1341,55 +1372,36 @@ export function EmployeeFormModal({
                 />
                 Employer ESIC Applicable
               </label>
+              <div className="sec-label" style={{ marginTop: 12 }}>Statutory contribution rates</div>
+              <p className="muted" style={{ fontSize: 12, marginBottom: 10, lineHeight: 1.45 }}>
+                PF and ESIC percentages are applied from Payroll Configuration (statutory defaults).
+                Employee Master stores account numbers only — not manual share overrides.
+              </p>
               <div className="grid g2" style={{ gap: "0 16px" }}>
-                <label className="fld">
+                <div className="fld">
                   <span className="l">Employee PF %</span>
-                  <input
-                    className="input mono"
-                    type="number"
-                    step="0.01"
-                    value={f.employee_pf_pct}
-                    onChange={(e) =>
-                      set("employee_pf_pct", e.target.value === "" ? "" : parseFloat(e.target.value))
-                    }
-                  />
-                </label>
-                <label className="fld">
+                  <div className="input mono" style={{ background: "var(--paper)", padding: "8px 10px" }}>
+                    {DEFAULT_EMPLOYEE_PF_PCT}%
+                  </div>
+                </div>
+                <div className="fld">
                   <span className="l">Employer PF %</span>
-                  <input
-                    className="input mono"
-                    type="number"
-                    step="0.01"
-                    value={f.employer_pf_pct}
-                    onChange={(e) =>
-                      set("employer_pf_pct", e.target.value === "" ? "" : parseFloat(e.target.value))
-                    }
-                  />
-                </label>
-                <label className="fld">
+                  <div className="input mono" style={{ background: "var(--paper)", padding: "8px 10px" }}>
+                    {DEFAULT_EMPLOYER_PF_PCT}%
+                  </div>
+                </div>
+                <div className="fld">
                   <span className="l">Employee ESIC %</span>
-                  <input
-                    className="input mono"
-                    type="number"
-                    step="0.001"
-                    value={f.employee_esic_pct}
-                    onChange={(e) =>
-                      set("employee_esic_pct", e.target.value === "" ? "" : parseFloat(e.target.value))
-                    }
-                  />
-                </label>
-                <label className="fld">
+                  <div className="input mono" style={{ background: "var(--paper)", padding: "8px 10px" }}>
+                    {DEFAULT_EMPLOYEE_ESIC_PCT}%
+                  </div>
+                </div>
+                <div className="fld">
                   <span className="l">Employer ESIC %</span>
-                  <input
-                    className="input mono"
-                    type="number"
-                    step="0.01"
-                    value={f.employer_esic_pct}
-                    onChange={(e) =>
-                      set("employer_esic_pct", e.target.value === "" ? "" : parseFloat(e.target.value))
-                    }
-                  />
-                </label>
+                  <div className="input mono" style={{ background: "var(--paper)", padding: "8px 10px" }}>
+                    {DEFAULT_EMPLOYER_ESIC_PCT}%
+                  </div>
+                </div>
               </div>
               <div className="sec-label">Professional Tax</div>
               <label className="row-flex" style={{ fontSize: 13, marginBottom: 8 }}>

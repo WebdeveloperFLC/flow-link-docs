@@ -185,9 +185,7 @@ export default function HrMispunchPage() {
                   <td className="strong">{m.employees?.full_name}</td>
                   <td>{m.punch_date}</td>
                   <td>{m.issue}</td>
-                  <td>
-                    <span className="tag">📎 {m.evidence ?? "—"}</span>
-                  </td>
+                  <td className="muted" style={{ fontSize: 12 }}>{m.evidence ?? "—"}</td>
                   <td>
                     <StatusBadge status={m.status} />
                     <ApprovalTrail entityId={m.id} approvals={approvals} />

@@ -43,6 +43,22 @@ describe("holidayFilters", () => {
     expect(branch.map((h) => h.name)).toEqual(["Canada Day"]);
   });
 
+  it("includes org-wide holidays when filtering by branch", () => {
+    const globalHoliday: HolidayRow = {
+      id: "3",
+      org_id: "o",
+      holiday_date: "2026-08-15",
+      name: "Independence Day",
+      type: "National",
+      branch_id: null,
+      applicable_tags: ["india_staff"],
+    };
+    const all = [...holidays, globalHoliday];
+    const mumbaiOnly = filterHolidays(all, "All", "bIn", "All", branchesById);
+    expect(mumbaiOnly.map((h) => h.name)).toContain("Independence Day");
+    expect(mumbaiOnly.map((h) => h.name)).toContain("Republic Day");
+  });
+
   it("matches country via tags and branch", () => {
     expect(holidayMatchesCountry(holidays[0], "IN", branchesById)).toBe(true);
     expect(holidayMatchesCountry(holidays[0], "CA", branchesById)).toBe(false);

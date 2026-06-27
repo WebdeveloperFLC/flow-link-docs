@@ -1,6 +1,17 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { HR_ORG_ID } from "../lib/constants";
 import { rpcErrorMessage } from "../lib/hrApi";
+
+function wtmActionMessage(e: unknown, fallback: string): string {
+  const msg = rpcErrorMessage(e, fallback);
+  if (/not authorized/i.test(msg)) {
+    return "Not authorized — link your CRM login in Employee Master and ensure Apply permission.";
+  }
+  if (/employee not found|fn_employee_shift_at/i.test(msg)) {
+    return "Clock-in unavailable — publish WTM migrations or link employee profile.";
+  }
+  return msg;
+}
 import { nowTimeInTz } from "../lib/employeeTimezone";
 import { wtmBreakIn, wtmBreakOut, wtmClockIn, wtmClockOut } from "../lib/wtmApi";
 import type { WtmSessionRow } from "../lib/wtmTypes";
@@ -42,7 +53,7 @@ export function useWtmActions(
       fire("Clocked in successfully");
       await invalidate(employeeId, workDate);
     } catch (e) {
-      fire(rpcErrorMessage(e, "Clock in failed"));
+      fire(wtmActionMessage(e, "Clock in failed"));
     }
   };
 
@@ -52,7 +63,7 @@ export function useWtmActions(
       fire("Clocked out — session completed");
       await invalidate(session.employee_id, session.work_date);
     } catch (e) {
-      fire(rpcErrorMessage(e, "Clock out failed"));
+      fire(wtmActionMessage(e, "Clock out failed"));
     }
   };
 

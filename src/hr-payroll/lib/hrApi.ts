@@ -238,6 +238,7 @@ export type AssignTrainingInput = {
   start_date: string | null;
   end_date: string | null;
   training_ref: string | null;
+  remarks?: string | null;
   created_by_id: string | null;
   created_by_label: string;
 };
@@ -262,6 +263,7 @@ export async function assignTrainingRecord(input: AssignTrainingInput) {
     ...core,
     end_date: input.end_date,
     training_ref: input.training_ref,
+    remarks: input.remarks?.trim() || null,
     created_by_id: input.created_by_id,
     created_by_label: input.created_by_label,
   };

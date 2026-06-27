@@ -116,9 +116,9 @@ export default function HrPayrollRoutes() {
           <Route path="config/holidays" element={<HrHolidaysPage masterMode />} />
           <Route path="config/document-types" element={<HrDocumentTypesPage />} />
           <Route path="config/categories" element={<HrEmployeeCategoriesPage />} />
-          <Route path="config/branches" element={<HrCrmMasterLinkPage kind="branches" />} />
-          <Route path="config/departments" element={<HrCrmMasterLinkPage kind="departments" />} />
-          <Route path="config/designations" element={<HrCrmMasterLinkPage kind="designations" />} />
+          <Route path="config/branches" element={<Navigate to="/hr/admin/master-data/crm/__branches" replace />} />
+          <Route path="config/departments" element={<Navigate to="/hr/admin/master-data/crm/__departments" replace />} />
+          <Route path="config/designations" element={<Navigate to="/hr/admin/master-data/crm/__designations" replace />} />
           <Route path="config/roles" element={<HrRolesPage />} />
           <Route path="config/audit" element={<HrAuditPage />} />
           <Route path="config/:slug" element={<HrConfigPolicyRoute />} />

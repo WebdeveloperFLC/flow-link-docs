@@ -9,6 +9,7 @@ import { StatusBadge } from "../components/ui/StatusBadge";
 import { ApprovalTrail } from "../components/ui/ApprovalTrail";
 import { ModalShell } from "../components/ui/ModalShell";
 import { HR_ORG_ID } from "../lib/constants";
+import { uploadCompoffEvidence } from "../lib/hrStorage";
 import { hrAudit, processApprovalDecision, rebuildPayrollLine } from "../lib/hrApi";
 import type { CompoffRequestRow } from "../lib/types";
 
@@ -30,12 +31,22 @@ function CompoffModal({
     partial_end: "",
     comp_off_leave_date: "",
   });
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [err, setErr] = useState<Record<string, string>>({});
 
   const save = async () => {
     if (!f.worked_date) {
       setErr({ worked_date: "Required" });
       return;
+    }
+    let document_path: string | null = null;
+    if (documentFile && f.employee_id) {
+      try {
+        document_path = await uploadCompoffEvidence(f.employee_id, documentFile);
+      } catch (e) {
+        onSaved(e instanceof Error ? e.message : "Document upload failed");
+        return;
+      }
     }
     const { error } = await supabase.from("compoff_requests" as never).insert({
       org_id: HR_ORG_ID,
@@ -47,6 +58,7 @@ function CompoffModal({
       partial_start: f.duration_type === "Partial" && f.partial_start ? f.partial_start : null,
       partial_end: f.duration_type === "Partial" && f.partial_end ? f.partial_end : null,
       comp_off_leave_date: f.comp_off_leave_date || null,
+      document_path,
       status: "Pending",
     } as never);
     if (error) {
@@ -151,6 +163,15 @@ function CompoffModal({
           type="date"
           value={f.comp_off_leave_date}
           onChange={(e) => setF({ ...f, comp_off_leave_date: e.target.value })}
+        />
+      </label>
+      <label className="fld">
+        <span className="l">Supporting document (optional)</span>
+        <input
+          className="input"
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png,.webp"
+          onChange={(e) => setDocumentFile(e.target.files?.[0] ?? null)}
         />
       </label>
       <label className="fld">

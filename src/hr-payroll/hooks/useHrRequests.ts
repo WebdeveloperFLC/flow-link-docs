@@ -12,6 +12,7 @@ import type {
   TrainingExtensionHistoryRow,
   ApprovalRow,
 } from "../lib/types";
+import { filterHrStatutoryDocuments } from "../lib/hrDocumentFilters";
 
 export function useHrLeaveRequests() {
   return useQuery({
@@ -211,9 +212,9 @@ export function useHrPolicies() {
   });
 }
 
-export function useHrDocuments(employeeId?: string) {
+export function useHrDocuments(employeeId?: string, statutoryOnly = false) {
   return useQuery({
-    queryKey: ["hr-documents", employeeId],
+    queryKey: ["hr-documents", employeeId, statutoryOnly],
     enabled: !!employeeId,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -221,7 +222,8 @@ export function useHrDocuments(employeeId?: string) {
         .select("*")
         .eq("employee_id", employeeId!);
       if (error) throw error;
-      return (data ?? []) as EmployeeDocumentRow[];
+      const rows = (data ?? []) as EmployeeDocumentRow[];
+      return statutoryOnly ? filterHrStatutoryDocuments(rows) : rows;
     },
   });
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useHrAccess } from "../context/HrPayrollProvider";
 import { useHrEmployees } from "../hooks/useHrEmployees";
 import { useHrShifts } from "../hooks/useHrShifts";
@@ -81,14 +81,22 @@ export function AttendanceView({ mode }: AttendanceViewProps) {
   const tz = timezoneForEmployee(emp, shift);
   const effectiveId = emp?.id;
 
-  const { data: att = [] } = useHrAttendance(
-    effectiveId,
-    cycle?.start_date,
-    cycle?.end_date,
-  );
-  const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, tz, fire);
-
   const today = todayIsoInTz(tz);
+  const attFrom = useMemo(() => {
+    if (!cycle?.start_date) return undefined;
+    const d = new Date(`${today}T12:00:00`);
+    d.setDate(d.getDate() - 14);
+    const weekAgo = d.toISOString().slice(0, 10);
+    return cycle.start_date < weekAgo ? cycle.start_date : weekAgo;
+  }, [cycle?.start_date, today]);
+  const attTo = useMemo(() => {
+    if (!cycle?.end_date) return today;
+    return cycle.end_date >= today ? cycle.end_date : today;
+  }, [cycle?.end_date, today]);
+
+  const { data: att = [] } = useHrAttendance(effectiveId, attFrom, attTo);
+  const actions = useAttendanceActions(cycle?.id, attFrom, attTo, tz, fire);
+
   const punchSession = resolvePunchSession(att, today);
   const todayRow = punchSession.punchRow;
   const ru = shift && att.length ? rollupStats(att, shift) : null;
