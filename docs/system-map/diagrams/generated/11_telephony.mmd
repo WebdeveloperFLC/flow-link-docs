@@ -1,0 +1,10 @@
+erDiagram
+    BRANCHES ||--o{ LEADS : "branch_id"
+    CALL_CAMPAIGNS ||--o{ CALL_QUEUE_ITEMS : "campaign_id"
+    CALL_CAMPAIGNS ||--o{ CALL_SESSIONS : "campaign_id"
+    CALL_QUEUE_ITEMS ||--o{ CALL_SESSIONS : "queue_item_id"
+    CALL_SESSIONS ||--o{ CALL_EVENTS : "session_id"
+    LEADS ||--o{ CALL_QUEUE_ITEMS : "lead_id"
+    LEADS ||--o{ LEADS : "lead_id"
+    TELEPHONY_AGENTS ||--o{ CALL_QUEUE_ITEMS : "assigned_agent_id"
+    TELEPHONY_AGENTS ||--o{ CALL_SESSIONS : "agent_id"

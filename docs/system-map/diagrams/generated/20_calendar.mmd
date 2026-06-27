@@ -1,0 +1,10 @@
+erDiagram
+    CALENDAR_EVENTS ||--o{ CALENDAR_EVENT_AUDIT : "event_id"
+    CALENDAR_EVENTS ||--o{ CALENDAR_EVENT_CRM_LINKS : "event_id"
+    CALENDAR_EVENTS ||--o{ CALENDAR_INTERNAL_NOTES : "event_id"
+    CALENDAR_EVENTS ||--o{ CALENDAR_NOTIFICATIONS : "event_id"
+    CALENDAR_EVENTS ||--o{ CALENDAR_PARTICIPANTS : "event_id"
+    CALENDAR_EVENTS ||--o{ CALENDAR_TOKENS : "event_id"
+    CALENDAR_MEETING_TYPES ||--o{ CALENDAR_EVENTS : "meeting_type_id"
+    CALENDAR_MEETING_TYPES ||--o{ CALENDAR_SLUG_HISTORY : "meeting_type_id"
+    TEAMS ||--o{ CALENDAR_MEETING_TYPES : "team_id"

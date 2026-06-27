@@ -1,0 +1,11 @@
+erDiagram
+    AI_HELP_CONVERSATIONS ||--o{ AI_HELP_MESSAGES : "conversation_id"
+    AI_HELP_MESSAGES ||--o{ AI_HELP_FEEDBACK : "message_id"
+    AI_SUMMARIES ||--o{ AI_SUMMARY_FEEDBACK : "summary_id"
+    AI_SUMMARIES ||--o{ AI_SUMMARY_SOURCES : "summary_id"
+    BRANCHES ||--o{ CLIENTS : "branch_id"
+    CLIENTS ||--o{ AI_SUMMARIES : "client_id"
+    LEADS ||--o{ CLIENTS : "source_lead_id"
+    PROFILES ||--o{ CLIENTS : "converted_by"
+    UPI_INSTITUTIONS ||--o{ CLIENTS : "linked_institution_id"
+    WORKFLOW_TEMPLATES ||--o{ CLIENTS : "template_id"

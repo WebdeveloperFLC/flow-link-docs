@@ -1,0 +1,11 @@
+erDiagram
+    BRANCHES ||--o{ CLIENTS : "branch_id"
+    BRANCHES ||--o{ DSH_BRANCH_CONTACTS : "branch_id"
+    BRANCHES ||--o{ DSH_BRANCH_NOTIFICATIONS : "branch_id"
+    BRANCHES ||--o{ DSH_MEDIA : "branch_id"
+    CLIENTS ||--o{ DSH_MEDIA : "client_id"
+    DSH_MEDIA ||--o{ DSH_BRANCH_NOTIFICATIONS : "media_id"
+    LEADS ||--o{ CLIENTS : "source_lead_id"
+    PROFILES ||--o{ CLIENTS : "converted_by"
+    UPI_INSTITUTIONS ||--o{ CLIENTS : "linked_institution_id"
+    WORKFLOW_TEMPLATES ||--o{ CLIENTS : "template_id"
