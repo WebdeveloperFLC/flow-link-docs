@@ -240,7 +240,7 @@ export default function InstitutionDetailPage() {
     const isDocType = DOC_TYPES.has(newSourceType);
     let insertPayload: any = { institution_id: id, source_type: newSourceType };
     if (isDocType) {
-      if (!newSourceDocId) return toast.error("Pick an uploaded document — or upload one in the Documents tab first");
+      if (!newSourceDocId) return toast.error("Pick an uploaded knowledge source — or upload one in the Knowledge Sources tab first");
       const doc = docs.find((d) => d.id === newSourceDocId);
       if (!doc) return toast.error("Selected document not found");
       insertPayload = {
@@ -514,7 +514,7 @@ export default function InstitutionDetailPage() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="contacts">Contacts</TabsTrigger>
             <TabsTrigger value="sources">Sources</TabsTrigger>
-            <TabsTrigger value="documents">Knowledge Inbox</TabsTrigger>
+            <TabsTrigger value="documents">Knowledge Sources</TabsTrigger>
             <TabsTrigger value="fee-schedule">Fee Schedule</TabsTrigger>
             {canSeeCommissions && <TabsTrigger value="billing">Billing</TabsTrigger>}
             {canSeeCommissions && <TabsTrigger value="eligibility">Eligibility</TabsTrigger>}
@@ -583,8 +583,7 @@ export default function InstitutionDetailPage() {
           <TabsContent value="sources">
             <Card className="p-4 mb-4 flex gap-2 flex-wrap items-end">
               {(() => {
-                // Source kinds that pull from an already-uploaded Document
-                // (these now mirror the Documents tab's doc_kind values).
+                // Source kinds that pull from an already-uploaded knowledge source.
                 const DOC_TYPES = new Set([
                   "pdf_brochure", "excel_sheet", "csv_feed", "uploaded_email",
                   "program_sheet", "brochure", "agreement", "commission_sheet", "promotion_campaign",
@@ -593,11 +592,11 @@ export default function InstitutionDetailPage() {
                 const linkedDocIds = new Set(sources.map((s: any) => s.document_id).filter(Boolean));
                 // Friendly labels — keep stored values stable for the backend.
                 const SOURCE_OPTIONS: Array<{ value: string; label: string }> = [
-                  { value: "program_sheet",      label: "Program sheet (from Documents)" },
-                  { value: "brochure",           label: "Brochure (from Documents)" },
-                  { value: "commission_sheet",   label: "Commission sheet (from Documents)" },
-                  { value: "agreement",          label: "Agreement (from Documents)" },
-                  { value: "promotion_campaign", label: "Promotion / Campaign (from Documents)" },
+                  { value: "program_sheet",      label: "Program sheet (from Knowledge Sources)" },
+                  { value: "brochure",           label: "Brochure (from Knowledge Sources)" },
+                  { value: "commission_sheet",   label: "Commission sheet (from Knowledge Sources)" },
+                  { value: "agreement",          label: "Agreement (from Knowledge Sources)" },
+                  { value: "promotion_campaign", label: "Promotion / Campaign (from Knowledge Sources)" },
                   { value: "website_url",        label: "Website URL" },
                   { value: "listing_page",       label: "Program listing page (URL)" },
                   { value: "scholarship_page",   label: "Scholarship page (URL)" },
@@ -645,8 +644,8 @@ export default function InstitutionDetailPage() {
                           <option value="">
                             {filteredDocs.length === 0
                               ? (wantedKind
-                                  ? `No ${wantedKind.replace("_", " ")} documents — upload one in the Documents tab`
-                                  : "No documents uploaded yet — upload one in the Documents tab")
+                                  ? `No ${wantedKind.replace("_", " ")} knowledge sources — upload one in the Knowledge Sources tab`
+                                  : "No knowledge sources uploaded yet — upload one in the Knowledge Sources tab")
                               : "Choose an uploaded document…"}
                           </option>
                           {filteredDocs.map((d: any) => {
@@ -660,9 +659,9 @@ export default function InstitutionDetailPage() {
                           })}
                         </select>
                         <div className="text-xs text-muted-foreground">
-                          Pulls from a file already uploaded in the Documents tab — no re-upload needed.
+                          Pulls from a file already uploaded in the Knowledge Sources tab — no re-upload needed.
                           {filteredDocs.length === 0 && (
-                            <>  Go to <span className="font-semibold">Documents</span> and upload one first.</>
+                            <>  Go to <span className="font-semibold">Knowledge Sources</span> and upload one first.</>
                           )}
                         </div>
                       </div>
@@ -705,7 +704,7 @@ export default function InstitutionDetailPage() {
                     <div className="font-medium truncate">
                       {(s as any).name ?? s.url ?? s.file_path}
                       {(s as any).document_id && (
-                        <span className="ml-2 text-xs text-muted-foreground">(from Documents)</span>
+                        <span className="ml-2 text-xs text-muted-foreground">(from Knowledge Sources)</span>
                       )}
                     </div>
                     <div className="text-xs text-muted-foreground">{s.source_type} · {s.crawl_status} · {s.pages_scanned}/{s.pages_found} pages · {s.confidence_score}% confidence</div>

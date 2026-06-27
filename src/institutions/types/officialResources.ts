@@ -20,15 +20,26 @@ export type InstitutionOfficialResources = {
   lastChangeDetectedAt?: string | null;
 };
 
-export type KnowledgeInboxDisplayStatus =
-  | "Pending AI Review"
+/** AI processing status for knowledge sources (architecture — extraction deferred). */
+export type KnowledgeSourceDisplayStatus =
+  | "Pending"
+  | "Processing"
   | "Extracted"
-  | "Needs Approval"
+  | "Needs Review"
+  | "Approved"
   | "Published";
 
-export const KNOWLEDGE_INBOX_STATUSES: KnowledgeInboxDisplayStatus[] = [
-  "Pending AI Review",
+/** @deprecated Use KnowledgeSourceDisplayStatus */
+export type KnowledgeInboxDisplayStatus = KnowledgeSourceDisplayStatus;
+
+export const KNOWLEDGE_SOURCE_STATUSES: KnowledgeSourceDisplayStatus[] = [
+  "Pending",
+  "Processing",
   "Extracted",
-  "Needs Approval",
+  "Needs Review",
+  "Approved",
   "Published",
 ];
+
+/** @deprecated Use KNOWLEDGE_SOURCE_STATUSES */
+export const KNOWLEDGE_INBOX_STATUSES = KNOWLEDGE_SOURCE_STATUSES;

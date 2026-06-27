@@ -24,6 +24,7 @@ import {
 } from "../components/PartnershipChannelBadges";
 import { findDuplicateInstitution } from "../lib/institutionDedup";
 import { ExportMenu } from "@/components/export/ExportMenu";
+import { WorkspaceToolbar } from "@/components/workspace/WorkspaceToolbar";
 import { useExportDataset } from "@/components/export/useExportDataset";
 import { INSTITUTION_EXPORT_COLUMNS } from "../lib/institutionExportColumns";
 
@@ -259,21 +260,21 @@ export default function InstitutionsListPage() {
               </Button>
             ))}
           </div>
-          <div className="flex-1" />
-          <ExportMenu {...exportProps} disabled={loading} />
-          {canEdit && missingLogoCount > 0 && (
-            <Button size="sm" variant="outline" disabled={fetchingLogos} onClick={fetchMissingLogos}>
-              {fetchingLogos ? <Loader2 className="size-4 mr-1 animate-spin" /> : <Sparkles className="size-4 mr-1" />}
-              Fetch missing logos ({missingLogoCount})
-            </Button>
-          )}
-          {canEdit && (
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="size-4" /> Add institution
-                </Button>
-              </DialogTrigger>
+          <WorkspaceToolbar className="flex-1 justify-end">
+            <ExportMenu {...exportProps} disabled={loading} />
+            {canEdit && missingLogoCount > 0 && (
+              <Button size="sm" variant="outline" disabled={fetchingLogos} onClick={fetchMissingLogos}>
+                {fetchingLogos ? <Loader2 className="size-4 mr-1 animate-spin" /> : <Sparkles className="size-4 mr-1" />}
+                Fetch missing logos ({missingLogoCount})
+              </Button>
+            )}
+            {canEdit && (
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="size-4" /> Add institution
+                  </Button>
+                </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add institution</DialogTitle>
@@ -289,6 +290,7 @@ export default function InstitutionsListPage() {
               </DialogContent>
             </Dialog>
           )}
+          </WorkspaceToolbar>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

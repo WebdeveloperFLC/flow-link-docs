@@ -25,6 +25,8 @@ import { CourseReviewList } from "../components/CourseReviewList";
 import { InstitutionProgramContextHeader } from "../components/InstitutionProgramContextHeader";
 import { ProgramGroupsNavPanel } from "../components/ProgramGroupsNavPanel";
 import { ProgramSummaryPanel } from "../components/ProgramSummaryPanel";
+import { CurrentOpportunitiesPanel } from "../components/CurrentOpportunitiesPanel";
+import { WorkspaceToolbar } from "@/components/workspace/WorkspaceToolbar";
 import {
   buildProgramSummaryFromOfferings,
   buildAvailabilityFromOfferings,
@@ -937,28 +939,32 @@ export default function CourseReviewPage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <ExportMenu {...exportProps} disabled={loading} />
-          {canEdit && (
-            <ImportProgramSheetButton institutions={institutions} canEdit={canEdit} onImported={load} />
-          )}
-          <div className="flex-1" />
-          {canEdit && selected.size > 0 && (
-            <div className="flex gap-2">
-              <Badge variant="secondary">{selected.size} selected</Badge>
-              <Button size="sm" onClick={() => setStatus(selectedIds, "approved")}>
-                <Check className="size-4 mr-1" /> Bulk Approve
-              </Button>
-              <Button size="sm" variant="destructive" onClick={() => setStatus(selectedIds, "rejected")}>
-                <X className="size-4 mr-1" /> Bulk Reject
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => publish(selectedIds)}>
-                <Upload className="size-4 mr-1" /> Bulk Publish
-              </Button>
-              <Button size="sm" variant="destructive" onClick={() => deleteRows(selectedIds)}>
-                <Trash2 className="size-4 mr-1" /> Bulk Delete
-              </Button>
-            </div>
-          )}
+          <WorkspaceToolbar
+            trailing={
+              canEdit && selected.size > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary">{selected.size} selected</Badge>
+                  <Button size="sm" onClick={() => setStatus(selectedIds, "approved")}>
+                    <Check className="size-4 mr-1" /> Bulk Approve
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => setStatus(selectedIds, "rejected")}>
+                    <X className="size-4 mr-1" /> Bulk Reject
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => publish(selectedIds)}>
+                    <Upload className="size-4 mr-1" /> Bulk Publish
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => deleteRows(selectedIds)}>
+                    <Trash2 className="size-4 mr-1" /> Bulk Delete
+                  </Button>
+                </div>
+              ) : null
+            }
+          >
+            <ExportMenu {...exportProps} disabled={loading} />
+            {canEdit && (
+              <ImportProgramSheetButton institutions={institutions} canEdit={canEdit} onImported={load} />
+            )}
+          </WorkspaceToolbar>
         </Card>
 
         <div className="flex flex-col lg:flex-row gap-4 items-start">
@@ -989,6 +995,14 @@ export default function CourseReviewPage() {
                 summary={programSummaryBundle.summary}
                 availability={programSummaryBundle.availability}
               />
+            ) : null}
+            {instFilter !== "all" && selectedInstitution ? (
+              <div className="mb-4">
+                <CurrentOpportunitiesPanel
+                  institutionId={instFilter}
+                  institutionName={selectedInstitution.name}
+                />
+              </div>
             ) : null}
             <CourseReviewList
               rows={groupFilteredRows}

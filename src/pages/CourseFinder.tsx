@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,8 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Search, Heart, GitCompareArrows, Sparkles, GraduationCap, Clock,
-  CalendarDays, Award, ShieldCheck, Briefcase, Building2, BookmarkPlus, X, Star, UserPlus,
+  Search, Heart, GitCompareArrows, Sparkles, GraduationCap,
+  CalendarDays, Award, Briefcase, Building2, BookmarkPlus, X, Star, UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,20 @@ import {
   visaTrendLabel,
 } from "@/lib/courseFinderSummaries";
 import { OfficialResourcesPanel } from "@/institutions/components/OfficialResourcesPanel";
+import { CurrentOpportunitiesPanel } from "@/institutions/components/CurrentOpportunitiesPanel";
+import {
+  officialResourcesFromCfCourse,
+  readInstitutionOfficialResources,
+} from "@/institutions/lib/officialResources";
+import type { InstitutionOfficialResources } from "@/institutions/types/officialResources";
+import type { UpiInstitution } from "@/institutions/types/upi";
+import { ExportMenu } from "@/components/export/ExportMenu";
+import { useExportDataset } from "@/components/export/useExportDataset";
+import { WorkspaceToolbar } from "@/components/workspace/WorkspaceToolbar";
+import {
+  COURSE_FINDER_EXPORT_COLUMNS,
+  type CourseFinderExportRow,
+} from "@/lib/courseFinderExportColumns";
 
 // ---------- Types ----------
 type Country = {
@@ -43,6 +57,7 @@ type University = {
   city: string | null; province: string | null; logo_url: string | null;
   cover_url: string | null; ranking: number | null; institution_type: string;
   is_partner: boolean; description: string | null;
+  upi_institution_id: string | null;
 };
 type Course = {
   id: string; university_id: string; name: string; study_level: string;
@@ -100,13 +115,6 @@ const DEFAULT_FILTERS: Filters = {
   sort: "relevance",
 };
 
-const fmtMoney = (n: number | null, c: string | null) => {
-  if (n == null) return "—";
-  if (n === 0) return "Tuition-free";
-  return `${c ?? ""} ${n.toLocaleString()}`.trim();
-};
-const fmtDur = (m: number | null) => (m ? (m % 12 === 0 ? `${m / 12} ${m / 12 === 1 ? "Year" : "Years"}` : `${m} months`) : "—");
-
 // ---------- Page ----------
 const CourseFinder = () => {
   const { user } = useAuth();
@@ -125,6 +133,9 @@ const CourseFinder = () => {
   const [compare, setCompare] = useState<string[]>([]);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [showCompare, setShowCompare] = useState(false);
+  const [institutionResourcesById, setInstitutionResourcesById] = useState<
+    Record<string, InstitutionOfficialResources>
+  >({});
 
   useEffect(() => {
     (async () => {
@@ -268,6 +279,44 @@ const CourseFinder = () => {
 
   const detail = detailId ? enriched.find((e) => e.id === detailId) : null;
   const comparing = compare.map((id) => enriched.find((e) => e.id === id)).filter(Boolean) as Enriched[];
+
+  useEffect(() => {
+    const instId = detail?.university.upi_institution_id;
+    if (!instId) return;
+    let cancelled = false;
+    void (async () => {
+      const { data } = await supabase.from("upi_institutions").select("*").eq("id", instId).maybeSingle();
+      if (!cancelled && data) {
+        setInstitutionResourcesById((prev) =>
+          prev[instId] ? prev : { ...prev, [instId]: readInstitutionOfficialResources(data as UpiInstitution) },
+        );
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [detail?.university.upi_institution_id]);
+
+  const exportRows: CourseFinderExportRow[] = useMemo(
+    () =>
+      results.map((e) => ({
+        ...e,
+        institution: e.university.name,
+        country: e.country.name,
+        city: e.university.city ?? "",
+        programUrl: e.apply_url ?? "",
+      })),
+    [results],
+  );
+
+  const exportProps = useExportDataset({
+    rows: exportRows,
+    selectedIds: compare,
+    getRowId: (r) => r.id,
+    columns: COURSE_FINDER_EXPORT_COLUMNS,
+    filenameBase: "course-finder",
+    formats: ["csv", "xlsx"],
+  });
 
   return (
     <div className="min-h-screen bg-muted/30 overflow-x-hidden">
@@ -505,19 +554,20 @@ const CourseFinder = () => {
                 <span className="font-semibold text-foreground">{results.length}</span> courses found
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <WorkspaceToolbar>
               <Select value={filters.sort} onValueChange={(v) => setFilters((f) => ({ ...f, sort: v }))}>
                 <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {SORTS.map((s) => <SelectItem key={s.v} value={s.v}>{s.l}</SelectItem>)}
                 </SelectContent>
               </Select>
+              <ExportMenu {...exportProps} disabled={loading || results.length === 0} />
               {compare.length > 0 && (
                 <Button onClick={() => setShowCompare(true)} className="gap-2">
                   <GitCompareArrows className="size-4" /> Compare ({compare.length})
                 </Button>
               )}
-            </div>
+            </WorkspaceToolbar>
           </div>
 
           {loading ? (
@@ -561,6 +611,11 @@ const CourseFinder = () => {
           {detail && (
             <CourseDetail
               c={detail}
+              institutionResources={
+                detail.university.upi_institution_id
+                  ? institutionResourcesById[detail.university.upi_institution_id]
+                  : undefined
+              }
               clientProgramStatus={clientIdParam ? clientProgramByCourse[detail.id] : undefined}
               onAttachClient={
                 user
@@ -659,14 +714,10 @@ const ResultCard = ({
         </p>
         <div className="flex flex-wrap gap-1.5 mt-2">
           <Badge variant="outline" className="capitalize text-[10px]">{c.study_level}</Badge>
-          <Badge variant="outline" className="text-[10px] gap-1"><Clock className="size-3" />{fmtDur(c.duration_months)}</Badge>
           <Badge variant="outline" className="text-[10px] gap-1"><CalendarDays className="size-3" />{intakeSummary(c)}</Badge>
           {c.pgwp_eligible && <StatusBadge variant="success" className="text-[10px]">PGWP</StatusBadge>}
-          {c.ielts_overall && <Badge variant="outline" className="text-[10px]">IELTS {c.ielts_overall}</Badge>}
           {c.scholarship_available && <StatusBadge variant="warning" className="text-[10px] gap-1"><Award className="size-3" /> Scholarship</StatusBadge>}
-          {c.pr_friendly && <StatusBadge variant="success" className="text-[10px] gap-1"><ShieldCheck className="size-3" /> PR-friendly</StatusBadge>}
           {c.coop_available && <StatusBadge variant="primary" className="text-[10px] gap-1"><Briefcase className="size-3" /> Co-op</StatusBadge>}
-          {c.visa_success_indicator === "high" && <StatusBadge variant="primary" className="text-[10px]">High visa success</StatusBadge>}
           {clientProgramStatus === "shortlisted" && (
             <Badge variant="secondary" className="text-[10px]">On client shortlist</Badge>
           )}
@@ -678,8 +729,8 @@ const ResultCard = ({
       {/* Right */}
       <div className="shrink-0 w-full sm:w-auto sm:min-w-[11rem] lg:min-w-[12rem] flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-between gap-3 order-3 sm:order-none border-t sm:border-t-0 pt-3 sm:pt-0">
         <div className="text-left sm:text-right shrink-0">
-          <p className="text-lg font-bold">{fmtMoney(c.tuition_fee, c.currency)}</p>
-          <p className="text-xs text-muted-foreground">per year</p>
+          <p className="text-lg font-bold">{tuitionSummary(c)}</p>
+          <p className="text-xs text-muted-foreground">tuition summary</p>
         </div>
         <div className="flex flex-col gap-1.5 min-w-0 flex-1 sm:flex-none sm:w-full max-w-[14rem] sm:max-w-none">
           <Button size="sm" onClick={onView} className="w-full">View details</Button>
@@ -715,20 +766,20 @@ const ResultCard = ({
 
 const CourseDetail = ({
   c,
+  institutionResources,
   clientProgramStatus,
   onAttachClient,
 }: {
   c: Enriched;
+  institutionResources?: InstitutionOfficialResources;
   clientProgramStatus?: ClientProgramStatus;
   onAttachClient?: () => void;
 }) => {
   const aiSummary = aiSummaryFromCourse(c);
   const counsellorNote = counsellorRatingLabel(c);
   const visaTrend = visaTrendLabel(c);
-  const officialResources = {
-    programUrl: c.apply_url,
-    admissionUrl: c.apply_url,
-  };
+  const officialResources = officialResourcesFromCfCourse(c, institutionResources);
+  const institutionId = c.university.upi_institution_id;
 
   return (
   <>
@@ -742,51 +793,60 @@ const CourseDetail = ({
         <div>
           <p className="text-xs text-muted-foreground">{c.country.flag_emoji} {c.university.name}</p>
           <SheetTitle className="text-left">{c.name}</SheetTitle>
+          <p className="text-xs text-muted-foreground capitalize mt-0.5">
+            {c.study_level} · {c.field_of_study} · {formatDurationMonths(c.duration_months)}
+          </p>
         </div>
       </div>
     </SheetHeader>
 
-    {c.university.cover_url && (
-      <img src={c.university.cover_url} alt="" className="w-full h-40 object-cover rounded-lg my-4" />
-    )}
-
     <div className="grid grid-cols-2 gap-3 my-4">
-      <DetailStat label="Tuition" value={tuitionSummary(c)} />
-      <DetailStat label="Duration" value={formatDurationMonths(c.duration_months)} />
+      <DetailStat label="Tuition summary" value={tuitionSummary(c)} />
+      <DetailStat label="Admission summary" value={admissionSummary(c)} />
       <DetailStat label="Intakes" value={intakeSummary(c)} />
-      <DetailStat label="Admission" value={admissionSummary(c)} />
+      <DetailStat label="Institution" value={c.university.name} />
     </div>
 
     <div className="flex flex-wrap gap-1.5 mb-4">
-      <Badge variant="outline" className="capitalize text-[10px]">{c.study_level}</Badge>
-      <Badge variant="outline" className="text-[10px]">{c.field_of_study}</Badge>
-      {c.scholarship_available && <StatusBadge variant="warning">Scholarship</StatusBadge>}
-      {c.pr_friendly && <StatusBadge variant="success">PR-friendly</StatusBadge>}
-      {c.pgwp_eligible && <StatusBadge variant="success">PGWP eligible</StatusBadge>}
-      {c.stem_eligible && <StatusBadge variant="primary">STEM</StatusBadge>}
+      {c.pgwp_eligible && <StatusBadge variant="success">PGWP</StatusBadge>}
       {c.coop_available && <StatusBadge variant="primary">Co-op</StatusBadge>}
-      {c.applications_open && <Badge variant="outline">Applications open</Badge>}
+      {c.scholarship_available && <StatusBadge variant="warning">Scholarship available</StatusBadge>}
       {visaTrend && <Badge variant="outline" className="text-[10px]">{visaTrend}</Badge>}
     </div>
 
     {aiSummary ? (
-      <Section title="AI summary">
+      <Section title="Future Link AI summary">
         <p className="text-sm text-muted-foreground">{aiSummary}</p>
       </Section>
     ) : null}
 
-    <Section title="Counselling notes">
+    <Section title="Counsellor rating">
+      <p className="text-sm text-muted-foreground">
+        {counsellorNote ?? "Not rated — employability score will appear when available."}
+      </p>
+    </Section>
+
+    <Section title="Internal notes">
       <p className="text-sm text-muted-foreground italic">
-        {counsellorNote ?? "Counsellor notes placeholder — add client-specific guidance in a future sprint."}
+        Counsellor notes placeholder — add client-specific guidance in a future sprint.
       </p>
     </Section>
 
     <Section title="Current offers">
-      <p className="text-sm text-muted-foreground italic">
-        {c.scholarship_available
-          ? c.scholarship_info ?? "Scholarship flagged — see official scholarship page for details."
-          : "No active offers on file — institution promotions will surface here later."}
-      </p>
+      {institutionId ? (
+        <CurrentOpportunitiesPanel
+          institutionId={institutionId}
+          institutionName={c.university.name}
+          fieldOfStudy={c.field_of_study}
+          compact
+        />
+      ) : (
+        <p className="text-sm text-muted-foreground italic">
+          {c.scholarship_available
+            ? "Scholarship flagged — see official scholarship page for details."
+            : "No institution link — offers unavailable until catalog is synced."}
+        </p>
+      )}
     </Section>
 
     <OfficialResourcesPanel
@@ -795,29 +855,9 @@ const CourseDetail = ({
       className="my-4"
     />
 
-    <Section title="Admission requirements">
-      <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
-        {c.gpa_min != null && <li>Minimum GPA: {c.gpa_min}</li>}
-        {c.ielts_overall != null && <li>IELTS overall {c.ielts_overall} (no band &lt; {c.ielts_no_band_less_than ?? "—"})</li>}
-        {c.pte_score != null && <li>PTE: {c.pte_score}</li>}
-        {c.toefl_score != null && <li>TOEFL: {c.toefl_score}</li>}
-        {c.duolingo_accepted && <li>Duolingo accepted</li>}
-        {c.moi_accepted && <li>Medium of Instruction (MOI) accepted</li>}
-        {c.backlogs_allowed != null && <li>Backlogs allowed: {c.backlogs_allowed}</li>}
-        {c.gap_accepted_years != null && <li>Gap accepted up to {c.gap_accepted_years} years</li>}
-        {c.work_experience_required && <li>Work experience required</li>}
-      </ul>
-    </Section>
-
-    {c.career_outcomes && (
-      <Section title="Career outcomes">
-        <p className="text-sm text-muted-foreground line-clamp-4">{c.career_outcomes}</p>
-      </Section>
-    )}
-
-    {c.pr_visa_notes && (
-      <Section title="PR / visa notes"><p className="text-sm text-muted-foreground">{c.pr_visa_notes}</p></Section>
-    )}
+    <p className="text-xs text-muted-foreground border-t pt-3">
+      Detailed academic requirements, career outcomes, and visa notes live on the official program page — Future Link does not duplicate institution content.
+    </p>
 
     <div className="sticky bottom-0 bg-background border-t pt-3 mt-4 -mx-6 px-6 pb-2 flex flex-col gap-2">
       {onAttachClient && clientProgramStatus !== "final" && (
@@ -867,17 +907,15 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 const CompareTable = ({ items, onRemove }: { items: Enriched[]; onRemove: (id: string) => void }) => {
   if (items.length === 0) return <p className="text-sm text-muted-foreground py-6 text-center">No courses to compare yet.</p>;
   const rows: { label: string; render: (c: Enriched) => React.ReactNode }[] = [
-    { label: "University", render: (c) => `${c.country.flag_emoji} ${c.university.name}` },
-    { label: "Level", render: (c) => <span className="capitalize">{c.study_level}</span> },
-    { label: "Field", render: (c) => c.field_of_study },
-    { label: "Tuition", render: (c) => fmtMoney(c.tuition_fee, c.currency) },
-    { label: "Duration", render: (c) => fmtDur(c.duration_months) },
-    { label: "Intakes", render: (c) => c.intake_months.join(", ") },
-    { label: "IELTS", render: (c) => c.ielts_overall ?? "—" },
-    { label: "Scholarship", render: (c) => (c.scholarship_available ? "✓" : "—") },
-    { label: "PR-friendly", render: (c) => (c.pr_friendly ? "✓" : "—") },
+    { label: "Institution", render: (c) => `${c.country.flag_emoji} ${c.university.name}` },
+    { label: "Qualification", render: (c) => <span className="capitalize">{c.study_level}</span> },
+    { label: "Tuition", render: (c) => tuitionSummary(c) },
+    { label: "Admission", render: (c) => admissionSummary(c) },
+    { label: "Intakes", render: (c) => intakeSummary(c) },
+    { label: "Duration", render: (c) => formatDurationMonths(c.duration_months) },
+    { label: "PGWP", render: (c) => (c.pgwp_eligible ? "✓" : "—") },
     { label: "Co-op", render: (c) => (c.coop_available ? "✓" : "—") },
-    { label: "Visa success", render: (c) => c.visa_success_indicator ?? "—" },
+    { label: "Scholarship", render: (c) => (c.scholarship_available ? "✓" : "—") },
   ];
   return (
     <ScrollArea className="max-h-[70vh] w-full">
@@ -895,12 +933,12 @@ const CompareTable = ({ items, onRemove }: { items: Enriched[]; onRemove: (id: s
           </div>
         ))}
         {rows.map((r) => (
-          <>
-            <div key={r.label + "-l"} className="text-xs text-muted-foreground py-2">{r.label}</div>
+          <Fragment key={r.label}>
+            <div className="text-xs text-muted-foreground py-2">{r.label}</div>
             {items.map((c) => (
               <div key={r.label + c.id} className="text-sm py-2 border-b">{r.render(c)}</div>
             ))}
-          </>
+          </Fragment>
         ))}
       </div>
     </ScrollArea>

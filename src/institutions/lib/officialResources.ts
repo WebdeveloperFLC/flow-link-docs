@@ -74,10 +74,27 @@ export function officialResourcesFromStagingRow(row: UpiCourseStaging): Official
 export function mapPipelineToKnowledgeStatus(
   pipelineStatus: string | null | undefined,
   reviewStatus?: string | null,
-): import("../types/officialResources").KnowledgeInboxDisplayStatus {
+): import("../types/officialResources").KnowledgeSourceDisplayStatus {
   const p = String(pipelineStatus ?? reviewStatus ?? "").toLowerCase();
-  if (p === "published" || p === "approved") return "Published";
+  if (p === "published") return "Published";
+  if (p === "approved") return "Approved";
   if (p === "extracted") return "Extracted";
-  if (p === "needs_review" || p === "pending_review") return "Needs Approval";
-  return "Pending AI Review";
+  if (p === "processing" || p === "in_progress") return "Processing";
+  if (p === "needs_review" || p === "pending_review" || p === "needs_approval") return "Needs Review";
+  if (p === "pending" || p === "uploaded") return "Pending";
+  return "Pending";
+}
+
+/** Build program-level official links for published Course Finder catalog rows. */
+export function officialResourcesFromCfCourse(
+  course: { apply_url?: string | null; scholarship_available?: boolean },
+  institution?: InstitutionOfficialResources | null,
+): OfficialResourceLinks {
+  return {
+    programUrl: course.apply_url ?? institution?.programListingUrl ?? null,
+    admissionUrl: course.apply_url ?? institution?.admissionPageUrl ?? null,
+    tuitionUrl: institution?.tuitionPageUrl ?? null,
+    scholarshipUrl: institution?.scholarshipPageUrl ?? null,
+    brochureUrl: null,
+  };
 }

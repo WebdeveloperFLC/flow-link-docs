@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildInstitutionOfficialResourcesPatch,
   mapPipelineToKnowledgeStatus,
+  officialResourcesFromCfCourse,
   officialResourcesFromStagingRow,
   readInstitutionOfficialResources,
 } from "./officialResources";
@@ -73,11 +74,28 @@ describe("officialResourcesFromStagingRow", () => {
   });
 });
 
+describe("officialResourcesFromCfCourse", () => {
+  it("merges apply_url with institution pages", () => {
+    const links = officialResourcesFromCfCourse(
+      { apply_url: "https://example.edu/mba" },
+      {
+        tuitionPageUrl: "https://example.edu/tuition",
+        scholarshipPageUrl: "https://example.edu/scholarships",
+      },
+    );
+    expect(links.programUrl).toBe("https://example.edu/mba");
+    expect(links.tuitionUrl).toBe("https://example.edu/tuition");
+    expect(links.scholarshipUrl).toBe("https://example.edu/scholarships");
+  });
+});
+
 describe("mapPipelineToKnowledgeStatus", () => {
-  it("maps pipeline statuses to inbox labels", () => {
-    expect(mapPipelineToKnowledgeStatus("approved")).toBe("Published");
+  it("maps pipeline statuses to knowledge source labels", () => {
+    expect(mapPipelineToKnowledgeStatus("published")).toBe("Published");
+    expect(mapPipelineToKnowledgeStatus("approved")).toBe("Approved");
     expect(mapPipelineToKnowledgeStatus("extracted")).toBe("Extracted");
-    expect(mapPipelineToKnowledgeStatus("needs_review")).toBe("Needs Approval");
-    expect(mapPipelineToKnowledgeStatus(null)).toBe("Pending AI Review");
+    expect(mapPipelineToKnowledgeStatus("processing")).toBe("Processing");
+    expect(mapPipelineToKnowledgeStatus("needs_review")).toBe("Needs Review");
+    expect(mapPipelineToKnowledgeStatus(null)).toBe("Pending");
   });
 });
