@@ -22,6 +22,16 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AttachCourseToClientDialog } from "@/components/course-finder/AttachCourseToClientDialog";
 import { listClientPrograms, shortlistCourseForClient, type ClientProgramStatus } from "@/lib/clientPrograms";
+import {
+  tuitionSummary,
+  admissionSummary,
+  intakeSummary,
+  aiSummaryFromCourse,
+  formatDurationMonths,
+  counsellorRatingLabel,
+  visaTrendLabel,
+} from "@/lib/courseFinderSummaries";
+import { OfficialResourcesPanel } from "@/institutions/components/OfficialResourcesPanel";
 
 // ---------- Types ----------
 type Country = {
@@ -644,10 +654,14 @@ const ResultCard = ({
         </div>
         <h3 className="font-semibold mt-1 truncate">{c.name}</h3>
         <p className="text-sm text-muted-foreground truncate">{c.university.name}</p>
+        <p className="text-xs text-muted-foreground mt-1 truncate">
+          {c.field_of_study} · {formatDurationMonths(c.duration_months)} · {tuitionSummary(c)}
+        </p>
         <div className="flex flex-wrap gap-1.5 mt-2">
           <Badge variant="outline" className="capitalize text-[10px]">{c.study_level}</Badge>
           <Badge variant="outline" className="text-[10px] gap-1"><Clock className="size-3" />{fmtDur(c.duration_months)}</Badge>
-          <Badge variant="outline" className="text-[10px] gap-1"><CalendarDays className="size-3" />{c.intake_months.join(", ")} {c.intake_year}</Badge>
+          <Badge variant="outline" className="text-[10px] gap-1"><CalendarDays className="size-3" />{intakeSummary(c)}</Badge>
+          {c.pgwp_eligible && <StatusBadge variant="success" className="text-[10px]">PGWP</StatusBadge>}
           {c.ielts_overall && <Badge variant="outline" className="text-[10px]">IELTS {c.ielts_overall}</Badge>}
           {c.scholarship_available && <StatusBadge variant="warning" className="text-[10px] gap-1"><Award className="size-3" /> Scholarship</StatusBadge>}
           {c.pr_friendly && <StatusBadge variant="success" className="text-[10px] gap-1"><ShieldCheck className="size-3" /> PR-friendly</StatusBadge>}
@@ -707,7 +721,16 @@ const CourseDetail = ({
   c: Enriched;
   clientProgramStatus?: ClientProgramStatus;
   onAttachClient?: () => void;
-}) => (
+}) => {
+  const aiSummary = aiSummaryFromCourse(c);
+  const counsellorNote = counsellorRatingLabel(c);
+  const visaTrend = visaTrendLabel(c);
+  const officialResources = {
+    programUrl: c.apply_url,
+    admissionUrl: c.apply_url,
+  };
+
+  return (
   <>
     <SheetHeader>
       <div className="flex items-center gap-3">
@@ -728,24 +751,49 @@ const CourseDetail = ({
     )}
 
     <div className="grid grid-cols-2 gap-3 my-4">
-      <DetailStat label="Tuition" value={fmtMoney(c.tuition_fee, c.currency)} />
-      <DetailStat label="Duration" value={fmtDur(c.duration_months)} />
-      <DetailStat label="Intakes" value={`${c.intake_months.join(", ")} ${c.intake_year ?? ""}`} />
-      <DetailStat label="Mode" value={c.mode.replace("_", " ")} />
+      <DetailStat label="Tuition" value={tuitionSummary(c)} />
+      <DetailStat label="Duration" value={formatDurationMonths(c.duration_months)} />
+      <DetailStat label="Intakes" value={intakeSummary(c)} />
+      <DetailStat label="Admission" value={admissionSummary(c)} />
     </div>
 
     <div className="flex flex-wrap gap-1.5 mb-4">
+      <Badge variant="outline" className="capitalize text-[10px]">{c.study_level}</Badge>
+      <Badge variant="outline" className="text-[10px]">{c.field_of_study}</Badge>
       {c.scholarship_available && <StatusBadge variant="warning">Scholarship</StatusBadge>}
       {c.pr_friendly && <StatusBadge variant="success">PR-friendly</StatusBadge>}
       {c.pgwp_eligible && <StatusBadge variant="success">PGWP eligible</StatusBadge>}
       {c.stem_eligible && <StatusBadge variant="primary">STEM</StatusBadge>}
       {c.coop_available && <StatusBadge variant="primary">Co-op</StatusBadge>}
       {c.applications_open && <Badge variant="outline">Applications open</Badge>}
+      {visaTrend && <Badge variant="outline" className="text-[10px]">{visaTrend}</Badge>}
     </div>
 
-    <Section title="Course overview">
-      <p className="text-sm text-muted-foreground">{c.description ?? "No description provided."}</p>
+    {aiSummary ? (
+      <Section title="AI summary">
+        <p className="text-sm text-muted-foreground">{aiSummary}</p>
+      </Section>
+    ) : null}
+
+    <Section title="Counselling notes">
+      <p className="text-sm text-muted-foreground italic">
+        {counsellorNote ?? "Counsellor notes placeholder — add client-specific guidance in a future sprint."}
+      </p>
     </Section>
+
+    <Section title="Current offers">
+      <p className="text-sm text-muted-foreground italic">
+        {c.scholarship_available
+          ? c.scholarship_info ?? "Scholarship flagged — see official scholarship page for details."
+          : "No active offers on file — institution promotions will surface here later."}
+      </p>
+    </Section>
+
+    <OfficialResourcesPanel
+      resources={officialResources}
+      description="Open institution-maintained pages for full program details."
+      className="my-4"
+    />
 
     <Section title="Admission requirements">
       <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
@@ -763,13 +811,10 @@ const CourseDetail = ({
 
     {c.career_outcomes && (
       <Section title="Career outcomes">
-        <p className="text-sm text-muted-foreground">{c.career_outcomes}</p>
+        <p className="text-sm text-muted-foreground line-clamp-4">{c.career_outcomes}</p>
       </Section>
     )}
 
-    {c.scholarship_info && (
-      <Section title="Scholarship info"><p className="text-sm text-muted-foreground">{c.scholarship_info}</p></Section>
-    )}
     {c.pr_visa_notes && (
       <Section title="PR / visa notes"><p className="text-sm text-muted-foreground">{c.pr_visa_notes}</p></Section>
     )}
@@ -802,7 +847,8 @@ const CourseDetail = ({
       </div>
     </div>
   </>
-);
+  );
+};
 
 const DetailStat = ({ label, value }: { label: string; value: string }) => (
   <div className="rounded-lg border p-3">

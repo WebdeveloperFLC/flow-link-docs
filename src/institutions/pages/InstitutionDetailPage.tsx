@@ -38,6 +38,9 @@ import { InstitutionFeeSchedulePanel } from "../components/InstitutionFeeSchedul
 import { InstitutionContactsPanel } from "../components/InstitutionContactsPanel";
 import { InstitutionGovernancePanel } from "../components/InstitutionGovernancePanel";
 import { InstitutionProfileOverview } from "../components/InstitutionProfileOverview";
+import { InstitutionOfficialResourcesSection } from "../components/InstitutionOfficialResourcesSection";
+import { CurrentOpportunitiesPanel } from "../components/CurrentOpportunitiesPanel";
+import { KnowledgeInboxArchitecturePanel, knowledgeInboxStatusBadge } from "../components/KnowledgeInboxArchitecturePanel";
 import { InstitutionStatusBadge } from "../components/InstitutionStatusBadge";
 import type { CatalogStatus } from "../types/partnership";
 
@@ -152,11 +155,12 @@ export default function InstitutionDetailPage() {
       <div className="flex-1 min-w-0">
         <div className="font-medium truncate">{d.file_name}</div>
         <div className="text-xs text-muted-foreground">
-          {d.metadata?.doc_kind ?? d.mime_type ?? "?"} · confidence {d.confidence_score}% · pipeline: {d.pipeline_status ?? d.review_status}
+          {d.metadata?.doc_kind ?? d.mime_type ?? "?"} · confidence {d.confidence_score}% ·{" "}
+          {knowledgeInboxStatusBadge(d)}
         </div>
       </div>
       <Badge variant={d.pipeline_status === "approved" ? "default" : d.pipeline_status === "failed" ? "destructive" : "secondary"}>
-        {d.pipeline_status ?? (d.is_processed ? "processed" : "pending")}
+        {knowledgeInboxStatusBadge(d)}
       </Badge>
       <Button size="sm" variant="outline" onClick={() => setReviewDoc(d)}>Review</Button>
       {canEdit && d.file_path && /%/.test(d.file_path) && (
@@ -510,7 +514,7 @@ export default function InstitutionDetailPage() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="contacts">Contacts</TabsTrigger>
             <TabsTrigger value="sources">Sources</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="documents">Knowledge Inbox</TabsTrigger>
             <TabsTrigger value="fee-schedule">Fee Schedule</TabsTrigger>
             {canSeeCommissions && <TabsTrigger value="billing">Billing</TabsTrigger>}
             {canSeeCommissions && <TabsTrigger value="eligibility">Eligibility</TabsTrigger>}
@@ -548,6 +552,13 @@ export default function InstitutionDetailPage() {
               onChange={(patch) => setInst({ ...inst, ...patch })}
               onSave={saveInst}
             />
+            <InstitutionOfficialResourcesSection
+              inst={inst}
+              canEdit={canEdit}
+              onChange={(patch) => setInst({ ...inst, ...patch })}
+              onSave={saveInst}
+            />
+            <CurrentOpportunitiesPanel institutionId={id} institutionName={inst.name} />
             {Object.keys(inst.metadata ?? {}).length > 0 && (
               <Card className="p-6 space-y-3 max-w-3xl">
                 <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
@@ -731,6 +742,7 @@ export default function InstitutionDetailPage() {
           </TabsContent>
 
           <TabsContent value="documents">
+            <KnowledgeInboxArchitecturePanel />
             {canEdit && (
             <Card className="p-6 mb-4">
               <div className="mb-4 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
@@ -791,10 +803,10 @@ export default function InstitutionDetailPage() {
             )}
             <div className="space-y-4">
               <div className="space-y-2">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Program materials</div>
+                <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Knowledge sources</div>
                 {catalogDocs.map(renderDocRow)}
                 {catalogDocs.length === 0 && (
-                  <div className="text-center text-sm text-muted-foreground py-8">No program documents yet.</div>
+                  <div className="text-center text-sm text-muted-foreground py-8">No knowledge sources yet.</div>
                 )}
               </div>
               {canSeeCommissions ? (
@@ -861,6 +873,7 @@ export default function InstitutionDetailPage() {
           </TabsContent>
 
           <TabsContent value="promotions">
+            <CurrentOpportunitiesPanel institutionId={id} institutionName={inst.name} />
             <PromotionsPanel institutionId={id} readOnly={!canEdit} onRunCampaign={canEdit ? (p) => setCampaignPromo(p) : undefined} />
           </TabsContent>
 
