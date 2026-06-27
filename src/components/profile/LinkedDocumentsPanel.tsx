@@ -84,7 +84,7 @@ export function LinkedDocumentsPanel({
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">Linked documents</span>
+        <span className="text-xs font-medium text-muted-foreground">Upload documents</span>
         <Popover>
           <PopoverTrigger asChild>
             <Button type="button" size="sm" variant="outline" className="h-7 text-xs" disabled={uploading}>
@@ -162,9 +162,32 @@ export function LinkedDocumentsPanel({
                 </Button>
               </>
             ) : (
-              <Badge variant="outline" className="text-[10px] font-normal">
-                Empty
-              </Badge>
+              <>
+                <Badge variant="outline" className="text-[10px] font-normal">
+                  Empty
+                </Badge>
+                {onUpload && (
+                  <label
+                    className={cn(
+                      "ml-auto inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-medium cursor-pointer hover:bg-muted/50",
+                      uploading && "pointer-events-none opacity-50",
+                    )}
+                  >
+                    <Upload className="size-3" />
+                    Upload
+                    <input
+                      type="file"
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) onUpload(file, slot.id);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                )}
+              </>
             )}
           </div>
         );

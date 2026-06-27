@@ -55,6 +55,20 @@ describe("LinkedDocumentsPanel", () => {
     expect(screen.getByTestId("lead-document-placeholder")).toBeInTheDocument();
   });
 
+  it("shows per-slot upload controls in edit mode", () => {
+    render(
+      <LinkedDocumentsPanel
+        linkedDocuments={[]}
+        scope="education"
+        mode="edit"
+        onUpload={() => {}}
+      />,
+    );
+    expect(screen.getByText("Upload documents")).toBeInTheDocument();
+    expect(screen.getAllByText("Upload").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Empty").length).toBeGreaterThan(0);
+  });
+
   it("lists linked documents in view mode", () => {
     render(
       <LinkedDocumentsPanel

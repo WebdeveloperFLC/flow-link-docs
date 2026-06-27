@@ -86,6 +86,7 @@ interface Props {
   onUnlinkDocument?: (documentId: string, slot: string) => void;
   onUploadDocument?: (file: File, slot: string) => void;
   documentsPlaceholder?: boolean;
+  docUploading?: boolean;
   className?: string;
 }
 
@@ -98,6 +99,7 @@ export function TestAttemptForm({
   onUnlinkDocument,
   onUploadDocument,
   documentsPlaceholder,
+  docUploading,
   className,
 }: Props) {
   const vis = visibilityForAttemptStatus(attempt.status, attempt.category);
@@ -480,6 +482,7 @@ export function TestAttemptForm({
           mode="edit"
           availableDocuments={availableDocuments}
           documentsPlaceholder={documentsPlaceholder}
+          uploading={docUploading}
           onLinkExisting={onLinkDocument}
           onUnlink={onUnlinkDocument}
           onUpload={onUploadDocument}

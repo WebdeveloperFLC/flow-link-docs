@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { upsertDocumentRef } from "@/lib/profile/clientDocumentRefs";
 import { slotLabel } from "@/lib/profile/profileDocumentSlots";
+import { isDocumentRefsUnavailableError } from "@/lib/profile/profileSaveError";
 
 export interface ProfileDocumentUploadInput {
   clientId: string;
@@ -52,13 +53,21 @@ export async function uploadAndLinkProfileDocument(
   if (insertErr) throw insertErr;
 
   const label = slotLabel(input.slot);
-  await upsertDocumentRef({
-    client_id: input.clientId,
-    document_id: docRow.id as string,
-    ref_key: input.refKey,
-    slot: input.slot,
-    label,
-  });
+  try {
+    await upsertDocumentRef({
+      client_id: input.clientId,
+      document_id: docRow.id as string,
+      ref_key: input.refKey,
+      slot: input.slot,
+      label,
+    });
+  } catch (refErr) {
+    if (!isDocumentRefsUnavailableError(refErr)) throw refErr;
+    console.warn(
+      "[uploadAndLinkProfileDocument] client_document_refs unavailable — file saved; link persists when profile section is saved.",
+      refErr,
+    );
+  }
 
   return {
     document_id: docRow.id as string,

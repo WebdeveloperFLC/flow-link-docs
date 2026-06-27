@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Pencil, Save, X } from "lucide-react";
@@ -20,9 +21,10 @@ import {
 import type { LinkedDocumentOption } from "@/components/profile/LinkedDocumentsPanel";
 import { summarizeProfile } from "@/lib/profile/summarizeProfile";
 import { computeCompletion } from "@/lib/profile/profileCompletion";
-import { ensureEducationId, ensureExperienceId, educationRefKey, experienceRefKey, testAttemptRefKey } from "@/lib/profile/profileRecordIds";
+import { ensureEducationId, ensureExperienceId, educationRefKey, experienceRefKey, parseRefKey, testAttemptRefKey } from "@/lib/profile/profileRecordIds";
 import { createEmptyAttempt, deriveLegacyTestsFromAttempts } from "@/lib/profile/testAttempts";
 import { slotLabel } from "@/lib/profile/profileDocumentSlots";
+import { formatProfileSaveError } from "@/lib/profile/profileSaveError";
 import type {
   ProfileEducationRecord,
   ProfileEnglishTestId,
@@ -81,6 +83,8 @@ export function UnifiedProfileCard({
     onSaved,
   });
 
+  const [docUploading, setDocUploading] = useState(false);
+
   const liveDocs = useProfileDocuments(isPreview ? null : clientId);
   const documents = isPreview
     ? { documents: previewDocuments ?? [], loading: false, reload: async () => {}, uploadAndLink: async () => null }
@@ -105,31 +109,27 @@ export function UnifiedProfileCard({
     if (!editor.editState) return;
     editor.patchEditState((prev) => {
       const next = { ...prev };
-      if (refKey.startsWith("education:")) {
-        const id = refKey.split(":")[1];
+      const parsed = parseRefKey(refKey);
+      if (parsed?.kind === "education") {
         next.education = prev.education.map((e) =>
-          e.id === id ? { ...e, linked_documents: updater([...e.linked_documents]) } : e,
+          e.id === parsed.id ? { ...e, linked_documents: updater([...e.linked_documents]) } : e,
         );
-      } else if (refKey.startsWith("experience:")) {
-        const id = refKey.split(":")[1];
+      } else if (parsed?.kind === "experience") {
         next.experience = prev.experience.map((e) =>
-          e.id === id ? { ...e, linked_documents: updater([...e.linked_documents]) } : e,
+          e.id === parsed.id ? { ...e, linked_documents: updater([...e.linked_documents]) } : e,
         );
-      } else if (refKey.startsWith("tests:")) {
-        const parts = refKey.split(":");
-        const attemptId = parts.length >= 3 ? parts.slice(2).join(":") : null;
-        if (attemptId) {
-          const attempts = prev.tests.attempts.map((a) =>
-            a.attempt_id === attemptId
-              ? { ...a, linked_documents: updater([...a.linked_documents]) }
-              : a,
-          );
-          next.tests = {
-            ...prev.tests,
-            attempts,
-            ...deriveLegacyTestsFromAttempts(attempts, prev.tests.active_attempt_ids),
-          };
-        }
+      } else if (parsed?.kind === "tests") {
+        const attemptId = parsed.id;
+        const attempts = prev.tests.attempts.map((a) =>
+          a.attempt_id === attemptId
+            ? { ...a, linked_documents: updater([...a.linked_documents]) }
+            : a,
+        );
+        next.tests = {
+          ...prev.tests,
+          attempts,
+          ...deriveLegacyTestsFromAttempts(attempts, prev.tests.active_attempt_ids),
+        };
       }
       return next;
     });
@@ -177,17 +177,26 @@ export function UnifiedProfileCard({
   };
 
   const uploadDocument = async (refKey: string, file: File, slot: string) => {
-    const linked = await documents.uploadAndLink({
-      file,
-      documentType: "profile_attachment",
-      refKey,
-      slot,
-    });
-    if (linked) {
-      patchLinkedDocs(refKey, (docs) => {
-        const filtered = docs.filter((d) => d.slot !== slot);
-        return [...filtered, linked];
+    setDocUploading(true);
+    try {
+      const linked = await documents.uploadAndLink({
+        file,
+        documentType: "profile_attachment",
+        refKey,
+        slot,
       });
+      if (linked) {
+        patchLinkedDocs(refKey, (docs) => {
+          const filtered = docs.filter((d) => d.slot !== slot);
+          return [...filtered, linked];
+        });
+        toast.success(`${slotLabel(slot)} uploaded — click Save to keep changes`);
+      }
+    } catch (e) {
+      console.error("[UnifiedProfileCard] document upload failed", e);
+      toast.error(formatProfileSaveError(e, "Document upload failed"));
+    } finally {
+      setDocUploading(false);
     }
   };
 
@@ -435,6 +444,7 @@ export function UnifiedProfileCard({
             onUploadAttemptDocument={(attemptId, testId, file, slot) =>
               void uploadDocument(testAttemptRefKey(testId, attemptId), file, slot)
             }
+            docUploading={docUploading}
           />
         </div>
       )}
@@ -491,6 +501,7 @@ export function UnifiedProfileCard({
             onUploadDocument={(recordId, file, slot) =>
               void uploadDocument(educationRefKey(recordId), file, slot)
             }
+            docUploading={docUploading}
           />
         </div>
       )}
@@ -543,6 +554,7 @@ export function UnifiedProfileCard({
           onUploadDocument={(recordId, file, slot) =>
             void uploadDocument(experienceRefKey(recordId), file, slot)
           }
+          docUploading={docUploading}
         />
       )}
 

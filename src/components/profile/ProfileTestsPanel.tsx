@@ -55,6 +55,7 @@ interface Props {
   onUnlinkAttemptDocument?: (attemptId: string, testId: ProfileTestId, docId: string, slot: string) => void;
   onUploadAttemptDocument?: (attemptId: string, testId: ProfileTestId, file: File, slot: string) => void;
   documentsPlaceholder?: boolean;
+  docUploading?: boolean;
   className?: string;
 }
 
@@ -118,6 +119,7 @@ function TestAttemptCards({
   onUnlinkDocument,
   onUploadDocument,
   documentsPlaceholder,
+  docUploading,
 }: {
   testId: ProfileTestId;
   category: ProfileTestCategory;
@@ -135,6 +137,7 @@ function TestAttemptCards({
   onUnlinkDocument?: (attemptId: string, testId: ProfileTestId, docId: string, slot: string) => void;
   onUploadDocument?: (attemptId: string, testId: ProfileTestId, file: File, slot: string) => void;
   documentsPlaceholder?: boolean;
+  docUploading?: boolean;
 }) {
   const activeAttemptId = activeAttemptIds?.[testId] ?? null;
   const forType = sortAttemptsChronologically(attemptsForTestId(attempts, testId));
@@ -209,6 +212,7 @@ function TestAttemptCards({
                     onUploadDocument?.(attempt.attempt_id, testId, file, slot)
                   }
                   documentsPlaceholder={documentsPlaceholder}
+                  docUploading={docUploading}
                 />
               </>
             )}
@@ -241,6 +245,7 @@ function TestTypeSection({
   onUnlinkDocument,
   onUploadDocument,
   documentsPlaceholder,
+  docUploading,
   showPrimaryTypeButton,
 }: {
   title: string;
@@ -264,6 +269,7 @@ function TestTypeSection({
   onUnlinkDocument?: (attemptId: string, testId: ProfileTestId, docId: string, slot: string) => void;
   onUploadDocument?: (attemptId: string, testId: ProfileTestId, file: File, slot: string) => void;
   documentsPlaceholder?: boolean;
+  docUploading?: boolean;
   showPrimaryTypeButton?: boolean;
 }) {
   return (
@@ -321,6 +327,7 @@ function TestTypeSection({
         onUnlinkDocument={onUnlinkDocument}
         onUploadDocument={onUploadDocument}
         documentsPlaceholder={documentsPlaceholder}
+        docUploading={docUploading}
       />
     </section>
   );
@@ -351,6 +358,7 @@ export function ProfileTestsPanel({
   onUnlinkAttemptDocument,
   onUploadAttemptDocument,
   documentsPlaceholder,
+  docUploading,
   className,
 }: Props) {
   const resolvedExpandedId = expandedAttemptId ?? selectedAttemptId ?? null;
@@ -399,6 +407,7 @@ export function ProfileTestsPanel({
         onUnlinkDocument={onUnlinkAttemptDocument}
         onUploadDocument={onUploadAttemptDocument}
         documentsPlaceholder={documentsPlaceholder}
+        docUploading={docUploading}
         showPrimaryTypeButton
       />
 
@@ -423,6 +432,7 @@ export function ProfileTestsPanel({
           onUnlinkDocument={onUnlinkAttemptDocument}
           onUploadDocument={onUploadAttemptDocument}
           documentsPlaceholder={documentsPlaceholder}
+          docUploading={docUploading}
         />
       </div>
 
@@ -446,6 +456,8 @@ export function ProfileTestsPanel({
           onLinkDocument={onLinkAttemptDocument}
           onUnlinkDocument={onUnlinkAttemptDocument}
           onUploadDocument={onUploadAttemptDocument}
+          documentsPlaceholder={documentsPlaceholder}
+          docUploading={docUploading}
         />
       </div>
     </div>
