@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -169,8 +169,10 @@ function BookingFlow({
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<any>(null);
   const browserTz = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC", []);
-  const [visitorTz, setVisitorTz] = useState<string>(browserTz);
   const hostTz = profile.timezone || "UTC";
+  // Default to the host's timezone so visitors see exactly the slots the
+  // employee configured. Visitor can manually switch via the selector.
+  const [visitorTz, setVisitorTz] = useState<string>(hostTz);
   const tzOptions = useMemo<string[]>(() => {
     const sv = (Intl as any).supportedValuesOf?.("timeZone") as string[] | undefined;
     const base = sv && sv.length ? sv : [
@@ -183,16 +185,13 @@ function BookingFlow({
 
   const formatSlot = (hhmm: string, d: Date) => {
     try {
-      // Interpret HH:mm on the selected date in the host timezone, then render in visitor TZ.
-      const isoLocal = `${format(d, "yyyy-MM-dd")}T${hhmm.length === 5 ? hhmm + ":00" : hhmm}`;
-      // Treat isoLocal as wall-time in hostTz: build a Date by converting from host wall-time.
-      // formatInTimeZone expects a real Date; we construct one by parsing the ISO as if it were UTC,
-      // then offsetting by the host TZ's offset for that instant.
-      const asIfUtc = new Date(isoLocal + "Z");
-      const hostZoned = toZonedTime(asIfUtc, hostTz);
-      const offsetMs = asIfUtc.getTime() - hostZoned.getTime();
-      const actual = new Date(asIfUtc.getTime() + offsetMs);
-      return formatInTimeZone(actual, visitorTz, "HH:mm");
+      // Treat the stored "HH:mm" as wall-clock in the host TZ on the
+      // selected date, convert to a real UTC instant, then render in the
+      // visitor's chosen TZ. DST-safe via date-fns-tz.
+      const dateStr = formatInTimeZone(d, hostTz, "yyyy-MM-dd");
+      const time = hhmm.length === 5 ? `${hhmm}:00` : hhmm;
+      const instant = fromZonedTime(`${dateStr}T${time}`, hostTz);
+      return formatInTimeZone(instant, visitorTz, "HH:mm");
     } catch {
       return hhmm;
     }
@@ -210,7 +209,10 @@ function BookingFlow({
       action: "available_slots",
       slug,
       meeting_type_id: meetingType.id,
-      date: format(date, "yyyy-MM-dd"),
+      // Format the selected date in the HOST timezone so the backend
+      // looks up the correct weekday and "today" for the employee, not
+      // for the visitor's browser locale.
+      date: formatInTimeZone(date, hostTz, "yyyy-MM-dd"),
     })
       .then((d) => setSlots((d.slots ?? []).map((s: string) => s.slice(0,5))))
       .catch((e) => { toast.error(e.message || "Failed to load slots"); setSlots([]); })
@@ -319,7 +321,7 @@ function VisitorForm({
         action: "create_booking",
         slug,
         meeting_type_id: meetingType.id,
-        date: format(date, "yyyy-MM-dd"),
+        date: formatInTimeZone(date, hostTz, "yyyy-MM-dd"),
         start_time: startTime,
         visitor: {
           full_name: form.full_name.trim(),
