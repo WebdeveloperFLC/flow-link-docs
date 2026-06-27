@@ -23,6 +23,9 @@ import {
   type InstitutionRouteBadge,
 } from "../components/PartnershipChannelBadges";
 import { findDuplicateInstitution } from "../lib/institutionDedup";
+import { ExportMenu } from "@/components/export/ExportMenu";
+import { useExportDataset } from "@/components/export/useExportDataset";
+import { INSTITUTION_EXPORT_COLUMNS } from "../lib/institutionExportColumns";
 
 const LIST_COLUMNS =
   "id,name,country_name,country_id,institution_type,institution_status,is_partner,is_active,website_url,logo_url,completeness_score,catalog_status" as const;
@@ -197,6 +200,15 @@ export default function InstitutionsListPage() {
     return true;
   });
 
+  const exportProps = useExportDataset({
+    rows: filtered,
+    getRowId: (r) => r.id,
+    fetchAll: async () => items,
+    columns: INSTITUTION_EXPORT_COLUMNS,
+    filenameBase: "institutions",
+    canExportAll: canEdit,
+  });
+
   const filterLabel = (f: ListFilter) => {
     if (f === "all") return "All";
     if (f === "partners") return "Partners";
@@ -248,6 +260,7 @@ export default function InstitutionsListPage() {
             ))}
           </div>
           <div className="flex-1" />
+          <ExportMenu {...exportProps} disabled={loading} />
           {canEdit && missingLogoCount > 0 && (
             <Button size="sm" variant="outline" disabled={fetchingLogos} onClick={fetchMissingLogos}>
               {fetchingLogos ? <Loader2 className="size-4 mr-1 animate-spin" /> : <Sparkles className="size-4 mr-1" />}

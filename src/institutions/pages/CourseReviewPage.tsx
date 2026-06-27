@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -18,9 +18,17 @@ import { Link } from "react-router-dom";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
 import { ImportProgramSheetButton } from "../components/ImportProgramSheetButton";
+import { ExportMenu } from "@/components/export/ExportMenu";
+import { useExportDataset } from "@/components/export/useExportDataset";
+import { buildProgramExportColumns } from "../lib/programExportColumns";
 import { CourseReviewList } from "../components/CourseReviewList";
 import { InstitutionProgramContextHeader } from "../components/InstitutionProgramContextHeader";
 import { ProgramGroupsNavPanel } from "../components/ProgramGroupsNavPanel";
+import { ProgramSummaryPanel } from "../components/ProgramSummaryPanel";
+import {
+  buildProgramSummaryFromOfferings,
+  buildAvailabilityFromOfferings,
+} from "../lib/programSummary";
 import {
   buildProgramGroups,
   filterRowsByProgramGroup,
@@ -513,6 +521,25 @@ export default function CourseReviewPage() {
     return filterRowsByProgramGroup(visibleRows, programGroupFilter);
   }, [visibleRows, programGroupFilter]);
 
+  const selectedProgramGroup = useMemo(
+    () => programGroups.find((g) => g.key === programGroupFilter) ?? null,
+    [programGroups, programGroupFilter],
+  );
+
+  const programSummaryBundle = useMemo(() => {
+    if (programGroupFilter === "all" || !groupFilteredRows.length) return null;
+    const summary = buildProgramSummaryFromOfferings(
+      groupFilteredRows,
+      selectedProgramGroup,
+      levelName,
+    );
+    if (!summary) return null;
+    return {
+      summary,
+      availability: buildAvailabilityFromOfferings(groupFilteredRows),
+    };
+  }, [programGroupFilter, groupFilteredRows, selectedProgramGroup, levelName]);
+
   useEffect(() => {
     if (programGroupFilter === "all") return;
     const valid = programGroups.some((g) => g.key === programGroupFilter);
@@ -598,6 +625,86 @@ export default function CourseReviewPage() {
     else setSelected(new Set(groupFilteredRows.map((r) => r.id)));
   };
   const selectedIds = Array.from(selected);
+
+  const programExportColumns = useMemo(
+    () => buildProgramExportColumns({ instName, instCountry, levelName }),
+    [instName, instCountry, levelName],
+  );
+
+  const fetchAllPrograms = useCallback(async (): Promise<UpiCourseStaging[]> => {
+    const orderOpts = { ascending: false as const };
+
+    if (instFilter !== "all") {
+      const inst = institutions.find((i) => i.id === instFilter);
+      const byId = applyStagingQueryFilters(
+        supabase.from("upi_courses_staging").select("*").eq("institution_id", instFilter),
+      )
+        .order("extracted_at", orderOpts)
+        .limit(10000);
+
+      const requests = [byId];
+      if (inst?.name?.trim()) {
+        const pattern = `%${escapeIlikePattern(inst.name.trim())}%`;
+        requests.push(
+          applyStagingQueryFilters(
+            supabase
+              .from("upi_courses_staging")
+              .select("*")
+              .filter("metadata->>institute_name", "ilike", pattern),
+          )
+            .order("extracted_at", orderOpts)
+            .limit(10000),
+        );
+      }
+
+      const results = await Promise.all(requests);
+      const error = results.find((r) => r.error)?.error;
+      if (error) throw new Error(error.message);
+
+      let list = mergeStagingRowsById(...results.map((r) => (r.data ?? []) as UpiCourseStaging[]));
+      if (inst) {
+        list = list.filter((r) => rowMatchesInstitution(r, instFilter, inst.name));
+      } else {
+        list = list.filter((r) => r.institution_id === instFilter);
+      }
+      return list;
+    }
+
+    let q = applyStagingQueryFilters(supabase.from("upi_courses_staging").select("*")).order(
+      "extracted_at",
+      orderOpts,
+    );
+
+    if (countryFilter !== "all") {
+      const matchingIds = filterInstitutionsByCountry(institutions, countryFilter).map((i) => i.id);
+      if (!matchingIds.length) return [];
+      q = q.in("institution_id", matchingIds).limit(10000);
+    } else {
+      q = q.limit(10000);
+    }
+
+    const { data, error } = await q;
+    if (error) throw new Error(error.message);
+    return (data ?? []) as UpiCourseStaging[];
+  }, [instFilter, institutions, countryFilter, statusFilter, levelFilter]);
+
+  const exportFilenameBase = useMemo(() => {
+    if (selectedInstitution?.name) {
+      return `programs_${selectedInstitution.name}`;
+    }
+    if (countryFilter !== "all") return `programs_${countryFilter}`;
+    return "programs";
+  }, [selectedInstitution, countryFilter]);
+
+  const exportProps = useExportDataset({
+    rows: groupFilteredRows,
+    selectedIds: selected,
+    getRowId: (r) => r.id,
+    fetchAll: fetchAllPrograms,
+    columns: programExportColumns,
+    filenameBase: exportFilenameBase,
+    canExportAll: canEdit,
+  });
 
   return (
     <AppLayout>
@@ -830,6 +937,7 @@ export default function CourseReviewPage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+          <ExportMenu {...exportProps} disabled={loading} />
           {canEdit && (
             <ImportProgramSheetButton institutions={institutions} canEdit={canEdit} onImported={load} />
           )}
@@ -876,6 +984,12 @@ export default function CourseReviewPage() {
                 </button>
               </div>
             )}
+            {programSummaryBundle ? (
+              <ProgramSummaryPanel
+                summary={programSummaryBundle.summary}
+                availability={programSummaryBundle.availability}
+              />
+            ) : null}
             <CourseReviewList
               rows={groupFilteredRows}
               loading={loading}
