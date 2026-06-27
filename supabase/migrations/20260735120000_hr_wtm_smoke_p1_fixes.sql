@@ -171,6 +171,9 @@ BEGIN
 END;
 $$;
 
+CREATE UNIQUE INDEX IF NOT EXISTS role_assignments_org_id_staff_id_key
+  ON public.role_assignments (org_id, staff_id);
+
 CREATE OR REPLACE FUNCTION fn_import_crm_staff_as_employee(p_org uuid, p_staff_id uuid)
 RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
@@ -252,6 +255,9 @@ END;
 $$;
 
 -- Legacy punch: never duplicate when WTM/rollup already created today's row
+CREATE UNIQUE INDEX IF NOT EXISTS attendance_employee_id_work_date_key
+  ON public.attendance (employee_id, work_date);
+
 CREATE OR REPLACE FUNCTION fn_start_attendance_day(
   p_employee uuid,
   p_check_in time DEFAULT NULL,
@@ -322,11 +328,36 @@ BEGIN
   END LOOP;
 END $$;
 
--- P1-5: designation_id backfill (corrects typo in 20260721120000 line 76: d.designation → e.designation)
-UPDATE public.employees e
-SET designation_id = d.id
-FROM public.designations d
-WHERE e.designation_id IS NULL
-  AND e.designation IS NOT NULL
-  AND trim(e.designation) <> ''
-  AND lower(trim(d.name)) = lower(trim(e.designation));
+-- P1-5: designation_id catchup (safe when 20260721120000 failed mid-flight)
+CREATE TABLE IF NOT EXISTS public.designations (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name          text NOT NULL,
+  is_active     boolean NOT NULL DEFAULT true,
+  display_order integer NOT NULL DEFAULT 0,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS designations_name_key ON public.designations (name);
+
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS designation_id uuid REFERENCES public.designations(id) ON DELETE SET NULL;
+
+ALTER TABLE public.employees
+  ADD COLUMN IF NOT EXISTS designation_id uuid REFERENCES public.designations(id) ON DELETE SET NULL;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'employees' AND column_name = 'designation_id'
+  ) THEN
+    UPDATE public.employees e
+    SET designation_id = d.id
+    FROM public.designations d
+    WHERE e.designation_id IS NULL
+      AND e.designation IS NOT NULL
+      AND trim(e.designation) <> ''
+      AND lower(trim(d.name)) = lower(trim(e.designation));
+  END IF;
+END $$;

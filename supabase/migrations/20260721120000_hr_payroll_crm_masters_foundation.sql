@@ -33,6 +33,9 @@ CREATE TRIGGER touch_designations_updated_at
   BEFORE UPDATE ON public.designations
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
 
+-- Partial Lovable publish may create table without inline UNIQUE — required for ON CONFLICT below
+CREATE UNIQUE INDEX IF NOT EXISTS designations_name_key ON public.designations (name);
+
 INSERT INTO public.designations (name, display_order)
 SELECT DISTINCT trim(d), row_number() OVER (ORDER BY trim(d))
 FROM (
@@ -187,6 +190,10 @@ ALTER TABLE public.employees
 ALTER TABLE public.employees
   ADD CONSTRAINT employees_employee_category_id_fkey
   FOREIGN KEY (employee_category_id) REFERENCES hr_employee_categories(id) ON DELETE SET NULL;
+
+-- Partial Lovable publish may create table without inline UNIQUE — required for ON CONFLICT below
+CREATE UNIQUE INDEX IF NOT EXISTS hr_employee_categories_org_id_code_key
+  ON hr_employee_categories (org_id, code);
 
 -- Per-code idempotent seed: existing rows (e.g. full_time_employee) do not block standard codes
 INSERT INTO hr_employee_categories (org_id, code, label, leave_eligible, leave_accrual_eligible, attendance_rules_apply, payroll_rules_apply, sort_order)
@@ -613,6 +620,9 @@ CREATE TRIGGER shift_assignment_locked_guard
 
 COMMENT ON FUNCTION public.fn_reopen_payroll_cycle(uuid, text) IS
   'Reopens a locked cycle to Draft. Does NOT auto-recalculate payroll lines — run fn_build_payroll_line / fn_compute_payroll manually after corrections.';
+
+CREATE UNIQUE INDEX IF NOT EXISTS role_assignments_org_id_staff_id_key
+  ON public.role_assignments (org_id, staff_id);
 
 -- CRM import: sync department + designation FKs from profile
 CREATE OR REPLACE FUNCTION fn_import_crm_staff_as_employee(p_org uuid, p_staff_id uuid)

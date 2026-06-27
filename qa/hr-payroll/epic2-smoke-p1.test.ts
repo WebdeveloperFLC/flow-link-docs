@@ -21,5 +21,13 @@ describe("WTM v1.0 Smoke P1 fixes", () => {
   it("uses upsert-safe attendance day start", () => {
     const sql = readFileSync(MIGRATION, "utf8");
     expect(sql).toContain("ON CONFLICT (employee_id, work_date)");
+    expect(sql).toContain("attendance_employee_id_work_date_key");
+  });
+
+  it("guards designation_id backfill when CRM masters migration incomplete", () => {
+    const sql = readFileSync(MIGRATION, "utf8");
+    expect(sql).toContain("ADD COLUMN IF NOT EXISTS designation_id");
+    expect(sql).not.toContain("trim(d.designation)");
+    expect(sql).toContain("information_schema.columns");
   });
 });
