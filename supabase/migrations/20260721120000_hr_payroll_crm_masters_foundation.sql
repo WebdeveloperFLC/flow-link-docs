@@ -73,7 +73,7 @@ FROM public.designations d
 WHERE e.designation_id IS NULL
   AND e.designation IS NOT NULL
   AND trim(e.designation) <> ''
-  AND lower(trim(d.name)) = lower(trim(d.designation));
+  AND lower(trim(d.name)) = lower(trim(e.designation));
 
 UPDATE public.employees e
 SET department_id = d.id

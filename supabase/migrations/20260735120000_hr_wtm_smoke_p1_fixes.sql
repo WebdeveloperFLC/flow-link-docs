@@ -321,3 +321,12 @@ BEGIN
     EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated', r.sig);
   END LOOP;
 END $$;
+
+-- P1-5: designation_id backfill (corrects typo in 20260721120000 line 76: d.designation → e.designation)
+UPDATE public.employees e
+SET designation_id = d.id
+FROM public.designations d
+WHERE e.designation_id IS NULL
+  AND e.designation IS NOT NULL
+  AND trim(e.designation) <> ''
+  AND lower(trim(d.name)) = lower(trim(e.designation));
