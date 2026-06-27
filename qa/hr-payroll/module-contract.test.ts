@@ -58,6 +58,7 @@ const REQUIRED_MIGRATIONS = [
   "20260729120000_hr_payroll_salary_structure_engine.sql",
   "20260730120000_hr_payroll_salary_payable_days_engine.sql",
   "20260731120000_hr_wpms_master_data_foundation.sql",
+  "20260732120000_hr_wtm_attendance_foundation.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -91,6 +92,13 @@ const REQUIRED_RPCS = [
   "fn_wpms_assign_bundle",
   "fn_wpms_bulk_assign_bundle",
   "fn_wpms_log_event",
+  "fn_wtm_clock_in",
+  "fn_wtm_clock_out",
+  "fn_wtm_break_out",
+  "fn_wtm_break_in",
+  "fn_wtm_get_session",
+  "fn_wtm_log_event",
+  "fn_wtm_sync_attendance_rollup",
 ];
 
 const REQUIRED_PAGES = [

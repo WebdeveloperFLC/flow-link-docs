@@ -17,6 +17,7 @@ import { Emp360PolicyBundleCard } from "../../components/emp360/Emp360PolicyBund
 import { useWpmsAssignmentHistory, useWpmsAssignments, useWpmsBundles } from "../../hooks/useWpms";
 import { Emp360EmployeeDetails } from "../../components/emp360/Emp360EmployeeDetails";
 import { Emp360ActivityTimeline } from "../../components/emp360/Emp360ActivityTimeline";
+import { useWtmTimeline } from "../../hooks/useWtm";
 import { rollupAttendance } from "../../lib/emp360Rollups";
 import { employeeCurrency, formatMoney } from "../../lib/format";
 
@@ -41,6 +42,7 @@ export default function HrEmp360SummaryPage() {
     limit: 50,
   });
   const { data: employeeAssets = [], isLoading: assetsLoading } = useEmployeeAssets(emp.id);
+  const { data: wtmTimeline = [] } = useWtmTimeline(emp.id);
   const { data: wpmsBundles = [] } = useWpmsBundles();
   const { data: wpmsAssignments = [] } = useWpmsAssignments(emp.id);
   const { data: wpmsHistory = [] } = useWpmsAssignmentHistory(emp.id);
@@ -149,6 +151,7 @@ export default function HrEmp360SummaryPage() {
         employeeCode={emp.emp_code}
         shiftHistory={shiftHistory}
         auditLogs={allAudit}
+        wtmTimeline={wtmTimeline}
       />
     </>
   );

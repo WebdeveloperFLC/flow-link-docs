@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { Emp360SummaryCard } from "./Emp360SummaryCard";
 import type { AuditLogRow, EmployeeShiftHistoryRow } from "../../lib/types";
+import type { WtmTimelineEventRow } from "../../lib/wtmTypes";
 
-type ActivityCategory = "all" | "profile" | "shift";
+type ActivityCategory = "all" | "profile" | "shift" | "attendance";
 
 type ActivityItem = {
   id: string;
@@ -18,17 +19,20 @@ type Props = {
   employeeCode: string;
   shiftHistory: EmployeeShiftHistoryRow[];
   auditLogs: AuditLogRow[];
+  wtmTimeline?: WtmTimelineEventRow[];
 };
 
 const CATEGORY_LABELS: Record<Exclude<ActivityCategory, "all">, string> = {
   profile: "Profile & records",
   shift: "Shift change",
+  attendance: "Workforce time",
 };
 
 const FILTER_OPTIONS: { value: ActivityCategory; label: string }[] = [
   { value: "all", label: "All" },
   { value: "profile", label: "Profile & records" },
   { value: "shift", label: "Shift changes" },
+  { value: "attendance", label: "Workforce time" },
 ];
 
 function auditMatchesEmployee(
@@ -73,6 +77,23 @@ function buildActivities(props: Props): ActivityItem[] {
     });
   }
 
+  for (const ev of props.wtmTimeline ?? []) {
+    const date = ev.created_at.slice(0, 10);
+    const detail = ev.payload?.new
+      ? String(ev.payload.new)
+      : ev.payload?.work_date
+        ? String(ev.payload.work_date)
+        : undefined;
+    items.push({
+      id: `wtm-${ev.id}`,
+      date,
+      sortKey: ev.created_at,
+      category: "attendance",
+      label: ev.event_type,
+      detail,
+    });
+  }
+
   return items.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
 }
 
@@ -80,7 +101,7 @@ export function Emp360ActivityTimeline(props: Props) {
   const [filter, setFilter] = useState<ActivityCategory>("all");
   const all = useMemo(
     () => buildActivities(props),
-    [props.auditLogs, props.shiftHistory, props.employeeName, props.employeeCode],
+    [props.auditLogs, props.shiftHistory, props.wtmTimeline, props.employeeName, props.employeeCode],
   );
 
   const visible = filter === "all" ? all : all.filter((a) => a.category === filter);
@@ -88,7 +109,7 @@ export function Emp360ActivityTimeline(props: Props) {
   return (
     <Emp360SummaryCard title="Activity timeline">
       <p className="muted emp360-timeline-hint">
-        Profile updates, audit events, and shift changes — not repeated from summary cards above.
+        Profile updates, shift changes, and workforce time events — not repeated from summary cards above.
       </p>
       <div className="emp360-timeline-filters">
         {FILTER_OPTIONS.map((opt) => (

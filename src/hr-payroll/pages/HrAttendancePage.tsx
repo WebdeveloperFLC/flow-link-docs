@@ -7,6 +7,7 @@ import { useHrPayrollLine } from "../hooks/useHrPayroll";
 import { useAttendanceActions } from "../hooks/useAttendanceActions";
 import { AttendanceRegisterView } from "../components/attendance/AttendanceRegisterView";
 import { useHrAttendanceFilters } from "../hooks/useHrAttendanceFilters";
+import { WtmHrTodayPanel } from "../components/wtm/WtmHrTodayPanel";
 import { EmployeeSeg } from "../components/ui/EmployeeSeg";
 import { Stat } from "../components/ui/Stat";
 import { PunchStation } from "../components/attendance/PunchStation";
@@ -324,6 +325,7 @@ export default function HrAttendancePage() {
 
   return (
     <>
+      <WtmHrTodayPanel />
       <div className="attendance-view-tabs-wrap">
         <AttendanceViewTabs />
       </div>

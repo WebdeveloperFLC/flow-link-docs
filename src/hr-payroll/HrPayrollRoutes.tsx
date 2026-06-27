@@ -50,6 +50,7 @@ import WpmsHubPage from "./pages/wpms/WpmsHubPage";
 import WpmsPoliciesPage from "./pages/wpms/WpmsPoliciesPage";
 import WpmsBundlesPage from "./pages/wpms/WpmsBundlesPage";
 import WpmsAssignPage from "./pages/wpms/WpmsAssignPage";
+import WtmEssHistoryPage from "./pages/wtm/WtmEssHistoryPage";
 
 export default function HrPayrollRoutes() {
   return (
@@ -58,6 +59,7 @@ export default function HrPayrollRoutes() {
         <Route element={<HrPayrollLayout />}>
           <Route index element={<HrDashboardPage />} />
           <Route path="me" element={<HrEssPage />} />
+          <Route path="me/time-history" element={<WtmEssHistoryPage />} />
           <Route path="employee" element={<HrEmp360ListPage />} />
           <Route path="employee/:id" element={<HrEmp360Layout />}>
             <Route index element={<HrEmp360SummaryPage />} />

@@ -24,6 +24,7 @@ import {
 import { Stat } from "../components/ui/Stat";
 import { employeeCurrency, formatMoney, initials } from "../lib/format";
 import { totalPendingApprovals } from "../lib/nav";
+import { WtmHrTodayPanel } from "../components/wtm/WtmHrTodayPanel";
 import type { PayrollLineRow } from "../lib/types";
 
 const APPROVAL_ROUTES: Record<string, string> = {
@@ -35,7 +36,7 @@ const APPROVAL_ROUTES: Record<string, string> = {
 
 export default function HrDashboardPage() {
   const navigate = useNavigate();
-  const { cycle, pendingCounts } = useHrAccess();
+  const { cycle, pendingCounts, canSee } = useHrAccess();
   const { data: employees = [] } = useHrEmployees();
   const { data: lines = [], isLoading } = useHrPayrollLines(cycle?.id);
   const { data: stats } = useHrDashboardStats();
@@ -175,6 +176,8 @@ export default function HrDashboardPage() {
           icon={Pencil}
         />
       </div>
+
+      {canSee("attendance") && <WtmHrTodayPanel />}
 
       <div className="grid g4">
         <Stat

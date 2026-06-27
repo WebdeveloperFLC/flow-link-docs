@@ -22,12 +22,10 @@ import {
 } from "../lib/leavePolicy";
 import { useHrShifts } from "../hooks/useHrShifts";
 import { useHrAttendance } from "../hooks/useHrAttendance";
-import { useAttendanceActions } from "../hooks/useAttendanceActions";
+import { useWtmSession } from "../hooks/useWtm";
 import { Stat } from "../components/ui/Stat";
-import { PunchStation } from "../components/attendance/PunchStation";
+import { WtmWorkforceTimeWidget } from "../components/wtm/WtmWorkforceTimeWidget";
 import { EmployeeAvatar } from "../components/ui/EmployeeAvatar";
-import { formatWorkDate } from "../lib/attendanceMetrics";
-import { resolvePunchSession } from "../lib/punchSession";
 import { timezoneForEmployee, todayIsoInTz } from "../lib/employeeTimezone";
 import { essAttendanceStatus } from "../lib/attendanceStatus";
 import { employeeCurrency, formatMoney } from "../lib/format";
@@ -67,8 +65,9 @@ export default function HrEssPage() {
   const { data: leaveBalances = [] } = useHrLeaveBalances(emp?.id);
   const { data: allLeaves = [] } = useHrLeaveRequests();
   const today = todayIsoInTz(tz);
-  const punchSession = useMemo(() => resolvePunchSession(att, today), [att, today]);
-  const todayRow = punchSession.punchRow;
+  const { data: wtmSession } = useWtmSession(emp?.id, today);
+  const { data: att = [] } = useHrAttendance(emp?.id, cycle?.start_date, cycle?.end_date);
+  const todayRow = att.find((a) => a.work_date === today) ?? null;
   const shownLeaveBalances = useMemo(
     () => displayLeaveBalances(leaveBalances, emp?.work_week, shift?.type),
     [leaveBalances, emp?.work_week, shift?.type],
@@ -84,9 +83,19 @@ export default function HrEssPage() {
         : 0,
     [allLeaves, emp],
   );
-  const actions = useAttendanceActions(cycle?.id, cycle?.start_date, cycle?.end_date, tz, fire);
-
-  const attStatus = essAttendanceStatus(todayRow);
+  const attStatus = useMemo(() => {
+    if (!wtmSession) return essAttendanceStatus(todayRow);
+    if (wtmSession.session_status === "On Break") {
+      return { label: "On Break", tone: "warn" as const };
+    }
+    if (wtmSession.session_status === "Working") {
+      return { label: "Working", tone: "good" as const };
+    }
+    if (wtmSession.session_status === "Completed") {
+      return { label: "Completed", tone: "mut" as const };
+    }
+    return { label: wtmSession.session_status, tone: "mut" as const };
+  }, [wtmSession, todayRow]);
   const currency = employeeCurrency(emp);
   const isCanada = currency === "CAD" || emp?.payroll_country === "CA";
   const money = (n: number) => formatMoney(n, currency);
@@ -269,23 +278,16 @@ export default function HrEssPage() {
         )}
       </div>
 
-      <PunchStation
+      <WtmWorkforceTimeWidget
         employee={emp}
         shift={shift}
-        todayRow={todayRow}
-        todayDate={formatWorkDate(punchSession.displayDate)}
-        carryOverFrom={punchSession.carryOverFrom ? formatWorkDate(punchSession.carryOverFrom) : null}
+        workDate={today}
         timezone={tz}
-        canPunch
-        onPunch={(field) => {
-          if (!todayRow) return;
-          void actions.punch(todayRow, field, emp.full_name, todayRow.work_date);
-        }}
-        onStartDay={() => void actions.startAndCheckIn(emp.id, emp.full_name)}
-        onToggleUnavailable={(unavailable) => {
-          if (!todayRow) return;
-          void actions.toggleUnavailable(todayRow, unavailable, emp.full_name);
-        }}
+        canPunch={can("apply")}
+        cycleId={cycle?.id}
+        cycleStart={cycle?.start_date}
+        cycleEnd={cycle?.end_date}
+        fire={fire}
       />
 
       <div className="grid g4">
