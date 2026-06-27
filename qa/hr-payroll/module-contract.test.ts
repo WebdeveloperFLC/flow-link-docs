@@ -60,6 +60,7 @@ const REQUIRED_MIGRATIONS = [
   "20260731120000_hr_wpms_master_data_foundation.sql",
   "20260732120000_hr_wtm_attendance_foundation.sql",
   "20260733120000_hr_aems_pack22.sql",
+  "20260734120000_hr_wre_pack23.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -107,6 +108,10 @@ const REQUIRED_RPCS = [
   "fn_aems_register_evidence",
   "fn_aems_apply_session_correction",
   "fn_aems_find_matching_incidents",
+  "fn_wre_evaluate_session",
+  "fn_wre_reevaluate",
+  "fn_wpms_employee_bundle_at",
+  "fn_wpms_policy_config_at",
 ];
 
 const REQUIRED_PAGES = [

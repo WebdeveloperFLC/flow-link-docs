@@ -11,6 +11,7 @@ import HrLateReportPage from "./reports/HrLateReportPage";
 import HrMispunchReportPage from "./reports/HrMispunchReportPage";
 import HrHolidayReportPage from "./reports/HrHolidayReportPage";
 import HrAuditReportPage from "./reports/HrAuditReportPage";
+import HrWreReportsPage from "./reports/HrWreReportsPage";
 
 export default function HrReportsHubPage() {
   return (
@@ -41,6 +42,7 @@ const REPORT_PAGES: Record<string, ComponentType> = {
   late: HrLateReportPage,
   mispunch: HrMispunchReportPage,
   holiday: HrHolidayReportPage,
+  wre: HrWreReportsPage,
   audit: HrAuditReportPage,
 };
 

@@ -24,7 +24,7 @@ describe("WTM Pack 2.1 — Attendance Foundation", () => {
 
   it("defines all session status labels", () => {
     expect(Object.keys(WTM_SESSION_STATUS_LABEL)).toEqual(
-      expect.arrayContaining(["Pending", "Working", "On Break", "Completed", "Locked"]),
+      expect.arrayContaining(["Pending", "Working", "On Break", "Completed", "Locked", "Exception", "Holiday", "Weekly Off"]),
     );
   });
 });

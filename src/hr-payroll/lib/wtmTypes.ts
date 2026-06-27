@@ -1,9 +1,26 @@
-export type WtmSessionStatus = "Pending" | "Working" | "On Break" | "Completed" | "Locked";
+export type WtmSessionStatus =
+  | "Pending"
+  | "Working"
+  | "On Break"
+  | "Completed"
+  | "Locked"
+  | "Exception"
+  | "Holiday"
+  | "Weekly Off";
 
 export type WtmAttendanceStatus =
   | "Present"
   | "Half Day"
   | "Absent"
+  | "Holiday"
+  | "Weekly Off";
+
+export type WtmPayrollStatus =
+  | "Present"
+  | "Half Day"
+  | "Absent"
+  | "Paid Leave"
+  | "Unpaid Leave"
   | "Holiday"
   | "Weekly Off";
 
@@ -22,6 +39,9 @@ export type WtmSessionRow = {
   break_duration_min: number;
   attendance_status: WtmAttendanceStatus;
   session_status: WtmSessionStatus;
+  payroll_status?: WtmPayrollStatus | null;
+  is_mispunch?: boolean;
+  latest_evaluation_id?: string | null;
   device_info: Record<string, unknown>;
   created_by_label: string | null;
   modified_by_label: string | null;
@@ -67,4 +87,7 @@ export const WTM_SESSION_STATUS_LABEL: Record<WtmSessionStatus, string> = {
   "On Break": "On Break",
   Completed: "Completed",
   Locked: "Locked",
+  Exception: "Exception",
+  Holiday: "Holiday",
+  "Weekly Off": "Weekly Off",
 };

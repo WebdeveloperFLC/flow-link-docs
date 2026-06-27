@@ -325,6 +325,7 @@ export const HR_REPORTS: ReportDefinition[] = [
   { id: "holiday", title: "Holiday Report", description: "Holiday calendar by branch and tag", route: "/hr/reports/holiday" },
   { id: "payroll", title: "Payroll Report", description: "Cycle payroll summary and deductions", route: "/hr/reports/payroll" },
   { id: "salary-register", title: "Salary Register Report", description: "Full register with export", route: "/hr/reports/salary-register" },
+  { id: "wre", title: "WTM Rules Reports", description: "Late minutes, grace, attendance results, OT, and early exit (WRE)", route: "/hr/reports/wre" },
   { id: "audit", title: "Audit Report", description: "Configuration and approval audit trail", route: "/hr/reports/audit" },
 ];
 

@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useWtmBreaks, useWtmSession } from "../../hooks/useWtm";
 import { useWtmActions } from "../../hooks/useWtmActions";
+import { useWreSnapshot } from "../../hooks/useWre";
 import { formatClockInTz, formatDateLongInTz, timezoneAbbrev } from "../../lib/employeeTimezone";
 import { fmtDur } from "../../lib/attendanceMetrics";
 import { computeWtmLiveTimer, formatTimerDuration } from "../../lib/wtmTimer";
 import { WTM_SESSION_STATUS_LABEL } from "../../lib/wtmTypes";
+import { WTM_PAYROLL_STATUS_LABEL } from "../../lib/wreTypes";
 import type { EmployeeRow, ShiftRow } from "../../lib/types";
 
 type Props = {
@@ -36,6 +38,7 @@ export function WtmWorkforceTimeWidget({
   const [clock, setClock] = useState(new Date());
   const { data: session, isLoading } = useWtmSession(employee.id, workDate);
   const { data: breaks = [] } = useWtmBreaks(session?.id);
+  const { data: snapshot } = useWreSnapshot(employee.id, workDate);
   const actions = useWtmActions(timezone, fire, cycleId, cycleStart, cycleEnd);
 
   useEffect(() => {
@@ -108,16 +111,41 @@ export function WtmWorkforceTimeWidget({
           </div>
         </div>
         <div className="ess-punch-status-block">
-          <div className="ess-punch-label">Today&apos;s status</div>
+          <div className="ess-punch-label">Operational status</div>
           <div className="ess-punch-status-val">
             {isLoading ? "…" : session ? WTM_SESSION_STATUS_LABEL[session.session_status] : "Not started"}
           </div>
+          {snapshot ? (
+            <>
+              <div className="ess-punch-label" style={{ marginTop: 8 }}>Payroll status</div>
+              <div className="ess-punch-status-val">{WTM_PAYROLL_STATUS_LABEL[snapshot.payroll_status]}</div>
+            </>
+          ) : session?.payroll_status ? (
+            <>
+              <div className="ess-punch-label" style={{ marginTop: 8 }}>Payroll status</div>
+              <div className="ess-punch-status-val">{WTM_PAYROLL_STATUS_LABEL[session.payroll_status]}</div>
+            </>
+          ) : null}
           <div className="ess-punch-stats">
             Working {formatTimerDuration(live.workingSec)}
             {live.breakSec > 0 ? ` · Break ${formatTimerDuration(live.breakSec)}` : ""}
           </div>
         </div>
       </div>
+
+      {(snapshot || completed) && (
+        <div className="ess-punch-meta" style={{ marginBottom: 12, lineHeight: 1.6 }}>
+          {snapshot ? (
+            <>
+              Late today {snapshot.late_minutes}m · Monthly late {snapshot.monthly_late_minutes}m · Grace left {snapshot.remaining_grace_minutes}m
+              {snapshot.overtime_minutes > 0 ? ` · OT ${fmtDur(snapshot.overtime_minutes)}` : ""}
+              {snapshot.early_exit_minutes > 0 ? ` · Early exit ${snapshot.early_exit_minutes}m` : ""}
+            </>
+          ) : (
+            <span className="muted">Rules evaluation runs when the session is completed.</span>
+          )}
+        </div>
+      )}
 
       <div className="ess-punch-meta" style={{ marginBottom: 12 }}>
         Clock in {session?.clock_in?.slice(0, 5) ?? "—"}

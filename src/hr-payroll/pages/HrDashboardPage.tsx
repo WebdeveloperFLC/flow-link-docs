@@ -25,6 +25,7 @@ import { Stat } from "../components/ui/Stat";
 import { employeeCurrency, formatMoney, initials } from "../lib/format";
 import { totalPendingApprovals } from "../lib/nav";
 import { WtmHrTodayPanel } from "../components/wtm/WtmHrTodayPanel";
+import { WreHrDashboardWidgets } from "../components/wre/WreHrDashboardWidgets";
 import type { PayrollLineRow } from "../lib/types";
 
 const APPROVAL_ROUTES: Record<string, string> = {
@@ -178,6 +179,7 @@ export default function HrDashboardPage() {
       </div>
 
       {canSee("attendance") && <WtmHrTodayPanel />}
+      {canSee("attendance") && <WreHrDashboardWidgets />}
 
       <div className="grid g4">
         <Stat
