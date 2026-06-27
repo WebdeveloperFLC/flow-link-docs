@@ -17,7 +17,7 @@ import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload, Info, Search, Lay
 import { Link } from "react-router-dom";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
-import { ImportProgramSheetButton } from "../components/ImportProgramSheetButton";
+import { SmartProgramImportWizardGate } from "../components/SmartProgramImportWizard";
 import { ExportMenu } from "@/components/export/ExportMenu";
 import { useExportDataset } from "@/components/export/useExportDataset";
 import { buildProgramExportColumns } from "@/institutions/lib/programExportColumns";
@@ -962,7 +962,14 @@ export default function CourseReviewPage() {
           >
             <ExportMenu {...exportProps} disabled={loading} />
             {canEdit && (
-              <ImportProgramSheetButton institutions={institutions} canEdit={canEdit} onImported={load} />
+              <SmartProgramImportWizardGate
+                institutionId={instFilter !== "all" ? instFilter : null}
+                institutionName={selectedInstitution?.name ?? null}
+                existingPrograms={visibleRows}
+                programLevels={levels}
+                canEdit={canEdit}
+                onImported={load}
+              />
             )}
           </WorkspaceToolbar>
         </Card>
