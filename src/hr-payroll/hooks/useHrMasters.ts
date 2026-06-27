@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchHrMasters } from "./wpmsApi";
+import { fetchHrMasters } from "../lib/wpmsApi";
 
 export function useHrMasters(domain: string, includeInactive = true) {
   return useQuery({

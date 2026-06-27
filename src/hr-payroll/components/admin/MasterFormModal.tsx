@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ModalShell } from "./ModalShell";
+import { ModalShell } from "../ui/ModalShell";
 import type { HrMasterRow } from "../../lib/wpmsTypes";
 
 export function MasterFormModal({

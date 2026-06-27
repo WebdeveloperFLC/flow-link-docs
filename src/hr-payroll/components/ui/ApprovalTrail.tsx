@@ -1,4 +1,4 @@
-import type { ApprovalRow } from "../lib/types";
+import type { ApprovalRow } from "../../lib/types";
 
 type Props = {
   entityId: string;

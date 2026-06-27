@@ -66,7 +66,6 @@ export default function HrEssPage() {
   const { data: allLeaves = [] } = useHrLeaveRequests();
   const today = todayIsoInTz(tz);
   const { data: wtmSession } = useWtmSession(emp?.id, today);
-  const { data: att = [] } = useHrAttendance(emp?.id, cycle?.start_date, cycle?.end_date);
   const todayRow = att.find((a) => a.work_date === today) ?? null;
   const shownLeaveBalances = useMemo(
     () => displayLeaveBalances(leaveBalances, emp?.work_week, shift?.type),

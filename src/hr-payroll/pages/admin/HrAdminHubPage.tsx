@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { HrHubGrid } from "../components/ui/HrHubGrid";
+import { HrHubGrid } from "../../components/ui/HrHubGrid";
 
 const ADMIN_SECTIONS = [
   {

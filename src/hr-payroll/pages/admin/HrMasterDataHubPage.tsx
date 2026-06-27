@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { HrHubGrid } from "../ui/HrHubGrid";
+import { HrHubGrid } from "../../components/ui/HrHubGrid";
 import { MASTER_DATA_CATEGORIES, masterDomainsForCategory } from "../../lib/masterDataRegistry";
 
 export default function HrMasterDataHubPage() {

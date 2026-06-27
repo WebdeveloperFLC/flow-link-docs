@@ -2,14 +2,14 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { useHrAccess } from "../context/HrPayrollProvider";
-import { useHrEmployees } from "../hooks/useHrEmployees";
-import { useHrMasters } from "../hooks/useHrMasters";
-import { useAemsExceptions, useAemsHistory, useMatchingIncidents } from "../hooks/useAems";
-import { aemsHrAction, submitAemsException, uploadAemsEvidence } from "../lib/aemsApi";
-import { AEMS_STATUS_LABEL } from "../lib/aemsTypes";
-import { StatusBadge } from "../components/ui/StatusBadge";
-import { ModalShell } from "../components/ui/ModalShell";
+import { useHrAccess } from "../../context/HrPayrollProvider";
+import { useHrEmployees } from "../../hooks/useHrEmployees";
+import { useHrMasters } from "../../hooks/useHrMasters";
+import { useAemsExceptions, useAemsHistory, useMatchingIncidents } from "../../hooks/useAems";
+import { aemsHrAction, submitAemsException, uploadAemsEvidence } from "../../lib/aemsApi";
+import { AEMS_STATUS_LABEL } from "../../lib/aemsTypes";
+import { StatusBadge } from "../../components/ui/StatusBadge";
+import { ModalShell } from "../../components/ui/ModalShell";
 
 function ExceptionSubmitModal({
   employeeId,
@@ -325,7 +325,7 @@ export function AemsHrReviewPage() {
       return;
     }
     try {
-      const { aemsBulkProcess } = await import("../lib/aemsApi");
+      const { aemsBulkProcess } = await import("../../lib/aemsApi");
       const res = await aemsBulkProcess(selected, action, bulkComment.trim());
       fire(`Bulk ${action}: ${res.count} exceptions`);
       setSelected([]);
@@ -337,7 +337,7 @@ export function AemsHrReviewPage() {
 
   const doManual = async () => {
     try {
-      const { aemsManualAttendance } = await import("../lib/aemsApi");
+      const { aemsManualAttendance } = await import("../../lib/aemsApi");
       await aemsManualAttendance({
         employeeId: manual.employee_id,
         workDate: manual.work_date,
