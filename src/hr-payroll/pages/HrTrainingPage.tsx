@@ -340,7 +340,7 @@ export default function HrTrainingPage() {
                 <th>Type</th>
                 <th>Start</th>
                 <th>End</th>
-                <th>Extended</th>
+                <th>Extended completion</th>
                 <th>Completion</th>
                 <th>Unpaid</th>
                 <th>Status</th>
@@ -363,7 +363,9 @@ export default function HrTrainingPage() {
                     <td className="mono">{t.start_date ?? "—"}</td>
                     <td className="mono">{t.end_date ?? "—"}</td>
                     <td className="mono">{t.extended_end_date ?? "—"}</td>
-                    <td className="mono">{t.completion_date ?? "—"}</td>
+                    <td className="mono">
+                      {t.status === "Completed" ? (t.completion_date ?? "—") : "—"}
+                    </td>
                     <td style={{ textAlign: "center", color: t.unpaid_days > 0 ? "var(--rose)" : "inherit" }}>
                       {t.unpaid_days}
                     </td>

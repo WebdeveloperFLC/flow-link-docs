@@ -4,6 +4,7 @@ import { ModalShell } from "../ui/ModalShell";
 import { TRAINING_COMPLETION_REASONS } from "../../lib/trainingFilters";
 import type { TrainingRecordRow } from "../../lib/types";
 import { trainingEffectiveEnd } from "../../lib/trainingFilters";
+import { rpcErrorMessage } from "../../lib/hrApi";
 
 export function ExtendTrainingModal({
   row,
@@ -17,6 +18,9 @@ export function ExtendTrainingModal({
   const currentEnd = trainingEffectiveEnd(row) ?? row.start_date ?? "";
   const [extendedUntil, setExtendedUntil] = useState(currentEnd);
   const [reason, setReason] = useState("");
+  const [remarks, setRemarks] = useState("");
+  const [overrideType, setOverrideType] = useState(false);
+  const [typeOverride, setTypeOverride] = useState(row.type);
   const [err, setErr] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -32,11 +36,14 @@ export function ExtendTrainingModal({
     setErr("");
     setSaving(true);
     try {
-      await extendTrainingRecord(row, extendedUntil, reason.trim());
+      await extendTrainingRecord(row, extendedUntil, reason.trim(), {
+        remarks: remarks.trim() || undefined,
+        typeOverride: overrideType ? typeOverride : undefined,
+      });
       onSaved("Training extended");
       onClose();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Extension failed");
+      setErr(rpcErrorMessage(e, "Extension failed"));
     } finally {
       setSaving(false);
     }
@@ -72,7 +79,7 @@ export function ExtendTrainingModal({
         </div>
       </div>
       <label className="fld">
-        <span className="l">Extended until date</span>
+        <span className="l">Extension end date</span>
         <input
           type="date"
           className="input"
@@ -84,12 +91,39 @@ export function ExtendTrainingModal({
         <span className="l">Extension reason (required)</span>
         <textarea
           className="input"
-          rows={3}
+          rows={2}
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder="Why is this training being extended?"
         />
       </label>
+      <label className="fld">
+        <span className="l">Extension remarks</span>
+        <textarea
+          className="input"
+          rows={2}
+          value={remarks}
+          onChange={(e) => setRemarks(e.target.value)}
+          placeholder="Optional internal notes"
+        />
+      </label>
+      <label className="fld" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <input
+          type="checkbox"
+          checked={overrideType}
+          onChange={(e) => setOverrideType(e.target.checked)}
+        />
+        <span className="l" style={{ margin: 0 }}>Override Paid / Unpaid classification</span>
+      </label>
+      {overrideType && (
+        <label className="fld">
+          <span className="l">Paid / Unpaid</span>
+          <select className="input" value={typeOverride} onChange={(e) => setTypeOverride(e.target.value)}>
+            <option value="Paid">Paid</option>
+            <option value="Unpaid">Unpaid</option>
+          </select>
+        </label>
+      )}
       {err && <p style={{ color: "var(--rose)", fontSize: 13 }}>{err}</p>}
     </ModalShell>
   );
@@ -137,7 +171,7 @@ export function CompleteTrainingModal({
       );
       onClose();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Request failed");
+      setErr(rpcErrorMessage(e, "Request failed"));
     } finally {
       setSaving(false);
     }

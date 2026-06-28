@@ -6,7 +6,21 @@ export type ApprovalCategoryId =
   | "training"
   | "payroll";
 
-export type ApprovalStatusFilter = "Pending" | "Approved" | "Rejected" | "All";
+export type ApprovalStatusFilter =
+  | "Pending"
+  | "Approved"
+  | "Rejected"
+  | "Clarification Required"
+  | "All";
+
+export const CLARIFICATION_STATUSES = [
+  "Clarification Required",
+  "Pending Employee Response",
+] as const;
+
+export function isClarificationStatus(status: string): boolean {
+  return (CLARIFICATION_STATUSES as readonly string[]).includes(status);
+}
 
 export function isPendingApprovalStatus(category: ApprovalCategoryId, status: string): boolean {
   if (category === "training") {
@@ -30,5 +44,12 @@ export function matchesApprovalStatusFilter(
   if (filter === "Pending") return isPendingApprovalStatus(category, status);
   if (filter === "Approved") return isApprovedApprovalStatus(category, status);
   if (filter === "Rejected") return status === "Rejected";
+  if (filter === "Clarification Required") return isClarificationStatus(status);
   return status === filter;
+}
+
+export function approvalStatusDisplay(status: string): string {
+  if (status === "Clarification Required") return "Clarification Required";
+  if (status === "Pending Employee Response") return "Pending Employee Response";
+  return status;
 }

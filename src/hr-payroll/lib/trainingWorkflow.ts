@@ -160,6 +160,7 @@ export async function extendTrainingRecord(
   row: TrainingRecordRow,
   extendedUntil: string,
   reason: string,
+  options?: { remarks?: string; typeOverride?: string },
 ) {
   const trimmed = reason.trim();
   if (!trimmed) throw new Error("Extension reason is required");
@@ -170,6 +171,8 @@ export async function extendTrainingRecord(
       p_training_id: row.id,
       p_extended_until: extendedUntil,
       p_reason: trimmed,
+      p_remarks: options?.remarks ?? null,
+      p_type_override: options?.typeOverride ?? null,
     } as never);
     if (!error) {
       await hrAudit("Training Extended", row.employees?.full_name ?? row.id, extendedUntil, trimmed);
@@ -188,6 +191,8 @@ export async function extendTrainingRecord(
     original_end_date: row.original_end_date ?? row.end_date ?? null,
     extended_end_date: extendedUntil,
     extension_reason: trimmed,
+    extension_remarks: options?.remarks ?? null,
+    ...(options?.typeOverride ? { type: options.typeOverride } : {}),
     extended_by_id: actor.id,
     extended_by_label: actor.label,
     extended_at: new Date().toISOString(),
@@ -200,6 +205,7 @@ export async function extendTrainingRecord(
       original_end_date: row.original_end_date ?? row.end_date ?? null,
       extended_end_date: extendedUntil,
       extension_reason: trimmed,
+      extension_remarks: options?.remarks ?? null,
       extended_by_id: actor.id,
       extended_by_label: actor.label,
     } as never);
@@ -381,6 +387,7 @@ async function approveTrainingApp(
 
     await updateTraining(row.id, {
       status: "Completed",
+      completion_date: row.completion_date ?? new Date().toISOString().slice(0, 10),
       hr_approved_by_label: actor.label,
       hr_approved_at: new Date().toISOString(),
     });

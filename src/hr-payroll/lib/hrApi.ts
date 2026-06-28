@@ -190,15 +190,42 @@ export async function processApprovalDecision(
   return data;
 }
 
+export async function requestClarification(
+  entityType: string,
+  entityId: string,
+  comment: string,
+) {
+  const { data, error } = await supabase.rpc("fn_request_clarification" as never, {
+    p_entity_type: entityType,
+    p_entity_id: entityId,
+    p_comment: comment,
+  } as never);
+  if (error) throw error;
+  return data;
+}
+
+export async function resubmitAfterClarification(entityType: string, entityId: string) {
+  const { data, error } = await supabase.rpc("fn_resubmit_after_clarification" as never, {
+    p_entity_type: entityType,
+    p_entity_id: entityId,
+  } as never);
+  if (error) throw error;
+  return data;
+}
+
 export async function extendTraining(
   trainingId: string,
   extendedUntil: string,
   reason: string,
+  remarks?: string,
+  typeOverride?: string,
 ) {
   const { data, error } = await supabase.rpc("fn_extend_training" as never, {
     p_training_id: trainingId,
     p_extended_until: extendedUntil,
     p_reason: reason,
+    p_remarks: remarks ?? null,
+    p_type_override: typeOverride ?? null,
   } as never);
   if (error) throw error;
   return data;
@@ -376,6 +403,7 @@ export function rpcErrorMessage(e: unknown, fallback: string): string {
     const msg = (e as { message: unknown }).message;
     if (typeof msg === "string" && msg.trim()) return msg;
   }
+  if (e instanceof Error && e.message.trim()) return e.message;
   return fallback;
 }
 

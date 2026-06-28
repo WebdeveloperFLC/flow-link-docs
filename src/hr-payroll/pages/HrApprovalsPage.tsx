@@ -22,6 +22,8 @@ import {
   processApprovalDecision,
   processPayrollCycle,
   rebuildPayrollLine,
+  requestClarification,
+  rpcErrorMessage,
 } from "../lib/hrApi";
 import { decideTrainingCompletion } from "../lib/trainingWorkflow";
 import type {
@@ -36,9 +38,10 @@ import { canBypassTrainingApproval } from "../lib/trainingWorkflow";
 import {
   matchesApprovalStatusFilter,
   isPendingApprovalStatus,
+  approvalStatusDisplay,
   type ApprovalStatusFilter,
 } from "../lib/approvalQueue";
-import { getHrDocumentSignedUrl } from "../lib/hrStorage";
+import { getHrDocumentSignedUrl, downloadHrDocument } from "../lib/hrStorage";
 
 type CategoryId =
   | "leave"
@@ -197,7 +200,24 @@ export default function HrApprovalsPage() {
       const url = await getHrDocumentSignedUrl(path);
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (e) {
-      fire(e instanceof Error ? e.message : `Could not open ${label}`);
+      fire(rpcErrorMessage(e, `Could not open ${label}`));
+    }
+  };
+
+  const downloadStoragePath = async (
+    path: string | null | undefined,
+    fileName: string,
+    label: string,
+  ) => {
+    if (!path) {
+      fire(`No ${label} attached`);
+      return;
+    }
+    try {
+      await downloadHrDocument(path, fileName);
+      fire(`${label} downloaded`);
+    } catch (e) {
+      fire(rpcErrorMessage(e, `Could not download ${label}`));
     }
   };
 
@@ -365,7 +385,7 @@ export default function HrApprovalsPage() {
       setApproveRow(null);
       await invalidateAll();
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Approval failed");
+      fire(rpcErrorMessage(e, "Approval failed"));
     } finally {
       setActing(false);
     }
@@ -376,27 +396,36 @@ export default function HrApprovalsPage() {
     setActing(true);
     try {
       const comment = rejectComment.trim() || undefined;
-      const finalComment = clarifyMode
-        ? `Clarification requested: ${comment ?? "Please provide more details"}`
-        : comment;
-      if (rejectRow.category === "leave" && rejectRow.leave) {
-        await processApprovalDecision("leave", rejectRow.id, "Rejected", finalComment);
+      if (clarifyMode) {
+        if (!comment) {
+          fire("Clarification comment is required");
+          return;
+        }
+        if (rejectRow.category === "training") {
+          fire("Use Reject on training requests — clarification applies to leave, comp-off, late, and mispunch");
+          return;
+        }
+        await requestClarification(rejectRow.category, rejectRow.id, comment);
+        await hrAudit("Clarification Requested", rejectRow.employeeName, rejectRow.category, comment);
+        fire("Sent back for clarification — awaiting employee response");
+      } else if (rejectRow.category === "leave" && rejectRow.leave) {
+        await processApprovalDecision("leave", rejectRow.id, "Rejected", comment);
         if (comment) {
           await supabase
             .from("leave_requests" as never)
             .update({ rejection_reason: comment } as never)
             .eq("id", rejectRow.id);
         }
-        fire(clarifyMode ? "Sent back for clarification" : "Leave rejected");
+        fire("Leave rejected");
       } else if (rejectRow.category === "compoff" && rejectRow.compoff) {
-        await processApprovalDecision("compoff", rejectRow.id, "Rejected", finalComment);
-        fire(clarifyMode ? "Sent back for clarification" : "Comp-off rejected");
+        await processApprovalDecision("compoff", rejectRow.id, "Rejected", comment);
+        fire("Comp-off rejected");
       } else if (rejectRow.category === "late" && rejectRow.late) {
-        await processApprovalDecision("late", rejectRow.id, "Rejected", finalComment);
-        fire(clarifyMode ? "Sent back for clarification" : "Late exemption rejected");
+        await processApprovalDecision("late", rejectRow.id, "Rejected", comment);
+        fire("Late exemption rejected");
       } else if (rejectRow.category === "mispunch" && rejectRow.mispunch) {
-        await processApprovalDecision("mispunch", rejectRow.id, "Rejected", finalComment);
-        fire(clarifyMode ? "Sent back for clarification" : "Mispunch rejected");
+        await processApprovalDecision("mispunch", rejectRow.id, "Rejected", comment);
+        fire("Mispunch rejected");
       } else if (rejectRow.category === "training" && rejectRow.training) {
         await decideTrainingCompletion(rejectRow.training, "Rejected");
         fire("Training rejected");
@@ -407,7 +436,7 @@ export default function HrApprovalsPage() {
       setViewRow(null);
       await invalidateAll();
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Rejection failed");
+      fire(rpcErrorMessage(e, clarifyMode ? "Clarification request failed" : "Rejection failed"));
     } finally {
       setActing(false);
     }
@@ -480,6 +509,7 @@ export default function HrApprovalsPage() {
             <option value="Pending">Pending</option>
             <option value="Approved">Approved</option>
             <option value="Rejected">Rejected</option>
+            <option value="Clarification Required">Clarification Required</option>
             <option value="All">All statuses</option>
           </select>
         </div>
@@ -516,7 +546,7 @@ export default function HrApprovalsPage() {
                     )}
                   </td>
                   <td className="muted" style={{ fontSize: 12.5 }}>{row.details}</td>
-                  <td><StatusBadge status={row.status} /></td>
+                  <td><StatusBadge status={approvalStatusDisplay(row.status)} /></td>
                   <td>
                     <div className="row-flex" style={{ gap: 6, flexWrap: "wrap" }}>
                       <button type="button" className="btn btn-sm" onClick={() => setViewRow(row)}>
@@ -639,8 +669,24 @@ export default function HrApprovalsPage() {
                   )
                 }
               >
-                {viewRow.leave.employee_documents?.file_name ?? "View attachment"}
+                View
+              </button>{" "}
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() =>
+                  void downloadStoragePath(
+                    viewRow.leave?.employee_documents?.storage_path,
+                    viewRow.leave?.employee_documents?.file_name ?? "leave-document",
+                    "leave document",
+                  )
+                }
+              >
+                Download
               </button>
+              <span className="muted" style={{ marginLeft: 6, fontSize: 12 }}>
+                {viewRow.leave.employee_documents?.file_name ?? "attachment"}
+              </span>
             </p>
           )}
           <ApprovalTrail entityId={viewRow.id} approvals={leaveApprovals} />
@@ -681,13 +727,29 @@ export default function HrApprovalsPage() {
           <p><strong>Reason:</strong> {viewRow.compoff.reason ?? "—"}</p>
           <p><strong>Status:</strong> {viewRow.compoff.status}</p>
           {viewRow.compoff.document_path && (
-            <button
-              type="button"
-              className="btn btn-sm"
-              onClick={() => void openStoragePath(viewRow.compoff?.document_path, "comp-off evidence")}
-            >
-              View supporting attachment
-            </button>
+            <p>
+              <strong>Supporting attachment:</strong>{" "}
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => void openStoragePath(viewRow.compoff?.document_path, "comp-off evidence")}
+              >
+                View
+              </button>{" "}
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() =>
+                  void downloadStoragePath(
+                    viewRow.compoff?.document_path,
+                    "comp-off-evidence",
+                    "comp-off evidence",
+                  )
+                }
+              >
+                Download
+              </button>
+            </p>
           )}
         </ModalShell>
       )}

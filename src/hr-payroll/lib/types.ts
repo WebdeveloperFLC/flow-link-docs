@@ -389,6 +389,7 @@ export type TrainingRecordRow = {
   original_end_date: string | null;
   extended_end_date: string | null;
   extension_reason: string | null;
+  extension_remarks?: string | null;
   extended_by_label: string | null;
   extended_at: string | null;
   completion_reason: string | null;
@@ -419,6 +420,7 @@ export type TrainingExtensionHistoryRow = {
   original_end_date: string | null;
   extended_end_date: string;
   extension_reason: string;
+  extension_remarks?: string | null;
   extended_by_label: string | null;
   extended_at: string;
 };

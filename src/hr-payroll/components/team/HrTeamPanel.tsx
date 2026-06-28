@@ -4,6 +4,7 @@ import { HR_ROLE_LIST } from "../../context/HrPayrollProvider";
 import { useHrReferenceData } from "../../hooks/useHrEmployees";
 import { useHrCrmStaff, useHrTeamActions } from "../../hooks/useHrTeam";
 import { useHrAccess } from "../../context/HrPayrollProvider";
+import { rpcErrorMessage } from "../../lib/hrApi";
 import type { CrmStaffRow } from "../../lib/types";
 import type { HrRole } from "../../lib/constants";
 import { StatusBadge } from "../ui/StatusBadge";
@@ -49,7 +50,7 @@ export function HrTeamPanel() {
         fire(`${row.full_name} → ${role}`);
       }
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Update failed");
+      fire(rpcErrorMessage(e, "Update failed"));
     } finally {
       setBusyId(null);
     }
@@ -66,7 +67,7 @@ export function HrTeamPanel() {
       });
       fire(`Branch scope updated · ${row.full_name}`);
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Scope update failed");
+      fire(rpcErrorMessage(e, "Scope update failed"));
     } finally {
       setBusyId(null);
     }
@@ -78,7 +79,7 @@ export function HrTeamPanel() {
       await importStaff.mutateAsync(row.staff_id);
       fire(`Imported ${row.full_name} as draft employee`);
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Import failed");
+      fire(rpcErrorMessage(e, "Import failed"));
     } finally {
       setBusyId(null);
     }
@@ -90,7 +91,7 @@ export function HrTeamPanel() {
       await syncStaffStatus.mutateAsync(row.staff_id);
       fire(`Synced CRM status · ${row.full_name}`);
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Sync failed");
+      fire(rpcErrorMessage(e, "Sync failed"));
     } finally {
       setBusyId(null);
     }
