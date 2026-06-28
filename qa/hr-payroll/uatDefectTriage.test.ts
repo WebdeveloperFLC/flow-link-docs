@@ -89,4 +89,13 @@ describe("HR UAT defect triage", () => {
     expect(extend).toContain("Extension remarks");
     expect(extend).toContain("Override Paid / Unpaid");
   });
+
+  it("training extension migration is self-contained when history table missing", () => {
+    const sql = readFileSync(
+      join(ROOT, "supabase/migrations/20260742220000_hr_training_extension_enhancements.sql"),
+      "utf8",
+    );
+    expect(sql).toContain("CREATE TABLE IF NOT EXISTS training_extension_history");
+    expect(sql).toContain("extension_remarks");
+  });
 });
