@@ -128,6 +128,8 @@ export type EmployeeRow = {
   salary_currency?: string;
   payroll_country?: string;
   monthly_gross: number;
+  /** Monthly | Daily | Hourly — wage interpretation for estimated payroll. */
+  pay_basis?: string | null;
   /** CTC / salary package — optional; UI falls back to monthly_gross. */
   salary_package?: number | null;
   basic: number;

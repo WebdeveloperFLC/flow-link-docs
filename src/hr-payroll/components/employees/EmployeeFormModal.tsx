@@ -92,6 +92,7 @@ type FormState = {
   salary_currency: string;
   payroll_country: string;
   salary_package: number | "";
+  pay_basis: "Monthly" | "Daily" | "Hourly";
   monthly_gross: number | "";
   basic: number | "";
   hra: number | "";
@@ -175,6 +176,7 @@ function fromEmployee(e: EmployeeRow): FormState {
     salary_currency: e.salary_currency ?? e.companies?.currency ?? "INR",
     payroll_country: e.payroll_country ?? "IN",
     salary_package: e.salary_package ?? "",
+    pay_basis: (e.pay_basis === "Daily" || e.pay_basis === "Hourly" ? e.pay_basis : "Monthly") as FormState["pay_basis"],
     monthly_gross: e.monthly_gross,
     basic: e.basic,
     hra: e.hra,
@@ -266,6 +268,7 @@ const blank = (
   salary_currency: firstCo?.currency ?? "INR",
   payroll_country: "IN",
   salary_package: "",
+  pay_basis: "Monthly",
   monthly_gross: "",
   basic: "",
   hra: "",
@@ -589,6 +592,7 @@ export function EmployeeFormModal({
       salary_currency: f.salary_currency,
       payroll_country: f.payroll_country,
       salary_package: f.salary_package === "" ? null : Number(f.salary_package),
+      pay_basis: f.pay_basis,
       monthly_gross: Number(f.monthly_gross),
       basic: Number(f.basic) || 0,
       hra: Number(f.hra) || 0,
@@ -1212,8 +1216,26 @@ export function EmployeeFormModal({
             <>
               <div className="sec-label">Salary Structure (single source — drives payroll)</div>
               <label className="fld">
+                <span className="l">Pay basis</span>
+                <select
+                  className="input"
+                  value={f.pay_basis}
+                  onChange={(e) =>
+                    set("pay_basis", e.target.value as FormState["pay_basis"])
+                  }
+                >
+                  <option value="Monthly">Monthly — present days × daily rate</option>
+                  <option value="Daily">Daily — daily wage per present day</option>
+                  <option value="Hourly">Hourly — worked hours × hourly rate</option>
+                </select>
+              </label>
+              <label className="fld">
                 <span className="l">
-                  Monthly Gross Salary ({f.salary_currency === "CAD" ? "CAD" : "₹"})
+                  {f.pay_basis === "Hourly"
+                    ? `Hourly Rate (${f.salary_currency === "CAD" ? "CAD" : "₹"}/hr)`
+                    : f.pay_basis === "Daily"
+                      ? `Daily Wage (${f.salary_currency === "CAD" ? "CAD" : "₹"}/day)`
+                      : `Monthly Gross Salary (${f.salary_currency === "CAD" ? "CAD" : "₹"})`}
                 </span>
                 <input
                   className={`input mono${err.monthly ? " err" : ""}`}

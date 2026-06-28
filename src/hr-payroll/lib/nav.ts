@@ -40,6 +40,7 @@ export const HR_NAV: NavGroup[] = [
     grp: "Payroll",
     items: [
       { k: "calculator", ic: "∑", t: "Payroll Calculator" },
+      { k: "payrollValidation", ic: "◎", t: "Payroll Validation" },
       { k: "verify", ic: "▤", t: "Payroll Verification" },
       { k: "salaryRegister", ic: "▥", t: "Salary Register" },
       { k: "payrollHistory", ic: "◷", t: "Payroll History" },
@@ -86,6 +87,7 @@ export function screenKeyFromPath(pathname: string): HrScreenKey {
 
   if (pathname.startsWith("/hr/payroll/cycle") || pathname.startsWith("/hr/config/payroll-cycle"))
     return "config";
+  if (pathname.startsWith("/hr/payroll/validation")) return "payrollValidation";
   if (pathname.startsWith("/hr/payroll/process") || pathname.startsWith("/hr/calculator"))
     return "calculator";
   if (pathname.startsWith("/hr/payroll/register")) return "salaryRegister";

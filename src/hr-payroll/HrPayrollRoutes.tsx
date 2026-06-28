@@ -16,6 +16,7 @@ import HrEmployeesPage from "./pages/HrEmployeesPage";
 import HrShiftsPage from "./pages/HrShiftsPage";
 import HrTrainingPage from "./pages/HrTrainingPage";
 import HrCalculatorPage from "./pages/HrCalculatorPage";
+import HrPayrollValidationPage from "./pages/HrPayrollValidationPage";
 import HrVerifyPage from "./pages/HrVerifyPage";
 import HrAttendancePage from "./pages/HrAttendancePage";
 import {
@@ -97,6 +98,7 @@ export default function HrPayrollRoutes() {
           {/* Payroll */}
           <Route path="payroll/cycle" element={<Navigate to="/hr/config/payroll-cycle" replace />} />
           <Route path="payroll/process" element={<HrCalculatorPage />} />
+          <Route path="payroll/validation" element={<HrPayrollValidationPage />} />
           <Route path="payroll/register" element={<HrSalaryRegisterPage />} />
           <Route path="payroll/history" element={<HrPayrollHistoryPage />} />
           <Route path="payroll/verify/:cycleId?" element={<HrVerifyPage />} />

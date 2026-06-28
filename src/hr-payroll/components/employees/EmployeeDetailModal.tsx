@@ -233,6 +233,7 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
               </div>
               <div className="grid g2" style={{ gap: 10, marginBottom: 14 }}>
                 {[
+                  ["Pay basis", emp.pay_basis ?? "Monthly"],
                   ["Monthly Gross", money(emp.monthly_gross)],
                   ["Basic", money(emp.basic)],
                   ["HRA", money(emp.hra)],

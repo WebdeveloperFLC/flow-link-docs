@@ -32,6 +32,8 @@ import { employeeCurrency, formatMoney } from "../lib/format";
 import { printSalarySlip, isPayrollSlipCycle } from "../lib/salarySlip";
 import { buildStatutoryBreakdown } from "../lib/payrollBreakdown";
 import { PayrollBreakdownPanel } from "../components/payroll/PayrollBreakdownPanel";
+import { EstimatedPayrollPanel } from "../components/payroll/EstimatedPayrollPanel";
+import { useEstimatedPayrollForEmployee } from "../hooks/useEstimatedPayroll";
 import { ensureMyEmployeeProfile } from "../lib/hrApi";
 import { HR_ORG_ID } from "../lib/constants";
 
@@ -98,6 +100,7 @@ export default function HrEssPage() {
   const currency = employeeCurrency(emp);
   const isCanada = currency === "CAD" || emp?.payroll_country === "CA";
   const money = (n: number) => formatMoney(n, currency);
+  const { estimate: payrollEstimate } = useEstimatedPayrollForEmployee(emp, cycle);
 
   const setupMyProfile = async () => {
     setSetupBusy(true);
@@ -297,6 +300,10 @@ export default function HrEssPage() {
         cycleEnd={cycle?.end_date}
         fire={fire}
       />
+
+      {payrollEstimate && cycle && (
+        <EstimatedPayrollPanel estimate={payrollEstimate} currency={currency} />
+      )}
 
       <div className="grid g4">
         <Stat variant="metric" tone="green" lab="Earned Today" val={money(r.daily_rate)} meta="daily rate" />

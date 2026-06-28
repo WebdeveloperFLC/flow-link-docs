@@ -1506,6 +1506,84 @@
   color: #4338ca;
 }
 
+[data-hr-payroll] .ess-estimate-card {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: linear-gradient(145deg, #fff, rgba(254, 243, 199, 0.35));
+}
+[data-hr-payroll] .ess-estimate-grid {
+  display: grid;
+  gap: 8px;
+}
+[data-hr-payroll] .ess-estimate-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  font-size: 13.5px;
+}
+[data-hr-payroll] .ess-estimate-row:last-child {
+  border-bottom: none;
+}
+[data-hr-payroll] .ess-estimate-label {
+  color: var(--ink-soft);
+}
+[data-hr-payroll] .ess-estimate-val {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  text-align: right;
+}
+[data-hr-payroll] .ess-estimate-disclaimer {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(254, 243, 199, 0.5);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  font-size: 12px;
+  color: #92400e;
+  line-height: 1.45;
+}
+[data-hr-payroll] .ess-estimate-section {
+  margin-bottom: 14px;
+}
+[data-hr-payroll] .ess-estimate-section-title {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--mut);
+  margin-bottom: 6px;
+}
+[data-hr-payroll] .ess-estimate-row--gross .ess-estimate-val {
+  color: var(--moss-deep);
+  font-size: 15px;
+}
+[data-hr-payroll] .ess-estimate-row--deduct .ess-estimate-val {
+  color: #dc2626;
+}
+[data-hr-payroll] .ess-estimate-net {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12px 14px;
+  margin-top: 4px;
+  border-radius: 10px;
+  background: linear-gradient(145deg, rgba(238, 245, 255, 0.9), rgba(232, 239, 230, 0.9));
+  border: 1px solid rgba(207, 225, 247, 0.8);
+}
+[data-hr-payroll] .ess-estimate-net-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4338ca;
+}
+[data-hr-payroll] .ess-estimate-net-val {
+  font-family: "Fraunces", serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #4338ca;
+}
+
 [data-hr-payroll] .ess-stat-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
