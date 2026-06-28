@@ -415,6 +415,8 @@ export type EssPersonalContactPayload = {
   emergencyRelation: string;
   emergencyPhone: string;
   emergencyEmail?: string;
+  emergencyAlternateMobile?: string;
+  emergencyAddress?: string;
 };
 
 export async function updateEssPersonalContact(payload: EssPersonalContactPayload) {
@@ -427,6 +429,8 @@ export async function updateEssPersonalContact(payload: EssPersonalContactPayloa
     p_emergency_relation: payload.emergencyRelation,
     p_emergency_phone: payload.emergencyPhone,
     p_emergency_email: payload.emergencyEmail ?? null,
+    p_emergency_alternate_mobile: payload.emergencyAlternateMobile ?? null,
+    p_emergency_address: payload.emergencyAddress ?? null,
   } as never);
   if (error) throw error;
   return data as import("./types").EmployeeRow;

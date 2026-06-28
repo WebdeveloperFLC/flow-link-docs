@@ -153,14 +153,18 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
                 <Row k="Personal Mobile" v={personalMobile(emp)} />
                 <Row k="Alternate Personal Mobile" v={emp.alternate_personal_mobile} />
                 <Row k="Home Telephone" v={emp.home_telephone} />
+                <Row k="Preferred Contact Method" v={emp.preferred_contact_method} />
                 <Row k="Emergency Contact Person" v={personalEc.name || null} />
                 <Row k="Relationship" v={personalEc.relation || null} />
                 <Row k="Emergency Contact Number" v={personalEc.phone || null} />
                 <Row k="Emergency Contact Email" v={personalEc.email || null} />
+                <Row k="Emergency Alternate Mobile" v={personalEc.alternate_mobile || null} />
+                <Row k="Emergency Address" v={personalEc.address || null} />
               </div>
               <div className="sec-label">Official company contact information</div>
               <div className="grid g3" style={{ gap: "12px 22px" }}>
                 <Row k="Company Email" v={emp.company_email} />
+                <Row k="Official Communication Email" v={emp.official_communication_email} />
                 <Row k="Company Mobile" v={emp.company_mobile} />
                 <Row k="Extension" v={emp.extension_number} />
                 <Row k="Direct Office Number" v={emp.direct_office_number} />

@@ -29,11 +29,15 @@ type Row = {
   personalMobile: string;
   alternatePersonalMobile: string;
   homeTelephone: string;
+  preferredContactMethod: string;
   personalEmergencyPerson: string;
   personalEmergencyRelation: string;
   personalEmergencyNumber: string;
   personalEmergencyEmail: string;
+  personalEmergencyAlternateMobile: string;
+  personalEmergencyAddress: string;
   companyEmail: string;
+  officialCommunicationEmail: string;
   companyMobile: string;
   extensionNumber: string;
   directOfficeNumber: string;
@@ -60,11 +64,15 @@ const COLUMNS: HrReportColumn<Row>[] = [
   { key: "personalMobile", label: "Personal Mobile", sortable: true, exportValue: (r) => r.personalMobile },
   { key: "alternatePersonalMobile", label: "Alternate Personal Mobile", exportValue: (r) => r.alternatePersonalMobile },
   { key: "homeTelephone", label: "Home Telephone", exportValue: (r) => r.homeTelephone },
+  { key: "preferredContactMethod", label: "Preferred Contact Method", exportValue: (r) => r.preferredContactMethod },
   { key: "personalEmergencyPerson", label: "Personal Emergency Person", exportValue: (r) => r.personalEmergencyPerson },
   { key: "personalEmergencyRelation", label: "Personal Emergency Relation", exportValue: (r) => r.personalEmergencyRelation },
   { key: "personalEmergencyNumber", label: "Personal Emergency Number", exportValue: (r) => r.personalEmergencyNumber },
   { key: "personalEmergencyEmail", label: "Personal Emergency Email", exportValue: (r) => r.personalEmergencyEmail },
+  { key: "personalEmergencyAlternateMobile", label: "Personal Emergency Alternate Mobile", exportValue: (r) => r.personalEmergencyAlternateMobile },
+  { key: "personalEmergencyAddress", label: "Personal Emergency Address", exportValue: (r) => r.personalEmergencyAddress },
   { key: "companyEmail", label: "Company Email", sortable: true, exportValue: (r) => r.companyEmail },
+  { key: "officialCommunicationEmail", label: "Official Communication Email", exportValue: (r) => r.officialCommunicationEmail },
   { key: "companyMobile", label: "Company Mobile", sortable: true, exportValue: (r) => r.companyMobile },
   { key: "extensionNumber", label: "Extension", exportValue: (r) => r.extensionNumber },
   { key: "directOfficeNumber", label: "Direct Office Number", exportValue: (r) => r.directOfficeNumber },

@@ -67,6 +67,7 @@ const REQUIRED_MIGRATIONS = [
   "20260738120000_hr_payroll_cycle_uat_reset.sql",
   "20260739120000_hr_employee_contact_information.sql",
   "20260740120000_hr_uat_defect_triage.sql",
+  "20260741120000_hr_employee_contact_enhancements.sql",
 ];
 
 const REQUIRED_RPCS = [

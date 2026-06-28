@@ -67,10 +67,14 @@ export function buildEmp360InfoSections(args: BuildArgs) {
     row("Relationship", personalEc.relation || null),
     row("Emergency contact number", personalEc.phone || null),
     row("Emergency contact email", personalEc.email || null),
+    row("Emergency alternate mobile", personalEc.alternate_mobile || null),
+    row("Emergency address", personalEc.address || null),
+    row("Preferred contact method", emp.preferred_contact_method),
   ];
 
   const officialContact: Row[] = [
     row("Company email", emp.company_email),
+    row("Official communication email", emp.official_communication_email),
     row("Company mobile", emp.company_mobile),
     row("Extension", emp.extension_number),
     row("Direct office number", emp.direct_office_number),

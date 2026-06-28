@@ -9,6 +9,8 @@ export const EMPLOYEE_CONTACT_EXTENSION_FIELDS = [
   "company_emergency_contact_person",
   "company_emergency_contact_number",
   "company_emergency_contact_email",
+  "official_communication_email",
+  "preferred_contact_method",
 ] as const;
 
 export function isPostgrestSchemaError(error: { message?: string; code?: string }): boolean {

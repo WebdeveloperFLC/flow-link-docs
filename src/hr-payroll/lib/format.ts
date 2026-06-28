@@ -42,7 +42,7 @@ export function payrollCompanyLabel(c: { name: string; legal_name?: string | nul
 }
 
 export function parseEmergencyContacts(raw: unknown): EmergencyContact[] {
-  if (!Array.isArray(raw)) return [{ name: "", phone: "", relation: "", email: "" }];
+  if (!Array.isArray(raw)) return [{ name: "", phone: "", relation: "", email: "", alternate_mobile: "", address: "" }];
   const rows = raw.slice(0, 2).map((r) => {
     const o = r as Record<string, string>;
     return {
@@ -50,9 +50,11 @@ export function parseEmergencyContacts(raw: unknown): EmergencyContact[] {
       phone: o.phone ?? "",
       relation: o.relation ?? "",
       email: o.email ?? "",
+      alternate_mobile: o.alternate_mobile ?? "",
+      address: o.address ?? "",
     };
   });
-  if (rows.length === 0) rows.push({ name: "", phone: "", relation: "", email: "" });
+  if (rows.length === 0) rows.push({ name: "", phone: "", relation: "", email: "", alternate_mobile: "", address: "" });
   return rows;
 }
 
