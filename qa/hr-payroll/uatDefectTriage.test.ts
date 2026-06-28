@@ -97,5 +97,7 @@ describe("HR UAT defect triage", () => {
     );
     expect(sql).toContain("CREATE TABLE IF NOT EXISTS training_extension_history");
     expect(sql).toContain("extension_remarks");
+    expect(sql).not.toContain("current_org_id");
+    expect(sql).toContain("has_perm(org_id, 'approve')");
   });
 });

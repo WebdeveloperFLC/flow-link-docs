@@ -46,12 +46,20 @@ ALTER TABLE training_extension_history ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS train_ext_hist_select ON training_extension_history;
 CREATE POLICY train_ext_hist_select ON training_extension_history FOR SELECT USING (
-  org_id = current_org_id() AND can_view_org(org_id)
+  is_hr(org_id)
+  OR EXISTS (
+    SELECT 1 FROM training_records tr
+    WHERE tr.id = training_extension_history.training_id
+      AND (
+        manages_employee(tr.org_id, tr.employee_id)
+        OR tr.employee_id = current_employee_id(tr.org_id)
+      )
+  )
 );
 DROP POLICY IF EXISTS train_ext_hist_write ON training_extension_history;
 CREATE POLICY train_ext_hist_write ON training_extension_history FOR ALL USING (
-  org_id = current_org_id() AND has_perm(org_id, 'approve')
-);
+  has_perm(org_id, 'approve')
+) WITH CHECK (has_perm(org_id, 'approve'));
 
 CREATE OR REPLACE FUNCTION fn_extend_training(
   p_training_id uuid,
