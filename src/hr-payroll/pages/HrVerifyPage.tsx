@@ -8,7 +8,8 @@ import { useHrPayrollLinesMulti, useHrCycles, rpcRollupInputs } from "../hooks/u
 import { ModalShell } from "../components/ui/ModalShell";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { formatMoney, employeeCurrency, payrollCompanyLabel } from "../lib/format";
-import { rebuildPayrollLine, hrAudit, lockPayrollCycle, reopenPayrollCycle, processPayrollCycle, approvePayrollCycle, markPayrollPaid, rebuildPayrollCycle } from "../lib/hrApi";
+import { rebuildPayrollLine, hrAudit, lockPayrollCycle, resetPayrollCycleUat, processPayrollCycle, approvePayrollCycle, markPayrollPaid, rebuildPayrollCycle } from "../lib/hrApi";
+import { canResetPayrollCycleUat, canUserResetPayrollCycleUat } from "../lib/payrollUatReset";
 import { printSalarySlip, isPayrollSlipCycle } from "../lib/salarySlip";
 import { downloadPayrollRegister, linesToRegisterRows, printRegisterPdf, printBatchSalarySlips } from "../lib/payrollExport";
 import {
@@ -183,7 +184,7 @@ function OverrideModal({
 
 export default function HrVerifyPage() {
   const { cycleId } = useParams<{ cycleId?: string }>();
-  const { cycle: ctxCycle, can, fire } = useHrAccess();
+  const { cycle: ctxCycle, can, actualCan, assignedRole, fire } = useHrAccess();
   const { data: ref } = useHrReferenceData();
   const { data: allCycles = [] } = useHrCycles();
   const qc = useQueryClient();
@@ -197,8 +198,7 @@ export default function HrVerifyPage() {
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [ovrLine, setOvrLine] = useState<PayrollLineRow | null>(null);
   const [breakdownLine, setBreakdownLine] = useState<PayrollLineRow | null>(null);
-  const [reopenOpen, setReopenOpen] = useState(false);
-  const [reopenReason, setReopenReason] = useState("");
+  const [uatResetOpen, setUatResetOpen] = useState(false);
 
   useEffect(() => {
     if (!ctxCycle || filtersInitialized) return;
@@ -306,12 +306,18 @@ export default function HrVerifyPage() {
   const cycleStatus = workflowCycle?.status ?? "Draft";
   const locked = cycleStatus === "Locked" || cycleStatus === "Paid";
   const editable = canRunCycleWorkflow && ["Draft", "Processed", "Approved"].includes(cycleStatus);
-  const canReopenCycle =
-    canRunCycleWorkflow &&
-    (cycleStatus === "Processed" ||
-      cycleStatus === "Approved" ||
-      cycleStatus === "Locked" ||
-      cycleStatus === "Paid");
+  const canUatResetCycle = canResetPayrollCycleUat({
+    cycle: workflowCycle,
+    hasSelectedCycle: canRunCycleWorkflow,
+    role: assignedRole,
+    canConfigure: actualCan("configure"),
+    canApprove: actualCan("approve"),
+  });
+  const showUatResetNote = canUserResetPayrollCycleUat({
+    role: assignedRole,
+    canConfigure: actualCan("configure"),
+    canApprove: actualCan("approve"),
+  });
 
   const refreshCycle = async () => {
     await qc.invalidateQueries({ queryKey: ["hr-payroll-cycle"] });
@@ -386,17 +392,15 @@ export default function HrVerifyPage() {
     }
   };
 
-  const reopenCycle = async () => {
+  const uatResetCycle = async () => {
     if (!workflowCycleId || !workflowCycle) return;
     try {
-      await reopenPayrollCycle(workflowCycleId, reopenReason.trim() || undefined);
-      await hrAudit("Payroll Reopened", workflowCycle.label, cycleStatus, reopenReason.trim() || "—");
-      fire("Payroll reopened for corrections");
-      setReopenOpen(false);
-      setReopenReason("");
+      await resetPayrollCycleUat(workflowCycleId);
+      fire("Payroll cycle reset for UAT — run Process salary again");
+      setUatResetOpen(false);
       await refreshCycle();
     } catch (e) {
-      fire(e instanceof Error ? e.message : "Reopen failed — apply migration 13");
+      fire(e instanceof Error ? e.message : "UAT reset failed — apply migration 20260738120000");
     }
   };
 
@@ -540,9 +544,9 @@ export default function HrVerifyPage() {
                   Disbursement complete
                 </span>
               )}
-              {canReopenCycle && (
-                <button type="button" className="btn btn-sm" onClick={() => setReopenOpen(true)}>
-                  Reset to Draft
+              {canUatResetCycle && (
+                <button type="button" className="btn btn-sm" onClick={() => setUatResetOpen(true)}>
+                  Reset Payroll Cycle (UAT)
                 </button>
               )}
             </>
@@ -567,6 +571,11 @@ export default function HrVerifyPage() {
             Salary is computed from <strong>monthly gross × payable days</strong>, never from CTC.
           </div>
           <PayrollWorkflowStepper status={cycleStatus} />
+          {showUatResetNote && (
+            <p style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 12, marginBottom: 0 }}>
+              Reset Payroll Cycle (UAT) is available only for non-production payroll cycles.
+            </p>
+          )}
         </div>
       )}
 
@@ -858,35 +867,43 @@ export default function HrVerifyPage() {
         />
       )}
 
-      {reopenOpen && (
+      {uatResetOpen && (
         <ModalShell
-          title="Reset payroll cycle to Draft"
-          onClose={() => setReopenOpen(false)}
+          title="Reset Payroll Cycle (UAT)"
+          onClose={() => setUatResetOpen(false)}
           footer={
             <>
-              <button type="button" className="btn" onClick={() => setReopenOpen(false)}>
+              <button type="button" className="btn" onClick={() => setUatResetOpen(false)}>
                 Cancel
               </button>
-              <button type="button" className="btn btn-primary" onClick={() => void reopenCycle()}>
-                Reset to Draft
+              <button type="button" className="btn btn-primary" onClick={() => void uatResetCycle()}>
+                Continue
               </button>
             </>
           }
         >
           <p style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 12 }}>
-            Clears Processed / Approved / Locked / Paid status so you can run the payroll workflow again.
-            Attendance edits will be allowed again. Provide a reason for the audit trail.
+            This action is intended for UAT only.
           </p>
-          <label className="fld">
-            <span className="l">Reason</span>
-            <textarea
-              className="input"
-              rows={3}
-              value={reopenReason}
-              onChange={(e) => setReopenReason(e.target.value)}
-              placeholder="e.g. Late exemption correction for Karan"
-            />
-          </label>
+          <p style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 12 }}>
+            It will remove generated payroll results for the selected payroll cycle.
+          </p>
+          <p style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 8 }}>
+            The following will be preserved:
+          </p>
+          <ul style={{ fontSize: 13, color: "var(--ink-soft)", marginTop: 0, marginBottom: 12, paddingLeft: 20 }}>
+            <li>Employee Master</li>
+            <li>Attendance</li>
+            <li>Salary Structure</li>
+            <li>Payroll Cycle</li>
+            <li>Audit History</li>
+          </ul>
+          <p style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 12 }}>
+            This action cannot be undone.
+          </p>
+          <p style={{ fontSize: 13, color: "var(--ink-soft)", marginBottom: 0 }}>
+            Do you want to continue?
+          </p>
         </ModalShell>
       )}
     </div>

@@ -63,6 +63,8 @@ const REQUIRED_MIGRATIONS = [
   "20260734120000_hr_wre_pack23.sql",
   "20260735120000_hr_wtm_smoke_p1_fixes.sql",
   "20260736120000_hr_core_stabilization.sql",
+  "20260737120000_hr_pay_basis_salary_structure.sql",
+  "20260738120000_hr_payroll_cycle_uat_reset.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -114,6 +116,8 @@ const REQUIRED_RPCS = [
   "fn_wre_reevaluate",
   "fn_wpms_employee_bundle_at",
   "fn_wpms_policy_config_at",
+  "fn_reset_payroll_cycle_uat",
+  "fn_can_reset_payroll_cycle_uat",
 ];
 
 const REQUIRED_PAGES = [

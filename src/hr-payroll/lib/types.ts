@@ -553,6 +553,7 @@ export type PayrollCycleRow = {
   end_date: string;
   payroll_days: number;
   status: string;
+  is_production?: boolean;
   processed_at?: string | null;
   approved_at?: string | null;
   paid_at?: string | null;

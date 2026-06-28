@@ -353,6 +353,15 @@ export async function reopenPayrollCycle(cycleId: string, reason?: string) {
   return data;
 }
 
+/** UAT-only: clears generated payroll artifacts and returns cycle to Draft. */
+export async function resetPayrollCycleUat(cycleId: string) {
+  const { data, error } = await supabase.rpc("fn_reset_payroll_cycle_uat" as never, {
+    p_cycle: cycleId,
+  } as never);
+  if (error) throw error;
+  return data;
+}
+
 export async function fetchPayrollRegisterExport(cycleId: string, branch?: string) {
   const { data, error } = await supabase.rpc("fn_export_payroll_register" as never, {
     p_cycle: cycleId,
