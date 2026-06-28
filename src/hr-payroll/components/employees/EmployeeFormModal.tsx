@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../../lib/constants";
 import { fillSalaryComponents, formatMoney, parseEmergencyContacts, payrollCompanyLabel, weeklyOffDays } from "../../lib/format";
-import { validatePersonalContact } from "../../lib/employeeContact";
+import { validatePersonalContact, PREFERRED_CONTACT_METHODS } from "../../lib/employeeContact";
 import { isPostgrestSchemaError, stripEmployeeContactExtensions } from "../../lib/employeeSave";
 import {
   buildMonthlySalaryStructure,
@@ -77,6 +77,8 @@ type FormState = {
   company_emergency_contact_person: string;
   company_emergency_contact_number: string;
   company_emergency_contact_email: string;
+  official_communication_email: string;
+  preferred_contact_method: string;
   addr_current: string;
   addr_permanent: string;
   emergency: string;
@@ -170,6 +172,8 @@ function fromEmployee(e: EmployeeRow): FormState {
     company_emergency_contact_person: e.company_emergency_contact_person ?? "",
     company_emergency_contact_number: e.company_emergency_contact_number ?? "",
     company_emergency_contact_email: e.company_emergency_contact_email ?? "",
+    official_communication_email: e.official_communication_email ?? "",
+    preferred_contact_method: e.preferred_contact_method ?? "",
     addr_current: e.addr_current ?? "",
     addr_permanent: e.addr_permanent ?? "",
     emergency: e.emergency ?? "",
@@ -271,6 +275,8 @@ const blank = (
   company_emergency_contact_person: "",
   company_emergency_contact_number: "",
   company_emergency_contact_email: "",
+  official_communication_email: "",
+  preferred_contact_method: "",
   addr_current: "",
   addr_permanent: "",
   emergency: "",
@@ -593,6 +599,8 @@ export function EmployeeFormModal({
         phone: c.phone.trim(),
         relation: c.relation.trim(),
         email: c.email?.trim() || undefined,
+        alternate_mobile: c.alternate_mobile?.trim() || undefined,
+        address: c.address?.trim() || undefined,
       }))
       .filter((c) => c.name || c.phone);
 
@@ -618,6 +626,8 @@ export function EmployeeFormModal({
       company_emergency_contact_person: f.company_emergency_contact_person || null,
       company_emergency_contact_number: f.company_emergency_contact_number || null,
       company_emergency_contact_email: f.company_emergency_contact_email || null,
+      official_communication_email: f.official_communication_email || null,
+      preferred_contact_method: f.preferred_contact_method || null,
       addr_current: f.addr_current || null,
       addr_permanent: f.addr_permanent || null,
       emergency: f.emergency || contacts[0]?.phone || null,
@@ -1073,8 +1083,45 @@ export function EmployeeFormModal({
                       }}
                     />
                   </label>
+                  <label className="fld">
+                    <span className="l">Alternate Mobile</span>
+                    <input
+                      className="input"
+                      value={c.alternate_mobile ?? ""}
+                      onChange={(e) => {
+                        const next = [...f.emergency_contacts];
+                        next[i] = { ...next[i], alternate_mobile: e.target.value };
+                        set("emergency_contacts", next);
+                      }}
+                    />
+                  </label>
+                  <label className="fld" style={{ gridColumn: "1 / -1" }}>
+                    <span className="l">Address</span>
+                    <input
+                      className="input"
+                      value={c.address ?? ""}
+                      onChange={(e) => {
+                        const next = [...f.emergency_contacts];
+                        next[i] = { ...next[i], address: e.target.value };
+                        set("emergency_contacts", next);
+                      }}
+                    />
+                  </label>
                 </div>
               ))}
+              <label className="fld">
+                <span className="l">Preferred Contact Method</span>
+                <select
+                  className="input"
+                  value={f.preferred_contact_method}
+                  onChange={(e) => set("preferred_contact_method", e.target.value)}
+                >
+                  <option value="">— select —</option>
+                  {PREFERRED_CONTACT_METHODS.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </label>
               {T("addr_current", "Current Address")}
               {T("addr_permanent", "Permanent Address")}
             </>
@@ -1307,6 +1354,7 @@ export function EmployeeFormModal({
                 Organization-owned — may change with branch transfer, role, or company-issued contact updates.
               </p>
               {T("company_email", "Company Email Address", undefined, "email")}
+              {T("official_communication_email", "Official Communication Email", undefined, "email")}
               {T("company_mobile", "Company Mobile Number")}
               {T("extension_number", "Extension Number")}
               {T("direct_office_number", "Direct Office Number")}

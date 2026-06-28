@@ -21,6 +21,8 @@ export function EssPersonalContactPanel({ emp, onSaved }: Props) {
   const [emergencyRelation, setEmergencyRelation] = useState(ec.relation);
   const [emergencyPhone, setEmergencyPhone] = useState(ec.phone);
   const [emergencyEmail, setEmergencyEmail] = useState(ec.email ?? "");
+  const [emergencyAlternateMobile, setEmergencyAlternateMobile] = useState(ec.alternate_mobile ?? "");
+  const [emergencyAddress, setEmergencyAddress] = useState(ec.address ?? "");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -32,6 +34,8 @@ export function EssPersonalContactPanel({ emp, onSaved }: Props) {
     setEmergencyRelation(next.relation);
     setEmergencyPhone(next.phone);
     setEmergencyEmail(next.email ?? "");
+    setEmergencyAlternateMobile(next.alternate_mobile ?? "");
+    setEmergencyAddress(next.address ?? "");
   }, [emp]);
 
   const save = async () => {
@@ -40,7 +44,14 @@ export function EssPersonalContactPanel({ emp, onSaved }: Props) {
       mobile,
       alternate_personal_mobile: alternateMobile,
       emergency_contacts: parseEmergencyContacts([
-        { name: emergencyName, phone: emergencyPhone, relation: emergencyRelation, email: emergencyEmail },
+        {
+          name: emergencyName,
+          phone: emergencyPhone,
+          relation: emergencyRelation,
+          email: emergencyEmail,
+          alternate_mobile: emergencyAlternateMobile,
+          address: emergencyAddress,
+        },
       ]),
     });
     if (err) {
@@ -57,11 +68,13 @@ export function EssPersonalContactPanel({ emp, onSaved }: Props) {
         emergencyRelation: emergencyRelation.trim(),
         emergencyPhone: emergencyPhone.trim(),
         emergencyEmail: emergencyEmail.trim() || undefined,
+        emergencyAlternateMobile: emergencyAlternateMobile.trim() || undefined,
+        emergencyAddress: emergencyAddress.trim() || undefined,
       });
       await qc.invalidateQueries({ queryKey: ["hr-employees", HR_ORG_ID] });
       onSaved("Personal contact information saved");
     } catch (e) {
-      onSaved(e instanceof Error ? e.message : "Save failed — apply migration 20260739120000");
+      onSaved(e instanceof Error ? e.message : "Save failed — apply migrations 20260739120000 and 20260741120000");
     } finally {
       setBusy(false);
     }
@@ -88,6 +101,10 @@ export function EssPersonalContactPanel({ emp, onSaved }: Props) {
           <span className="l">Alternate Personal Mobile Number</span>
           <input className="input" value={alternateMobile} onChange={(e) => setAlternateMobile(e.target.value)} />
         </label>
+        <div>
+          <span className="muted" style={{ fontSize: 12 }}>Preferred Contact Method</span>
+          <div style={{ fontSize: 13.5, marginTop: 4 }}>{emp.preferred_contact_method || "—"}</div>
+        </div>
       </div>
       <div className="sec-label" style={{ marginTop: 16, marginBottom: 8 }}>
         Personal emergency contact
@@ -114,6 +131,18 @@ export function EssPersonalContactPanel({ emp, onSaved }: Props) {
             onChange={(e) => setEmergencyEmail(e.target.value)}
           />
         </label>
+        <label className="fld">
+          <span className="l">Alternate Mobile</span>
+          <input
+            className="input"
+            value={emergencyAlternateMobile}
+            onChange={(e) => setEmergencyAlternateMobile(e.target.value)}
+          />
+        </label>
+        <label className="fld" style={{ gridColumn: "1 / -1" }}>
+          <span className="l">Address</span>
+          <input className="input" value={emergencyAddress} onChange={(e) => setEmergencyAddress(e.target.value)} />
+        </label>
       </div>
       <div className="sec-label" style={{ marginTop: 16, marginBottom: 8 }}>
         Official company contact information
@@ -122,6 +151,10 @@ export function EssPersonalContactPanel({ emp, onSaved }: Props) {
         <div>
           <span className="muted">Company Email</span>
           <div>{emp.company_email || "—"}</div>
+        </div>
+        <div>
+          <span className="muted">Official Communication Email</span>
+          <div>{emp.official_communication_email || "—"}</div>
         </div>
         <div>
           <span className="muted">Company Mobile</span>

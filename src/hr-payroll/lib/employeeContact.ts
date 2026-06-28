@@ -1,4 +1,12 @@
-import type { EmergencyContact, EmployeeRow } from "./types";
+import type { EmergencyContact, EmployeeRow, PreferredContactMethod } from "./types";
+
+export const PREFERRED_CONTACT_METHODS: PreferredContactMethod[] = [
+  "Personal Mobile",
+  "Company Mobile",
+  "Personal Email",
+  "Company Email",
+  "WhatsApp",
+];
 
 /** SSOT: employees.email */
 export function personalEmail(emp: Pick<EmployeeRow, "email">): string | null {
@@ -12,7 +20,7 @@ export function personalMobile(emp: Pick<EmployeeRow, "mobile">): string | null 
 
 export function personalEmergencyContact(raw: unknown): EmergencyContact {
   if (!Array.isArray(raw) || raw.length === 0) {
-    return { name: "", phone: "", relation: "", email: "" };
+    return { name: "", phone: "", relation: "", email: "", alternate_mobile: "", address: "" };
   }
   const o = raw[0] as Record<string, string>;
   return {
@@ -20,6 +28,8 @@ export function personalEmergencyContact(raw: unknown): EmergencyContact {
     phone: o.phone ?? "",
     relation: o.relation ?? "",
     email: o.email ?? "",
+    alternate_mobile: o.alternate_mobile ?? "",
+    address: o.address ?? "",
   };
 }
 
@@ -32,6 +42,8 @@ export function employeeContactSearchHaystack(e: EmployeeRow): string {
     e.alternate_personal_mobile,
     e.company_email,
     e.company_mobile,
+    e.official_communication_email,
+    e.preferred_contact_method,
     e.departments?.name ?? e.department,
   ]
     .filter(Boolean)
@@ -70,16 +82,20 @@ export function buildPersonalContactExport(e: EmployeeRow) {
     personalMobile: personalMobile(e) ?? "",
     alternatePersonalMobile: e.alternate_personal_mobile ?? "",
     homeTelephone: e.home_telephone ?? "",
+    preferredContactMethod: e.preferred_contact_method ?? "",
     personalEmergencyPerson: ec.name,
     personalEmergencyRelation: ec.relation,
     personalEmergencyNumber: ec.phone,
     personalEmergencyEmail: ec.email ?? "",
+    personalEmergencyAlternateMobile: ec.alternate_mobile ?? "",
+    personalEmergencyAddress: ec.address ?? "",
   };
 }
 
 export function buildOfficialContactExport(e: EmployeeRow) {
   return {
     companyEmail: e.company_email ?? "",
+    officialCommunicationEmail: e.official_communication_email ?? "",
     companyMobile: e.company_mobile ?? "",
     extensionNumber: e.extension_number ?? "",
     directOfficeNumber: e.direct_office_number ?? "",

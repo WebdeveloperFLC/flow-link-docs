@@ -108,6 +108,8 @@ export type EmployeeRow = {
   company_emergency_contact_person?: string | null;
   company_emergency_contact_number?: string | null;
   company_emergency_contact_email?: string | null;
+  official_communication_email?: string | null;
+  preferred_contact_method?: PreferredContactMethod | null;
   addr_current: string | null;
   addr_permanent: string | null;
   emergency: string | null;
@@ -193,7 +195,21 @@ export type EmployeeRow = {
   shifts?: { name: string; login_time: string; logout_time: string; working_days_per_week?: number; timezone?: string } | null;
 };
 
-export type EmergencyContact = { name: string; phone: string; relation: string; email?: string };
+export type PreferredContactMethod =
+  | "Personal Mobile"
+  | "Company Mobile"
+  | "Personal Email"
+  | "Company Email"
+  | "WhatsApp";
+
+export type EmergencyContact = {
+  name: string;
+  phone: string;
+  relation: string;
+  email?: string;
+  alternate_mobile?: string;
+  address?: string;
+};
 
 export type EmployeeAssetRow = {
   id: string;

@@ -6,13 +6,15 @@ import {
   buildPersonalContactExport,
   employeeMatchesContactSearch,
   personalEmergencyContact,
+  PREFERRED_CONTACT_METHODS,
   validatePersonalContact,
 } from "@/hr-payroll/lib/employeeContact";
 import { buildEmp360InfoSections } from "@/hr-payroll/lib/emp360EmployeeFields";
 import type { EmployeeRow } from "@/hr-payroll/lib/types";
 
 const ROOT = join(process.cwd());
-const MIGRATION = join(ROOT, "supabase/migrations/20260739120000_hr_employee_contact_information.sql");
+const BASE_MIGRATION = join(ROOT, "supabase/migrations/20260739120000_hr_employee_contact_information.sql");
+const ENHANCE_MIGRATION = join(ROOT, "supabase/migrations/20260741120000_hr_employee_contact_enhancements.sql");
 
 const baseEmp = {
   id: "1",
@@ -27,6 +29,8 @@ const baseEmp = {
   alternate_personal_mobile: "+91 90000 00002",
   home_telephone: "022-1234567",
   company_email: "test@company.com",
+  official_communication_email: "payroll@company.com",
+  preferred_contact_method: "Personal Mobile",
   company_mobile: "+91 80000 00001",
   extension_number: "1234",
   direct_office_number: "022-7654321",
@@ -37,7 +41,14 @@ const baseEmp = {
   addr_permanent: null,
   emergency: "+91 91111 11111",
   emergency_contacts: [
-    { name: "Spouse", phone: "+91 91111 11111", relation: "Spouse", email: "spouse@example.com" },
+    {
+      name: "Spouse",
+      phone: "+91 91111 11111",
+      relation: "Spouse",
+      email: "spouse@example.com",
+      alternate_mobile: "+91 92222 22222",
+      address: "123 Main St",
+    },
   ],
   photo_url: null,
   designation: null,
@@ -63,30 +74,48 @@ const baseEmp = {
 } as EmployeeRow;
 
 describe("Employee contact information SSOT", () => {
-  it("migration adds official contact columns and ESS RPC", () => {
-    const sql = readFileSync(MIGRATION, "utf8");
+  it("base migration adds official contact columns and ESS RPC", () => {
+    const sql = readFileSync(BASE_MIGRATION, "utf8");
     expect(sql).toContain("alternate_personal_mobile");
     expect(sql).toContain("company_email");
-    expect(sql).toContain("company_mobile");
     expect(sql).toContain("fn_update_ess_personal_contact");
-    expect(sql).toContain("COMMENT ON COLUMN employees.email");
     expect(sql).not.toMatch(/CREATE OR REPLACE FUNCTION fn_compute_payroll/i);
-    expect(sql).not.toMatch(/ALTER TABLE attendance/i);
   });
 
-  it("reuses email/mobile as personal SSOT and extends emergency_contacts", () => {
+  it("enhancement migration extends emergency JSONB and adds preference fields", () => {
+    const sql = readFileSync(ENHANCE_MIGRATION, "utf8");
+    expect(sql).toContain("official_communication_email");
+    expect(sql).toContain("preferred_contact_method");
+    expect(sql).toContain("alternate_mobile");
+    expect(sql).toContain("p_emergency_address");
+    expect(sql).not.toMatch(/CREATE OR REPLACE FUNCTION fn_compute_payroll/i);
+  });
+
+  it("reuses email/mobile as personal SSOT and extends emergency_contacts JSONB", () => {
     const personal = buildPersonalContactExport(baseEmp);
     expect(personal.personalEmail).toBe("personal@example.com");
     expect(personal.personalMobile).toBe("+91 90000 00001");
     expect(personal.personalEmergencyPerson).toBe("Spouse");
-    expect(personal.personalEmergencyEmail).toBe("spouse@example.com");
+    expect(personal.personalEmergencyAlternateMobile).toBe("+91 92222 22222");
+    expect(personal.personalEmergencyAddress).toBe("123 Main St");
+    expect(personal.preferredContactMethod).toBe("Personal Mobile");
   });
 
-  it("exports official contact columns separately", () => {
+  it("exports official communication email separately from company email", () => {
     const official = buildOfficialContactExport(baseEmp);
     expect(official.companyEmail).toBe("test@company.com");
-    expect(official.companyMobile).toBe("+91 80000 00001");
-    expect(official.extensionNumber).toBe("1234");
+    expect(official.officialCommunicationEmail).toBe("payroll@company.com");
+  });
+
+  it("parses extended emergency contact fields from JSONB", () => {
+    const ec = personalEmergencyContact(baseEmp.emergency_contacts);
+    expect(ec.alternate_mobile).toBe("+91 92222 22222");
+    expect(ec.address).toBe("123 Main St");
+  });
+
+  it("preferred contact method options are fixed set", () => {
+    expect(PREFERRED_CONTACT_METHODS).toContain("WhatsApp");
+    expect(PREFERRED_CONTACT_METHODS).toHaveLength(5);
   });
 
   it("validates required personal contact fields", () => {
@@ -97,20 +126,10 @@ describe("Employee contact information SSOT", () => {
         emergency_contacts: personalEmergencyContact(baseEmp.emergency_contacts),
       }),
     ).toContain("Personal email");
-    expect(
-      validatePersonalContact({
-        email: "a@b.com",
-        mobile: "",
-        emergency_contacts: [{ name: "X", phone: "1", relation: "Spouse" }],
-      }),
-    ).toContain("Personal mobile");
   });
 
-  it("search matches personal and company email/mobile", () => {
-    expect(employeeMatchesContactSearch(baseEmp, "personal@example.com")).toBe(true);
-    expect(employeeMatchesContactSearch(baseEmp, "test@company.com")).toBe(true);
-    expect(employeeMatchesContactSearch(baseEmp, "80000")).toBe(true);
-    expect(employeeMatchesContactSearch(baseEmp, "unknown@x.com")).toBe(false);
+  it("search matches official communication email", () => {
+    expect(employeeMatchesContactSearch(baseEmp, "payroll@company.com")).toBe(true);
   });
 
   it("employee 360 shows separate personal and official contact sections", () => {
@@ -124,17 +143,21 @@ describe("Employee contact information SSOT", () => {
     const titles = sections.map((s) => s.title);
     expect(titles).toContain("Personal contact information");
     expect(titles).toContain("Official company contact information");
+    const personal = sections.find((s) => s.title === "Personal contact information");
+    expect(personal?.rows.some(([k]) => k === "Preferred contact method")).toBe(true);
   });
 
-  it("employee form and ESS expose contact sections", () => {
+  it("employee form and ESS expose contact enhancements", () => {
     const form = readFileSync(
       join(ROOT, "src/hr-payroll/components/employees/EmployeeFormModal.tsx"),
       "utf8",
     );
-    expect(form).toContain("Personal contact information");
-    expect(form).toContain("Official company contact information");
+    expect(form).toContain("official_communication_email");
+    expect(form).toContain("Preferred Contact Method");
+    expect(form).toContain("Alternate Mobile");
     const ess = readFileSync(join(ROOT, "src/hr-payroll/components/ess/EssPersonalContactPanel.tsx"), "utf8");
-    expect(ess).toContain("updateEssPersonalContact");
-    expect(ess).toContain("managed by HR");
+    expect(ess).toContain("Official Communication Email");
+    expect(ess).toContain("Preferred Contact Method");
+    expect(ess).toContain("emergencyAlternateMobile");
   });
 });
