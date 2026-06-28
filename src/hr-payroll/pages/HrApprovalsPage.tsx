@@ -11,7 +11,7 @@ import {
   useHrTrainingRecords,
   useHrApprovals,
 } from "../hooks/useHrRequests";
-import { useHrEmployees } from "../hooks/useHrEmployees";
+import { useHrEmployees, useHrReferenceData } from "../hooks/useHrEmployees";
 import { Stat } from "../components/ui/Stat";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { ApprovalTrail } from "../components/ui/ApprovalTrail";
@@ -33,6 +33,12 @@ import type {
 } from "../lib/types";
 import { TrainingDetailModal } from "../components/training/TrainingDetailModal";
 import { canBypassTrainingApproval } from "../lib/trainingWorkflow";
+import {
+  matchesApprovalStatusFilter,
+  isPendingApprovalStatus,
+  type ApprovalStatusFilter,
+} from "../lib/approvalQueue";
+import { getHrDocumentSignedUrl } from "../lib/hrStorage";
 
 type CategoryId =
   | "leave"
@@ -95,12 +101,13 @@ export default function HrApprovalsPage() {
   const { data: mispunch = [] } = useHrMispunchRequests();
   const { data: training = [] } = useHrTrainingRecords();
   const { data: employees = [] } = useHrEmployees();
+  const { data: ref } = useHrReferenceData();
 
   const [filterSearch, setFilterSearch] = useState("");
   const [filterBranch, setFilterBranch] = useState("All");
   const [filterFrom, setFilterFrom] = useState("");
   const [filterTo, setFilterTo] = useState("");
-  const [filterStatus, setFilterStatus] = useState("Pending");
+  const [filterStatus, setFilterStatus] = useState<ApprovalStatusFilter>("Pending");
 
   const payrollPending =
     cycle?.status === "Draft" || cycle?.status === "Processed" ? 1 : 0;
@@ -160,12 +167,14 @@ export default function HrApprovalsPage() {
   }, [employees]);
 
   const branchOptions = useMemo(() => {
+    const fromRef = (ref?.branches ?? []).map((b) => [b.id, b.name] as const);
+    if (fromRef.length) return fromRef.sort((a, b) => a[1].localeCompare(b[1]));
     const names = new Map<string, string>();
     for (const e of employees) {
       if (e.branch_id && e.branches?.name) names.set(e.branch_id, e.branches.name);
     }
     return [...names.entries()].sort((a, b) => a[1].localeCompare(b[1]));
-  }, [employees]);
+  }, [employees, ref?.branches]);
 
   const invalidateAll = async () => {
     await qc.invalidateQueries({ queryKey: ["hr-leaves"] });
@@ -179,9 +188,22 @@ export default function HrApprovalsPage() {
     await qc.invalidateQueries({ queryKey: ["hr-cycles"] });
   };
 
+  const openStoragePath = async (path: string | null | undefined, label: string) => {
+    if (!path) {
+      fire(`No ${label} attached`);
+      return;
+    }
+    try {
+      const url = await getHrDocumentSignedUrl(path);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      fire(e instanceof Error ? e.message : `Could not open ${label}`);
+    }
+  };
+
   const rows = useMemo<QueueRow[]>(() => {
     if (selected === "leave") {
-      return pendingLeaves.map((l) => ({
+      return leaves.map((l) => ({
         id: l.id,
         employeeId: l.employee_id,
         employeeName: l.employees?.full_name ?? "Employee",
@@ -192,7 +214,7 @@ export default function HrApprovalsPage() {
       }));
     }
     if (selected === "compoff") {
-      return pendingCompoff.map((c) => ({
+      return compoff.map((c) => ({
         id: c.id,
         employeeId: c.employee_id,
         employeeName: c.employees?.full_name ?? "Employee",
@@ -203,7 +225,7 @@ export default function HrApprovalsPage() {
       }));
     }
     if (selected === "late") {
-      return pendingLate.map((l) => ({
+      return late.map((l) => ({
         id: l.id,
         employeeId: l.employee_id,
         employeeName: l.employees?.full_name ?? "Employee",
@@ -214,7 +236,7 @@ export default function HrApprovalsPage() {
       }));
     }
     if (selected === "mispunch") {
-      return pendingMispunch.map((m) => ({
+      return mispunch.map((m) => ({
         id: m.id,
         employeeId: m.employee_id,
         employeeName: m.employees?.full_name ?? "Employee",
@@ -225,7 +247,7 @@ export default function HrApprovalsPage() {
       }));
     }
     if (selected === "training") {
-      return pendingTraining.map((t) => ({
+      return training.map((t) => ({
         id: t.id,
         employeeId: t.employee_id,
         employeeName: t.employees?.full_name ?? "Employee",
@@ -251,11 +273,11 @@ export default function HrApprovalsPage() {
     return [];
   }, [
     selected,
-    pendingLeaves,
-    pendingCompoff,
-    pendingLate,
-    pendingMispunch,
-    pendingTraining,
+    leaves,
+    compoff,
+    late,
+    mispunch,
+    training,
     payrollPending,
     cycle,
   ]);
@@ -272,7 +294,7 @@ export default function HrApprovalsPage() {
   const filteredRows = useMemo(() => {
     const q = filterSearch.trim().toLowerCase();
     return rows.filter((row) => {
-      if (filterStatus !== "All" && row.status !== filterStatus) return false;
+      if (!matchesApprovalStatusFilter(row.category, row.status, filterStatus)) return false;
       if (q) {
         const hay = `${row.employeeName} ${row.details}`.toLowerCase();
         if (!hay.includes(q)) return false;
@@ -431,7 +453,7 @@ export default function HrApprovalsPage() {
           <h3 style={{ fontSize: 15 }}>
             {CATEGORIES.find((c) => c.id === selected)?.title ?? "Pending"}
           </h3>
-          <span className="tag">{filteredRows.length} pending</span>
+          <span className="tag">{filteredRows.length} shown</span>
         </div>
 
         <div className="card-h" style={{ padding: "0 16px 12px", flexWrap: "wrap", gap: 10 }}>
@@ -450,8 +472,14 @@ export default function HrApprovalsPage() {
           </select>
           <input className="input" type="date" value={filterFrom} onChange={(e) => setFilterFrom(e.target.value)} title="From date" />
           <input className="input" type="date" value={filterTo} onChange={(e) => setFilterTo(e.target.value)} title="To date" />
-          <select className="input" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+          <select
+            className="input"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value as ApprovalStatusFilter)}
+          >
             <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
             <option value="All">All statuses</option>
           </select>
         </div>
@@ -465,7 +493,7 @@ export default function HrApprovalsPage() {
         {filteredRows.length === 0 ? (
           <div className="empty">
             <div className="ico">✓</div>
-            No pending items in this queue.
+            No items match the current filters.
           </div>
         ) : (
           <table style={{ minWidth: 720 }}>
@@ -494,7 +522,7 @@ export default function HrApprovalsPage() {
                       <button type="button" className="btn btn-sm" onClick={() => setViewRow(row)}>
                         View
                       </button>
-                      {canApprove && (
+                      {canApprove && isPendingApprovalStatus(row.category, row.status) && (
                         <>
                           <button
                             type="button"
@@ -598,6 +626,23 @@ export default function HrApprovalsPage() {
           <p><strong>Dates:</strong> {viewRow.leave.from_date} → {viewRow.leave.to_date}</p>
           <p><strong>Days:</strong> {viewRow.leave.days}</p>
           <p><strong>Reason:</strong> {viewRow.leave.reason ?? "—"}</p>
+          {viewRow.leave.has_document && (
+            <p>
+              <strong>Supporting document:</strong>{" "}
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() =>
+                  void openStoragePath(
+                    viewRow.leave?.employee_documents?.storage_path,
+                    "leave document",
+                  )
+                }
+              >
+                {viewRow.leave.employee_documents?.file_name ?? "View attachment"}
+              </button>
+            </p>
+          )}
           <ApprovalTrail entityId={viewRow.id} approvals={leaveApprovals} />
         </ModalShell>
       )}
@@ -619,9 +664,86 @@ export default function HrApprovalsPage() {
         />
       )}
 
+      {viewRow?.category === "compoff" && viewRow.compoff && (
+        <ModalShell
+          title="Comp-off request"
+          onClose={() => setViewRow(null)}
+          footer={
+            <button type="button" className="btn" onClick={() => setViewRow(null)}>Close</button>
+          }
+        >
+          <p><strong>Worked date:</strong> {viewRow.compoff.worked_date}</p>
+          <p><strong>Occasion:</strong> {viewRow.compoff.occasion ?? "—"}</p>
+          <p><strong>Duration:</strong> {viewRow.compoff.duration_type ?? "Full day"}</p>
+          {viewRow.compoff.comp_off_leave_date && (
+            <p><strong>Comp-off leave date:</strong> {viewRow.compoff.comp_off_leave_date}</p>
+          )}
+          <p><strong>Reason:</strong> {viewRow.compoff.reason ?? "—"}</p>
+          <p><strong>Status:</strong> {viewRow.compoff.status}</p>
+          {viewRow.compoff.document_path && (
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => void openStoragePath(viewRow.compoff?.document_path, "comp-off evidence")}
+            >
+              View supporting attachment
+            </button>
+          )}
+        </ModalShell>
+      )}
+
+      {viewRow?.category === "late" && viewRow.late && (
+        <ModalShell
+          title="Late exemption request"
+          onClose={() => setViewRow(null)}
+          footer={
+            <button type="button" className="btn" onClick={() => setViewRow(null)}>Close</button>
+          }
+        >
+          <p><strong>Date:</strong> {viewRow.late.late_date}</p>
+          <p><strong>Official in:</strong> {viewRow.late.official_in ?? "—"}</p>
+          <p><strong>Actual in:</strong> {viewRow.late.actual_in ?? "—"}</p>
+          <p><strong>Delay:</strong> {viewRow.late.delay_min} min</p>
+          <p><strong>Reason:</strong> {viewRow.late.reason ?? "—"}</p>
+          <p><strong>Status:</strong> {viewRow.late.status}</p>
+        </ModalShell>
+      )}
+
+      {viewRow?.category === "mispunch" && viewRow.mispunch && (
+        <ModalShell
+          title="Mispunch request"
+          onClose={() => setViewRow(null)}
+          footer={
+            <button type="button" className="btn" onClick={() => setViewRow(null)}>Close</button>
+          }
+        >
+          <p><strong>Date:</strong> {viewRow.mispunch.punch_date}</p>
+          <p><strong>Issue:</strong> {viewRow.mispunch.issue}</p>
+          <p><strong>Evidence:</strong> {viewRow.mispunch.evidence ?? "—"}</p>
+          <p><strong>Status:</strong> {viewRow.mispunch.status}</p>
+        </ModalShell>
+      )}
+
+      {viewRow &&
+        viewRow.category === "payroll" && (
+          <ModalShell
+            title="Request details"
+            onClose={() => setViewRow(null)}
+            footer={
+              <button type="button" className="btn" onClick={() => setViewRow(null)}>Close</button>
+            }
+          >
+            <p className="muted" style={{ fontSize: 13 }}>{viewRow.details}</p>
+          </ModalShell>
+        )}
+
       {viewRow &&
         viewRow.category !== "leave" &&
-        viewRow.category !== "training" && (
+        viewRow.category !== "training" &&
+        viewRow.category !== "compoff" &&
+        viewRow.category !== "late" &&
+        viewRow.category !== "mispunch" &&
+        viewRow.category !== "payroll" && (
           <ModalShell
             title="Request details"
             onClose={() => setViewRow(null)}

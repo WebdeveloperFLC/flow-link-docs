@@ -4,6 +4,7 @@ import { useReportScope } from "../../hooks/useReportScope";
 import { HrReportShell } from "../../components/reports/HrReportShell";
 import { ReportFilterBar } from "../../components/reports/ReportFilterBar";
 import { HrReportTable, reportExportRows, type HrReportColumn } from "../../components/reports/HrReportTable";
+import { buildOfficialContactExport, buildPersonalContactExport } from "../../lib/employeeContact";
 import { employmentTypeLabel } from "../../lib/emp360Filters";
 import { employeeSummaryCounts } from "../../lib/reportFilters";
 import { payrollCompanyLabel } from "../../lib/format";
@@ -24,6 +25,21 @@ type Row = {
   status: string;
   shift: string;
   workWeek: string;
+  personalEmail: string;
+  personalMobile: string;
+  alternatePersonalMobile: string;
+  homeTelephone: string;
+  personalEmergencyPerson: string;
+  personalEmergencyRelation: string;
+  personalEmergencyNumber: string;
+  personalEmergencyEmail: string;
+  companyEmail: string;
+  companyMobile: string;
+  extensionNumber: string;
+  directOfficeNumber: string;
+  companyEmergencyPerson: string;
+  companyEmergencyNumber: string;
+  companyEmergencyEmail: string;
 };
 
 const COLUMNS: HrReportColumn<Row>[] = [
@@ -40,6 +56,21 @@ const COLUMNS: HrReportColumn<Row>[] = [
   { key: "status", label: "Employment Status", sortable: true, exportValue: (r) => r.status },
   { key: "shift", label: "Shift", sortable: true, exportValue: (r) => r.shift },
   { key: "workWeek", label: "Work Week", sortable: true, exportValue: (r) => r.workWeek },
+  { key: "personalEmail", label: "Personal Email", sortable: true, exportValue: (r) => r.personalEmail },
+  { key: "personalMobile", label: "Personal Mobile", sortable: true, exportValue: (r) => r.personalMobile },
+  { key: "alternatePersonalMobile", label: "Alternate Personal Mobile", exportValue: (r) => r.alternatePersonalMobile },
+  { key: "homeTelephone", label: "Home Telephone", exportValue: (r) => r.homeTelephone },
+  { key: "personalEmergencyPerson", label: "Personal Emergency Person", exportValue: (r) => r.personalEmergencyPerson },
+  { key: "personalEmergencyRelation", label: "Personal Emergency Relation", exportValue: (r) => r.personalEmergencyRelation },
+  { key: "personalEmergencyNumber", label: "Personal Emergency Number", exportValue: (r) => r.personalEmergencyNumber },
+  { key: "personalEmergencyEmail", label: "Personal Emergency Email", exportValue: (r) => r.personalEmergencyEmail },
+  { key: "companyEmail", label: "Company Email", sortable: true, exportValue: (r) => r.companyEmail },
+  { key: "companyMobile", label: "Company Mobile", sortable: true, exportValue: (r) => r.companyMobile },
+  { key: "extensionNumber", label: "Extension", exportValue: (r) => r.extensionNumber },
+  { key: "directOfficeNumber", label: "Direct Office Number", exportValue: (r) => r.directOfficeNumber },
+  { key: "companyEmergencyPerson", label: "Company Emergency Person", exportValue: (r) => r.companyEmergencyPerson },
+  { key: "companyEmergencyNumber", label: "Company Emergency Number", exportValue: (r) => r.companyEmergencyNumber },
+  { key: "companyEmergencyEmail", label: "Company Emergency Email", exportValue: (r) => r.companyEmergencyEmail },
 ];
 
 const EXPORT_HEADERS = COLUMNS.map((c) => c.label);
@@ -66,22 +97,28 @@ export default function HrEmployeeReportPage() {
   }, [employees]);
 
   const rows = useMemo<Row[]>(() =>
-    filteredEmployees.map((e) => ({
-      id: e.id,
-      empCode: e.emp_code,
-      fullName: e.full_name,
-      branch: e.branches?.name ?? "—",
-      department: e.departments?.name ?? e.department ?? "—",
-      designation: e.designations?.name ?? e.designation ?? "—",
-      category: employmentTypeLabel(e),
-      company: e.companies ? payrollCompanyLabel(e.companies) : "—",
-      country: (e.payroll_country ?? "IN").toUpperCase(),
-      manager: e.reporting_mgr_id ? nameById.get(e.reporting_mgr_id) ?? "—" : "—",
-      doj: e.date_of_joining ?? "—",
-      status: e.status,
-      shift: e.shifts?.name ?? "—",
-      workWeek: e.work_week ?? "—",
-    })),
+    filteredEmployees.map((e) => {
+      const personal = buildPersonalContactExport(e);
+      const official = buildOfficialContactExport(e);
+      return {
+        id: e.id,
+        empCode: e.emp_code,
+        fullName: e.full_name,
+        branch: e.branches?.name ?? "—",
+        department: e.departments?.name ?? e.department ?? "—",
+        designation: e.designations?.name ?? e.designation ?? "—",
+        category: employmentTypeLabel(e),
+        company: e.companies ? payrollCompanyLabel(e.companies) : "—",
+        country: (e.payroll_country ?? "IN").toUpperCase(),
+        manager: e.reporting_mgr_id ? nameById.get(e.reporting_mgr_id) ?? "—" : "—",
+        doj: e.date_of_joining ?? "—",
+        status: e.status,
+        shift: e.shifts?.name ?? "—",
+        workWeek: e.work_week ?? "—",
+        ...personal,
+        ...official,
+      };
+    }),
   [filteredEmployees, nameById]);
 
   const summary = useMemo(() => employeeSummaryCounts(filteredEmployees), [filteredEmployees]);

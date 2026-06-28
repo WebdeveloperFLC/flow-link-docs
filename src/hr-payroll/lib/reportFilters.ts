@@ -7,6 +7,7 @@ import {
   type Emp360Filters,
   type Emp360FilterOptions,
 } from "./emp360Filters";
+import { employeeMatchesContactSearch } from "./employeeContact";
 import { isEmployeeActive, isEmployeeInactive } from "./format";
 import type { EmployeeRow, HrEmployeeCategoryRow } from "./types";
 
@@ -202,7 +203,6 @@ export function filterEmployeesForReport(
   filters: HrReportFilters,
   options?: Emp360FilterOptions,
 ): EmployeeRow[] {
-  const q = filters.search.trim().toLowerCase();
   return employees.filter((e) => {
     if (filters.country !== "All" && (e.payroll_country ?? "IN").toUpperCase() !== filters.country) {
       return false;
@@ -216,13 +216,7 @@ export function filterEmployeesForReport(
     if (filters.workWeek !== "All" && e.work_week !== filters.workWeek) return false;
     if (filters.employeeId !== "All" && e.id !== filters.employeeId) return false;
     if (filters.status !== "All" && e.status !== filters.status) return false;
-    if (!q) return true;
-    return (
-      e.full_name.toLowerCase().includes(q) ||
-      e.emp_code.toLowerCase().includes(q) ||
-      (e.email ?? "").toLowerCase().includes(q) ||
-      (e.mobile ?? "").includes(q)
-    );
+    return employeeMatchesContactSearch(e, filters.search);
   });
 }
 

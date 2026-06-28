@@ -15,11 +15,41 @@ import { getHrActorInfo, hrAudit, assignTrainingRecord } from "../lib/hrApi";
 import {
   defaultTrainingFilters,
   filterTrainingRecords,
-  trainingEffectiveEnd,
   type TrainingFilters,
 } from "../lib/trainingFilters";
 import { canBypassTrainingApproval } from "../lib/trainingWorkflow";
+import { downloadReportTable, printReportTable } from "../lib/hrReportExport";
 import type { TrainingRecordRow } from "../lib/types";
+
+const TRAINING_EXPORT_HEADERS = [
+  "Reference",
+  "Employee",
+  "Type",
+  "Start",
+  "End",
+  "Extended End",
+  "Completion Date",
+  "Unpaid Days",
+  "Duration",
+  "Remarks",
+  "Status",
+];
+
+function trainingExportRows(rows: TrainingRecordRow[]) {
+  return rows.map((t) => [
+    t.training_ref ?? t.id.slice(0, 8),
+    t.employees?.full_name ?? "—",
+    t.type,
+    t.start_date ?? "—",
+    t.end_date ?? "—",
+    t.extended_end_date ?? "—",
+    t.completion_date ?? "—",
+    String(t.unpaid_days),
+    t.duration ?? "—",
+    t.remarks ?? "—",
+    t.status,
+  ]);
+}
 
 function TrainingModal({
   onClose,
@@ -185,6 +215,7 @@ export default function HrTrainingPage() {
   const [extendRow, setExtendRow] = useState<TrainingRecordRow | null>(null);
   const [completeRow, setCompleteRow] = useState<TrainingRecordRow | null>(null);
   const mng = can("approve");
+  const canExport = can("export");
   const adminBypass = canBypassTrainingApproval(assignedRole);
 
   const filtered = useMemo(
@@ -234,11 +265,54 @@ export default function HrTrainingPage() {
 
       <div className="card-h">
         <span className="tag">Up to 7 unpaid training days per employee</span>
-        {mng && (
-          <button type="button" className="btn btn-primary" onClick={() => setAssignOpen(true)}>
-            + Assign Training
-          </button>
-        )}
+        <div className="row-flex" style={{ gap: 8 }}>
+          {canExport && (
+            <>
+              <button
+                type="button"
+                className="btn btn-sm"
+                disabled={!filtered.length}
+                onClick={() => {
+                  downloadReportTable(TRAINING_EXPORT_HEADERS, trainingExportRows(filtered), "training", "CSV");
+                  fire("CSV exported");
+                }}
+              >
+                Export CSV
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm"
+                disabled={!filtered.length}
+                onClick={() => {
+                  downloadReportTable(TRAINING_EXPORT_HEADERS, trainingExportRows(filtered), "training", "Excel");
+                  fire("Excel exported");
+                }}
+              >
+                Export Excel
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm"
+                disabled={!filtered.length}
+                onClick={() => {
+                  printReportTable(
+                    "Training Report",
+                    `${filtered.length} record(s)`,
+                    TRAINING_EXPORT_HEADERS,
+                    trainingExportRows(filtered),
+                  );
+                }}
+              >
+                Export PDF
+              </button>
+            </>
+          )}
+          {mng && (
+            <button type="button" className="btn btn-primary" onClick={() => setAssignOpen(true)}>
+              + Assign Training
+            </button>
+          )}
+        </div>
       </div>
 
       <TrainingFilterBar
@@ -265,16 +339,16 @@ export default function HrTrainingPage() {
                 <th>Employee</th>
                 <th>Type</th>
                 <th>Start</th>
-                <th>End / Extended</th>
+                <th>End</th>
+                <th>Extended</th>
+                <th>Completion</th>
                 <th>Unpaid</th>
                 <th>Status</th>
                 <th />
               </tr>
             </thead>
             <tbody>
-              {filtered.map((t) => {
-                const endDisplay = trainingEffectiveEnd(t) ?? "—";
-                return (
+              {filtered.map((t) => (
                   <tr key={t.id}>
                     <td className="mono" style={{ fontSize: 12 }}>
                       {t.training_ref ?? t.id.slice(0, 8)}
@@ -287,12 +361,9 @@ export default function HrTrainingPage() {
                     </td>
                     <td>{t.type}</td>
                     <td className="mono">{t.start_date ?? "—"}</td>
-                    <td className="mono">
-                      {endDisplay}
-                      {t.extended_end_date && t.end_date && (
-                        <span className="tag" style={{ marginLeft: 4, fontSize: 10 }}>ext</span>
-                      )}
-                    </td>
+                    <td className="mono">{t.end_date ?? "—"}</td>
+                    <td className="mono">{t.extended_end_date ?? "—"}</td>
+                    <td className="mono">{t.completion_date ?? "—"}</td>
                     <td style={{ textAlign: "center", color: t.unpaid_days > 0 ? "var(--rose)" : "inherit" }}>
                       {t.unpaid_days}
                     </td>
@@ -305,8 +376,7 @@ export default function HrTrainingPage() {
                       </button>
                     </td>
                   </tr>
-                );
-              })}
+              ))}
             </tbody>
           </table>
         )}

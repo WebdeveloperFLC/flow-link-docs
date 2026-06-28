@@ -11,6 +11,7 @@ import {
   initials,
   isEmployeeInactive,
 } from "../lib/format";
+import { employeeMatchesContactSearch } from "../lib/employeeContact";
 import { deactivateEmployee } from "../lib/hrApi";
 import type { EmployeeRow } from "../lib/types";
 import { EmployeeFormModal } from "../components/employees/EmployeeFormModal";
@@ -32,13 +33,7 @@ export default function HrEmployeesPage() {
   const [crmImport, setCrmImport] = useState(false);
 
   const list = useMemo(() => {
-    const s = q.toLowerCase();
-    return employees.filter(
-      (e) =>
-        e.full_name.toLowerCase().includes(s) ||
-        e.emp_code.toLowerCase().includes(s) ||
-        (e.departments?.name ?? e.department ?? "").toLowerCase().includes(s),
-    );
+    return employees.filter((e) => employeeMatchesContactSearch(e, q));
   }, [employees, q]);
 
   const deactivate = async (e: EmployeeRow) => {
@@ -72,7 +67,7 @@ export default function HrEmployeesPage() {
           <input
             className="input"
             style={{ maxWidth: 300 }}
-            placeholder="Search name, ID, dept…"
+            placeholder="Search name, ID, personal/company email or mobile…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
@@ -142,6 +137,11 @@ export default function HrEmployeesPage() {
                   <td style={{ fontSize: 11.5 }}>
                     {e.mobile || "—"}
                     <div className="muted">{e.email || ""}</div>
+                    {(e.company_mobile || e.company_email) && (
+                      <div className="muted" style={{ fontSize: 10.5 }}>
+                        Co: {e.company_mobile || "—"} {e.company_email ? `· ${e.company_email}` : ""}
+                      </div>
+                    )}
                   </td>
                   <td>{e.departments?.name ?? e.department ?? "—"}</td>
                   <td>{e.designations?.name ?? e.designation ?? "—"}</td>

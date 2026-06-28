@@ -9,7 +9,7 @@ import type { HrRole } from "../../lib/constants";
 import { StatusBadge } from "../ui/StatusBadge";
 
 export function HrTeamPanel() {
-  const { can, fire } = useHrAccess();
+  const { can, actualCan, fire } = useHrAccess();
   const { data: staff = [], isLoading, error } = useHrCrmStaff();
   const { data: ref } = useHrReferenceData();
   const { assignRole, removeRole, importStaff, syncStaffStatus } = useHrTeamActions();
@@ -17,7 +17,7 @@ export function HrTeamPanel() {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const branches = ref?.branches ?? [];
-  const editable = can("configure");
+  const editable = actualCan("configure");
   const canImport = can("manageEmp");
 
   const list = useMemo(() => {

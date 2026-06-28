@@ -6,6 +6,7 @@ import type {
   EmployeeRow,
 } from "./types";
 import { payrollCompanyLabel } from "./format";
+import { employeeMatchesContactSearch } from "./employeeContact";
 
 export const EMP360_COUNTRY_OPTIONS = [
   { value: "All", label: "All countries" },
@@ -180,7 +181,6 @@ export function sanitizeEmp360Filters(
 }
 
 export function filterEmployees(employees: EmployeeRow[], filters: Emp360Filters) {
-  const q = filters.search.trim().toLowerCase();
   return employees.filter((e) => {
     if (filters.country !== "All" && (e.payroll_country ?? "IN").toUpperCase() !== filters.country) {
       return false;
@@ -190,12 +190,6 @@ export function filterEmployees(employees: EmployeeRow[], filters: Emp360Filters
     if (filters.department !== "All" && e.department_id !== filters.department) return false;
     if (filters.designation !== "All" && e.designation_id !== filters.designation) return false;
     if (filters.employment !== "All" && employmentTypeLabel(e) !== filters.employment) return false;
-    if (!q) return true;
-    return (
-      e.full_name.toLowerCase().includes(q) ||
-      e.emp_code.toLowerCase().includes(q) ||
-      (e.email ?? "").toLowerCase().includes(q) ||
-      (e.mobile ?? "").includes(q)
-    );
+    return employeeMatchesContactSearch(e, filters.search);
   });
 }

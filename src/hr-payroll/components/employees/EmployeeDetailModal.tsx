@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useHrAccess } from "../../context/HrPayrollProvider";
 import { useHrEmployees } from "../../hooks/useHrEmployees";
 import { useHrCrmStaff, useCrmProfile } from "../../hooks/useHrTeam";
-import { displayEmployeeName, formatMoney, initials, parseEmergencyContacts, payrollCompanyLabel } from "../../lib/format";
+import { displayEmployeeName, formatMoney, initials, payrollCompanyLabel } from "../../lib/format";
+import { personalEmergencyContact, personalEmail, personalMobile } from "../../lib/employeeContact";
 import { downloadHrDocument, getHrDocumentSignedUrl } from "../../lib/hrStorage";
 import { formatSecurityChequeUploadedAt } from "../../lib/securityCheque";
 import { buildMonthlySalaryStructure, employeeToStructureInput } from "../../lib/salaryStructure";
@@ -25,7 +26,7 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
   const currency = emp.salary_currency ?? emp.companies?.currency ?? "INR";
   const money = (n: number) => formatMoney(n, currency);
   const structure = buildMonthlySalaryStructure(employeeToStructureInput(emp));
-  const contacts = parseEmergencyContacts(emp.emergency_contacts);
+  const personalEc = personalEmergencyContact(emp.emergency_contacts);
   const reportingManager = emp.reporting_mgr_id
     ? employees.find((e) => e.id === emp.reporting_mgr_id)
     : null;
@@ -130,27 +131,44 @@ export function EmployeeDetailModal({ emp, onClose }: { emp: EmployeeRow; onClos
         </div>
         <div className="modal-b" style={{ paddingTop: 4 }}>
           {tab === "profile" && (
-            <div className="grid g3" style={{ gap: "12px 22px" }}>
-              <Row k="Employee ID" v={emp.emp_code} />
-              <Row
-                k="Name"
-                v={[emp.first_name, emp.middle_name, emp.last_name].filter(Boolean).join(" ") || emp.full_name}
-              />
-              <Row k="Gender" v={emp.gender} />
-              <Row k="Date of Birth" v={emp.dob} />
-              <Row k="Mobile" v={emp.mobile} />
-              <Row k="Email" v={emp.email} />
-              <Row k="Marital Status" v={emp.marital_status} />
-              <Row k="Blood Group" v={emp.blood_group} />
-              <Row k="Nationality" v={emp.nationality} />
-              {contacts
-                .filter((c) => c.name || c.phone)
-                .map((c, i) => (
-                  <Row key={i} k={`Emergency ${i + 1}`} v={`${c.name} · ${c.phone} (${c.relation})`} />
-                ))}
-              <Row k="Current Address" v={emp.addr_current} />
-              <Row k="Permanent Address" v={emp.addr_permanent} />
-            </div>
+            <>
+              <div className="sec-label">Personal information</div>
+              <div className="grid g3" style={{ gap: "12px 22px", marginBottom: 16 }}>
+                <Row k="Employee ID" v={emp.emp_code} />
+                <Row
+                  k="Name"
+                  v={[emp.first_name, emp.middle_name, emp.last_name].filter(Boolean).join(" ") || emp.full_name}
+                />
+                <Row k="Gender" v={emp.gender} />
+                <Row k="Date of Birth" v={emp.dob} />
+                <Row k="Marital Status" v={emp.marital_status} />
+                <Row k="Blood Group" v={emp.blood_group} />
+                <Row k="Nationality" v={emp.nationality} />
+                <Row k="Current Address" v={emp.addr_current} />
+                <Row k="Permanent Address" v={emp.addr_permanent} />
+              </div>
+              <div className="sec-label">Personal contact information</div>
+              <div className="grid g3" style={{ gap: "12px 22px", marginBottom: 16 }}>
+                <Row k="Personal Email" v={personalEmail(emp)} />
+                <Row k="Personal Mobile" v={personalMobile(emp)} />
+                <Row k="Alternate Personal Mobile" v={emp.alternate_personal_mobile} />
+                <Row k="Home Telephone" v={emp.home_telephone} />
+                <Row k="Emergency Contact Person" v={personalEc.name || null} />
+                <Row k="Relationship" v={personalEc.relation || null} />
+                <Row k="Emergency Contact Number" v={personalEc.phone || null} />
+                <Row k="Emergency Contact Email" v={personalEc.email || null} />
+              </div>
+              <div className="sec-label">Official company contact information</div>
+              <div className="grid g3" style={{ gap: "12px 22px" }}>
+                <Row k="Company Email" v={emp.company_email} />
+                <Row k="Company Mobile" v={emp.company_mobile} />
+                <Row k="Extension" v={emp.extension_number} />
+                <Row k="Direct Office Number" v={emp.direct_office_number} />
+                <Row k="Company Emergency Person" v={emp.company_emergency_contact_person} />
+                <Row k="Company Emergency Number" v={emp.company_emergency_contact_number} />
+                <Row k="Company Emergency Email" v={emp.company_emergency_contact_email} />
+              </div>
+            </>
           )}
           {tab === "employment" && (
             <div className="grid g3" style={{ gap: "12px 22px" }}>

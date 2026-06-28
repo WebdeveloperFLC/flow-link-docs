@@ -56,11 +56,21 @@ export function ExtendTrainingModal({
       }
     >
       <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
-        Original end: <strong>{row.end_date ?? "—"}</strong>
+        Original end date: <strong>{row.original_end_date ?? row.end_date ?? "—"}</strong>
         {row.extended_end_date && (
           <> · Currently extended to: <strong>{row.extended_end_date}</strong></>
         )}
       </p>
+      <div className="grid g2" style={{ gap: "8px 16px", fontSize: 13, marginBottom: 12 }}>
+        <div>
+          <span className="muted">Paid / Unpaid</span>
+          <div>{row.type}</div>
+        </div>
+        <div>
+          <span className="muted">Training days</span>
+          <div>{row.duration ?? "—"} {row.unpaid_days > 0 ? `(unpaid: ${row.unpaid_days})` : ""}</div>
+        </div>
+      </div>
       <label className="fld">
         <span className="l">Extended until date</span>
         <input

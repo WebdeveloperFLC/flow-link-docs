@@ -35,6 +35,7 @@ import { PayrollBreakdownPanel } from "../components/payroll/PayrollBreakdownPan
 import { EstimatedPayrollPanel } from "../components/payroll/EstimatedPayrollPanel";
 import { useEstimatedPayrollForEmployee } from "../hooks/useEstimatedPayroll";
 import { ensureMyEmployeeProfile } from "../lib/hrApi";
+import { EssPersonalContactPanel } from "../components/ess/EssPersonalContactPanel";
 import { HR_ORG_ID } from "../lib/constants";
 
 function leaveTileTone(type: string): string {
@@ -234,6 +235,8 @@ export default function HrEssPage() {
           )}
         </div>
       </div>
+
+      <EssPersonalContactPanel emp={emp} onSaved={fire} />
 
       <div className="ess-quick-grid">
         {can("apply") && canSee("leave") && (

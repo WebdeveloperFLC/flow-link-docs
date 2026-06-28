@@ -161,8 +161,11 @@ export function TrainingDetailModal({
         </div>
         <div className="training-detail-dates mono" style={{ fontSize: 12.5 }}>
           <div>Start: {row.start_date ?? "—"}</div>
-          <div>End: {endDisplay}</div>
+          <div>End: {row.end_date ?? "—"}</div>
+          {row.extended_end_date && <div>Extended end: {row.extended_end_date}</div>}
+          {row.completion_date && <div>Completion date: {row.completion_date}</div>}
           <div>Unpaid days: {row.unpaid_days}</div>
+          {row.remarks && <div>Remarks: {row.remarks}</div>}
         </div>
       </div>
 

@@ -3,6 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HR_ORG_ID } from "../../lib/constants";
 import { fillSalaryComponents, formatMoney, parseEmergencyContacts, payrollCompanyLabel, weeklyOffDays } from "../../lib/format";
+import { validatePersonalContact } from "../../lib/employeeContact";
+import { isPostgrestSchemaError, stripEmployeeContactExtensions } from "../../lib/employeeSave";
 import {
   buildMonthlySalaryStructure,
   DEFAULT_BONUS_PCT,
@@ -66,6 +68,15 @@ type FormState = {
   dob: string;
   mobile: string;
   email: string;
+  alternate_personal_mobile: string;
+  home_telephone: string;
+  company_email: string;
+  company_mobile: string;
+  extension_number: string;
+  direct_office_number: string;
+  company_emergency_contact_person: string;
+  company_emergency_contact_number: string;
+  company_emergency_contact_email: string;
   addr_current: string;
   addr_permanent: string;
   emergency: string;
@@ -150,6 +161,15 @@ function fromEmployee(e: EmployeeRow): FormState {
     dob: e.dob ?? "",
     mobile: e.mobile ?? "",
     email: e.email ?? "",
+    alternate_personal_mobile: e.alternate_personal_mobile ?? "",
+    home_telephone: e.home_telephone ?? "",
+    company_email: e.company_email ?? "",
+    company_mobile: e.company_mobile ?? "",
+    extension_number: e.extension_number ?? "",
+    direct_office_number: e.direct_office_number ?? "",
+    company_emergency_contact_person: e.company_emergency_contact_person ?? "",
+    company_emergency_contact_number: e.company_emergency_contact_number ?? "",
+    company_emergency_contact_email: e.company_emergency_contact_email ?? "",
     addr_current: e.addr_current ?? "",
     addr_permanent: e.addr_permanent ?? "",
     emergency: e.emergency ?? "",
@@ -242,6 +262,15 @@ const blank = (
   dob: "",
   mobile: "",
   email: "",
+  alternate_personal_mobile: "",
+  home_telephone: "",
+  company_email: "",
+  company_mobile: "",
+  extension_number: "",
+  direct_office_number: "",
+  company_emergency_contact_person: "",
+  company_emergency_contact_number: "",
+  company_emergency_contact_email: "",
   addr_current: "",
   addr_permanent: "",
   emergency: "",
@@ -489,6 +518,15 @@ export function EmployeeFormModal({
     const assetErrors = validateEmployeeAssets(assetDrafts, employees);
     Object.assign(e, assetErrors);
 
+    const contactErr = validatePersonalContact({
+      email: f.email,
+      mobile: f.mobile,
+      alternate_personal_mobile: f.alternate_personal_mobile,
+      home_telephone: f.home_telephone,
+      emergency_contacts: f.emergency_contacts,
+    });
+    if (contactErr) e.contact = contactErr;
+
     setErr(e);
     if (Object.keys(e).length) {
       const bankErr = e.security_cheque_status || e.security_cheque_reason || e.security_cheque_upload;
@@ -499,7 +537,7 @@ export function EmployeeFormModal({
           ? "assets"
           : bankErr
             ? "bank"
-            : e.emp_code || e.name || e.lastName || e.desig
+            : e.contact || e.emp_code || e.name || e.lastName || e.desig
               ? "basic"
               : "salary",
       );
@@ -549,8 +587,15 @@ export function EmployeeFormModal({
       .filter(Boolean)
       .join(" ");
     const contacts = f.emergency_contacts
-      .map((c) => ({ name: c.name.trim(), phone: c.phone.trim(), relation: c.relation.trim() }))
+      .slice(0, 1)
+      .map((c) => ({
+        name: c.name.trim(),
+        phone: c.phone.trim(),
+        relation: c.relation.trim(),
+        email: c.email?.trim() || undefined,
+      }))
       .filter((c) => c.name || c.phone);
+
     const desigName = designations.find((d) => d.id === f.designation_id)?.name ?? "";
     const deptName = departments.find((d) => d.id === f.department_id)?.name ?? "";
     const payload = {
@@ -564,6 +609,15 @@ export function EmployeeFormModal({
       dob: f.dob || null,
       mobile: f.mobile || null,
       email: f.email || null,
+      alternate_personal_mobile: f.alternate_personal_mobile || null,
+      home_telephone: f.home_telephone || null,
+      company_email: f.company_email || null,
+      company_mobile: f.company_mobile || null,
+      extension_number: f.extension_number || null,
+      direct_office_number: f.direct_office_number || null,
+      company_emergency_contact_person: f.company_emergency_contact_person || null,
+      company_emergency_contact_number: f.company_emergency_contact_number || null,
+      company_emergency_contact_email: f.company_emergency_contact_email || null,
       addr_current: f.addr_current || null,
       addr_permanent: f.addr_permanent || null,
       emergency: f.emergency || contacts[0]?.phone || null,
@@ -656,10 +710,16 @@ export function EmployeeFormModal({
     try {
       let employeeId = emp?.id;
       if (emp) {
-        const { error } = await supabase
+        let { error } = await supabase
           .from("employees" as never)
           .update(savePayload as never)
           .eq("id", emp.id);
+        if (error && isPostgrestSchemaError(error)) {
+          ({ error } = await supabase
+            .from("employees" as never)
+            .update(stripEmployeeContactExtensions(savePayload) as never)
+            .eq("id", emp.id));
+        }
         if (error) throw error;
         employeeId = emp.id;
         fire("Employee updated");
@@ -679,11 +739,18 @@ export function EmployeeFormModal({
           }
         }
       } else {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
           .from("employees" as never)
           .insert(savePayload as never)
           .select("id")
           .single();
+        if (error && isPostgrestSchemaError(error)) {
+          ({ data, error } = await supabase
+            .from("employees" as never)
+            .insert(stripEmployeeContactExtensions(savePayload) as never)
+            .select("id")
+            .single());
+        }
         if (error) throw error;
         employeeId = (data as { id: string }).id;
         fire(`Employee ${fullName} added`);
@@ -938,17 +1005,27 @@ export function EmployeeFormModal({
               </div>
               <div className="grid g2" style={{ gap: "0 16px" }}>
                 {T("dob", "Date of Birth", undefined, "date")}
-                {T("mobile", "Mobile Number")}
-                {T("email", "Email Address", undefined, "email")}
                 {T("marital_status", "Marital Status", ["", "Single", "Married", "Divorced", "Widowed"])}
                 {T("blood_group", "Blood Group", ["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])}
                 {T("nationality", "Nationality")}
               </div>
-              <div className="sec-label">Emergency contacts (up to 2)</div>
-              {f.emergency_contacts.map((c, i) => (
-                <div key={i} className="grid g3" style={{ gap: "0 12px", marginBottom: 8 }}>
+              <div className="sec-label" style={{ marginTop: 16 }}>
+                Personal contact information
+              </div>
+              <p className="muted" style={{ fontSize: 12, marginBottom: 8 }}>
+                Employee-owned — not changed by branch, department, or reporting manager updates.
+              </p>
+              <div className="grid g2" style={{ gap: "0 16px" }}>
+                {T("email", "Personal Email Address *", undefined, "email")}
+                {T("mobile", "Personal Mobile Number *")}
+                {T("alternate_personal_mobile", "Alternate Personal Mobile Number")}
+                {T("home_telephone", "Home Telephone Number")}
+              </div>
+              <div className="sec-label">Personal emergency contact</div>
+              {f.emergency_contacts.slice(0, 1).map((c, i) => (
+                <div key={i} className="grid g2" style={{ gap: "0 12px", marginBottom: 8 }}>
                   <label className="fld">
-                    <span className="l">Name {i + 1}</span>
+                    <span className="l">Contact Person *</span>
                     <input
                       className="input"
                       value={c.name}
@@ -960,7 +1037,19 @@ export function EmployeeFormModal({
                     />
                   </label>
                   <label className="fld">
-                    <span className="l">Phone</span>
+                    <span className="l">Relationship *</span>
+                    <input
+                      className="input"
+                      value={c.relation}
+                      onChange={(e) => {
+                        const next = [...f.emergency_contacts];
+                        next[i] = { ...next[i], relation: e.target.value };
+                        set("emergency_contacts", next);
+                      }}
+                    />
+                  </label>
+                  <label className="fld">
+                    <span className="l">Contact Number *</span>
                     <input
                       className="input"
                       value={c.phone}
@@ -972,13 +1061,14 @@ export function EmployeeFormModal({
                     />
                   </label>
                   <label className="fld">
-                    <span className="l">Relation</span>
+                    <span className="l">Contact Email</span>
                     <input
                       className="input"
-                      value={c.relation}
+                      type="email"
+                      value={c.email ?? ""}
                       onChange={(e) => {
                         const next = [...f.emergency_contacts];
-                        next[i] = { ...next[i], relation: e.target.value };
+                        next[i] = { ...next[i], email: e.target.value };
                         set("emergency_contacts", next);
                       }}
                     />
@@ -1210,6 +1300,19 @@ export function EmployeeFormModal({
                   />
                 </label>
               )}
+              <div className="sec-label" style={{ gridColumn: "1 / -1", marginTop: 8 }}>
+                Official company contact information
+              </div>
+              <p className="muted" style={{ fontSize: 12, gridColumn: "1 / -1", marginBottom: 0 }}>
+                Organization-owned — may change with branch transfer, role, or company-issued contact updates.
+              </p>
+              {T("company_email", "Company Email Address", undefined, "email")}
+              {T("company_mobile", "Company Mobile Number")}
+              {T("extension_number", "Extension Number")}
+              {T("direct_office_number", "Direct Office Number")}
+              {T("company_emergency_contact_person", "Company Emergency Contact Person")}
+              {T("company_emergency_contact_number", "Company Emergency Contact Number")}
+              {T("company_emergency_contact_email", "Company Emergency Contact Email", undefined, "email")}
             </div>
           )}
           {tab === "salary" && (
@@ -1353,10 +1456,12 @@ export function EmployeeFormModal({
                   PF Applicable (12% of basic, capped at ₹15,000 wage)
                 </label>
               )}
-              <div className="grid g2" style={{ gap: "0 16px" }}>
-                {T("pf_number", "PF Number")}
-                {T("uan", "UAN Number")}
-              </div>
+              {f.has_pf_account && f.pf_applicable && (
+                <div className="grid g2" style={{ gap: "0 16px" }}>
+                  {T("pf_number", "PF Number")}
+                  {T("uan", "UAN Number")}
+                </div>
+              )}
               <div className="sec-label">ESIC</div>
               <label className="row-flex" style={{ fontSize: 13, marginBottom: 8 }}>
                 <input
@@ -1376,7 +1481,7 @@ export function EmployeeFormModal({
                   ESIC Applicable (0.75%, mandatory if monthly gross ≤ ₹21,000)
                 </label>
               )}
-              {T("esic_number", "ESIC Number")}
+              {f.has_esic_account && f.esic_applicable && T("esic_number", "ESIC Number")}
               <div className="sec-label">Employer contributions</div>
               <label className="row-flex" style={{ fontSize: 13, marginBottom: 8 }}>
                 <input

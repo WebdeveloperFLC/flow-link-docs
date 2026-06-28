@@ -65,6 +65,8 @@ const REQUIRED_MIGRATIONS = [
   "20260736120000_hr_core_stabilization.sql",
   "20260737120000_hr_pay_basis_salary_structure.sql",
   "20260738120000_hr_payroll_cycle_uat_reset.sql",
+  "20260739120000_hr_employee_contact_information.sql",
+  "20260740120000_hr_uat_defect_triage.sql",
 ];
 
 const REQUIRED_RPCS = [
@@ -118,6 +120,7 @@ const REQUIRED_RPCS = [
   "fn_wpms_policy_config_at",
   "fn_reset_payroll_cycle_uat",
   "fn_can_reset_payroll_cycle_uat",
+  "fn_update_ess_personal_contact",
 ];
 
 const REQUIRED_PAGES = [

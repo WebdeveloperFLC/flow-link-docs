@@ -136,7 +136,7 @@ export function Emp360FilterBar({
           <span className="l">Search employee</span>
           <input
             className="input"
-            placeholder="Name, ID, email, mobile…"
+            placeholder="Name, ID, personal/company email or mobile…"
             value={filters.search}
             onChange={(e) => onChange({ search: e.target.value })}
           />

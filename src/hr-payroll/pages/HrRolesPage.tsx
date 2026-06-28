@@ -19,6 +19,7 @@ export default function HrRolesPage() {
   const {
     role,
     can,
+    actualCan,
     permissions,
     updatePerm,
     updateScreen,
@@ -28,7 +29,7 @@ export default function HrRolesPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<"perms" | "screens" | "team">("team");
   const [syncBusy, setSyncBusy] = useState(false);
-  const editable = can("configure");
+  const editable = actualCan("configure");
 
   const syncFromCrm = async () => {
     setSyncBusy(true);

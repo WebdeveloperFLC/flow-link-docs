@@ -406,3 +406,28 @@ export async function ensureMyEmployeeProfile() {
   if (error) throw error;
   return data as import("./types").EmployeeRow;
 }
+
+export type EssPersonalContactPayload = {
+  email: string;
+  mobile: string;
+  alternateMobile?: string;
+  emergencyName: string;
+  emergencyRelation: string;
+  emergencyPhone: string;
+  emergencyEmail?: string;
+};
+
+export async function updateEssPersonalContact(payload: EssPersonalContactPayload) {
+  const { data, error } = await supabase.rpc("fn_update_ess_personal_contact" as never, {
+    p_org: HR_ORG_ID,
+    p_email: payload.email,
+    p_mobile: payload.mobile,
+    p_alternate_mobile: payload.alternateMobile ?? null,
+    p_emergency_name: payload.emergencyName,
+    p_emergency_relation: payload.emergencyRelation,
+    p_emergency_phone: payload.emergencyPhone,
+    p_emergency_email: payload.emergencyEmail ?? null,
+  } as never);
+  if (error) throw error;
+  return data as import("./types").EmployeeRow;
+}

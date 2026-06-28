@@ -95,8 +95,19 @@ export type EmployeeRow = {
   last_name?: string | null;
   gender: string | null;
   dob: string | null;
+  /** Personal mobile (employee-owned SSOT). */
   mobile: string | null;
+  /** Personal email (employee-owned SSOT). */
   email: string | null;
+  alternate_personal_mobile?: string | null;
+  home_telephone?: string | null;
+  company_email?: string | null;
+  company_mobile?: string | null;
+  extension_number?: string | null;
+  direct_office_number?: string | null;
+  company_emergency_contact_person?: string | null;
+  company_emergency_contact_number?: string | null;
+  company_emergency_contact_email?: string | null;
   addr_current: string | null;
   addr_permanent: string | null;
   emergency: string | null;
@@ -182,7 +193,7 @@ export type EmployeeRow = {
   shifts?: { name: string; login_time: string; logout_time: string; working_days_per_week?: number; timezone?: string } | null;
 };
 
-export type EmergencyContact = { name: string; phone: string; relation: string };
+export type EmergencyContact = { name: string; phone: string; relation: string; email?: string };
 
 export type EmployeeAssetRow = {
   id: string;
@@ -372,6 +383,7 @@ export type TrainingRecordRow = {
   manager_approved_at: string | null;
   hr_approved_by_label: string | null;
   hr_approved_at: string | null;
+  remarks?: string | null;
   created_by_label: string | null;
   created_at: string;
   status: string;

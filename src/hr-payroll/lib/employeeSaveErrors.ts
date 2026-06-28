@@ -15,6 +15,13 @@ export function formatEmployeeSaveError(ex: unknown, context?: "link"): string {
   if (lower.includes("not authorized") || lower.includes("permission")) {
     return "You do not have permission to save employees (manage_emp required).";
   }
+  if (
+    lower.includes("schema cache") ||
+    lower.includes("could not find") ||
+    (lower.includes("column") && lower.includes("does not exist"))
+  ) {
+    return "Save failed — publish migration 20260739120000_hr_employee_contact_information.sql in Lovable";
+  }
   if (context === "link") {
     return `Employee saved, but CRM link failed: ${raw}`;
   }

@@ -1,13 +1,17 @@
 import type { ReactNode } from "react";
 import type { EmployeeRow } from "../lib/types";
 import {
+  personalEmail,
+  personalEmergencyContact,
+  personalMobile,
+} from "./employeeContact";
+import { employmentTypeLabel } from "./emp360Filters";
+import {
   employeeCurrency,
   formatMoney,
-  parseEmergencyContacts,
   payrollCompanyLabel,
   weeklyOffDays,
 } from "./format";
-import { employmentTypeLabel } from "./emp360Filters";
 import { formatSecurityChequeUploadedAt } from "./securityCheque";
 import { buildMonthlySalaryStructure, employeeToStructureInput } from "./salaryStructure";
 
@@ -32,7 +36,7 @@ type BuildArgs = {
 
 export function buildEmp360InfoSections(args: BuildArgs) {
   const { emp, reportingManagerLabel, crmProfileLabel, money, currency } = args;
-  const emergencyContacts = parseEmergencyContacts(emp.emergency_contacts);
+  const personalEc = personalEmergencyContact(emp.emergency_contacts);
   const shift = emp.shifts;
   const weeklyOff =
     shift?.working_days_per_week != null
@@ -47,19 +51,32 @@ export function buildEmp360InfoSections(args: BuildArgs) {
     row("Full name", emp.full_name),
     row("Gender", emp.gender),
     row("Date of birth", emp.dob),
-    row("Mobile", emp.mobile),
-    row("Email", emp.email),
     row("Nationality", emp.nationality),
     row("Marital status", emp.marital_status),
     row("Blood group", emp.blood_group),
     row("Current address", emp.addr_current),
     row("Permanent address", emp.addr_permanent),
-    ...(emp.emergency ? [row("Emergency (legacy)", emp.emergency)] : []),
-    ...emergencyContacts
-      .filter((c) => c.name || c.phone)
-      .flatMap((c, i) => [
-        row(`Emergency contact ${i + 1}`, `${c.name} · ${c.phone} (${c.relation})`),
-      ]),
+  ];
+
+  const personalContact: Row[] = [
+    row("Personal email", personalEmail(emp)),
+    row("Personal mobile", personalMobile(emp)),
+    row("Alternate personal mobile", emp.alternate_personal_mobile),
+    row("Home telephone", emp.home_telephone),
+    row("Emergency contact person", personalEc.name || null),
+    row("Relationship", personalEc.relation || null),
+    row("Emergency contact number", personalEc.phone || null),
+    row("Emergency contact email", personalEc.email || null),
+  ];
+
+  const officialContact: Row[] = [
+    row("Company email", emp.company_email),
+    row("Company mobile", emp.company_mobile),
+    row("Extension", emp.extension_number),
+    row("Direct office number", emp.direct_office_number),
+    row("Company emergency contact person", emp.company_emergency_contact_person),
+    row("Company emergency contact number", emp.company_emergency_contact_number),
+    row("Company emergency contact email", emp.company_emergency_contact_email),
   ];
 
   const employment: Row[] = [
@@ -167,6 +184,8 @@ export function buildEmp360InfoSections(args: BuildArgs) {
 
   return [
     { title: "Personal information", rows: personal },
+    { title: "Personal contact information", rows: personalContact },
+    { title: "Official company contact information", rows: officialContact },
     { title: "Employment information", rows: employment },
     { title: "Shift & schedule", rows: shiftRows },
     { title: "Salary & compensation", rows: salary },
