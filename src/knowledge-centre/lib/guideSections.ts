@@ -24,10 +24,25 @@ export function resolveGuideSections(metadata: { guide_sections?: GuideSectionMa
   return DEFAULT_GUIDE_SECTIONS;
 }
 
-export function parseStructuredContent(raw: string): { sections: StructuredSectionBlock[] } {
+export function parseStructuredContent(raw: string | unknown): { sections: StructuredSectionBlock[] } {
   try {
-    const parsed = JSON.parse(raw) as { sections?: StructuredSectionBlock[] };
-    return { sections: parsed?.sections ?? [] };
+    let parsed: unknown = raw;
+    if (typeof raw === "string") {
+      const trimmed = raw.trim();
+      if (!trimmed) return { sections: [] };
+      parsed = JSON.parse(trimmed);
+      // Handle double-encoded JSON strings stored in text column
+      if (typeof parsed === "string") {
+        parsed = JSON.parse(parsed);
+      }
+    }
+    if (!parsed || typeof parsed !== "object") return { sections: [] };
+    const obj = parsed as {
+      sections?: StructuredSectionBlock[];
+      narrative_sections?: StructuredSectionBlock[];
+    };
+    const sections = obj.sections ?? obj.narrative_sections ?? [];
+    return { sections: Array.isArray(sections) ? sections : [] };
   } catch {
     return { sections: [] };
   }

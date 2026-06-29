@@ -5,11 +5,13 @@ import {
   validateImportAgainstGoldStandard,
   type GuideImportPayload,
 } from "./guideImport";
+import { parseStructuredContent } from "./guideSections";
 import { supabase } from "@/integrations/supabase/client";
 import {
   createArticle,
   getArticleBySlug,
   getVersionSatellites,
+  resolveLiveArticle,
   upsertFaqItem,
   upsertQuizQuestion,
   upsertOfficialSource,
@@ -96,6 +98,28 @@ async function verifyImportSatellites(
   if (mismatches.length) {
     throw new Error(`Import incomplete — ${mismatches.join("; ")}`);
   }
+}
+
+async function verifyImportedContent(articleId: string, versionId: string, payload: GuideImportPayload): Promise<boolean> {
+  const live = await resolveLiveArticle(undefined, articleId);
+  if (!live?.version) return false;
+
+  const expectedNarrative = payload.narrative_sections?.length ?? 0;
+  if (expectedNarrative > 0) {
+    const parsed = parseStructuredContent(live.version.content_body);
+    const withBody = parsed.sections.filter((s) => (s.body_md ?? "").trim().length > 0).length;
+    if (parsed.sections.length < expectedNarrative || withBody === 0) return false;
+  }
+
+  const sats = await getVersionSatellites(versionId);
+  if ((payload.faqs?.length ?? 0) > 0 && sats.faqs.length < payload.faqs!.length) return false;
+  if ((payload.quiz?.length ?? 0) > 0 && sats.quiz.length < payload.quiz!.length) return false;
+  if ((payload.downloads?.length ?? 0) > 0 && sats.downloads.length < payload.downloads!.length) return false;
+  if ((payload.official_sources?.length ?? 0) > 0 && sats.sourceRefs.length < payload.official_sources!.length) {
+    return false;
+  }
+
+  return true;
 }
 
 async function executeGuideImportClient(
@@ -246,6 +270,11 @@ export async function executeGuideImport(
       replace: opts?.replace,
       publish: opts?.publish,
     });
+    const contentOk = await verifyImportedContent(rpc.article_id, rpc.version_id, payload);
+    if (!contentOk) {
+      await deleteArticleBySlug(payload.slug);
+      return executeGuideImportClient(payload, opts);
+    }
     return {
       articleId: rpc.article_id,
       versionId: rpc.version_id,
