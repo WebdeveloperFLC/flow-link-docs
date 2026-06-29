@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload, Info, Search, LayoutGrid, LayoutList, SlidersHorizontal } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload, Info, Search, LayoutGrid, LayoutList, SlidersHorizontal, GraduationCap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
@@ -22,6 +22,7 @@ import { ExportMenu } from "@/components/export/ExportMenu";
 import { useExportDataset } from "@/components/export/useExportDataset";
 import { buildProgramExportColumns } from "@/institutions/lib/programExportColumns";
 import { CourseReviewList } from "../components/CourseReviewList";
+import { BulkPgwpDialog } from "../components/BulkPgwpDialog";
 import { InstitutionProgramContextHeader } from "../components/InstitutionProgramContextHeader";
 import { ProgramGroupsNavPanel } from "../components/ProgramGroupsNavPanel";
 import { ProgramSummaryPanel } from "../components/ProgramSummaryPanel";
@@ -200,6 +201,7 @@ export default function CourseReviewPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<UpiCourseStaging | null>(null);
+  const [bulkPgwpOpen, setBulkPgwpOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [auxError, setAuxError] = useState<string | null>(null);
@@ -953,6 +955,9 @@ export default function CourseReviewPage() {
                   <Button size="sm" variant="outline" onClick={() => publish(selectedIds)}>
                     <Upload className="size-4 mr-1" /> Bulk Publish
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setBulkPgwpOpen(true)}>
+                    <GraduationCap className="size-4 mr-1" /> Bulk PGWP
+                  </Button>
                   <Button size="sm" variant="destructive" onClick={() => deleteRows(selectedIds)}>
                     <Trash2 className="size-4 mr-1" /> Bulk Delete
                   </Button>
@@ -1044,6 +1049,14 @@ export default function CourseReviewPage() {
         onSaved={load}
         institutions={institutions}
         levels={levels}
+      />
+
+      <BulkPgwpDialog
+        open={bulkPgwpOpen}
+        onOpenChange={setBulkPgwpOpen}
+        selectedIds={selectedIds}
+        canEdit={canEdit}
+        onUpdated={setRows}
       />
     </AppLayout>
   );
