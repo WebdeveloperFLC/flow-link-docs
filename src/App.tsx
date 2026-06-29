@@ -142,7 +142,6 @@ import AccountingPaymentPurposePage from "./accounting/pages/reports/AccountingP
 import { AccountingProtectedRoute } from "./accounting/components/AccountingProtectedRoute";
 import AccountingSectionRoute from "./accounting/components/AccountingSectionRoute";
 import AccountingAccessAdminPage from "./accounting/pages/settings/AccountingAccessAdminPage";
-import PlatformWorkflowConfigPage from "./accounting/pages/settings/PlatformWorkflowConfigPage";
 import AccountingNoAccessPage from "./accounting/pages/AccountingNoAccessPage";
 import AccountingPettyCashDashboardPage from "./accounting/pages/petty-cash/AccountingPettyCashDashboardPage";
 import AccountingPettyCashVoucherPage from "./accounting/pages/petty-cash/AccountingPettyCashVoucherPage";
@@ -1611,7 +1610,7 @@ const App = () => (
                     path="/accounting/settings/platform-config"
                     element={
                       <AccountingSectionRoute section="users" level="edit">
-                        <PlatformWorkflowConfigPage />
+                        <AccountingAccessAdminPage />
                       </AccountingSectionRoute>
                     }
                   />
