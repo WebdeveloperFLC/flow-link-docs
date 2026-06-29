@@ -104,7 +104,6 @@ import AccountingARPage from "./accounting/pages/ar/AccountingARPage";
 import AccountingNewInvoicePage from "./accounting/pages/ar/AccountingNewInvoicePage";
 import AccountingInvoiceDetailPage from "./accounting/pages/ar/AccountingInvoiceDetailPage";
 import AccountingVerificationQueuePage from "./accounting/pages/ar/AccountingVerificationQueuePage";
-import FinanceWorkQueuePage from "./accounting/pages/finance/FinanceWorkQueuePage";
 import AccountingReceiptsPage from "./accounting/pages/ar/AccountingReceiptsPage";
 import AccountingTrustPage from "./accounting/pages/trust/AccountingTrustPage";
 import AccountingTrustDisbursementPage from "./accounting/pages/trust/AccountingTrustDisbursementPage";
@@ -1324,7 +1323,7 @@ const App = () => (
                     path="/accounting/finance-queue"
                     element={
                       <AccountingSectionRoute section="approvals">
-                        <FinanceWorkQueuePage />
+                        <AccountingVerificationQueuePage />
                       </AccountingSectionRoute>
                     }
                   />
