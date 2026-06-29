@@ -3,8 +3,10 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { executeGuideImport } from "./executeGuideImport";
 import * as kcRepo from "@/knowledge-centre/repositories/kcRepo";
 
+import { CANADA_GUIDE_IMPORT_REPO_PATH } from "./guideImport";
+
 const FIXTURE = JSON.parse(
-  readFileSync("content/knowledge-centre/imports/canada-student-visa-outside-canada.json", "utf8"),
+  readFileSync(CANADA_GUIDE_IMPORT_REPO_PATH, "utf8"),
 );
 
 describe("executeGuideImport", () => {

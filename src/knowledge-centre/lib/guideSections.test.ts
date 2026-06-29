@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { parseStructuredContent } from "./guideSections";
 
+import { CANADA_GUIDE_IMPORT_REPO_PATH } from "./guideImport";
+
 const FIXTURE = JSON.parse(
-  readFileSync("content/knowledge-centre/imports/canada-student-visa-outside-canada.json", "utf8"),
+  readFileSync(CANADA_GUIDE_IMPORT_REPO_PATH, "utf8"),
 );
 
 describe("parseStructuredContent", () => {

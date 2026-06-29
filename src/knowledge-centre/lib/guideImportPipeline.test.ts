@@ -5,16 +5,14 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+  CANADA_GUIDE_IMPORT_REPO_PATH,
   buildArticleMetadataFromImport,
   buildStructuredBodyFromImport,
   parseGuideImportJson,
 } from "./guideImport";
 import { DEFAULT_GUIDE_SECTIONS, parseStructuredContent, resolveGuideSections } from "./guideSections";
 
-const RAW = readFileSync(
-  "content/knowledge-centre/imports/canada-student-visa-outside-canada.json",
-  "utf8",
-);
+const RAW = readFileSync(CANADA_GUIDE_IMPORT_REPO_PATH, "utf8");
 const FIXTURE = parseGuideImportJson(RAW);
 
 const NARRATIVE_IDS = DEFAULT_GUIDE_SECTIONS.filter((s) => s.type === "narrative").map((s) => s.id);

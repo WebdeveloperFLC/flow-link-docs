@@ -6,7 +6,7 @@ import { parseGoldStandardMarkdown } from "./parseGoldStandardMarkdown";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../../..");
 const GUIDE_PATH = join(ROOT, "docs/knowledge-centre/canada-student-visa-gold-standard-guide.md");
-const OUT_DIR = join(ROOT, "content/knowledge-centre/imports");
+const OUT_DIR = join(ROOT, "content/service-library");
 const OUT_FILE = join(OUT_DIR, "canada-student-visa-outside-canada.json");
 const LIBRARY_ID = "c35e6051-f40f-47bf-9cac-0a386c47a336";
 
@@ -44,10 +44,10 @@ describe("parseGoldStandardMarkdown — Canada guide", () => {
 
   it("writes import JSON artifact for content team", () => {
     mkdirSync(OUT_DIR, { recursive: true });
-    mkdirSync(join(ROOT, "public/content/knowledge-centre/imports"), { recursive: true });
+    mkdirSync(join(ROOT, "public/content/service-library"), { recursive: true });
     const json = JSON.stringify(payload, null, 2);
     writeFileSync(OUT_FILE, json, "utf8");
-    writeFileSync(join(ROOT, "public/content/knowledge-centre/imports/canada-student-visa-outside-canada.json"), json, "utf8");
+    writeFileSync(join(ROOT, "public/content/service-library/canada-student-visa-outside-canada.json"), json, "utf8");
     expect(readFileSync(OUT_FILE, "utf8")).toContain("canada-student-visa-outside-canada");
   });
 });

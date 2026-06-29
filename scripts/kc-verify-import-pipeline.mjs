@@ -32,7 +32,7 @@ if (!url || !key) {
   process.exit(0);
 }
 
-const sourcePath = "content/knowledge-centre/imports/canada-student-visa-outside-canada.json";
+const sourcePath = "content/service-library/canada-student-visa-outside-canada.json";
 const payload = JSON.parse(readFileSync(sourcePath, "utf8"));
 payload.slug = TEST_SLUG;
 payload.title = "KC Pipeline Verify (temp — safe to delete)";

@@ -12,6 +12,7 @@ import { listArticles, createArticle } from "@/knowledge-centre/repositories/kcR
 import { KcStatusBadge } from "@/knowledge-centre/components/KcStatusBadge";
 import { toast } from "sonner";
 import { DEFAULT_GUIDE_SECTIONS } from "@/knowledge-centre/lib/guideSections";
+import { CANADA_GUIDE_IMPORT_PUBLIC_PATH } from "@/knowledge-centre/lib/guideImport";
 import { kcRoutes } from "@/knowledge-centre/lib/kcRoutes";
 
 export default function AdminConsolePage() {
@@ -67,7 +68,7 @@ export default function AdminConsolePage() {
 
   const loadCanadaTemplate = async () => {
     try {
-      const res = await fetch("/content/knowledge-centre/imports/canada-student-visa-outside-canada.json");
+      const res = await fetch(CANADA_GUIDE_IMPORT_PUBLIC_PATH);
       if (!res.ok) throw new Error("Template file not found — run npm run kc:build-canada-import");
       setImportJson(await res.text());
       setImportOpen(true);

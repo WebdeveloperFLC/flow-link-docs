@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Build Canada Student Visa import JSON from the frozen gold-standard markdown.
- * Output: content/knowledge-centre/imports/canada-student-visa-outside-canada.json
+ * Output: content/service-library/canada-student-visa-outside-canada.json
  */
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";

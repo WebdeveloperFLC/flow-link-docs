@@ -6,7 +6,7 @@
  * Requires migration: 20261016120000_kc_import_guide_rpc.sql
  *
  * Usage:
- *   node scripts/kc-import-guide.mjs content/knowledge-centre/imports/canada-student-visa-outside-canada.json
+ *   node scripts/kc-import-guide.mjs content/service-library/canada-student-visa-outside-canada.json
  *   node scripts/kc-import-guide.mjs <json> --publish
  *   node scripts/kc-import-guide.mjs <json> --publish --replace
  */

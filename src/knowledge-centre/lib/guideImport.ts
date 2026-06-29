@@ -58,6 +58,12 @@ export interface GuideImportPayload {
   }>;
 }
 
+/** Canonical repo path for Gold Standard guide import JSON (same folder as academy metadata). */
+export const CANADA_GUIDE_IMPORT_FILE = "canada-student-visa-outside-canada.json";
+export const GUIDE_IMPORT_CONTENT_DIR = "content/service-library";
+export const CANADA_GUIDE_IMPORT_REPO_PATH = `${GUIDE_IMPORT_CONTENT_DIR}/${CANADA_GUIDE_IMPORT_FILE}`;
+export const CANADA_GUIDE_IMPORT_PUBLIC_PATH = `/content/service-library/${CANADA_GUIDE_IMPORT_FILE}`;
+
 export function parseGuideImportJson(raw: string): GuideImportPayload {
   const data = JSON.parse(raw) as GuideImportPayload;
   if (!data.slug?.trim() || !data.title?.trim()) {
