@@ -20,7 +20,7 @@ export async function userCanApproveOwnershipOverride(userId: string): Promise<b
 
   for (const role of rolesToCheck) {
     if (role === "super_admin") {
-      const { data } = await supabase.rpc("has_role", { _uid: userId, _role: "admin" as never });
+      const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" as never });
       if (data) return true;
     }
     const { data } = await supabase

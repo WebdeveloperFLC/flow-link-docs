@@ -51,6 +51,10 @@ export interface WorkflowContext {
   transactionType?: string | null;
   riskLevel?: string | null;
   recordedByUserId?: string | null;
+  agreementId?: string | null;
+  requestedByUserId?: string | null;
+  clientId?: string | null;
+  settlementType?: string | null;
 }
 
 export interface WorkflowInstance {

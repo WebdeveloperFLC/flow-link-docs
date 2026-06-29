@@ -25,7 +25,7 @@ export async function resolvePaymentPlatformStatuses(paymentId: string): Promise
     .eq("id", paymentId)
     .maybeSingle();
 
-  const row = pay as Record<string, unknown> | null;
+  const row = (pay as unknown) as Record<string, unknown> | null;
   if (row?.business_status && row?.workflow_status && row?.accounting_status) {
     const acct = accountingStatusWithBankReconcile(
       row.accounting_status as AccountingStatus,

@@ -62,7 +62,7 @@ export default function ServiceLibraryDesignPreview() {
         <div className="flex-1 flex flex-col xl:flex-row overflow-hidden">
           <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
             <div className="px-4 md:px-6 pt-4 md:pt-6">
-              <ServiceAcademyHero view={view} onOpenTab={setActiveTab} policyDismissed={false} />
+              <ServiceAcademyHero view={view} onOpenTab={(tab) => setActiveTab(tab as AcademyTabId)} policyDismissed={false} />
             </div>
             <div className="px-4 md:px-6 pb-8 space-y-4">
               <ServiceAcademyKpiRow kpis={view.kpis} />

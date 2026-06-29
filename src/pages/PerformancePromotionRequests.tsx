@@ -57,7 +57,6 @@ export default function PerformancePromotionRequests() {
   async function load() {
     setLoading(true);
     const { data, error } = await supabase
-      // @ts-expect-error promotion_requests not in generated types yet (PH-R-016)
       .from("promotion_requests")
       .select(
         `
@@ -101,7 +100,6 @@ export default function PerformancePromotionRequests() {
     setBusy(true);
     try {
       const { error } = await supabase
-        // @ts-expect-error promotion_requests not in generated types yet (PH-R-016)
         .from("promotion_requests")
         .insert({
           title: title.trim(),
@@ -159,7 +157,6 @@ export default function PerformancePromotionRequests() {
     setBusy(true);
     try {
       const { error } = await supabase
-        // @ts-expect-error promotion_requests not in generated types yet (PH-R-016)
         .from("promotion_requests")
         .update({
           status,

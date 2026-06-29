@@ -55,6 +55,9 @@ const CATEGORY_OPTIONS = [
   { key: "travel_financial", label: "Travel & Financial" },
 ];
 
+/** Service categories that require a country on the master record. */
+const COUNTRY_BOUND_CATEGORIES = new Set(["visa_immigration", "mbbs_services"]);
+
 const DEFAULT_SUBMISSION_ITEMS = [
   { item_key: "documents_verified", item_label: "Documents verified" },
   { item_key: "checklist_completed", item_label: "Checklist completed" },

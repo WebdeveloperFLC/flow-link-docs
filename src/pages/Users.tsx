@@ -31,7 +31,7 @@ const ALL_ROLES: AppRole[] = ["admin", "commission_admin", "counselor", "documen
 
 // Highest-privilege role wins for the "Reset to role defaults" hint in the
 // permissions dialog.
-const ROLE_PRIORITY: AppRole[] = ["admin", "commission_admin", "counselor", "documentation", "telecaller", "viewer", "client"];
+const ROLE_PRIORITY: AppRole[] = ["admin", "commission_admin", "counselor", "documentation", "telecaller", "director", "viewer", "client"];
 const highestRole = (rs: AppRole[]): AppRole =>
   ROLE_PRIORITY.find((r) => rs.includes(r)) ?? "viewer";
 
@@ -44,6 +44,7 @@ const ROLE_HELP: Record<AppRole, string> = {
   documentation: "Edit access: add clients, upload documents and fill client details",
   telecaller: "Lead calling and remarks; can hand leads to counselors",
   viewer: "View-only access",
+  director: "Director read-only access",
   client: "Client portal access only",
 };
 
@@ -56,6 +57,7 @@ const ROLE_SHORT: Record<AppRole, string> = {
   documentation: "Edit access",
   telecaller: "Telecaller",
   viewer: "View-only access",
+  director: "Director read-only",
   client: "Client portal access only",
 };
 
@@ -500,6 +502,7 @@ const Users = () => {
             const r = highestRole(rolesFor(permsUser.id).length ? rolesFor(permsUser.id) : ["viewer"]);
             if (r === "administrator") return "admin";
             if (r === "manager") return "commission_admin";
+            if (r === "director") return "viewer";
             return r;
           })()}
         />
