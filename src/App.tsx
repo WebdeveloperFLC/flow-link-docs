@@ -104,6 +104,7 @@ import AccountingARPage from "./accounting/pages/ar/AccountingARPage";
 import AccountingNewInvoicePage from "./accounting/pages/ar/AccountingNewInvoicePage";
 import AccountingInvoiceDetailPage from "./accounting/pages/ar/AccountingInvoiceDetailPage";
 import AccountingVerificationQueuePage from "./accounting/pages/ar/AccountingVerificationQueuePage";
+import FinanceWorkQueuePage from "./accounting/pages/finance/FinanceWorkQueuePage";
 import AccountingReceiptsPage from "./accounting/pages/ar/AccountingReceiptsPage";
 import AccountingTrustPage from "./accounting/pages/trust/AccountingTrustPage";
 import AccountingTrustDisbursementPage from "./accounting/pages/trust/AccountingTrustDisbursementPage";
@@ -142,6 +143,7 @@ import AccountingPaymentPurposePage from "./accounting/pages/reports/AccountingP
 import { AccountingProtectedRoute } from "./accounting/components/AccountingProtectedRoute";
 import AccountingSectionRoute from "./accounting/components/AccountingSectionRoute";
 import AccountingAccessAdminPage from "./accounting/pages/settings/AccountingAccessAdminPage";
+import PlatformWorkflowConfigPage from "./accounting/pages/settings/PlatformWorkflowConfigPage";
 import AccountingNoAccessPage from "./accounting/pages/AccountingNoAccessPage";
 import AccountingPettyCashDashboardPage from "./accounting/pages/petty-cash/AccountingPettyCashDashboardPage";
 import AccountingPettyCashVoucherPage from "./accounting/pages/petty-cash/AccountingPettyCashVoucherPage";
@@ -165,6 +167,22 @@ import AiSuggestionsPage from "./institutions/pages/AiSuggestionsPage";
 import CfUpiLinkagePage from "./institutions/pages/CfUpiLinkagePage";
 import { InstitutionsProtectedRoute } from "./institutions/components/InstitutionsProtectedRoute";
 import { CommissionsProtectedRoute } from "./institutions/components/CommissionsProtectedRoute";
+import { KnowledgeCentreProtectedRoute } from "./knowledge-centre/components/KnowledgeCentreProtectedRoute";
+import KnowledgeCentreDashboardPage from "./knowledge-centre/pages/KnowledgeCentreDashboardPage";
+import CountriesIndexPage from "./knowledge-centre/pages/CountriesIndexPage";
+import CountryHubPage from "./knowledge-centre/pages/CountryHubPage";
+import ArticlesIndexPage from "./knowledge-centre/pages/ArticlesIndexPage";
+import ArticleReaderPage from "./knowledge-centre/pages/ArticleReaderPage";
+import ServicesIndexPage from "./knowledge-centre/pages/ServicesIndexPage";
+import ServiceHubPage from "./knowledge-centre/pages/ServiceHubPage";
+import FaqsIndexPage from "./knowledge-centre/pages/FaqsIndexPage";
+import QuizIndexPage from "./knowledge-centre/pages/QuizIndexPage";
+import QuizRunnerPage from "./knowledge-centre/pages/QuizRunnerPage";
+import DownloadsIndexPage from "./knowledge-centre/pages/DownloadsIndexPage";
+import OfficialSourcesPage from "./knowledge-centre/pages/OfficialSourcesPage";
+import SearchResultsPage from "./knowledge-centre/pages/SearchResultsPage";
+import AdminConsolePage from "./knowledge-centre/pages/AdminConsolePage";
+import ArticleEditorPage from "./knowledge-centre/pages/ArticleEditorPage";
 import CommissionsPage from "./pages/CommissionsPage";
 import MyIncentives from "@/pages/MyIncentives";
 import IncentivesAdmin from "@/pages/IncentivesAdmin";
@@ -583,6 +601,126 @@ const App = () => (
                       <InstitutionsProtectedRoute>
                         <InstitutionDetailPage />
                       </InstitutionsProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre"
+                    element={
+                      <KnowledgeCentreProtectedRoute>
+                        <KnowledgeCentreDashboardPage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/countries"
+                    element={
+                      <KnowledgeCentreProtectedRoute>
+                        <CountriesIndexPage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/countries/:code"
+                    element={
+                      <KnowledgeCentreProtectedRoute>
+                        <CountryHubPage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/articles"
+                    element={
+                      <KnowledgeCentreProtectedRoute>
+                        <ArticlesIndexPage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/articles/:slug"
+                    element={
+                      <KnowledgeCentreProtectedRoute>
+                        <ArticleReaderPage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/services"
+                    element={
+                      <KnowledgeCentreProtectedRoute>
+                        <ServicesIndexPage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/services/:libraryId"
+                    element={
+                      <KnowledgeCentreProtectedRoute>
+                        <ServiceHubPage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/faqs"
+                    element={
+                      <KnowledgeCentreProtectedRoute>
+                        <FaqsIndexPage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/quiz"
+                    element={
+                      <KnowledgeCentreProtectedRoute>
+                        <QuizIndexPage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/quiz/:slug"
+                    element={
+                      <KnowledgeCentreProtectedRoute>
+                        <QuizRunnerPage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/downloads"
+                    element={
+                      <KnowledgeCentreProtectedRoute>
+                        <DownloadsIndexPage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/official-sources"
+                    element={
+                      <KnowledgeCentreProtectedRoute>
+                        <OfficialSourcesPage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/search"
+                    element={
+                      <KnowledgeCentreProtectedRoute>
+                        <SearchResultsPage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/admin"
+                    element={
+                      <KnowledgeCentreProtectedRoute requireEdit>
+                        <AdminConsolePage />
+                      </KnowledgeCentreProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/knowledge-centre/admin/articles/:id"
+                    element={
+                      <KnowledgeCentreProtectedRoute requireEdit>
+                        <ArticleEditorPage />
+                      </KnowledgeCentreProtectedRoute>
                     }
                   />
                   <Route
@@ -1183,6 +1321,14 @@ const App = () => (
                     }
                   />
                   <Route
+                    path="/accounting/finance-queue"
+                    element={
+                      <AccountingSectionRoute section="approvals">
+                        <FinanceWorkQueuePage />
+                      </AccountingSectionRoute>
+                    }
+                  />
+                  <Route
                     path="/accounting/ar/verification"
                     element={
                       <AccountingSectionRoute section="ar">
@@ -1459,6 +1605,14 @@ const App = () => (
                     element={
                       <AccountingSectionRoute section="ai">
                         <AccountingAIPage />
+                      </AccountingSectionRoute>
+                    }
+                  />
+                  <Route
+                    path="/accounting/settings/platform-config"
+                    element={
+                      <AccountingSectionRoute section="users" level="edit">
+                        <PlatformWorkflowConfigPage />
                       </AccountingSectionRoute>
                     }
                   />

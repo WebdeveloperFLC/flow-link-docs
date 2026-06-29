@@ -9,6 +9,7 @@ export type NavSectionKey =
   | 'institution'
   | 'commissions'
   | 'hr_payroll'
+  | 'knowledge_centre'
   | 'guide'
   | 'accounts'
   | 'admin';
@@ -100,6 +101,7 @@ export const DEFAULT_NAV_SECTION_COLORS: Record<NavSectionKey, string> = {
   institution: '205 50% 38%',
   commissions: '205 65% 44%',
   hr_payroll: '205 80% 42%',
+  knowledge_centre: '205 65% 44%',
   guide: '205 45% 40%',
   accounts: '205 30% 48%',
   admin: '205 100% 38%',

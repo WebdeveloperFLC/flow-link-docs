@@ -52,8 +52,10 @@ import {
   Flame,
   Megaphone,
   CalendarClock,
+  Globe,
   Tags,
   ListFilter,
+  Settings2,
 } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -92,6 +94,8 @@ type NavItem = {
   roles?: string[];
   section?: string;
   acctAdminOnly?: boolean;
+  /** Finance-admin-only items grouped under Advanced finance (FOS Sprint 1). */
+  advancedFinance?: boolean;
   hidden?: boolean;
 };
 
@@ -184,51 +188,59 @@ const adminNav: NavItem[] = [
   { to: "/settings/telephony-integration", icon: KeyRound, label: "Telephony Integration", adminOnly: true },
 ];
 
-const accountingNav: NavItem[] = [
+/** Day-to-day finance — business-friendly labels (routes unchanged). */
+const accountingNavMain: NavItem[] = [
   { to: "/accounting", icon: LayoutDashboard, label: "Overview", end: true, section: "dashboard" },
-  { to: "/accounting/journals", icon: BookOpen, label: "Journal entries", section: "journals" },
-  { to: "/accounting/coa", icon: Layers, label: "Chart of accounts", section: "coa" },
+  { to: "/accounting/finance-queue", icon: CheckSquare, label: "Finance queue", section: "approvals" },
+  { to: "/accounting/ar", icon: ArrowUpCircle, label: "Client invoices", section: "ar" },
+  { to: "/accounting/trust", icon: Wallet, label: "Client funds held", section: "trust" },
+  { to: "/accounting/ap", icon: ArrowDownCircle, label: "Vendor bills", section: "ap" },
   { to: "/accounting/bank-accounts", icon: Landmark, label: "Bank accounts", section: "bank" },
   { to: "/accounting/petty-cash", icon: Wallet, label: "Petty cash", section: "petty_cash" },
-  { to: "/accounting/intercompany", icon: ArrowLeftRight, label: "Inter-company", section: "intercompany" },
   { to: "/accounting/reimbursements", icon: ReceiptText, label: "Reimbursements", section: "reimbursements" },
-  { to: "/accounting/card-reconciliation", icon: CreditCard, label: "Statement reconciliation", section: "card_recon" },
-  { to: "/accounting/owners", icon: Users, label: "Owner profiles", section: "owners" },
-  { to: "/accounting/ap", icon: ArrowDownCircle, label: "AP — Bills", section: "ap" },
-  { to: "/accounting/ar", icon: ArrowUpCircle, label: "AR — Invoices", section: "ar" },
-  { to: "/accounting/trust", icon: Wallet, label: "Student Trust", section: "trust" },
-  { to: "/accounting/payroll", icon: Users, label: "Payroll accounting", section: "payroll" },
+  { to: "/accounting/card-reconciliation", icon: CreditCard, label: "Card reconciliation", section: "card_recon" },
+  { to: "/accounting/payroll", icon: Users, label: "Payroll", section: "payroll" },
   { to: "/accounting/vendors", icon: Truck, label: "Vendors", section: "vendors" },
   { to: "/accounting/clients", icon: Briefcase, label: "Clients", section: "clients_link" },
   { to: "/accounting/documents", icon: ScanLine, label: "Documents & OCR", section: "documents" },
   { to: "/accounting/approvals", icon: CheckSquare, label: "Approvals", section: "approvals" },
-  { to: "/accounting/reports", icon: BarChart2, label: "Reports", section: "reports_financials" },
-  { to: "/accounting/reports/trial-balance", icon: Scale, label: "Trial balance", section: "reports_financials" },
-  { to: "/accounting/reports/general-ledger", icon: BookOpen, label: "General ledger", section: "reports_financials" },
-  { to: "/accounting/reports/consolidated", icon: BarChart2, label: "Consolidated", section: "reports_consolidated" },
+  { to: "/accounting/reports", icon: BarChart2, label: "Financial reports", section: "reports_financials" },
   {
     to: "/accounting/reports/reconciliation",
     icon: GitMerge,
-    label: "Reports — Reconciliation",
+    label: "Report reconciliation",
     section: "reports_reconciliation",
   },
   { to: "/accounting/reports/payment-purpose", icon: ListFilter, label: "Payment purpose", section: "payment_purpose_report" },
   { to: "/accounting/tax", icon: Receipt, label: "Tax & compliance", section: "tax" },
-  { to: "/accounting/fraud", icon: ShieldAlert, label: "Fraud & audit", section: "fraud" },
-  { to: "/accounting/reconciliation", icon: GitMerge, label: "Reconciliation", section: "reports_reconciliation" },
-  { to: "/accounting/wealth", icon: PieChart, label: "Wealth summary", section: "owners" },
-  { to: "/accounting/ai-assistant", icon: Sparkles, label: "AI assistant", section: "ai" },
-  { to: "/accounting/settings/entities", icon: Building2, label: "Entities", section: "entities" },
-  { to: "/accounting/settings/collection-categories", icon: Tags, label: "Collection categories", section: "collection_categories", acctAdminOnly: true },
-  { to: "/accounting/settings/users", icon: UserCog, label: "Users", section: "users" },
-  {
-    to: "/accounting/access",
-    icon: ShieldCheck,
-    label: "Access management",
-    section: "access_admin",
-    acctAdminOnly: true,
-  },
+  { to: "/accounting/reconciliation", icon: GitMerge, label: "Bank reconciliation", section: "reports_reconciliation" },
 ];
+
+/** Finance-admin setup — COA, journals, fiscal year, opening balances, GL (FOS Sprint 1). */
+const accountingNavAdvanced: NavItem[] = [
+  { to: "/accounting/coa", icon: Layers, label: "Account setup", section: "coa", advancedFinance: true },
+  { to: "/accounting/journals", icon: BookOpen, label: "Journal entries", section: "journals", advancedFinance: true },
+  { to: "/accounting/reports/general-ledger", icon: BookOpen, label: "General ledger", section: "reports_financials", advancedFinance: true },
+  { to: "/accounting/reports/trial-balance", icon: Scale, label: "Trial balance", section: "reports_financials", advancedFinance: true },
+  { to: "/accounting/reports/consolidated", icon: BarChart2, label: "Consolidated reports", section: "reports_consolidated", advancedFinance: true },
+  { to: "/accounting/settings/entities", icon: Building2, label: "Companies & fiscal year", section: "entities", advancedFinance: true },
+  { to: "/accounting/settings/collection-categories", icon: Tags, label: "Payment purpose setup", section: "collection_categories", acctAdminOnly: true, advancedFinance: true },
+  { to: "/accounting/intercompany", icon: ArrowLeftRight, label: "Inter-company", section: "intercompany", advancedFinance: true },
+  { to: "/accounting/owners", icon: Users, label: "Owner profiles", section: "owners", advancedFinance: true },
+  { to: "/accounting/wealth", icon: PieChart, label: "Wealth summary", section: "owners", advancedFinance: true },
+  { to: "/accounting/fraud", icon: ShieldAlert, label: "Fraud & audit", section: "fraud", advancedFinance: true },
+  { to: "/accounting/ai-assistant", icon: Sparkles, label: "AI assistant", section: "ai", advancedFinance: true },
+  { to: "/accounting/settings/platform-config", icon: Settings2, label: "Platform workflows", section: "users", acctAdminOnly: true, advancedFinance: true },
+  { to: "/accounting/settings/users", icon: UserCog, label: "Accounting users", section: "users", advancedFinance: true },
+  { to: "/accounting/access", icon: ShieldCheck, label: "Access management", section: "access_admin", acctAdminOnly: true, advancedFinance: true },
+];
+
+function filterAccountingNavItem(i: NavItem, canAcct: (section: string, level?: "view" | "edit" | "delete") => boolean, isAcctAdmin: boolean) {
+  if (i.advancedFinance && !isAcctAdmin) return false;
+  if (i.acctAdminOnly && !isAcctAdmin) return false;
+  if (!i.section) return true;
+  return canAcct(i.section, "view");
+}
 
 const institutionsNav: NavItem[] = [
   { to: "/institutions", icon: School, label: "Institutions", end: true },
@@ -238,6 +250,17 @@ const institutionsNav: NavItem[] = [
 ];
 
 const commissionsNav: NavItem[] = [{ to: "/commissions", icon: Receipt, label: "Commissions", end: true }];
+
+const knowledgeCentreNav: NavItem[] = [
+  { to: "/knowledge-centre", icon: BookOpen, label: "Knowledge Centre", end: true },
+  { to: "/knowledge-centre/countries", icon: Globe, label: "Countries" },
+  { to: "/knowledge-centre/articles", icon: Library, label: "Shared Knowledge" },
+  { to: "/knowledge-centre/services", icon: Briefcase, label: "Services" },
+  { to: "/knowledge-centre/downloads", icon: FileStack, label: "Downloads" },
+  { to: "/knowledge-centre/quiz", icon: GraduationCap, label: "Quiz" },
+  { to: "/knowledge-centre/official-sources", icon: Link2, label: "Official Resources" },
+  { to: "/knowledge-centre/admin", icon: SettingsIcon, label: "KC Admin" },
+];
 
 const digitalSuccessNav: NavItem[] = [
   { to: "/digital-success", icon: Megaphone, label: "Digital Success Hub", end: true },
@@ -265,6 +288,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { can: canAcct, isAdmin: isAcctAdmin } = useCan();
   const { canView: canViewInstitutions } = useModulePermission("institutions");
   const { canView: canViewCommissions } = useModulePermission("commissions");
+  const { canView: canViewKnowledgeCentre, canEdit: canEditKnowledgeCentre } = useModulePermission("knowledge_centre");
   const { canView: canViewDsh } = useModulePermission("digital_success_hub");
   const { canView: canViewHrPayroll } = useModulePermission("hr_payroll");
   const { guides: visibleGuides } = useVisibleGuides();
@@ -462,6 +486,13 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
 
             {(isAdmin || canViewInstitutions) && renderSection("institution", "Institution", institutionsNav)}
 
+            {(isAdmin || canViewKnowledgeCentre) &&
+              renderSection(
+                "knowledge_centre",
+                "Knowledge Centre",
+                knowledgeCentreNav.filter((i) => i.to !== "/knowledge-centre/admin" || isAdmin || canEditKnowledgeCentre),
+              )}
+
             {(isAdmin || isCommissionAdmin || canViewCommissions) &&
               renderSection("commissions", "Commissions", commissionsNav)}
 
@@ -478,15 +509,67 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
 
             {!accountingAccessLoading &&
               hasAccountingAccess &&
-              renderSection(
-                "accounts",
-                "Accounts",
-                accountingNav.filter((i) => {
-                  if (i.acctAdminOnly && !isAcctAdmin) return false;
-                  if (!i.section) return true;
-                  return canAcct(i.section, "view");
-                }),
-              )}
+              (() => {
+                const mainItems = accountingNavMain.filter((i) =>
+                  filterAccountingNavItem(i, canAcct, isAcctAdmin),
+                );
+                const advancedItems = isAcctAdmin
+                  ? accountingNavAdvanced.filter((i) => filterAccountingNavItem(i, canAcct, isAcctAdmin))
+                  : [];
+                const allItems = [...mainItems, ...advancedItems];
+                if (allItems.length === 0) return null;
+
+                const hasActive = allItems.some(
+                  (i) =>
+                    location.pathname === i.to ||
+                    (!i.end && location.pathname.startsWith(i.to + "/")),
+                );
+                const isOpen = openSections.accounts ?? hasActive;
+                const sectionColor = theme.navSectionColors.accounts;
+
+                if (iconsOnly) {
+                  return (
+                    <>
+                      {allItems.map(renderNavLink)}
+                    </>
+                  );
+                }
+
+                return (
+                  <div>
+                    <div className="border-t border-sidebar-border my-2" />
+                    <button
+                      type="button"
+                      onClick={() => toggleSection("accounts")}
+                      className={cn(
+                        "w-full flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest px-3 py-2 hover:text-white transition-colors",
+                        theme.colorfulMode ? "text-sidebar-foreground/80" : "text-sidebar-foreground/60",
+                      )}
+                      style={
+                        theme.colorfulMode
+                          ? { borderLeft: `3px solid hsl(${sectionColor})`, marginLeft: 4, paddingLeft: 8 }
+                          : undefined
+                      }
+                    >
+                      <span>Finance</span>
+                      <ChevronDown className={cn("size-3.5 transition-transform", isOpen ? "" : "-rotate-90")} />
+                    </button>
+                    {isOpen && (
+                      <div className="space-y-1">
+                        {mainItems.map(renderNavLink)}
+                        {advancedItems.length > 0 && (
+                          <>
+                            <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+                              Advanced finance
+                            </div>
+                            {advancedItems.map(renderNavLink)}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
             {renderSection(
               "admin",
