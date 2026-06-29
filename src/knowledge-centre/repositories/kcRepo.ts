@@ -12,6 +12,7 @@ import type {
   KcSourceRef,
 } from "@/knowledge-centre/types/kc";
 import { DEFAULT_GUIDE_SECTIONS } from "@/knowledge-centre/lib/guideSections";
+import { guideSlugForServiceLibrary } from "@/knowledge-centre/lib/serviceGuideSlugs";
 
 const err = (e: { message?: string } | null) => e?.message ?? "Request failed";
 
@@ -70,6 +71,58 @@ export async function resolveLiveArticle(slug?: string, articleId?: string) {
   if (!data) return null;
   const payload = data as { article: KcArticle; version: KcArticleVersion | null };
   return payload;
+}
+
+/** Published articles linked to a service_library row via kc_article_services. */
+export async function listLinkedArticles(serviceLibraryId: string, opts?: { status?: string }) {
+  const { data: links, error } = await supabase
+    .from("kc_article_services" as any)
+    .select("article_id")
+    .eq("service_library_id", serviceLibraryId);
+  if (error) throw new Error(err(error));
+
+  const ids = [...new Set((links ?? []).map((r: { article_id: string }) => r.article_id))];
+  if (!ids.length) return [];
+
+  let q = supabase.from("kc_articles" as any).select("*").in("id", ids).order("title");
+  if (opts?.status) q = q.eq("status", opts.status);
+  const { data, error: artErr } = await q;
+  if (artErr) throw new Error(err(artErr));
+  return (data ?? []) as KcArticle[];
+}
+
+/**
+ * Resolve the live master guide for a Service Library row.
+ * Order: junction-linked published articles → known slug fallback → search RPC.
+ */
+export async function resolveGuideForServiceLibrary(serviceLibraryId: string) {
+  const linked = await listLinkedArticles(serviceLibraryId, { status: "published" });
+  const masterArticle =
+    linked.find((a) => a.article_kind === "service") ?? linked.find((a) => a.article_kind !== "faq") ?? linked[0];
+
+  if (masterArticle) {
+    const live = await resolveLiveArticle(undefined, masterArticle.id);
+    if (live?.version) return live;
+  }
+
+  const slug = guideSlugForServiceLibrary(serviceLibraryId);
+  if (slug) {
+    const bySlug = await resolveLiveArticle(slug);
+    if (bySlug?.article?.status === "published" && bySlug.version) return bySlug;
+  }
+
+  const hits = await searchArticles({
+    serviceLibraryId,
+    status: "published",
+    articleKind: "service",
+    limit: 5,
+  });
+  if (hits.length) {
+    const live = await resolveLiveArticle(undefined, hits[0].article_id);
+    if (live?.version) return live;
+  }
+
+  return null;
 }
 
 export async function searchArticles(params: {

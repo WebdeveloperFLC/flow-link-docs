@@ -2,33 +2,36 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { listArticles, resolveLiveArticle } from "@/knowledge-centre/repositories/kcRepo";
+import {
+  listLinkedArticles,
+  resolveGuideForServiceLibrary,
+  resolveLiveArticle,
+} from "@/knowledge-centre/repositories/kcRepo";
 import { KnowledgeGuideReader } from "@/knowledge-centre/components/KnowledgeGuideReader";
 import { kcRoutes } from "@/knowledge-centre/lib/kcRoutes";
 
 export function ServiceKcGuidePanel({ libraryId }: { libraryId: string }) {
   const [loading, setLoading] = useState(true);
   const [master, setMaster] = useState<Awaited<ReturnType<typeof resolveLiveArticle>>>(null);
-  const [related, setRelated] = useState<Awaited<ReturnType<typeof listArticles>>>([]);
+  const [related, setRelated] = useState<Awaited<ReturnType<typeof listLinkedArticles>>>([]);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    listArticles({ serviceLibraryId: libraryId, status: "published" })
-      .then(async (articles) => {
+
+    Promise.all([
+      resolveGuideForServiceLibrary(libraryId),
+      listLinkedArticles(libraryId, { status: "published" }),
+    ])
+      .then(([live, articles]) => {
         if (cancelled) return;
+        setMaster(live);
         setRelated(articles);
-        const masterArticle = articles.find((a) => a.article_kind === "service") ?? articles[0];
-        if (masterArticle) {
-          const live = await resolveLiveArticle(undefined, masterArticle.id);
-          if (!cancelled) setMaster(live);
-        } else {
-          setMaster(null);
-        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+
     return () => {
       cancelled = true;
     };
