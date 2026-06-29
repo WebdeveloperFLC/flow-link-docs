@@ -60,15 +60,15 @@ export default function ArticleEditorPage() {
       setVersions(vers);
       if (v) {
         const parsed = parseStructuredContent(v.content_body);
-        if (parsed.sections.length) {
-          setSections(parsed.sections);
-        } else {
-          setSections(
-            resolveGuideSections(a.metadata)
-              .filter((s) => s.type === "narrative")
-              .map((s) => ({ id: s.id, title: s.title })),
-          );
-        }
+        const manifestNarrative = resolveGuideSections(a.metadata).filter((s) => s.type === "narrative");
+        const byId = new Map(parsed.sections.map((s) => [s.id, s]));
+        setSections(
+          manifestNarrative.map((m) => ({
+            id: m.id,
+            title: m.title,
+            ...byId.get(m.id),
+          })),
+        );
         setSatellites(await getVersionSatellites(v.id));
       }
       setSources(await listOfficialSources());
@@ -117,7 +117,12 @@ export default function ArticleEditorPage() {
   const handlePublish = async () => {
     if (!version) return;
     try {
-      await saveBody();
+      const hasSectionEdits = sections.some(
+        (s) => Boolean(s.body_md?.trim()) || Boolean(s.counselling_objective?.trim()) || Boolean(s.purpose?.trim()),
+      );
+      if (hasSectionEdits) {
+        await saveBody();
+      }
       await publishVersion(version.id);
       toast.success("Published");
       reload();

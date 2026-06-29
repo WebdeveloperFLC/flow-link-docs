@@ -257,7 +257,16 @@ export async function createArticle(input: {
   metadata?: KcArticleMetadata;
   countryCodes?: string[];
   serviceLibraryIds?: string[];
+  initialContentBody?: string;
+  initialVersionLabel?: string;
 }) {
+  const defaultBody = JSON.stringify({
+    sections: DEFAULT_GUIDE_SECTIONS.filter((s) => s.type === "narrative").map((s) => ({
+      id: s.id,
+      title: s.title,
+    })),
+  });
+
   const { data: article, error } = await supabase
     .from("kc_articles" as any)
     .insert({
@@ -277,31 +286,64 @@ export async function createArticle(input: {
     .insert({
       article_id: a.id,
       version_number: 1,
-      version_label: "1.0.0",
+      version_label: input.initialVersionLabel ?? "1.0.0",
       status: "draft",
       content_format: "structured",
-      content_body: JSON.stringify({
-        sections: DEFAULT_GUIDE_SECTIONS.filter((s) => s.type === "narrative").map((s) => ({
-          id: s.id,
-          title: s.title,
-        })),
-      }),
+      content_body: input.initialContentBody ?? defaultBody,
     })
     .select("*")
     .single();
   if (vErr) throw new Error(err(vErr));
+  const v = version as KcArticleVersion;
+
+  const { error: linkErr } = await supabase
+    .from("kc_articles" as any)
+    .update({ current_version_id: v.id })
+    .eq("id", a.id);
+  if (linkErr) throw new Error(err(linkErr));
 
   if (input.countryCodes?.length) {
-    await supabase.from("kc_article_countries" as any).insert(
+    const { error: cErr } = await supabase.from("kc_article_countries" as any).insert(
       input.countryCodes.map((code) => ({ article_id: a.id, country_code: code })),
     );
+    if (cErr) throw new Error(err(cErr));
   }
   if (input.serviceLibraryIds?.length) {
-    await supabase.from("kc_article_services" as any).insert(
+    const { error: sErr } = await supabase.from("kc_article_services" as any).insert(
       input.serviceLibraryIds.map((id) => ({ article_id: a.id, service_library_id: id })),
     );
+    if (sErr) throw new Error(err(sErr));
   }
-  return { article: a, version: version as KcArticleVersion };
+
+  return {
+    article: { ...a, current_version_id: v.id } as KcArticle,
+    version: v,
+  };
+}
+
+export async function importGuideViaRpc(
+  payload: Record<string, unknown>,
+  opts?: { replace?: boolean; publish?: boolean },
+) {
+  const { data, error } = await supabase.rpc("kc_import_guide" as any, {
+    p_payload: payload,
+    p_replace: opts?.replace ?? false,
+    p_publish: opts?.publish ?? false,
+  });
+  if (error) throw new Error(err(error));
+  return data as {
+    article_id: string;
+    version_id: string;
+    slug: string;
+    counts: {
+      narrative_sections: number;
+      faqs: number;
+      quiz: number;
+      downloads: number;
+      official_sources: number;
+      related_links: number;
+    };
+  };
 }
 
 export async function updateArticle(id: string, patch: Partial<{

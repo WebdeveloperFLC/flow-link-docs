@@ -295,7 +295,6 @@ export function parseGoldStandardMarkdown(markdown: string, opts?: {
     quiz: parseQuiz(sectionMap.get("quiz")),
     downloads: parseDownloads(sectionMap.get("downloads"), slug),
     official_sources: registrySources,
-    official_sources: registrySources,
     related_article_slugs: relatedSlugs,
     shared_articles: Object.entries(RELATED_SLUG_MAP).map(([label, sharedSlug]) => ({
       slug: sharedSlug,
