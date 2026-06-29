@@ -7,6 +7,7 @@ import { ServiceLibraryTabs } from "@/components/service-library/design/ServiceL
 import { ServiceLibraryRightRail } from "@/components/service-library/design/ServiceLibraryRightRail";
 import { buildMockAcademyViewModel } from "@/lib/service-library/mockAcademyView";
 import type { AcademyCategoryFilter, AcademyNavGroup } from "@/lib/service-library/academyNav";
+import type { AcademyTabId } from "@/lib/service-library/academyTabs";
 
 const PREVIEW_NAV: AcademyNavGroup = {
   key: "visa",
@@ -20,7 +21,7 @@ const PREVIEW_NAV: AcademyNavGroup = {
  */
 export default function ServiceLibraryDesignPreview() {
   const view = buildMockAcademyViewModel();
-  const [activeTab, setActiveTab] = useState("redflags");
+  const [activeTab, setActiveTab] = useState<AcademyTabId>("redflags");
   const [categoryFilter] = useState<AcademyCategoryFilter>("visa");
 
   return (
