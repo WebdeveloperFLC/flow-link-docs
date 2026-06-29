@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
-import { listServicesWithCounts } from "../repositories/kcRepo";
+import { listServicesWithCounts } from "@/knowledge-centre/repositories/kcRepo";
 
 export default function ServicesIndexPage() {
   const [rows, setRows] = useState<Awaited<ReturnType<typeof listServicesWithCounts>>>([]);

@@ -4,7 +4,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { listArticles } from "../repositories/kcRepo";
+import { listArticles } from "@/knowledge-centre/repositories/kcRepo";
 
 export default function QuizIndexPage() {
   const [articles, setArticles] = useState<Awaited<ReturnType<typeof listArticles>>>([]);

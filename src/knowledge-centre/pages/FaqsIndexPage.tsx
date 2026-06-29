@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Loader2 } from "lucide-react";
-import { listPublishedFaqs } from "../repositories/kcRepo";
-import { FaqSectionPanel } from "../components/FaqSectionPanel";
+import { listPublishedFaqs } from "@/knowledge-centre/repositories/kcRepo";
+import { FaqSectionPanel } from "@/knowledge-centre/components/FaqSectionPanel";
 
 export default function FaqsIndexPage() {
   const [faqs, setFaqs] = useState<Awaited<ReturnType<typeof listPublishedFaqs>>>([]);

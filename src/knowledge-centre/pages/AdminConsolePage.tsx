@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Loader2, Plus, Upload } from "lucide-react";
-import { listArticles, createArticle } from "../repositories/kcRepo";
-import { KcStatusBadge } from "../components/KcStatusBadge";
+import { listArticles, createArticle } from "@/knowledge-centre/repositories/kcRepo";
+import { KcStatusBadge } from "@/knowledge-centre/components/KcStatusBadge";
 import { toast } from "sonner";
-import { DEFAULT_GUIDE_SECTIONS } from "../lib/guideSections";
+import { DEFAULT_GUIDE_SECTIONS } from "@/knowledge-centre/lib/guideSections";
 
 export default function AdminConsolePage() {
   const [articles, setArticles] = useState<Awaited<ReturnType<typeof listArticles>>>([]);
@@ -47,7 +47,7 @@ export default function AdminConsolePage() {
 
   const handleImport = async () => {
     try {
-      const { executeGuideImportFromJson } = await import("../lib/executeGuideImport");
+      const { executeGuideImportFromJson } = await import("@/knowledge-centre/lib/executeGuideImport");
       const result = await executeGuideImportFromJson(importJson);
       toast.success(
         result.warnings.length

@@ -4,7 +4,7 @@
  */
 import { DEFAULT_GUIDE_SECTIONS } from "./guideSections";
 import type { GuideImportPayload } from "./guideImport";
-import type { StructuredSectionBlock } from "../types/kc";
+import type { StructuredSectionBlock } from "@/knowledge-centre/types/kc";
 
 const SECTION_IDS = [
   "overview",

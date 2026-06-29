@@ -49,7 +49,7 @@ import {
   normalizeCampusFields,
   resolveCourseDedupHashPatch,
   rowMatchesCampus,
-} from "../lib/courseDedup";
+} from "@/institutions/lib/courseDedup";
 import { normalizeInstitutionName } from "@/institutions/lib/programSheetImport";
 import {
   buildStagingSearchHaystack,
@@ -58,7 +58,7 @@ import {
   resolveInstitutionIdsFromSearch,
   rowMatchesInstitution,
   rowMatchesSearchTokens,
-} from "../lib/courseReviewFilters";
+} from "@/institutions/lib/courseReviewFilters";
 
 const STATUSES = ["pending_review", "approved", "rejected", "published", "needs_update"];
 const MANUAL_STATUSES = ["pending_review", "approved", "rejected", "needs_update"];

@@ -3,9 +3,9 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
-import { listDownloads } from "../repositories/kcRepo";
-import { DownloadsSectionPanel } from "../components/DownloadsSectionPanel";
-import type { KcDownloadType } from "../types/kc";
+import { listDownloads } from "@/knowledge-centre/repositories/kcRepo";
+import { DownloadsSectionPanel } from "@/knowledge-centre/components/DownloadsSectionPanel";
+import type { KcDownloadType } from "@/knowledge-centre/types/kc";
 
 const TYPES: { value: KcDownloadType | ""; label: string }[] = [
   { value: "", label: "All categories" },

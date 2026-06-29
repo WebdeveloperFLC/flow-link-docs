@@ -3,8 +3,8 @@ import { useParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Loader2 } from "lucide-react";
-import { resolveLiveArticle, getVersionSatellites } from "../repositories/kcRepo";
-import { QuizSectionPanel } from "../components/QuizSectionPanel";
+import { resolveLiveArticle, getVersionSatellites } from "@/knowledge-centre/repositories/kcRepo";
+import { QuizSectionPanel } from "@/knowledge-centre/components/QuizSectionPanel";
 import { useModulePermission } from "@/hooks/useModulePermission";
 
 export default function QuizRunnerPage() {

@@ -4,9 +4,9 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, ExternalLink, Plus } from "lucide-react";
-import { listOfficialSources, upsertOfficialSource, deleteOfficialSource } from "../repositories/kcRepo";
+import { listOfficialSources, upsertOfficialSource, deleteOfficialSource } from "@/knowledge-centre/repositories/kcRepo";
 import { useModulePermission } from "@/hooks/useModulePermission";
-import type { KcOfficialSource } from "../types/kc";
+import type { KcOfficialSource } from "@/knowledge-centre/types/kc";
 import { toast } from "sonner";
 
 export default function OfficialSourcesPage() {

@@ -4,7 +4,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { listCountriesWithCounts } from "../repositories/kcRepo";
+import { listCountriesWithCounts } from "@/knowledge-centre/repositories/kcRepo";
 
 export default function CountriesIndexPage() {
   const [rows, setRows] = useState<Awaited<ReturnType<typeof listCountriesWithCounts>>>([]);

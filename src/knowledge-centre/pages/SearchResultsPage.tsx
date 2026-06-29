@@ -6,9 +6,9 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { searchArticles } from "../repositories/kcRepo";
-import { KcStatusBadge } from "../components/KcStatusBadge";
-import type { KcSearchResult } from "../types/kc";
+import { searchArticles } from "@/knowledge-centre/repositories/kcRepo";
+import { KcStatusBadge } from "@/knowledge-centre/components/KcStatusBadge";
+import type { KcSearchResult } from "@/knowledge-centre/types/kc";
 
 export default function SearchResultsPage() {
   const [params, setParams] = useSearchParams();

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
-import type { KcSourceRef } from "../types/kc";
+import type { KcSourceRef } from "@/knowledge-centre/types/kc";
 
 export function OfficialSourcesSectionPanel({ refs }: { refs: KcSourceRef[] }) {
   if (!refs.length) return <p className="text-sm text-muted-foreground">No official source links yet.</p>;

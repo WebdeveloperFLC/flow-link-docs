@@ -7,7 +7,7 @@ import type {
   KcArticleMetadata,
   KcDownloadType,
   StructuredSectionBlock,
-} from "../types/kc";
+} from "@/knowledge-centre/types/kc";
 
 export interface GuideImportPayload {
   slug: string;

@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Globe, Briefcase, BookOpen, Download, HelpCircle, Link2 } from "lucide-react";
-import { listArticles } from "../repositories/kcRepo";
+import { listArticles } from "@/knowledge-centre/repositories/kcRepo";
 
 export default function KnowledgeCentreDashboardPage() {
   const [recent, setRecent] = useState<Awaited<ReturnType<typeof listArticles>>>([]);

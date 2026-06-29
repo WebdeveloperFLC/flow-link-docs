@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { KcArticleStatus, KcVersionStatus } from "../types/kc";
+import type { KcArticleStatus, KcVersionStatus } from "@/knowledge-centre/types/kc";
 
 const articleLabels: Record<KcArticleStatus, string> = {
   draft: "Draft",

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import type { GuideSectionManifest } from "../types/kc";
+import type { GuideSectionManifest } from "@/knowledge-centre/types/kc";
 
 export function GuideSectionNavigator({
   sections,

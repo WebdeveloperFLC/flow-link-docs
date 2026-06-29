@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { KcInternalLink } from "../types/kc";
+import type { KcInternalLink } from "@/knowledge-centre/types/kc";
 
 export function RelatedKnowledgePanel({ links }: { links: KcInternalLink[] }) {
   if (!links.length) return <p className="text-sm text-muted-foreground">No related knowledge links yet.</p>;

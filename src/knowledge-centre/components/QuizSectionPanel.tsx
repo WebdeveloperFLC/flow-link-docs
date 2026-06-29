@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { KcQuizQuestion } from "../types/kc";
+import type { KcQuizQuestion } from "@/knowledge-centre/types/kc";
 
 const LEVEL_LABELS: Record<number, string> = { 1: "Beginner", 2: "Intermediate", 3: "Advanced" };
 

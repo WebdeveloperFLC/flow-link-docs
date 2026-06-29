@@ -4,8 +4,8 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { listArticles } from "../repositories/kcRepo";
-import { KcStatusBadge } from "../components/KcStatusBadge";
+import { listArticles } from "@/knowledge-centre/repositories/kcRepo";
+import { KcStatusBadge } from "@/knowledge-centre/components/KcStatusBadge";
 
 export default function ArticlesIndexPage() {
   const [articles, setArticles] = useState<Awaited<ReturnType<typeof listArticles>>>([]);

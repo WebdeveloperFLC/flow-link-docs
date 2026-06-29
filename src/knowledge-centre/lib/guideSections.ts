@@ -1,4 +1,4 @@
-import type { GuideSectionManifest } from "../types/kc";
+import type { GuideSectionManifest, StructuredSectionBlock } from "@/knowledge-centre/types/kc";
 
 /** Default 14-section Gold Standard guide template (data-driven — not Canada-specific). */
 export const DEFAULT_GUIDE_SECTIONS: GuideSectionManifest[] = [
@@ -24,15 +24,15 @@ export function resolveGuideSections(metadata: { guide_sections?: GuideSectionMa
   return DEFAULT_GUIDE_SECTIONS;
 }
 
-export function parseStructuredContent(raw: string): { sections: import("../types/kc").StructuredSectionBlock[] } {
+export function parseStructuredContent(raw: string): { sections: StructuredSectionBlock[] } {
   try {
-    const parsed = JSON.parse(raw) as { sections?: import("../types/kc").StructuredSectionBlock[] };
+    const parsed = JSON.parse(raw) as { sections?: StructuredSectionBlock[] };
     return { sections: parsed?.sections ?? [] };
   } catch {
     return { sections: [] };
   }
 }
 
-export function serializeStructuredContent(sections: import("../types/kc").StructuredSectionBlock[]): string {
+export function serializeStructuredContent(sections: StructuredSectionBlock[]): string {
   return JSON.stringify({ sections });
 }

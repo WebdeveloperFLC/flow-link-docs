@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Download } from "lucide-react";
-import type { KcDownloadAsset } from "../types/kc";
-import { getSignedDownloadUrl } from "../repositories/kcRepo";
+import type { KcDownloadAsset } from "@/knowledge-centre/types/kc";
+import { getSignedDownloadUrl } from "@/knowledge-centre/repositories/kcRepo";
 
 export function DownloadsSectionPanel({ assets }: { assets: KcDownloadAsset[] }) {
   if (!assets.length) return <p className="text-sm text-muted-foreground">No downloads yet.</p>;

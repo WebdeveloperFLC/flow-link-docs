@@ -29,12 +29,12 @@ import {
   listArticles,
   upsertInternalLink,
   deleteInternalLink,
-} from "../repositories/kcRepo";
-import { KnowledgeGuideReader } from "../components/KnowledgeGuideReader";
-import { DEFAULT_GUIDE_SECTIONS, parseStructuredContent, resolveGuideSections, serializeStructuredContent } from "../lib/guideSections";
-import type { KcArticle, KcArticleVersion, StructuredSectionBlock } from "../types/kc";
+} from "@/knowledge-centre/repositories/kcRepo";
+import { KnowledgeGuideReader } from "@/knowledge-centre/components/KnowledgeGuideReader";
+import { DEFAULT_GUIDE_SECTIONS, parseStructuredContent, resolveGuideSections, serializeStructuredContent } from "@/knowledge-centre/lib/guideSections";
+import type { KcArticle, KcArticleVersion, StructuredSectionBlock } from "@/knowledge-centre/types/kc";
 import { toast } from "sonner";
-import { KcStatusBadge } from "../components/KcStatusBadge";
+import { KcStatusBadge } from "@/knowledge-centre/components/KcStatusBadge";
 
 export default function ArticleEditorPage() {
   const { id } = useParams<{ id: string }>();

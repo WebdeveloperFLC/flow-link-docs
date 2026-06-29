@@ -18,7 +18,7 @@ import {
   upsertDownloadAsset,
   listOfficialSources,
   publishVersion,
-} from "../repositories/kcRepo";
+} from "@/knowledge-centre/repositories/kcRepo";
 
 export interface GuideImportResult {
   articleId: string;

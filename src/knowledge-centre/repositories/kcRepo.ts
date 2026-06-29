@@ -10,8 +10,8 @@ import type {
   KcQuizQuestion,
   KcSearchResult,
   KcSourceRef,
-} from "../types/kc";
-import { DEFAULT_GUIDE_SECTIONS } from "../lib/guideSections";
+} from "@/knowledge-centre/types/kc";
+import { DEFAULT_GUIDE_SECTIONS } from "@/knowledge-centre/lib/guideSections";
 
 const err = (e: { message?: string } | null) => e?.message ?? "Request failed";
 

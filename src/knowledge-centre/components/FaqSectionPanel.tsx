@@ -1,5 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import type { KcFaqItem } from "../types/kc";
+import type { KcFaqItem } from "@/knowledge-centre/types/kc";
 
 export function FaqSectionPanel({ items }: { items: KcFaqItem[] }) {
   if (!items.length) return <p className="text-sm text-muted-foreground">No FAQs yet.</p>;

@@ -3,9 +3,9 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Loader2 } from "lucide-react";
-import { resolveLiveArticle } from "../repositories/kcRepo";
-import { KnowledgeGuideReader } from "../components/KnowledgeGuideReader";
-import { KcEmptyState } from "../components/KcEmptyState";
+import { resolveLiveArticle } from "@/knowledge-centre/repositories/kcRepo";
+import { KnowledgeGuideReader } from "@/knowledge-centre/components/KnowledgeGuideReader";
+import { KcEmptyState } from "@/knowledge-centre/components/KcEmptyState";
 import { useModulePermission } from "@/hooks/useModulePermission";
 
 export default function ArticleReaderPage() {

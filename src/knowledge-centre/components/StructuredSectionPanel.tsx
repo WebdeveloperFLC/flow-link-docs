@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { StructuredSectionBlock } from "../types/kc";
+import type { StructuredSectionBlock } from "@/knowledge-centre/types/kc";
 
 export function StructuredSectionPanel({ section }: { section: StructuredSectionBlock | undefined }) {
   if (!section) {

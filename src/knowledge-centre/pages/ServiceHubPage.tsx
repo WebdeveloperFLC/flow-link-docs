@@ -4,8 +4,8 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { listArticles, resolveLiveArticle } from "../repositories/kcRepo";
-import { KnowledgeGuideReader } from "../components/KnowledgeGuideReader";
+import { listArticles, resolveLiveArticle } from "@/knowledge-centre/repositories/kcRepo";
+import { KnowledgeGuideReader } from "@/knowledge-centre/components/KnowledgeGuideReader";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function ServiceHubPage() {
