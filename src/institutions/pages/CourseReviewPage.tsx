@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload, Info, Search, LayoutGrid, LayoutList, SlidersHorizontal, GraduationCap } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload, Info, Search, LayoutGrid, LayoutList, SlidersHorizontal, GraduationCap, Languages, Copy } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
@@ -23,6 +23,8 @@ import { useExportDataset } from "@/components/export/useExportDataset";
 import { buildProgramExportColumns } from "@/institutions/lib/programExportColumns";
 import { CourseReviewList } from "../components/CourseReviewList";
 import { BulkPgwpDialog } from "../components/BulkPgwpDialog";
+import { BulkEnglishRequirementsDialog } from "../components/BulkEnglishRequirementsDialog";
+import { BulkCopyFromProgramDialog } from "../components/BulkCopyFromProgramDialog";
 import { InstitutionProgramContextHeader } from "../components/InstitutionProgramContextHeader";
 import { ProgramGroupsNavPanel } from "../components/ProgramGroupsNavPanel";
 import { ProgramSummaryPanel } from "../components/ProgramSummaryPanel";
@@ -202,6 +204,8 @@ export default function CourseReviewPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<UpiCourseStaging | null>(null);
   const [bulkPgwpOpen, setBulkPgwpOpen] = useState(false);
+  const [bulkEnglishOpen, setBulkEnglishOpen] = useState(false);
+  const [bulkCopyOpen, setBulkCopyOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [auxError, setAuxError] = useState<string | null>(null);
@@ -958,6 +962,12 @@ export default function CourseReviewPage() {
                   <Button size="sm" variant="outline" onClick={() => setBulkPgwpOpen(true)}>
                     <GraduationCap className="size-4 mr-1" /> Bulk PGWP
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setBulkEnglishOpen(true)}>
+                    <Languages className="size-4 mr-1" /> Bulk English
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setBulkCopyOpen(true)}>
+                    <Copy className="size-4 mr-1" /> Copy From Program
+                  </Button>
                   <Button size="sm" variant="destructive" onClick={() => deleteRows(selectedIds)}>
                     <Trash2 className="size-4 mr-1" /> Bulk Delete
                   </Button>
@@ -1055,6 +1065,24 @@ export default function CourseReviewPage() {
         open={bulkPgwpOpen}
         onOpenChange={setBulkPgwpOpen}
         selectedIds={selectedIds}
+        canEdit={canEdit}
+        onUpdated={setRows}
+      />
+
+      <BulkEnglishRequirementsDialog
+        open={bulkEnglishOpen}
+        onOpenChange={setBulkEnglishOpen}
+        selectedIds={selectedIds}
+        allRows={rows}
+        canEdit={canEdit}
+        onUpdated={setRows}
+      />
+
+      <BulkCopyFromProgramDialog
+        open={bulkCopyOpen}
+        onOpenChange={setBulkCopyOpen}
+        selectedIds={selectedIds}
+        allRows={rows}
         canEdit={canEdit}
         onUpdated={setRows}
       />

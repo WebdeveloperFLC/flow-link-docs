@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
   ClipboardPaste,
@@ -33,6 +35,7 @@ import {
   type SmartImportMethod,
   type SmartProgramRecord,
 } from "@/institutions/lib/smartProgramImport";
+import { applyInstitutionEnglishToPayload } from "@/institutions/lib/bulkProgramFields";
 
 type WizardStep = "method" | "preview" | "compare" | "import" | "done";
 
@@ -92,6 +95,7 @@ export function SmartProgramImportWizard({
   const [records, setRecords] = useState<SmartProgramRecord[]>([]);
   const [compareSummary, setCompareSummary] = useState<ProgramCompareSummary | null>(null);
   const [importResult, setImportResult] = useState<ProgramCompareSummary | null>(null);
+  const [applyInstitutionEnglish, setApplyInstitutionEnglish] = useState(true);
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -108,6 +112,7 @@ export function SmartProgramImportWizard({
     setRecords([]);
     setCompareSummary(null);
     setImportResult(null);
+    setApplyInstitutionEnglish(true);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -165,10 +170,15 @@ export function SmartProgramImportWizard({
 
   const runImport = async () => {
     if (!compareSummary) return;
-    const toImport = [...compareSummary.new, ...compareSummary.updated].map((item) => item.payload);
+    let toImport = [...compareSummary.new, ...compareSummary.updated].map((item) => item.payload);
     if (!toImport.length) {
       toast.info("Nothing to import — all rows unchanged or have errors");
       return;
+    }
+    if (applyInstitutionEnglish) {
+      toImport = toImport.map((payload) =>
+        applyInstitutionEnglishToPayload(payload, existingPrograms, institutionId),
+      );
     }
     setBusy(true);
     setStep("import");
@@ -375,6 +385,19 @@ export function SmartProgramImportWizard({
                     <AlertCircle className="size-4" />
                     Nothing new to import — all programs match existing master data.
                   </p>
+                ) : null}
+                {step === "compare" && counts.new + counts.updated > 0 ? (
+                  <div className="flex items-start gap-2 rounded-md border p-3">
+                    <Checkbox
+                      id="apply-institution-english"
+                      checked={applyInstitutionEnglish}
+                      onCheckedChange={(v) => setApplyInstitutionEnglish(!!v)}
+                      disabled={busy}
+                    />
+                    <Label htmlFor="apply-institution-english" className="text-sm font-normal leading-snug cursor-pointer">
+                      Apply existing institution English requirements to imported programs
+                    </Label>
+                  </div>
                 ) : null}
               </div>
             )}
