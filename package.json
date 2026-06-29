@@ -23,7 +23,9 @@
     "inventory:document-catalogue": "node scripts/inventory-document-catalogue.mjs",
     "report:document-defaults": "node scripts/report-default-documents-and-suggestions.mjs",
     "report:document-profiles": "node scripts/report-document-catalogue-profiles.mjs",
-    "ship": "bash scripts/ship.sh"
+    "ship": "bash scripts/ship.sh",
+    "kc:build-canada-import": "node scripts/kc-build-canada-import.mjs",
+    "kc:import-guide": "node scripts/kc-import-guide.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

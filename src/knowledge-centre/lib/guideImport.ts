@@ -48,6 +48,14 @@ export interface GuideImportPayload {
     reason?: string;
   }>;
   related_article_slugs?: string[];
+  /** Optional shared articles created before master (Related Knowledge). */
+  shared_articles?: Array<{
+    slug: string;
+    title: string;
+    article_kind?: "shared" | "country";
+    country_codes?: string[];
+    narrative_sections?: StructuredSectionBlock[];
+  }>;
 }
 
 export function parseGuideImportJson(raw: string): GuideImportPayload {
