@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import { searchArticles } from "@/knowledge-centre/repositories/kcRepo";
 import { KcStatusBadge } from "@/knowledge-centre/components/KcStatusBadge";
 import type { KcSearchResult } from "@/knowledge-centre/types/kc";
+import { kcRoutes } from "@/knowledge-centre/lib/kcRoutes";
 
 export default function SearchResultsPage() {
   const [params, setParams] = useSearchParams();
@@ -56,7 +57,7 @@ export default function SearchResultsPage() {
         )}
         <div className="space-y-2">
           {results.map((r) => (
-            <Link key={r.article_id} to={`/knowledge-centre/articles/${r.slug}`}>
+            <Link key={r.article_id} to={kcRoutes.article(r.slug)}>
               <Card className="p-4 hover:bg-muted/50 space-y-1">
                 <div className="flex justify-between gap-2">
                   <span className="font-medium">{r.title}</span>

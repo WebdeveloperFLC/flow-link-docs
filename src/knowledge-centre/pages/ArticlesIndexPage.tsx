@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { listArticles } from "@/knowledge-centre/repositories/kcRepo";
 import { KcStatusBadge } from "@/knowledge-centre/components/KcStatusBadge";
+import { kcRoutes } from "@/knowledge-centre/lib/kcRoutes";
 
 export default function ArticlesIndexPage() {
   const [articles, setArticles] = useState<Awaited<ReturnType<typeof listArticles>>>([]);
@@ -28,7 +29,7 @@ export default function ArticlesIndexPage() {
         ) : (
           <div className="space-y-2">
             {articles.map((a) => (
-              <Link key={a.id} to={`/knowledge-centre/articles/${a.slug}`}>
+              <Link key={a.id} to={kcRoutes.article(a.slug)}>
                 <Card className="p-4 flex justify-between hover:bg-muted/50">
                   <span>{a.title}</span>
                   <KcStatusBadge status={a.status} />

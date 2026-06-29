@@ -60,7 +60,7 @@ export function ServiceAcademyHero({
         <nav className="text-sm text-muted-foreground flex flex-wrap items-center gap-1.5">
           <span>Future Link Consultants</span>
           <span>›</span>
-          <span>Service Library</span>
+          <span>Knowledge Centre</span>
           <span>›</span>
           <span>{view.categoryLabel}</span>
           <span>›</span>
@@ -139,11 +139,11 @@ export function ServiceAcademyHero({
               <p className="text-xs text-muted-foreground mt-0.5">{view.updatedLabel}</p>
             )}
             <div className="flex flex-wrap gap-2 mt-3">
-              <Button asChild size="sm" variant="outline">
-                <Link to={`/knowledge-centre/services/${view.masterId}`}>
-                  <BookOpen className="size-4 mr-1" /> Knowledge Centre guide
-                </Link>
-              </Button>
+              {onOpenTab && (
+                <Button size="sm" variant="outline" onClick={() => onOpenTab("guide")}>
+                  <BookOpen className="size-4 mr-1" /> Knowledge guide
+                </Button>
+              )}
               {view.tags.map((tag) => (
                 <span
                   key={tag.label}

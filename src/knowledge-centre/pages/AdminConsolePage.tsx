@@ -12,6 +12,7 @@ import { listArticles, createArticle } from "@/knowledge-centre/repositories/kcR
 import { KcStatusBadge } from "@/knowledge-centre/components/KcStatusBadge";
 import { toast } from "sonner";
 import { DEFAULT_GUIDE_SECTIONS } from "@/knowledge-centre/lib/guideSections";
+import { kcRoutes } from "@/knowledge-centre/lib/kcRoutes";
 
 export default function AdminConsolePage() {
   const [articles, setArticles] = useState<Awaited<ReturnType<typeof listArticles>>>([]);
@@ -39,7 +40,7 @@ export default function AdminConsolePage() {
       });
       toast.success("Article created");
       setCreateOpen(false);
-      window.location.href = `/knowledge-centre/admin/articles/${article.id}`;
+      window.location.href = kcRoutes.adminArticle(article.id);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Create failed");
     }
@@ -58,7 +59,7 @@ export default function AdminConsolePage() {
           : `Imported ${result.counts.faqs} FAQs, ${result.counts.quiz} quiz, ${result.counts.downloads} downloads`,
       );
       setImportOpen(false);
-      window.location.href = `/knowledge-centre/admin/articles/${result.articleId}`;
+      window.location.href = kcRoutes.adminArticle(result.articleId);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Import failed");
     }
@@ -82,7 +83,10 @@ export default function AdminConsolePage() {
         title="Knowledge Centre Admin"
         description="Create, edit, publish, and import knowledge topics."
         actions={
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/service-library-admin">Service catalogue admin</Link>
+            </Button>
             <Button size="sm" variant="outline" onClick={loadCanadaTemplate}>
               Load Canada template
             </Button>
@@ -101,7 +105,7 @@ export default function AdminConsolePage() {
         ) : (
           <div className="space-y-2">
             {articles.map((a) => (
-              <Link key={a.id} to={`/knowledge-centre/admin/articles/${a.id}`}>
+              <Link key={a.id} to={kcRoutes.adminArticle(a.id)}>
                 <Card className="p-4 flex justify-between hover:bg-muted/50">
                   <div>
                     <div className="font-medium">{a.title}</div>

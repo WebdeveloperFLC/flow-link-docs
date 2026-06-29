@@ -267,22 +267,29 @@ export default function ServiceLibraryAdmin() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
-                <ListChecks className="h-4 w-4" /> Service Library Admin
+                <ListChecks className="h-4 w-4" /> Knowledge Centre Admin
               </div>
-              <h1 className="mt-1 text-2xl font-semibold">Canonical service records</h1>
+              <h1 className="mt-1 text-2xl font-semibold">Service catalogue & counselling knowledge</h1>
               <p className="text-sm text-muted-foreground">
-                Same flow as counselor Service Library: country → all visa & immigration services in one list.
-                Admissions workflow rows stay under Admissions (legacy).
+                Same country → service flow as the Knowledge Centre. Manage operational records here; author counselling
+                guides in Knowledge authoring.
               </p>
             </div>
+            <div className="flex flex-wrap gap-2 shrink-0">
             <Button onClick={() => setShowNew(true)}>
               <Plus className="h-4 w-4 mr-1" /> New record
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/service-library-admin/knowledge-centre">
+                <BookOpen className="h-4 w-4 mr-1" /> Knowledge authoring
+              </Link>
             </Button>
             <Button variant="outline" asChild>
               <Link to="/service-library-admin?tab=binder-catalog">
                 <Workflow className="h-4 w-4 mr-1" /> All binders
               </Link>
             </Button>
+            </div>
           </div>
         </div>
 

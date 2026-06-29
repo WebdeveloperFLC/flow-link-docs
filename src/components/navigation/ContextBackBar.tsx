@@ -49,7 +49,7 @@ export function ContextBackBar({
         <Button variant="outline" size="sm" asChild>
           <Link to={returnUrl}>
             <ChevronLeft className="size-4 mr-1" />
-            Service Library
+            Knowledge Centre
           </Link>
         </Button>
       </div>

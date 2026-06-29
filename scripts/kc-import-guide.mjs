@@ -71,9 +71,11 @@ async function runImport() {
 
   console.log("\n✓ Import complete via kc_import_guide");
   console.log(JSON.stringify(data, null, 2));
-  console.log("Reader URL path: /knowledge-centre/articles/" + payload.slug);
+  console.log("Reader URL path: /service-library/articles/" + payload.slug);
   if (payload.service_library_ids?.[0]) {
-    console.log("Service hub: /knowledge-centre/services/" + payload.service_library_ids[0]);
+    console.log(
+      "Service guide: /service-library?id=" + payload.service_library_ids[0] + "&tab=guide",
+    );
   }
 }
 

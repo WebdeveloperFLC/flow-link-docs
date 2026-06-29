@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { listArticles } from "@/knowledge-centre/repositories/kcRepo";
+import { kcRoutes } from "@/knowledge-centre/lib/kcRoutes";
 
 export default function QuizIndexPage() {
   const [articles, setArticles] = useState<Awaited<ReturnType<typeof listArticles>>>([]);
@@ -26,7 +27,7 @@ export default function QuizIndexPage() {
           <p className="text-sm text-muted-foreground">No quiz topics published yet.</p>
         ) : (
           articles.map((a) => (
-            <Link key={a.id} to={`/knowledge-centre/quiz/${a.slug}`}>
+            <Link key={a.id} to={kcRoutes.quizRun(a.slug)}>
               <Card className="p-4 hover:bg-muted/50">{a.title}</Card>
             </Link>
           ))

@@ -165,14 +165,8 @@ import AiSuggestionsPage from "./institutions/pages/AiSuggestionsPage";
 import CfUpiLinkagePage from "./institutions/pages/CfUpiLinkagePage";
 import { InstitutionsProtectedRoute } from "./institutions/components/InstitutionsProtectedRoute";
 import { CommissionsProtectedRoute } from "./institutions/components/CommissionsProtectedRoute";
-import { KnowledgeCentreProtectedRoute } from "./knowledge-centre/components/KnowledgeCentreProtectedRoute";
-import KnowledgeCentreDashboardPage from "./knowledge-centre/pages/KnowledgeCentreDashboardPage";
-import CountriesIndexPage from "./knowledge-centre/pages/CountriesIndexPage";
-import CountryHubPage from "./knowledge-centre/pages/CountryHubPage";
 import ArticlesIndexPage from "./knowledge-centre/pages/ArticlesIndexPage";
 import ArticleReaderPage from "./knowledge-centre/pages/ArticleReaderPage";
-import ServicesIndexPage from "./knowledge-centre/pages/ServicesIndexPage";
-import ServiceHubPage from "./knowledge-centre/pages/ServiceHubPage";
 import FaqsIndexPage from "./knowledge-centre/pages/FaqsIndexPage";
 import QuizIndexPage from "./knowledge-centre/pages/QuizIndexPage";
 import QuizRunnerPage from "./knowledge-centre/pages/QuizRunnerPage";
@@ -181,6 +175,14 @@ import OfficialSourcesPage from "./knowledge-centre/pages/OfficialSourcesPage";
 import SearchResultsPage from "./knowledge-centre/pages/SearchResultsPage";
 import AdminConsolePage from "./knowledge-centre/pages/AdminConsolePage";
 import ArticleEditorPage from "./knowledge-centre/pages/ArticleEditorPage";
+import {
+  KcLegacyAdminArticleRedirect,
+  KcLegacyArticleSlugRedirect,
+  KcLegacyCountryRedirect,
+  KcLegacyPathRedirect,
+  KcLegacyQuizSlugRedirect,
+  KcLegacyServiceRedirect,
+} from "./knowledge-centre/lib/kcLegacyRedirects";
 import CommissionsPage from "./pages/CommissionsPage";
 import MyIncentives from "@/pages/MyIncentives";
 import IncentivesAdmin from "@/pages/IncentivesAdmin";
@@ -279,11 +281,111 @@ const App = () => (
                     />
                   )}
                   <Route
+                    path="/service-library/articles"
+                    element={
+                      <Suspense fallback={<RouteFallback />}>
+                        <ServiceLibraryProtectedRoute>
+                          <ArticlesIndexPage />
+                        </ServiceLibraryProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/service-library/articles/:slug"
+                    element={
+                      <Suspense fallback={<RouteFallback />}>
+                        <ServiceLibraryProtectedRoute>
+                          <ArticleReaderPage />
+                        </ServiceLibraryProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/service-library/faqs"
+                    element={
+                      <Suspense fallback={<RouteFallback />}>
+                        <ServiceLibraryProtectedRoute>
+                          <FaqsIndexPage />
+                        </ServiceLibraryProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/service-library/quiz"
+                    element={
+                      <Suspense fallback={<RouteFallback />}>
+                        <ServiceLibraryProtectedRoute>
+                          <QuizIndexPage />
+                        </ServiceLibraryProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/service-library/quiz/:slug"
+                    element={
+                      <Suspense fallback={<RouteFallback />}>
+                        <ServiceLibraryProtectedRoute>
+                          <QuizRunnerPage />
+                        </ServiceLibraryProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/service-library/downloads"
+                    element={
+                      <Suspense fallback={<RouteFallback />}>
+                        <ServiceLibraryProtectedRoute>
+                          <DownloadsIndexPage />
+                        </ServiceLibraryProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/service-library/official-sources"
+                    element={
+                      <Suspense fallback={<RouteFallback />}>
+                        <ServiceLibraryProtectedRoute>
+                          <OfficialSourcesPage />
+                        </ServiceLibraryProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/service-library/search"
+                    element={
+                      <Suspense fallback={<RouteFallback />}>
+                        <ServiceLibraryProtectedRoute>
+                          <SearchResultsPage />
+                        </ServiceLibraryProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
                     path="/service-library"
                     element={
                       <Suspense fallback={<RouteFallback />}>
                         <ServiceLibraryProtectedRoute>
                           <ServiceLibrary />
+                        </ServiceLibraryProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/service-library-admin/knowledge-centre"
+                    element={
+                      <Suspense fallback={<RouteFallback />}>
+                        <ServiceLibraryProtectedRoute requireManage>
+                          <AdminConsolePage />
+                        </ServiceLibraryProtectedRoute>
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/service-library-admin/knowledge-centre/articles/:id"
+                    element={
+                      <Suspense fallback={<RouteFallback />}>
+                        <ServiceLibraryProtectedRoute requireManage>
+                          <ArticleEditorPage />
                         </ServiceLibraryProtectedRoute>
                       </Suspense>
                     }
@@ -601,126 +703,42 @@ const App = () => (
                       </InstitutionsProtectedRoute>
                     }
                   />
-                  <Route
-                    path="/knowledge-centre"
-                    element={
-                      <KnowledgeCentreProtectedRoute>
-                        <KnowledgeCentreDashboardPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/knowledge-centre/countries"
-                    element={
-                      <KnowledgeCentreProtectedRoute>
-                        <CountriesIndexPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/knowledge-centre/countries/:code"
-                    element={
-                      <KnowledgeCentreProtectedRoute>
-                        <CountryHubPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
-                  />
+                  <Route path="/knowledge-centre" element={<Navigate to="/service-library" replace />} />
+                  <Route path="/knowledge-centre/countries" element={<Navigate to="/service-library" replace />} />
+                  <Route path="/knowledge-centre/countries/:code" element={<KcLegacyCountryRedirect />} />
+                  <Route path="/knowledge-centre/services" element={<Navigate to="/service-library" replace />} />
+                  <Route path="/knowledge-centre/services/:libraryId" element={<KcLegacyServiceRedirect />} />
                   <Route
                     path="/knowledge-centre/articles"
-                    element={
-                      <KnowledgeCentreProtectedRoute>
-                        <ArticlesIndexPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
+                    element={<KcLegacyPathRedirect to="/service-library/articles" />}
                   />
-                  <Route
-                    path="/knowledge-centre/articles/:slug"
-                    element={
-                      <KnowledgeCentreProtectedRoute>
-                        <ArticleReaderPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/knowledge-centre/services"
-                    element={
-                      <KnowledgeCentreProtectedRoute>
-                        <ServicesIndexPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/knowledge-centre/services/:libraryId"
-                    element={
-                      <KnowledgeCentreProtectedRoute>
-                        <ServiceHubPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
-                  />
+                  <Route path="/knowledge-centre/articles/:slug" element={<KcLegacyArticleSlugRedirect />} />
                   <Route
                     path="/knowledge-centre/faqs"
-                    element={
-                      <KnowledgeCentreProtectedRoute>
-                        <FaqsIndexPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
+                    element={<KcLegacyPathRedirect to="/service-library/faqs" />}
                   />
                   <Route
                     path="/knowledge-centre/quiz"
-                    element={
-                      <KnowledgeCentreProtectedRoute>
-                        <QuizIndexPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
+                    element={<KcLegacyPathRedirect to="/service-library/quiz" />}
                   />
-                  <Route
-                    path="/knowledge-centre/quiz/:slug"
-                    element={
-                      <KnowledgeCentreProtectedRoute>
-                        <QuizRunnerPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
-                  />
+                  <Route path="/knowledge-centre/quiz/:slug" element={<KcLegacyQuizSlugRedirect />} />
                   <Route
                     path="/knowledge-centre/downloads"
-                    element={
-                      <KnowledgeCentreProtectedRoute>
-                        <DownloadsIndexPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
+                    element={<KcLegacyPathRedirect to="/service-library/downloads" />}
                   />
                   <Route
                     path="/knowledge-centre/official-sources"
-                    element={
-                      <KnowledgeCentreProtectedRoute>
-                        <OfficialSourcesPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
+                    element={<KcLegacyPathRedirect to="/service-library/official-sources" />}
                   />
                   <Route
                     path="/knowledge-centre/search"
-                    element={
-                      <KnowledgeCentreProtectedRoute>
-                        <SearchResultsPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
+                    element={<KcLegacyPathRedirect to="/service-library/search" />}
                   />
                   <Route
                     path="/knowledge-centre/admin"
-                    element={
-                      <KnowledgeCentreProtectedRoute requireEdit>
-                        <AdminConsolePage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
+                    element={<Navigate to="/service-library-admin/knowledge-centre" replace />}
                   />
-                  <Route
-                    path="/knowledge-centre/admin/articles/:id"
-                    element={
-                      <KnowledgeCentreProtectedRoute requireEdit>
-                        <ArticleEditorPage />
-                      </KnowledgeCentreProtectedRoute>
-                    }
-                  />
+                  <Route path="/knowledge-centre/admin/articles/:id" element={<KcLegacyAdminArticleRedirect />} />
                   <Route
                     path="/commissions"
                     element={

@@ -43,9 +43,9 @@ export function ServiceLibraryProtectedRoute({ children, requireManage = false }
     <div className="min-h-screen flex items-center justify-center bg-background p-6">
       <Card className="p-10 max-w-xl text-center space-y-3">
         <ShieldAlert className="size-10 mx-auto text-destructive" />
-        <div className="text-lg font-semibold">Service Library is for staff only</div>
+        <div className="text-lg font-semibold">Knowledge Centre is for staff only</div>
         <p className="text-sm text-muted-foreground">
-          Counselor training and internal service content is not available on your account. Contact your
+          Counselling knowledge and internal service content is not available on your account. Contact your
           administrator if you need access.
         </p>
       </Card>

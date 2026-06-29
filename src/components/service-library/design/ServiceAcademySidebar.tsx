@@ -11,7 +11,7 @@ import {
   type AcademyServiceItem,
 } from "@/lib/service-library/academyNav";
 import type { CoachingVariant } from "@/lib/service-library/serviceNavClassification";
-import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
+import { kcRoutes } from "@/knowledge-centre/lib/kcRoutes";
 
 const iconMap: Record<AcademyCategoryFilter, typeof Plane> = {
   visa: Plane,
@@ -162,7 +162,7 @@ export function ServiceAcademySidebar({
           />
         </div>
         <p className="mt-2 text-center text-[11px] font-bold uppercase tracking-[0.2em] bg-gradient-to-r from-sky-400 via-violet-400 to-rose-400 bg-clip-text text-transparent">
-          Service Library
+          Knowledge Centre
         </p>
       </div>
 
@@ -404,6 +404,25 @@ export function ServiceAcademySidebar({
           </p>
         )}
       </nav>
+
+      <div className="p-3 border-t border-slate-700/80 space-y-1 text-xs">
+        <p className="px-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Knowledge library</p>
+        <Link to={kcRoutes.articles()} className="block px-2 py-1.5 rounded-md text-slate-300 hover:bg-slate-800 hover:text-white">
+          Shared topics
+        </Link>
+        <Link to={kcRoutes.downloads()} className="block px-2 py-1.5 rounded-md text-slate-300 hover:bg-slate-800 hover:text-white">
+          Downloads
+        </Link>
+        <Link to={kcRoutes.quiz()} className="block px-2 py-1.5 rounded-md text-slate-300 hover:bg-slate-800 hover:text-white">
+          Quiz
+        </Link>
+        <Link
+          to={kcRoutes.officialSources()}
+          className="block px-2 py-1.5 rounded-md text-slate-300 hover:bg-slate-800 hover:text-white"
+        >
+          Official resources
+        </Link>
+      </div>
 
       <div className="p-3 border-t border-slate-700/80 bg-slate-950/50">
         <div className="flex items-center gap-3 px-1 py-2">

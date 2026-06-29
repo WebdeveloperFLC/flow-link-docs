@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { KcInternalLink } from "@/knowledge-centre/types/kc";
+import { kcRoutes } from "@/knowledge-centre/lib/kcRoutes";
 
 export function RelatedKnowledgePanel({ links }: { links: KcInternalLink[] }) {
   if (!links.length) return <p className="text-sm text-muted-foreground">No related knowledge links yet.</p>;
@@ -9,7 +10,7 @@ export function RelatedKnowledgePanel({ links }: { links: KcInternalLink[] }) {
         <li key={l.id}>
           {l.to_article?.slug ? (
             <Link
-              to={`/knowledge-centre/articles/${l.to_article.slug}`}
+              to={kcRoutes.article(l.to_article.slug)}
               className="text-sm text-primary hover:underline"
             >
               {l.anchor_text || l.to_article.title}

@@ -121,7 +121,7 @@ const crmNav: NavItem[] = [
   {
     to: "/service-library",
     icon: ListChecks,
-    label: "Service Library",
+    label: "Knowledge Centre",
     roles: ["admin", "administrator", "counselor", "documentation", "telecaller"],
   },
 
@@ -177,7 +177,7 @@ const adminNav: NavItem[] = [
   {
     to: "/service-library-admin",
     icon: ListChecks,
-    label: "Service Library Admin",
+    label: "Knowledge Centre Admin",
     roles: ["admin", "administrator", "documentation"],
   },
   { to: "/team-access", icon: Share2, label: "Team access" },
@@ -251,17 +251,6 @@ const institutionsNav: NavItem[] = [
 
 const commissionsNav: NavItem[] = [{ to: "/commissions", icon: Receipt, label: "Commissions", end: true }];
 
-const knowledgeCentreNav: NavItem[] = [
-  { to: "/knowledge-centre", icon: BookOpen, label: "Knowledge Centre", end: true },
-  { to: "/knowledge-centre/countries", icon: Globe, label: "Countries" },
-  { to: "/knowledge-centre/articles", icon: Library, label: "Shared Knowledge" },
-  { to: "/knowledge-centre/services", icon: Briefcase, label: "Services" },
-  { to: "/knowledge-centre/downloads", icon: FileStack, label: "Downloads" },
-  { to: "/knowledge-centre/quiz", icon: GraduationCap, label: "Quiz" },
-  { to: "/knowledge-centre/official-sources", icon: Link2, label: "Official Resources" },
-  { to: "/knowledge-centre/admin", icon: SettingsIcon, label: "KC Admin" },
-];
-
 const digitalSuccessNav: NavItem[] = [
   { to: "/digital-success", icon: Megaphone, label: "Digital Success Hub", end: true },
 ];
@@ -288,7 +277,6 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { can: canAcct, isAdmin: isAcctAdmin } = useCan();
   const { canView: canViewInstitutions } = useModulePermission("institutions");
   const { canView: canViewCommissions } = useModulePermission("commissions");
-  const { canView: canViewKnowledgeCentre, canEdit: canEditKnowledgeCentre } = useModulePermission("knowledge_centre");
   const { canView: canViewDsh } = useModulePermission("digital_success_hub");
   const { canView: canViewHrPayroll } = useModulePermission("hr_payroll");
   const { guides: visibleGuides } = useVisibleGuides();
@@ -485,13 +473,6 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
             {(isAdmin || canViewDsh) && renderSection("digital", "Digital", digitalSuccessNav)}
 
             {(isAdmin || canViewInstitutions) && renderSection("institution", "Institution", institutionsNav)}
-
-            {(isAdmin || canViewKnowledgeCentre) &&
-              renderSection(
-                "knowledge_centre",
-                "Knowledge Centre",
-                knowledgeCentreNav.filter((i) => i.to !== "/knowledge-centre/admin" || isAdmin || canEditKnowledgeCentre),
-              )}
 
             {(isAdmin || isCommissionAdmin || canViewCommissions) &&
               renderSection("commissions", "Commissions", commissionsNav)}
