@@ -5,6 +5,7 @@ import {
   validateImportAgainstGoldStandard,
   type GuideImportPayload,
 } from "./guideImport";
+import { supabase } from "@/integrations/supabase/client";
 import {
   createArticle,
   getArticleBySlug,
@@ -60,15 +61,27 @@ async function importSharedStub(shared: NonNullable<GuideImportPayload["shared_a
   return article.id;
 }
 
+async function deleteArticleBySlug(slug: string) {
+  const existing = await getArticleBySlug(slug);
+  if (!existing) return false;
+  const { error } = await supabase.from("kc_articles" as any).delete().eq("id", existing.id);
+  if (error) throw new Error(error.message ?? "Delete failed");
+  return true;
+}
+
 export async function executeGuideImport(
   payload: GuideImportPayload,
-  opts?: { publish?: boolean; serviceLibraryId?: string },
+  opts?: { publish?: boolean; serviceLibraryId?: string; replace?: boolean },
 ): Promise<GuideImportResult> {
   const warnings = validateImportAgainstGoldStandard(payload);
   const sharedCreated: string[] = [];
 
   if (payload.service_library_ids?.length === 0 && opts?.serviceLibraryId) {
     payload.service_library_ids = [opts.serviceLibraryId];
+  }
+
+  if (opts?.replace) {
+    await deleteArticleBySlug(payload.slug);
   }
 
   for (const shared of payload.shared_articles ?? []) {
@@ -79,7 +92,7 @@ export async function executeGuideImport(
 
   const existing = await getArticleBySlug(payload.slug);
   if (existing) {
-    throw new Error(`Article already exists: ${payload.slug}. Use editor or delete before re-import.`);
+    throw new Error(`Article already exists: ${payload.slug}. Use replace in Admin or delete before re-import.`);
   }
 
   const { article, version } = await createArticle({
@@ -197,7 +210,10 @@ export async function executeGuideImport(
   };
 }
 
-export async function executeGuideImportFromJson(raw: string, opts?: { publish?: boolean; serviceLibraryId?: string }) {
+export async function executeGuideImportFromJson(
+  raw: string,
+  opts?: { publish?: boolean; serviceLibraryId?: string; replace?: boolean },
+) {
   const payload = parseGuideImportJson(raw);
   return executeGuideImport(payload, opts);
 }

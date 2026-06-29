@@ -45,10 +45,13 @@ export default function AdminConsolePage() {
     }
   };
 
-  const handleImport = async () => {
+  const handleImport = async (opts?: { replace?: boolean; publish?: boolean }) => {
     try {
       const { executeGuideImportFromJson } = await import("@/knowledge-centre/lib/executeGuideImport");
-      const result = await executeGuideImportFromJson(importJson);
+      const result = await executeGuideImportFromJson(importJson, {
+        replace: opts?.replace ?? false,
+        publish: opts?.publish ?? false,
+      });
       toast.success(
         result.warnings.length
           ? `Imported with warnings: ${result.warnings.join("; ")}`
@@ -129,8 +132,10 @@ export default function AdminConsolePage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>Import guide JSON</DialogTitle></DialogHeader>
           <Textarea className="min-h-[240px] font-mono text-xs" value={importJson} onChange={(e) => setImportJson(e.target.value)} placeholder='{"slug":"...","title":"...", ...}' />
-          <DialogFooter>
-            <Button onClick={handleImport}>Import</Button>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => handleImport({ replace: true })}>Replace existing</Button>
+            <Button variant="outline" onClick={() => handleImport({ replace: true, publish: true })}>Replace & publish</Button>
+            <Button onClick={() => handleImport({ publish: true })}>Import & publish</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
