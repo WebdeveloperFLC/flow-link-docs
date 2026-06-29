@@ -11,6 +11,7 @@ import {
   type AcademyServiceItem,
 } from "@/lib/service-library/academyNav";
 import type { CoachingVariant } from "@/lib/service-library/serviceNavClassification";
+import { countryFlagEmoji } from "@/lib/service-library/countryBadges";
 import { kcRoutes } from "@/knowledge-centre/lib/kcRoutes";
 
 const iconMap: Record<AcademyCategoryFilter, typeof Plane> = {
