@@ -35,7 +35,7 @@ import {
   type SmartImportMethod,
   type SmartProgramRecord,
 } from "@/institutions/lib/smartProgramImport";
-import { applyInstitutionEnglishToPayload } from "@/institutions/lib/bulkProgramFields";
+import { enrichProgramPages, applyEnrichmentPatchesToPayload } from "@/institutions/lib/enrichProgramPages";
 
 type WizardStep = "method" | "preview" | "compare" | "import" | "done";
 
@@ -95,7 +95,7 @@ export function SmartProgramImportWizard({
   const [records, setRecords] = useState<SmartProgramRecord[]>([]);
   const [compareSummary, setCompareSummary] = useState<ProgramCompareSummary | null>(null);
   const [importResult, setImportResult] = useState<ProgramCompareSummary | null>(null);
-  const [applyInstitutionEnglish, setApplyInstitutionEnglish] = useState(true);
+  const [fetchFromOfficialPages, setFetchFromOfficialPages] = useState(true);
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -112,7 +112,7 @@ export function SmartProgramImportWizard({
     setRecords([]);
     setCompareSummary(null);
     setImportResult(null);
-    setApplyInstitutionEnglish(true);
+    setFetchFromOfficialPages(true);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -175,13 +175,37 @@ export function SmartProgramImportWizard({
       toast.info("Nothing to import — all rows unchanged or have errors");
       return;
     }
-    if (applyInstitutionEnglish) {
-      toImport = toImport.map((payload) =>
-        applyInstitutionEnglishToPayload(payload, existingPrograms, institutionId),
-      );
-    }
+
     setBusy(true);
     setStep("import");
+
+    if (fetchFromOfficialPages) {
+      const withUrl = toImport.filter((p) => String(p.program_url ?? p.source_url ?? "").trim());
+      if (withUrl.length) {
+        const enrichToast = toast.loading(
+          `Fetching ${withUrl.length} official program page${withUrl.length === 1 ? "" : "s"}…`,
+        );
+        const { results, error: enrichError } = await enrichProgramPages(
+          withUrl.map((payload) => ({
+            program_url: String(payload.program_url ?? payload.source_url),
+            existing: payload as Record<string, unknown>,
+          })),
+          "empty_only",
+        );
+        toast.dismiss(enrichToast);
+        if (enrichError) {
+          toast.warning(`Official page fetch partial failure: ${enrichError}`);
+        } else {
+          const byUrl = new Map(results.map((r) => [r.program_url, r]));
+          toImport = toImport.map((payload) => {
+            const url = String(payload.program_url ?? payload.source_url ?? "");
+            const result = byUrl.get(url);
+            return result ? applyEnrichmentPatchesToPayload(payload, result) : payload;
+          });
+        }
+      }
+    }
+
     const t = toast.loading(`Importing ${toImport.length} program${toImport.length === 1 ? "" : "s"}…`);
     try {
       const { data, error } = await supabase.functions.invoke("upi-upsert-courses", {
@@ -389,13 +413,14 @@ export function SmartProgramImportWizard({
                 {step === "compare" && counts.new + counts.updated > 0 ? (
                   <div className="flex items-start gap-2 rounded-md border p-3">
                     <Checkbox
-                      id="apply-institution-english"
-                      checked={applyInstitutionEnglish}
-                      onCheckedChange={(v) => setApplyInstitutionEnglish(!!v)}
+                      id="fetch-official-pages"
+                      checked={fetchFromOfficialPages}
+                      onCheckedChange={(v) => setFetchFromOfficialPages(!!v)}
                       disabled={busy}
                     />
-                    <Label htmlFor="apply-institution-english" className="text-sm font-normal leading-snug cursor-pointer">
-                      Apply existing institution English requirements to imported programs
+                    <Label htmlFor="fetch-official-pages" className="text-sm font-normal leading-snug cursor-pointer">
+                      Fetch structured fields from each program&apos;s official URL before import (deterministic
+                      parse — no AI)
                     </Label>
                   </div>
                 ) : null}

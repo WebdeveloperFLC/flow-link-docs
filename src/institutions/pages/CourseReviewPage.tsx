@@ -25,6 +25,7 @@ import { CourseReviewList } from "../components/CourseReviewList";
 import { BulkPgwpDialog } from "../components/BulkPgwpDialog";
 import { BulkEnglishRequirementsDialog } from "../components/BulkEnglishRequirementsDialog";
 import { BulkCopyFromProgramDialog } from "../components/BulkCopyFromProgramDialog";
+import { RefreshFromOfficialSourceButton } from "../components/RefreshFromOfficialSourceDialog";
 import { InstitutionProgramContextHeader } from "../components/InstitutionProgramContextHeader";
 import { ProgramGroupsNavPanel } from "../components/ProgramGroupsNavPanel";
 import { ProgramSummaryPanel } from "../components/ProgramSummaryPanel";
@@ -968,6 +969,11 @@ export default function CourseReviewPage() {
                   <Button size="sm" variant="outline" onClick={() => setBulkCopyOpen(true)}>
                     <Copy className="size-4 mr-1" /> Copy From Program
                   </Button>
+                  <RefreshFromOfficialSourceButton
+                    selectedRows={rows.filter((r) => selectedIds.includes(r.id))}
+                    canEdit={canEdit}
+                    onUpdated={setRows}
+                  />
                   <Button size="sm" variant="destructive" onClick={() => deleteRows(selectedIds)}>
                     <Trash2 className="size-4 mr-1" /> Bulk Delete
                   </Button>

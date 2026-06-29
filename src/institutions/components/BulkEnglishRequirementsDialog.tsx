@@ -13,14 +13,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  detectInstitutionFieldValues,
-  detectedValuesToEnglishForm,
   EMPTY_ENGLISH_FORM,
   ENGLISH_BULK_FIELDS,
   englishFormToValues,
-  formatBulkFieldValue,
   patchRowsWithFieldApply,
-  resolveSingleInstitutionId,
   type BulkApplyMode,
   type EnglishRequirementsForm,
 } from "@/institutions/lib/bulkProgramFields";
@@ -46,38 +42,15 @@ export function BulkEnglishRequirementsDialog({
 }: Props) {
   const [form, setForm] = useState<EnglishRequirementsForm>(EMPTY_ENGLISH_FORM);
   const [emptyOnly, setEmptyOnly] = useState(true);
-  const [detectedPreview, setDetectedPreview] = useState<Partial<Record<string, unknown>> | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const selectedRows = allRows.filter((r) => selectedIds.includes(r.id));
-  const { institutionId, mixed } = resolveSingleInstitutionId(selectedRows);
   const englishFieldIds = ENGLISH_BULK_FIELDS.map((f) => f.id);
 
   useEffect(() => {
     if (!open) return;
     setForm(EMPTY_ENGLISH_FORM);
     setEmptyOnly(true);
-    setDetectedPreview(null);
   }, [open]);
-
-  const detectFromInstitution = () => {
-    if (mixed) {
-      toast.error("Selected programs belong to multiple institutions — filter to one institution first.");
-      return;
-    }
-    if (!institutionId) {
-      toast.error("Could not determine institution for selected programs.");
-      return;
-    }
-    const detected = detectInstitutionFieldValues(institutionId, allRows, englishFieldIds);
-    if (!Object.keys(detected).length) {
-      toast.info("No English requirements found on existing programs for this institution.");
-      setDetectedPreview(null);
-      return;
-    }
-    setDetectedPreview(detected);
-    setForm(detectedValuesToEnglishForm(detected));
-  };
 
   const handleApply = async () => {
     if (!canEdit) {
@@ -225,22 +198,6 @@ export function BulkEnglishRequirementsDialog({
               Overwrite existing values
             </Label>
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <Button type="button" variant="secondary" size="sm" onClick={detectFromInstitution} disabled={busy}>
-            Copy From Existing Programs
-          </Button>
-          {detectedPreview ? (
-            <div className="rounded-md bg-muted/50 p-3 text-xs space-y-1">
-              <p className="font-medium text-muted-foreground">Detected:</p>
-              {ENGLISH_BULK_FIELDS.filter((f) => detectedPreview[f.id] != null).map((f) => (
-                <p key={f.id}>
-                  {f.label}: {formatBulkFieldValue(f, detectedPreview[f.id])}
-                </p>
-              ))}
-            </div>
-          ) : null}
         </div>
 
         <DialogFooter>

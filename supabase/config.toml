@@ -93,5 +93,8 @@ verify_jwt = true
 [functions.upi-fetch-institution-logo]
 verify_jwt = true
 
+[functions.upi-enrich-program-pages]
+verify_jwt = true
+
 [functions.service-eligibility-session]
 verify_jwt = false

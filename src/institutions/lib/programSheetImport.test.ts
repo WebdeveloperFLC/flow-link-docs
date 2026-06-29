@@ -21,7 +21,7 @@ describe("mapProgramSheetRow", () => {
     expect(mapped?.duration_unit).toBe("years");
     expect(mapped?.currency).toBe("CAD");
     expect(mapped?.ielts_overall).toBe(6.5);
-    expect(mapped?.confidence_score).toBe(95);
+    expect(mapped?.confidence_score).toBe(100);
     expect(mapped?.metadata?.institute_name).toBe("Algonquin College");
   });
 });

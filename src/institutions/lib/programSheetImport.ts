@@ -64,7 +64,7 @@ export function mapProgramSheetRow(row: Record<string, unknown>) {
       : row["Percentage Score"]
         ? `${row["Percentage Score"]}%`
         : null,
-    confidence_score: 95,
+    confidence_score: 100,
     program_level: String(row["Program Level"] ?? "").trim() || undefined,
     is_online: String(row["Program Delivery Mode"] ?? "").toLowerCase().includes("online"),
     metadata: {
