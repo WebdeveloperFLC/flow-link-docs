@@ -92,6 +92,16 @@ import {
 } from "@/lib/appNotifications";
 import { printReceiptSnapshot } from "@/accounting/lib/printReceiptSnapshot";
 import { Download } from "lucide-react";
+import { listPaymentMethodOptions } from "@/platform/config/defaultWorkflowConfig";
+import {
+  initialLegacyPaymentStatusForMethod,
+  startWorkflowForPayment,
+} from "@/platform/ewe/workflowEngine";
+import { onPaymentRecorded, runMoneyInOrchestrator } from "@/platform/foe/moneyInOrchestrator";
+import { enqueueFinancePaymentVerification } from "@/platform/workQueue/workQueueEngine";
+import { resolveCashRegister, buildCashReceiptContext } from "@/platform/cashRegister/cashRegisterService";
+import { canVerifyPaymentRow } from "@/accounting/lib/paymentVerification";
+import { businessStatusLabel } from "@/platform/types/statuses";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -142,7 +152,7 @@ const STATUS_STYLE: Record<string, string> = {
 
 const TERMINAL_STATUSES = new Set(["cancelled", "void", "refunded", "paid"]);
 
-const METHODS = ["cash", "bank_transfer", "card", "upi", "etransfer", "cheque", "wallet", "referral_credits", "points"];
+const PAYMENT_METHOD_OPTIONS = listPaymentMethodOptions();
 const PAYMENT_SOURCES = [
   { value: "manual", label: "Manual entry" },
   { value: "walk_in", label: "Walk-in" },
@@ -253,7 +263,7 @@ export function ClientInvoicesPanel({
       supabase
         .from("client_invoice_payments")
         .select(
-          "id,invoice_id,amount,currency,method,paid_at,reference,payment_status,payment_source,payment_proof_file_id,verification_rejected_reason",
+          "id,invoice_id,amount,currency,method,paid_at,reference,payment_status,payment_source,payment_proof_file_id,verification_rejected_reason,posted_by",
         )
         .eq("client_id", clientId)
         .is("archived_at", null)
@@ -663,6 +673,11 @@ export function ClientInvoicesPanel({
   );
 }
 
+function pendingVerificationLabel(p: { payment_status?: string; method?: string }): string {
+  if (p.method === "cash") return businessStatusLabel("pending_cash_verification");
+  return paymentStatusLabel(p.payment_status ?? "awaiting_verification");
+}
+
 /* ───────────────────── Pending Verification Queue ───────────────────── */
 function PendingVerificationQueue({
   payments,
@@ -679,6 +694,20 @@ function PendingVerificationQueue({
   const [rejectFor, setRejectFor] = useState<any | null>(null);
   const [verifyFor, setVerifyFor] = useState<any | null>(null);
   const [verifyNote, setVerifyNote] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [verifyAllowed, setVerifyAllowed] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      setCurrentUserId(u?.user?.id ?? null);
+      const map: Record<string, boolean> = {};
+      for (const p of payments) {
+        map[p.id] = await canVerifyPaymentRow(p);
+      }
+      setVerifyAllowed(map);
+    })();
+  }, [payments]);
 
   const confirmVerify = async () => {
     if (!verifyFor) return;
@@ -732,7 +761,7 @@ function PendingVerificationQueue({
                           : "bg-amber-500/10 text-amber-700 border-amber-500/20"
                       }
                     >
-                      {rejected ? "rejected" : paymentStatusLabel("awaiting_verification")}
+                      {rejected ? "rejected" : pendingVerificationLabel(p)}
                     </Badge>
                     {rejected && p.verification_rejected_reason && (
                       <div className="text-[11px] text-destructive mt-0.5">{p.verification_rejected_reason}</div>
@@ -744,7 +773,7 @@ function PendingVerificationQueue({
                         View proof
                       </Button>
                     )}
-                    {canApprove && !rejected && (
+                    {canApprove && !rejected && verifyAllowed[p.id] !== false && (
                       <>
                         <Button
                           size="sm"
@@ -767,6 +796,19 @@ function PendingVerificationQueue({
                           <ShieldX className="size-3.5 mr-1" /> Reject
                         </Button>
                       </>
+                    )}
+                    {canApprove && !rejected && verifyAllowed[p.id] === false && currentUserId && p.posted_by === currentUserId && (
+                      <span className="text-[11px] text-muted-foreground ml-1">You recorded this payment</span>
+                    )}
+                    {canApprove && !rejected && verifyAllowed[p.id] === false && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="ml-1 text-destructive"
+                        onClick={() => setRejectFor(p)}
+                      >
+                        <ShieldX className="size-3.5 mr-1" /> Reject
+                      </Button>
                     )}
                   </td>
                 </tr>
@@ -2367,7 +2409,8 @@ function CollectPaymentDialog({
   // Admin override removes the proof requirement entirely.
   const proofMissing = proofRequired && !proofFile && !adminOverride;
   // With admin override on, the payment is pinned to "verified" — never awaiting.
-  const willBeAwaitingVerification = !adminOverride && defaultPaymentStatus(method) === "awaiting_verification";
+  const willBeAwaitingVerification =
+    method === "cash" || (!adminOverride && defaultPaymentStatus(method) === "awaiting_verification");
 
   // Projected per-row outstanding (after applying payNow)
   const projected = (r: Row) => {
@@ -2444,15 +2487,22 @@ function CollectPaymentDialog({
       const amtInCad = convert(totalPayInPayCcy, payCcy, "CAD");
       const amtInUsd = convert(totalPayInPayCcy, payCcy, "USD");
       // Permission-aware: non-accounts users may NEVER post a verified payment.
-      // forceAwaiting (from "Submit for verification" button) also pins to awaiting_verification.
-      // Admin override (admins only) pins the payment to "verified" and skips the queue.
-      const baseStatus = defaultPaymentStatus(method);
-      const overrideActive = isAdmin && adminOverride && canApprove;
-      const status = overrideActive
-        ? "verified"
-        : forceAwaiting || !canApprove
+      // Cash NEVER auto-verifies (two-person control).
+      // forceAwaiting pins to awaiting_verification.
+      const overrideActive = isAdmin && adminOverride && canApprove && method !== "cash";
+      const baseStatus = initialLegacyPaymentStatusForMethod(method, {
+        forceAwaiting,
+        canApprove,
+        adminOverride: overrideActive,
+      });
+      const status =
+        method === "cash"
           ? "awaiting_verification"
-          : baseStatus;
+          : overrideActive
+            ? baseStatus
+            : forceAwaiting || !canApprove
+              ? "awaiting_verification"
+              : baseStatus;
       // Breadcrumbs: admin override decision → payment status resolution → routing.
       console.info("[payment] admin_override_decision", {
         isAdmin,
@@ -2543,6 +2593,7 @@ function CollectPaymentDialog({
         paymentId,
         status,
         overrideActive,
+        method,
         routedTo: status === "verified" ? "verified_immediately" : "awaiting_verification_queue",
       });
 
@@ -2613,6 +2664,84 @@ function CollectPaymentDialog({
           );
           throw new Error(`Allocation insert failed; payment archived: ${allocErr?.message ?? "partial insert"}`);
         }
+      }
+
+      const { data: invMeta } = await supabase
+        .from("client_invoices")
+        .select("firm_entity_id, branch_id")
+        .eq("id", invoice.id)
+        .maybeSingle();
+      const entityId = (invMeta as { firm_entity_id?: string } | null)?.firm_entity_id ?? null;
+      const branchId = (invMeta as { branch_id?: string } | null)?.branch_id ?? null;
+
+      let cashRegisterId: string | null = null;
+      if (method === "cash" && entityId && branchId) {
+        const register = await resolveCashRegister({ entityId, branchId, currency: payCcy });
+        if (register) {
+          cashRegisterId = register.id;
+          buildCashReceiptContext({ register, cashierUserId: u?.user?.id ?? "" });
+        }
+      }
+
+      try {
+        const { businessEventId } = await startWorkflowForPayment({
+          paymentId,
+          clientId,
+          method,
+          amount: totalPayInPayCcy,
+          currency: payCcy,
+          entityId,
+          branchId,
+          recordedByUserId: u?.user?.id ?? null,
+        });
+        await onPaymentRecorded({
+          paymentId,
+          clientId,
+          method,
+          amount: totalPayInPayCcy,
+          currency: payCcy,
+          entityId,
+          branchId,
+          businessEventId,
+          recordedByUserId: u?.user?.id ?? null,
+        });
+        if (status === "awaiting_verification") {
+          await enqueueFinancePaymentVerification({
+            paymentId,
+            clientId,
+            method,
+            amount: totalPayInPayCcy,
+            currency: payCcy,
+            businessEventId,
+            entityId,
+            branchId,
+          });
+        }
+        if (cashRegisterId) {
+          await supabase
+            .from("client_invoice_payments")
+            .update({ cash_register_id: cashRegisterId } as never)
+            .eq("id", paymentId)
+            .then(({ error: crErr }) => {
+              if (crErr) console.info("[payment] cash_register_id column pending migration");
+            });
+        }
+        if (status === "verified") {
+          await runMoneyInOrchestrator({
+            paymentId,
+            invoiceId: invoice.id,
+            clientId,
+            method,
+            amount: totalPayInPayCcy,
+            currency: payCcy,
+            entityId,
+            branchId,
+            firmEntityId: entityId,
+            verifiedByUserId: u?.user?.id ?? null,
+          });
+        }
+      } catch (foeErr) {
+        console.warn("[payment] foe_workflow_start_failed", foeErr);
       }
 
       try {
@@ -2738,7 +2867,11 @@ function CollectPaymentDialog({
       }
 
       toast.success(
-        status === "awaiting_verification" ? "Payment submitted — awaiting verification" : "Payment posted",
+        method === "cash" && status === "awaiting_verification"
+          ? "Cash recorded — pending cash verification"
+          : status === "awaiting_verification"
+            ? "Payment submitted — awaiting verification"
+            : "Payment posted",
       );
       onClose();
     } catch (e: any) {
@@ -2984,9 +3117,9 @@ function CollectPaymentDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {METHODS.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {m.replace(/_/g, " ")}
+                  {PAYMENT_METHOD_OPTIONS.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>
+                      {m.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

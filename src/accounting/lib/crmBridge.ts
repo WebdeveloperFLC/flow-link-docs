@@ -233,6 +233,62 @@ async function existingJournalForSource(sourceModule: string, sourceRecordId: st
   return data?.[0]?.id ?? null;
 }
 
+export async function getPaymentJournalForSource(
+  paymentId: string,
+): Promise<{ id: string; status: string } | null> {
+  const { data } = await supabase
+    .from("accounting_journals")
+    .select("id, status")
+    .eq("source_module", "CRM_AR")
+    .eq("source_record_id", paymentId)
+    .eq("is_reversal", false)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!data) return null;
+  return { id: data.id as string, status: String(data.status ?? "DRAFT") };
+}
+
+async function writeTrustSubledgerForPayment(
+  journalId: string,
+  pay: { id: string; invoice_id: string; client_id: string; currency?: string | null },
+  inv: Awaited<ReturnType<typeof loadInvoice>>,
+  trustByCategoryId: Record<string, number>,
+): Promise<void> {
+  for (const [catKey, portion] of Object.entries(trustByCategoryId)) {
+    if (portion <= 0) continue;
+    const line =
+      inv.lines.find((l) => l.collectionCategoryId === catKey)
+      ?? inv.lines.find((l) => `role:${l.roleKey}:${l.lineIndex}` === catKey)
+      ?? inv.lines.find((l) => l.roleKey === catKey);
+    if (!line) continue;
+    try {
+      const { getOrCreateTrustAccount } = await import("./trustPosting");
+      const trustAccountId = await getOrCreateTrustAccount({
+        clientId: pay.client_id,
+        roleKey: line.roleKey,
+        entityId: inv.entityId,
+        branchId: inv.branchId,
+        currency: pay.currency || inv.currency,
+        collectionCategoryId: line.collectionCategoryId ?? undefined,
+      });
+      await supabase.from("accounting_trust_entries").insert({
+        trust_account_id: trustAccountId,
+        entry_type: "RECEIPT",
+        amount: portion,
+        currency: pay.currency || inv.currency,
+        source_module: "CRM_AR",
+        source_record_id: pay.id,
+        journal_id: journalId,
+        memo: `Trust receipt — ${line.label}`,
+        collection_category_id: line.collectionCategoryId ?? null,
+      } as any);
+    } catch (e) {
+      console.warn("[crmBridge] trust subledger receipt failed", catKey, e);
+    }
+  }
+}
+
 export async function postInvoiceJournal(invoiceId: string): Promise<Journal | null> {
   const existing = await existingJournalForSource("CRM_AR", invoiceId);
   if (existing) return null;
@@ -261,9 +317,53 @@ export async function postInvoiceJournal(invoiceId: string): Promise<Journal | n
   return journal;
 }
 
-export async function postPaymentJournal(paymentId: string): Promise<Journal | null> {
-  const existing = await existingJournalForSource("CRM_AR", paymentId);
+/** Phase A FOE: create DRAFT journal for verified payment (never POSTED directly). */
+export async function createPaymentDraftJournal(
+  paymentId: string,
+  opts?: { businessEventId?: string | null },
+): Promise<Journal | null> {
+  const existing = await getPaymentJournalForSource(paymentId);
   if (existing) return null;
+
+  const { data: pay, error } = await supabase
+    .from("client_invoice_payments")
+    .select("id, invoice_id, client_id, amount, currency, paid_at, is_refund, payment_status")
+    .eq("id", paymentId)
+    .single();
+  if (error) throw error;
+  if (pay.is_refund) return null;
+  if (pay.payment_status !== "verified") return null;
+
+  const inv = await loadInvoice(pay.invoice_id);
+  await upsertInvoiceBridge(pay.invoice_id);
+  const amount = round2(Number(pay.amount) || 0);
+  if (amount <= 0) return null;
+
+  const { legs } = buildPaymentLegs(amount, inv.lines, {});
+  const postingDate = pay.paid_at ? String(pay.paid_at).slice(0, 10) : new Date().toISOString().slice(0, 10);
+  const narration = opts?.businessEventId
+    ? `CRM payment ${paymentId} · event ${opts.businessEventId}`
+    : `CRM payment ${paymentId}`;
+
+  return postJournal({
+    entityId: inv.entityId,
+    branchId: inv.branchId,
+    currency: pay.currency || inv.currency,
+    sourceModule: "CRM_AR",
+    sourceRecordId: pay.id,
+    postingDate,
+    narration,
+    legs,
+    status: "DRAFT",
+    studentId: pay.client_id,
+  });
+}
+
+/** Promote an existing DRAFT payment journal to POSTED (finance approval). */
+export async function approveAndPostPaymentJournal(paymentId: string): Promise<Journal | null> {
+  const row = await getPaymentJournalForSource(paymentId);
+  if (!row) return null;
+  if (row.status === "POSTED") return null;
 
   const { data: pay, error } = await supabase
     .from("client_invoice_payments")
@@ -274,72 +374,23 @@ export async function postPaymentJournal(paymentId: string): Promise<Journal | n
   if (pay.is_refund) return null;
 
   const inv = await loadInvoice(pay.invoice_id);
-  await upsertInvoiceBridge(pay.invoice_id);
   const amount = round2(Number(pay.amount) || 0);
-  if (amount <= 0) return null;
+  const { trustByCategoryId } = buildPaymentLegs(amount, inv.lines, {});
 
-  const { legs, trustByBucket, trustByCategoryId } = buildPaymentLegs(amount, inv.lines, {});
-  const postingDate = (pay.paid_at ? String(pay.paid_at).slice(0, 10) : new Date().toISOString().slice(0, 10));
+  const { promoteJournalToPosted } = await import("../stores/journalsStore");
+  const promoted = await promoteJournalToPosted(row.id);
+  if (!promoted) return null;
 
-  const journal = postJournal({
-    entityId: inv.entityId,
-    branchId: inv.branchId,
-    currency: pay.currency || inv.currency,
-    sourceModule: "CRM_AR",
-    sourceRecordId: pay.id,
-    postingDate,
-    narration: `CRM payment ${paymentId}`,
-    legs,
-  });
+  await writeTrustSubledgerForPayment(row.id, pay, inv, trustByCategoryId);
+  return promoted;
+}
 
-  // Subledger + payment-purpose allocations per category (multi-category single payment)
-  for (const [catKey, portion] of Object.entries(trustByCategoryId)) {
-    if (portion <= 0) continue;
-    const line =
-      inv.lines.find((l) => l.collectionCategoryId === catKey)
-      ?? inv.lines.find((l) => `role:${l.roleKey}:${l.lineIndex}` === catKey)
-      ?? inv.lines.find((l) => l.roleKey === catKey);
-    if (!line) continue;
-    try {
-      const { getOrCreateTrustAccount } = await import("./trustPosting");
-      const trustAccountId = await getOrCreateTrustAccount({
-        clientId: pay.client_id,
-        roleKey: line.roleKey,
-        entityId: inv.entityId,
-        branchId: inv.branchId,
-        currency: pay.currency || inv.currency,
-        collectionCategoryId: line.collectionCategoryId ?? undefined,
-      });
-      await supabase.from("accounting_trust_entries").insert({
-        trust_account_id: trustAccountId,
-        entry_type: "RECEIPT",
-        amount: portion,
-        currency: pay.currency || inv.currency,
-        source_module: "CRM_AR",
-        source_record_id: pay.id,
-        journal_id: journal.id,
-        memo: `Trust receipt — ${line.label}`,
-        collection_category_id: line.collectionCategoryId ?? null,
-      } as any);
-
-      if (line.collectionCategoryId) {
-        await supabase.from("client_invoice_payment_allocations").insert({
-          payment_id: pay.id,
-          invoice_id: pay.invoice_id,
-          amount_allocated: portion,
-          collection_category_id: line.collectionCategoryId,
-          line_item_key: String(line.lineIndex),
-          service_id: null,
-        } as any).then(({ error: ae }) => {
-          if (ae) console.warn("[crmBridge] allocation insert", ae.message);
-        });
-      }
-    } catch (e) {
-      console.warn("[crmBridge] trust subledger receipt failed", catKey, e);
-    }
-  }
-
-  return journal;
+/**
+ * @deprecated Phase A — creates DRAFT only. Use approveAndPostPaymentJournal after finance approval.
+ * Kept for crmBridgeStore reconciliation backfill naming.
+ */
+export async function postPaymentJournal(paymentId: string): Promise<Journal | null> {
+  return createPaymentDraftJournal(paymentId);
 }
 
 // ── CRM client lookup (link accounting profile → CRM client) ─────────

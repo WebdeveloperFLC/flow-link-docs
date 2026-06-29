@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { approveMoneyInJournal } from "@/platform/foe/moneyInOrchestrator";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import { formatCurrency } from "../../lib/format";
@@ -248,6 +249,18 @@ export default function AccountingJournalsPage() {
                           <DropdownMenuItem onClick={() => navigate(`/accounting/journals/${j.id}`)}>
                             View
                           </DropdownMenuItem>
+                          {j.status === 'DRAFT' && j.sourceModule === 'CRM_AR' && j.sourceRecordId && (
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                if (!j.sourceRecordId) return;
+                                const result = await approveMoneyInJournal(j.sourceRecordId);
+                                if (result.ok) toast.success("Journal approved and posted");
+                                else toast.error(result.error ?? "Could not approve journal");
+                              }}
+                            >
+                              Approve & post
+                            </DropdownMenuItem>
+                          )}
                           {j.status === 'DRAFT' && (
                             <DropdownMenuItem onClick={() => navigate(`/accounting/journals/${j.id}/edit`)}>
                               Edit

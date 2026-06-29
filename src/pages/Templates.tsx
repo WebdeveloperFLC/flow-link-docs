@@ -6,7 +6,7 @@ const Templates = () => (
   <AppLayout>
     <PageHeader
       title="Workflow templates"
-      description="Document binders have moved to Service Library Admin. This page remains for bookmarks."
+      description="Document binders have moved to Knowledge Centre Admin. This page remains for bookmarks."
     />
     <div className="p-8">
       <WorkflowTemplatePanel />

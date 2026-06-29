@@ -43,7 +43,10 @@ import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { CoaAccount } from "../../types/coa";
 import { formatCurrency } from "../../lib/format";
-import { cn } from "@/lib/utils";
+import { useCan } from "../../hooks/usePermission";
+import { accountMatchesBusinessSearch, COA_PAGE_INTRO } from "../../lib/coaUxHelpers";
+import CoaReadOnlyBanner from "../../components/coa/CoaReadOnlyBanner";
+import CoaConceptTooltip from "../../components/coa/CoaConceptTooltip";
 
 const ALL = "__all__";
 
@@ -53,6 +56,7 @@ export default function AccountingCOAPage() {
   const groups = useGroups();
   const types = useTypes();
   const entities = useScopedEntities();
+  const { isAdmin: canEditCoa } = useCan();
 
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -119,7 +123,7 @@ export default function AccountingCOAPage() {
       }
       if (statusFilter !== "all" && a.status !== statusFilter) return false;
       if (currencyFilter !== ALL && a.currency !== currencyFilter) return false;
-      if (q && !`${a.code} ${a.name}`.toLowerCase().includes(q)) return false;
+      if (q && !accountMatchesBusinessSearch(a, q, groups, types)) return false;
       return true;
     };
     // Include ancestors of matches so the tree stays connected
@@ -135,7 +139,7 @@ export default function AccountingCOAPage() {
       }
     });
     return accounts.filter((a) => keep.has(a.id));
-  }, [accounts, accountById, search, groupFilter, typeFilter, entityFilter, statusFilter, currencyFilter]);
+  }, [accounts, accountById, search, groupFilter, typeFilter, entityFilter, statusFilter, currencyFilter, groups, types]);
 
   const visibleRows = useMemo(() => {
     return filtered.filter((a) => {
@@ -180,7 +184,7 @@ export default function AccountingCOAPage() {
     setDetail(null);
   };
 
-  useKeyboardShortcuts({ onNew: openNew });
+  useKeyboardShortcuts({ onNew: canEditCoa ? openNew : undefined });
 
   const onConfirmDelete = () => {
     if (!deleteTarget) return;
@@ -234,23 +238,17 @@ export default function AccountingCOAPage() {
       },
     },
     {
-      headerName: "Type",
-      minWidth: 170,
-      flex: 1,
-      valueGetter: (p) => types.find((t) => t.code === p.data?.typeCode)?.label ?? p.data?.typeCode,
-    },
-    {
-      headerName: "Group",
+      headerName: "Category",
       minWidth: 140,
       valueGetter: (p) => groups.find((g) => g.code === p.data?.groupCode)?.label ?? p.data?.groupCode,
+      cellRenderer: (p: ICellRendererParams<CoaAccount>) => {
+        const a = p.data;
+        if (!a) return null;
+        const label = groups.find((g) => g.code === a.groupCode)?.label ?? a.groupCode;
+        return <CoaConceptTooltip kind="group" code={a.groupCode} label={label} />;
+      },
     },
-    {
-      headerName: "Parent",
-      minWidth: 200,
-      flex: 1,
-      valueGetter: (p) => (p.data?.parentId ? (accountById.get(p.data.parentId)?.name ?? "—") : "—"),
-    },
-    { headerName: "Currency", field: "currency", minWidth: 100, maxWidth: 110 },
+    { headerName: "Currency", field: "currency", minWidth: 90, maxWidth: 100 },
     {
       headerName: "Entity",
       minWidth: 180,
@@ -294,31 +292,36 @@ export default function AccountingCOAPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => openEdit(a)}>
-                <Pencil className="size-3.5 mr-2" /> Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openAddChild(a)}>
-                <Plus className="size-3.5 mr-2" /> Add child
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate(`/accounting/reports/general-ledger/${a.id}`)}>
-                <BookOpen className="size-3.5 mr-2" /> View ledger
+                <BookOpen className="size-3.5 mr-2" /> View activity
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  toggleAccountStatus(a.id);
-                  toast.success(`Account ${a.status === "ACTIVE" ? "deactivated" : "activated"}`);
-                }}
-              >
-                <Power className="size-3.5 mr-2" /> {a.status === "ACTIVE" ? "Deactivate" : "Activate"}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                disabled={!check.canDelete}
-                onClick={() => (check.canDelete ? setDeleteTarget(a) : toast.error(check.reason ?? "Cannot delete"))}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="size-3.5 mr-2" /> Delete
-              </DropdownMenuItem>
+              {canEditCoa && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => openEdit(a)}>
+                    <Pencil className="size-3.5 mr-2" /> Edit account
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openAddChild(a)}>
+                    <Plus className="size-3.5 mr-2" /> Add sub-account
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      toggleAccountStatus(a.id);
+                      toast.success(`Account ${a.status === "ACTIVE" ? "deactivated" : "activated"}`);
+                    }}
+                  >
+                    <Power className="size-3.5 mr-2" /> {a.status === "ACTIVE" ? "Deactivate" : "Activate"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    disabled={!check.canDelete}
+                    onClick={() => (check.canDelete ? setDeleteTarget(a) : toast.error(check.reason ?? "Cannot delete"))}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="size-3.5 mr-2" /> Delete
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -344,28 +347,33 @@ export default function AccountingCOAPage() {
   return (
     <AppLayout>
       <div className="p-8 space-y-6">
-        <AccountingBreadcrumbs items={[{ label: "Accounting", to: "/accounting" }, { label: "Chart of accounts" }]} />
+        <AccountingBreadcrumbs items={[{ label: "Finance", to: "/accounting" }, { label: "Account setup" }]} />
         <AccountingPageHeader
-          title="Chart of accounts"
-          subtitle="Hierarchical ledger of every account across entities and currencies"
+          title="Account setup"
+          subtitle={COA_PAGE_INTRO}
           actions={
             <>
               <DarkModeToggle />
-              <Button variant="outline" onClick={() => openNew("group")}>
-                <Plus className="size-4 mr-1" /> New group
-              </Button>
-              <Button onClick={() => openNew("ledger")}>
-                <Plus className="size-4 mr-1" /> New ledger
-              </Button>
+              {canEditCoa && (
+                <>
+                  <Button variant="outline" onClick={() => openNew("group")}>
+                    <Plus className="size-4 mr-1" /> New group header
+                  </Button>
+                  <Button onClick={() => openNew("ledger")}>
+                    <Plus className="size-4 mr-1" /> New account
+                  </Button>
+                </>
+              )}
             </>
           }
         />
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {!canEditCoa && <CoaReadOnlyBanner />}
+
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           <AccountingKPICard label="Total accounts" value={String(kpis.total)} icon={Layers} />
-          <AccountingKPICard label="Active" value={String(kpis.active)} icon={Layers} />
-          <AccountingKPICard label="Inactive" value={String(kpis.inactive)} icon={Layers} />
-          <AccountingKPICard label="Account groups" value={String(groups.length)} icon={Layers} />
+          <AccountingKPICard label="Active accounts" value={String(kpis.active)} icon={Layers} />
+          <AccountingKPICard label="Inactive accounts" value={String(kpis.inactive)} icon={Layers} />
         </div>
 
         <Card className="p-5 shadow-elev-sm">
@@ -376,16 +384,16 @@ export default function AccountingCOAPage() {
                 data-search
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search code or name…"
+                placeholder="Search by name, code, or term (e.g. tuition, tax, commission)…"
                 className="pl-8 h-9"
               />
             </div>
             <Select value={groupFilter} onValueChange={setGroupFilter}>
               <SelectTrigger className="h-9 w-[170px]">
-                <SelectValue placeholder="Group" />
+                <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>All groups</SelectItem>
+                <SelectItem value={ALL}>All categories</SelectItem>
                 {groups.map((g) => (
                   <SelectItem key={g.code} value={g.code}>
                     {g.label}
@@ -467,7 +475,7 @@ export default function AccountingCOAPage() {
                   : "Create your first account to start tracking balances."
               }
               action={
-                !filtersActive ? (
+                !filtersActive && canEditCoa ? (
                   <Button size="sm" onClick={openNew}>
                     <Plus className="size-4 mr-1" /> New account
                   </Button>
@@ -500,6 +508,7 @@ export default function AccountingCOAPage() {
           onOpenChange={(v) => {
             if (!v) setDetail(null);
           }}
+          readOnly={!canEditCoa}
           onEdit={openEdit}
           onAddChild={openAddChild}
           onDelete={(a) => setDeleteTarget(a)}

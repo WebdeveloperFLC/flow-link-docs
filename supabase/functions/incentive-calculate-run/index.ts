@@ -24,6 +24,7 @@
 // ============================================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { evaluateSettlementViaRpc } from "../_shared/cae/settlementEligibility.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,6 +43,31 @@ function json(body: unknown, status = 200) {
 }
 
 type Svc = ReturnType<typeof createClient>;
+
+/** CAE gate — Settlement Engine must consult Commercial Agreement Engine before settlements. */
+function createCaeEligibilityGate(svc: Svc) {
+  const cache = new Map<string, boolean>();
+  return {
+    async check(input: {
+      clientId: string;
+      sourceRecordId: string;
+      sourceModule?: string;
+      asOfDate?: string;
+    }): Promise<boolean> {
+      const key = `${input.clientId}:${input.sourceRecordId}`;
+      if (cache.has(key)) return cache.get(key)!;
+      const res = await evaluateSettlementViaRpc(svc, {
+        settlementType: "incentive_counselor",
+        clientId: input.clientId,
+        sourceModule: input.sourceModule ?? "incentive_calculate_run",
+        sourceRecordId: input.sourceRecordId,
+        asOfDate: input.asOfDate,
+      });
+      cache.set(key, res.eligible);
+      return res.eligible;
+    },
+  };
+}
 
 // ---- period_key -> [startISO, endISO) ------------------------------------
 // Supports '2026-05' (monthly), '2026-Q2', '2026-H1', '2026' (yearly).
@@ -629,6 +655,9 @@ Deno.serve(async (req: Request) => {
     const ensureRule = (cid: string, rid: string): Bucket =>
       ((ruleAcc[cid] ||= {})[rid] ||= { count: 0, revenue: 0, lines: [] });
 
+    const caeGate = createCaeEligibilityGate(svc);
+    const caeBlocked = { payments: 0, commissions: 0, qualifying: 0, insert: 0 };
+
     if (clientIds.length) {
       const { data: pays } = await svc
         .from("client_invoice_payments")
@@ -689,6 +718,15 @@ Deno.serve(async (req: Request) => {
         if (p.is_refund) continue;
         const shares = getClientAttributionShares(p.client_id, clientAttribution, clientToCounselor);
         if (!shares.length) continue;
+        const caeEligible = await caeGate.check({
+          clientId: p.client_id,
+          sourceRecordId: String(p.id),
+          asOfDate: p.paid_at ?? undefined,
+        });
+        if (!caeEligible) {
+          caeBlocked.payments++;
+          continue;
+        }
         let grossSettlement = convert(Number(p.amount), p.currency ?? "INR", settlement, snap);
         if (grossSettlement == null) continue;
         let inSettlement = grossSettlement;
@@ -771,6 +809,15 @@ Deno.serve(async (req: Request) => {
         if (!cm.client_id) continue;
         const shares = getClientAttributionShares(cm.client_id, clientAttribution, clientToCounselor);
         if (!shares.length) continue;
+        const caeEligible = await caeGate.check({
+          clientId: cm.client_id,
+          sourceRecordId: String(cm.id),
+          asOfDate: cm.commission_paid_date ?? undefined,
+        });
+        if (!caeEligible) {
+          caeBlocked.commissions++;
+          continue;
+        }
         const ruleCcy = settlement;
         const amt = convert(Number(cm.commission_amount ?? 0), cm.tuition_currency ?? "CAD", ruleCcy, snap);
         if (amt == null) continue;
@@ -844,6 +891,17 @@ Deno.serve(async (req: Request) => {
             eventMilestone = (ev.dimensions?.milestone as string) ?? null;
           }
           if (!eventMilestone) continue;
+
+          if (ev.client_id) {
+            const caeEligible = await caeGate.check({
+              clientId: ev.client_id,
+              sourceRecordId: String(ev.id),
+            });
+            if (!caeEligible) {
+              caeBlocked.qualifying++;
+              continue;
+            }
+          }
 
           const dims: LineDims = {
             ...(clientDims[ev.client_id] ?? {}),
@@ -1193,6 +1251,7 @@ Deno.serve(async (req: Request) => {
         summary,
         grand_total: grandTotal,
         contest_wallet_topups: contestWalletTopups,
+        cae_blocked: caeBlocked,
       });
     }
 
@@ -1229,6 +1288,19 @@ Deno.serve(async (req: Request) => {
     const rows: any[] = [];
     for (const [cid, v] of Object.entries(perCounselor)) {
       for (const ln of v.lines) {
+        if (ln.client_id && Number(ln.earned_amount ?? 0) > 0) {
+          const sourceId = String(
+            ln.source_payment_id ?? ln.source_commission_id ?? ln.source_qualifying_event_id ?? `${runId}:${ln.client_id}`,
+          );
+          const caeEligible = await caeGate.check({
+            clientId: ln.client_id,
+            sourceRecordId: sourceId,
+          });
+          if (!caeEligible) {
+            caeBlocked.insert++;
+            continue;
+          }
+        }
         rows.push({
           run_id: runId, counselor_id: cid,
           source_type: ln.source_type, slab_id: ln.slab_id ?? null,
@@ -1278,7 +1350,10 @@ Deno.serve(async (req: Request) => {
       entity_id: runId, details: { plan_id, period_key, branch_id, grand_total: grandTotal, counselors: summary.length },
     });
 
-    return json({ ok: true, action, run_id: runId, period_key, branch_id, settlement, summary, grand_total: grandTotal });
+    return json({
+      ok: true, action, run_id: runId, period_key, branch_id, settlement, summary, grand_total: grandTotal,
+      cae_blocked: caeBlocked,
+    });
   } catch (e) {
     return json({ error: String((e as Error)?.message ?? e) }, 500);
   }

@@ -67,7 +67,7 @@ export async function syncCrmInvoices(limit = BATCH): Promise<number> {
   return posted;
 }
 
-/** Journalize verified CRM payments that do not yet have an accounting journal. */
+/** Journalize verified CRM payments as DRAFT journals (FOE Phase A — never POSTED via sync). */
 export async function syncCrmPayments(limit = BATCH): Promise<number> {
   const { data, error } = await supabase
     .from("client_invoice_payments")
@@ -86,7 +86,7 @@ export async function syncCrmPayments(limit = BATCH): Promise<number> {
       if (j) posted += 1;
     } catch (e: any) {
       set({ errors: status.errors + 1, lastError: e?.message ?? String(e) });
-      console.warn("[crmBridge] payment post failed", row.id, e);
+      console.warn("[crmBridge] payment draft journal failed", row.id, e);
     }
   }
   return posted;

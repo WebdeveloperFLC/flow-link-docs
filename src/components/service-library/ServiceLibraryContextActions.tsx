@@ -43,7 +43,7 @@ export function ServiceLibraryContextActions({
           <Button variant="outline" size={size} asChild>
             <Link to={buildServiceLibraryUrl({ libraryId, country })}>
               <ChevronLeft className="size-4 mr-1" />
-              Service Library
+              Knowledge Centre
             </Link>
           </Button>
         )}

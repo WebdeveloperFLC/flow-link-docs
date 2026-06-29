@@ -57,6 +57,20 @@ function OverviewInner() {
   const navigate = useNavigate();
   const { activeEntity, availableEntities, setActiveEntity } = useAccountingEntity();
   const [showOnboarding, setShowOnboarding] = useState(() => !isOnboardingDismissed());
+  const [kpis, setKpis] = useState<Awaited<ReturnType<typeof import("@/platform/foe/financeKpiService").loadFinanceOverviewKpis>> | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { loadFinanceOverviewKpis } = await import("@/platform/foe/financeKpiService");
+      const { hydratePlatformConfig } = await import("@/platform/config/platformConfigService");
+      await hydratePlatformConfig();
+      const data = await loadFinanceOverviewKpis({
+        entityId: activeEntity.id,
+        currency: activeEntity.currency,
+      });
+      setKpis(data);
+    })();
+  }, [activeEntity.id, activeEntity.currency]);
 
   const headerActions = (
     <>
@@ -107,11 +121,44 @@ function OverviewInner() {
 
         {/* KPI ROW */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <AccountingKPICard label="Total revenue (YTD)" value={0} currency="CAD" delta="No data" deltaDirection="neutral" icon={TrendingUp} />
-          <AccountingKPICard label="Total expenses (YTD)" value={0} currency="CAD" delta="No data" deltaDirection="neutral" icon={Receipt} />
-          <AccountingKPICard label="Net profit (YTD)" value={0} currency="CAD" delta="No data" deltaDirection="neutral" icon={DollarSign} />
-          <AccountingKPICard label="Outstanding AR" value={0} currency="CAD" delta="No invoices" deltaDirection="neutral" icon={ArrowUpCircle} />
-          <AccountingKPICard label="Outstanding AP" value={0} currency="CAD" delta="No bills" deltaDirection="neutral" icon={ArrowDownCircle} />
+          <AccountingKPICard
+            label="Collected (MTD)"
+            value={kpis?.collectedThisMonth ?? 0}
+            currency={activeEntity.currency}
+            delta={`${kpis?.verifiedPaymentsCount ?? 0} verified payments`}
+            deltaDirection="up"
+            icon={TrendingUp}
+          />
+          <AccountingKPICard
+            label="Collected (YTD)"
+            value={kpis?.collectedYtd ?? 0}
+            currency={activeEntity.currency}
+            delta="Verified CRM payments"
+            deltaDirection="neutral"
+            icon={Receipt}
+          />
+          <AccountingKPICard
+            label="Finance queue"
+            value={String(kpis?.financeQueueTotal ?? 0)}
+            delta={`${kpis?.pendingVerificationCount ?? 0} awaiting verify · ${kpis?.pendingJournalCount ?? 0} journals`}
+            deltaDirection={(kpis?.financeQueueTotal ?? 0) > 0 ? "down" : "neutral"}
+            icon={DollarSign}
+          />
+          <AccountingKPICard
+            label="Outstanding AR"
+            value={kpis?.outstandingAr ?? 0}
+            currency={activeEntity.currency}
+            delta={kpis?.overdueAr ? `${formatCurrency(kpis.overdueAr, activeEntity.currency)} overdue` : "Open invoices"}
+            deltaDirection={kpis?.overdueAr ? "down" : "neutral"}
+            icon={ArrowUpCircle}
+          />
+          <AccountingKPICard
+            label="Pending verify"
+            value={String(kpis?.pendingVerificationCount ?? 0)}
+            delta="Cash + non-cash"
+            deltaDirection={(kpis?.pendingVerificationCount ?? 0) > 0 ? "down" : "neutral"}
+            icon={ArrowDownCircle}
+          />
         </div>
 
         {/* MIDDLE ROW */}
@@ -152,8 +199,8 @@ function OverviewInner() {
                 </div>
               ))}
             </div>
-            <Button variant="outline" className="w-full mt-3" onClick={() => navigate("/accounting/approvals")}>
-              View all approvals →
+            <Button variant="outline" className="w-full mt-3" onClick={() => navigate("/accounting/finance-queue")}>
+              Open finance queue →
             </Button>
           </Card>
         </div>
@@ -400,21 +447,8 @@ function PaymentsBySourceCard() {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("client_invoice_payments")
-        .select("payment_source,amount,amount_in_inr,is_refund,payment_status")
-        .eq("payment_status", "verified")
-        .is("archived_at", null)
-        .limit(2000);
-      const agg = new Map<string, { count: number; total: number }>();
-      (data ?? []).forEach((p: any) => {
-        if (p.is_refund) return;
-        const src = (p.payment_source ?? "manual").replace(/_/g, " ");
-        const amt = Number(p.amount_in_inr ?? p.amount ?? 0);
-        const cur = agg.get(src) ?? { count: 0, total: 0 };
-        agg.set(src, { count: cur.count + 1, total: cur.total + amt });
-      });
-      setRows([...agg.entries()].map(([source, v]) => ({ source, ...v })).sort((a, b) => b.total - a.total));
+      const { loadPaymentsBySource } = await import("@/platform/foe/financeKpiService");
+      setRows(await loadPaymentsBySource());
       setLoading(false);
     })();
   }, []);

@@ -3,7 +3,6 @@ import type { AcademyViewModel } from "./buildAcademyViewModel";
 /** All tab ids used across visa + coaching profiles. */
 export const ACADEMY_TAB_IDS = [
   "overview",
-  "guide",
   "institution",
   "programs",
   "fees",
@@ -34,7 +33,6 @@ export type CoachingProfile = "test_reference" | "program";
 
 const MBBS_TABS: AcademyTabId[] = [
   "overview",
-  "guide",
   "institution",
   "programs",
   "fees",
@@ -59,7 +57,6 @@ const MBBS_TABS: AcademyTabId[] = [
 
 const VISA_TABS: AcademyTabId[] = [
   "overview",
-  "guide",
   "fees",
   "countryinsights",
   "eligibility",
@@ -81,7 +78,6 @@ const VISA_TABS: AcademyTabId[] = [
 
 const COACHING_TEST_TABS: AcademyTabId[] = [
   "overview",
-  "guide",
   "eligibility",
   "acceptance",
   "testday",
@@ -101,7 +97,6 @@ const COACHING_TEST_TABS: AcademyTabId[] = [
 
 const COACHING_PROGRAM_TABS: AcademyTabId[] = [
   "overview",
-  "guide",
   "eligibility",
   "checklist",
   "binder",
@@ -152,8 +147,6 @@ export function tabLabel(
 ): string {
   if (view.isMbbs) {
     switch (id) {
-      case "guide":
-        return "Knowledge guide";
       case "institution":
         return "Institution";
       case "programs":
@@ -216,8 +209,6 @@ export function tabLabel(
   }
 
   switch (id) {
-    case "guide":
-      return "Knowledge guide";
     case "fees":
       return "Fees";
     case "countryinsights":

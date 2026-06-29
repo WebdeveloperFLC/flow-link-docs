@@ -391,7 +391,7 @@ export function buildAcademyViewModel(args: {
       meta.about ??
       (resolved.checklist_text
         ? [{ label: "Document notes", value: htmlToPlain(resolved.checklist_text) }]
-        : [{ label: "Description", value: "Add content in Service Library Admin → Service content." }]),
+        : [{ label: "Description", value: "Add content in Knowledge Centre Admin → Service content." }]),
     eligibility: (meta.eligibility ?? []).map((e) => ({
       criterion: e.criterion,
       met: !!e.met,

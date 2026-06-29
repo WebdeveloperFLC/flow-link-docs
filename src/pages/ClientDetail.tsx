@@ -1307,7 +1307,11 @@ const ClientDetail = () => {
               clientName={client.full_name ?? undefined}
               clientPhone={(client as Client & { phone?: string | null }).phone ?? null}
             />
-            <ClientPaymentsCard clientId={client.id} activeServiceCode={serviceCtx.activeServiceCode} />
+            <ClientPaymentsCard
+              clientId={client.id}
+              activeServiceCode={serviceCtx.activeServiceCode}
+              clientName={client.full_name ?? undefined}
+            />
             <ClientCommissionStatusPanel clientId={client.id} />
           </TabsContent>
 

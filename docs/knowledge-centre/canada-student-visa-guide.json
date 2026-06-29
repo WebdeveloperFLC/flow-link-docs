@@ -1,0 +1,1028 @@
+{
+  "slug": "canada-student-visa-outside-canada",
+  "title": "Canada – Student Visa (Outside Canada)",
+  "country": "Canada",
+  "service": "Student Visa (Outside Canada)",
+  "type": "counsellor-knowledge-guide",
+  "version": "v1.0",
+  "status": "published",
+  "updatedLabel": "Updated 28 Jun 2026",
+  "builtToStandard": "Knowledge Writing Standard v1.0",
+  "summary": "Counsellor companion from first enquiry to settlement. Future Link owns the counselling intelligence; every official fact is linked, never copied.",
+  "ownershipModel": {
+    "futureLinkOwns": [
+      "Service Summary",
+      "Counsellor Guidance",
+      "Future Link Recommendations",
+      "Best Practices",
+      "Common Mistakes",
+      "FAQs",
+      "Quiz",
+      "Counselling Journey",
+      "Downloads"
+    ],
+    "neverOwns": [
+      "Government rules",
+      "Processing times",
+      "Official fees",
+      "Official forms",
+      "Institution information",
+      "Tuition fees",
+      "Course information"
+    ],
+    "policy": "Never copy official information. Always reference official sources by Authority, Page, Suggested URL and Reason."
+  },
+  "tags": [
+    "canada",
+    "study-permit",
+    "outside-canada",
+    "pal-tal",
+    "ircc",
+    "dli",
+    "proof-of-funds"
+  ],
+  "sections": [
+    {
+      "no": 1,
+      "key": "overview",
+      "title": "Overview",
+      "owner": "futureLink",
+      "purpose": "Orient counsellor and client on the service and the journey.",
+      "counsellingObjective": "The client understands what this service is, what Future Link does, and that approval rests with IRCC.",
+      "contentClassification": [
+        "Future Link Content",
+        "Official Reference"
+      ],
+      "body": {
+        "counsellorGuidance": [
+          "Service = guiding a client to a Canadian study permit from outside Canada before travel.",
+          "Future Link's role: advisory, preparation, readiness — never the government decision.",
+          "Who it's for: students with (or seeking) a DLI offer who plan to study in Canada."
+        ],
+        "futureLinkRecommendations": [
+          "Lead the first session with fit and goals, not paperwork.",
+          "State plainly: we raise quality and readiness; IRCC decides."
+        ],
+        "expectedOutcome": "A well-prepared, honest application and a client ready to settle."
+      }
+    },
+    {
+      "no": 2,
+      "key": "eligibilitySummary",
+      "title": "Eligibility Summary",
+      "owner": "futureLink",
+      "purpose": "Pre-qualify a client fast; official rules stay with IRCC.",
+      "counsellingObjective": "The client knows which requirements apply to them and where they currently stand.",
+      "contentClassification": [
+        "Future Link Content",
+        "Official Reference",
+        "Related Knowledge"
+      ],
+      "body": {
+        "counsellorGuidance": "Check the presence of each item; never quote thresholds.",
+        "considerations": [
+          {
+            "item": "Letter of Acceptance (DLI)",
+            "check": "Genuine DLI offer?",
+            "owner": "IRCC"
+          },
+          {
+            "item": "PAL/TAL or exemption",
+            "check": "Category needs one?",
+            "owner": "IRCC"
+          },
+          {
+            "item": "Proof of funds",
+            "check": "Funds liquid & sufficient?",
+            "owner": "IRCC"
+          },
+          {
+            "item": "Language",
+            "check": "Meets institution requirement?",
+            "owner": "Institution"
+          },
+          {
+            "item": "Academic",
+            "check": "Meets program entry?",
+            "owner": "Institution"
+          },
+          {
+            "item": "Medical (if required)",
+            "check": "Country/course triggers it?",
+            "owner": "IRCC"
+          },
+          {
+            "item": "Genuine student intent",
+            "check": "Coherent study plan?",
+            "owner": "Future Link"
+          }
+        ],
+        "futureLinkRecommendations": [
+          "Use a green/amber/red readiness check per row.",
+          "Resolve amber/red before any institution deposit."
+        ]
+      }
+    },
+    {
+      "no": 3,
+      "key": "costPlanning",
+      "title": "Cost Planning",
+      "owner": "futureLink",
+      "purpose": "Help the client budget the whole journey except tuition (owned by Fee Master).",
+      "counsellingObjective": "The client understands the complete financial commitment before proceeding.",
+      "contentClassification": [
+        "Future Link Content",
+        "Official Reference",
+        "Download"
+      ],
+      "body": {
+        "counsellorGuidance": "Counsel on categories and discipline, not government figures.",
+        "categories": [
+          {
+            "category": "Government application & biometric fees",
+            "owner": "IRCC",
+            "note": "Confirm current on canada.ca"
+          },
+          {
+            "category": "Proof-of-funds (living) amount",
+            "owner": "IRCC",
+            "note": "Liquid; confirm current threshold"
+          },
+          {
+            "category": "Accommodation",
+            "owner": "Future Link",
+            "note": "First months + deposit buffer"
+          },
+          {
+            "category": "Transportation",
+            "owner": "Future Link",
+            "note": "Local + intercity"
+          },
+          {
+            "category": "Airfare",
+            "owner": "Future Link",
+            "note": "Book after decision"
+          },
+          {
+            "category": "Medical & travel insurance",
+            "owner": "Future Link",
+            "note": "Arrange before travel"
+          },
+          {
+            "category": "Forex",
+            "owner": "Future Link",
+            "note": "Plan rate & transfer method"
+          },
+          {
+            "category": "Initial settlement + emergency funds",
+            "owner": "Future Link",
+            "note": "2–3 month cushion"
+          },
+          {
+            "category": "Monthly budgeting",
+            "owner": "Future Link",
+            "note": "Realistic ongoing plan"
+          }
+        ],
+        "commonMistakes": [
+          "Quoting a single total",
+          "Ignoring liquidity",
+          "Forgetting an emergency buffer"
+        ],
+        "futureLinkRecommendations": [
+          "Give a Budget Planner (categories above), not one number.",
+          "Separate Future Link fees, government fees and institution fees on paper."
+        ],
+        "excludes": "Institution tuition — owned by Fee Master / Institution"
+      }
+    },
+    {
+      "no": 4,
+      "key": "familyGuide",
+      "title": "Family Guide",
+      "owner": "futureLink",
+      "purpose": "Advise realistically on bringing family.",
+      "counsellingObjective": "The family understands their realistic options and what to plan for.",
+      "contentClassification": [
+        "Future Link Content",
+        "Official Reference",
+        "Related Knowledge"
+      ],
+      "body": {
+        "counsellorGuidance": "Family rights are IRCC-governed and changing — summarise, link, never quote.",
+        "topics": [
+          {
+            "topic": "Spouse / partner work options",
+            "framing": "Eligibility narrowed; depends on study level",
+            "owner": "IRCC"
+          },
+          {
+            "topic": "Children accompanying",
+            "framing": "Plan funds & housing",
+            "owner": "IRCC"
+          },
+          {
+            "topic": "Parents (visitor)",
+            "framing": "Visitor route only",
+            "owner": "IRCC"
+          },
+          {
+            "topic": "Children's schooling",
+            "framing": "Plan early",
+            "owner": "Provincial"
+          },
+          {
+            "topic": "Healthcare",
+            "framing": "Province-specific",
+            "owner": "Provincial"
+          },
+          {
+            "topic": "Family planning",
+            "framing": "Affects funds & timing",
+            "owner": "Future Link"
+          }
+        ],
+        "futureLinkRecommendations": [
+          "Raise family plans in the first session — they change funds and housing.",
+          "Link the current spouse-work rule; never promise eligibility."
+        ]
+      }
+    },
+    {
+      "no": 5,
+      "key": "futureLinkServices",
+      "title": "Future Link Services",
+      "owner": "futureLink",
+      "purpose": "Make clear what the client is buying from Future Link.",
+      "counsellingObjective": "The client knows exactly which services support each step of their journey.",
+      "contentClassification": [
+        "Future Link Content",
+        "Official Reference"
+      ],
+      "body": {
+        "counsellorGuidance": "We sell expertise and journey support — never the visa.",
+        "services": [
+          {
+            "service": "Career counselling",
+            "purpose": "Align goals, profile, budget"
+          },
+          {
+            "service": "Country selection",
+            "purpose": "Confirm Canada fits"
+          },
+          {
+            "service": "Institution shortlisting",
+            "purpose": "Via Institution Master"
+          },
+          {
+            "service": "Program selection",
+            "purpose": "Fit + future-pathway aware"
+          },
+          {
+            "service": "Scholarship assessment",
+            "purpose": "Identify options"
+          },
+          {
+            "service": "Education loan assistance",
+            "purpose": "Guide financing"
+          },
+          {
+            "service": "Tuition payment assistance",
+            "purpose": "Facilitate payment (Fee Master)"
+          },
+          {
+            "service": "Forex",
+            "purpose": "Plan transfers"
+          },
+          {
+            "service": "Visa filing support",
+            "purpose": "Prepare & QA the file"
+          },
+          {
+            "service": "SOP guidance",
+            "purpose": "Coach an honest study plan"
+          },
+          {
+            "service": "Interview preparation",
+            "purpose": "Build readiness"
+          },
+          {
+            "service": "Accommodation",
+            "purpose": "Pre-arrival planning"
+          },
+          {
+            "service": "Airport pickup",
+            "purpose": "Arrival support"
+          },
+          {
+            "service": "SIM card",
+            "purpose": "Connectivity on arrival"
+          },
+          {
+            "service": "Travel insurance",
+            "purpose": "Pre-departure cover"
+          },
+          {
+            "service": "Resume building",
+            "purpose": "Employment prep"
+          },
+          {
+            "service": "Job assistance",
+            "purpose": "Settlement employment"
+          },
+          {
+            "service": "Settlement guidance",
+            "purpose": "First-weeks support"
+          }
+        ],
+        "futureLinkRecommendations": [
+          "Anchor every service to a journey stage (Section 6); set the prepare-vs-decide boundary."
+        ]
+      }
+    },
+    {
+      "no": 6,
+      "key": "counsellingJourney",
+      "title": "Complete Counselling Journey",
+      "owner": "futureLink",
+      "purpose": "One repeatable map from enquiry to future applications.",
+      "counsellingObjective": "The counsellor can guide the client confidently through every stage and knows where Future Link's role ends.",
+      "contentClassification": [
+        "Future Link Content",
+        "Official Reference",
+        "Download"
+      ],
+      "body": {
+        "counsellorGuidance": "Each stage is a counselling responsibility, not a government step.",
+        "stages": [
+          {
+            "no": 1,
+            "stage": "Initial enquiry",
+            "responsibility": "Capture profile, goals, budget",
+            "owner": "Future Link"
+          },
+          {
+            "no": 2,
+            "stage": "Counselling",
+            "responsibility": "Assess fit & expectations",
+            "owner": "Future Link"
+          },
+          {
+            "no": 3,
+            "stage": "Country selection",
+            "responsibility": "Confirm Canada suits",
+            "owner": "Future Link"
+          },
+          {
+            "no": 4,
+            "stage": "Institution selection",
+            "responsibility": "Shortlist via Institution Master",
+            "owner": "Institution Master"
+          },
+          {
+            "no": 5,
+            "stage": "Program selection",
+            "responsibility": "Fit + PGWP awareness",
+            "owner": "Future Link / IRCC"
+          },
+          {
+            "no": 6,
+            "stage": "Admission",
+            "responsibility": "Guide application to DLI",
+            "owner": "Future Link"
+          },
+          {
+            "no": 7,
+            "stage": "Offer",
+            "responsibility": "Explain LOA & deposit decision",
+            "owner": "Future Link"
+          },
+          {
+            "no": 8,
+            "stage": "Scholarship",
+            "responsibility": "Identify & support",
+            "owner": "Future Link"
+          },
+          {
+            "no": 9,
+            "stage": "Loan",
+            "responsibility": "Guide financing",
+            "owner": "Future Link"
+          },
+          {
+            "no": 10,
+            "stage": "Tuition",
+            "responsibility": "Facilitate payment",
+            "owner": "Fee Master"
+          },
+          {
+            "no": 11,
+            "stage": "Visa",
+            "responsibility": "Prepare & QA file; client submits via IRCC",
+            "owner": "Future Link / IRCC"
+          },
+          {
+            "no": 12,
+            "stage": "Biometrics",
+            "responsibility": "Remind & track (rule: IRCC)",
+            "owner": "IRCC"
+          },
+          {
+            "no": 13,
+            "stage": "Medical",
+            "responsibility": "Remind if required (rule: IRCC)",
+            "owner": "IRCC"
+          },
+          {
+            "no": 14,
+            "stage": "Travel",
+            "responsibility": "Pre-departure briefing",
+            "owner": "Future Link"
+          },
+          {
+            "no": 15,
+            "stage": "Arrival",
+            "responsibility": "Port-of-entry readiness",
+            "owner": "Future Link / IRCC"
+          },
+          {
+            "no": 16,
+            "stage": "Settlement",
+            "responsibility": "First-weeks support",
+            "owner": "Future Link"
+          },
+          {
+            "no": 17,
+            "stage": "Future applications",
+            "responsibility": "Long-term pathway awareness",
+            "owner": "Future Link / IRCC"
+          }
+        ],
+        "futureLinkRecommendations": [
+          "Log a counselling note at every stage; counsellor owns all but the official submission/biometrics/medical (link only)."
+        ]
+      }
+    },
+    {
+      "no": 7,
+      "key": "futureApplications",
+      "title": "Future Applications",
+      "owner": "futureLink",
+      "purpose": "Show the long-term pathway without over-promising.",
+      "counsellingObjective": "The client sees the realistic long-term pathway and the choices that affect it.",
+      "contentClassification": [
+        "Future Link Content",
+        "Official Reference",
+        "Related Knowledge"
+      ],
+      "body": {
+        "counsellorGuidance": "Explain the journey, never the rules (IRCC-owned, changing).",
+        "pathway": [
+          "Study Permit",
+          "Extension",
+          "PGWP",
+          "Permanent Residence",
+          "Citizenship"
+        ],
+        "steps": [
+          {
+            "step": "Study permit",
+            "framing": "The starting status",
+            "owner": "IRCC"
+          },
+          {
+            "step": "Extension",
+            "framing": "Plan ahead of expiry",
+            "owner": "IRCC"
+          },
+          {
+            "step": "PGWP",
+            "framing": "Program/field choices matter now",
+            "owner": "IRCC"
+          },
+          {
+            "step": "Permanent residence",
+            "framing": "Long-horizon possibility",
+            "owner": "IRCC"
+          },
+          {
+            "step": "Citizenship",
+            "framing": "Distant milestone",
+            "owner": "IRCC"
+          }
+        ],
+        "futureLinkRecommendations": [
+          "Discuss PGWP implications at program selection; frame PR/citizenship as possibilities, not guarantees."
+        ]
+      }
+    },
+    {
+      "no": 8,
+      "key": "settlementGuide",
+      "title": "Settlement Guide",
+      "owner": "futureLink",
+      "purpose": "Turn an approved student into a settled one.",
+      "counsellingObjective": "The client knows the practical steps to settle confidently in the first weeks.",
+      "contentClassification": [
+        "Future Link Content",
+        "Official Reference",
+        "Download"
+      ],
+      "body": {
+        "counsellorGuidance": "Practical, non-government orientation.",
+        "items": [
+          {
+            "item": "Accommodation",
+            "guidance": "Plan before travel",
+            "owner": "Future Link / Article"
+          },
+          {
+            "item": "Banking",
+            "guidance": "Open account early",
+            "owner": "Article"
+          },
+          {
+            "item": "Mobile SIM",
+            "guidance": "Arrange on arrival",
+            "owner": "Future Link"
+          },
+          {
+            "item": "Transportation",
+            "guidance": "Local orientation",
+            "owner": "Article"
+          },
+          {
+            "item": "Healthcare",
+            "guidance": "Province-specific registration",
+            "owner": "Provincial"
+          },
+          {
+            "item": "Taxes",
+            "guidance": "Basic awareness",
+            "owner": "CRA"
+          },
+          {
+            "item": "Driving",
+            "guidance": "Licence exchange/rules",
+            "owner": "Provincial"
+          },
+          {
+            "item": "Cost of living",
+            "guidance": "Ongoing budgeting",
+            "owner": "Future Link"
+          },
+          {
+            "item": "Employment preparation",
+            "guidance": "Resume, job readiness",
+            "owner": "Future Link"
+          },
+          {
+            "item": "Cultural adjustment",
+            "guidance": "Set expectations",
+            "owner": "Future Link"
+          }
+        ],
+        "futureLinkRecommendations": [
+          "Provide a First-30-Days Settlement Planner; connect arrivals to alumni/community."
+        ]
+      }
+    },
+    {
+      "no": 9,
+      "key": "commonMistakes",
+      "title": "Common Mistakes",
+      "owner": "futureLink",
+      "purpose": "Prevent the errors that cause refusals and stress.",
+      "counsellingObjective": "The client avoids the predictable, high-cost mistakes before they happen.",
+      "contentClassification": [
+        "Future Link Content"
+      ],
+      "body": {
+        "counsellorGuidance": "Coach against these proactively; review at journey stages 5, 7, 11.",
+        "mistakes": [
+          "Treating Future Link as a guarantee — reset expectations.",
+          "Funds not liquid or arranged late.",
+          "Ignoring PAL/TAL need for the category.",
+          "Not disclosing a prior refusal.",
+          "Weak, generic SOP / study plan.",
+          "Unexplained program/level switches.",
+          "Quebec client missing CAQ awareness.",
+          "Booking travel before the decision.",
+          "Leaving family planning too late.",
+          "Ignoring PGWP implications at program selection."
+        ],
+        "prevention": "Keep this list in every file; address each at the relevant stage."
+      }
+    },
+    {
+      "no": 10,
+      "key": "faqs",
+      "title": "FAQs",
+      "owner": "futureLink",
+      "purpose": "Standardise honest, consistent answers.",
+      "counsellingObjective": "The client's common questions are answered consistently and honestly.",
+      "contentClassification": [
+        "Future Link Content",
+        "Official Reference"
+      ],
+      "body": {
+        "counsellorGuidance": "Answers link, never quote figures.",
+        "items": [
+          {
+            "q": "Can Future Link guarantee a visa?",
+            "a": "No — we prepare; IRCC decides.",
+            "reference": null
+          },
+          {
+            "q": "How much money is needed?",
+            "a": "Confirm current threshold.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "Do I need a PAL/TAL?",
+            "a": "Depends on category.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "Are grad students exempt from PAL?",
+            "a": "Often, at public DLIs.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "Is a GIC required?",
+            "a": "One accepted option.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "Where do I apply?",
+            "a": "Online via IRCC/GCKey.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "Do I need biometrics?",
+            "a": "Most applicants do.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "Is a medical required?",
+            "a": "Country/course dependent.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "How long does it take?",
+            "a": "Varies; check processing times.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "Can I work while studying?",
+            "a": "Per current rule.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "Can my spouse work?",
+            "a": "Eligibility narrowed; per rule.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "What about Quebec?",
+            "a": "CAQ applies.",
+            "reference": "IRCC/Quebec"
+          },
+          {
+            "q": "Does field of study matter?",
+            "a": "Yes, for some PGWPs.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "Must I disclose past refusals?",
+            "a": "Always yes.",
+            "reference": null
+          },
+          {
+            "q": "When should I start?",
+            "a": "Early — allocations fill.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "Can I change program later?",
+            "a": "It can trigger scrutiny.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "What is a DLI?",
+            "a": "A school authorised to host international students.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "What documents do I need?",
+            "a": "See Eligibility Summary / Document Library.",
+            "reference": "Document Library"
+          },
+          {
+            "q": "Who issues the permit & when?",
+            "a": "IRCC approves; issued at port of entry.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "Can I apply on paper?",
+            "a": "Apply online.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "What if I'm refused?",
+            "a": "Review grounds; reapply / JR options.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "What happens at the airport?",
+            "a": "Identity/biometric check, then permit.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "Can my parents visit?",
+            "a": "Visitor route.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "When can I work after graduating?",
+            "a": "Via PGWP.",
+            "reference": "IRCC"
+          },
+          {
+            "q": "What does Future Link actually do?",
+            "a": "Counselling, prep, settlement.",
+            "reference": null
+          }
+        ]
+      }
+    },
+    {
+      "no": 11,
+      "key": "quiz",
+      "title": "Quiz",
+      "owner": "futureLink",
+      "purpose": "Train and certify counsellors.",
+      "counsellingObjective": "Counsellors demonstrate the judgement to advise correctly and within Future Link's role.",
+      "contentClassification": [
+        "Future Link Content"
+      ],
+      "body": {
+        "note": "Questions only; answer keys live in the Training Library.",
+        "beginner": [
+          "What does Future Link own vs link?",
+          "Who issues the study permit?",
+          "What is a DLI?",
+          "What is a PAL/TAL (concept)?",
+          "Where does a client apply?",
+          "What is the LOA?",
+          "What is the counsellor's role at submission?",
+          "What is proof of funds (concept)?",
+          "What is biometrics (concept)?",
+          "When is the permit issued?"
+        ],
+        "intermediate": [
+          "Why must funds be liquid?",
+          "Why disclose prior refusals?",
+          "When should family planning start?",
+          "Why link figures instead of quoting?",
+          "What triggers scrutiny on program changes?",
+          "How does Quebec's CAQ differ from PAL/TAL?",
+          "Why separate FLC, government and institution fees?",
+          "Why apply early in the cap year?",
+          "What's the difference between the visa/eTA and the permit?",
+          "How do you coach an honest SOP?"
+        ],
+        "advanced": [
+          "How do program/field choices affect PGWP later?",
+          "How should a counsellor handle an amber readiness flag?",
+          "Where does Future Link's responsibility end and IRCC's begin?",
+          "How do you counsel funds liquidity without quoting the figure?",
+          "How do spouse-work changes affect family counselling?",
+          "How does DLI choice cascade into PGWP → PR?",
+          "How do you manage expectations after a likely refusal risk?",
+          "How do you sequence settlement steps in the first 30 days?",
+          "How do you keep a guide accurate without copying official figures?",
+          "How do you brief a client for the port of entry?"
+        ]
+      }
+    },
+    {
+      "no": 12,
+      "key": "downloads",
+      "title": "Downloads",
+      "owner": "futureLink",
+      "purpose": "Reusable tools for counsellors and clients.",
+      "counsellingObjective": "The counsellor has the right tool ready for each stage.",
+      "contentClassification": [
+        "Download"
+      ],
+      "body": {
+        "note": "Future Link templates only — no government forms (official forms are linked in Official Resources).",
+        "templates": [
+          {
+            "template": "Counsellor Guide",
+            "use": "Session companion",
+            "stage": "All"
+          },
+          {
+            "template": "Meeting Checklist",
+            "use": "Structure each session",
+            "stage": "1–2"
+          },
+          {
+            "template": "Budget Planner",
+            "use": "Cost planning",
+            "stage": "3"
+          },
+          {
+            "template": "Arrival Checklist",
+            "use": "Port-of-entry readiness",
+            "stage": "14–15"
+          },
+          {
+            "template": "Settlement Planner",
+            "use": "First-30-days",
+            "stage": "16"
+          },
+          {
+            "template": "Packing Checklist",
+            "use": "Pre-departure",
+            "stage": "14"
+          }
+        ],
+        "futureLinkRecommendations": [
+          "Version templates centrally; no private counsellor copies."
+        ]
+      }
+    },
+    {
+      "no": 13,
+      "key": "officialResources",
+      "title": "Official Resources",
+      "owner": "linked",
+      "purpose": "One trusted, categorised list of authorities; the source for every linked fact.",
+      "counsellingObjective": "Both counsellor and client rely on authoritative, current sources — never memory.",
+      "contentClassification": [
+        "Official Reference"
+      ],
+      "body": {
+        "policy": "Link only — never copied. Counsellors open the live page; update a changed link once in the Official Resource Library.",
+        "resources": [
+          {
+            "category": "Immigration",
+            "authority": "IRCC",
+            "page": "Study permit",
+            "suggestedUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit.html",
+            "reason": "Core authority"
+          },
+          {
+            "category": "Immigration",
+            "authority": "IRCC",
+            "page": "Provincial attestation letter (PAL/TAL)",
+            "suggestedUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents/provincial-attestation-letter.html",
+            "reason": "Attestation rules"
+          },
+          {
+            "category": "Immigration",
+            "authority": "IRCC",
+            "page": "Proof of funds",
+            "suggestedUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents.html",
+            "reason": "Current funds figure"
+          },
+          {
+            "category": "Immigration",
+            "authority": "IRCC",
+            "page": "Designated learning institutions list",
+            "suggestedUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/prepare/designated-learning-institutions-list.html",
+            "reason": "Verify institution"
+          },
+          {
+            "category": "Government Fees",
+            "authority": "IRCC",
+            "page": "Pay your fees",
+            "suggestedUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/account/fees.html",
+            "reason": "Current fees"
+          },
+          {
+            "category": "Processing Times",
+            "authority": "IRCC",
+            "page": "Check processing times",
+            "suggestedUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html",
+            "reason": "Current timelines"
+          },
+          {
+            "category": "Application",
+            "authority": "IRCC",
+            "page": "Apply / sign in (GCKey)",
+            "suggestedUrl": "https://www.canada.ca/en/government/sign-in-online-account.html",
+            "reason": "Official channel"
+          },
+          {
+            "category": "Application",
+            "authority": "IRCC",
+            "page": "Guide 5269 (study permit outside Canada)",
+            "suggestedUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/guide-5269-applying-study-permit-outside-canada.html",
+            "reason": "Outside-Canada guide"
+          },
+          {
+            "category": "Medical",
+            "authority": "IRCC",
+            "page": "Medical exams",
+            "suggestedUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/prepare/medical-exam.html",
+            "reason": "Medical rule"
+          },
+          {
+            "category": "Biometrics",
+            "authority": "IRCC",
+            "page": "Biometrics",
+            "suggestedUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html",
+            "reason": "Biometric rule"
+          },
+          {
+            "category": "Work",
+            "authority": "IRCC",
+            "page": "Work off campus",
+            "suggestedUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work/work-off-campus.html",
+            "reason": "Current work rule"
+          },
+          {
+            "category": "Settlement",
+            "authority": "Service Canada",
+            "page": "Social Insurance Number (SIN)",
+            "suggestedUrl": "https://www.canada.ca/en/employment-social-development/services/sin.html",
+            "reason": "Work prerequisite"
+          },
+          {
+            "category": "Healthcare",
+            "authority": "Provincial health",
+            "page": "Provincial health coverage",
+            "suggestedUrl": "https://www.canada.ca/en/health-canada/services/health-care-system/canada-health-care-system-medicare.html",
+            "reason": "Province-specific"
+          },
+          {
+            "category": "Taxes",
+            "authority": "CRA",
+            "page": "Newcomers to Canada (taxes)",
+            "suggestedUrl": "https://www.canada.ca/en/revenue-agency/services/tax/international-non-residents/individuals-leaving-entering-canada-non-residents/newcomers-canada-immigrants.html",
+            "reason": "Tax basics"
+          },
+          {
+            "category": "Employment",
+            "authority": "IRCC",
+            "page": "Post-Graduation Work Permit (PGWP)",
+            "suggestedUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work/after-graduation.html",
+            "reason": "Post-study work"
+          }
+        ]
+      }
+    },
+    {
+      "no": 14,
+      "key": "relatedKnowledge",
+      "title": "Related Knowledge",
+      "owner": "linked",
+      "purpose": "Point to deep-dive articles this service references.",
+      "counsellingObjective": "The counsellor can pull a deeper explanation instantly without leaving the journey.",
+      "contentClassification": [
+        "Related Knowledge"
+      ],
+      "body": {
+        "note": "Link, never restate; each article is owned once in Knowledge Articles.",
+        "articles": [
+          "Proof of Funds",
+          "Working Rights",
+          "Medical Examination",
+          "Biometrics",
+          "Healthcare",
+          "Accommodation",
+          "Banking",
+          "Transportation",
+          "Settlement",
+          "Family Rights",
+          "PAL/TAL",
+          "PGWP"
+        ]
+      }
+    }
+  ],
+  "finalQualityCheck": [
+    "All 14 approved sections, approved order, no new sections added.",
+    "No official figure copied or paraphrased — every official fact linked (Authority, Page, URL, Reason).",
+    "Future Link owns only counselling content; rules/fees/forms/institution/tuition linked.",
+    "Each section has Purpose, Counselling Objective and Content Classification.",
+    "Built to Knowledge Writing Standard v1.0; usable live; maintainable via single-source updates."
+  ],
+  "recommendations": [
+    "Add a display-only 'last verified' date chip on each Official Resource row.",
+    "Tag each FAQ with the owning article ID so the FAQ Library can reuse it across services.",
+    "Add a role filter (Counsellor/Visa/Admissions) as a view layer; content unchanged."
+  ],
+  "versionControl": {
+    "version": "v1.0",
+    "lastReviewed": "28 Jun 2026",
+    "nextReview": "31 Dec 2026",
+    "reviewedBy": "Future Link Knowledge Team",
+    "governmentSource": "canada.ca / IRCC",
+    "confidence": "High — counselling content owned by Future Link; all official facts linked to source and confirmed current before quoting."
+  }
+}

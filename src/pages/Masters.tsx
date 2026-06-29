@@ -36,7 +36,7 @@ const SPECIAL_SECTIONS = [
   { key: "__departments", label: "Departments", icon: Users2 },
   { key: "__designations", label: "Designations", icon: Briefcase },
   { key: "__currencies", label: "Currency Master", icon: DollarSign },
-  { key: "__service_library", label: "Service Library", icon: BookOpen },
+  { key: "__service_library", label: "Knowledge Centre", icon: BookOpen },
   { key: "__stage_pipelines", label: "Stage pipelines", icon: Workflow },
   { key: "__aggregators", label: "Aggregators", icon: Network },
 ] as const;

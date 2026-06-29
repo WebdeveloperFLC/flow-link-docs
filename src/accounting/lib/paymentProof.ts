@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { isProofRequiredForMethod, initialLegacyPaymentStatusForMethod } from "@/platform/ewe/workflowEngine";
 
 const BUCKET = "client-documents";
 
@@ -48,12 +49,15 @@ export async function uploadPaymentProof(opts: {
   return { documentId: doc!.id as string, storagePath: path, fileName: file.name };
 }
 
+/** Configuration-driven — see platform payment method config. */
 export function isProofRequired(method: string): boolean {
-  return ["bank_transfer", "wire", "upi", "cheque", "card", "etransfer"].includes(method);
+  return isProofRequiredForMethod(method);
 }
 
+/**
+ * Initial legacy payment_status after record.
+ * Cash NEVER auto-verifies (always awaiting_verification).
+ */
 export function defaultPaymentStatus(method: string): "verified" | "awaiting_verification" {
-  // cash / wallet / referral_credits / points / online_gateway → instant verified
-  // bank_transfer / wire / upi / cheque → awaiting verification
-  return isProofRequired(method) ? "awaiting_verification" : "verified";
+  return initialLegacyPaymentStatusForMethod(method);
 }

@@ -2,6 +2,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { appendTimeline } from "@/lib/timeline";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
+import { canUserVerifyPayment } from "@/platform/ewe/sodEngine";
+import { runMoneyInOrchestrator } from "@/platform/foe/moneyInOrchestrator";
+import { enqueueFoePipelineJob } from "@/platform/foe/pipelineJobService";
+import { hydratePlatformConfig } from "@/platform/config/platformConfigService";
 
 type PaymentUpdate = {
   payment_status: string;
@@ -21,26 +25,84 @@ type ClientDocumentPathRow = {
   storage_path: string | null;
 };
 
+type PaymentRow = {
+  id: string;
+  client_id: string;
+  invoice_id: string;
+  amount: number;
+  currency: string;
+  method?: string | null;
+  posted_by?: string | null;
+};
+
 /** Mark a payment as verified. Caller should refresh after. */
 export async function verifyPayment(
-  payment: { id: string; client_id: string; amount: number; currency: string },
+  payment: PaymentRow,
   note?: string,
 ) {
   const { data: u } = await supabase.auth.getUser();
+  const actorId = u?.user?.id;
+  if (!actorId) {
+    toast.error("Not authenticated");
+    return false;
+  }
+
+  const sod = canUserVerifyPayment({
+    actorUserId: actorId,
+    postedByUserId: payment.posted_by,
+    paymentMethod: payment.method,
+  });
+  if (!sod.allowed) {
+    toast.error(sod.violation?.message ?? "You cannot verify this payment");
+    return false;
+  }
+
   const { error } = await supabase
     .from("client_invoice_payments")
     .update({
       payment_status: "verified",
       payment_proof_status: "verified",
-      verified_by: u?.user?.id ?? null,
+      verified_by: actorId,
       verified_at: new Date().toISOString(),
     } satisfies PaymentUpdate)
     .eq("id", payment.id);
   if (error) {
+    if (/SOD_VIOLATION|same user cannot/i.test(error.message)) {
+      toast.error("Separation of duties: you recorded this payment and cannot verify it.");
+      return false;
+    }
     toast.error(error.message);
     return false;
   }
   toast.success("Payment verified");
+
+  await hydratePlatformConfig();
+
+  const { data: inv } = await supabase
+    .from("client_invoices")
+    .select("firm_entity_id, branch_id")
+    .eq("id", payment.invoice_id)
+    .maybeSingle();
+
+  try {
+    await enqueueFoePipelineJob({ paymentId: payment.id });
+    await runMoneyInOrchestrator({
+      paymentId: payment.id,
+      invoiceId: payment.invoice_id,
+      clientId: payment.client_id,
+      method: payment.method ?? "bank_transfer",
+      amount: payment.amount,
+      currency: payment.currency,
+      entityId: (inv as { firm_entity_id?: string } | null)?.firm_entity_id,
+      branchId: (inv as { branch_id?: string } | null)?.branch_id,
+      firmEntityId: (inv as { firm_entity_id?: string } | null)?.firm_entity_id,
+      verifiedByUserId: actorId,
+    });
+  } catch (e) {
+    console.warn("[payment] foe_orchestrator_failed", e);
+    toast.warning("Payment verified — accounting pipeline will retry from finance queue.");
+  }
+
   try {
     await appendTimeline({
       clientId: payment.client_id,
@@ -78,7 +140,7 @@ export async function verifyPayment(
       entityType: "invoice_payment",
       entityId: payment.id,
       dedupeKey: `payment:${payment.id}:verified`,
-      metadata: { amount: payment.amount, currency: payment.currency, verified_by: u?.user?.id ?? null },
+      metadata: { amount: payment.amount, currency: payment.currency, verified_by: actorId },
     });
   } catch (e) {
     console.warn("[payment] inapp_verified_notif_throw", e);
@@ -121,6 +183,21 @@ export async function rejectPayment(
     // Timeline is best-effort; payment rejection already succeeded.
   }
   return true;
+}
+
+/** Whether the current user may verify a specific payment (SoD + permissions). */
+export async function canVerifyPaymentRow(payment: {
+  posted_by?: string | null;
+  method?: string | null;
+}): Promise<boolean> {
+  const { data: u } = await supabase.auth.getUser();
+  if (!u?.user?.id) return false;
+  const sod = canUserVerifyPayment({
+    actorUserId: u.user.id,
+    postedByUserId: payment.posted_by,
+    paymentMethod: payment.method,
+  });
+  return sod.allowed;
 }
 
 /** Opens the proof attached to a payment in a new tab via signed URL. */

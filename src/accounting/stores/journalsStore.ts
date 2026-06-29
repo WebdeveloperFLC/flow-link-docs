@@ -396,6 +396,48 @@ export function deleteJournal(id: string) {
  * journal with debit/credit swapped, posts it in the current period, and
  * links both directions. Returns the new reversal journal (optimistically).
  */
+export function promoteJournalToPosted(journalId: string): Promise<Journal | null> {
+  const prev = journals.find((j) => j.id === journalId);
+  if (!prev) return Promise.resolve(null);
+  if (prev.status === "POSTED") return Promise.resolve(prev);
+  if (prev.status !== "DRAFT") {
+    toast.error("Only draft journals can be approved and posted.");
+    return Promise.resolve(null);
+  }
+
+  const next: Journal = {
+    ...prev,
+    status: "POSTED",
+    postedAt: new Date().toISOString(),
+  };
+  journals = journals.map((j) => (j.id === journalId ? next : j));
+  emit();
+
+  if (!isUuid(journalId)) return Promise.resolve(next);
+
+  return (async () => {
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      const { error } = await supabase
+        .from("accounting_journals")
+        .update({
+          status: "POSTED",
+          posted_at: next.postedAt,
+          posted_by: u?.user?.id ?? null,
+        } as never)
+        .eq("id", journalId)
+        .eq("status", "DRAFT");
+      if (error) throw error;
+      return next;
+    } catch (e: unknown) {
+      journals = journals.map((j) => (j.id === journalId ? prev : j));
+      emit();
+      toast.error(`Failed to post journal: ${(e as Error)?.message ?? "unknown error"}`);
+      return null;
+    }
+  })();
+}
+
 export function reverseJournal(
   originalId: string,
   opts?: { reason?: string; postingDate?: string; attachmentPath?: string },

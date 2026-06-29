@@ -38,7 +38,6 @@ import { ServiceMbbsPracticePanel } from "@/components/service-library/design/Se
 import { ServiceMbbsFamilyPanel } from "@/components/service-library/design/ServiceMbbsFamilyPanel";
 import { ServiceMbbsEligibilityPanel } from "@/components/service-library/design/ServiceMbbsEligibilityPanel";
 import { ServiceFullCostBreakdownCard } from "@/components/service-library/design/ServiceFullCostBreakdownCard";
-import { ServiceKcGuidePanel } from "@/components/service-library/design/ServiceKcGuidePanel";
 import {
   resolveAcademyTabs,
   tabLabel,
@@ -151,7 +150,7 @@ export function ServiceLibraryTabs({
               ))}
             </dl>
           ) : (
-            <p className="text-sm text-muted-foreground">Add overview fields in Service Library Admin → Service content.</p>
+            <p className="text-sm text-muted-foreground">Add overview fields in Knowledge Centre Admin → Service content.</p>
           )}
         </Card>
         {view.proTips.length > 0 && (
@@ -204,16 +203,6 @@ export function ServiceLibraryTabs({
                 </div>
               ))}
             </div>
-          </Card>
-        )}
-      </TabsContent>
-
-      <TabsContent value="guide" className="mt-0">
-        {libraryId ? (
-          <ServiceKcGuidePanel libraryId={libraryId} />
-        ) : (
-          <Card className="p-5 shadow-elev-sm">
-            <p className="text-sm text-muted-foreground">Select a service to view its Knowledge Centre guide.</p>
           </Card>
         )}
       </TabsContent>
@@ -588,8 +577,8 @@ export function ServiceLibraryTabs({
         ) : (
           <Card className="p-5 text-sm text-muted-foreground">
             {view.isMbbs
-              ? "No application forms linked yet. Add them in Service Library Admin → Application forms tab."
-              : "No official forms linked yet. Add them in Service Library Admin → Visa forms tab."}
+              ? "No application forms linked yet. Add them in Knowledge Centre Admin → Application forms tab."
+              : "No official forms linked yet. Add them in Knowledge Centre Admin → Visa forms tab."}
           </Card>
         )}
       </TabsContent>
@@ -694,7 +683,7 @@ export function ServiceLibraryTabs({
           ))
         ) : (
           <Card className="p-5 shadow-elev-sm">
-            <p className="text-sm text-muted-foreground">No red flags documented. Add them in Service Library Admin → Service content.</p>
+            <p className="text-sm text-muted-foreground">No red flags documented. Add them in Knowledge Centre Admin → Service content.</p>
           </Card>
         )}
       </TabsContent>

@@ -26,6 +26,7 @@ import AddGroupInlineDialog from "./AddGroupInlineDialog";
 import AddTypeInlineDialog from "./AddTypeInlineDialog";
 import AddSubTypeInlineDialog from "./AddSubTypeInlineDialog";
 import DynamicSelect from "../shared/DynamicSelect";
+import { COA_GROUP_DESCRIPTIONS, COA_TYPE_DESCRIPTIONS } from "../../lib/coaUxHelpers";
 
 interface Props {
   open: boolean;
@@ -275,6 +276,9 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
                     </SelectItem>
                   </SelectContent>
                 </Select>
+                {groupCode && COA_GROUP_DESCRIPTIONS[groupCode] && (
+                  <span className="text-[11px] text-muted-foreground">{COA_GROUP_DESCRIPTIONS[groupCode]}</span>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label>Account type</Label>
@@ -299,6 +303,9 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
                     </SelectItem>
                   </SelectContent>
                 </Select>
+                {typeCode && COA_TYPE_DESCRIPTIONS[typeCode] && (
+                  <span className="text-[11px] text-muted-foreground">{COA_TYPE_DESCRIPTIONS[typeCode]}</span>
+                )}
               </div>
 
               <div className="grid gap-2">
@@ -387,6 +394,9 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
               <div className="grid gap-2">
                 <Label>Opening balance</Label>
                 <Input type="number" value={openingBalance} onChange={(e) => setOpeningBalance(e.target.value)} />
+                <span className="text-[11px] text-muted-foreground">
+                  Starting amount for this account at the beginning of the fiscal year — not day-to-day transactions.
+                </span>
               </div>
               <div className="grid gap-2">
                 <Label>Status</Label>

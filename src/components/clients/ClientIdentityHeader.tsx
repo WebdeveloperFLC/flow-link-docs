@@ -361,10 +361,10 @@ export function ClientIdentityHeader({
               <Button variant="outline" size="sm" asChild>
                 <Link
                   to={buildServiceLibraryUrl({ libraryId, country: resolvedSlCountry })}
-                  title="Service Library"
+                  title="Knowledge Centre"
                 >
                   <ChevronLeft className="size-4 mr-1" />
-                  Service Library
+                  Knowledge Centre
                 </Link>
               </Button>
             )}

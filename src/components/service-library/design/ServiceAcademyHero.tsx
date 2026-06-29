@@ -139,11 +139,6 @@ export function ServiceAcademyHero({
               <p className="text-xs text-muted-foreground mt-0.5">{view.updatedLabel}</p>
             )}
             <div className="flex flex-wrap gap-2 mt-3">
-              {onOpenTab && (
-                <Button size="sm" variant="outline" onClick={() => onOpenTab("guide")}>
-                  <BookOpen className="size-4 mr-1" /> Knowledge guide
-                </Button>
-              )}
               {view.tags.map((tag) => (
                 <span
                   key={tag.label}

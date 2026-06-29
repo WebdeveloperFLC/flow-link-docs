@@ -42,7 +42,10 @@ export async function checkPaymentPermissions(userId: string): Promise<PaymentAp
   };
 }
 
-export function paymentStatusLabel(status: string | null | undefined): string {
+export function paymentStatusLabel(status: string | null | undefined, method?: string | null): string {
+  if (method === "cash" && status === "awaiting_verification") {
+    return "Pending cash verification";
+  }
   switch (status) {
     case "verified":
       return "Confirmed";

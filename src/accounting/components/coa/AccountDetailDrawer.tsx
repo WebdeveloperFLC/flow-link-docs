@@ -15,12 +15,13 @@ import AccountStatusBadge from "./AccountStatusBadge";
 interface Props {
   account: CoaAccount | null;
   onOpenChange: (v: boolean) => void;
+  readOnly?: boolean;
   onEdit: (a: CoaAccount) => void;
   onAddChild: (a: CoaAccount) => void;
   onDelete: (a: CoaAccount) => void;
 }
 
-export default function AccountDetailDrawer({ account, onOpenChange, onEdit, onAddChild, onDelete }: Props) {
+export default function AccountDetailDrawer({ account, onOpenChange, readOnly = false, onEdit, onAddChild, onDelete }: Props) {
   const groups = useGroups();
   const types = useTypes();
   const entities = useScopedEntities();
@@ -83,6 +84,7 @@ export default function AccountDetailDrawer({ account, onOpenChange, onEdit, onA
             <Card className="p-4">
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Opening balance</div>
               <div className="text-xl font-bold mt-1 tabular-nums">{formatCurrency(account.openingBalance, currency)}</div>
+              <p className="text-[11px] text-muted-foreground mt-1">Starting amount before current-period activity.</p>
             </Card>
             <Card className="p-4">
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Monthly movement</div>
@@ -143,24 +145,28 @@ export default function AccountDetailDrawer({ account, onOpenChange, onEdit, onA
           </Card>
 
           <div className="flex flex-wrap items-center gap-2 pt-2">
-            <Button onClick={() => onEdit(account)} variant="outline" size="sm">
-              <Pencil className="size-3.5 mr-1.5" /> Edit
-            </Button>
-            <Button onClick={() => onAddChild(account)} variant="outline" size="sm">
-              <Plus className="size-3.5 mr-1.5" /> Add child
-            </Button>
-            <Button
-              onClick={() => onDelete(account)}
-              variant="outline"
-              size="sm"
-              disabled={!deleteCheck.canDelete}
-              title={deleteCheck.reason}
-              className="text-destructive hover:text-destructive disabled:text-muted-foreground"
-            >
-              <Trash2 className="size-3.5 mr-1.5" /> Delete
-            </Button>
-            {!deleteCheck.canDelete && (
-              <span className="text-[11px] text-muted-foreground">{deleteCheck.reason}</span>
+            {!readOnly && (
+              <>
+                <Button onClick={() => onEdit(account)} variant="outline" size="sm">
+                  <Pencil className="size-3.5 mr-1.5" /> Edit account
+                </Button>
+                <Button onClick={() => onAddChild(account)} variant="outline" size="sm">
+                  <Plus className="size-3.5 mr-1.5" /> Add sub-account
+                </Button>
+                <Button
+                  onClick={() => onDelete(account)}
+                  variant="outline"
+                  size="sm"
+                  disabled={!deleteCheck.canDelete}
+                  title={deleteCheck.reason}
+                  className="text-destructive hover:text-destructive disabled:text-muted-foreground"
+                >
+                  <Trash2 className="size-3.5 mr-1.5" /> Delete
+                </Button>
+                {!deleteCheck.canDelete && (
+                  <span className="text-[11px] text-muted-foreground">{deleteCheck.reason}</span>
+                )}
+              </>
             )}
           </div>
         </div>

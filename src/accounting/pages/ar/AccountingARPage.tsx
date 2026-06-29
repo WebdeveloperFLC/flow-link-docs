@@ -220,8 +220,8 @@ export default function AccountingARPage() {
           subtitle="Accounts receivable · Future Link Flow"
           actions={
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => navigate("/accounting/ar/verification")}>
-                Verification queue
+              <Button variant="outline" onClick={() => navigate("/accounting/finance-queue")}>
+                Finance queue
               </Button>
               <Button variant="outline" onClick={() => navigate("/accounting/ar/receipts")}>
                 Receipts

@@ -138,13 +138,13 @@ export function ServiceLibraryMastersSection() {
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <BookOpen className="size-5 text-primary" />
-            Service Library
+            Knowledge Centre
           </h2>
           <p className="text-sm text-muted-foreground max-w-2xl">
             Services shown on lead and client forms. Toggle active to hide without deleting. For training content,
             checklists, and sample docs use{" "}
             <Link to="/service-library-admin" className="text-primary underline inline-flex items-center gap-1">
-              Service Library Admin <ExternalLink className="size-3" />
+              Knowledge Centre Admin <ExternalLink className="size-3" />
             </Link>
             .
           </p>
@@ -402,7 +402,7 @@ function LibraryEditorDialog({
             <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-sm">
               <p className="text-muted-foreground mb-2">
                 Document sections and default requirements are configured in{" "}
-                <strong>Service Library Admin</strong>, not in this quick edit dialog.
+                <strong>Knowledge Centre Admin</strong>, not in this quick edit dialog.
               </p>
               <Button variant="outline" size="sm" asChild>
                 <Link to={serviceLibraryDocumentStructureAdminUrl(row.id, row.service_library_countries?.[0]?.country)}>

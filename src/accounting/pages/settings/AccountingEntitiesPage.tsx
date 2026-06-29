@@ -26,10 +26,10 @@ export default function AccountingEntitiesPage() {
   return (
     <AppLayout>
       <div className="p-8 space-y-6">
-        <AccountingBreadcrumbs items={[{ label: "Accounting", to: "/accounting" }, { label: "Settings" }, { label: "Entities" }]} />
+        <AccountingBreadcrumbs items={[{ label: "Finance", to: "/accounting" }, { label: "Advanced finance" }, { label: "Companies & fiscal year" }]} />
         <AccountingPageHeader
-          title="Entities"
-          subtitle="Companies, branches, sub-branches and brands across all countries. Add branches/divisions by setting a Parent on a new entity."
+          title="Companies & fiscal year"
+          subtitle="Set up each legal company, its branches, and when your financial year starts. Opening balances for accounts are managed in Account setup."
           actions={
             <>
               <DarkModeToggle />

@@ -271,18 +271,12 @@ export default function ServiceLibraryAdmin() {
               </div>
               <h1 className="mt-1 text-2xl font-semibold">Service catalogue & counselling knowledge</h1>
               <p className="text-sm text-muted-foreground">
-                Same country → service flow as the Knowledge Centre. Manage operational records here; author counselling
-                guides in Knowledge authoring.
+                Manage countries, services, fees, documents, and counselling content in one place.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 shrink-0">
             <Button onClick={() => setShowNew(true)}>
               <Plus className="h-4 w-4 mr-1" /> New record
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/service-library-admin/knowledge-centre">
-                <BookOpen className="h-4 w-4 mr-1" /> Knowledge authoring
-              </Link>
             </Button>
             <Button variant="outline" asChild>
               <Link to="/service-library-admin?tab=binder-catalog">
