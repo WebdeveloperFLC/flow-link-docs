@@ -1,59 +1,40 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import {
   Layers,
   Plus,
   Search,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-  Power,
   ChevronDown,
   ChevronRight,
-  BookOpen,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { ColDef, ICellRendererParams } from "ag-grid-community";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingBreadcrumbs from "../../components/shared/AccountingBreadcrumbs";
 import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
 import AccountingKPICard from "../../components/shared/AccountingKPICard";
-import AccountingAGGrid from "../../components/shared/AccountingAGGrid";
 import AccountingTableSkeleton from "../../components/shared/AccountingTableSkeleton";
 import ConfirmDialog from "../../components/shared/ConfirmDialog";
 import DarkModeToggle from "../../components/shared/DarkModeToggle";
-import AccountStatusBadge from "../../components/coa/AccountStatusBadge";
 import AccountFormDialog from "../../components/coa/AccountFormDialog";
 import AccountDetailDrawer from "../../components/coa/AccountDetailDrawer";
-import { useAccounts, deleteAccount, toggleAccountStatus, canDeleteAccount } from "../../stores/coaStore";
+import CoaAccountsTable from "../../components/coa/CoaAccountsTable";
+import { useAccounts, deleteAccount } from "../../stores/coaStore";
 import { useGroups, useTypes } from "../../stores/coaMasterStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { CoaAccount } from "../../types/coa";
-import { formatCurrency } from "../../lib/format";
 import { useCan } from "../../hooks/usePermission";
 import { accountMatchesBusinessSearch, COA_PAGE_INTRO } from "../../lib/coaUxHelpers";
 import CoaReadOnlyBanner from "../../components/coa/CoaReadOnlyBanner";
-import CoaConceptTooltip from "../../components/coa/CoaConceptTooltip";
 
 const ALL = "__all__";
 
 export default function AccountingCOAPage() {
   const accounts = useAccounts();
-  const navigate = useNavigate();
   const groups = useGroups();
   const types = useTypes();
   const entities = useScopedEntities();
@@ -92,18 +73,6 @@ export default function AccountingCOAPage() {
     accounts.forEach((a) => m.set(a.id, a));
     return m;
   }, [accounts]);
-
-  const getDepth = (a: CoaAccount): number => {
-    let depth = 0;
-    let parentId = a.parentId;
-    while (parentId) {
-      depth += 1;
-      parentId = accountById.get(parentId)?.parentId ?? null;
-    }
-    return depth;
-  };
-
-  const hasChildren = (id: string) => accounts.some((a) => a.parentId === id);
 
   const toggleExpanded = (id: string) => {
     setExpandedIds((prev) => {
@@ -194,149 +163,6 @@ export default function AccountingCOAPage() {
     else toast.success(`Account "${deleteTarget.name}" deleted`);
     setDeleteTarget(null);
   };
-
-  const cols: ColDef<CoaAccount>[] = useMemo(() => [
-    { headerName: "Code", field: "code", minWidth: 100, maxWidth: 120, cellClass: "font-mono text-[12.5px]" },
-    {
-      headerName: "Account name",
-      field: "name",
-      minWidth: 260,
-      flex: 1.6,
-      cellRenderer: (p: ICellRendererParams<CoaAccount>) => {
-        const a = p.data;
-        if (!a) return null;
-        const depth = getDepth(a);
-        const expandable = hasChildren(a.id);
-        const open = expandedIds.has(a.id);
-        const isHeader = a.isPostable === false;
-        return (
-          <div className="flex items-center gap-1 min-w-0 h-full" style={{ paddingLeft: depth * 18 }}>
-            {expandable ? (
-              <button
-                type="button"
-                className="shrink-0 p-0.5 rounded hover:bg-muted text-muted-foreground"
-                aria-label={open ? "Collapse" : "Expand"}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleExpanded(a.id);
-                }}
-              >
-                {open ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
-              </button>
-            ) : (
-              <span className="w-5 shrink-0" />
-            )}
-            <span className={cn("truncate", isHeader ? "font-semibold" : "font-medium")}>
-              {a.name?.trim() || "—"}
-            </span>
-            {isHeader && (
-              <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground border">
-                Header
-              </span>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      headerName: "Category",
-      minWidth: 140,
-      valueGetter: (p) => groups.find((g) => g.code === p.data?.groupCode)?.label ?? p.data?.groupCode,
-      cellRenderer: (p: ICellRendererParams<CoaAccount>) => {
-        const a = p.data;
-        if (!a) return null;
-        const label = groups.find((g) => g.code === a.groupCode)?.label ?? a.groupCode;
-        return <CoaConceptTooltip kind="group" code={a.groupCode} label={label} inGrid />;
-      },
-    },
-    { headerName: "Currency", field: "currency", minWidth: 90, maxWidth: 100 },
-    {
-      headerName: "Entity",
-      minWidth: 180,
-      flex: 1,
-      valueGetter: (p) =>
-        p.data?.entityId ? (entities.find((e) => e.id === p.data!.entityId)?.name ?? "—") : "All entities",
-    },
-    {
-      headerName: "Status",
-      field: "status",
-      minWidth: 110,
-      maxWidth: 130,
-      cellRenderer: (p: ICellRendererParams<CoaAccount>) =>
-        p.data ? <AccountStatusBadge status={p.data.status} /> : null,
-    },
-    {
-      headerName: "Balance",
-      field: "currentBalance",
-      minWidth: 130,
-      type: "rightAligned",
-      cellClass: "tabular-nums",
-      valueFormatter: (p) =>
-        p.data ? formatCurrency(p.value as number, p.data.currency as "CAD" | "USD" | "INR") : "—",
-    },
-    {
-      headerName: "",
-      maxWidth: 56,
-      minWidth: 56,
-      sortable: false,
-      filter: false,
-      resizable: false,
-      cellRenderer: (p: ICellRendererParams<CoaAccount>) => {
-        if (!p.data) return null;
-        const a = p.data;
-        const check = canDeleteAccount(a.id);
-        return (
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="size-7" onClick={(e) => e.stopPropagation()}>
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate(`/accounting/reports/general-ledger/${a.id}`)}>
-                <BookOpen className="size-3.5 mr-2" /> View activity
-              </DropdownMenuItem>
-              {canEditCoa && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => openEdit(a)}>
-                    <Pencil className="size-3.5 mr-2" /> Edit account
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => openAddChild(a)}>
-                    <Plus className="size-3.5 mr-2" /> Add sub-account
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      toggleAccountStatus(a.id);
-                      toast.success(`Account ${a.status === "ACTIVE" ? "deactivated" : "activated"}`);
-                    }}
-                  >
-                    <Power className="size-3.5 mr-2" /> {a.status === "ACTIVE" ? "Deactivate" : "Activate"}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    disabled={!check.canDelete}
-                    onClick={() => (check.canDelete ? setDeleteTarget(a) : toast.error(check.reason ?? "Cannot delete"))}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="size-3.5 mr-2" /> Delete
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
-  ], [
-    canEditCoa,
-    entities,
-    expandedIds,
-    groups,
-    navigate,
-    accountById,
-    accounts,
-  ]);
 
   const expandAll = () => setExpandedIds(new Set(accounts.map((a) => a.id)));
   const collapseAll = () => {
@@ -492,14 +318,15 @@ export default function AccountingCOAPage() {
               }
             />
           ) : (
-            <AccountingAGGrid<CoaAccount>
-              rowData={visibleRows}
-              columnDefs={cols}
-              getRowId={(p) => p.data.id}
-              onRowClicked={(e) => {
-                if (e.data) setDetail(e.data);
-              }}
-              height={620}
+            <CoaAccountsTable
+              rows={visibleRows}
+              accountById={accountById}
+              allAccounts={accounts}
+              expandedIds={expandedIds}
+              onToggleExpanded={toggleExpanded}
+              groups={groups}
+              entities={entities}
+              onRowClick={setDetail}
             />
           )}
         </Card>

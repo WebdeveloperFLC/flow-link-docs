@@ -3,8 +3,9 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAccountingAccess } from "../hooks/useAccountingAccess";
 import { toast } from "sonner";
+import AccountingPageErrorBoundary from "./AccountingPageErrorBoundary";
 
-export const AccountingProtectedRoute = ({ children }: { children: ReactNode }) => {
+export function AccountingProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const { loading, hasAccess } = useAccountingAccess();
   const loc = useLocation();
@@ -26,7 +27,7 @@ export const AccountingProtectedRoute = ({ children }: { children: ReactNode }) 
   }
   if (!user) return <Navigate to="/auth" state={{ from: loc }} replace />;
   if (!hasAccess) return <Navigate to="/" replace />;
-  return <>{children}</>;
-};
+  return <AccountingPageErrorBoundary>{children}</AccountingPageErrorBoundary>;
+}
 
 export default AccountingProtectedRoute;

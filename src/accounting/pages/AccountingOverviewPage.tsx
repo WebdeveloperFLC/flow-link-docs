@@ -452,9 +452,15 @@ function PaymentsBySourceCard() {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     (async () => {
-      const { loadPaymentsBySource } = await import("@/platform/foe/financeKpiService");
-      setRows(await loadPaymentsBySource());
-      setLoading(false);
+      try {
+        const { loadPaymentsBySource } = await import("@/platform/foe/financeKpiService");
+        setRows(await loadPaymentsBySource());
+      } catch (error) {
+        console.error("[AccountingOverview] payments by source failed", error);
+        setRows([]);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
   return (
