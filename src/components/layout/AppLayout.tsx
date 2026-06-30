@@ -613,6 +613,8 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
           </div>
         </aside>
 
+        {/* DO NOT add key={pathname} here — remounts the whole page on every nav click and causes
+            removeChild crashes with Radix portals (Select/Dropdown) and charts. See FIN-R-001. */}
         <main
           className={cn("flex-1 overflow-auto page-transition", theme.colorfulMode && !isPerformanceHub && "gradient-subtle")}
         >

@@ -1,0 +1,33 @@
+---
+description: Prevent React DOM crashes (removeChild) from layout remounts, ag-grid portals, and nested Radix providers
+globs:
+  - src/components/layout/**
+  - src/accounting/**
+alwaysApply: false
+---
+
+# Layout & DOM safety (Finance / AppLayout)
+
+**Incident (Jun 2026):** Finance sidebar navigation crashed with  
+`Failed to execute 'removeChild' on 'Node'` for ~1 day. Root cause: `AppLayout` `<main key={pathname}>` forced full page remount on every nav click while Radix portals (Select, Dropdown, Tooltip) and charts were still unmounting.
+
+## Forbidden patterns
+
+1. **Never put `key={location.pathname}` (or any route-derived key) on `AppLayout` `<main>` or any layout wrapper that contains Radix portals / Recharts / ag-grid.**  
+   Page-enter animation belongs on CSS only, or on a leaf wrapper that does not own portal-heavy children.
+
+2. **Never nest `TooltipProvider` inside ag-grid cell renderers or virtualized lists.** Use app-level provider + native `title` in grids (`inGrid` prop pattern in `CoaConceptTooltip`).
+
+3. **Never put Radix `DropdownMenu` / `Tooltip` inside ag-grid cells without `modal={false}` and `popupParent: document.body`.** Prefer native HTML tables for tree + expand/collapse (see `CoaAccountsTable`).
+
+4. **Do not treat finance bugs as page-specific until AppLayout remount is ruled out.** Symptom: crash on sidebar click between finance routes, same `removeChild` message.
+
+## Required checks before closing finance UI bugs
+
+1. Reproduce by **clicking sidebar links** (not only hard refresh on one URL).
+2. Run `npm run test:regression` — includes `FIN-R-001-applayout-main-key`.
+3. If adding charts to Accounting Overview, mount after layout stable; empty Recharts + ResponsiveContainer is a known footgun.
+
+## Ship
+
+Finance/layout fixes are UI → always `npm run ship` in the same turn.
