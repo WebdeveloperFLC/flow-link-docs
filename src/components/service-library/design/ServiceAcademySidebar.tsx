@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import flcLogo from "@/assets/flc-logo.png";
 import { Plane, GraduationCap, BookOpen, ChevronLeft, Search, Stethoscope } from "lucide-react";
@@ -40,10 +41,11 @@ type Props = {
   userName?: string;
   userRole?: string;
   userInitials?: string;
+  catalogLoading?: boolean;
 };
 
 const navBtnBase =
-  "w-full flex items-start gap-2 rounded-lg px-3 py-2.5 text-sm text-left transition-all";
+  "w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-left transition-all";
 const navBtnIdle = "text-slate-100 hover:bg-slate-800/90 hover:text-white";
 const navBtnActive = "bg-gradient-to-r from-sky-500 to-violet-600 text-white font-semibold shadow-md shadow-violet-900/30";
 
@@ -113,6 +115,7 @@ export function ServiceAcademySidebar({
   userName = "Counselor",
   userRole = "Staff",
   userInitials = "FL",
+  catalogLoading = false,
 }: Props) {
   const initials =
     userInitials ||
@@ -259,7 +262,14 @@ export function ServiceAcademySidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto p-3">
-        {group ? (
+        {catalogLoading ? (
+          <div className="space-y-2 px-1">
+            <Skeleton className="h-4 w-32 mb-3" />
+            {Array.from({ length: 10 }).map((_, i) => (
+              <Skeleton key={i} className="h-9 w-full rounded-lg" />
+            ))}
+          </div>
+        ) : group ? (
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-2 mb-3">
               <Icon className="size-4 text-violet-400 shrink-0" />

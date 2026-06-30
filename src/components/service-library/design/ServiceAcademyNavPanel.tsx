@@ -90,9 +90,9 @@ function CountryCard({
 }) {
   return (
     <button type="button" onClick={onClick} className="text-left group">
-      <Card className="p-4 h-full shadow-elev-sm hover:border-primary/40 hover:shadow-md transition-all group-hover:bg-primary/[0.02]">
-        <div className="flex items-start gap-3">
-          <div className="size-11 rounded-xl bg-primary/10 flex flex-col items-center justify-center shrink-0 gap-0.5">
+      <Card className="p-3.5 h-full min-h-[72px] shadow-elev-sm hover:border-primary/40 hover:shadow-md transition-all group-hover:bg-primary/[0.02]">
+        <div className="flex items-center gap-3">
+          <div className="size-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             {flag ? (
               <span className="text-2xl leading-none" aria-hidden>
                 {flag}
@@ -101,14 +101,13 @@ function CountryCard({
               <span className="text-primary font-bold text-sm">{badge}</span>
             )}
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="font-semibold text-sm group-hover:text-primary transition-colors flex items-center gap-1.5">
-              {flag && <span className="text-base leading-none sm:hidden" aria-hidden>{flag}</span>}
+          <div className="min-w-0 flex-1 py-0.5">
+            <div className="font-semibold text-sm leading-tight group-hover:text-primary transition-colors">
               {country}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{count} services</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{count} services</p>
           </div>
-          <ArrowRight className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1" />
+          <ArrowRight className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
         </div>
       </Card>
     </button>
@@ -126,8 +125,8 @@ function ServiceCard({
 }) {
   return (
     <button type="button" onClick={onClick} className="text-left group w-full">
-      <Card className="p-4 shadow-elev-sm hover:border-primary/40 hover:shadow-md transition-all group-hover:bg-primary/[0.02]">
-        <div className="flex items-center gap-3">
+      <Card className="px-4 py-3 shadow-elev-sm hover:border-primary/40 hover:shadow-md transition-all group-hover:bg-primary/[0.02]">
+        <div className="flex items-center gap-3 min-h-[40px]">
           <div className="size-9 rounded-lg bg-muted flex items-center justify-center shrink-0 text-lg leading-none">
             {countryFlag ? (
               <span aria-hidden>{countryFlag}</span>
@@ -214,9 +213,9 @@ export function ServiceAcademyNavPanel({
         <Breadcrumb items={[{ label: "All countries" }]} />
         <StepPills steps={["Country", "Service"]} active={0} />
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <Globe2 className="size-6 text-sky-500" />
-            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-sky-600 to-violet-600 bg-clip-text text-transparent">
+          <div className="flex items-center gap-2.5 mb-2">
+            <Globe2 className="size-6 text-sky-500 shrink-0" />
+            <h1 className="text-2xl font-bold tracking-tight leading-none bg-gradient-to-r from-sky-600 to-violet-600 bg-clip-text text-transparent">
               Choose a destination
             </h1>
           </div>
@@ -267,13 +266,13 @@ export function ServiceAcademyNavPanel({
           active={categoryFilter === "visa" ? 1 : 2}
         />
         <div className="mb-6">
-          <h1 className="text-xl font-bold tracking-tight mb-1 bg-gradient-to-r from-sky-600 to-violet-600 bg-clip-text text-transparent flex items-center gap-2">
+          <h1 className="text-xl font-bold tracking-tight mb-1 bg-gradient-to-r from-sky-600 to-violet-600 bg-clip-text text-transparent flex items-center gap-2.5">
             {activeCountryFlag && (
-              <span className="text-2xl leading-none not-italic" aria-hidden>
+              <span className="text-2xl leading-none shrink-0 not-italic" aria-hidden>
                 {activeCountryFlag}
               </span>
             )}
-            <span>
+            <span className="leading-tight">
               {categoryFilter === "visa" ? `${country} · Visa & Immigration` : sectionLabel}
             </span>
           </h1>

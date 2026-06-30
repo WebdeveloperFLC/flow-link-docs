@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { fetchAcademyNavCatalog } from "@/lib/service-library/fetchAcademyNavCatalog";
+import { ServiceAcademyNavSkeleton } from "@/components/service-library/design/ServiceAcademyNavSkeleton";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -23,7 +25,6 @@ import {
 } from "@/lib/service-library/mbbs/resolveMbbsInstitutions";
 import { MbbsInstitutionSwitcher } from "@/components/service-library/design/MbbsInstitutionSwitcher";
 import type { CoachingVariant } from "@/lib/service-library/serviceNavClassification";
-import { type Master } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 import { ServiceLibraryClientDialog } from "@/components/service-library/ServiceLibraryClientDialog";
 import { ServiceEligibilityStartDialog } from "@/components/service-library/ServiceEligibilityStartDialog";
@@ -68,6 +69,7 @@ export default function ServiceLibrary() {
   );
   const [detailCountry, setDetailCountry] = useState<string>("");
   const [treeSearch, setTreeSearch] = useState("");
+  const [debouncedTreeSearch, setDebouncedTreeSearch] = useState("");
   const [pageSearch, setPageSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "review">("all");
   const [activeTab, setActiveTab] = useState<AcademyTabId>(() => parseAcademyTab(params.get("tab")) ?? "redflags");
@@ -94,17 +96,16 @@ export default function ServiceLibrary() {
     if (tab) setActiveTab(tab);
   }, [params.get("tab")]);
 
+  useEffect(() => {
+    const handle = window.setTimeout(() => setDebouncedTreeSearch(treeSearch), 200);
+    return () => window.clearTimeout(handle);
+  }, [treeSearch]);
+
   const masters = useQuery({
     queryKey: ["sl-library-masters"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("service_library")
-        .select("*, service_library_countries(country)")
-        .eq("is_active", true)
-        .order("display_order");
-      if (error) throw error;
-      return (data ?? []) as unknown as (Master & { service_library_countries: { country: string }[] })[];
-    },
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+    queryFn: fetchAcademyNavCatalog,
   });
 
   const mbbsInstitutionOptions = useMemo(
@@ -119,10 +120,10 @@ export default function ServiceLibrary() {
         countryFilter: categoryFilter === "visa" ? countryFilter : "ALL",
         coachingFamily,
         coachingVariant,
-        search: treeSearch,
+        search: debouncedTreeSearch,
         statusFilter,
       }),
-    [masters.data, categoryFilter, countryFilter, coachingFamily, coachingVariant, treeSearch, statusFilter],
+    [masters.data, categoryFilter, countryFilter, coachingFamily, coachingVariant, debouncedTreeSearch, statusFilter],
   );
 
   /** Nav without sidebar search/status — used only to validate selectedId (search must not close detail). */
@@ -408,6 +409,7 @@ export default function ServiceLibrary() {
         userName={userName}
         userRole="Counselor"
         userInitials={userInitials}
+        catalogLoading={masters.isLoading && !masters.data}
       />
 
       <div className="flex-1 flex flex-col min-w-0 min-h-screen bg-muted/20">
@@ -416,7 +418,11 @@ export default function ServiceLibrary() {
             Could not load service catalogue. {(masters.error as Error)?.message ?? "Refresh the page."}
           </div>
         )}
-        {showNavPanel ? (
+        {masters.isLoading && !masters.data ? (
+          <ServiceAcademyNavSkeleton
+            variant={categoryFilter === "visa" && countryFilter === "ALL" ? "countries" : "services"}
+          />
+        ) : showNavPanel ? (
           <ServiceAcademyNavPanel
             group={group}
             categoryFilter={categoryFilter}
