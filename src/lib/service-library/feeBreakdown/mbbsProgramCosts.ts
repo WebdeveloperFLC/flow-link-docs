@@ -1,12 +1,12 @@
 import type { ServiceAcademyMetadata } from "../academyTypes";
 import type { FullCostBreakdown } from "../countryInsights/types";
-import saba from "../../../../content/service-library/mbbs-saba-university.json";
-import synergy from "../../../../content/service-library/mbbs-synergy-university.json";
-import mua from "../../../../content/service-library/mbbs-medical-university-americas.json";
-import stMatthews from "../../../../content/service-library/mbbs-st-matthews-university.json";
-import seu from "../../../../content/service-library/mbbs-georgian-national-university-seu.json";
-import ibsu from "../../../../content/service-library/mbbs-international-black-sea-university.json";
-import avicenna from "../../../../content/service-library/mbbs-avicenna-batumi.json";
+import saba from "./data/mbbs-saba-university.json";
+import synergy from "./data/mbbs-synergy-university.json";
+import mua from "./data/mbbs-medical-university-americas.json";
+import stMatthews from "./data/mbbs-st-matthews-university.json";
+import seu from "./data/mbbs-georgian-national-university-seu.json";
+import ibsu from "./data/mbbs-international-black-sea-university.json";
+import avicenna from "./data/mbbs-avicenna-batumi.json";
 
 const MBBS_PROGRAM_COSTS = new Map<string, FullCostBreakdown>([
   ["b2000001-0001-4000-8000-0000000000d1", saba.fullCostBreakdown as FullCostBreakdown],

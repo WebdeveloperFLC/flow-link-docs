@@ -1,11 +1,6 @@
-// Bundle all knowledge markdown files into a single string sent to the edge function.
-const modules = import.meta.glob("../knowledge/*.md", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-}) as Record<string, string>;
+import { AI_HELP_KNOWLEDGE_BY_FILE } from "./crmKnowledge.generated";
 
-export const CRM_KNOWLEDGE: string = Object.keys(modules)
+export const CRM_KNOWLEDGE: string = Object.keys(AI_HELP_KNOWLEDGE_BY_FILE)
   .sort()
-  .map((k) => modules[k])
+  .map((k) => AI_HELP_KNOWLEDGE_BY_FILE[k])
   .join("\n\n---\n\n");

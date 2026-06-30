@@ -1,0 +1,1003 @@
+{
+  "b2000001-0001-4000-8000-0000000000d1": {
+    "archetype": "caribbean_md",
+    "currency": "USD",
+    "sourceUrl": "https://www.saba.edu/admissions/tuition-and-fees/",
+    "islandLabel": "Saba",
+    "applicationFee": 750,
+    "basicTuitionPerSem": 20480,
+    "clinicalTuitionPerSem": 24950,
+    "adminBasicPerSem": 8270,
+    "adminClinicalPerSem": 6050,
+    "totalTuitionAndAdmin": 298750,
+    "usmleStep1": 670,
+    "usmleStep2": 985,
+    "rateNote": "Sep 2026 matriculants — verify on saba.edu before quoting"
+  },
+  "b2000001-0001-4000-8000-0000000000d2": {
+    "archetype": "russia_specialist",
+    "currency": "RUB",
+    "sourceUrl": "https://synergy.ru/abiturientam/programmyi_obucheniya/medical_doctor",
+    "annualTuition": 745740,
+    "totalProgramTuition": 4474440,
+    "programYears": 6,
+    "rateNote": "English MD track — verify current RUB quote on synergy.ru"
+  },
+  "b2000001-0001-4000-8000-0000000000d3": {
+    "archetype": "caribbean_md",
+    "currency": "USD",
+    "sourceUrl": "https://www.mua.edu/admissions/tuition-and-fees",
+    "islandLabel": "Nevis",
+    "applicationFee": 100,
+    "basicTuitionPerSem": 13000,
+    "clinicalTuitionPerSem": 15000,
+    "adminPerSem": 3900,
+    "totalTuitionAndAdmin": 179000,
+    "usmleStep1": 670,
+    "usmleStep2": 985,
+    "rateNote": "Indicative per published fee schedule — verify on mua.edu"
+  },
+  "b2000001-0001-4000-8000-0000000000d4": {
+    "archetype": "caribbean_md",
+    "currency": "USD",
+    "sourceUrl": "https://medicine.stmatthews.edu/admissions/tuition-and-fees",
+    "islandLabel": "Cayman Islands",
+    "applicationFee": 100,
+    "basicTuitionPerSem": 16802,
+    "clinicalTuitionPerSem": 22406,
+    "totalTuitionOnly": 196040,
+    "usmleStep1": 670,
+    "usmleStep2": 985,
+    "rateNote": "Tuition only — admin fees extra; verify on stmatthews.edu"
+  },
+  "b2000001-0001-4000-8000-0000000000d5": {
+    "archetype": "georgia_md",
+    "currency": "USD",
+    "sourceUrl": "https://seu.edu.ge/en/admissions",
+    "annualTuition": 5900,
+    "totalProgramTuition": 35400,
+    "programYears": 6,
+    "rateNote": "International students — verify on seu.edu.ge"
+  },
+  "b2000001-0001-4000-8000-0000000000d6": {
+    "archetype": "georgia_md",
+    "currency": "USD",
+    "sourceUrl": "https://ibsu.edu.ge/en/schools/medical-school/program/medical-program/",
+    "annualTuition": 5900,
+    "totalProgramTuition": 35400,
+    "programYears": 6,
+    "rateNote": "International students — scholarship up to $500; verify on ibsu.edu.ge"
+  },
+  "b2000001-0001-4000-8000-0000000000d7": {
+    "archetype": "georgia_md",
+    "currency": "USD",
+    "sourceUrl": "https://abmu.edu.ge/en/faculty/educational-programmes",
+    "annualTuition": 4900,
+    "totalProgramTuition": 29400,
+    "programYears": 6,
+    "rateNote": "International students — verify on abmu.edu.ge"
+  },
+  "quiz": [
+    {
+      "level": 1,
+      "question": "For this service, which statement about service purpose is correct?",
+      "options": [
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "It is optional and officers rarely review it.",
+        "It automatically guarantees approval once submitted.",
+        "It applies only after permanent residence is granted."
+      ],
+      "correctIndex": 0,
+      "explanation": "Always confirm official requirements before client commitment."
+    },
+    {
+      "level": 1,
+      "question": "this service: what is true regarding fee quotes?",
+      "options": [
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "It is optional and officers rarely review it.",
+        "It automatically guarantees approval once submitted.",
+        "It applies only after permanent residence is granted."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fees change — never rely on outdated handouts."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining this service should state correctly about client consent:",
+      "options": [
+        "Signed service agreement and informed consent should be on file before submission.",
+        "It is optional and officers rarely review it.",
+        "It automatically guarantees approval once submitted.",
+        "It applies only after permanent residence is granted."
+      ],
+      "correctIndex": 0,
+      "explanation": "Documentation protects both client and agency."
+    },
+    {
+      "level": 1,
+      "question": "For this service, which statement about For this service, which statement about service purpose is correct is correct?",
+      "options": [
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Always confirm official requirements before client commitment."
+    },
+    {
+      "level": 1,
+      "question": "this service: what is true regarding this service: what is true regarding fee quotes?",
+      "options": [
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fees change — never rely on outdated handouts."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining this service should state correctly about A counselor explaining this service should state correctly about client consent::",
+      "options": [
+        "Signed service agreement and informed consent should be on file before submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Documentation protects both client and agency."
+    },
+    {
+      "level": 1,
+      "question": "this service: what is true regarding In the this service process, what is the correct approach to document QA (review)?",
+      "options": [
+        "Run a checklist sign-off before embassy or online submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incomplete files cause delays and refusals."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining this service should state correctly about For this service, what should happen during submission timing (review):",
+      "options": [
+        "Apply with enough processing buffer before travel or program start dates.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Late applications increase refusal and deferral risk."
+    },
+    {
+      "level": 1,
+      "question": "For this service, which statement about this service workflow — best practice for client briefing: (review) is correct?",
+      "options": [
+        "Brief the client on biometrics, interviews, and document originals if required.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Surprises at the visa centre damage trust."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining this service should state correctly about service purpose:",
+      "options": [
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Always confirm official requirements before client commitment."
+    },
+    {
+      "level": 1,
+      "question": "For this service, which statement about fee quotes is correct?",
+      "options": [
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fees change — never rely on outdated handouts."
+    },
+    {
+      "level": 1,
+      "question": "this service: what is true regarding client consent?",
+      "options": [
+        "Signed service agreement and informed consent should be on file before submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Documentation protects both client and agency."
+    },
+    {
+      "level": 1,
+      "question": "For this service, which statement about For this service, which statement about For this service, which statement about… is correct?",
+      "options": [
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Always confirm official requirements before client commitment."
+    },
+    {
+      "level": 1,
+      "question": "this service: what is true regarding this service: what is true regarding this service: what is true regarding fee q…?",
+      "options": [
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fees change — never rely on outdated handouts."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining this service should state correctly about A counselor explaining this service should state correctly about A counselor ex…:",
+      "options": [
+        "Signed service agreement and informed consent should be on file before submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Documentation protects both client and agency."
+    },
+    {
+      "level": 1,
+      "question": "For this service, which statement about this service: what is true regarding In the this service process, what is the c… is correct?",
+      "options": [
+        "Run a checklist sign-off before embassy or online submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incomplete files cause delays and refusals."
+    },
+    {
+      "level": 1,
+      "question": "this service: what is true regarding A counselor explaining this service should state correctly about For this servi…?",
+      "options": [
+        "Apply with enough processing buffer before travel or program start dates.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Late applications increase refusal and deferral risk."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining this service should state correctly about For this service, which statement about this service workflow — best practice f…:",
+      "options": [
+        "Brief the client on biometrics, interviews, and document originals if required.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Surprises at the visa centre damage trust."
+    },
+    {
+      "level": 1,
+      "question": "For this service, which statement about A counselor explaining this service should state correctly about service purpos… is correct?",
+      "options": [
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Always confirm official requirements before client commitment."
+    },
+    {
+      "level": 1,
+      "question": "this service: what is true regarding For this service, which statement about fee quotes is correct?",
+      "options": [
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fees change — never rely on outdated handouts."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining this service should state correctly about this service: what is true regarding client consent:",
+      "options": [
+        "Signed service agreement and informed consent should be on file before submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Documentation protects both client and agency."
+    },
+    {
+      "level": 1,
+      "question": "this service: what is true regarding In the this service process, what is the correct approach to In the this servic… (review)?",
+      "options": [
+        "Run a checklist sign-off before embassy or online submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incomplete files cause delays and refusals."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining this service should state correctly about For this service, what should happen during For this service, what should happe… (review):",
+      "options": [
+        "Apply with enough processing buffer before travel or program start dates.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Late applications increase refusal and deferral risk."
+    },
+    {
+      "level": 1,
+      "question": "For this service, which statement about this service workflow — best practice for this service workflow — best practice… (review) is correct?",
+      "options": [
+        "Brief the client on biometrics, interviews, and document originals if required.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Surprises at the visa centre damage trust."
+    },
+    {
+      "level": 1,
+      "question": "this service: what is true regarding For this service, what should happen during For this service, which statement a… (review)?",
+      "options": [
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Always confirm official requirements before client commitment."
+    },
+    {
+      "level": 2,
+      "question": "In the this service process, what is the correct approach to document QA?",
+      "options": [
+        "Run a checklist sign-off before embassy or online submission.",
+        "Upload it only after the visa is already approved.",
+        "Skip it if the client has paid consultancy fees.",
+        "It can be replaced by a verbal promise to the embassy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incomplete files cause delays and refusals."
+    },
+    {
+      "level": 2,
+      "question": "For this service, what should happen during submission timing?",
+      "options": [
+        "Apply with enough processing buffer before travel or program start dates.",
+        "Upload it only after the visa is already approved.",
+        "Skip it if the client has paid consultancy fees.",
+        "It can be replaced by a verbal promise to the embassy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Late applications increase refusal and deferral risk."
+    },
+    {
+      "level": 2,
+      "question": "this service workflow — best practice for client briefing:",
+      "options": [
+        "Brief the client on biometrics, interviews, and document originals if required.",
+        "Upload it only after the visa is already approved.",
+        "Skip it if the client has paid consultancy fees.",
+        "It can be replaced by a verbal promise to the embassy."
+      ],
+      "correctIndex": 0,
+      "explanation": "Surprises at the visa centre damage trust."
+    },
+    {
+      "level": 2,
+      "question": "In the this service process, what is the correct approach to In the this service process, what is the correct approach to document QA?",
+      "options": [
+        "Run a checklist sign-off before embassy or online submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incomplete files cause delays and refusals."
+    },
+    {
+      "level": 2,
+      "question": "For this service, what should happen during For this service, what should happen during submission timing?",
+      "options": [
+        "Apply with enough processing buffer before travel or program start dates.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Late applications increase refusal and deferral risk."
+    },
+    {
+      "level": 2,
+      "question": "this service workflow — best practice for this service workflow — best practice for client briefing::",
+      "options": [
+        "Brief the client on biometrics, interviews, and document originals if required.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Surprises at the visa centre damage trust."
+    },
+    {
+      "level": 2,
+      "question": "For this service, what should happen during For this service, which statement about service purpose is correct (review)?",
+      "options": [
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Always confirm official requirements before client commitment."
+    },
+    {
+      "level": 2,
+      "question": "this service workflow — best practice for this service: what is true regarding fee quotes (review):",
+      "options": [
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fees change — never rely on outdated handouts."
+    },
+    {
+      "level": 2,
+      "question": "In the this service process, what is the correct approach to A counselor explaining this service should state correctly about client consent: (review)?",
+      "options": [
+        "Signed service agreement and informed consent should be on file before submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Documentation protects both client and agency."
+    },
+    {
+      "level": 2,
+      "question": "this service workflow — best practice for document QA:",
+      "options": [
+        "Run a checklist sign-off before embassy or online submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incomplete files cause delays and refusals."
+    },
+    {
+      "level": 2,
+      "question": "In the this service process, what is the correct approach to submission timing?",
+      "options": [
+        "Apply with enough processing buffer before travel or program start dates.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Late applications increase refusal and deferral risk."
+    },
+    {
+      "level": 2,
+      "question": "For this service, what should happen during client briefing?",
+      "options": [
+        "Brief the client on biometrics, interviews, and document originals if required.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Surprises at the visa centre damage trust."
+    },
+    {
+      "level": 2,
+      "question": "In the this service process, what is the correct approach to In the this service process, what is the correct approach to In the this servic…?",
+      "options": [
+        "Run a checklist sign-off before embassy or online submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incomplete files cause delays and refusals."
+    },
+    {
+      "level": 2,
+      "question": "For this service, what should happen during For this service, what should happen during For this service, what should happe…?",
+      "options": [
+        "Apply with enough processing buffer before travel or program start dates.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Late applications increase refusal and deferral risk."
+    },
+    {
+      "level": 2,
+      "question": "this service workflow — best practice for this service workflow — best practice for this service workflow — best practice…:",
+      "options": [
+        "Brief the client on biometrics, interviews, and document originals if required.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Surprises at the visa centre damage trust."
+    },
+    {
+      "level": 2,
+      "question": "In the this service process, what is the correct approach to For this service, what should happen during For this service, which statement a…?",
+      "options": [
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Always confirm official requirements before client commitment."
+    },
+    {
+      "level": 2,
+      "question": "For this service, what should happen during this service workflow — best practice for this service: what is true regarding …?",
+      "options": [
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fees change — never rely on outdated handouts."
+    },
+    {
+      "level": 2,
+      "question": "this service workflow — best practice for In the this service process, what is the correct approach to A counselor explai…:",
+      "options": [
+        "Signed service agreement and informed consent should be on file before submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Documentation protects both client and agency."
+    },
+    {
+      "level": 2,
+      "question": "In the this service process, what is the correct approach to this service workflow — best practice for document QA:?",
+      "options": [
+        "Run a checklist sign-off before embassy or online submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incomplete files cause delays and refusals."
+    },
+    {
+      "level": 2,
+      "question": "For this service, what should happen during In the this service process, what is the correct approach to submission timing?",
+      "options": [
+        "Apply with enough processing buffer before travel or program start dates.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Late applications increase refusal and deferral risk."
+    },
+    {
+      "level": 2,
+      "question": "this service workflow — best practice for For this service, what should happen during client briefing:",
+      "options": [
+        "Brief the client on biometrics, interviews, and document originals if required.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Surprises at the visa centre damage trust."
+    },
+    {
+      "level": 2,
+      "question": "For this service, what should happen during For this service, which statement about For this service, which statement about… (review)?",
+      "options": [
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Always confirm official requirements before client commitment."
+    },
+    {
+      "level": 2,
+      "question": "this service workflow — best practice for this service: what is true regarding this service: what is true regarding fee q… (review):",
+      "options": [
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fees change — never rely on outdated handouts."
+    },
+    {
+      "level": 2,
+      "question": "In the this service process, what is the correct approach to A counselor explaining this service should state correctly about A counselor ex… (review)?",
+      "options": [
+        "Signed service agreement and informed consent should be on file before submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Documentation protects both client and agency."
+    },
+    {
+      "level": 2,
+      "question": "For this service, what should happen during this service: what is true regarding In the this service process, what is the c… (review)?",
+      "options": [
+        "Run a checklist sign-off before embassy or online submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incomplete files cause delays and refusals."
+    },
+    {
+      "level": 3,
+      "question": "this service: what is the compliance risk with approval guarantees?",
+      "options": [
+        "Counselors must never guarantee visa or immigration approval.",
+        "It is harmless because polite applicants are always approved.",
+        "Fix it informally after refusal without updating the file.",
+        "It matters only at the airport, not during document review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Misleading guarantees are a compliance violation."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on this service — key issue with misrepresentation:",
+      "options": [
+        "False documents or hidden refusals can cause refusal and long-term bans.",
+        "It is harmless because polite applicants are always approved.",
+        "Fix it informally after refusal without updating the file.",
+        "It matters only at the airport, not during document review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Accuracy is the applicant's responsibility."
+    },
+    {
+      "level": 3,
+      "question": "For this service, counselors must avoid this mistake related to weak resubmission:",
+      "options": [
+        "Reapplying without addressing prior refusal reasons usually fails again.",
+        "It is harmless because polite applicants are always approved.",
+        "Fix it informally after refusal without updating the file.",
+        "It matters only at the airport, not during document review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fix the stated refusal grounds first."
+    },
+    {
+      "level": 3,
+      "question": "this service: what is the compliance risk with this service: what is the compliance risk with approval guarantees?",
+      "options": [
+        "Counselors must never guarantee visa or immigration approval.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Misleading guarantees are a compliance violation."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on this service — key issue with Officer or QA perspective on this service — key issue with misrepresentation::",
+      "options": [
+        "False documents or hidden refusals can cause refusal and long-term bans.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Accuracy is the applicant's responsibility."
+    },
+    {
+      "level": 3,
+      "question": "For this service, counselors must avoid this mistake related to For this service, counselors must avoid this mistake related to weak resubmissi…:",
+      "options": [
+        "Reapplying without addressing prior refusal reasons usually fails again.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fix the stated refusal grounds first."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on this service — key issue with In the this service process, what is the correct approach to document QA (review):",
+      "options": [
+        "Run a checklist sign-off before embassy or online submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incomplete files cause delays and refusals."
+    },
+    {
+      "level": 3,
+      "question": "For this service, counselors must avoid this mistake related to For this service, what should happen during submission timing (review):",
+      "options": [
+        "Apply with enough processing buffer before travel or program start dates.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Late applications increase refusal and deferral risk."
+    },
+    {
+      "level": 3,
+      "question": "this service: what is the compliance risk with this service workflow — best practice for client briefing: (review)?",
+      "options": [
+        "Brief the client on biometrics, interviews, and document originals if required.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Surprises at the visa centre damage trust."
+    },
+    {
+      "level": 3,
+      "question": "For this service, counselors must avoid this mistake related to approval guarantees:",
+      "options": [
+        "Counselors must never guarantee visa or immigration approval.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Misleading guarantees are a compliance violation."
+    },
+    {
+      "level": 3,
+      "question": "this service: what is the compliance risk with misrepresentation?",
+      "options": [
+        "False documents or hidden refusals can cause refusal and long-term bans.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Accuracy is the applicant's responsibility."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on this service — key issue with weak resubmission:",
+      "options": [
+        "Reapplying without addressing prior refusal reasons usually fails again.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fix the stated refusal grounds first."
+    },
+    {
+      "level": 3,
+      "question": "this service: what is the compliance risk with this service: what is the compliance risk with this service: what is the compli…?",
+      "options": [
+        "Counselors must never guarantee visa or immigration approval.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Misleading guarantees are a compliance violation."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on this service — key issue with Officer or QA perspective on this service — key issue with Officer or QA perspe…:",
+      "options": [
+        "False documents or hidden refusals can cause refusal and long-term bans.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Accuracy is the applicant's responsibility."
+    },
+    {
+      "level": 3,
+      "question": "For this service, counselors must avoid this mistake related to For this service, counselors must avoid this mistake related to For this servic…:",
+      "options": [
+        "Reapplying without addressing prior refusal reasons usually fails again.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fix the stated refusal grounds first."
+    },
+    {
+      "level": 3,
+      "question": "this service: what is the compliance risk with Officer or QA perspective on this service — key issue with In the this service …?",
+      "options": [
+        "Run a checklist sign-off before embassy or online submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incomplete files cause delays and refusals."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on this service — key issue with For this service, counselors must avoid this mistake related to For this servic…:",
+      "options": [
+        "Apply with enough processing buffer before travel or program start dates.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Late applications increase refusal and deferral risk."
+    },
+    {
+      "level": 3,
+      "question": "For this service, counselors must avoid this mistake related to this service: what is the compliance risk with this service workflow — best pra…:",
+      "options": [
+        "Brief the client on biometrics, interviews, and document originals if required.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Surprises at the visa centre damage trust."
+    },
+    {
+      "level": 3,
+      "question": "this service: what is the compliance risk with For this service, counselors must avoid this mistake related to approval guaran…?",
+      "options": [
+        "Counselors must never guarantee visa or immigration approval.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Misleading guarantees are a compliance violation."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on this service — key issue with this service: what is the compliance risk with misrepresentation:",
+      "options": [
+        "False documents or hidden refusals can cause refusal and long-term bans.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Accuracy is the applicant's responsibility."
+    },
+    {
+      "level": 3,
+      "question": "For this service, counselors must avoid this mistake related to Officer or QA perspective on this service — key issue with weak resubmission::",
+      "options": [
+        "Reapplying without addressing prior refusal reasons usually fails again.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fix the stated refusal grounds first."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on this service — key issue with In the this service process, what is the correct approach to In the this servic… (review):",
+      "options": [
+        "Run a checklist sign-off before embassy or online submission.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incomplete files cause delays and refusals."
+    },
+    {
+      "level": 3,
+      "question": "For this service, counselors must avoid this mistake related to For this service, what should happen during For this service, what should happe… (review):",
+      "options": [
+        "Apply with enough processing buffer before travel or program start dates.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Late applications increase refusal and deferral risk."
+    },
+    {
+      "level": 3,
+      "question": "this service: what is the compliance risk with this service workflow — best practice for this service workflow — best practice… (review)?",
+      "options": [
+        "Brief the client on biometrics, interviews, and document originals if required.",
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Surprises at the visa centre damage trust."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on this service — key issue with For this service, what should happen during For this service, which statement a… (review):",
+      "options": [
+        "this service requires counselors to verify eligibility against current official rules before quoting fees.",
+        "Government and third-party fees must be verified on official websites before sharing with clients.",
+        "Signed service agreement and informed consent should be on file before submission.",
+        "Run a checklist sign-off before embassy or online submission."
+      ],
+      "correctIndex": 0,
+      "explanation": "Always confirm official requirements before client commitment."
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 36 levelled questions (25 per level)."
+    },
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 9 levelled questions (25 per level)."
+    }
+  ],
+  "version": "v2.0"
+}

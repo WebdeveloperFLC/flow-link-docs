@@ -1,4 +1,5 @@
 import type { StaffGuideDef } from "./guideTypes";
+import { GUIDE_CONTENT_BY_FILE } from "./guideContent.generated";
 
 /**
  * Register staff guides here. Add a markdown file under `docs/guides/` and copy
@@ -292,12 +293,7 @@ export const STAFF_GUIDES: StaffGuideDef[] = [
   },
 ];
 
-/** Staff guide bodies — only `src/guides/content/` (not all of `docs/guides/`). */
-const contentModules = import.meta.glob("../content/*.md", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-}) as Record<string, string>;
+/** Staff guide bodies — pre-bundled in guideContent.generated.ts (see scripts/bundle-markdown-for-vite.mjs). */
 
 function assertStaffGuidesPolicy(): void {
   const denylist = GOVERNANCE_CONTENT_DENYLIST as readonly string[];
@@ -318,10 +314,6 @@ function assertStaffGuidesPolicy(): void {
 
 assertStaffGuidesPolicy();
 
-function contentPathFor(file: string): string | undefined {
-  return Object.keys(contentModules).find((k) => k.endsWith(`/${file}`));
-}
-
 export function getGuideBySlug(slug: string): StaffGuideDef | undefined {
   return STAFF_GUIDES.find((g) => g.slug === slug);
 }
@@ -329,6 +321,5 @@ export function getGuideBySlug(slug: string): StaffGuideDef | undefined {
 export function getGuideContent(slug: string): string | null {
   const guide = getGuideBySlug(slug);
   if (!guide) return null;
-  const path = contentPathFor(guide.contentFile);
-  return path ? contentModules[path] : null;
+  return GUIDE_CONTENT_BY_FILE[guide.contentFile] ?? null;
 }
