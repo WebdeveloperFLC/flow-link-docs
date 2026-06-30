@@ -1,47 +1,64 @@
-# Claude prompt — Service Library content (all countries)
+# Claude prompt — Service Library / Knowledge Centre (ZIP schema)
 
 Copy everything below into Claude, then attach:
-1. `metadata-template.json` (schema)
-2. `canada-student-visa.json` (quality reference — already done)
-3. CSV or JSON from `export-service-library-rows.sql` (your live services + `library_id`)
+1. `Claude Zip file - Canada student Visa.zip` (or extract `flc-knowledge-guide-schema-v1.0.md` + `canada-student-visa-guide.json`)
+2. CSV or JSON from `export-service-library-rows.sql` (live services + `library_id`)
 
 ---
 
 ## Prompt (paste into Claude)
 
-You are writing counselor training content for **Future Link Consultants** Service Library (CRM). Output **valid JSON only** (no markdown fences) matching the attached `metadata-template.json` structure.
+You are writing counselor training content for **Future Link Consultants** Service Library (Knowledge Centre). Output **valid JSON only** (no markdown fences) conforming to **`flc-knowledge-guide-schema-v1.0`**.
+
+**Mandatory schema identity:**
+```json
+{
+  "schemaVersion": "1.0",
+  "schemaRef": "flc-knowledge-guide-schema-v1.0",
+  ...
+}
+```
 
 **Rules:**
-- Remove any `_instructions` key from output.
-- Write for **one** `service_library` row at a time: use the exact `library_id`, `service`, `sub_service`, and `countries` from the manifest row I give you.
-- `displayName` format: `{Country} – {clear service title}` (e.g. `UK – Student Visa (Tier 4)`).
+- Follow the attached `flc-knowledge-guide-schema-v1.0.md` exactly — Canada Student Visa is the reference implementation.
+- Write for **one** `service_library` row: use exact `library_id`, `service`, `sub_service`, and `country` from the manifest row I provide.
+- `slug`: URL-safe unique id, e.g. `uk-student-visa-outside-uk`
+- `displayName` format: `{Country} – {clear service title}`
 - Tone: practical, for Indian counselors; never guarantee visa approval.
-- Minimum content: 5 `redFlags`, 6 `faqs`, 5 `proTips`, 4 `timeline` steps, 4 `quiz` questions (4 options each, `correctIndex` 0–3), 4+ `resources` (official government URLs only).
-- `tags[].variant` and `chips[].variant`: only `success`, `warning`, or `neutral`.
-- `kpis[].tone`: only `primary`, `warning`, `success`, or `violet`.
-- Use realistic placeholders for approval stats if unknown (e.g. ourRate 85, industryRate 70).
-- `relatedServices`: label only if `libraryId` unknown (empty string).
+- `navigation[]`: array of `{ key, label, sectionType, dataKey, applicable: true }` — omit sections that do not apply (do not set `applicable: false`).
+- `sources[]`: registry S1…Sn with official government URLs only. Cite via `sourceRefs: [{ id, url }]` on KPIs, policy alerts, costs, forms, working rights.
+- `currencyConfig`: required when `fullCostBreakdown` is present. Use `cadAmount` + `inr: "auto"`.
+- Minimum content: 5 `redFlags`, 6 `faqs`, 4 `timeline` steps, 4 `quiz` questions (4 options, `correctIndex` 0–3), non-empty `sources` registry.
+- `tags[].variant` / `chips[].variant`: only `success`, `warning`, `neutral`.
+- `kpis[].tone`: only `primary`, `warning`, `success`, `violet`.
+- Omit approval-rate KPIs unless backed by verified internal data.
+- No raw HTML in JSON content fields (text only).
+- `downloads.templates[]`: Future Link templates with inline `content` (no government forms — those go in `visaForms.forms[]`).
 
-**Tabs this JSON powers:** Overview, Eligibility, Red flags, FAQs, Compliance, Do's & Don'ts, Downloads (resources), Quiz, Notes (staffNotes), Change log.
+**Navigation keys (use only applicable ones):**
+`overview`, `eligibility`, `cost`, `checklist`, `binder`, `visaforms`, `process`, `working`, `dos`, `redflags`, `faqs`, `compliance`, `downloads`, `sampledocs`, `quiz`, `related`, `sources`
 
-**Also tell me** (plain text after the JSON block) the SQL to run:
-```sql
-UPDATE public.service_library SET academy_metadata = '<paste json>'::jsonb, updated_at = now() WHERE id = '<library_id>';
+**Also tell me** (plain text after JSON):
+```bash
+export SL_LIBRARY_ID="<library_id>"
+node scripts/upload-service-library-metadata.mjs content/service-library/<slug>.json
 ```
-Or if the JSON is large, say: save as `{country}-{slug}.json` and use Admin → Service content → Bulk JSON import.
 
 ---
 
-## Batch workflow (all countries)
+## Batch workflow
 
-1. In **Supabase SQL Editor**, run `content/service-library/export-service-library-rows.sql` → export results as CSV.
-2. For each row (or group by country), ask Claude:
-   > Generate academy_metadata JSON for library_id `…`, service `…`, sub_service `…`, countries `[…]`. Use template + Canada reference.
-3. Save each answer as `content/service-library/{country-slug}-{service-slug}.json`.
-4. Upload via one of:
-   - **Admin UI:** `/service-library-admin` → pick service → **Service content** → Bulk JSON → Paste → Save
-   - **Script:** `node scripts/upload-service-library-metadata.mjs content/service-library/file.json` (set `SL_LIBRARY_ID=uuid` for one row)
-   - **Bulk file:** `node scripts/upload-service-library-metadata.mjs content/service-library/bulk-upload.json`
+1. Run `export-service-library-rows.sql` in Supabase → export CSV.
+2. For each row, ask Claude to generate ZIP-schema JSON using Canada reference.
+3. Save as `content/service-library/{country-slug}-{service-slug}.json`.
+4. Validate locally:
+   ```bash
+   node -e "import('./src/lib/service-library/knowledgeCentre/validateKnowledgeCentreJsonCore.mjs').then(m=>{...})"
+   ```
+5. Upload:
+   ```bash
+   SL_LIBRARY_ID=<uuid> node scripts/upload-service-library-metadata.mjs content/service-library/file.json
+   ```
 
 ---
 
@@ -49,13 +66,13 @@ Or if the JSON is large, say: save as `{country}-{slug}.json` and use Admin → 
 
 | File | Purpose |
 |------|---------|
-| `metadata-template.json` | Empty schema for Claude to fill |
-| `canada-student-visa.json` | Complete example (Canada study permit) |
+| `Claude Zip file - Canada student Visa.zip` | Reference bundle (JSON + schema + HTML) |
+| `canada-student-visa.json` | Production Canada guide (ZIP schema) |
+| `canada-student-visa/downloads/` | HTML template assets from bundle |
+| `metadata-template.json` | Legacy template — **do not use for new guides** |
 | `bulk-upload.example.json` | Multi-service upload format |
-| `export-service-library-rows.sql` | List all services + UUIDs from your DB |
-| `README.md` | Upload steps |
+| `export-service-library-rows.sql` | List all services + UUIDs |
 
-**Canonical Canada row (one row only):**  
-`library_id` = `c35e6051-f40f-47bf-9cac-0a386c47a336`
+**Canonical Canada row:** `library_id` = `c35e6051-f40f-47bf-9cac-0a386c47a336`
 
 Do not duplicate the same JSON onto multiple `service_library` rows for the same country/service.

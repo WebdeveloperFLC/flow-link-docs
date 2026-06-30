@@ -1,5 +1,9 @@
 import type { AcademyViewModel } from "./buildAcademyViewModel";
-import { resolveKnowledgeCentreNavigation } from "./knowledgeCentre/resolveKnowledgeCentreNavigation";
+import {
+  resolveKnowledgeCentreNavigation,
+  resolveKnowledgeCentreTabLabel,
+} from "./knowledgeCentre/resolveKnowledgeCentreNavigation";
+import { isFlcKnowledgeGuide } from "./knowledgeGuide/types";
 import type { KnowledgeCentreMetadata } from "./knowledgeCentre/types";
 
 /** All tab ids used across visa + coaching profiles. */
@@ -143,11 +147,21 @@ type AcademyTabResolveView = Pick<
   | "resources"
   | "about"
   | "eligibility"
+  | "fullCostBreakdown"
+  | "guideSources"
+  | "downloadTemplates"
+  | "checklistGuide"
+  | "documentBinder"
 >;
 
 export function resolveAcademyTabs(view: AcademyTabResolveView): AcademyTabId[] {
   const kcMeta = view.knowledgeCentreMeta;
-  if (kcMeta?.navigation?.sections?.length) {
+  const hasZipNav = kcMeta && isFlcKnowledgeGuide(kcMeta) && kcMeta.navigation.length > 0;
+  const hasLegacyNav =
+    kcMeta?.navigation &&
+    !Array.isArray(kcMeta.navigation) &&
+    kcMeta.navigation.sections?.length;
+  if (hasZipNav || hasLegacyNav) {
     const dynamic = resolveKnowledgeCentreNavigation(kcMeta, view);
     if (dynamic?.length) return dynamic;
   }
@@ -173,8 +187,11 @@ export function resolveAcademyTabs(view: AcademyTabResolveView): AcademyTabId[] 
 
 export function tabLabel(
   id: AcademyTabId,
-  view: Pick<AcademyViewModel, "isCoaching" | "isMbbs" | "coachingProfile">,
+  view: Pick<AcademyViewModel, "isCoaching" | "isMbbs" | "coachingProfile" | "knowledgeCentreMeta">,
 ): string {
+  const kcLabel = resolveKnowledgeCentreTabLabel(id, view.knowledgeCentreMeta, "");
+  if (kcLabel) return kcLabel;
+
   if (view.isMbbs) {
     switch (id) {
       case "institution":

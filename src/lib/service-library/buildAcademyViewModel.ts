@@ -35,6 +35,16 @@ import type { MbbsInstitutionMeta } from "./mbbs/types";
 import { isMbbsServiceRow } from "./mbbs/resolveMbbsInstitutions";
 import { resolveDocumentStructure, type ServiceDocumentStructure } from "./documentStructure";
 import type { KnowledgeCentreMetadata } from "./knowledgeCentre/types";
+import {
+  normalizeKnowledgeGuide,
+  zipSampleDocItems,
+} from "./knowledgeGuide/normalizeKnowledgeGuide";
+import type {
+  FlcDocumentBinder,
+  FlcDownloadTemplate,
+  FlcKnowledgeGuideSource,
+} from "./knowledgeGuide/types";
+import { isFlcKnowledgeGuide } from "./knowledgeGuide/types";
 
 export type AcademyViewModel = {
   masterId: string;
@@ -124,6 +134,14 @@ export type AcademyViewModel = {
   documentStructure: ServiceDocumentStructure | null;
   /** Merged academy_metadata for Knowledge Centre v1.0 navigation (schemaVersion + navigation). */
   knowledgeCentreMeta: KnowledgeCentreMetadata | null;
+  /** ZIP schema sources registry (Downloads tab). */
+  guideSources: FlcKnowledgeGuideSource[];
+  /** ZIP schema inline download templates (Downloads tab). */
+  downloadTemplates: FlcDownloadTemplate[];
+  /** ZIP schema counsellor checklist items (Checklist tab). */
+  checklistGuide: { note?: string; items: string[] } | null;
+  /** ZIP schema document binder categories (Binder tab content detection). */
+  documentBinder: FlcDocumentBinder | null;
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -274,6 +292,8 @@ export function buildAcademyViewModel(args: {
   const baseMeta = normalizeAcademyMetadata(master.academy_metadata);
   const patchMeta = normalizeAcademyMetadata(override?.academy_metadata);
   const meta = mergeAcademyMetadata(baseMeta, patchMeta);
+  const normalizedGuide = normalizeKnowledgeGuide(meta);
+  const zipGuide = normalizedGuide.kind === "zip" ? normalizedGuide.guide : null;
   const resolved = resolveForCountry(master, override ?? null);
 
   const isCoaching =
@@ -365,6 +385,73 @@ export function buildAcademyViewModel(args: {
       }
     : null;
 
+  const zipVisaForms = (zipGuide?.visaForms?.forms ?? []).map((f, i) => ({
+    id: f.code || `form-${i}`,
+    code: f.code,
+    title: f.name,
+    url: f.url,
+    isOnline: /^https?:\/\//i.test(f.url),
+    notes: f.notes ?? (f.when ? `${f.when}${f.stage ? ` · ${f.stage}` : ""}` : undefined),
+  }));
+
+  const zipSampleDocs = zipSampleDocItems(zipGuide?.sampleDocs).map((d) => ({
+    title: d.title,
+    description: d.description,
+    filePath: d.filePath,
+    url: d.url,
+    mimeType: d.mimeType,
+    docKind: d.docKind,
+    isImage: !!d.mimeType?.startsWith("image/"),
+  }));
+
+  const zipResources = (zipGuide?.sources ?? []).map((s) => ({
+    title: `${s.id} · ${s.page}`,
+    url: s.url,
+    description: `${s.authority} — ${s.reason}`,
+  }));
+
+  const dbVisaForms = (args.visaFormFiles ?? [])
+    .filter((f) => f.is_current)
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((f) => ({
+      id: f.id,
+      code: f.form_code ?? "",
+      title: f.file_name,
+      url: f.file_path,
+      isOnline: f.mime_type === "text/html" || /^https?:\/\//i.test(f.file_path),
+      notes: f.notes ?? undefined,
+    }));
+
+  const visaForms = zipVisaForms.length > 0 ? zipVisaForms : dbVisaForms;
+
+  const sampleDocs = [
+    ...zipSampleDocs,
+    ...(zipSampleDocs.length === 0
+      ? (meta.sampleDocs ?? []).map((d) => ({
+          title: d.title,
+          description: d.description,
+          filePath: d.filePath,
+          url: d.url,
+          mimeType: d.mimeType,
+          docKind: d.docKind,
+          isImage: !!d.mimeType?.startsWith("image/"),
+        }))
+      : []),
+    ...(args.attachments ?? [])
+      .filter((a) => /sample|mock|example/i.test(a.label ?? a.file_name))
+      .map((a) => ({
+        title: a.label ?? a.file_name,
+        description: "Uploaded sample document",
+        filePath: a.file_path,
+        mimeType: a.mime_type ?? undefined,
+        isImage: !!a.mime_type?.startsWith("image/"),
+      })),
+  ];
+
+  const checklistGuide = zipGuide?.checklistItems
+    ? { note: zipGuide.checklistItems.note, items: zipGuide.checklistItems.items ?? [] }
+    : null;
+
   return {
     masterId: master.id,
     country: displayCountry,
@@ -449,7 +536,7 @@ export function buildAcademyViewModel(args: {
       donts: meta.donts?.donts?.length ? meta.donts.donts : dontsFromGuide,
       mistakes: meta.donts?.mistakes?.length ? meta.donts.mistakes : mistakesFromGuide,
     },
-    resources: meta.resources ?? [],
+    resources: meta.resources?.length ? meta.resources : zipResources,
     downloads: args.checklistFiles
       .filter((f) => f.is_current)
       .sort((a, b) => {
@@ -463,37 +550,8 @@ export function buildAcademyViewModel(args: {
         size: f.size_bytes ? `${Math.round(f.size_bytes / 1024)} KB` : "—",
         fileId: f.id,
       })),
-    visaForms: (args.visaFormFiles ?? [])
-      .filter((f) => f.is_current)
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map((f) => ({
-        id: f.id,
-        code: f.form_code ?? "",
-        title: f.file_name,
-        url: f.file_path,
-        isOnline: f.mime_type === "text/html" || /^https?:\/\//i.test(f.file_path),
-        notes: f.notes ?? undefined,
-      })),
-    sampleDocs: [
-      ...(meta.sampleDocs ?? []).map((d) => ({
-        title: d.title,
-        description: d.description,
-        filePath: d.filePath,
-        url: d.url,
-        mimeType: d.mimeType,
-        docKind: d.docKind,
-        isImage: !!d.mimeType?.startsWith("image/"),
-      })),
-      ...(args.attachments ?? [])
-        .filter((a) => /sample|mock|example/i.test(a.label ?? a.file_name))
-        .map((a) => ({
-          title: a.label ?? a.file_name,
-          description: "Uploaded sample document",
-          filePath: a.file_path,
-          mimeType: a.mime_type ?? undefined,
-          isImage: !!a.mime_type?.startsWith("image/"),
-        })),
-    ],
+    visaForms,
+    sampleDocs,
     quiz: meta.quiz ?? [],
     internalNotes: (meta.staffNotes ?? []).map((n) => ({
       author: n.author,
@@ -524,8 +582,12 @@ export function buildAcademyViewModel(args: {
     testDayGuide,
     documentStructure: resolveDocumentStructure(meta),
     knowledgeCentreMeta:
-      meta.schemaVersion || meta.navigation
+      isFlcKnowledgeGuide(meta) || meta.schemaVersion || meta.navigation
         ? (meta as KnowledgeCentreMetadata)
         : null,
+    guideSources: zipGuide?.sources ?? [],
+    downloadTemplates: zipGuide?.downloads?.templates ?? [],
+    checklistGuide,
+    documentBinder: zipGuide?.documentBinder ?? null,
   };
 }

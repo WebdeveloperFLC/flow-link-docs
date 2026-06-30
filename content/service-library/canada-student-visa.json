@@ -1,93 +1,43 @@
 {
   "schemaVersion": "1.0",
-  "navigation": {
-    "sections": [
+  "schemaRef": "flc-knowledge-guide-schema-v1.0",
+  "slug": "canada-student-visa-outside-canada",
+  "displayName": "Canada – Student Visa (Study Permit — Outside Canada)",
+  "shortDescription": "IRCC study permit · SDS & Non-SDS pathways · DLI required",
+  "country": "Canada",
+  "service": "Student Visa (Outside Canada)",
+  "navBucket": "visa",
+  "structure": "merged-operational-v3",
+  "version": "v3.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 29 Jun 2026",
+  "learningLevel": "Intermediate",
+  "learningMinutes": 20,
+  "builtToStandard": "Knowledge Writing Standard v1.0",
+  "sourcePolicy": "Every official fact carries an inline source link (S-id) resolving to the Sources tab. Confirm current figures on canada.ca before quoting. Future Link owns counselling content; official facts are linked, never copied.",
+  "policyAlert": {
+    "active": true,
+    "date": "29 Jun 2026",
+    "summary": "Confirm current proof-of-funds (CAD $22,895 single, outside Quebec, since 1 Sep 2025), application/biometric fees, and PAL/TAL rules on canada.ca before quoting. Master's/doctoral at public DLIs are PAL/TAL-exempt from 1 Jan 2026. Off-campus work up to 24 hrs/week in term.",
+    "sourceRefs": [
       {
-        "id": "overview",
-        "sortOrder": 10
+        "id": "S3",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents/financial-support.html"
       },
       {
-        "id": "fees",
-        "sortOrder": 20
+        "id": "S4",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents/provincial-attestation-letter.html"
       },
       {
-        "id": "countryinsights",
-        "sortOrder": 30
-      },
-      {
-        "id": "eligibility",
-        "sortOrder": 40
-      },
-      {
-        "id": "checklist",
-        "sortOrder": 50
-      },
-      {
-        "id": "visaforms",
-        "sortOrder": 60
-      },
-      {
-        "id": "process",
-        "sortOrder": 70
-      },
-      {
-        "id": "dos",
-        "sortOrder": 80,
-        "label": "Do's & don'ts"
-      },
-      {
-        "id": "redflags",
-        "sortOrder": 90
-      },
-      {
-        "id": "faqs",
-        "sortOrder": 100
-      },
-      {
-        "id": "compliance",
-        "sortOrder": 110
-      },
-      {
-        "id": "downloads",
-        "sortOrder": 120,
-        "label": "Resources"
-      },
-      {
-        "id": "sampledocs",
-        "sortOrder": 130
-      },
-      {
-        "id": "quiz",
-        "sortOrder": 140
-      },
-      {
-        "id": "notes",
-        "sortOrder": 150,
-        "label": "Staff notes"
-      },
-      {
-        "id": "changelog",
-        "sortOrder": 160,
-        "label": "Change log"
+        "id": "S12",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work/work-off-campus.html"
       }
     ]
   },
-  "displayName": "Canada – Student Visa (Study Permit — Outside Canada)",
-  "shortDescription": "IRCC study permit · Regular stream (SDS closed 8 Nov 2024) · DLI + PAL/CAQ required",
-  "version": "v2.2",
-  "versionStatus": "Live",
-  "reviewStatus": "active",
-  "updatedLabel": "Updated 16 Jun 2026",
-  "learningLevel": "Intermediate",
-  "learningMinutes": 20,
-  "policyAlert": {
-    "active": true,
-    "date": "16 Jun 2026",
-    "summary": "SDS closed 8 Nov 2024 — all applicants now use the regular study permit stream. Verify current IRCC study permit fee, biometrics fee, proof-of-funds amount, and Quebec (MIFI) funds on canada.ca / quebec.ca before quoting any client."
-  },
   "alert": {
-    "title": "SDS is closed — use the regular stream",
-    "body": "The Student Direct Stream and Nigeria Student Express ended 8 Nov 2024. Do not promise SDS fast-track (~20-day) processing. Every file now goes through the regular stream; quote the live IRCC processing-time tool, not a fixed number."
+    "title": "SDS stream status",
+    "body": "Verify whether SDS is available for the client's country of residence before promising timelines. Use Non-SDS when SDS is paused or ineligible."
   },
   "tags": [
     {
@@ -95,22 +45,22 @@
       "variant": "success"
     },
     {
-      "label": "SDS closed — regular stream",
+      "label": "SDS check required",
       "variant": "warning"
     },
     {
-      "label": "8–12 weeks (verify live tool)",
+      "label": "8–12 weeks",
       "variant": "neutral"
     },
     {
-      "label": "Online – IRCC secure account",
+      "label": "Online – IRCC",
       "variant": "neutral"
     }
   ],
   "chips": [
     {
-      "label": "Regular stream only",
-      "variant": "warning"
+      "label": "8–12 weeks processing",
+      "variant": "neutral"
     },
     {
       "label": "Biometrics required",
@@ -121,42 +71,72 @@
       "variant": "success"
     },
     {
-      "label": "PAL/CAQ where applicable",
+      "label": "GIC if SDS",
       "variant": "warning"
     }
   ],
   "kpis": [
     {
       "label": "Processing time",
-      "value": "8–12w",
-      "sub": "Regular stream; varies by visa office — verify live tool",
-      "tone": "primary"
+      "value": "India ~4 weeks",
+      "sub": "As of 24 Jun 2026 · IRCC, updated weekly",
+      "tone": "primary",
+      "sourceRefs": [
+        {
+          "id": "S7",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html"
+        }
+      ]
     },
     {
       "label": "Government fee",
-      "value": "CAD $150",
-      "sub": "+ CAD $85 biometrics (verify fee page)",
-      "tone": "warning"
+      "value": "CAD $235",
+      "sub": "Study permit $150 + biometrics $85; confirm current",
+      "tone": "warning",
+      "sourceRefs": [
+        {
+          "id": "S6",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/account/fees.html"
+        },
+        {
+          "id": "S11",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html"
+        }
+      ]
     },
     {
-      "label": "Our approval rate",
-      "value": "87%",
-      "sub": "~72% industry benchmark",
-      "tone": "success"
+      "label": "Proof of funds",
+      "value": "CAD $22,895",
+      "sub": "Single, outside Quebec; + tuition + travel",
+      "tone": "violet",
+      "sourceRefs": [
+        {
+          "id": "S3",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents/financial-support.html"
+        }
+      ]
     },
     {
       "label": "Required docs",
-      "value": "14",
-      "sub": "+ conditional items",
-      "tone": "violet"
+      "value": "Typically 12–18",
+      "sub": "By profile, university & finances",
+      "tone": "violet",
+      "sourceRefs": [
+        {
+          "id": "S2",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents.html"
+        }
+      ]
     },
     {
       "label": "Consultancy fee",
-      "value": "See fee tab",
-      "sub": "+ govt & third-party",
-      "tone": "primary"
+      "value": "₹10,000 / CAD $150",
+      "sub": "Provisional — final from fee sheet",
+      "tone": "primary",
+      "sourceRefs": []
     }
   ],
+  "approvalRatePlaceholder": "Our approval rate KPI intentionally omitted until verified internal data is connected.",
   "about": [
     {
       "label": "Description",
@@ -164,11 +144,11 @@
     },
     {
       "label": "Who should use this pathway",
-      "value": "Students with a valid LOA from a Canadian DLI who will apply from their country of residence (not already in Canada as a visitor seeking a status change). Counsellors assess funds and their source, academics, genuine-student intent, PAL/CAQ need, and PGWP-eligibility of the DLI/program before submission."
+      "value": "Students with a valid LOA from a Canadian DLI who will apply from their country of residence (not already in Canada as a visitor seeking status change). Counselors assess SDS vs Non-SDS, funds, academics, and genuine student intent before submission."
     },
     {
-      "label": "Application stream (SDS closed)",
-      "value": "Since 8 Nov 2024 there is one stream: the regular study permit. The Student Direct Stream (SDS) and Nigeria Student Express (NSE) are closed and no longer offer fast-track processing. A GIC and upfront tuition payment are no longer SDS requirements, but a GIC and a paid tuition receipt remain strong, officer-friendly evidence of funds and genuineness. Build every file as a complete, well-documented regular-stream application.",
+      "label": "Application streams",
+      "value": "Student Direct Stream (SDS): for residents of eligible countries who meet upfront language, GIC, tuition payment, and medical requirements—generally faster processing. Non-SDS: standard study permit for all other eligible applicants; requires strong funds history and complete documentation.",
       "warning": true
     },
     {
@@ -194,7 +174,7 @@
     {
       "criterion": "Proof of financial support (tuition + living costs)",
       "met": true,
-      "note": "Purpose: shows the student can pay for study and living without unauthorized work. Importance: top refusal factor after genuineness (R220). Common mistakes: recent unexplained deposits, only savings with no income trail, sitting exactly on the minimum. Best practice: 4–6 months statements from one account, tuition receipts, and ideally a buffer of ~1.1–1.25× the minimum; document the source of every large credit. A GIC remains a clean way to show living funds though it is no longer an SDS requirement."
+      "note": "Purpose: shows the student can pay for study and living without unauthorized work. Importance: top refusal factor after genuineness. Common mistakes: recent unexplained deposits, only savings with no income trail. Best practice: 4–6 months statements, tuition receipts, GIC for SDS; document source of every large credit."
     },
     {
       "criterion": "Parent or sponsor financial documents (if sponsored)",
@@ -202,9 +182,9 @@
       "note": "Purpose: links sponsor capacity to student funds. Importance: officers match deposits to sponsor income. Common mistakes: sponsor ITR missing, no relationship proof, funds in sponsor account with no affidavit. Best practice: ITR 2–3 years, employment letter, bank statements, affidavit, and clear explanation of why sponsor pays."
     },
     {
-      "criterion": "Language proficiency evidence (DLI / genuineness)",
+      "criterion": "Language proficiency evidence (SDS or DLI requirement)",
       "met": false,
-      "note": "Purpose: shows ability to succeed in the program and supports a genuine-student finding. Importance: there is no single federal band since SDS closed, but most DLIs require IELTS/TOEFL/PTE/CELPIP/Duolingo for admission, and a weak score undermines genuineness. Common mistakes: expired test, wrong module (GT vs Academic), score below the DLI minimum. Best practice: confirm the DLI's required test and band before booking; remember any test the institution accepts for admission is now acceptable for the permit."
+      "note": "Purpose: shows ability to succeed in program and meets SDS stream rules. Importance: mandatory for SDS; many DLIs require IELTS/TOEFL/PTE even on Non-SDS. Common mistakes: expired test, wrong module (GT vs Academic), score below SDS threshold. Best practice: confirm DLI minimum and SDS country list before booking test."
     },
     {
       "criterion": "Study plan / statement of purpose (SOP)",
@@ -234,7 +214,7 @@
     {
       "criterion": "Immigration medical exam (if required)",
       "met": false,
-      "note": "Purpose: admissibility screening. Importance: required where the client will study/work in healthcare, childcare or primary/secondary education, has lived in designated countries, or for longer stays. Common mistakes: non-panel physician, expired eMedical. Best practice: use an IRCC panel physician and upload the IMM 1017B / upfront sheet as instructed; the exam is valid 12 months, so book early."
+      "note": "Purpose: admissibility screening. Importance: required for SDS upfront medical and for many residence histories. Common mistakes: non-panel physician, expired eMedical. Best practice: use IRCC panel physician; upload IMM 1017B/upfront sheet as instructed."
     },
     {
       "criterion": "Genuine student intent and home-country ties",
@@ -247,7 +227,7 @@
     {
       "title": "Unexplained large recent deposits",
       "description": "Sudden credits in the last 3–6 months with no ITR, sale deed, loan sanction, or gift deed to support them. Officers treat this as borrowed or temporary funds.",
-      "fix": "Document source with affidavits, ITR, and transaction trail; season funds early; a GIC remains a clean way to show living funds (no longer an SDS requirement)",
+      "fix": "Document source with affidavits, ITR, and transaction trail; season funds early; use SDS GIC where eligible",
       "severity": "Very common"
     },
     {
@@ -297,30 +277,6 @@
       "description": "Dates on resume, IMM forms, and SOP do not match; undeclared jobs or education.",
       "fix": "Cross-check all forms; use single master timeline; disclose all study and work periods",
       "severity": "Medium"
-    },
-    {
-      "title": "Undisclosed prior refusal / misrepresentation",
-      "description": "A prior Canada/US/UK/Schengen/Australia refusal or any inaccurate statement omitted from the IMM forms. This is the single most damaging issue in any file.",
-      "fix": "Disclose every prior refusal and explain it honestly in a cover letter; never conceal history — concealment risks an A40 misrepresentation finding and a 5-year ban",
-      "severity": "Critical"
-    },
-    {
-      "title": "Income cannot generate the savings shown",
-      "description": "Declared sponsor/applicant income is too low to plausibly produce the bank balance presented, inviting an R220 source probe even when the money is real.",
-      "fix": "Reconcile income to savings with ITRs, salary slips and a one-page funds narrative; document any one-off inflows (sale, maturity, gift, loan)",
-      "severity": "Very common"
-    },
-    {
-      "title": "Ineligible PGWP field or PPP college where PGWP is the goal",
-      "description": "Client enrols in a public-private partnership program, or a college/non-degree program outside the eligible field-of-study list, but expects a PGWP.",
-      "fix": "Verify PGWP-eligibility (DLI type AND field of study) on canada.ca BEFORE any deposit; switch program/DLI or reset PR expectations honestly",
-      "severity": "High"
-    },
-    {
-      "title": "Graduate certificate assumed PAL-exempt",
-      "description": "Only degree master's/doctoral students at public DLIs are PAL-exempt (from 1 Jan 2026). Graduate certificates, diplomas and microprograms still need a PAL.",
-      "fix": "Confirm PAL need against the exemption list; attach exemption proof only where it genuinely applies, otherwise secure the PAL early",
-      "severity": "High"
     }
   ],
   "faqs": [
@@ -330,7 +286,7 @@
     },
     {
       "q": "What financial documents should a first-time applicant show?",
-      "a": "Typically: 4–6 months bank statements from one account, tuition payment receipts or proof of ability to pay the first year, proof of living funds per IRCC guidelines, sponsor ITR and employment letters if parents pay, and affidavits explaining large deposits. A GIC certificate remains strong (though no longer an SDS requirement). Every credit should be traceable to lawful income or assets."
+      "a": "Typically: 4–6 months bank statements, tuition payment receipts or ability to pay first year, proof of living funds per IRCC guidelines, sponsor ITR and employment letters if parents pay, GIC certificate for SDS, and affidavits explaining large deposits. Every credit should be traceable to lawful income or assets."
     },
     {
       "q": "Can parents sponsor a student's study permit application?",
@@ -338,7 +294,7 @@
     },
     {
       "q": "How much money must a student demonstrate?",
-      "a": "First-year tuition (per the LOA) PLUS living costs PLUS travel. Outside Quebec the living-cost minimum is CAD 22,895 for a single applicant (since 1 Sep 2025), rising with family size, and is in addition to tuition and travel. Quebec (MIFI) sets a higher, separate amount assessed at the CAQ stage — VERIFY the current single-applicant figure on quebec.ca, as 2026 sources conflict. Show a buffer above the minimum and document the source of all funds. Always confirm the live amount on canada.ca before quoting."
+      "a": "At minimum: first-year tuition (per LOA) plus living expenses (IRCC publishes annual amounts—e.g. CAD 20,635+ for one person outside Quebec, updated periodically). SDS also requires GIC and upfront tuition payment per stream rules. Always verify current amounts on canada.ca before quoting."
     },
     {
       "q": "Are study gaps acceptable?",
@@ -358,7 +314,7 @@
     },
     {
       "q": "Is IELTS mandatory for a Canada study permit?",
-      "a": "There is no single federal language requirement since SDS closed (8 Nov 2024). Most DLIs require English/French proof (IELTS/TOEFL/PTE/CELPIP/Duolingo) for admission, and any test the institution accepts is now acceptable for the permit. A weak score still undermines genuineness, so confirm the DLI's required test and band before advising a client they can skip it."
+      "a": "Not for every Non-SDS file, but mandatory for SDS (minimum scores per IRCC). Most DLIs require English/French proof for admission. Counselors should confirm both DLI requirements and SDS thresholds before advising 'no IELTS.'"
     },
     {
       "q": "Can a student work while studying in Canada?",
@@ -382,11 +338,11 @@
     },
     {
       "q": "Which documents matter most for approval?",
-      "a": "LOA from DLI, financial package (statements + sponsor ITR), SOP, academics, PAL/CAQ if required, language scores per the DLI's requirement, and consistent IMM forms. Weak finances or a generic SOP can undermine an otherwise complete file."
+      "a": "LOA from DLI, financial package (statements + sponsor ITR), SOP, academics, PAL/CAQ if required, language scores for SDS/DLI, and consistent IMM forms. Weak finances or generic SOP can undermine an otherwise complete file."
     },
     {
-      "q": "Is the Student Direct Stream (SDS) still available?",
-      "a": "No. SDS and the Nigeria Student Express closed on 8 Nov 2024; applications submitted on/after that time are processed under the regular study permit stream. Do not promise SDS fast-track (~20-day) timelines or label a file 'SDS'. Build every file as a complete regular-stream application with seasoned, well-documented funds and a strong study plan."
+      "q": "SDS vs Non-SDS—which pathway should we use?",
+      "a": "Use SDS only if the applicant resides in an SDS-eligible country and meets language, GIC, tuition payment, and medical requirements. Otherwise use Non-SDS with strong seasoned funds and full documentation. Never label a file SDS without meeting every requirement."
     },
     {
       "q": "When must biometrics be completed?",
@@ -394,7 +350,7 @@
     },
     {
       "q": "Is a medical exam required for every applicant?",
-      "a": "No. Required where the client will study/work in healthcare, childcare or primary/secondary education, has lived in certain countries of residence, or for longer stays. Follow the IRCC medical instructions in the applicant's document checklist—only panel physicians count; the exam is valid 12 months."
+      "a": "No. Required for SDS upfront medical, certain countries of residence, or long stays. Follow IRCC medical instructions in the applicant's document checklist—only panel physicians count."
     },
     {
       "q": "What if the LOA start date is approaching or has passed?",
@@ -410,11 +366,11 @@
     },
     {
       "q": "What government fees apply for a study permit from India?",
-      "a": "Study permit application fee CAD $150 plus biometrics CAD $85 (family biometric cap CAD $170) for most applicants — verify on the IRCC fee page. Indian passport holders receive a TRV (no separate eTA). Quebec adds a CAQ processing fee (reported ~CAD $135 from 1 Jan 2026 — verify on quebec.ca). Medical, VAC service charges, language test, and courier are additional. Quote government, consultancy and third-party costs on separate lines."
+      "a": "Study permit application fee CAD $150 plus biometrics CAD $85 for most applicants (verify on IRCC fee page). Medical, VAC premium services, and courier are additional. Quote separately from consultancy fees."
     },
     {
       "q": "How long does IRCC processing usually take?",
-      "a": "Typically 8–12 weeks in the regular stream, varying by visa office, application volume, and how quickly biometrics and any medical are completed. Since SDS closed there is no fast-track equivalent — always quote the live IRCC processing-time tool rather than a fixed number, and never promise a date."
+      "a": "Varies by country and stream—SDS is often faster where eligible; Non-SDS commonly several weeks to a few months. Check IRCC processing times tool for the visa office handling India/residence country. Published times are estimates, not guarantees before intake."
     },
     {
       "q": "What happens at the port of entry after approval?",
@@ -434,7 +390,7 @@
     },
     {
       "q": "Is a co-op or internship program allowed on a standard study permit?",
-      "a": "Yes. From 1 Apr 2026 a separate co-op work permit is NOT required where the mandatory placement is 50% or less of the program — it runs under the study permit. Placements above 50% still need separate work authorisation. Confirm with the DLI whether the placement is an integral program requirement and check its proportion of total program length."
+      "a": "Academic programs with mandatory co-op need a co-op work permit in addition to the study permit. Confirm with DLI whether co-op is integral and apply for the correct permit."
     },
     {
       "q": "What conditions must the student maintain after arrival?",
@@ -443,26 +399,6 @@
     {
       "q": "When should consultancy fees be collected versus lodging the application?",
       "a": "Follow office policy: typically agreement and initial fee at engagement, document milestone payments during file build, and balance before or at IRCC submission. Never promise approval in fee discussions."
-    },
-    {
-      "q": "Can my child definitely get PR after studying in Canada?",
-      "a": "No one can guarantee PR. The realistic pathway is study → PGWP (if the DLI/program is eligible) → skilled Canadian work → Express Entry (Canadian Experience Class) or a Provincial Nominee Program. Each step has its own rules and can change. Frame study as a strong first step, never a PR guarantee, and assess each client's options individually."
-    },
-    {
-      "q": "How much can a student realistically earn working 24 hours a week, and will it cover rent?",
-      "a": "Off-campus work is capped at 24 hours/week during academic terms (full-time during scheduled breaks, with a 180-day annual cap on full-time break work). Part-time wages supplement living costs but rarely cover Toronto or Vancouver rent on their own. Counsel families that work supports, not funds, the program — the proof-of-funds requirement exists precisely because students should not rely on work to survive."
-    },
-    {
-      "q": "What happens to our money if the visa is refused?",
-      "a": "Government fees (permit + biometrics) are non-refundable, including on refusal. A tuition deposit refund depends entirely on the DLI's policy. A GIC is the student's own money and is returned to them. Have the client acknowledge the non-refundable government fees in writing before lodging."
-    },
-    {
-      "q": "Are public-private partnership (PPP) colleges PGWP-eligible?",
-      "a": "No. Students at a private college delivering a public college's licensed curriculum are not PGWP-eligible, and college/non-degree graduates must also be in an eligible field of study. Verify both the DLI type and the field BEFORE any deposit — this is the check that protects PR-focused clients from the worst outcome."
-    },
-    {
-      "q": "What does FLC actually guarantee about the outcome?",
-      "a": "Nothing about the outcome — IRCC decides. FLC prepares a strong, honest, compliant file and never promises a visa, PGWP or PR result, in writing or verbally. This no-guarantee position is a hard compliance rule, not a style choice."
     }
   ],
   "compliance": [
@@ -479,11 +415,7 @@
     "Address previous refusals in a cover letter before submission—never hide them on IMM forms.",
     "Write a customized SOP for each client; never reuse templates across students or colleges.",
     "Cross-check names, dates, and course titles across LOA, SOP, resume, and IMM 1294 before upload.",
-    "Verify DLI status and PAL/CAQ requirements on official sites before collecting submission fees.",
-    "SDS is closed (8 Nov 2024) — build every file as a complete regular-stream application; never promise ~20-day SDS timelines.",
-    "Aim for funds ~1.1–1.25× the published minimum where the client can support it — files sitting exactly on the threshold get refused for no buffer.",
-    "Verify PGWP-eligibility (DLI type AND field of study) before any tuition deposit; eligibility is fixed at enrolment, not graduation.",
-    "Treat the Quebec funds figure as unverified until checked on quebec.ca — 2026 sources conflict and the gap is large enough to sink a file."
+    "Verify DLI status and PAL/CAQ requirements on official sites before collecting submission fees."
   ],
   "postApproval": [
     "Email the client the POE letter summary, TRV details (if any), and DLI enrollment deadline in writing.",
@@ -492,54 +424,70 @@
     "Schedule pre-departure briefing: documents to carry, CBSA interview expectations, and first-week enrollment steps.",
     "Register follow-up for spouse/children applications if family is travelling later."
   ],
-  "performance": {
-    "ourRate": 87,
-    "industryRate": 72,
-    "stats": [
-      {
-        "label": "Files this year",
-        "value": "143"
-      },
-      {
-        "label": "Approved",
-        "value": "124"
-      },
-      {
-        "label": "Refused",
-        "value": "12"
-      },
-      {
-        "label": "Withdrawn",
-        "value": "7"
-      }
+  "donts": {
+    "dos": [
+      "Match course choice to prior education or credible career progression",
+      "Explain study gaps in SOP with supporting documents",
+      "Use seasoned funds with ITR-linked sponsor evidence",
+      "Submit tuition receipts and organized bank statements",
+      "Disclose and address all prior refusals in writing",
+      "Customize SOP and cross-check all forms for consistency",
+      "Verify DLI, PAL, and CAQ before IRCC submission"
+    ],
+    "donts": [
+      "Do not lodge SDS without every SDS requirement met",
+      "Do not promise approval timelines or PGWP/PR outcomes",
+      "Do not use expired LOA or wrong tuition on forms",
+      "Do not hide refusals or misrepresent employment history",
+      "Do not quote IRCC fees without checking the current fee page",
+      "Do not submit large unexplained deposits without source proof"
+    ],
+    "mistakes": [
+      "Recent lump-sum deposits without gift deed or sale proof",
+      "Copy-paste SOP with wrong college or program name",
+      "Sponsor ITR income too low for claimed tuition and living costs",
+      "Inconsistent dates between resume, IMM forms, and SOP",
+      "Missing BIL deadline or PAL/CAQ before submission"
     ]
   },
-  "approvalFactors": [
-    {
-      "label": "Our rate vs industry",
-      "ours": 87,
-      "benchmark": 72
+  "workingRights": {
+    "applicant": {
+      "summary": "Study permit holders may work on-campus anytime. Off-campus work is allowed up to 24 hours per week during regular academic sessions and full-time during scheduled breaks, subject to permit conditions.",
+      "details": [
+        "Co-op work requires a co-op work permit in addition to study permit.",
+        "Work must not start before permit conditions allow — verify printed remarks.",
+        "PGWP is a separate application after eligible program completion."
+      ],
+      "restrictions": [
+        "Cannot work for ineligible employers if restricted on permit",
+        "Must remain enrolled and making progress at DLI"
+      ],
+      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work.html",
+      "lastVerified": "Jun 2026",
+      "hours": "Up to 24 hrs/week off-campus in term; full-time in scheduled breaks; on-campus anytime"
     },
-    {
-      "label": "Financial documentation",
-      "ours": 82,
-      "benchmark": 68
-    },
-    {
-      "label": "SOP quality",
-      "ours": 79,
-      "benchmark": 65
-    },
-    {
-      "label": "Complete checklist first submit",
-      "ours": 91,
-      "benchmark": 70
+    "spouse": {
+      "summary": "A spouse/common-law partner may qualify for a Spouse Open Work Permit (SOWP). It is an OPEN permit — they can work full-time for almost any employer, with NO fixed weekly hour limit (unlike the student's 24 hrs/week). Eligibility is narrowed: only spouses of students in a master's (16+ months), doctoral, or specified professional program qualify.",
+      "details": [
+        "Open permit: full-time, almost any employer, no LMIA, no job offer needed.",
+        "No weekly hour cap on the spouse (the 24 hrs/week limit applies to the student, not the SOWP holder).",
+        "Eligibility narrowed (since 21 Jan 2025): undergraduate/college/diploma study no longer qualifies the spouse.",
+        "As of 4 Mar 2026, applications are refused if the student is in their final academic term.",
+        "Validity is usually tied to the student's study permit; partner applies separately."
+      ],
+      "restrictions": [
+        "Not automatic — confirm the student's program is on the eligible list before promising spouse work rights.",
+        "Final-term students: SOWP will be refused (new applications and renewals)."
+      ],
+      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work/help-your-spouse-common-law-partner-work-canada.html",
+      "lastVerified": "29 Jun 2026",
+      "hours": "Full-time — no fixed weekly cap (open permit)"
     }
-  ],
+  },
   "timeline": [
     {
       "weeks": "1–2",
-      "title": "Counseling & admission check — confirm DLI/LOA, regular-stream readiness, PAL/CAQ need, fee agreement, and issue personalized document checklist"
+      "title": "Counseling & admission check — confirm DLI/LOA, SDS vs Non-SDS, PAL/CAQ need, fee agreement, and issue personalized document checklist"
     },
     {
       "weeks": "2–4",
@@ -572,82 +520,6 @@
       "libraryId": ""
     }
   ],
-  "changelog": [
-    {
-      "version": "v2.2",
-      "date": "16 Jun 2026",
-      "author": "Service Library",
-      "summary": "Reframed SDS as closed (8 Nov 2024) — regular stream is now the default across alert, about, eligibility, FAQs, quiz, do's/don'ts and staff notes. Corrected the co-op work-permit rule (not required at ≤50% from 1 Apr 2026), confirmed CAD $22,895 funds and 24-hr work cap, flagged the Quebec/MIFI funds figure and CAQ fee for live verification, added PGWP-eligibility and misrepresentation red flags, added real parent/student FAQs, and varied the quiz answer key."
-    },
-    {
-      "version": "v2.1",
-      "date": "17 Jun 2026",
-      "author": "Service Library",
-      "summary": "Gold-standard content pass: replaced template FAQs, expanded eligibility document guidance, practical red flags, pro tips, timeline, and IRCC resources for first-time outside-Canada applicants."
-    },
-    {
-      "version": "v2.0",
-      "date": "6 Jun 2026",
-      "author": "Service Library",
-      "summary": "Added 75 levelled quiz questions (Level 1–3, 25+ each) and expanded counselor content."
-    },
-    {
-      "version": "v2.4",
-      "date": "4 Jun 2026",
-      "author": "Service Library",
-      "summary": "Updated fees note, SDS check reminder, expanded red flags and FAQs."
-    },
-    {
-      "version": "v2.3",
-      "date": "28 May 2025",
-      "author": "Admin",
-      "summary": "Government fee and processing time review."
-    }
-  ],
-  "staffNotes": [
-    {
-      "author": "Documentation team",
-      "date": "16 Jun 2026",
-      "text": "SDS is CLOSED (8 Nov 2024): there is no fast-track stream — never promise ~20-day processing. Every file is regular stream. A GIC and paid tuition are no longer SDS requirements but remain strong evidence. Prioritise a seasoned funds narrative, sponsor ITR alignment, PAL/CAQ where required, and PGWP-eligibility checks before deposits."
-    },
-    {
-      "author": "Quality",
-      "date": "16 Jun 2026",
-      "text": "Mandatory second review for any prior Canada/US/UK/Australia refusal. Cross-check IMM 1294 dates against resume and SOP before upload."
-    }
-  ],
-  "resources": [
-    {
-      "title": "IRCC — Study permit (apply from outside Canada)",
-      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit.html",
-      "description": "Official eligibility, how to apply online, document checklist, and after-you-apply steps for first-time study permit applicants"
-    },
-    {
-      "title": "Designated Learning Institutions (DLI) list",
-      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/prepare/designated-learning-institutions-list.html",
-      "description": "Verify the college/university DLI number before accepting fees—only DLIs can support a study permit"
-    },
-    {
-      "title": "Student Direct Stream (SDS) — CLOSED 8 Nov 2024 (historical)",
-      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/student-direct-stream.html",
-      "description": "HISTORICAL ONLY. SDS and Nigeria Student Express ended 8 Nov 2024; all applicants now use the regular study permit stream. Retained for reference on legacy/in-flight files only. Do not use for new applications."
-    },
-    {
-      "title": "IRCC study permit fees",
-      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/fees.html",
-      "description": "Current study permit and biometrics fees—verify before every client quote"
-    },
-    {
-      "title": "IRCC processing times (study permit)",
-      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html",
-      "description": "Select study permit and client's country of residence for realistic timeline counseling"
-    },
-    {
-      "title": "Work while studying & PGWP overview",
-      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work.html",
-      "description": "On-campus/off-campus work rules during studies and link to post-graduation work permit information"
-    }
-  ],
   "quiz": [
     {
       "level": 1,
@@ -665,36 +537,36 @@
       "level": 1,
       "question": "In a study permit application made from outside Canada, which statement about a designated learning institution is correct?",
       "options": [
-        "It is optional if the applicant writes a detailed cover letter.",
         "The school must be a DLI with a valid DLI number for most post-secondary study permit applications.",
+        "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
         "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "IRCC normally requires acceptance by a recognized DLI before issuing a study permit."
     },
     {
       "level": 1,
       "question": "In a study permit application made from outside Canada, which statement about the letter of acceptance is correct?",
       "options": [
+        "A valid LOA from the DLI is core evidence that the applicant has been admitted to a real program.",
         "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
-        "A valid LOA from the DLI is core evidence that the applicant has been admitted to a real program.",
         "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "The LOA anchors the program, start date, school, and study plan reviewed by the officer."
     },
     {
       "level": 1,
       "question": "In a study permit application made from outside Canada, which statement about the study permit processing fee is correct?",
       "options": [
+        "The standard IRCC study permit application fee is CAD $150, separate from biometrics where required.",
         "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident.",
-        "The standard IRCC study permit application fee is CAD $150, separate from biometrics where required."
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "Fees can change, but CAD $150 is the standard study permit fee and biometrics are charged separately."
     },
     {
@@ -713,13 +585,37 @@
       "level": 1,
       "question": "In a study permit application made from outside Canada, which statement about proof of funds is correct?",
       "options": [
-        "It is optional if the applicant writes a detailed cover letter.",
         "The applicant must show enough money for tuition, living costs, and travel, using credible documents.",
+        "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
         "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "Financial sufficiency is a central temporary residence requirement for students."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about SDS eligibility is correct?",
+      "options": [
+        "Student Direct Stream is available only to residents of specified countries who meet strict upfront evidence requirements.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "SDS is a faster stream, not a universal right for every study permit applicant."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about non-SDS applications is correct?",
+      "options": [
+        "Non-SDS applications can still be approved if the applicant satisfies the officer on funds, purpose, and admissibility.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Non-SDS is the regular route and does not mean the application is weak by default."
     },
     {
       "level": 1,
@@ -737,36 +633,36 @@
       "level": 1,
       "question": "In a study permit application made from outside Canada, which statement about TRV or eTA after approval is correct?",
       "options": [
-        "It is optional if the applicant writes a detailed cover letter.",
         "If required, IRCC normally issues or facilitates the entry document after approving the study permit.",
+        "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
         "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "The study permit approval and entry document work together but serve different purposes."
     },
     {
       "level": 1,
       "question": "In a study permit application made from outside Canada, which statement about Quebec studies is correct?",
       "options": [
+        "Most students studying in Quebec need a CAQ before IRCC can finalize the study permit.",
         "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
-        "Most students studying in Quebec need a CAQ before IRCC can finalize the study permit.",
         "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "Quebec has an additional provincial acceptance step for many international students."
     },
     {
       "level": 1,
       "question": "In a study permit application made from outside Canada, which statement about provincial or territorial attestation is correct?",
       "options": [
+        "Many post-secondary applicants need a PAL or TAL unless an IRCC exemption applies.",
         "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident.",
-        "Many post-secondary applicants need a PAL or TAL unless an IRCC exemption applies."
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "The attestation supports allocation under Canada's study permit intake controls."
     },
     {
@@ -785,36 +681,36 @@
       "level": 1,
       "question": "In a study permit application made from outside Canada, which statement about temporary resident intent is correct?",
       "options": [
-        "It is optional if the applicant writes a detailed cover letter.",
         "The applicant must satisfy IRCC they will leave Canada when authorized stay ends, even if they may later seek PR.",
+        "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
         "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "Dual intent is allowed, but the temporary plan must still be credible."
     },
     {
       "level": 1,
       "question": "In a study permit application made from outside Canada, which statement about medical exams is correct?",
       "options": [
+        "A medical exam may be required based on country of residence, program, work in health settings, or IRCC instructions.",
         "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
-        "A medical exam may be required based on country of residence, program, work in health settings, or IRCC instructions.",
         "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "Medical requirements are tied to admissibility and public health screening."
     },
     {
       "level": 1,
       "question": "In a study permit application made from outside Canada, which statement about custodianship for minors is correct?",
       "options": [
+        "Minor students may need a custodian declaration depending on age, province, and living arrangements.",
         "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident.",
-        "Minor students may need a custodian declaration depending on age, province, and living arrangements."
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "IRCC assesses whether a minor will have proper care and support in Canada."
     },
     {
@@ -833,36 +729,36 @@
       "level": 1,
       "question": "In a study permit application made from outside Canada, which statement about program credibility is correct?",
       "options": [
-        "It is optional if the applicant writes a detailed cover letter.",
         "The chosen program should make sense against the applicant's education, employment, and future plans.",
+        "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
         "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "Officers assess whether the study plan appears genuine and logical."
     },
     {
       "level": 1,
       "question": "In a study permit application made from outside Canada, which statement about family members is correct?",
       "options": [
+        "Spouses or children can apply with the student, but each person must qualify for their own temporary resident document.",
         "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
-        "Spouses or children can apply with the student, but each person must qualify for their own temporary resident document.",
         "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "Accompanying family does not remove the student's burden to prove eligibility."
     },
     {
       "level": 1,
       "question": "In a study permit application made from outside Canada, which statement about misrepresentation is correct?",
       "options": [
+        "False documents or withheld refusals can cause refusal and a five-year inadmissibility finding.",
         "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident.",
-        "False documents or withheld refusals can cause refusal and a five-year inadmissibility finding."
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "Accuracy is essential because IRCC cross-checks records and documents."
     },
     {
@@ -879,14 +775,38 @@
     },
     {
       "level": 1,
-      "question": "In a study permit application made from outside Canada, which statement about admissibility is correct?",
+      "question": "In a study permit application made from outside Canada, which statement about tuition payment is correct?",
       "options": [
+        "Tuition receipts are useful financial evidence, especially for SDS, but they do not guarantee approval.",
         "It is optional if the applicant writes a detailed cover letter.",
         "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident.",
-        "Criminality, medical issues, security concerns, or prior immigration breaches can make a student inadmissible."
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
+      "explanation": "Payment supports seriousness and funding, while the officer still reviews all criteria."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about GIC evidence is correct?",
+      "options": [
+        "A Guaranteed Investment Certificate is a common SDS financial requirement for eligible applicants.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "The GIC shows available living funds under SDS but does not replace every other eligibility requirement."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about admissibility is correct?",
+      "options": [
+        "Criminality, medical issues, security concerns, or prior immigration breaches can make a student inadmissible.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
       "explanation": "Study permit eligibility includes both program-related and admissibility screening."
     },
     {
@@ -917,36 +837,36 @@
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about IMM 1294?",
       "options": [
-        "It should be uploaded only after IRCC has already made the final decision.",
         "IMM 1294 is the main application form for a study permit made outside Canada.",
+        "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
         "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "The form captures identity, education, intended study, background, and family information."
     },
     {
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about family information form?",
       "options": [
+        "IMM 5707 or IMM 5645 may be required depending on the applicant's country-specific checklist.",
         "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "IMM 5707 or IMM 5645 may be required depending on the applicant's country-specific checklist.",
         "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "IRCC uses family details for identity, background, and consistency checks."
     },
     {
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about country-specific instructions?",
       "options": [
+        "The visa office checklist can require extra documents such as police certificates, education records, or civil documents.",
         "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status.",
-        "The visa office checklist can require extra documents such as police certificates, education records, or civil documents."
+        "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "A complete application follows both general IRCC requirements and local instructions."
     },
     {
@@ -965,24 +885,36 @@
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about upfront medicals?",
       "options": [
-        "It should be uploaded only after IRCC has already made the final decision.",
         "If an upfront medical is used, the applicant uploads the information sheet from a panel physician.",
+        "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
         "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "Only IRCC panel physician exams are accepted for immigration medical purposes."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about SDS document sequence?",
+      "options": [
+        "SDS files usually include upfront tuition payment, GIC, language results, and often upfront medical evidence where required.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "SDS depends on complete upfront evidence for streamlined processing."
     },
     {
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about proof of tuition?",
       "options": [
+        "Receipts or school account statements should clearly show amounts paid, program, and student identity.",
         "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status.",
-        "Receipts or school account statements should clearly show amounts paid, program, and student identity."
+        "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "Unclear payment proof can weaken the funds assessment."
     },
     {
@@ -1001,36 +933,36 @@
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about sponsor documents?",
       "options": [
-        "It should be uploaded only after IRCC has already made the final decision.",
         "A sponsor package should connect the sponsor to the applicant and show income, assets, and willingness to pay.",
+        "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
         "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "Officers need both capacity and credible commitment from a financial sponsor."
     },
     {
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about statement of purpose?",
       "options": [
+        "A study plan should explain why the program, school, Canada, timing, and return plan make sense.",
         "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "A study plan should explain why the program, school, Canada, timing, and return plan make sense.",
         "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "A strong SOP addresses the officer's core concerns without contradicting the forms."
     },
     {
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about education history?",
       "options": [
+        "Transcripts, diplomas, and resumes should match the program level and career progression claimed.",
         "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status.",
-        "Transcripts, diplomas, and resumes should match the program level and career progression claimed."
+        "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "Consistency between past studies and proposed studies supports genuineness."
     },
     {
@@ -1049,36 +981,36 @@
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about travel history?",
       "options": [
-        "It should be uploaded only after IRCC has already made the final decision.",
         "Prior lawful travel can help but is not required; undisclosed refusals or overstays are serious problems.",
+        "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
         "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "Travel history is weighed with the full temporary resident assessment."
     },
     {
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about police certificates?",
       "options": [
+        "Police certificates are provided when requested by IRCC or the visa office checklist.",
         "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "Police certificates are provided when requested by IRCC or the visa office checklist.",
         "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "They are part of admissibility screening, not a substitute for biometrics."
     },
     {
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about translation requirements?",
       "options": [
+        "Documents not in English or French generally need certified translations and copies of the original documents.",
         "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status.",
-        "Documents not in English or French generally need certified translations and copies of the original documents."
+        "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "IRCC must be able to verify and understand every submitted record."
     },
     {
@@ -1097,36 +1029,36 @@
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about processing times?",
       "options": [
-        "It should be uploaded only after IRCC has already made the final decision.",
         "Published processing times are estimates and do not guarantee a decision before the program start date.",
+        "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
         "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "Applicants should plan for delays and update IRCC if intake dates change."
     },
     {
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about deferred admission?",
       "options": [
+        "If the start date changes, the applicant should provide a deferral or updated LOA through the proper channel.",
         "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "If the start date changes, the applicant should provide a deferral or updated LOA through the proper channel.",
         "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "A stale LOA can raise concerns about whether the study plan remains valid."
     },
     {
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about passport request?",
       "options": [
+        "A passport request usually means IRCC needs the passport to place a visa counterfoil where one is required.",
         "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status.",
-        "A passport request usually means IRCC needs the passport to place a visa counterfoil where one is required."
+        "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "It is a late-stage step but applicants should still follow instructions carefully."
     },
     {
@@ -1145,36 +1077,36 @@
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about entering Canada?",
       "options": [
-        "It should be uploaded only after IRCC has already made the final decision.",
         "At the port of entry, the applicant should carry the POE letter, LOA, funds evidence, and updated school documents.",
+        "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
         "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "CBSA may ask whether the applicant still meets the study permit conditions."
     },
     {
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about changing DLIs?",
       "options": [
+        "Post-secondary students must follow IRCC rules for changing schools and ensure the new school is a DLI.",
         "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "Post-secondary students must follow IRCC rules for changing schools and ensure the new school is a DLI.",
         "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "School changes can affect compliance reporting and future applications."
     },
     {
       "level": 2,
       "question": "For a study permit application made from outside Canada, what is the correct process point about dependant applications?",
       "options": [
+        "Family member forms and evidence should be submitted consistently with the student's plan and finances.",
         "It should be uploaded only after IRCC has already made the final decision.",
         "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status.",
-        "Family member forms and evidence should be submitted consistently with the student's plan and finances."
+        "It can be ignored if the applicant has previously held Canadian status."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "A family package is reviewed for each person's purpose, funds, and admissibility."
     },
     {
@@ -1205,36 +1137,36 @@
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with large unexplained deposits?",
       "options": [
-        "It is harmless because officers approve cases when the applicant is polite.",
         "The officer may treat sudden funds as borrowed or temporary unless the source is documented.",
+        "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
         "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "Funds must be available, traceable, and credible for the study period."
     },
     {
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with weak home-country ties?",
       "options": [
+        "The officer may refuse if employment, family, assets, or career prospects do not support departure after studies.",
         "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
-        "The officer may refuse if employment, family, assets, or career prospects do not support departure after studies.",
         "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "Temporary intent is assessed alongside the applicant's personal circumstances."
     },
     {
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with generic statement of purpose?",
       "options": [
+        "A template SOP can undermine credibility because it fails to connect the program to the applicant's real background.",
         "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review.",
-        "A template SOP can undermine credibility because it fails to connect the program to the applicant's real background."
+        "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "Officers look for a coherent, individualized rationale."
     },
     {
@@ -1253,36 +1185,36 @@
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with questionable DLI or program choice?",
       "options": [
-        "It is harmless because officers approve cases when the applicant is polite.",
         "A low-detail or inconsistent school choice can make the officer question whether the applicant is a genuine student.",
+        "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
         "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "The applicant should show why that DLI and program fit their goals."
     },
     {
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with late application close to intake?",
       "options": [
+        "A rushed application may be refused or become impractical if processing cannot finish before the start date.",
         "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
-        "A rushed application may be refused or become impractical if processing cannot finish before the start date.",
         "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "Timing is not an eligibility rule by itself, but it affects credibility and logistics."
     },
     {
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with family remaining in Canada after refusal?",
       "options": [
+        "If accompanying family plans are unclear, the officer may worry the study plan is mainly a migration strategy.",
         "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review.",
-        "If accompanying family plans are unclear, the officer may worry the study plan is mainly a migration strategy."
+        "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "Family circumstances must be explained consistently with temporary residence obligations."
     },
     {
@@ -1301,36 +1233,36 @@
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with unverified sponsor income?",
       "options": [
-        "It is harmless because officers approve cases when the applicant is polite.",
         "A sponsor with unclear income may not satisfy the officer that funds are truly available for tuition and living costs.",
+        "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
         "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "Sponsor evidence should show lawful source, liquidity, and relationship."
     },
     {
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with course mismatch with career goals?",
       "options": [
+        "The officer may ask why the applicant needs a Canadian credential if the program does not advance their stated career.",
         "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
-        "The officer may ask why the applicant needs a Canadian credential if the program does not advance their stated career.",
         "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "A persuasive file links studies to a plausible future benefit."
     },
     {
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with poor academic performance?",
       "options": [
+        "Weak grades are not an automatic refusal, but the applicant should show readiness for the proposed program.",
         "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review.",
-        "Weak grades are not an automatic refusal, but the applicant should show readiness for the proposed program."
+        "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "Academic history can affect whether the study plan appears realistic."
     },
     {
@@ -1349,72 +1281,84 @@
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with using agents and false documents?",
       "options": [
-        "It is harmless because officers approve cases when the applicant is polite.",
         "Documents remain the applicant's responsibility even if an agent prepared the file.",
+        "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
         "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "Misrepresentation findings can apply when the applicant signs or submits false information."
     },
     {
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with expired passport before program end?",
       "options": [
+        "The permit may be shortened, creating future extension risk and avoidable administrative problems.",
         "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
-        "The permit may be shortened, creating future extension risk and avoidable administrative problems.",
         "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "Passport validity should align with the expected study period where possible."
     },
     {
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with missing PAL or TAL?",
       "options": [
+        "If no exemption applies, missing attestation can make the application incomplete or ineligible for processing.",
         "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review.",
-        "If no exemption applies, missing attestation can make the application incomplete or ineligible for processing."
+        "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "Attestation requirements are a threshold issue for many post-secondary applicants."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with SDS evidence not meeting SDS rules?",
+      "options": [
+        "A file labelled SDS without required proof may be processed outside SDS or refused if core requirements are missing.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "SDS speed depends on strict upfront compliance."
     },
     {
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with dual intent handled poorly?",
       "options": [
-        "It is harmless because officers approve cases when the applicant is polite.",
         "Saying the applicant will never leave Canada can undermine the temporary resident requirement.",
+        "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
         "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "Dual intent must still include a credible plan to comply if PR is not granted."
     },
     {
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with prior overstay or non-compliance?",
       "options": [
+        "Past breaches can weigh heavily against future compliance unless clearly explained and resolved.",
         "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
-        "Past breaches can weigh heavily against future compliance unless clearly explained and resolved.",
         "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "Officers assess whether the applicant will obey Canadian immigration conditions."
     },
     {
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with unrealistic living-cost budget?",
       "options": [
+        "Funds that barely cover tuition and ignore rent, food, insurance, and travel may fail the sufficiency test.",
         "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review.",
-        "Funds that barely cover tuition and ignore rent, food, insurance, and travel may fail the sufficiency test."
+        "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "IRCC expects a realistic financial plan for the whole stay."
     },
     {
@@ -1433,36 +1377,36 @@
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with changed program after approval?",
       "options": [
-        "It is harmless because officers approve cases when the applicant is polite.",
         "A major change at entry can trigger questions about whether the approval basis still exists.",
+        "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
         "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 1,
+      "correctIndex": 0,
       "explanation": "The applicant should carry updated documents and comply with school-change rules."
     },
     {
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with work being the real purpose?",
       "options": [
+        "If the file emphasizes wages over education, the officer may doubt the applicant is a bona fide student.",
         "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
-        "If the file emphasizes wages over education, the officer may doubt the applicant is a bona fide student.",
         "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 2,
+      "correctIndex": 0,
       "explanation": "Study permits are for study first, with work only as a conditional benefit."
     },
     {
       "level": 3,
       "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with documents that cannot be verified?",
       "options": [
+        "Unverifiable employment, bank, or school records can lead to refusal or procedural fairness concerns.",
         "It is harmless because officers approve cases when the applicant is polite.",
         "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review.",
-        "Unverifiable employment, bank, or school records can lead to refusal or procedural fairness concerns."
+        "It matters only at the airport and not during the paper or online review."
       ],
-      "correctIndex": 3,
+      "correctIndex": 0,
       "explanation": "Authenticity is a core officer concern in high-volume temporary resident processing."
     },
     {
@@ -1478,245 +1422,1540 @@
       "explanation": "The approval letter does not remove the need to satisfy entry examination."
     }
   ],
-  "sampleDocs": [
-    {
-      "title": "Sample passport bio page (mock)",
-      "description": "Purpose: identity verification. Show full MRZ, no glare. Mistake: cropped edges. Best practice: scan colour copy matching LOA name exactly.",
-      "mimeType": "image/jpeg",
-      "docKind": "identity"
-    },
-    {
-      "title": "Sample LOA / DLI letter (mock)",
-      "description": "Purpose: proof of admission. Must show DLI number, program, tuition, and start date. Mistake: expired intake. Best practice: verify DLI on canada.ca before file build.",
-      "mimeType": "application/pdf",
-      "docKind": "academic"
-    },
-    {
-      "title": "Sample GIC certificate (mock)",
-      "description": "Purpose: living-funds proof via GIC (optional but officer-friendly; no longer an SDS requirement). Mistake: non-recognised bank. Best practice: use a recognised bank's GIC and keep the certificate on file.",
-      "mimeType": "application/pdf",
-      "docKind": "financial"
-    },
-    {
-      "title": "Sample IELTS / PTE TRF (mock)",
-      "description": "Purpose: language ability for DLI admission and genuineness. Mistake: Academic vs GT wrong module, expired test. Best practice: confirm the DLI's required test and minimum band (no single federal band since SDS closed).",
-      "mimeType": "image/jpeg",
-      "docKind": "language"
-    },
-    {
-      "title": "Sample SOP specimen (mock)",
-      "description": "Purpose: genuine student narrative. Mistake: generic template. Best practice: course-specific reasoning, gap explanation, and career link.",
-      "mimeType": "application/pdf",
-      "docKind": "academic"
-    },
-    {
-      "title": "Sample academic transcripts (mock)",
-      "description": "Purpose: education history. Mistake: hiding backlogs. Best practice: certified transcripts plus backlog explanation if applicable.",
-      "mimeType": "application/pdf",
-      "docKind": "academic"
-    },
-    {
-      "title": "Sample sponsor affidavit (mock)",
-      "description": "Purpose: links parent funds to student. Mistake: no ITR attached. Best practice: affidavit + sponsor ITR + bank statements + relationship proof.",
-      "mimeType": "application/pdf",
-      "docKind": "financial"
-    },
-    {
-      "title": "Sample bank statement (mock)",
-      "description": "Purpose: liquidity and seasoning. Mistake: only 1-month statement. Best practice: 4–6 months with explanation for large credits.",
-      "mimeType": "application/pdf",
-      "docKind": "financial"
-    },
-    {
-      "title": "Document checklist — outside Canada (specimen)",
-      "description": "Future Link branded 30-item study permit checklist for outside-Canada applicants. Use for counselor sign-off before IRCC upload.",
-      "mimeType": "application/pdf",
-      "docKind": "checklist",
-      "url": "/specimens/checklists/canada-student-visa.html"
-    }
-  ],
-  "navBucket": "visa",
-  "donts": {
-    "dos": [
-      "Match course choice to prior education or credible career progression",
-      "Explain study gaps in the SOP with supporting documents",
-      "Use seasoned funds with ITR-linked sponsor evidence and a one-page funds narrative",
-      "Submit tuition receipts and organized, single-account bank statements",
-      "Disclose and address all prior refusals in writing",
-      "Customize the SOP and cross-check all forms for consistency against the passport",
-      "Verify DLI, PGWP-eligibility, PAL, and CAQ before IRCC submission"
+  "processingTimes": {
+    "service": "Study permit (from outside Canada)",
+    "note": "IRCC processing times change weekly and are estimates, not a maximum or guarantee. Always confirm the current time on the live IRCC tool for the client's country before advising.",
+    "liveToolUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html",
+    "byCountry": [
+      {
+        "country": "India",
+        "value": "~4 weeks",
+        "asOf": "24 Jun 2026",
+        "source": "S7"
+      }
     ],
-    "donts": [
-      "Do not promise SDS or ~20-day fast-track processing — SDS closed 8 Nov 2024",
-      "Do not promise approval timelines or PGWP/PR outcomes",
-      "Do not use an expired LOA or wrong tuition on forms",
-      "Do not hide refusals or misrepresent employment history (A40 risk)",
-      "Do not quote IRCC or Quebec fees without checking the current fee pages",
-      "Do not submit large unexplained deposits without source proof",
-      "Do not enrol a PGWP-focused client in a PPP college or an ineligible field of study"
-    ],
-    "mistakes": [
-      "Recent lump-sum deposits without gift deed, sale deed, maturity or loan proof",
-      "Copy-paste SOP with wrong college or program name",
-      "Sponsor ITR income too low for claimed tuition and living costs",
-      "Inconsistent dates between resume, IMM forms, and SOP",
-      "Missing the biometrics (BIL) deadline or PAL/CAQ before submission",
-      "Assuming a graduate certificate is PAL-exempt (only degree master's/PhD at public DLIs are)"
-    ]
-  },
-  "workingRights": {
-    "applicant": {
-      "summary": "Study permit holders may work on-campus anytime. Off-campus work is allowed up to 24 hours per week during regular academic sessions and full-time during scheduled breaks, subject to permit conditions.",
-      "details": [
-        "From 1 Apr 2026 a separate co-op work permit is NOT needed where the mandatory placement is ≤50% of the program; placements above 50% need separate authorisation.",
-        "Off-campus work begins only on/after the study start date printed on the permit — never on arrival or after the LOA.",
-        "Full-time work during scheduled breaks is subject to a 180-day-per-calendar-year cap; the student must be enrolled before and after the break.",
-        "A SIN from Service Canada is required to work; PGWP is a separate application after eligible program completion."
-      ],
-      "restrictions": [
-        "Cannot work for ineligible employers if restricted on permit",
-        "Must remain enrolled and making progress at DLI"
-      ],
-      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work.html",
-      "lastVerified": "Jun 2026"
-    },
-    "spouse": {
-      "summary": "Spouse/common-law partner may qualify for an open work permit (SOWP) when the student is in an eligible program at a designated learning institution in Canada.",
-      "details": [
-        "Eligibility depends on program level, duration, and current IRCC policy for SOWP.",
-        "Partner applies separately; relationship and principal status must be documented."
-      ],
-      "restrictions": [
-        "Not automatic — assess program eligibility before promising spouse work rights"
-      ],
-      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/special-instructions/spousal.html",
-      "lastVerified": "Jun 2026"
-    }
+    "otherCountries": "For all other countries, use the live IRCC tool — times vary widely by country and season."
   },
   "fullCostBreakdown": {
-    "title": "Full cost breakdown — Canada – Student Visa (Study Permit — Outside Canada)",
-    "currency": "CAD",
-    "lastVerified": "Jun 2026",
-    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
-    "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+    "title": "Estimated cost planning — Canada Student Visa (Outside Canada)",
+    "currency": "CAD (with INR guide)",
+    "lastVerified": "29 Jun 2026",
+    "disclaimer": "Indicative ranges for counselling discussions. Government figures are confirm-current on canada.ca; tuition is owned by the Institution/Fee Master and excluded here. Living/misc ranges are planning estimates, not government figures.",
+    "verifyTotalUrl": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents/financial-support.html",
+    "fxNote": "INR is auto-computed from Currency Master (CAD effective rate). No hardcoded FX.",
     "sections": [
       {
         "id": "fees",
         "label": "Government & visa fees",
+        "owner": "IRCC",
+        "sourceRefs": [
+          {
+            "id": "S6",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/account/fees.html"
+          },
+          {
+            "id": "S11",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html"
+          }
+        ],
         "items": [
           {
             "label": "Study permit application fee",
-            "amount": 150,
+            "amount": "CAD $150",
+            "inr": "auto",
             "unit": "per applicant",
-            "currency": "CAD",
-            "applicable": true,
-            "notes": "IRCC study permit fee — verify on fee page before quoting"
+            "official": true,
+            "cadAmount": 150.0
           },
           {
             "label": "Biometrics",
-            "amount": 85,
-            "unit": "per applicant",
-            "currency": "CAD",
-            "applicable": true
+            "amount": "CAD $85",
+            "inr": "auto",
+            "unit": "per applicant (fam max $170)",
+            "official": true,
+            "cadAmount": 85.0
           },
           {
-            "label": "Medical exam (if required)",
-            "range": "INR 5,000–8,000",
-            "notes": "Panel physician",
-            "currency": "CAD",
-            "applicable": true
+            "label": "Government fees subtotal",
+            "amount": "CAD $235",
+            "inr": "auto",
+            "unit": "single applicant",
+            "official": true,
+            "cadAmount": 235.0
           }
         ]
       },
       {
-        "id": "tuition",
-        "label": "Tuition & education costs",
+        "id": "third",
+        "label": "Third-party / pre-application",
+        "owner": "Mixed",
+        "sourceRefs": [
+          {
+            "id": "S13",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/student-direct-stream.html"
+          }
+        ],
         "items": [
           {
-            "label": "Tuition (undergraduate, indicative)",
-            "range": "Mid-range for destination",
-            "notes": "Use offer letter amount",
-            "currency": "CAD",
-            "applicable": true
+            "label": "Medical exam (if required)",
+            "amount": "CAD $200–400",
+            "inr": "auto",
+            "unit": "panel physician; varies by country",
+            "official": false,
+            "cadAmount": [
+              200.0,
+              400.0
+            ]
           },
           {
-            "label": "Tuition deposit already paid",
-            "range": "Per LOA/CAS",
-            "notes": "Deduct from total funds",
-            "currency": "CAD",
-            "applicable": true
+            "label": "Language test (IELTS/CELPIP/TEF)",
+            "amount": "CAD $250–320",
+            "inr": "auto",
+            "unit": "one sitting",
+            "official": false,
+            "cadAmount": [
+              250.0,
+              320.0
+            ]
           },
           {
-            "label": "Books & materials",
-            "range": "500–1,500",
-            "unit": "per year",
-            "notes": "Program dependent",
-            "currency": "CAD",
-            "applicable": true
+            "label": "GIC (if SDS) — refundable to student",
+            "amount": "CAD $20,635",
+            "inr": "auto",
+            "unit": "held, returned in instalments",
+            "official": true,
+            "cadAmount": 20635.0
+          },
+          {
+            "label": "VAC / biometrics service charge",
+            "amount": "CAD $45–75",
+            "inr": "auto",
+            "unit": "varies by country",
+            "official": false,
+            "cadAmount": [
+              45.0,
+              75.0
+            ]
           }
         ]
       },
       {
         "id": "living",
-        "label": "Living costs",
+        "label": "Living funds (proof + real cost)",
+        "owner": "IRCC + planning",
+        "sourceRefs": [
+          {
+            "id": "S3",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents/financial-support.html"
+          }
+        ],
         "items": [
           {
-            "label": "Living funds (IRCC guideline, 1 person)",
-            "amount": 20635,
-            "unit": "per year",
-            "notes": "Outside Quebec",
-            "currency": "CAD"
+            "label": "Proof of funds — living (IRCC, 1 person)",
+            "amount": "CAD $22,895",
+            "inr": "auto",
+            "unit": "per year, outside Quebec",
+            "official": true,
+            "cadAmount": 22895.0
           },
           {
             "label": "Accommodation",
-            "range": "700–1,400",
-            "unit": "per month",
-            "currency": "CAD"
+            "amount": "CAD $700–1,600",
+            "inr": "auto",
+            "unit": "per month, by city",
+            "official": false,
+            "cadAmount": [
+              700.0,
+              1600.0
+            ]
           },
           {
             "label": "Food & personal",
-            "range": "300–550",
+            "amount": "CAD $300–550",
+            "inr": "auto",
             "unit": "per month",
-            "currency": "CAD"
+            "official": false,
+            "cadAmount": [
+              300.0,
+              550.0
+            ]
+          },
+          {
+            "label": "Health insurance (if not provincial)",
+            "amount": "CAD $600–900",
+            "inr": "auto",
+            "unit": "per year",
+            "official": false,
+            "cadAmount": [
+              600.0,
+              900.0
+            ]
           }
         ]
       },
       {
-        "id": "misc",
-        "label": "Miscellaneous",
+        "id": "travel",
+        "label": "Travel & settling-in",
+        "owner": "Planning",
+        "sourceRefs": [],
         "items": [
           {
-            "label": "Future Link consultancy fee",
-            "range": "See Fees tab",
-            "notes": "Service package dependent"
+            "label": "Airfare (one way, India→Canada)",
+            "amount": "CAD $700–1,200",
+            "inr": "auto",
+            "unit": "seasonal",
+            "official": false,
+            "cadAmount": [
+              700.0,
+              1200.0
+            ]
           },
           {
-            "label": "Flight / travel",
-            "range": "₹40,000–1,20,000",
-            "notes": "Season and route"
-          },
-          {
-            "label": "Document translation / notary",
-            "range": "₹2,000–15,000"
-          },
-          {
-            "label": "Courier & VFS premium services",
-            "range": "Optional"
-          },
-          {
-            "label": "Forex / transfer charges",
-            "range": "Bank dependent",
-            "notes": "GIC, blocked account, tuition transfers"
+            "label": "Initial settling-in + emergency buffer",
+            "amount": "CAD $1,500–2,500",
+            "inr": "auto",
+            "unit": "first weeks",
+            "official": false,
+            "cadAmount": [
+              1500.0,
+              2500.0
+            ]
           }
         ]
       }
     ],
     "totals": [
       {
-        "label": "Indicative first-year budget (excl. tuition band)",
-        "value": "Counselor to calculate from sections above",
-        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
+        "label": "Upfront to apply (fees + biometrics + medical + test + VAC)",
+        "range": "CAD $740–1,180",
+        "inr": "auto",
+        "note": "Excludes GIC and tuition. Confirm govt fees on canada.ca."
+      },
+      {
+        "label": "First-year funds to show/plan (excl. tuition)",
+        "range": "CAD $22,895 + living/travel ≈ CAD $30,000–38,000",
+        "inr": "auto",
+        "note": "Proof-of-funds living amount is the IRCC figure; the wider band adds realistic accommodation, insurance, airfare and buffer."
+      }
+    ],
+    "totalEstimateLabel": "Estimated total first-year outlay (excl. tuition): CAD $30,000–38,000 (INR auto-computed from Currency Master)",
+    "verifyNote": "Verify the official living-cost / proof-of-funds figure on canada.ca before quoting any total to a client.",
+    "currencyConfigRef": "currencyConfig"
+  },
+  "visaForms": {
+    "note": "Official IRCC forms for a study permit made outside Canada (per Guide 5269). Link only — never store filled government forms. Confirm the latest version on canada.ca before each file.",
+    "sourceRefs": [
+      {
+        "id": "S9",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/guide-5269-applying-study-permit-outside-canada.html"
+      },
+      {
+        "id": "S21",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides.html"
+      }
+    ],
+    "forms": [
+      {
+        "code": "IMM 1294",
+        "name": "Application for a Study Permit Made Outside of Canada",
+        "when": "Core — every applicant",
+        "stage": "Application",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/imm1294.html"
+      },
+      {
+        "code": "IMM 5707",
+        "name": "Family Information",
+        "when": "Required with the application",
+        "stage": "Application",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/imm5707.html"
+      },
+      {
+        "code": "IMM 5645",
+        "name": "Family Information (alternate)",
+        "when": "Where requested by the visa office",
+        "stage": "Application",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/imm5645.html"
+      },
+      {
+        "code": "IMM 5483",
+        "name": "Document Checklist — Study Permit",
+        "when": "Core — assemble package in this order",
+        "stage": "Application",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/imm5483.html"
+      },
+      {
+        "code": "IMM 5409",
+        "name": "Statutory Declaration of Common-law Union",
+        "when": "If applicable (common-law partner)",
+        "stage": "Conditional",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/imm5409.html"
+      },
+      {
+        "code": "IMM 5646",
+        "name": "Custodianship Declaration — Custodian for Minors",
+        "when": "If applicable (minor students)",
+        "stage": "Conditional",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/imm5646.html"
+      },
+      {
+        "code": "IMM 5476",
+        "name": "Use of a Representative",
+        "when": "If using a representative",
+        "stage": "Conditional",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/imm5476.html"
+      },
+      {
+        "code": "IMM 5475",
+        "name": "Authority to Release Personal Information to a Designated Individual",
+        "when": "If applicable",
+        "stage": "Conditional",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/imm5475.html"
+      },
+      {
+        "code": "Guide 5269",
+        "name": "Instruction Guide — Study Permit (outside Canada)",
+        "when": "Read first — official instructions",
+        "stage": "Reference",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/guide-5269-applying-study-permit-outside-canada.html"
       }
     ]
+  },
+  "sampleDocs": {
+    "note": "Mock/anonymised samples for counsellor training — all client personal details removed. One per document category. Add real anonymised examples per category as they are collected.",
+    "items": [
+      {
+        "title": "Sample passport bio page (mock)",
+        "description": "Purpose: identity verification. Show full MRZ, no glare. Mistake: cropped edges. Best practice: scan colour copy matching LOA name exactly.",
+        "mimeType": "image/jpeg",
+        "docKind": "identity"
+      },
+      {
+        "title": "Sample LOA / DLI letter (mock)",
+        "description": "Purpose: proof of admission. Must show DLI number, program, tuition, and start date. Mistake: expired intake. Best practice: verify DLI on canada.ca before file build.",
+        "mimeType": "application/pdf",
+        "docKind": "academic"
+      },
+      {
+        "title": "Sample GIC certificate (mock)",
+        "description": "Purpose: SDS living-funds proof. Mistake: non-listed bank. Best practice: use IRCC eligible GIC institution only for SDS files.",
+        "mimeType": "application/pdf",
+        "docKind": "financial"
+      },
+      {
+        "title": "Sample IELTS / PTE TRF (mock)",
+        "description": "Purpose: language ability for SDS/DLI. Mistake: Academic vs GT wrong module. Best practice: confirm minimum scores for SDS and college admission.",
+        "mimeType": "image/jpeg",
+        "docKind": "language"
+      },
+      {
+        "title": "Sample SOP specimen (mock)",
+        "description": "Purpose: genuine student narrative. Mistake: generic template. Best practice: course-specific reasoning, gap explanation, and career link.",
+        "mimeType": "application/pdf",
+        "docKind": "academic"
+      },
+      {
+        "title": "Sample academic transcripts (mock)",
+        "description": "Purpose: education history. Mistake: hiding backlogs. Best practice: certified transcripts plus backlog explanation if applicable.",
+        "mimeType": "application/pdf",
+        "docKind": "academic"
+      },
+      {
+        "title": "Sample sponsor affidavit (mock)",
+        "description": "Purpose: links parent funds to student. Mistake: no ITR attached. Best practice: affidavit + sponsor ITR + bank statements + relationship proof.",
+        "mimeType": "application/pdf",
+        "docKind": "financial"
+      },
+      {
+        "title": "Sample bank statement (mock)",
+        "description": "Purpose: liquidity and seasoning. Mistake: only 1-month statement. Best practice: 4–6 months with explanation for large credits.",
+        "mimeType": "application/pdf",
+        "docKind": "financial"
+      },
+      {
+        "title": "Document checklist — outside Canada (specimen)",
+        "description": "Future Link branded 30-item study permit checklist for outside-Canada applicants. Use for counselor sign-off before IRCC upload.",
+        "mimeType": "application/pdf",
+        "docKind": "checklist",
+        "url": "/specimens/checklists/canada-student-visa.html"
+      }
+    ]
+  },
+  "downloads": {
+    "note": "Future Link templates only — no government forms (official forms are in the Visa Forms tab). Click a card to open the full template content inline. The Free Guide (8th) is the client-facing version to share with enquiries.",
+    "templates": [
+      {
+        "template": "Counsellor Guide",
+        "use": "Session companion",
+        "stage": "All",
+        "fileUrl": "#download-counsellor-guide",
+        "fileType": "PDF/DOCX (to be uploaded)",
+        "content": {
+          "intro": "One-page companion to run a Canada study-permit counselling session end to end.",
+          "sections": [
+            {
+              "heading": "Before the session",
+              "items": [
+                "Confirm enquiry source & student profile (age, academics, budget, goals)",
+                "Pull the live processing time for the client's country",
+                "Have official links ready (study permit, proof of funds, PAL/TAL)"
+              ]
+            },
+            {
+              "heading": "During the session — in order",
+              "items": [
+                "Fit & goals (why Canada, why this course, career plan)",
+                "Eligibility snapshot: LOA/DLI, PAL/TAL or exemption, funds, language",
+                "Money: proof of funds CAD $22,895 (confirm) + tuition + travel; govt fees CAD $235",
+                "Honest expectations: we prepare, IRCC decides — no guarantees",
+                "Work rights: student 24 hrs/week in term; spouse SOWP only for grad/professional",
+                "Timeline & cap: apply early, PAL allocations can fill",
+                "Next steps & document checklist hand-off"
+              ]
+            },
+            {
+              "heading": "Red lines — flag immediately",
+              "items": [
+                "Funds not liquid / arranged late",
+                "Undisclosed prior refusal",
+                "Program/level mismatch with past study",
+                "Final-term student promising spouse work rights"
+              ]
+            },
+            {
+              "heading": "Close",
+              "items": [
+                "Agree next action + date",
+                "Issue personalised document checklist",
+                "Log counselling note"
+              ]
+            }
+          ],
+          "sourceRefs": [
+            "S1",
+            "S3",
+            "S4",
+            "S6",
+            "S12",
+            "S15"
+          ]
+        }
+      },
+      {
+        "template": "Meeting Checklist",
+        "use": "Structure each session",
+        "stage": "1–2",
+        "fileUrl": "#download-meeting-checklist",
+        "fileType": "PDF/DOCX (to be uploaded)",
+        "content": {
+          "intro": "Tick-list to structure each counselling meeting (stages 1–2).",
+          "sections": [
+            {
+              "heading": "Agenda covered",
+              "items": [
+                "Profile & goals captured",
+                "Country/course fit confirmed",
+                "Eligibility snapshot done",
+                "Budget walked through (govt + living + FLC fees separated)",
+                "Work rights explained (student vs spouse)",
+                "Timeline & cap explained",
+                "Expectations set honestly"
+              ]
+            },
+            {
+              "heading": "Actions agreed",
+              "items": [
+                "Documents requested from client",
+                "Next meeting date set",
+                "Counselling note logged"
+              ]
+            }
+          ],
+          "sourceRefs": [
+            "S1",
+            "S7"
+          ]
+        }
+      },
+      {
+        "template": "Budget Planner",
+        "use": "Cost planning",
+        "stage": "3",
+        "fileUrl": "#download-budget-planner",
+        "fileType": "PDF/DOCX (to be uploaded)",
+        "content": {
+          "intro": "Estimate the full first-year cost (excluding tuition). CAD figures confirm-current on canada.ca; INR auto-computed from Currency Master.",
+          "sections": [
+            {
+              "heading": "Government & visa fees",
+              "items": [
+                "Study permit application fee — CAD $150",
+                "Biometrics — CAD $85",
+                "Government subtotal — CAD $235 (single)"
+              ]
+            },
+            {
+              "heading": "Third-party / pre-application",
+              "items": [
+                "Medical exam (if required) — CAD $200–400",
+                "Language test — CAD $250–320",
+                "GIC (if SDS, refundable) — CAD $20,635",
+                "VAC service charge — CAD $45–75"
+              ]
+            },
+            {
+              "heading": "Living (proof + real cost)",
+              "items": [
+                "Proof of funds (IRCC, 1 person) — CAD $22,895/yr",
+                "Accommodation — CAD $700–1,600/mo",
+                "Food & personal — CAD $300–550/mo",
+                "Health insurance — CAD $600–900/yr"
+              ]
+            },
+            {
+              "heading": "Travel & settling-in",
+              "items": [
+                "Airfare — CAD $700–1,200",
+                "Settling-in + emergency buffer — CAD $1,500–2,500"
+              ]
+            },
+            {
+              "heading": "Estimated total (excl. tuition)",
+              "items": [
+                "CAD $30,000–38,000 (≈ ₹18.6 L–23.6 L) — verify living amount on canada.ca"
+              ]
+            }
+          ],
+          "sourceRefs": [
+            "S6",
+            "S11",
+            "S3"
+          ]
+        }
+      },
+      {
+        "template": "Document Checklist (FLC)",
+        "use": "Track file completeness",
+        "stage": "7–11",
+        "fileUrl": "#download-document-checklist-flc",
+        "fileType": "PDF/DOCX (to be uploaded)",
+        "content": {
+          "intro": "Suggested documents by category — tailored to the client on enrolment. Not all compulsory.",
+          "sections": [
+            {
+              "heading": "Identity — Core",
+              "items": [
+                "Passport (all used pages + bio page)",
+                "National ID",
+                "Passport-size photographs (IRCC spec)",
+                "Birth certificate"
+              ]
+            },
+            {
+              "heading": "Academic — Core",
+              "items": [
+                "10th grade certificate & marksheet",
+                "12th grade certificate & marksheet",
+                "Graduation/diploma degree",
+                "Consolidated transcripts / marksheets",
+                "Backlog / migration / provisional certificate (if applicable)",
+                "English test result (IELTS/PTE/TOEFL)"
+              ]
+            },
+            {
+              "heading": "Admission — Core",
+              "items": [
+                "Letter of Acceptance (LOA) from a DLI",
+                "PAL/TAL (or exemption proof)",
+                "Tuition fee payment receipt",
+                "Quebec CAQ (if studying in Quebec)"
+              ]
+            },
+            {
+              "heading": "Financial / Proof of funds — Core",
+              "items": [
+                "Bank statements (last 4–6 months)",
+                "GIC certificate (if SDS)",
+                "Education loan sanction letter",
+                "Scholarship letter (if any)",
+                "Sponsor affidavit + relationship proof (if sponsored)",
+                "Income tax returns / Form 16",
+                "Proof of liquid assets / FDs"
+              ]
+            },
+            {
+              "heading": "Employment proof (if working) — If applicable",
+              "items": [
+                "Employment / appointment letter",
+                "Recent salary slips (3–6 months)",
+                "Experience / relieving letters",
+                "Employer ID / business card"
+              ]
+            },
+            {
+              "heading": "Business proof (if self-employed) — If applicable",
+              "items": [
+                "Business registration / license",
+                "GST / tax registration",
+                "Business bank statements",
+                "Office address proof",
+                "Company profile / brochure",
+                "Audited financials / ITR"
+              ]
+            },
+            {
+              "heading": "Marriage / relationship proof (if spouse involved) — If applicable",
+              "items": [
+                "Marriage certificate",
+                "Wedding photographs",
+                "Communication / chat history",
+                "Joint address / utility proof",
+                "Joint bank account (if any)",
+                "Invitation cards"
+              ]
+            },
+            {
+              "heading": "Study plan / intent — Core",
+              "items": [
+                "Statement of Purpose (SOP)",
+                "Gap explanation letter (if applicable)",
+                "Career progression / future plan note"
+              ]
+            },
+            {
+              "heading": "Supporting (conditional) — If applicable",
+              "items": [
+                "Medical exam confirmation (if required)",
+                "Biometrics receipt",
+                "Prior visa refusal disclosure (if any)",
+                "Custodianship declaration (minors)"
+              ]
+            }
+          ],
+          "sourceRefs": [
+            "S2",
+            "S9",
+            "S3"
+          ]
+        }
+      },
+      {
+        "template": "Arrival Checklist",
+        "use": "Port-of-entry readiness",
+        "stage": "Travel",
+        "fileUrl": "#download-arrival-checklist",
+        "fileType": "PDF/DOCX (to be uploaded)",
+        "content": {
+          "intro": "Port-of-entry readiness — what the student carries and does on arrival.",
+          "sections": [
+            {
+              "heading": "Carry in hand luggage (originals)",
+              "items": [
+                "Passport with valid visa/eTA",
+                "POE letter of introduction",
+                "Letter of Acceptance (LOA)",
+                "Proof of funds documents",
+                "PAL/TAL (or exemption)",
+                "Tuition payment receipt",
+                "Medical exam confirmation (if applicable)",
+                "Accommodation details"
+              ]
+            },
+            {
+              "heading": "At the port of entry",
+              "items": [
+                "Present documents to the officer",
+                "Answer study-plan questions honestly",
+                "Receive printed study permit — check name, DLI, conditions, expiry",
+                "Confirm work conditions are printed if you'll work"
+              ]
+            },
+            {
+              "heading": "First 48 hours",
+              "items": [
+                "Activate SIM / connectivity",
+                "Confirm accommodation",
+                "Note campus international-student office hours"
+              ]
+            }
+          ],
+          "sourceRefs": [
+            "S17",
+            "S2"
+          ]
+        }
+      },
+      {
+        "template": "Settlement Planner",
+        "use": "First-30-days",
+        "stage": "Settlement",
+        "fileUrl": "#download-settlement-planner",
+        "fileType": "PDF/DOCX (to be uploaded)",
+        "content": {
+          "intro": "Practical settling-in plan for the first month in Canada.",
+          "sections": [
+            {
+              "heading": "Week 1",
+              "items": [
+                "Apply for a SIN (needed to work)",
+                "Open a Canadian bank account",
+                "Register at campus international student office",
+                "Set up a phone plan"
+              ]
+            },
+            {
+              "heading": "Week 2–3",
+              "items": [
+                "Confirm health coverage / insurance (province-specific)",
+                "Set up transit pass",
+                "Learn campus & local essentials"
+              ]
+            },
+            {
+              "heading": "Week 4",
+              "items": [
+                "Review budget vs actual spend",
+                "Understand work rules before any job (24 hrs/week in term)",
+                "Connect with student community / alumni"
+              ]
+            }
+          ],
+          "sourceRefs": [
+            "S18",
+            "S22",
+            "S12",
+            "S19"
+          ]
+        }
+      },
+      {
+        "template": "Packing Checklist",
+        "use": "Pre-departure",
+        "stage": "Travel",
+        "fileUrl": "#download-packing-checklist",
+        "fileType": "PDF/DOCX (to be uploaded)",
+        "content": {
+          "intro": "What to pack before leaving for Canada.",
+          "sections": [
+            {
+              "heading": "Documents (carry-on, originals)",
+              "items": [
+                "Passport + visa/eTA",
+                "POE letter",
+                "LOA + tuition receipt",
+                "Proof of funds",
+                "PAL/TAL",
+                "Medical & vaccination records",
+                "Passport photos",
+                "Driving licence / IDP (if applicable)"
+              ]
+            },
+            {
+              "heading": "Money & essentials",
+              "items": [
+                "CAD cash + forex card",
+                "Prescription medicines + doctor's note",
+                "Universal adapter (Canada: Type A/B, 120V)"
+              ]
+            },
+            {
+              "heading": "Clothing & climate",
+              "items": [
+                "Warm layers / winter jacket (check arrival season)",
+                "Comfortable footwear",
+                "Weather-appropriate clothing for your city"
+              ]
+            }
+          ],
+          "sourceRefs": [
+            "S17"
+          ]
+        }
+      },
+      {
+        "template": "Free Guide (Client-facing)",
+        "use": "Share with enquiries — convert leads",
+        "stage": "Enquiry",
+        "audience": "Client / prospect",
+        "fileUrl": "#download-free-guide",
+        "fileType": "Branded HTML / PDF (shareable link)",
+        "standaloneFile": "canada-student-visa-free-guide-SAMPLE.html",
+        "content": {
+          "intro": "A client-facing starter guide on the Canada study permit — basic but credible, branded with FLC header/footer, RCIC & AIRC credentials, offices (India/Canada/USA), phone numbers, and the 29-country strip. Share as a link (recommended) or downloadable PDF to convert enquiries.",
+          "sections": [
+            {
+              "heading": "Essentials at a glance",
+              "items": [
+                "Proof of funds (living): CAD $22,895 — single, outside Quebec",
+                "Government fees: CAD $235 (study permit $150 + biometrics $85)",
+                "Processing (India): ~4 weeks (Jun 2026; IRCC updates weekly)",
+                "Work while studying: 24 hrs/week off-campus in term, full-time in breaks"
+              ]
+            },
+            {
+              "heading": "Who can apply",
+              "items": [
+                "Letter of Acceptance from a DLI",
+                "Proof of funds (living + tuition + travel)",
+                "PAL/TAL if required (Master's/PhD at public DLIs exempt)",
+                "Genuine student intent",
+                "Medical & police certificate where required"
+              ]
+            },
+            {
+              "heading": "Documents overview",
+              "items": [
+                "Identity · Admission · Financial · Academic · Study plan · Conditional (medical/biometrics/police)"
+              ]
+            },
+            {
+              "heading": "The journey (5 steps)",
+              "items": [
+                "Counselling & course selection",
+                "Admission (LOA + PAL/TAL)",
+                "Funds & documents",
+                "Apply to IRCC (fees, biometrics, medical)",
+                "Decision & travel (permit at port of entry)"
+              ]
+            },
+            {
+              "heading": "Why Future Link / contact",
+              "items": [
+                "25+ years; RCIC & AIRC; 29 countries",
+                "Offices: India · Canada · USA",
+                "India +91 99982 24688 · Canada +1 416 294 2739",
+                "Book a free counselling session"
+              ]
+            }
+          ],
+          "sourceRefs": [
+            "S3",
+            "S6",
+            "S7",
+            "S12"
+          ],
+          "note": "Client-facing — verify figures on canada.ca before sharing; includes 'not affiliated with government' disclaimer."
+        }
+      }
+    ]
+  },
+  "counsellingJourney": {
+    "note": "Counsellor responsibility at each stage; official steps linked.",
+    "stages": [
+      {
+        "no": 1,
+        "stage": "Initial enquiry"
+      },
+      {
+        "no": 2,
+        "stage": "Counselling"
+      },
+      {
+        "no": 3,
+        "stage": "Country selection"
+      },
+      {
+        "no": 4,
+        "stage": "Institution selection (verify DLI)"
+      },
+      {
+        "no": 5,
+        "stage": "Program selection (PGWP aware)"
+      },
+      {
+        "no": 6,
+        "stage": "Admission / LOA"
+      },
+      {
+        "no": 7,
+        "stage": "Funds planning"
+      },
+      {
+        "no": 8,
+        "stage": "PAL/TAL"
+      },
+      {
+        "no": 9,
+        "stage": "Visa submission (IRCC)"
+      },
+      {
+        "no": 10,
+        "stage": "Biometrics"
+      },
+      {
+        "no": 11,
+        "stage": "Medical (if required)"
+      },
+      {
+        "no": 12,
+        "stage": "Decision"
+      },
+      {
+        "no": 13,
+        "stage": "Travel / arrival"
+      },
+      {
+        "no": 14,
+        "stage": "Settlement"
+      },
+      {
+        "no": 15,
+        "stage": "Future applications"
+      }
+    ]
+  },
+  "familyGuide": {
+    "note": "Family rights are IRCC-governed — summarise & link.",
+    "sourceRefs": [
+      {
+        "id": "S3",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents/financial-support.html"
+      }
+    ],
+    "topics": [
+      {
+        "topic": "Spouse / partner work options",
+        "framing": "Eligibility narrowed; depends on study level",
+        "source": "S15"
+      },
+      {
+        "topic": "Children accompanying",
+        "framing": "Each member adds to funds chart",
+        "source": "S3"
+      },
+      {
+        "topic": "Healthcare",
+        "framing": "Province-specific",
+        "source": "S22"
+      }
+    ]
+  },
+  "settlementGuide": {
+    "note": "Practical first-weeks orientation.",
+    "items": [
+      {
+        "item": "SIN",
+        "guidance": "Needed to work",
+        "source": "S18"
+      },
+      {
+        "item": "Banking",
+        "guidance": "Open account early"
+      },
+      {
+        "item": "Healthcare",
+        "guidance": "Province-specific registration/insurance",
+        "source": "S22"
+      },
+      {
+        "item": "Taxes",
+        "guidance": "Newcomer basics",
+        "source": "S19"
+      }
+    ]
+  },
+  "changelog": [
+    {
+      "version": "v3.0",
+      "date": "29 Jun 2026",
+      "author": "Knowledge Team",
+      "summary": "Merged operational structure with source-linking model: added Sources tab, refreshed cost planning to current official figures with a total estimate range + verify link, added official Visa Forms (Guide 5269), working Downloads, counselling journey/family/settlement. Approval-rate KPI omitted pending verified data; proof of funds updated to CAD $22,895; off-campus work 24 hrs/week."
+    },
+    {
+      "version": "v2.1",
+      "date": "17 Jun 2026",
+      "author": "Service Library",
+      "summary": "Gold-standard content pass: replaced template FAQs, expanded eligibility document guidance, practical red flags, pro tips, timeline, and IRCC resources for first-time outside-Canada applicants."
+    },
+    {
+      "version": "v2.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Added 75 levelled quiz questions (Level 1–3, 25+ each) and expanded counselor content."
+    },
+    {
+      "version": "v2.4",
+      "date": "4 Jun 2026",
+      "author": "Service Library",
+      "summary": "Updated fees note, SDS check reminder, expanded red flags and FAQs."
+    },
+    {
+      "version": "v2.3",
+      "date": "28 May 2025",
+      "author": "Admin",
+      "summary": "Government fee and processing time review."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "17 Jun 2026",
+      "text": "SDS: confirm country of residence on IRCC SDS page before promising fast processing. GIC must be from an IRCC-listed bank. Non-SDS: prioritize seasoned funds narrative and sponsor ITR alignment."
+    },
+    {
+      "author": "Quality",
+      "date": "17 Jun 2026",
+      "text": "Mandatory second review for any prior Canada/US/UK/Australia refusal. Cross-check IMM 1294 dates against resume and SOP before upload."
+    }
+  ],
+  "resources": [
+    {
+      "title": "IRCC — Study permit (apply from outside Canada)",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit.html",
+      "description": "Official eligibility, how to apply online, document checklist, and after-you-apply steps for first-time study permit applicants"
+    },
+    {
+      "title": "Designated Learning Institutions (DLI) list",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/prepare/designated-learning-institutions-list.html",
+      "description": "Verify the college/university DLI number before accepting fees—only DLIs can support a study permit"
+    },
+    {
+      "title": "Student Direct Stream (SDS) eligibility",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/student-direct-stream.html",
+      "description": "Country list, language scores, GIC, tuition payment, and medical requirements for SDS study permits"
+    },
+    {
+      "title": "IRCC study permit fees",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/fees.html",
+      "description": "Current study permit and biometrics fees—verify before every client quote"
+    },
+    {
+      "title": "IRCC processing times (study permit)",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html",
+      "description": "Select study permit and client's country of residence for realistic timeline counseling"
+    },
+    {
+      "title": "Work while studying & PGWP overview",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work.html",
+      "description": "On-campus/off-campus work rules during studies and link to post-graduation work permit information"
+    }
+  ],
+  "sources": [
+    {
+      "id": "S1",
+      "authority": "IRCC",
+      "page": "Study permit: About",
+      "category": "Immigration",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit.html",
+      "reason": "Core authority & scope"
+    },
+    {
+      "id": "S2",
+      "authority": "IRCC",
+      "page": "Get the right documents",
+      "category": "Documents",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents.html",
+      "reason": "Official required-documents list"
+    },
+    {
+      "id": "S3",
+      "authority": "IRCC",
+      "page": "Proof of financial support",
+      "category": "Proof of funds",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents/financial-support.html",
+      "reason": "Current proof-of-funds (CAD $22,895 single)"
+    },
+    {
+      "id": "S4",
+      "authority": "IRCC",
+      "page": "Provincial/Territorial Attestation Letter",
+      "category": "PAL/TAL",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents/provincial-attestation-letter.html",
+      "reason": "Who needs a PAL/TAL; grad exempt 1 Jan 2026"
+    },
+    {
+      "id": "S5",
+      "authority": "IRCC",
+      "page": "Designated learning institutions list",
+      "category": "Institution",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/prepare/designated-learning-institutions-list.html",
+      "reason": "Verify the school is a DLI"
+    },
+    {
+      "id": "S6",
+      "authority": "IRCC",
+      "page": "Pay your fees / fee list",
+      "category": "Government fees",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/account/fees.html",
+      "reason": "Current application & biometric fees"
+    },
+    {
+      "id": "S7",
+      "authority": "IRCC",
+      "page": "Check processing times",
+      "category": "Processing times",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html",
+      "reason": "Live processing-time estimates"
+    },
+    {
+      "id": "S8",
+      "authority": "IRCC",
+      "page": "Sign in / apply (GCKey)",
+      "category": "Application",
+      "url": "https://www.canada.ca/en/government/sign-in-online-account.html",
+      "reason": "Official application channel"
+    },
+    {
+      "id": "S9",
+      "authority": "IRCC",
+      "page": "Guide 5269 — study permit (outside Canada)",
+      "category": "Application",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/guide-5269-applying-study-permit-outside-canada.html",
+      "reason": "Official guide + forms list"
+    },
+    {
+      "id": "S10",
+      "authority": "IRCC",
+      "page": "Medical exams",
+      "category": "Medical",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/prepare/medical-exam.html",
+      "reason": "When a medical exam is required"
+    },
+    {
+      "id": "S11",
+      "authority": "IRCC",
+      "page": "Biometrics",
+      "category": "Biometrics",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html",
+      "reason": "Biometrics fee & 10-yr validity"
+    },
+    {
+      "id": "S12",
+      "authority": "IRCC",
+      "page": "Work off campus",
+      "category": "Work rights",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work/work-off-campus.html",
+      "reason": "Up to 24 hrs/week in term"
+    },
+    {
+      "id": "S13",
+      "authority": "IRCC",
+      "page": "Student Direct Stream (SDS)",
+      "category": "SDS",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/student-direct-stream.html",
+      "reason": "SDS eligibility / GIC"
+    },
+    {
+      "id": "S14",
+      "authority": "IRCC",
+      "page": "Post-Graduation Work Permit (PGWP)",
+      "category": "Future pathway",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work/after-graduation.html",
+      "reason": "Post-study work rules"
+    },
+    {
+      "id": "S15",
+      "authority": "IRCC",
+      "page": "Spouse/partner work permit",
+      "category": "Family",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/eligibility/spouse-common-law-partner.html",
+      "reason": "Spouse open-work-permit eligibility"
+    },
+    {
+      "id": "S16",
+      "authority": "IRCC",
+      "page": "Study in Quebec (CAQ)",
+      "category": "Quebec",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/quebec.html",
+      "reason": "Quebec requires a CAQ"
+    },
+    {
+      "id": "S17",
+      "authority": "IRCC",
+      "page": "Prepare for arrival",
+      "category": "Arrival",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/prepare-arrival.html",
+      "reason": "Permit issued at port of entry"
+    },
+    {
+      "id": "S18",
+      "authority": "Service Canada",
+      "page": "Social Insurance Number (SIN)",
+      "category": "Settlement",
+      "url": "https://www.canada.ca/en/employment-social-development/services/sin.html",
+      "reason": "SIN needed to work"
+    },
+    {
+      "id": "S19",
+      "authority": "CRA",
+      "page": "Newcomers to Canada (taxes)",
+      "category": "Taxes",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/international-non-residents/individuals-leaving-entering-canada-non-residents/newcomers-canada-immigrants.html",
+      "reason": "Tax basics"
+    },
+    {
+      "id": "S20",
+      "authority": "IRCC",
+      "page": "International student program / cap",
+      "category": "Cap",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents/provincial-attestation-letter.html",
+      "reason": "Cap context"
+    },
+    {
+      "id": "S21",
+      "authority": "IRCC",
+      "page": "Find application forms & guides",
+      "category": "Forms",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides.html",
+      "reason": "Official IRCC forms library"
+    },
+    {
+      "id": "S22",
+      "authority": "IRCC",
+      "page": "Health care for newcomers",
+      "category": "Healthcare",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/new-immigrants/new-life-canada/health-care-card.html",
+      "reason": "Provincial coverage varies"
+    }
+  ],
+  "versionControl": {
+    "version": "v3.0",
+    "lastReviewed": "29 Jun 2026",
+    "nextReview": "31 Dec 2026",
+    "reviewedBy": "Future Link Knowledge Team",
+    "governmentSource": "canada.ca / IRCC (see Sources tab)",
+    "confidence": "High — official facts linked & verified current on 29 Jun 2026; approval-rate KPI omitted pending verified internal data."
+  },
+  "documentBinder": {
+    "note": "Suggested document sets by category — NOT compulsory. This is the starting binder used to build a complete visa file; the list is tailored to each client on enrolment. Acceptable proof is defined by IRCC — confirm on the official document pages.",
+    "howItWorks": "On enrolment, the counsellor keeps the categories relevant to the client's profile (e.g. Employment for a working applicant, Business proof for self-employed, Marriage/relationship proof if a spouse is involved) and removes the rest.",
+    "sourceRefs": [
+      {
+        "id": "S2",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents.html"
+      },
+      {
+        "id": "S9",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/guide-5269-applying-study-permit-outside-canada.html"
+      }
+    ],
+    "categories": [
+      {
+        "category": "Identity",
+        "required": "Core",
+        "sourceRefs": [
+          {
+            "id": "S2",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents.html"
+          }
+        ],
+        "items": [
+          "Passport (all used pages + bio page)",
+          "National ID",
+          "Passport-size photographs (IRCC spec)",
+          "Birth certificate"
+        ]
+      },
+      {
+        "category": "Academic",
+        "required": "Core",
+        "sourceRefs": [
+          {
+            "id": "S2",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents.html"
+          }
+        ],
+        "items": [
+          "10th grade certificate & marksheet",
+          "12th grade certificate & marksheet",
+          "Graduation/diploma degree",
+          "Consolidated transcripts / marksheets",
+          "Backlog / migration / provisional certificate (if applicable)",
+          "English test result (IELTS/PTE/TOEFL)"
+        ]
+      },
+      {
+        "category": "Admission",
+        "required": "Core",
+        "sourceRefs": [
+          {
+            "id": "S2",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents.html"
+          },
+          {
+            "id": "S5",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/prepare/designated-learning-institutions-list.html"
+          }
+        ],
+        "items": [
+          "Letter of Acceptance (LOA) from a DLI",
+          "PAL/TAL (or exemption proof)",
+          "Tuition fee payment receipt",
+          "Quebec CAQ (if studying in Quebec)"
+        ]
+      },
+      {
+        "category": "Financial / Proof of funds",
+        "required": "Core",
+        "sourceRefs": [
+          {
+            "id": "S3",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents/financial-support.html"
+          }
+        ],
+        "items": [
+          "Bank statements (last 4–6 months)",
+          "GIC certificate (if SDS)",
+          "Education loan sanction letter",
+          "Scholarship letter (if any)",
+          "Sponsor affidavit + relationship proof (if sponsored)",
+          "Income tax returns / Form 16",
+          "Proof of liquid assets / FDs"
+        ]
+      },
+      {
+        "category": "Employment proof (if working)",
+        "required": "If applicable",
+        "sourceRefs": [
+          {
+            "id": "S2",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents.html"
+          }
+        ],
+        "items": [
+          "Employment / appointment letter",
+          "Recent salary slips (3–6 months)",
+          "Experience / relieving letters",
+          "Employer ID / business card"
+        ]
+      },
+      {
+        "category": "Business proof (if self-employed)",
+        "required": "If applicable",
+        "sourceRefs": [
+          {
+            "id": "S2",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents.html"
+          }
+        ],
+        "items": [
+          "Business registration / license",
+          "GST / tax registration",
+          "Business bank statements",
+          "Office address proof",
+          "Company profile / brochure",
+          "Audited financials / ITR"
+        ]
+      },
+      {
+        "category": "Marriage / relationship proof (if spouse involved)",
+        "required": "If applicable",
+        "sourceRefs": [
+          {
+            "id": "S15",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/eligibility/spouse-common-law-partner.html"
+          }
+        ],
+        "items": [
+          "Marriage certificate",
+          "Wedding photographs",
+          "Communication / chat history",
+          "Joint address / utility proof",
+          "Joint bank account (if any)",
+          "Invitation cards"
+        ]
+      },
+      {
+        "category": "Study plan / intent",
+        "required": "Core",
+        "sourceRefs": [
+          {
+            "id": "S1",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit.html"
+          }
+        ],
+        "items": [
+          "Statement of Purpose (SOP)",
+          "Gap explanation letter (if applicable)",
+          "Career progression / future plan note"
+        ]
+      },
+      {
+        "category": "Supporting (conditional)",
+        "required": "If applicable",
+        "sourceRefs": [
+          {
+            "id": "S10",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/prepare/medical-exam.html"
+          },
+          {
+            "id": "S11",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html"
+          }
+        ],
+        "items": [
+          "Medical exam confirmation (if required)",
+          "Biometrics receipt",
+          "Prior visa refusal disclosure (if any)",
+          "Custodianship declaration (minors)"
+        ]
+      }
+    ]
+  },
+  "currencyConfig": {
+    "baseCurrency": "CAD",
+    "displayCurrency": "INR",
+    "source": "Currency Master",
+    "autoFetch": true,
+    "rateField": "effectiveRate",
+    "fallbackRate": 69.59,
+    "fallbackAsOf": "29 Jun 2026",
+    "note": "INR values are computed at render time from Currency Master (CAD effective rate). Do not hardcode INR; fetch the live rate so cost planning always matches the CRM."
+  },
+  "navigation": [
+    {
+      "key": "overview",
+      "label": "Overview",
+      "sectionType": "overview",
+      "dataKey": "about",
+      "applicable": true
+    },
+    {
+      "key": "eligibility",
+      "label": "Eligibility",
+      "sectionType": "criteria-list",
+      "dataKey": "eligibility",
+      "applicable": true
+    },
+    {
+      "key": "cost",
+      "label": "Cost Planning",
+      "sectionType": "cost-breakdown",
+      "dataKey": "fullCostBreakdown",
+      "applicable": true
+    },
+    {
+      "key": "checklist",
+      "label": "Checklist",
+      "sectionType": "checklist",
+      "dataKey": "checklistItems",
+      "applicable": true
+    },
+    {
+      "key": "binder",
+      "label": "Document Binder",
+      "sectionType": "document-binder",
+      "dataKey": "documentBinder",
+      "applicable": true
+    },
+    {
+      "key": "visaforms",
+      "label": "Visa Forms",
+      "sectionType": "forms-table",
+      "dataKey": "visaForms",
+      "applicable": true
+    },
+    {
+      "key": "process",
+      "label": "Process",
+      "sectionType": "timeline",
+      "dataKey": "timeline",
+      "applicable": true
+    },
+    {
+      "key": "working",
+      "label": "Working Rights",
+      "sectionType": "working-rights",
+      "dataKey": "workingRights",
+      "applicable": true
+    },
+    {
+      "key": "dos",
+      "label": "Do's & Don'ts",
+      "sectionType": "dos-donts",
+      "dataKey": "donts",
+      "applicable": true
+    },
+    {
+      "key": "redflags",
+      "label": "Red Flags",
+      "sectionType": "red-flags",
+      "dataKey": "redFlags",
+      "applicable": true
+    },
+    {
+      "key": "faqs",
+      "label": "FAQs",
+      "sectionType": "faqs",
+      "dataKey": "faqs",
+      "applicable": true
+    },
+    {
+      "key": "compliance",
+      "label": "Compliance",
+      "sectionType": "list",
+      "dataKey": "compliance",
+      "applicable": true
+    },
+    {
+      "key": "downloads",
+      "label": "Downloads",
+      "sectionType": "downloads",
+      "dataKey": "downloads",
+      "applicable": true
+    },
+    {
+      "key": "sampledocs",
+      "label": "Sample Docs",
+      "sectionType": "sample-docs",
+      "dataKey": "sampleDocs",
+      "applicable": true
+    },
+    {
+      "key": "quiz",
+      "label": "Quiz",
+      "sectionType": "quiz",
+      "dataKey": "quiz",
+      "applicable": true
+    },
+    {
+      "key": "related",
+      "label": "Related",
+      "sectionType": "related",
+      "dataKey": "relatedServices",
+      "applicable": true
+    },
+    {
+      "key": "sources",
+      "label": "Sources",
+      "sectionType": "sources",
+      "dataKey": "sources",
+      "applicable": true
+    }
+  ],
+  "checklistItems": {
+    "note": "Core document set (typically 12–18 by profile). Verify each on the official list.",
+    "items": [
+      "Passport (valid for stay)",
+      "Letter of Acceptance from a DLI",
+      "PAL/TAL or exemption proof",
+      "Proof of funds (CAD $22,895 + tuition + travel)",
+      "Statement of Purpose / study plan",
+      "Academic transcripts & certificates",
+      "Language test result",
+      "Passport photos (IRCC spec)",
+      "Medical exam confirmation (if required)",
+      "Quebec CAQ (if applicable)",
+      "Completed IMM 1294 + IMM 5707",
+      "Document Checklist IMM 5483"
+    ],
+    "sourceRefs": [
+      {
+        "id": "S2",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents.html"
+      },
+      {
+        "id": "S9",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/guide-5269-applying-study-permit-outside-canada.html"
+      }
+    ]
+  },
+  "navigationModel": {
+    "model": "data-driven",
+    "states": [
+      "applicable (render)",
+      "omitted (not present — leave the entry out of navigation)"
+    ],
+    "flagConvention": "Where a section's ABSENCE could mislead (legal/counselling risk), keep the section and set its body to a status flag — flagStatus: 'Not Allowed' | 'Not Eligible' | 'Not Applicable' with a reason. Otherwise omit the section entirely.",
+    "example": "Visitor Visa → Working Rights stays with flagStatus 'Not Allowed' (important); Visitor Visa → Admission is omitted (irrelevant)."
   }
 }

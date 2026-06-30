@@ -1,8 +1,25 @@
 import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
 import { validateKnowledgeCentreJson } from "./validateKnowledgeCentreJson";
-import { resolveKnowledgeCentreNavigation, sectionHasContent } from "./resolveKnowledgeCentreNavigation";
+import {
+  resolveKnowledgeCentreNavigation,
+  resolveKnowledgeCentreTabLabel,
+  sectionHasContent,
+} from "./resolveKnowledgeCentreNavigation";
 import type { KnowledgeCentreMetadata } from "./types";
 import type { AcademyViewModel } from "../buildAcademyViewModel";
+import { isFlcKnowledgeGuide } from "../knowledgeGuide/types";
+import { normalizeKnowledgeGuide } from "../knowledgeGuide/normalizeKnowledgeGuide";
+
+const canadaFixturePath = path.resolve(
+  process.cwd(),
+  "content/service-library/canada-student-visa.json",
+);
+
+function loadCanadaFixture(): KnowledgeCentreMetadata {
+  return JSON.parse(fs.readFileSync(canadaFixturePath, "utf8")) as KnowledgeCentreMetadata;
+}
 
 const baseCanadaMeta = (): KnowledgeCentreMetadata => ({
   schemaVersion: "1.0",
@@ -81,26 +98,45 @@ function minimalView(overrides: Partial<AcademyViewModel> = {}): AcademyViewMode
     testDayGuide: null,
     documentStructure: null,
     knowledgeCentreMeta: null,
+    guideSources: [],
+    downloadTemplates: [],
+    checklistGuide: null,
+    documentBinder: null,
     ...overrides,
   };
 }
 
 describe("validateKnowledgeCentreJson", () => {
-  it("accepts valid schemaVersion 1.0 payload", () => {
+  it("accepts valid legacy schemaVersion 1.0 payload", () => {
     const result = validateKnowledgeCentreJson(baseCanadaMeta());
     expect(result.ok).toBe(true);
     expect(result.schemaVersion).toBe("1.0");
     expect(result.issues).toHaveLength(0);
   });
 
-  it("rejects schemaVersion 1.0 without navigation.sections", () => {
+  it("accepts Canada ZIP fixture with schemaRef", () => {
+    const meta = loadCanadaFixture();
+    expect(isFlcKnowledgeGuide(meta)).toBe(true);
+    const result = validateKnowledgeCentreJson(meta, { requireSchemaVersion: true });
+    expect(result.ok).toBe(true);
+    expect(result.schemaRef).toBe("flc-knowledge-guide-schema-v1.0");
+  });
+
+  it("rejects schemaVersion 1.0 without navigation.sections (legacy)", () => {
     const meta = { ...baseCanadaMeta(), navigation: { sections: [] } };
     const result = validateKnowledgeCentreJson(meta);
     expect(result.ok).toBe(false);
     expect(result.issues.some((i) => i.path === "navigation.sections")).toBe(true);
   });
 
-  it("rejects invalid section id", () => {
+  it("rejects ZIP guide without schemaRef on strict import", () => {
+    const meta = loadCanadaFixture();
+    delete (meta as Record<string, unknown>).schemaRef;
+    const result = validateKnowledgeCentreJson(meta, { requireSchemaVersion: true });
+    expect(result.ok).toBe(false);
+  });
+
+  it("rejects invalid legacy section id", () => {
     const meta = {
       ...baseCanadaMeta(),
       navigation: { sections: [{ id: "not-a-tab" }] },
@@ -129,8 +165,23 @@ describe("validateKnowledgeCentreJson", () => {
   });
 });
 
+describe("normalizeKnowledgeGuide", () => {
+  it("detects ZIP guide by schemaRef", () => {
+    const normalized = normalizeKnowledgeGuide(loadCanadaFixture());
+    expect(normalized.kind).toBe("zip");
+    if (normalized.kind === "zip") {
+      expect(normalized.guide.slug).toContain("canada-student-visa");
+    }
+  });
+
+  it("detects legacy KC navigation.sections", () => {
+    const normalized = normalizeKnowledgeGuide(baseCanadaMeta());
+    expect(normalized.kind).toBe("legacy-kc");
+  });
+});
+
 describe("resolveKnowledgeCentreNavigation", () => {
-  it("returns tabs in navigation order with content only", () => {
+  it("returns tabs in legacy navigation order with content only", () => {
     const meta = baseCanadaMeta();
     const view = minimalView();
     expect(resolveKnowledgeCentreNavigation(meta, view)).toEqual([
@@ -139,6 +190,71 @@ describe("resolveKnowledgeCentreNavigation", () => {
       "faqs",
       "quiz",
     ]);
+  });
+
+  it("resolves Canada ZIP navigation keys to academy tabs", () => {
+    const meta = loadCanadaFixture();
+    const view = minimalView({
+      checklistGuide: { items: meta.checklistItems?.items ?? [] },
+      visaForms: (meta.visaForms?.forms ?? []).map((f, i) => ({
+        id: f.code || String(i),
+        code: f.code,
+        title: f.name,
+        url: f.url,
+        isOnline: true,
+      })),
+      faqs: meta.faqs ?? [],
+      redFlags: (meta.redFlags ?? []).map((r, i) => ({
+        num: i + 1,
+        title: r.title,
+        description: r.description ?? "",
+        fix: r.fix,
+        severity: r.severity ?? "Common",
+      })),
+      quiz: meta.quiz ?? [],
+      fullCostBreakdown: meta.fullCostBreakdown ?? null,
+      countryInsights: {},
+      guideSources: meta.sources ?? [],
+      downloadTemplates: meta.downloads?.templates ?? [],
+      documentBinder: meta.documentBinder ?? null,
+      dosDonts: {
+        dos: meta.donts?.dos ?? [],
+        donts: meta.donts?.donts ?? [],
+        mistakes: meta.donts?.mistakes ?? [],
+      },
+      compliance: meta.compliance ?? [],
+      sampleDocs: (meta.sampleDocs?.items ?? []).map((d) => ({
+        title: d.title,
+        isImage: false,
+      })),
+      process: (meta.timeline ?? []).map((t, i) => ({
+        step: i + 1,
+        title: t.title,
+        duration: t.weeks,
+        owner: "Counselor",
+      })),
+      eligibility: (meta.eligibility ?? []).map((e) => ({
+        criterion: e.criterion,
+        met: !!e.met,
+        note: e.note,
+      })),
+    });
+
+    const tabs = resolveKnowledgeCentreNavigation(meta, view);
+    expect(tabs).toContain("overview");
+    expect(tabs).toContain("eligibility");
+    expect(tabs).toContain("fees");
+    expect(tabs).toContain("checklist");
+    expect(tabs).toContain("downloads");
+    expect(tabs).not.toContain("related");
+    expect(tabs).not.toContain("sources");
+    expect(tabs?.indexOf("overview")).toBeLessThan(tabs?.indexOf("eligibility") ?? 0);
+  });
+
+  it("uses ZIP navigation labels via resolveKnowledgeCentreTabLabel", () => {
+    const meta = loadCanadaFixture();
+    expect(resolveKnowledgeCentreTabLabel("fees", meta, "Fees")).toBe("Cost Planning");
+    expect(resolveKnowledgeCentreTabLabel("countryinsights", meta, "Country")).toBe("Working Rights");
   });
 
   it("hides sections without content (no placeholders)", () => {

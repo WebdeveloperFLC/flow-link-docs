@@ -41,6 +41,7 @@ import {
   validateKnowledgeCentreJson,
   type KnowledgeCentreMetadata,
 } from "@/lib/service-library/knowledgeCentre";
+import { isFlcKnowledgeGuide } from "@/lib/service-library/knowledgeGuide/types";
 import type { Master } from "@/lib/serviceLibrary";
 import { ContentSetupSummary } from "@/components/service-library/admin/ContentSetupSummary";
 import { QuizQuestionsEditor } from "@/components/service-library/admin/QuizQuestionsEditor";
@@ -108,7 +109,10 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
     const finalized = finalizeKnowledgeCentreSave(payload as KnowledgeCentreMetadata, {
       author,
       summary: saveSummary,
-      strict: scope === "master" && (payload as KnowledgeCentreMetadata).schemaVersion === "1.0",
+      strict:
+        scope === "master" &&
+        (isFlcKnowledgeGuide(payload) ||
+          (payload as KnowledgeCentreMetadata).schemaVersion === "1.0"),
     });
 
     if (!finalized.ok) {

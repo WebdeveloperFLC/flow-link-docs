@@ -416,6 +416,22 @@ export function ServiceLibraryTabs({
       </TabsContent>
 
       <TabsContent value="checklist" className="space-y-4 mt-0">
+        {view.checklistGuide && view.checklistGuide.items.length > 0 && (
+          <Card className="p-5 shadow-elev-sm">
+            <h3 className="font-semibold mb-2">Core document checklist</h3>
+            {view.checklistGuide.note && (
+              <p className="text-sm text-muted-foreground mb-4">{view.checklistGuide.note}</p>
+            )}
+            <ul className="space-y-2 text-sm">
+              {view.checklistGuide.items.map((item) => (
+                <li key={item} className="flex gap-2">
+                  <span className="text-primary shrink-0">○</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
         {view.isMbbs && view.mbbsMeta?.documentChecklistSections?.length ? (
           <Card className="p-5 shadow-elev-sm border-rose-500/10">
             <h3 className="font-semibold mb-4">Document checklist (admission & visa)</h3>
@@ -719,6 +735,76 @@ export function ServiceLibraryTabs({
       </TabsContent>
 
       <TabsContent value="downloads" className="mt-0 space-y-4">
+        {view.downloadTemplates.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Future Link templates
+            </h3>
+            {view.downloadTemplates.map((t) => (
+              <Card key={t.template} className="p-4 shadow-elev-sm">
+                <div className="font-medium text-sm">{t.template}</div>
+                {(t.use || t.stage) && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {[t.use, t.stage].filter(Boolean).join(" · ")}
+                  </p>
+                )}
+                {t.content?.intro && (
+                  <p className="text-sm text-muted-foreground mt-2">{t.content.intro}</p>
+                )}
+                {t.content?.sections?.map((section) => (
+                  <div key={section.heading} className="mt-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                      {section.heading}
+                    </h4>
+                    <ul className="text-sm space-y-1">
+                      {section.items.map((item) => (
+                        <li key={item} className="flex gap-2">
+                          <span className="text-muted-foreground">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </Card>
+            ))}
+          </div>
+        )}
+        {view.guideSources.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Official sources registry
+            </h3>
+            <div className="rounded-lg border overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40">
+                  <tr>
+                    <th className="text-left p-2 font-medium">ID</th>
+                    <th className="text-left p-2 font-medium">Authority</th>
+                    <th className="text-left p-2 font-medium hidden sm:table-cell">Page</th>
+                    <th className="text-right p-2 font-medium">Link</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {view.guideSources.map((s) => (
+                    <tr key={s.id} className="border-t">
+                      <td className="p-2 font-mono text-xs">{s.id}</td>
+                      <td className="p-2">{s.authority}</td>
+                      <td className="p-2 hidden sm:table-cell text-muted-foreground">{s.page}</td>
+                      <td className="p-2 text-right">
+                        <Button variant="ghost" size="sm" asChild>
+                          <a href={s.url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="size-4" />
+                          </a>
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
         {view.resources.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
@@ -769,7 +855,7 @@ export function ServiceLibraryTabs({
             ))}
           </div>
         )}
-        {!view.resources.length && !view.downloads.length && (
+        {!view.resources.length && !view.downloads.length && !view.downloadTemplates.length && !view.guideSources.length && (
           <Card className="p-5 text-sm text-muted-foreground space-y-2">
             <p>No resources yet for this service.</p>
             <p className="text-xs">
