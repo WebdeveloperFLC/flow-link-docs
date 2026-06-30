@@ -1,4 +1,8 @@
 import { exportAcademyMetadataJson } from "../academyTypes";
+import {
+  applyBinderToDocumentStructure,
+  DEFAULT_DOCUMENT_TYPE_CODES,
+} from "../applyBinderToDocumentStructure";
 import { isFlcKnowledgeGuide } from "../knowledgeGuide/types";
 import { bumpContentVersion, type BumpContentVersionOptions } from "./bumpContentVersion";
 import type { KnowledgeCentreMetadata } from "./types";
@@ -8,6 +12,22 @@ import {
   validateKnowledgeCentreJson,
   type ValidateKnowledgeCentreOptions,
 } from "./validateKnowledgeCentreJson";
+
+/** When FLC guide has documentBinder categories, auto-generate document_structure for metadata only. */
+function withAutoDocumentStructure(meta: KnowledgeCentreMetadata): KnowledgeCentreMetadata {
+  if (!isFlcKnowledgeGuide(meta)) return meta;
+  const binder = meta.documentBinder;
+  if (!binder?.categories?.length) return meta;
+
+  const document_structure = applyBinderToDocumentStructure(
+    binder,
+    meta.document_structure,
+    { catalogueCodes: DEFAULT_DOCUMENT_TYPE_CODES },
+  );
+  if (!document_structure) return meta;
+
+  return { ...meta, document_structure };
+}
 
 export type FinalizeKnowledgeCentreSaveOptions = BumpContentVersionOptions & {
   /** When true, rejects invalid v1 payloads (CRM master saves and imports). */
@@ -36,7 +56,8 @@ export function finalizeKnowledgeCentreSave(
   opts: FinalizeKnowledgeCentreSaveOptions,
 ): FinalizeKnowledgeCentreSaveResult {
   if (isFlcKnowledgeGuide(meta)) {
-    const validation = validateKnowledgeCentreJson(meta, {
+    const withStructure = withAutoDocumentStructure(meta);
+    const validation = validateKnowledgeCentreJson(withStructure, {
       ...opts.validate,
       requireSchemaVersion: true,
     });
@@ -46,8 +67,8 @@ export function finalizeKnowledgeCentreSave(
         message: formatValidationIssues(validation) || "ZIP guide JSON validation failed",
       };
     }
-    const json = exportAcademyMetadataJson(meta);
-    return { ok: true, payload: meta, json };
+    const json = exportAcademyMetadataJson(withStructure);
+    return { ok: true, payload: withStructure, json };
   }
 
   const bumped = bumpContentVersion(meta, opts);

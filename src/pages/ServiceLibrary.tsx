@@ -472,6 +472,7 @@ export default function ServiceLibrary() {
                   canManage={canManage}
                   activeTab={resolvedActiveTab}
                   onTabChange={setActiveTab}
+                  resolvedFullCostBreakdown={detail.data.resolvedFullCostBreakdown ?? undefined}
                   onToggleChecklistItem={toggleSub}
                   onPushChecklist={() => openClientDialog("push")}
                   onDownloadFile={downloadFile}

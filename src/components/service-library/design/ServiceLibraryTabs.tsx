@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { ServiceLibraryQuiz } from "@/components/service-library/design/ServiceLibraryQuiz";
 import { SampleDocSpecimenDialog } from "@/components/service-library/design/SampleDocSpecimenDialog";
 import { ServiceBinderTab } from "@/components/service-library/ServiceBinderTab";
+import { ServiceJsonDocumentBinderTab } from "@/components/service-library/ServiceJsonDocumentBinderTab";
 import { ServiceDocumentStructureTab } from "@/components/service-library/ServiceDocumentStructureTab";
 import { ServiceEligibilityPanel } from "@/components/service-library/ServiceEligibilityPanel";
 import { ServiceFeeBreakdownPanel } from "@/components/service-library/design/ServiceFeeBreakdownPanel";
@@ -38,6 +39,7 @@ import { ServiceMbbsPracticePanel } from "@/components/service-library/design/Se
 import { ServiceMbbsFamilyPanel } from "@/components/service-library/design/ServiceMbbsFamilyPanel";
 import { ServiceMbbsEligibilityPanel } from "@/components/service-library/design/ServiceMbbsEligibilityPanel";
 import { ServiceFullCostBreakdownCard } from "@/components/service-library/design/ServiceFullCostBreakdownCard";
+import type { ResolvedFullCostBreakdown } from "@/lib/service-library/knowledgeGuide/resolveCostBreakdownFx";
 import { ServiceDownloadTemplateCard } from "@/components/service-library/design/ServiceDownloadTemplateCard";
 import {
   resolveAcademyTabs,
@@ -52,6 +54,8 @@ type Props = {
   canManage?: boolean;
   activeTab?: AcademyTabId;
   onTabChange?: (tab: AcademyTabId) => void;
+  /** FX-resolved cost breakdown for ZIP guides (Currency Master). */
+  resolvedFullCostBreakdown?: ResolvedFullCostBreakdown | null;
   onToggleChecklistItem?: (id: string) => void;
   onPushChecklist?: () => void;
   onDownloadFile?: (fileId: string, fileName: string) => void;
@@ -67,6 +71,7 @@ export function ServiceLibraryTabs({
   canManage,
   activeTab: controlledTab,
   onTabChange,
+  resolvedFullCostBreakdown,
   onToggleChecklistItem,
   onPushChecklist,
   onDownloadFile,
@@ -221,6 +226,7 @@ export function ServiceLibraryTabs({
         {view.fullCostBreakdown?.sections?.length ? (
           <ServiceFullCostBreakdownCard
             breakdown={view.fullCostBreakdown}
+            resolvedBreakdown={resolvedFullCostBreakdown ?? undefined}
             emphasizeTuition={view.isMbbs}
           />
         ) : view.isMbbs ? (
@@ -537,7 +543,11 @@ export function ServiceLibraryTabs({
 
       {libraryId && (
         <TabsContent value="binder" className="mt-0 space-y-4">
-          <ServiceBinderTab libraryId={libraryId} country={view.country} />
+          {(view.documentBinder?.categories?.length ?? 0) > 0 ? (
+            <ServiceJsonDocumentBinderTab binder={view.documentBinder!} title={view.title} />
+          ) : (
+            <ServiceBinderTab libraryId={libraryId} country={view.country} />
+          )}
         </TabsContent>
       )}
 

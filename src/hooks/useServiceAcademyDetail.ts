@@ -13,6 +13,12 @@ import {
   scopeByCountry,
 } from "@/lib/serviceLibrary";
 import { buildAcademyViewModel } from "@/lib/service-library/buildAcademyViewModel";
+import { isFlcKnowledgeGuide } from "@/lib/service-library/knowledgeGuide/types";
+import {
+  needsFxResolution,
+  resolveCostBreakdownFx,
+} from "@/lib/service-library/knowledgeGuide/resolveCostBreakdownFx";
+import { fetchFxSnapshot } from "@/lib/currencyMaster";
 
 export function useServiceAcademyDetail(masterId: string | null, country: string | null) {
   const { user } = useAuth();
@@ -110,7 +116,23 @@ export function useServiceAcademyDetail(masterId: string | null, country: string
         submissionCompletedIds: completedIds,
       });
 
-      return { master: m, override, detailCountry, countries, view };
+      const meta = (m.academy_metadata ?? {}) as Record<string, unknown>;
+      let resolvedFullCostBreakdown = null;
+      if (
+        isFlcKnowledgeGuide(meta) &&
+        needsFxResolution(meta.fullCostBreakdown, meta.currencyConfig)
+      ) {
+        const fxSnapshot = await fetchFxSnapshot();
+        if (meta.fullCostBreakdown) {
+          resolvedFullCostBreakdown = resolveCostBreakdownFx(
+            meta.fullCostBreakdown,
+            meta.currencyConfig,
+            fxSnapshot,
+          );
+        }
+      }
+
+      return { master: m, override, detailCountry, countries, view, resolvedFullCostBreakdown };
     },
   });
 }
