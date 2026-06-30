@@ -1,6 +1,7 @@
 import { resolveDocumentMasterLabel } from "@/lib/documentMasterMatch";
 import type { MasterItem } from "@/lib/masters";
 import { renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
+import { configurePdfWorker } from "@/lib/pdfWorker";
 import { DOCUMENT_TYPES as DEFAULT_DOCUMENT_TYPES } from "@/lib/constants";
 
 export interface BinderSegment {
@@ -184,8 +185,7 @@ export async function getPdfPageCount(file: File): Promise<number> {
     try {
       const pdfjs = await (async () => {
         const mod = await import("pdfjs-dist");
-        const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
-        mod.GlobalWorkerOptions.workerSrc = (worker as { default: string }).default;
+        configurePdfWorker(mod.GlobalWorkerOptions);
         return mod;
       })();
       const buf = await file.arrayBuffer();
@@ -210,8 +210,7 @@ export async function extractPerPageText(file: File, maxPages = 30, maxCharsPerP
   // Lazy import to keep main bundle small.
   const pdfjs = await (async () => {
     const mod = await import("pdfjs-dist");
-    const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
-    mod.GlobalWorkerOptions.workerSrc = (worker as { default: string }).default;
+    configurePdfWorker(mod.GlobalWorkerOptions);
     return mod;
   })();
   const buf = await file.arrayBuffer();

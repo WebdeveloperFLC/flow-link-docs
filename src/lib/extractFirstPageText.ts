@@ -1,11 +1,11 @@
+import { configurePdfWorker } from "@/lib/pdfWorker";
+
 // Lazy-load pdfjs to avoid blocking initial bundle
 let pdfjsPromise: Promise<typeof import("pdfjs-dist")> | null = null;
 async function getPdfjs() {
   if (!pdfjsPromise) {
-    pdfjsPromise = import("pdfjs-dist").then(async (mod) => {
-      // Use the bundled worker via Vite ?url import
-      const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
-      mod.GlobalWorkerOptions.workerSrc = (worker as { default: string }).default;
+    pdfjsPromise = import("pdfjs-dist").then((mod) => {
+      configurePdfWorker(mod.GlobalWorkerOptions);
       return mod;
     });
   }
