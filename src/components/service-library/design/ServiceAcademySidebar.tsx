@@ -46,6 +46,8 @@ type Props = {
 
 const navBtnBase =
   "w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-left transition-all";
+const navBtnCountry =
+  "w-full grid grid-cols-[auto_minmax(0,1fr)_2.25rem_1.75rem] items-center gap-x-2 rounded-lg px-3 py-2 text-sm text-left transition-all";
 const navBtnIdle = "text-slate-100 hover:bg-slate-800/90 hover:text-white";
 const navBtnActive = "bg-gradient-to-r from-sky-500 to-violet-600 text-white font-semibold shadow-md shadow-violet-900/30";
 
@@ -291,18 +293,24 @@ export function ServiceAcademySidebar({
                         type="button"
                         onClick={() => onCountry(picker.country)}
                         className={cn(
-                          navBtnBase,
+                          navBtnCountry,
                           country === picker.country ? navBtnActive : navBtnIdle,
                         )}
                       >
-                        {flag && (
-                          <span className="text-base leading-none shrink-0" aria-hidden>
+                        {flag ? (
+                          <span className="text-base leading-none" aria-hidden>
                             {flag}
                           </span>
+                        ) : (
+                          <span aria-hidden />
                         )}
-                        <span className="flex-1 truncate font-medium">{picker.country}</span>
-                        <span className="text-[11px] font-bold text-sky-300 tabular-nums">{picker.countryBadge}</span>
-                        <span className="text-[11px] text-violet-300 tabular-nums">{picker.count}</span>
+                        <span className="truncate font-medium">{picker.country}</span>
+                        <span className="text-[11px] font-bold text-sky-300 tabular-nums text-right">
+                          {picker.countryBadge}
+                        </span>
+                        <span className="text-[11px] text-violet-300 tabular-nums text-right">
+                          {picker.count}
+                        </span>
                       </button>
                     </li>
                     );

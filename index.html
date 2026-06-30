@@ -80,11 +80,16 @@
 </head>
 
   <body>
-    <div id="root" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f5f8fa;color:#1a2332;font-family:system-ui,sans-serif">
-      <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
-        <div style="width:32px;height:32px;border-radius:50%;border:2px solid #005daa;border-top-color:transparent;animation:flc-spin 0.8s linear infinite"></div>
-        <p id="flc-boot-msg" style="margin:0;font-size:14px;color:#5a6a7a">Loading Future Link…</p>
-        <p style="margin:8px 0 0;font-size:12px;color:#8a96a3"><a href="/auth" style="color:#005daa">Go to sign in</a></p>
+    <div id="root">
+      <div
+        id="flc-boot-splash"
+        style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f5f8fa;color:#1a2332;font-family:system-ui,sans-serif"
+      >
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+          <div style="width:32px;height:32px;border-radius:50%;border:2px solid #005daa;border-top-color:transparent;animation:flc-spin 0.8s linear infinite"></div>
+          <p id="flc-boot-msg" style="margin:0;font-size:14px;color:#5a6a7a">Loading Future Link…</p>
+          <p style="margin:8px 0 0;font-size:12px;color:#8a96a3"><a href="/auth" style="color:#005daa">Go to sign in</a></p>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/entry.ts"></script>

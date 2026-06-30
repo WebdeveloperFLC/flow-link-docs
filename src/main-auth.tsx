@@ -1,9 +1,12 @@
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import MinimalAuthPage from "@/MinimalAuthPage";
+import { resetAppRootLayout } from "@/lib/resetAppRootLayout";
 
 const mount = document.getElementById("root");
 if (!mount) throw new Error("Missing #root element");
+
+resetAppRootLayout();
 
 createRoot(mount).render(
   <BrowserRouter>

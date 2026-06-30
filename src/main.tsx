@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { RootErrorBoundary } from "@/components/RootErrorBoundary";
 import AppBootstrap from "@/AppBootstrap";
+import { resetAppRootLayout } from "@/lib/resetAppRootLayout";
 import "./index.css";
 import "./styles/performance-hub-theme.css";
 import "./hr-payroll/styles/hr-payroll-theme.css";
@@ -24,6 +25,8 @@ const mount = document.getElementById("root");
 if (!mount) {
   throw new Error("Missing #root element");
 }
+
+resetAppRootLayout();
 
 try {
   createRoot(mount).render(

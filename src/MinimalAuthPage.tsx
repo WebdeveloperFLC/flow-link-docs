@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { resetAppRootLayout } from "@/lib/resetAppRootLayout";
 
 const shell: CSSProperties = {
   minHeight: "100vh",
@@ -47,18 +48,6 @@ const button: CSSProperties = {
   cursor: "pointer",
 };
 
-function resetRootLayout() {
-  const root = document.getElementById("root");
-  if (!root) return;
-  root.style.minHeight = "100vh";
-  root.style.width = "100%";
-  root.style.display = "block";
-  root.style.alignItems = "";
-  root.style.justifyContent = "";
-  root.style.background = "";
-  root.style.padding = "0";
-}
-
 export default function MinimalAuthPage() {
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
@@ -66,7 +55,7 @@ export default function MinimalAuthPage() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    resetRootLayout();
+    resetAppRootLayout();
   }, []);
 
   useEffect(() => {

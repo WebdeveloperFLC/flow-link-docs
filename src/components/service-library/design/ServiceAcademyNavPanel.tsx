@@ -89,8 +89,8 @@ function CountryCard({
   onClick: () => void;
 }) {
   return (
-    <button type="button" onClick={onClick} className="text-left group">
-      <Card className="p-3.5 h-full min-h-[72px] shadow-elev-sm hover:border-primary/40 hover:shadow-md transition-all group-hover:bg-primary/[0.02]">
+    <button type="button" onClick={onClick} className="text-left group h-full w-full">
+      <Card className="p-3.5 h-full min-h-[76px] shadow-elev-sm hover:border-primary/40 hover:shadow-md transition-all group-hover:bg-primary/[0.02]">
         <div className="flex items-center gap-3">
           <div className="size-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             {flag ? (
@@ -224,7 +224,7 @@ export function ServiceAcademyNavPanel({
             immigration service.
           </p>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 auto-rows-fr">
           {group.countryPickers.map((p) => (
             <CountryCard
               key={p.country}

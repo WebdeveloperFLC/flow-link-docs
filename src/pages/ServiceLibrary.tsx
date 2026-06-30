@@ -387,7 +387,7 @@ export default function ServiceLibrary() {
     !!selectedId && navReadyForSelection && detail.isError && !detail.data;
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen w-full bg-background">
       <ServiceAcademySidebar
         group={group}
         categoryFilter={categoryFilter}
@@ -412,7 +412,7 @@ export default function ServiceLibrary() {
         catalogLoading={masters.isLoading && !masters.data}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen bg-muted/20">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen w-full bg-muted/20">
         {masters.isError && (
           <div className="mx-4 mt-4 rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
             Could not load service catalogue. {(masters.error as Error)?.message ?? "Refresh the page."}
