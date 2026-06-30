@@ -8,13 +8,8 @@ import {
 import {
   TrendingUp, Receipt, DollarSign, ArrowUpCircle, ArrowDownCircle,
   Sparkles, BookOpen, Upload, ScanLine, CheckSquare, BarChart2, Calendar,
-  ChevronDown, ChevronRight, AlertTriangle, Trash2,
+  ChevronDown, ChevronRight, AlertTriangle, Trash2, Layers, GitMerge, Landmark,
 } from "lucide-react";
-import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LabelList,
-  LineChart, Line, CartesianGrid, Legend,
-} from "recharts";
-import AccountingPageHeader from "../components/shared/AccountingPageHeader";
 import AccountingKPICard from "../components/shared/AccountingKPICard";
 import OnboardingChecklist from "../components/shared/OnboardingChecklist";
 import DarkModeToggle from "../components/shared/DarkModeToggle";
@@ -22,8 +17,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { isOnboardingDismissed } from "../stores/onboardingStore";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { formatCurrency, formatCompact } from "../lib/format";
+import { formatCurrency } from "../lib/format";
 import {
   AccountingEntityProvider, useAccountingEntity,
 } from "../stores/accountingEntityStore";
@@ -34,16 +28,6 @@ import {
 } from "../lib/migrateToSupabase";
 import { CloudUpload } from "lucide-react";
 
-const revenueByEntity: { entity: string; revenue: number }[] = [];
-
-const monthly: { month: string; revenue: number; expenses: number }[] = [];
-
-const approvals: { dot: string; text: string; amount: string; pillText: string; pillCls: string }[] = [];
-
-const fraud: { dot: string; text: string; pillText: string; pillCls: string }[] = [];
-
-const taxItems: { dot: string; text: string; due: string; cls: string }[] = [];
-
 const quickActions = [
   { icon: BookOpen, label: "New journal", route: "/accounting/journals/new" },
   { icon: Upload, label: "Upload doc", route: "/accounting/documents/upload" },
@@ -51,6 +35,15 @@ const quickActions = [
   { icon: CheckSquare, label: "Approvals", route: "/accounting/approvals" },
   { icon: BarChart2, label: "Run reports", route: "/accounting/reports" },
   { icon: Calendar, label: "Tax calendar", route: "/accounting/tax/calendar" },
+];
+
+const financeLinks = [
+  { icon: CheckSquare, label: "Finance queue", route: "/accounting/finance-queue", desc: "Verify payments & journals" },
+  { icon: ArrowUpCircle, label: "Client invoices", route: "/accounting/ar", desc: "Accounts receivable" },
+  { icon: ArrowDownCircle, label: "Vendor bills", route: "/accounting/ap", desc: "Accounts payable" },
+  { icon: Layers, label: "Account setup", route: "/accounting/coa", desc: "Chart of accounts" },
+  { icon: Landmark, label: "Bank accounts", route: "/accounting/bank-accounts", desc: "Cash & bank" },
+  { icon: GitMerge, label: "Bank reconciliation", route: "/accounting/reconciliation", desc: "Match statements" },
 ];
 
 function OverviewInner() {
@@ -129,7 +122,7 @@ function OverviewInner() {
           <AccountingKPICard
             label="Collected (MTD)"
             value={kpis?.collectedThisMonth ?? 0}
-            currency={activeEntity.currency}
+            currency={(activeEntity.currency as "CAD" | "USD" | "INR") || "INR"}
             delta={`${kpis?.verifiedPaymentsCount ?? 0} verified payments`}
             deltaDirection="up"
             icon={TrendingUp}
@@ -137,7 +130,7 @@ function OverviewInner() {
           <AccountingKPICard
             label="Collected (YTD)"
             value={kpis?.collectedYtd ?? 0}
-            currency={activeEntity.currency}
+            currency={(activeEntity.currency as "CAD" | "USD" | "INR") || "INR"}
             delta="Verified CRM payments"
             deltaDirection="neutral"
             icon={Receipt}
@@ -152,8 +145,8 @@ function OverviewInner() {
           <AccountingKPICard
             label="Outstanding AR"
             value={kpis?.outstandingAr ?? 0}
-            currency={activeEntity.currency}
-            delta={kpis?.overdueAr ? `${formatCurrency(kpis.overdueAr, activeEntity.currency)} overdue` : "Open invoices"}
+            currency={(activeEntity.currency as "CAD" | "USD" | "INR") || "INR"}
+            delta={kpis?.overdueAr ? `${formatCurrency(kpis.overdueAr, (activeEntity.currency as "CAD" | "USD" | "INR") || "INR")} overdue` : "Open invoices"}
             deltaDirection={kpis?.overdueAr ? "down" : "neutral"}
             icon={ArrowUpCircle}
           />
@@ -166,110 +159,29 @@ function OverviewInner() {
           />
         </div>
 
-        {/* MIDDLE ROW */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="p-5 shadow-elev-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="font-semibold">Revenue by entity (YTD)</div>
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">CAD</span>
-            </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={revenueByEntity} layout="vertical" margin={{ left: 0, right: 40, top: 4, bottom: 4 }}>
-                <YAxis dataKey="entity" type="category" width={110} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <XAxis type="number" hide />
-                <Tooltip
-                  cursor={{ fill: "hsl(var(--muted))" }}
-                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                  formatter={(v: number) => [formatCurrency(v), "Revenue"]}
-                />
-                <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]}>
-                  <LabelList dataKey="revenue" position="right" fontSize={11} fill="hsl(var(--muted-foreground))" formatter={(v: number) => formatCompact(v)} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-
-          <Card className="p-5 shadow-elev-sm flex flex-col">
-            <div className="flex items-center justify-between mb-2">
-              <div className="font-semibold">Pending approvals</div>
-              <span className="bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 text-[11px] px-2 py-1 rounded-full">7 awaiting</span>
-            </div>
-            <div className="flex-1">
-              {approvals.map((a, i) => (
-                <div key={i} className="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
-                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${a.dot}`} />
-                  <div className="text-[13px] flex-1 truncate text-foreground/80">{a.text}</div>
-                  <div className="text-[12px] text-muted-foreground whitespace-nowrap">{a.amount}</div>
-                  <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${a.pillCls}`}>{a.pillText}</span>
-                </div>
-              ))}
-            </div>
-            <Button variant="outline" className="w-full mt-3" onClick={() => navigate("/accounting/finance-queue")}>
-              Open finance queue →
-            </Button>
-          </Card>
-        </div>
-
-        {/* BOTTOM ROW */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="p-5 shadow-elev-sm flex flex-col">
-            <div className="flex items-center justify-between mb-2">
-              <div className="font-semibold">Fraud & anomaly alerts</div>
-              <span className="bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 text-[11px] px-2 py-1 rounded-full">3 critical</span>
-            </div>
-            <div className="flex-1">
-              {fraud.map((a, i) => (
-                <div key={i} className="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
-                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${a.dot}`} />
-                  <div className="text-[13px] flex-1 truncate text-foreground/80">{a.text}</div>
-                  <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${a.pillCls}`}>{a.pillText}</span>
-                </div>
-              ))}
-            </div>
-            <Button variant="outline" className="w-full mt-3" onClick={() => navigate("/accounting/fraud")}>
-              Review fraud queue →
-            </Button>
-          </Card>
-
-          <Card className="p-5 shadow-elev-sm flex flex-col">
-            <div className="flex items-center justify-between mb-2">
-              <div className="font-semibold">Upcoming tax deadlines</div>
-            </div>
-            <div className="flex-1">
-              {taxItems.map((a, i) => (
-                <div key={i} className="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
-                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${a.dot}`} />
-                  <div className="text-[13px] flex-1 truncate text-foreground/80">{a.text}</div>
-                  <div className={`text-[12px] whitespace-nowrap font-medium ${a.cls}`}>{a.due}</div>
-                </div>
-              ))}
-            </div>
-            <Button variant="outline" className="w-full mt-3" onClick={() => navigate("/accounting/tax/calendar")}>
-              View tax calendar →
-            </Button>
-          </Card>
-        </div>
-
-        {/* TREND */}
-        <PaymentsBySourceCard />
-
         <Card className="p-5 shadow-elev-sm">
-          <div className="font-semibold mb-4">Revenue vs expenses — last 12 months</div>
-          <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={monthly} margin={{ left: 0, right: 8, top: 4, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} />
-              <YAxis tickFormatter={(v) => formatCompact(v)} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
-              <Tooltip
-                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                formatter={(value: number, name: string) => [formatCurrency(value), name]}
-              />
-              <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: 12 }} />
-              <Line name="Revenue" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} type="monotone" />
-              <Line name="Expenses" dataKey="expenses" stroke="hsl(var(--destructive))" strokeWidth={2} dot={false} type="monotone" />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="font-semibold mb-4">Finance modules</div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {financeLinks.map((link) => (
+              <button
+                key={link.route}
+                type="button"
+                onClick={() => navigate(link.route)}
+                className="flex items-start gap-3 p-4 text-left rounded-xl border border-border bg-card hover:bg-accent/40 transition-colors"
+              >
+                <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <link.icon className="size-4 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-medium">{link.label}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{link.desc}</div>
+                </div>
+              </button>
+            ))}
+          </div>
         </Card>
+
+        <PaymentsBySourceCard />
 
         {/* QUICK ACTIONS */}
         <Card className="p-5 shadow-elev-sm">

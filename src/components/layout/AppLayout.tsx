@@ -614,7 +614,6 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
         </aside>
 
         <main
-          key={typeof window !== "undefined" ? window.location.pathname : "main"}
           className={cn("flex-1 overflow-auto page-transition", theme.colorfulMode && !isPerformanceHub && "gradient-subtle")}
         >
           {isPerformanceHub ? (
