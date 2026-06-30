@@ -57,6 +57,18 @@ interface AuthCtx {
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
 
+function hasStoredSupabaseSession(): boolean {
+  try {
+    return Object.keys(localStorage).some((key) => {
+      if (!key.startsWith("sb-") || !key.endsWith("-auth-token")) return false;
+      const raw = localStorage.getItem(key);
+      return Boolean(raw && raw !== "null" && raw !== "{}");
+    });
+  } catch {
+    return false;
+  }
+}
+
 function buildHasRole(roles: AppRole[]) {
   return (r: AppRole | AppRole[]) => {
     const arr = Array.isArray(r) ? r : [r];
@@ -131,7 +143,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const finishLoading = () => {
       if (!cancelled) setLoading(false);
     };
-    const timeout = window.setTimeout(finishLoading, 6000);
+    const timeout = window.setTimeout(finishLoading, 2000);
 
     if (!supabaseEnvOk) {
       finishLoading();
@@ -140,6 +152,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         cancelled = true;
         clearTimeout(timeout);
       };
+    }
+
+    if (!hasStoredSupabaseSession()) {
+      finishLoading();
     }
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {

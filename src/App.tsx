@@ -229,15 +229,11 @@ const AiHelpPage = lazy(() => import("./ai-help/pages/AiHelpPage"));
 const GuidesIndexPage = lazy(() => import("./guides/pages/GuidesIndexPage"));
 const GuideDetailPage = lazy(() => import("./guides/pages/GuideDetailPage"));
 import AiStudioPage from "./digital-success/ai/AiStudioPage";
+import { BootstrapLoading } from "@/components/BootstrapLoading";
 
 const queryClient = new QueryClient();
 
-const RouteFallback = () => (
-  <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-background text-foreground">
-    <div className="size-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-    <p className="text-sm text-muted-foreground">Loading…</p>
-  </div>
-);
+const RouteFallback = () => <BootstrapLoading message="Loading…" />;
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
