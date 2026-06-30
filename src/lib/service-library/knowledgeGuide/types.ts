@@ -71,11 +71,14 @@ export type FlcDownloadTemplate = {
   template: string;
   use?: string;
   stage?: string;
+  audience?: string;
   fileUrl?: string;
   fileType?: string;
+  standaloneFile?: string;
   content?: {
     intro?: string;
     sections?: { heading: string; items: string[] }[];
+    sourceRefs?: (string | FlcSourceRef)[];
   };
 };
 

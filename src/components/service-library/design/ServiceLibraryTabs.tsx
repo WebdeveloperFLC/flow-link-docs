@@ -38,6 +38,7 @@ import { ServiceMbbsPracticePanel } from "@/components/service-library/design/Se
 import { ServiceMbbsFamilyPanel } from "@/components/service-library/design/ServiceMbbsFamilyPanel";
 import { ServiceMbbsEligibilityPanel } from "@/components/service-library/design/ServiceMbbsEligibilityPanel";
 import { ServiceFullCostBreakdownCard } from "@/components/service-library/design/ServiceFullCostBreakdownCard";
+import { ServiceDownloadTemplateCard } from "@/components/service-library/design/ServiceDownloadTemplateCard";
 import {
   resolveAcademyTabs,
   tabLabel,
@@ -741,32 +742,11 @@ export function ServiceLibraryTabs({
               Future Link templates
             </h3>
             {view.downloadTemplates.map((t) => (
-              <Card key={t.template} className="p-4 shadow-elev-sm">
-                <div className="font-medium text-sm">{t.template}</div>
-                {(t.use || t.stage) && (
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {[t.use, t.stage].filter(Boolean).join(" · ")}
-                  </p>
-                )}
-                {t.content?.intro && (
-                  <p className="text-sm text-muted-foreground mt-2">{t.content.intro}</p>
-                )}
-                {t.content?.sections?.map((section) => (
-                  <div key={section.heading} className="mt-3">
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-                      {section.heading}
-                    </h4>
-                    <ul className="text-sm space-y-1">
-                      {section.items.map((item) => (
-                        <li key={item} className="flex gap-2">
-                          <span className="text-muted-foreground">•</span>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </Card>
+              <ServiceDownloadTemplateCard
+                key={t.template}
+                template={t}
+                guideSources={view.guideSources}
+              />
             ))}
           </div>
         )}
