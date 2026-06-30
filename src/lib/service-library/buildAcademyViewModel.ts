@@ -11,8 +11,6 @@ import {
   htmlToPlain,
 } from "@/lib/serviceLibrary";
 import {
-  mergeAcademyMetadata,
-  normalizeAcademyMetadata,
   type ServiceAcademyMetadata,
   type AcademyKpiTone,
   type AcademyTagVariant,
@@ -36,7 +34,7 @@ import { isMbbsServiceRow } from "./mbbs/resolveMbbsInstitutions";
 import { resolveDocumentStructure, type ServiceDocumentStructure } from "./documentStructure";
 import type { KnowledgeCentreMetadata } from "./knowledgeCentre/types";
 import {
-  normalizeKnowledgeGuide,
+  resolveAcademyMetadataForView,
   zipSampleDocItems,
 } from "./knowledgeGuide/normalizeKnowledgeGuide";
 import type {
@@ -44,7 +42,6 @@ import type {
   FlcDownloadTemplate,
   FlcKnowledgeGuideSource,
 } from "./knowledgeGuide/types";
-import { isFlcKnowledgeGuide } from "./knowledgeGuide/types";
 
 export type AcademyViewModel = {
   masterId: string;
@@ -289,11 +286,10 @@ export function buildAcademyViewModel(args: {
   relatedMasters?: { id: string; label: string }[];
 }): AcademyViewModel {
   const { master, override, country, countries } = args;
-  const baseMeta = normalizeAcademyMetadata(master.academy_metadata);
-  const patchMeta = normalizeAcademyMetadata(override?.academy_metadata);
-  const meta = mergeAcademyMetadata(baseMeta, patchMeta);
-  const normalizedGuide = normalizeKnowledgeGuide(meta);
-  const zipGuide = normalizedGuide.kind === "zip" ? normalizedGuide.guide : null;
+  const { meta, zipGuide, knowledgeCentreMeta: resolvedKcMeta } = resolveAcademyMetadataForView(
+    master.academy_metadata,
+    override?.academy_metadata,
+  );
   const resolved = resolveForCountry(master, override ?? null);
 
   const isCoaching =
@@ -581,10 +577,7 @@ export function buildAcademyViewModel(args: {
     coachingProfile,
     testDayGuide,
     documentStructure: resolveDocumentStructure(meta),
-    knowledgeCentreMeta:
-      isFlcKnowledgeGuide(meta) || meta.schemaVersion || meta.navigation
-        ? (meta as KnowledgeCentreMetadata)
-        : null,
+    knowledgeCentreMeta: resolvedKcMeta,
     guideSources: zipGuide?.sources ?? [],
     downloadTemplates: zipGuide?.downloads?.templates ?? [],
     checklistGuide,

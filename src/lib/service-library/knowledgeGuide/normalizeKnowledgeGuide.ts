@@ -1,4 +1,8 @@
-import type { ServiceAcademyMetadata } from "../academyTypes";
+import {
+  mergeAcademyMetadata,
+  normalizeAcademyMetadata,
+  type ServiceAcademyMetadata,
+} from "../academyTypes";
 import type { KnowledgeCentreMetadata, KnowledgeCentreNavigation } from "../knowledgeCentre/types";
 import {
   FLC_KNOWLEDGE_GUIDE_SCHEMA_REF,
@@ -58,6 +62,65 @@ export function zipSampleDocItems(sampleDocs: FlcSampleDocs | FlcSampleDocItem[]
 
 export function isZipGuideMetadata(raw: unknown): boolean {
   return isFlcKnowledgeGuide(raw);
+}
+
+export type ResolvedAcademyMetadata = {
+  meta: ServiceAcademyMetadata;
+  zipGuide: FlcKnowledgeGuide | null;
+  knowledgeCentreMeta: KnowledgeCentreMetadata | null;
+};
+
+/**
+ * Counsellor read path — ZIP JSON on master is canonical.
+ * Legacy country override patches must not replace schemaRef, navigation[], or shadow guide content.
+ */
+export function resolveAcademyMetadataForView(
+  masterRaw: unknown,
+  overrideRaw: unknown | null | undefined,
+): ResolvedAcademyMetadata {
+  const masterNorm = normalizeKnowledgeGuide(masterRaw);
+  const overrideNorm =
+    overrideRaw != null && overrideRaw !== undefined
+      ? normalizeKnowledgeGuide(overrideRaw)
+      : null;
+
+  if (masterNorm.kind === "zip") {
+    const guide =
+      overrideNorm?.kind === "zip"
+        ? {
+            ...masterNorm.guide,
+            ...overrideNorm.guide,
+            navigation: overrideNorm.guide.navigation?.length
+              ? overrideNorm.guide.navigation
+              : masterNorm.guide.navigation,
+          }
+        : masterNorm.guide;
+    return {
+      meta: guide as unknown as ServiceAcademyMetadata,
+      zipGuide: guide,
+      knowledgeCentreMeta: guide,
+    };
+  }
+
+  if (overrideNorm?.kind === "zip") {
+    const guide = overrideNorm.guide;
+    return {
+      meta: guide as unknown as ServiceAcademyMetadata,
+      zipGuide: guide,
+      knowledgeCentreMeta: guide,
+    };
+  }
+
+  const baseMeta = normalizeAcademyMetadata(masterRaw);
+  const patchMeta = normalizeAcademyMetadata(overrideRaw);
+  const meta = mergeAcademyMetadata(baseMeta, patchMeta);
+  const zipGuide = isFlcKnowledgeGuide(meta) ? meta : null;
+  const knowledgeCentreMeta =
+    zipGuide || meta.schemaVersion || meta.navigation
+      ? (meta as KnowledgeCentreMetadata)
+      : null;
+
+  return { meta, zipGuide, knowledgeCentreMeta };
 }
 
 export { FLC_KNOWLEDGE_GUIDE_SCHEMA_REF, isFlcKnowledgeGuide };

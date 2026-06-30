@@ -154,6 +154,7 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
       toast({ title: "Service content saved" });
       qc.invalidateQueries({ queryKey: ["sl-masters"] });
       qc.invalidateQueries({ queryKey: ["sl-library-override", master.id] });
+      qc.invalidateQueries({ queryKey: ["sl-library-detail", master.id] });
       onChanged();
     } catch (e) {
       toast({

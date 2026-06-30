@@ -10,7 +10,7 @@ import {
 import type { KnowledgeCentreMetadata } from "./types";
 import type { AcademyViewModel } from "../buildAcademyViewModel";
 import { isFlcKnowledgeGuide } from "../knowledgeGuide/types";
-import { normalizeKnowledgeGuide } from "../knowledgeGuide/normalizeKnowledgeGuide";
+import { normalizeKnowledgeGuide, resolveAcademyMetadataForView } from "../knowledgeGuide/normalizeKnowledgeGuide";
 
 const canadaFixturePath = path.resolve(
   process.cwd(),
@@ -177,6 +177,30 @@ describe("normalizeKnowledgeGuide", () => {
   it("detects legacy KC navigation.sections", () => {
     const normalized = normalizeKnowledgeGuide(baseCanadaMeta());
     expect(normalized.kind).toBe("legacy-kc");
+  });
+});
+
+describe("resolveAcademyMetadataForView", () => {
+  it("keeps master ZIP guide when country override has legacy academy_metadata", () => {
+    const zip = loadCanadaFixture();
+    const resolved = resolveAcademyMetadataForView(zip, {
+      schemaVersion: "1.0",
+      displayName: "Legacy override title",
+      navigation: { sections: [{ id: "overview", sortOrder: 10 }] },
+      about: [{ label: "Old", value: "Override content" }],
+    });
+
+    expect(resolved.zipGuide).not.toBeNull();
+    expect(resolved.zipGuide?.schemaRef).toBe("flc-knowledge-guide-schema-v1.0");
+    expect(Array.isArray(resolved.zipGuide?.navigation)).toBe(true);
+    expect(resolved.zipGuide?.displayName).toBe(zip.displayName);
+    expect(isFlcKnowledgeGuide(resolved.knowledgeCentreMeta)).toBe(true);
+  });
+
+  it("uses country-scoped ZIP override when master has no guide", () => {
+    const zip = loadCanadaFixture();
+    const resolved = resolveAcademyMetadataForView({}, zip);
+    expect(resolved.zipGuide?.slug).toContain("canada-student-visa");
   });
 });
 
