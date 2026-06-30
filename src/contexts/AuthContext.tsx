@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from "react";
 import { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, supabaseEnvOk } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   canShowViewAsSwitcher,
@@ -127,6 +127,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 
   useEffect(() => {
+    let cancelled = false;
+    const finishLoading = () => {
+      if (!cancelled) setLoading(false);
+    };
+    const timeout = window.setTimeout(finishLoading, 6000);
+
+    if (!supabaseEnvOk) {
+      finishLoading();
+      clearTimeout(timeout);
+      return () => {
+        cancelled = true;
+        clearTimeout(timeout);
+      };
+    }
+
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
       setUser(s?.user ?? null);
@@ -154,16 +169,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     });
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        loadRoles(s.user.id).finally(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
-    });
-    return () => sub.subscription.unsubscribe();
+    supabase.auth
+      .getSession()
+      .then(({ data: { session: s } }) => {
+        setSession(s);
+        setUser(s?.user ?? null);
+        if (s?.user) loadRoles(s.user.id);
+      })
+      .catch(() => {
+        /* preview / offline — still render auth shell */
+      })
+      .finally(finishLoading);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const isOwner = isPlatformOwner(actualRoles, accountingRole);

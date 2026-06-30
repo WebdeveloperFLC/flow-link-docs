@@ -7,8 +7,9 @@ export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const loc = useLocation();
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-background text-foreground">
         <div className="size-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading workspace…</p>
       </div>
     );
   }

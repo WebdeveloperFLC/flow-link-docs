@@ -225,16 +225,17 @@ import PerformanceOffersSegments from "@/pages/PerformanceOffersSegments";
 import PerformanceOffersAutomation from "@/pages/PerformanceOffersAutomation";
 import PerformanceOffersJourneys from "@/pages/PerformanceOffersJourneys";
 import PerformanceOffersAbTests from "@/pages/PerformanceOffersAbTests";
-import AiHelpPage from "./ai-help/pages/AiHelpPage";
-import GuidesIndexPage from "./guides/pages/GuidesIndexPage";
-import GuideDetailPage from "./guides/pages/GuideDetailPage";
+const AiHelpPage = lazy(() => import("./ai-help/pages/AiHelpPage"));
+const GuidesIndexPage = lazy(() => import("./guides/pages/GuidesIndexPage"));
+const GuideDetailPage = lazy(() => import("./guides/pages/GuideDetailPage"));
 import AiStudioPage from "./digital-success/ai/AiStudioPage";
 
 const queryClient = new QueryClient();
 
 const RouteFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
+  <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-background text-foreground">
     <div className="size-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+    <p className="text-sm text-muted-foreground">Loading…</p>
   </div>
 );
 
@@ -1064,7 +1065,9 @@ const App = () => (
                     path="/ai-help"
                     element={
                       <ProtectedRoute>
-                        <AiHelpPage />
+                        <Suspense fallback={<RouteFallback />}>
+                          <AiHelpPage />
+                        </Suspense>
                       </ProtectedRoute>
                     }
                   />
@@ -1072,7 +1075,9 @@ const App = () => (
                     path="/guides"
                     element={
                       <ProtectedRoute>
-                        <GuidesIndexPage />
+                        <Suspense fallback={<RouteFallback />}>
+                          <GuidesIndexPage />
+                        </Suspense>
                       </ProtectedRoute>
                     }
                   />
@@ -1080,7 +1085,9 @@ const App = () => (
                     path="/guides/:slug"
                     element={
                       <ProtectedRoute>
-                        <GuideDetailPage />
+                        <Suspense fallback={<RouteFallback />}>
+                          <GuideDetailPage />
+                        </Suspense>
                       </ProtectedRoute>
                     }
                   />
