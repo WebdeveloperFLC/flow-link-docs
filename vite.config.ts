@@ -6,6 +6,7 @@ import { componentTagger } from "lovable-tagger";
 
 /** Surface missing file paths before Vite's truncated ENOENT (Lovable build logs). */
 function enoentGuardPlugin(): Plugin {
+  const projectRoot = path.resolve(process.cwd());
   return {
     name: "enoent-guard",
     enforce: "pre",
@@ -13,6 +14,9 @@ function enoentGuardPlugin(): Plugin {
       const cleanId = id.split("?")[0];
       if (cleanId.startsWith("\0") || cleanId.includes("virtual:")) return null;
       if (!path.isAbsolute(cleanId)) return null;
+      // Ignore SPA route paths like /auth mistaken for absolute filesystem paths on Unix.
+      const normalized = path.normalize(cleanId);
+      if (normalized !== projectRoot && !normalized.startsWith(`${projectRoot}${path.sep}`)) return null;
       try {
         await fs.promises.access(cleanId);
       } catch (err) {
