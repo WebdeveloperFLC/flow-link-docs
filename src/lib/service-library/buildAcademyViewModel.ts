@@ -21,6 +21,10 @@ import {
   resolveCoachingVariantLabel,
 } from "@/lib/leads/servicePickerGroups";
 import { coachingFamilyLabel } from "./serviceNavClassification";
+import {
+  consultancyAmountsFromFeeItems,
+  formatConsultancyKpiFromStored,
+} from "@/lib/feeMaster/crmPricingRules";
 import { resolveServiceFeeBreakdown } from "./feeBreakdown";
 import type { ServiceFeeBreakdownView } from "./feeBreakdown/types";
 import { resolveMbbsFullCostBreakdown } from "./feeBreakdown/mbbsProgramCosts";
@@ -234,6 +238,10 @@ function formatGovernmentKpi(items: FeeItem[]): string {
 }
 
 function formatConsultancyKpi(items: FeeItem[]): { value: string; sub?: string } {
+  const amounts = consultancyAmountsFromFeeItems(items);
+  const fromStored = formatConsultancyKpiFromStored(amounts);
+  if (fromStored.value !== "—") return fromStored;
+
   const legacy = formatFee(items, /consult|service|our/i);
   if (legacy !== "—") return { value: legacy };
   return { value: "—" };
