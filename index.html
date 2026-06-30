@@ -26,6 +26,22 @@
     <script>
       (function () {
         try {
+          var path = window.location.pathname;
+          if (path === "/" || path === "") {
+            var hasSession = Object.keys(localStorage).some(function (k) {
+              return k.indexOf("sb-") === 0 && k.indexOf("-auth-token") > 0 && localStorage.getItem(k);
+            });
+            if (!hasSession) {
+              window.location.replace("/auth" + window.location.search + window.location.hash);
+              return;
+            }
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <script>
+      (function () {
+        try {
           var raw = localStorage.getItem("fl-theme-v2");
           var mode = "system";
           if (raw) mode = JSON.parse(raw).mode || "system";
@@ -55,6 +71,6 @@
         <p style="margin:0;font-size:14px;color:#5a6a7a">Loading Future Link…</p>
       </div>
     </div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/entry.ts"></script>
   </body>
 </html>
