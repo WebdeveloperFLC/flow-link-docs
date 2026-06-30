@@ -1,0 +1,16 @@
+---
+description: Commit and push completed work so Lovable/GitHub stay in sync
+alwaysApply: true
+---
+
+# Always commit and push
+
+When you finish implementation changes in this repository:
+
+1. **Commit** relevant changes without waiting to be asked.
+2. **Push** to `origin` so Lovable can sync and Publish picks up updates.
+3. Never commit secrets (`.env`, credentials, API keys).
+4. Stage only files related to the task; skip unrelated generated churn unless it was part of the work.
+5. Use clear commit messages focused on why the change was made.
+
+If push fails, report what was committed locally and the error.
