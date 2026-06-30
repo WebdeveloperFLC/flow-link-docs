@@ -32,7 +32,7 @@ function specimenChecklistsPlugin(): Plugin {
   };
 }
 
-/** Serve content/service-library/**/downloads/* HTML assets at /content/service-library/... (dev + build copy). */
+// Serve content/service-library/.../downloads/ HTML assets at /content/service-library/... (dev + build copy).
 function serviceLibraryDownloadsPlugin(): Plugin {
   const contentRoot = path.join(process.cwd(), "content/service-library");
 
