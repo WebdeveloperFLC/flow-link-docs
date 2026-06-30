@@ -1,7 +1,7 @@
 import { resolveDocumentMasterLabel } from "@/lib/documentMasterMatch";
 import type { MasterItem } from "@/lib/masters";
 import { renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
-import { configurePdfWorker } from "@/lib/pdfWorker";
+import { loadPdfjs } from "@/lib/pdfjsLoader";
 import { DOCUMENT_TYPES as DEFAULT_DOCUMENT_TYPES } from "@/lib/constants";
 
 export interface BinderSegment {
@@ -183,11 +183,7 @@ export async function getPdfPageCount(file: File): Promise<number> {
     return pdf.getPageCount();
   } catch {
     try {
-      const pdfjs = await (async () => {
-        const mod = await import("pdfjs-dist");
-        configurePdfWorker(mod.GlobalWorkerOptions);
-        return mod;
-      })();
+      const pdfjs = await loadPdfjs();
       const buf = await file.arrayBuffer();
       const doc = await pdfjs.getDocument({ data: new Uint8Array(buf) }).promise;
       return doc.numPages || 0;
@@ -208,11 +204,7 @@ export function isPdfFile(file: File): boolean {
  */
 export async function extractPerPageText(file: File, maxPages = 30, maxCharsPerPage = 1000): Promise<string[]> {
   // Lazy import to keep main bundle small.
-  const pdfjs = await (async () => {
-    const mod = await import("pdfjs-dist");
-    configurePdfWorker(mod.GlobalWorkerOptions);
-    return mod;
-  })();
+  const pdfjs = await loadPdfjs();
   const buf = await file.arrayBuffer();
   const doc = await pdfjs.getDocument({ data: new Uint8Array(buf) }).promise;
   const out: string[] = [];

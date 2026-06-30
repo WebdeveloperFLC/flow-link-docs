@@ -4,6 +4,27 @@ import fs from "fs";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
+/** Surface missing file paths before Vite's truncated ENOENT (Lovable build logs). */
+function enoentGuardPlugin(): Plugin {
+  return {
+    name: "enoent-guard",
+    enforce: "pre",
+    async load(id) {
+      const cleanId = id.split("?")[0];
+      if (cleanId.startsWith("\0") || cleanId.includes("virtual:")) return null;
+      if (!path.isAbsolute(cleanId)) return null;
+      try {
+        await fs.promises.access(cleanId);
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+          throw new Error(`[vite build] Missing file for module id: ${id}`, { cause: err });
+        }
+      }
+      return null;
+    },
+  };
+}
+
 /** Serve public/specimens/checklists/*.html without requiring .html in the URL (dev server). */
 function specimenChecklistsPlugin(): Plugin {
   return {
@@ -41,7 +62,7 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react(), specimenChecklistsPlugin(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [enoentGuardPlugin(), react(), specimenChecklistsPlugin(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

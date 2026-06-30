@@ -1,15 +1,8 @@
-import { configurePdfWorker } from "@/lib/pdfWorker";
+import { loadPdfjs } from "@/lib/pdfjsLoader";
 
 // Lazy-load pdfjs to avoid blocking initial bundle
-let pdfjsPromise: Promise<typeof import("pdfjs-dist")> | null = null;
 async function getPdfjs() {
-  if (!pdfjsPromise) {
-    pdfjsPromise = import("pdfjs-dist").then((mod) => {
-      configurePdfWorker(mod.GlobalWorkerOptions);
-      return mod;
-    });
-  }
-  return pdfjsPromise;
+  return loadPdfjs();
 }
 
 export async function extractFirstPageText(file: File, maxChars = 2000, maxPages = 3): Promise<string> {

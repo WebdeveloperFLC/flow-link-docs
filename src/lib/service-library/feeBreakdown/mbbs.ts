@@ -1,4 +1,4 @@
-import tuitionData from "./data/mbbs-tuition-data.json";
+import { tuitionData } from "./data/mbbsData.generated";
 import { breakdown, fee, na } from "./builders";
 import type { GovtFeeBreakdownItem, GovtFeeBreakdownSource } from "./types";
 

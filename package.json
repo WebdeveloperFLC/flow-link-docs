@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/bundle-markdown-for-vite.mjs && node scripts/copy-pdf-worker.mjs && node scripts/sync-service-library-downloads.mjs && vite build",
+    "build": "node scripts/bundle-vite-assets.mjs && node scripts/copy-pdf-worker.mjs && node scripts/sync-service-library-downloads.mjs && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",

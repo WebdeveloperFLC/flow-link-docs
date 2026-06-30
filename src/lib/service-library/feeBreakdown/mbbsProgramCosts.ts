@@ -1,12 +1,14 @@
 import type { ServiceAcademyMetadata } from "../academyTypes";
 import type { FullCostBreakdown } from "../countryInsights/types";
-import saba from "./data/mbbs-saba-university.json";
-import synergy from "./data/mbbs-synergy-university.json";
-import mua from "./data/mbbs-medical-university-americas.json";
-import stMatthews from "./data/mbbs-st-matthews-university.json";
-import seu from "./data/mbbs-georgian-national-university-seu.json";
-import ibsu from "./data/mbbs-international-black-sea-university.json";
-import avicenna from "./data/mbbs-avicenna-batumi.json";
+import {
+  avicenna_batumi as avicenna,
+  georgian_national_university_seu as seu,
+  international_black_sea_university as ibsu,
+  medical_university_americas as mua,
+  saba_university as saba,
+  st_matthews_university as stMatthews,
+  synergy_university as synergy,
+} from "./data/mbbsData.generated";
 
 const MBBS_PROGRAM_COSTS = new Map<string, FullCostBreakdown>([
   ["b2000001-0001-4000-8000-0000000000d1", saba.fullCostBreakdown as FullCostBreakdown],
@@ -28,8 +30,4 @@ export function resolveMbbsFullCostBreakdown(
   const fromMeta = meta?.fullCostBreakdown;
   if (fromMeta?.sections?.length) return fromMeta as FullCostBreakdown;
   return null;
-}
-
-export function hasMbbsProgramCostBreakdown(libraryId: string): boolean {
-  return MBBS_PROGRAM_COSTS.has(libraryId);
 }
