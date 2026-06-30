@@ -1,7 +1,6 @@
-import { lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { RootErrorBoundary } from "@/components/RootErrorBoundary";
-import { BootstrapLoading } from "@/components/BootstrapLoading";
+import AppBootstrap from "@/AppBootstrap";
 import "./index.css";
 import "./styles/performance-hub-theme.css";
 import "./hr-payroll/styles/hr-payroll-theme.css";
@@ -21,14 +20,6 @@ window.addEventListener("unhandledrejection", (event) => {
   showBootstrapError(message);
 });
 
-const App = lazy(() =>
-  import("./App.tsx").catch((error) => {
-    const message = error instanceof Error ? error.message : String(error);
-    showBootstrapError(message);
-    return { default: () => null };
-  }),
-);
-
 const mount = document.getElementById("root");
 if (!mount) {
   throw new Error("Missing #root element");
@@ -37,9 +28,7 @@ if (!mount) {
 try {
   createRoot(mount).render(
     <RootErrorBoundary>
-      <Suspense fallback={<BootstrapLoading />}>
-        <App />
-      </Suspense>
+      <AppBootstrap />
     </RootErrorBoundary>,
   );
 } catch (error) {
