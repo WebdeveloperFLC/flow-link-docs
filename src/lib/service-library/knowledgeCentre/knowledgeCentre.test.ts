@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { validateKnowledgeCentreJson } from "./validateKnowledgeCentreJson";
+import { finalizeKnowledgeCentreSave } from "./finalizeKnowledgeCentreSave";
 import {
   resolveKnowledgeCentreNavigation,
   resolveKnowledgeCentreTabLabel,
@@ -319,5 +320,34 @@ describe("resolveKnowledgeCentreNavigation", () => {
   it("returns null when navigation is absent", () => {
     const meta: KnowledgeCentreMetadata = { displayName: "Legacy" };
     expect(resolveKnowledgeCentreNavigation(meta, minimalView())).toBeNull();
+  });
+});
+
+describe("finalizeKnowledgeCentreSave", () => {
+  it("stores ZIP guide exactly — no version bump or changelog injection", () => {
+    const guide = loadCanadaFixture();
+    const result = finalizeKnowledgeCentreSave(guide, {
+      author: "test",
+      summary: "Bulk JSON import",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.payload.version).toBe("v3.0");
+    expect(result.payload.schemaRef).toBe("flc-knowledge-guide-schema-v1.0");
+    expect(Array.isArray(result.payload.navigation)).toBe(true);
+    expect(result.payload.navigation?.length).toBe(17);
+    expect(result.payload.changelog?.length).toBe(guide.changelog?.length);
+  });
+
+  it("still bumps legacy metadata version", () => {
+    const legacy = baseCanadaMeta();
+    const result = finalizeKnowledgeCentreSave(legacy, {
+      author: "test",
+      summary: "Section edit",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.payload.version).not.toBe(legacy.version);
+    expect(result.payload.changelog?.[0]?.summary).toBe("Section edit");
   });
 });

@@ -1,4 +1,5 @@
 import { exportAcademyMetadataJson } from "../academyTypes";
+import { isFlcKnowledgeGuide } from "../knowledgeGuide/types";
 import { bumpContentVersion, type BumpContentVersionOptions } from "./bumpContentVersion";
 import type { KnowledgeCentreMetadata } from "./types";
 import { KNOWLEDGE_CENTRE_SCHEMA_VERSION } from "./types";
@@ -26,13 +27,29 @@ export type FinalizeKnowledgeCentreSaveResult =
     };
 
 /**
- * Content engine: after a section edit, bump version, validate the full guide JSON, return storage payload.
- * The CRM stores one complete academy_metadata object — never a partial merge at the DB layer.
+ * Content engine: validate the full guide JSON and return the storage payload.
+ * ZIP guides (schemaRef flc-knowledge-guide-schema-v1.0) are stored exactly as provided — no bump/merge.
+ * Legacy unmigrated services still bump version + changelog on section saves.
  */
 export function finalizeKnowledgeCentreSave(
   meta: KnowledgeCentreMetadata,
   opts: FinalizeKnowledgeCentreSaveOptions,
 ): FinalizeKnowledgeCentreSaveResult {
+  if (isFlcKnowledgeGuide(meta)) {
+    const validation = validateKnowledgeCentreJson(meta, {
+      ...opts.validate,
+      requireSchemaVersion: true,
+    });
+    if (!validation.ok) {
+      return {
+        ok: false,
+        message: formatValidationIssues(validation) || "ZIP guide JSON validation failed",
+      };
+    }
+    const json = exportAcademyMetadataJson(meta);
+    return { ok: true, payload: meta, json };
+  }
+
   const bumped = bumpContentVersion(meta, opts);
 
   const requireSchemaVersion =

@@ -194,7 +194,16 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
 
   const saveJson = async () => {
     try {
-      const parsed = parseAcademyMetadataJson(jsonText) as KnowledgeCentreMetadata;
+      const parsed = JSON.parse(jsonText) as unknown;
+      if (!isFlcKnowledgeGuide(parsed)) {
+        toast({
+          title: "Import rejected",
+          description:
+            'Bulk Save JSON requires the ZIP production guide: schemaRef "flc-knowledge-guide-schema-v1.0", schemaVersion "1.0", and navigation[] array.',
+          variant: "destructive",
+        });
+        return;
+      }
       const importCheck = validateKnowledgeCentreJson(parsed, { requireSchemaVersion: true });
       if (!importCheck.ok) {
         toast({
@@ -204,8 +213,7 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
         });
         return;
       }
-      await persist(parsed, "Bulk JSON import");
-      setMeta(parsed);
+      await persist(parsed as KnowledgeCentreMetadata, "Bulk JSON import");
     } catch (e) {
       toast({
         title: "Invalid JSON",
