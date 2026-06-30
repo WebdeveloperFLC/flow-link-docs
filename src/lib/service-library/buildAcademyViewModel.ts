@@ -21,6 +21,10 @@ import {
   resolveCoachingVariantLabel,
 } from "@/lib/leads/servicePickerGroups";
 import { coachingFamilyLabel } from "./serviceNavClassification";
+import {
+  consultancyAmountsFromFeeItems,
+  formatConsultancyKpiFromStored,
+} from "@/lib/feeMaster/crmPricingRules";
 import { resolveServiceFeeBreakdown } from "./feeBreakdown";
 import type { ServiceFeeBreakdownView } from "./feeBreakdown/types";
 import { resolveMbbsFullCostBreakdown } from "./feeBreakdown/mbbsProgramCosts";
@@ -139,6 +143,8 @@ export type AcademyViewModel = {
   checklistGuide: { note?: string; items: string[] } | null;
   /** ZIP schema document binder categories (Binder tab content detection). */
   documentBinder: FlcDocumentBinder | null;
+  /** ZIP guide slug for download template asset paths. */
+  guideSlug: string | null;
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -232,15 +238,10 @@ function formatGovernmentKpi(items: FeeItem[]): string {
 }
 
 function formatConsultancyKpi(items: FeeItem[]): { value: string; sub?: string } {
-  const inr = items.find((f) => /consultancy fee \(inr\)/i.test(f.fee_label));
-  const cad = items.find((f) => /consultancy fee \(cad\)/i.test(f.fee_label));
-  if (inr?.amount) {
-    const value = `₹${inr.amount}`;
-    const subParts: string[] = [];
-    if (cad?.amount) subParts.push(`CA$${cad.amount}`);
-    if (inr.notes?.trim()) subParts.push(inr.notes.trim());
-    return { value, sub: subParts.length > 0 ? subParts.join(" · ") : undefined };
-  }
+  const amounts = consultancyAmountsFromFeeItems(items);
+  const fromStored = formatConsultancyKpiFromStored(amounts);
+  if (fromStored.value !== "—") return fromStored;
+
   const legacy = formatFee(items, /consult|service|our/i);
   if (legacy !== "—") return { value: legacy };
   return { value: "—" };
@@ -582,5 +583,6 @@ export function buildAcademyViewModel(args: {
     downloadTemplates: zipGuide?.downloads?.templates ?? [],
     checklistGuide,
     documentBinder: zipGuide?.documentBinder ?? null,
+    guideSlug: zipGuide?.slug ?? null,
   };
 }

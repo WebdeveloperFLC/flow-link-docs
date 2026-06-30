@@ -756,6 +756,7 @@ export function ServiceLibraryTabs({
                 key={t.template}
                 template={t}
                 guideSources={view.guideSources}
+                guideSlug={view.guideSlug}
               />
             ))}
           </div>

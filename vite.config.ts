@@ -32,6 +32,57 @@ function specimenChecklistsPlugin(): Plugin {
   };
 }
 
+/** Serve content/service-library/**/downloads/* HTML assets at /content/service-library/... (dev + build copy). */
+function serviceLibraryDownloadsPlugin(): Plugin {
+  const contentRoot = path.join(process.cwd(), "content/service-library");
+
+  function resolveContentFile(pathname: string): string | null {
+    const m = pathname.match(/^\/content\/service-library\/(.+)$/);
+    if (!m) return null;
+    const filePath = path.join(contentRoot, m[1]);
+    if (!filePath.startsWith(contentRoot)) return null;
+    return fs.existsSync(filePath) && fs.statSync(filePath).isFile() ? filePath : null;
+  }
+
+  return {
+    name: "service-library-downloads-static",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const pathname = (req.url ?? "").split("?")[0] ?? "";
+        const filePath = resolveContentFile(pathname);
+        if (!filePath) return next();
+        const ext = path.extname(filePath).toLowerCase();
+        const type =
+          ext === ".html"
+            ? "text/html; charset=utf-8"
+            : ext === ".css"
+              ? "text/css"
+              : "application/octet-stream";
+        res.setHeader("Content-Type", type);
+        fs.createReadStream(filePath).pipe(res);
+      });
+    },
+    closeBundle() {
+      const outRoot = path.join(process.cwd(), "dist/content/service-library");
+      function copyDir(src: string, rel = "") {
+        if (!fs.existsSync(src)) return;
+        for (const name of fs.readdirSync(src)) {
+          const srcPath = path.join(src, name);
+          const relPath = rel ? `${rel}/${name}` : name;
+          if (fs.statSync(srcPath).isDirectory()) {
+            copyDir(srcPath, relPath);
+          } else if (relPath.includes("/downloads/") || relPath.includes("\\downloads\\")) {
+            const dest = path.join(outRoot, relPath);
+            fs.mkdirSync(path.dirname(dest), { recursive: true });
+            fs.copyFileSync(srcPath, dest);
+          }
+        }
+      }
+      copyDir(contentRoot);
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -41,7 +92,7 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react(), specimenChecklistsPlugin(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [react(), specimenChecklistsPlugin(), serviceLibraryDownloadsPlugin(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

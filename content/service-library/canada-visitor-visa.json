@@ -1,20 +1,47 @@
 {
-  "displayName": "Canada – Visitor Visa (TRV)",
-  "shortDescription": "IRCC temporary resident visa · Tourism, family, business · Biometrics may apply",
-  "version": "v2.0",
+  "schemaVersion": "1.0",
+  "schemaRef": "flc-knowledge-guide-schema-v1.0",
+  "slug": "canada-visitor-visa",
+  "displayName": "Canada – Visitor Visa (Temporary Resident Visa)",
+  "shortDescription": "Apply for a Canada TRV for tourism, family visits, or business.",
+  "country": "Canada",
+  "service": "Visitor Visa (TRV)",
+  "navBucket": "visa",
+  "structure": "merged-operational-v3",
+  "version": "v3.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
-  "updatedLabel": "Updated 6 Jun 2026",
-  "learningLevel": "Beginner",
-  "learningMinutes": 15,
+  "updatedLabel": "Updated 29 Jun 2026",
+  "learningLevel": "Intermediate",
+  "learningMinutes": 18,
+  "builtToStandard": "Knowledge Writing Standard v1.0",
+  "sourcePolicy": "Every official fact carries an inline source link (S-id) resolving to the Sources tab. Confirm current figures on canada.ca before quoting. Future Link owns counselling content; official facts are linked, never copied.",
   "policyAlert": {
     "active": true,
-    "date": "6 Jun 2026",
-    "summary": "Confirm current IRCC visitor visa fee (CAD $100) and biometrics fee on canada.ca before quoting clients."
+    "date": "29 Jun 2026",
+    "summary": "Confirm on canada.ca before quoting: TRV fee CAD $100/person (family of 5+ CAD $500) and biometrics CAD $85/person (family max CAD $170). Processing times are dynamic — pull the client's country estimate from the IRCC tool on build day. As of 26 May 2026, citizens of Indonesia and Malaysia meeting certain conditions may apply for an eTA by air instead of a TRV.",
+    "sourceRefs": [
+      {
+        "id": "S6",
+        "url": "https://ircc.canada.ca/english/information/fees/fees.asp"
+      },
+      {
+        "id": "S7",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html"
+      },
+      {
+        "id": "S8",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html"
+      },
+      {
+        "id": "S2",
+        "url": "https://ircc.canada.ca/english/visit/visas.asp"
+      }
+    ]
   },
   "alert": {
-    "title": "Purpose must match documents",
-    "body": "Tourism, family visit, and business visitor files need different evidence. Misaligned purpose is a common refusal reason—align invitation, itinerary, and cover letter."
+    "title": "TRV vs eTA — check first",
+    "body": "Not every visitor needs a TRV. Visa-exempt nationals (and most dual citizens travelling on an eligible passport) use an eTA for air travel instead. Run the IRCC 'Find out if you need a visa' tool for the client's citizenship and travel mode before starting a TRV application."
   },
   "tags": [
     {
@@ -22,1542 +49,1351 @@
       "variant": "success"
     },
     {
-      "label": "Ties evidence critical",
+      "label": "TRV vs eTA check required",
       "variant": "warning"
     },
     {
-      "label": "2–8 weeks",
+      "label": "Biometrics required",
       "variant": "neutral"
     },
     {
-      "label": "Online – IRCC",
+      "label": "Online – IRCC Portal",
       "variant": "neutral"
     }
   ],
   "chips": [
     {
-      "label": "2–8 weeks processing",
+      "label": "Tourism / family / business",
       "variant": "neutral"
     },
     {
-      "label": "CAD $100 + biometrics",
+      "label": "Biometrics required",
       "variant": "neutral"
     },
     {
-      "label": "Strong ties required",
-      "variant": "warning"
-    },
-    {
-      "label": "Online application",
+      "label": "Up to 6 months per entry",
       "variant": "success"
+    },
+    {
+      "label": "No work or study",
+      "variant": "warning"
     }
   ],
   "kpis": [
     {
-      "label": "Processing time",
-      "value": "2–8w",
-      "sub": "Varies by country of residence",
-      "tone": "primary"
-    },
-    {
-      "label": "Government fee",
+      "label": "Application fee",
       "value": "CAD $100",
-      "sub": "+ biometrics CAD $85 if required",
-      "tone": "warning"
+      "sub": "per person (family of 5+ CAD $500)",
+      "tone": "primary",
+      "sourceRefs": [
+        {
+          "id": "S6",
+          "url": "https://ircc.canada.ca/english/information/fees/fees.asp"
+        }
+      ]
     },
     {
-      "label": "Our approval rate",
-      "value": "78%",
-      "sub": "~65% industry benchmark",
-      "tone": "success"
+      "label": "Biometrics",
+      "value": "CAD $85",
+      "sub": "per person · family max CAD $170 · valid 10 yrs",
+      "tone": "violet",
+      "sourceRefs": [
+        {
+          "id": "S7",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html"
+        }
+      ]
     },
     {
-      "label": "Required docs",
-      "value": "10",
-      "sub": "+ invitation if applicable",
-      "tone": "violet"
+      "label": "Stay per entry",
+      "value": "Up to 6 months",
+      "sub": "officer's discretion at the port of entry",
+      "tone": "success",
+      "sourceRefs": [
+        {
+          "id": "S1",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa.html"
+        }
+      ]
+    },
+    {
+      "label": "Visa validity",
+      "value": "Up to 10 yrs",
+      "sub": "or passport expiry, whichever is first",
+      "tone": "primary",
+      "sourceRefs": [
+        {
+          "id": "S14",
+          "url": "https://ircc.canada.ca/english/helpcentre/answer.asp?qnum=417&top=16"
+        }
+      ]
+    },
+    {
+      "label": "Processing time",
+      "value": "Check IRCC tool",
+      "sub": "dynamic by country — verify on build day",
+      "tone": "warning",
+      "sourceRefs": [
+        {
+          "id": "S8",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html"
+        }
+      ]
     },
     {
       "label": "Consultancy fee",
-      "value": "See fee tab",
-      "sub": "+ govt & third-party",
+      "value": "₹7,080 / CAD $105",
+      "sub": "TRV 1 person · see Consultancy Fee tab for tiers",
       "tone": "primary"
     }
   ],
+  "approvalRatePlaceholder": "Approval-rate KPI omitted — IRCC does not publish a per-service approval rate and no verified internal data is available.",
   "about": [
     {
-      "label": "Description",
-      "value": "Temporary Resident Visa (TRV) allowing Indian nationals to visit Canada for tourism, family visits, or short business trips. Most applications are submitted online through the IRCC portal."
+      "label": "What it is",
+      "value": "A Temporary Resident Visa (TRV) is a counterfoil placed in the passport showing the holder meets the requirements to travel to Canada as a temporary visitor. It does not guarantee entry — a border officer makes the final decision."
     },
     {
-      "label": "Eligible applicants",
-      "value": "Valid passport · Genuine temporary purpose · Strong ties to India · Sufficient funds · Clean immigration history"
+      "label": "Who it's for",
+      "value": "Citizens of visa-required countries travelling to Canada for tourism, visiting family or friends, or business meetings and conferences."
     },
     {
       "label": "Single vs multiple entry",
-      "value": "Officer decides entry type and validity at approval. Do not promise multiple-entry unless client profile supports it.",
-      "warning": true
+      "value": "IRCC decides which to issue based on the application; the same fee applies to both. Multiple-entry visas can be valid up to 10 years or passport expiry, whichever comes first."
     },
     {
-      "label": "Key authority",
-      "value": "Immigration, Refugees and Citizenship Canada (IRCC)"
+      "label": "Important limit",
+      "value": "A visitor may not work or study (beyond short courses under 6 months) in Canada. Work or study needs the appropriate permit."
     },
     {
-      "label": "After approval",
-      "value": "TRV counterfoil in passport; client must respect stay duration and purpose. Overstay affects future Canada applications."
+      "label": "TRV vs eTA",
+      "value": "Visa-exempt travellers use an Electronic Travel Authorization (eTA, CAD $7) for air travel instead of a TRV. U.S. citizens need neither. Always confirm with the IRCC eligibility tool."
     }
   ],
   "eligibility": [
     {
-      "criterion": "Valid passport (6+ months validity recommended)",
+      "criterion": "Hold a valid passport / travel document",
       "met": true,
-      "note": "Check expiry before booking VAC appointment"
+      "note": "Validity should comfortably cover the intended stay."
     },
     {
-      "criterion": "Proof of purpose (tourism / family / business)",
+      "criterion": "Citizen of a visa-required country",
       "met": true,
-      "note": "Itinerary, invitation letter, or business documents as applicable"
+      "note": "If visa-exempt, apply for an eTA instead, not a TRV (S2)."
     },
     {
-      "criterion": "Proof of funds for trip duration",
+      "criterion": "Convince an officer of ties to home country",
       "met": true,
-      "note": "Bank statements, ITR, sponsor letter if applicable"
+      "note": "Employment, property, family and financial ties showing you will leave at the end of the authorized stay (S3)."
     },
     {
-      "criterion": "Strong ties to home country",
+      "criterion": "Sufficient funds for the visit and return travel",
       "met": true,
-      "note": "Employment, property, family, business—document clearly"
+      "note": "Bank statements and, where relevant, host support / invitation (S9)."
     },
     {
-      "criterion": "Biometrics completed",
+      "criterion": "Admissible to Canada",
+      "met": true,
+      "note": "No criminal, security or misrepresentation inadmissibility; medical exam only if required."
+    },
+    {
+      "criterion": "Genuine, credible purpose of visit",
+      "met": true,
+      "note": "Tourism, family visit, or business — supported by itinerary and documents."
+    },
+    {
+      "criterion": "Biometrics (most applicants 14–79)",
+      "met": true,
+      "note": "Give fingerprints + photo once every 10 years for repeat trips (S7)."
+    },
+    {
+      "criterion": "Not seeking to work or study long-term",
       "met": false,
-      "note": "Book within 30 days of BIL if required"
-    },
-    {
-      "criterion": "Medical exam (if required)",
-      "met": false,
-      "note": "Based on residence history and stay plans"
-    },
-    {
-      "criterion": "No prior misrepresentation or serious inadmissibility",
-      "met": true
+      "note": "A visitor cannot work, and may only study in courses under 6 months. Use a work/study permit otherwise (S12, S13)."
     }
   ],
-  "redFlagsBanner": "If refused, do not reapply immediately with the same weak ties evidence. Address the specific refusal reason before a new submission.",
+  "fullCostBreakdown": {
+    "title": "Estimated cost planning — Canada Visitor Visa (TRV)",
+    "currency": "CAD (with INR guide)",
+    "lastVerified": "29 Jun 2026",
+    "disclaimer": "Indicative figures for counselling discussions. Government fees are confirm-current on canada.ca. The Future Link professional fee is the base consultancy charge only (taxes excluded). Third-party/living figures are planning estimates, not government figures.",
+    "verifyTotalUrl": "https://ircc.canada.ca/english/information/fees/fees.asp",
+    "fxNote": "INR is auto-computed from Currency Master (CAD effective rate). No hardcoded FX.",
+    "sections": [
+      {
+        "id": "govt",
+        "label": "Government fees (IRCC)",
+        "owner": "IRCC",
+        "sourceRefs": [
+          {
+            "id": "S6",
+            "url": "https://ircc.canada.ca/english/information/fees/fees.asp"
+          },
+          {
+            "id": "S7",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html"
+          }
+        ],
+        "items": [
+          {
+            "label": "TRV application fee — per person",
+            "amount": "CAD $100",
+            "inr": "auto",
+            "unit": "per applicant",
+            "official": true,
+            "cadAmount": 100.0
+          },
+          {
+            "label": "TRV application fee — per family of 5+",
+            "amount": "CAD $500",
+            "inr": "auto",
+            "unit": "family applying together",
+            "official": true,
+            "cadAmount": 500.0
+          },
+          {
+            "label": "Biometrics — per person",
+            "amount": "CAD $85",
+            "inr": "auto",
+            "unit": "per applicant",
+            "official": true,
+            "cadAmount": 85.0
+          },
+          {
+            "label": "Biometrics — per family",
+            "amount": "CAD $170",
+            "inr": "auto",
+            "unit": "family max",
+            "official": true,
+            "cadAmount": 170.0
+          },
+          {
+            "label": "Government total — single applicant",
+            "amount": "CAD $185",
+            "inr": "auto",
+            "unit": "fee + biometrics",
+            "official": true,
+            "cadAmount": 185.0
+          }
+        ]
+      },
+      {
+        "id": "flc",
+        "label": "Future Link professional fee (consultancy)",
+        "owner": "Future Link Consultants",
+        "sourceRefs": [],
+        "items": [
+          {
+            "label": "FLC professional fee — TRV (1 person)",
+            "amount": "CAD $105",
+            "inr": "auto",
+            "unit": "base professional fee (taxes excl.)",
+            "official": false,
+            "cadAmount": 105.0
+          },
+          {
+            "label": "FLC professional fee — TRV (2 persons)",
+            "amount": "CAD $150",
+            "inr": "auto",
+            "unit": "base professional fee (taxes excl.)",
+            "official": false,
+            "cadAmount": 150.0
+          },
+          {
+            "label": "FLC professional fee — TRV (3 persons)",
+            "amount": "CAD $250",
+            "inr": "auto",
+            "unit": "base professional fee (taxes excl.)",
+            "official": false,
+            "cadAmount": 250.0
+          }
+        ]
+      },
+      {
+        "id": "third",
+        "label": "Third-party / supporting",
+        "owner": "Mixed",
+        "sourceRefs": [],
+        "items": [
+          {
+            "label": "VAC service charge",
+            "amount": "CAD $30–75",
+            "inr": "auto",
+            "unit": "varies by country",
+            "official": false,
+            "cadAmount": [
+              30.0,
+              75.0
+            ]
+          },
+          {
+            "label": "Document translation (if needed)",
+            "amount": "CAD $20–120",
+            "inr": "auto",
+            "unit": "per document set",
+            "official": false,
+            "cadAmount": [
+              20.0,
+              120.0
+            ]
+          },
+          {
+            "label": "Photographs / courier / notarization",
+            "amount": "CAD $20–60",
+            "inr": "auto",
+            "unit": "as required",
+            "official": false,
+            "cadAmount": [
+              20.0,
+              60.0
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "checklistItems": {
+    "note": "Counsellor checklist for a complete TRV application. Confirm each item against the official guide before submission.",
+    "items": [
+      "Run the IRCC 'need a visa or eTA' tool for the client's citizenship + travel mode",
+      "Valid passport with adequate remaining validity",
+      "Completed application (IMM 5257) plus family/representative forms as applicable",
+      "Two photos meeting IRCC specifications",
+      "Proof of funds (bank statements, typically 4–6 months)",
+      "Proof of ties to home country (employment letter, property, family)",
+      "Purpose-of-visit documents (itinerary, invitation/host letter if family visit)",
+      "Pay the TRV fee and biometrics fee; keep receipts",
+      "Book and attend biometrics at a VAC (most applicants 14–79)",
+      "Cover letter explaining the trip in plain language"
+    ],
+    "sourceRefs": [
+      {
+        "id": "S4",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html"
+      },
+      {
+        "id": "S5",
+        "url": "https://ircc.canada.ca/english/information/applications/visa.asp"
+      }
+    ]
+  },
+  "documentBinder": {
+    "note": "Suggested documents grouped by purpose. The exact set depends on the local visa office instructions for the client's country.",
+    "howItWorks": "Use these categories to assemble the client's binder. Required items must be present; supporting items strengthen ties and purpose.",
+    "sourceRefs": [
+      {
+        "id": "S4",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html"
+      },
+      {
+        "id": "S9",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html"
+      }
+    ],
+    "categories": [
+      {
+        "category": "Identity & travel",
+        "required": "Required",
+        "sourceRefs": [
+          {
+            "id": "S4",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html"
+          }
+        ],
+        "items": [
+          "Valid passport (bio page + any prior visas/stamps)",
+          "Two IRCC-spec photographs",
+          "Previous travel history (if any)"
+        ]
+      },
+      {
+        "category": "Forms",
+        "required": "Required",
+        "sourceRefs": [
+          {
+            "id": "S5",
+            "url": "https://ircc.canada.ca/english/information/applications/visa.asp"
+          }
+        ],
+        "items": [
+          "IMM 5257 (Application for a Visitor Visa)",
+          "IMM 5645 (Family Information) where applicable",
+          "IMM 5476 (Use of a Representative) if using a consultant"
+        ]
+      },
+      {
+        "category": "Funds",
+        "required": "Required",
+        "sourceRefs": [
+          {
+            "id": "S9",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html"
+          }
+        ],
+        "items": [
+          "Bank statements (typically 4–6 months)",
+          "Income proof / pay slips",
+          "Sponsor or host financial documents (if applicable)"
+        ]
+      },
+      {
+        "category": "Purpose & ties",
+        "required": "Supporting",
+        "sourceRefs": [
+          {
+            "id": "S3",
+            "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/eligibility.html"
+          }
+        ],
+        "items": [
+          "Cover letter explaining the trip",
+          "Invitation letter from host in Canada (family visit)",
+          "Employment letter / leave approval",
+          "Property or business documents showing ties"
+        ]
+      }
+    ]
+  },
+  "visaForms": {
+    "note": "Official IRCC forms for the TRV application package. Always download the current version from canada.ca.",
+    "sourceRefs": [
+      {
+        "id": "S5",
+        "url": "https://ircc.canada.ca/english/information/applications/visa.asp"
+      }
+    ],
+    "forms": [
+      {
+        "code": "IMM 5257",
+        "name": "Application for a Temporary Resident Visa",
+        "when": "Every TRV applicant",
+        "stage": "Apply",
+        "url": "https://ircc.canada.ca/english/information/applications/visa.asp"
+      },
+      {
+        "code": "IMM 5645",
+        "name": "Family Information",
+        "when": "Where required by the guide",
+        "stage": "Apply",
+        "url": "https://ircc.canada.ca/english/information/applications/visa.asp"
+      },
+      {
+        "code": "IMM 5476",
+        "name": "Use of a Representative",
+        "when": "If a consultant/representative submits on the client's behalf",
+        "stage": "Apply",
+        "url": "https://ircc.canada.ca/english/information/applications/visa.asp"
+      },
+      {
+        "code": "IMM 5256",
+        "name": "Visitor Visa — Instruction Guide",
+        "when": "Read before applying",
+        "stage": "Prepare",
+        "url": "https://ircc.canada.ca/english/information/applications/visa.asp"
+      }
+    ]
+  },
+  "timeline": [
+    {
+      "weeks": "Week 0",
+      "title": "Eligibility check — confirm TRV vs eTA, gather documents"
+    },
+    {
+      "weeks": "Week 1",
+      "title": "Complete forms, pay fees, submit online via IRCC Portal"
+    },
+    {
+      "weeks": "Week 1–2",
+      "title": "Give biometrics at a VAC (processing starts after biometrics)"
+    },
+    {
+      "weeks": "Varies",
+      "title": "IRCC review — pull the live country estimate from the IRCC tool (S8)"
+    },
+    {
+      "weeks": "On approval",
+      "title": "Passport request, visa counterfoil issued, plan travel"
+    }
+  ],
+  "workingRights": {
+    "flagStatus": "Not Allowed",
+    "flagReason": "A visitor visa (TRV) does not permit work in Canada. To work, the client needs a work permit; to study in courses of 6 months or longer, a study permit. Short courses under 6 months may be taken without a study permit.",
+    "sourceRefs": [
+      {
+        "id": "S12",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/work-without-permit.html"
+      },
+      {
+        "id": "S13",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/study-without-permit.html"
+      }
+    ]
+  },
+  "donts": {
+    "dos": [
+      "Run the IRCC visa/eTA tool before anything else",
+      "Show strong ties to the home country",
+      "Submit a complete, well-organized application the first time",
+      "Apply at least 2–3 months before the travel date",
+      "Keep fee and biometrics receipts with the application"
+    ],
+    "donts": [
+      "Don't imply intent to work or study long-term on a visitor visa",
+      "Don't submit incomplete forms or unsigned documents",
+      "Don't book non-refundable travel before approval",
+      "Don't overstate funds or provide inconsistent documents",
+      "Don't quote a fixed processing time — it is dynamic by country"
+    ],
+    "mistakes": [
+      "Applying for a TRV when the client is actually eTA-eligible",
+      "Assuming the visa expiry equals the authorized length of stay (the port-of-entry stamp governs)",
+      "Forgetting biometrics — processing only begins once they are given"
+    ]
+  },
+  "redFlagsBanner": "These are the issues most likely to cause a TRV refusal or delay. Address each before submission.",
   "redFlags": [
     {
-      "title": "Weak home-country ties",
-      "description": "Unemployed applicant with no property, family, or business ties; vague return plan.",
-      "fix": "Document employment, business, property, family obligations; employer leave letter",
-      "severity": "Very common"
+      "title": "Weak ties to home country",
+      "description": "Officer is not satisfied the applicant will leave at the end of the stay.",
+      "fix": "Provide employment, property, family and financial evidence; a clear return plan.",
+      "severity": "high"
     },
     {
-      "title": "Insufficient or unseasoned funds",
-      "description": "Large recent deposits, funds not matching income, or no sponsor proof.",
-      "fix": "4–6 month bank history; sponsor ITR + employment letter; explain large credits",
-      "severity": "Very common"
+      "title": "Insufficient or unexplained funds",
+      "description": "Bank balance does not support the trip, or sudden large deposits.",
+      "fix": "Provide 4–6 months of consistent statements and explain the source of funds.",
+      "severity": "high"
     },
     {
-      "title": "Purpose mismatch",
-      "description": "Tourism file with business documents only, or family visit without host invitation.",
-      "fix": "Align purpose, cover letter, itinerary, and supporting documents",
-      "severity": "Common"
+      "title": "Purpose of visit not credible",
+      "description": "Itinerary, invitation or business documents are thin or inconsistent.",
+      "fix": "Attach a plain-language cover letter, itinerary, and host/invitation documents.",
+      "severity": "medium"
     },
     {
-      "title": "Previous refusals not addressed",
-      "description": "Canada or other country refusals hidden or not explained in cover letter.",
-      "fix": "Full disclosure + changed circumstances + stronger evidence",
-      "severity": "High"
+      "title": "Missing biometrics",
+      "description": "Processing does not start until biometrics are given.",
+      "fix": "Book and attend the VAC appointment promptly after submitting.",
+      "severity": "medium"
     },
     {
-      "title": "Overstated stay or vague itinerary",
-      "description": "Long stay without credible reason or no hotel/flight bookings where appropriate.",
-      "fix": "Realistic itinerary; explain accommodation; show return ticket intent",
-      "severity": "Common"
+      "title": "Prior refusal not addressed",
+      "description": "A previous refusal's concerns are repeated in the new application.",
+      "fix": "Obtain officer notes (ATIP) and directly address each concern.",
+      "severity": "high"
     },
     {
-      "title": "Biometrics deadline missed",
-      "description": "BIL expired before VAC appointment completed.",
-      "fix": "Book biometrics within days of BIL; track confirmation",
-      "severity": "Medium"
+      "title": "Wrong product (TRV vs eTA)",
+      "description": "Applying for a TRV when the client is eTA-eligible (or vice versa).",
+      "fix": "Confirm with the IRCC eligibility tool for the citizenship + travel mode.",
+      "severity": "medium"
     }
   ],
   "faqs": [
     {
-      "q": "Can we guarantee approval for a strong profile?",
-      "a": "No. IRCC officers assess each case individually. We can improve file quality but never promise approval."
+      "q": "What is a Canada visitor visa (TRV)?",
+      "a": "A Temporary Resident Visa is a document placed in the passport showing the holder meets the requirements to travel to Canada as a visitor. A border officer still makes the final decision on entry."
     },
     {
-      "q": "How much funds should a tourist show?",
-      "a": "Enough to cover flights, accommodation, and daily expenses for the planned stay. Verify current IRCC guidance; typically CAD $2,000–5,000+ depending on duration and who pays."
+      "q": "How much does a TRV cost?",
+      "a": "The IRCC application fee is CAD $100 per person, or CAD $500 maximum for a family of five or more applying together. Biometrics are an additional CAD $85 per person (family max CAD $170). Confirm on canada.ca before paying."
     },
     {
-      "q": "Is an invitation letter mandatory for family visits?",
-      "a": "Not always legally required, but strongly recommended when visiting relatives. Host should provide invitation, status proof, and address details."
+      "q": "How long can I stay on a visitor visa?",
+      "a": "Usually up to six months per entry, but the border officer decides the exact period at the port of entry. The date stamped in the passport — not the visa expiry — is the date by which you must leave."
     },
     {
-      "q": "Can a refused applicant reapply?",
-      "a": "Yes, when circumstances or evidence materially improve. Reapply without addressing refusal reasons usually fails again."
+      "q": "How long does processing take?",
+      "a": "Processing times are dynamic and vary widely by country. Always check the official IRCC processing-times tool for the client's country at the time of application; the clock starts after biometrics are given."
     },
     {
-      "q": "Does TRV allow work in Canada?",
-      "a": "No. TRV is for temporary visit only. Work requires a work permit unless exempt."
+      "q": "Do I need biometrics?",
+      "a": "Most applicants aged 14–79 must give fingerprints and a photo. They are valid for 10 years, so repeat trips within that window don't require giving them again."
     },
     {
-      "q": "How long can a visitor stay?",
-      "a": "Officer sets duration at port of entry—often up to 6 months per entry. Client must not overstay."
+      "q": "Can I work or study on a visitor visa?",
+      "a": "No. A visitor cannot work. You may only take short courses under six months; anything longer needs a study permit, and work needs a work permit."
     },
     {
-      "q": "When should biometrics be done?",
-      "a": "As soon as possible after Biometric Instruction Letter, typically within 30 days."
+      "q": "What's the difference between a TRV and an eTA?",
+      "a": "Citizens of visa-required countries need a TRV. Visa-exempt travellers use an eTA (CAD $7) for air travel instead. U.S. citizens need neither. Use the IRCC eligibility tool to confirm."
     },
     {
-      "q": "Can TRV be used to join a spouse studying in Canada?",
-      "a": "Sometimes, but assess whether visitor visa or dependant permit is more appropriate. Separate pathways may apply."
+      "q": "Can I extend my stay once in Canada?",
+      "a": "Yes — apply for a visitor record to extend your stay before your authorized period ends. That is a separate in-Canada service (see Related)."
     },
     {
-      "q": "What is Description for this service?",
-      "a": "Temporary Resident Visa (TRV) allowing Indian nationals to visit Canada for tourism, family visits, or short business trips. Most applications are submitted online through the IRCC portal."
+      "q": "Is a visitor visa single or multiple entry?",
+      "a": "IRCC decides based on the application; the fee is the same. Multiple-entry visas can be valid up to 10 years or passport expiry, whichever is earlier."
     },
     {
-      "q": "What is Eligible applicants for this service?",
-      "a": "Valid passport · Genuine temporary purpose · Strong ties to India · Sufficient funds · Clean immigration history"
-    },
-    {
-      "q": "What is Single vs multiple entry for this service?",
-      "a": "Officer decides entry type and validity at approval. Do not promise multiple-entry unless client profile supports it."
-    },
-    {
-      "q": "Important note on Single vs multiple entry?",
-      "a": "Officer decides entry type and validity at approval. Do not promise multiple-entry unless client profile supports it."
-    },
-    {
-      "q": "What is Key authority for this service?",
-      "a": "Immigration, Refugees and Citizenship Canada (IRCC)"
-    },
-    {
-      "q": "What is After approval for this service?",
-      "a": "TRV counterfoil in passport; client must respect stay duration and purpose. Overstay affects future Canada applications."
-    },
-    {
-      "q": "Is Valid passport (6+ months validity recommended) required?",
-      "a": "Check expiry before booking VAC appointment"
-    },
-    {
-      "q": "Is Proof of purpose (tourism / family / business) required?",
-      "a": "Itinerary, invitation letter, or business documents as applicable"
-    },
-    {
-      "q": "Is Proof of funds for trip duration required?",
-      "a": "Bank statements, ITR, sponsor letter if applicable"
-    },
-    {
-      "q": "Is Strong ties to home country required?",
-      "a": "Employment, property, family, business—document clearly"
-    },
-    {
-      "q": "Is Biometrics completed required?",
-      "a": "Book within 30 days of BIL if required"
-    },
-    {
-      "q": "Is Medical exam (if required) required?",
-      "a": "Based on residence history and stay plans"
-    },
-    {
-      "q": "Is No prior misrepresentation or serious inadmissibility required?",
-      "a": "No prior misrepresentation or serious inadmissibility is typically required."
-    },
-    {
-      "q": "What is the Processing time?",
-      "a": "2–8w — Varies by country of residence"
-    },
-    {
-      "q": "What is the Government fee?",
-      "a": "CAD $100 — + biometrics CAD $85 if required"
-    },
-    {
-      "q": "What is the Our approval rate?",
-      "a": "78% — ~65% industry benchmark"
-    },
-    {
-      "q": "What is the Required docs?",
-      "a": "10 — + invitation if applicable"
-    },
-    {
-      "q": "What is the Consultancy fee?",
-      "a": "See fee tab — + govt & third-party"
-    },
-    {
-      "q": "What if the client has Weak home-country ties?",
-      "a": "Document employment, business, property, family obligations; employer leave letter"
-    },
-    {
-      "q": "Why is Weak home-country ties a problem?",
-      "a": "Unemployed applicant with no property, family, or business ties; vague return plan."
-    },
-    {
-      "q": "What if the client has Insufficient or unseasoned funds?",
-      "a": "4–6 month bank history; sponsor ITR + employment letter; explain large credits"
-    },
-    {
-      "q": "Why is Insufficient or unseasoned funds a problem?",
-      "a": "Large recent deposits, funds not matching income, or no sponsor proof."
+      "q": "Does the visa guarantee entry to Canada?",
+      "a": "No. The visa allows you to travel to a port of entry; a border services officer makes the final admissibility decision on arrival."
     }
   ],
   "compliance": [
-    "Paid representation in Canada may require RCIC or lawyer—confirm who signs client agreement",
-    "Client service agreement and consent must be on file before submission",
-    "Never guarantee visa approval; use approved-language only in marketing",
-    "Fee quotes must separate consultancy, government, and third-party costs"
+    "Confirm TRV vs eTA with the official IRCC tool before quoting timelines or fees",
+    "Use of a Representative (IMM 5476) must be on file if a consultant submits the application",
+    "Quote only the base professional fee in counselling; taxes are handled separately by accounts",
+    "Never copy government text into client documents — link to canada.ca sources instead"
   ],
-  "proTips": [
-    "Build ties evidence first—employment letter, property papers, family documents",
-    "Match cover letter tone to purpose; avoid generic templates",
-    "Book biometrics within days of BIL to avoid preventable delays",
-    "For family visits, verify host's status in Canada before submission",
-    "Save final PDF package in client binder for audit"
-  ],
-  "postApproval": [
-    "Send TRV details and entry conditions to client in writing",
-    "Remind client of permitted stay duration and no-work rule",
-    "Advise on travel insurance and port-of-entry documents to carry",
-    "Register for pre-departure briefing if offered"
-  ],
-  "performance": {
-    "ourRate": 78,
-    "industryRate": 65,
-    "stats": [
+  "downloads": {
+    "note": "Future Link templates only — no government forms (official forms are in the Visa Forms tab). Click a card to open the full template content inline. The Document Checklist (FLC) breaks the application into 8 document components, each collapsible on click. The Free Guide (8th) is the client-facing version to share with enquiries.",
+    "templates": [
       {
-        "label": "Files this year",
-        "value": "96"
+        "template": "TRV Counsellor Guide",
+        "use": "Session companion",
+        "stage": "All",
+        "fileUrl": "#download-trv-counsellor-guide",
+        "fileType": "PDF/DOCX (to be uploaded)",
+        "content": {
+          "intro": "One-page companion to run a Canada visitor-visa counselling session end to end.",
+          "sections": [
+            {
+              "heading": "Before the session",
+              "items": [
+                "Confirm citizenship + travel mode; run the IRCC visa/eTA tool",
+                "Pull the live processing time for the client's country",
+                "Have official links ready (visitor visa, fees, biometrics)"
+              ]
+            },
+            {
+              "heading": "During the session",
+              "items": [
+                "Clarify purpose of visit and ties to home country",
+                "Review funds and supporting documents",
+                "Set expectations on dynamic timelines and the no-work/no-study limit"
+              ]
+            }
+          ]
+        }
       },
       {
-        "label": "Approved",
-        "value": "75"
+        "template": "TRV Meeting Checklist",
+        "use": "Counsellor intake",
+        "stage": "Prepare",
+        "fileUrl": "#download-trv-meeting-checklist",
+        "fileType": "PDF (to be uploaded)",
+        "content": {
+          "intro": "Quick intake checklist to capture everything needed before starting a TRV file.",
+          "sections": [
+            {
+              "heading": "Profile",
+              "items": [
+                "Citizenship & passport validity",
+                "Purpose of visit & travel dates",
+                "Who is travelling (1 / 2 / 3+ persons)"
+              ]
+            },
+            {
+              "heading": "Decisions",
+              "items": [
+                "TRV vs eTA confirmed",
+                "Host/invitation needed?",
+                "Prior refusals? (ATIP if yes)"
+              ]
+            }
+          ]
+        }
       },
       {
-        "label": "Refused",
-        "value": "15"
+        "template": "TRV Budget Planner",
+        "use": "Cost planning handout",
+        "stage": "Prepare",
+        "fileUrl": "#download-trv-budget-planner",
+        "fileType": "PDF/XLSX (to be uploaded)",
+        "content": {
+          "intro": "Helps the client budget the full cost: government fees, FLC professional fee, and third-party costs.",
+          "sections": [
+            {
+              "heading": "Government (IRCC)",
+              "items": [
+                "TRV fee CAD $100/person ($500 family of 5+)",
+                "Biometrics CAD $85/person ($170 family)"
+              ]
+            },
+            {
+              "heading": "FLC professional fee",
+              "items": [
+                "1 person CAD $105",
+                "2 persons CAD $150",
+                "3 persons CAD $250 (base fee, taxes excluded)"
+              ]
+            },
+            {
+              "heading": "Third-party",
+              "items": [
+                "VAC service charge",
+                "Translation / photos / courier (as needed)"
+              ]
+            }
+          ]
+        }
       },
       {
-        "label": "Withdrawn",
-        "value": "6"
+        "template": "TRV Document Checklist (FLC)",
+        "use": "Client document handout",
+        "stage": "Prepare",
+        "fileUrl": "#download-trv-document-checklist",
+        "fileType": "PDF (to be uploaded)",
+        "content": {
+          "intro": "The 8 document components of a complete Canada visitor-visa application. For each: what to provide, why it matters, and the common mistake to avoid. The exact set depends on the local visa-office instructions for the client's country.",
+          "sections": [
+            {
+              "heading": "1. Passport & travel document",
+              "items": [
+                "What: Valid passport (bio page) with adequate validity beyond the intended stay; copies of any prior visas/stamps.",
+                "Why: Establishes identity and travel history; the visa is affixed to this passport.",
+                "Mistake: Passport expiring soon, or missing pages showing past travel."
+              ]
+            },
+            {
+              "heading": "2. Photographs",
+              "items": [
+                "What: Two photographs meeting IRCC photo specifications.",
+                "Why: Required for the application and identity matching.",
+                "Mistake: Wrong size, old photo, or glare/background that fails the spec."
+              ]
+            },
+            {
+              "heading": "3. Application forms",
+              "items": [
+                "What: IMM 5257 (Application for a Visitor Visa); IMM 5645 (Family Information) and IMM 5476 (Use of a Representative) where applicable.",
+                "Why: The core application package IRCC adjudicates.",
+                "Mistake: Unsigned forms, blank mandatory fields, or an outdated form version."
+              ]
+            },
+            {
+              "heading": "4. Proof of funds",
+              "items": [
+                "What: Bank statements (typically 4–6 months), income proof; sponsor/host financials if someone is supporting the trip.",
+                "Why: Shows the client can cover the visit and return travel (S9).",
+                "Mistake: A single large recent deposit with no explanation ('unseasoned' funds)."
+              ]
+            },
+            {
+              "heading": "5. Purpose of visit & itinerary",
+              "items": [
+                "What: Cover letter explaining the trip in plain language; travel itinerary (flights/hotels/day plan).",
+                "Why: Demonstrates a genuine, credible temporary visit.",
+                "Mistake: Vague or generic cover letter; booking non-refundable travel before approval."
+              ]
+            },
+            {
+              "heading": "6. Invitation / host documents (family visit)",
+              "items": [
+                "What: Invitation letter from the host in Canada, host's status proof, relationship evidence, accommodation details.",
+                "Why: Supports a family-visit purpose and where the client will stay.",
+                "Mistake: No proof of the host's status (citizen/PR) or relationship."
+              ]
+            },
+            {
+              "heading": "7. Ties to home country",
+              "items": [
+                "What: Employment letter / leave approval, property or business documents, family responsibilities.",
+                "Why: Convinces the officer the client will leave at the end of the stay (S3) — the #1 refusal factor.",
+                "Mistake: Thin ties evidence; nothing showing a reason to return."
+              ]
+            },
+            {
+              "heading": "8. Biometrics & fee receipts",
+              "items": [
+                "What: Pay the TRV fee and biometrics fee; keep receipts; attend the VAC for biometrics (most applicants 14–79).",
+                "Why: Processing only begins once biometrics are given (S7).",
+                "Mistake: Forgetting biometrics, or not including fee receipts with the application."
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "template": "TRV Cover Letter Template",
+        "use": "Client drafting aid",
+        "stage": "Prepare",
+        "fileUrl": "#download-trv-cover-letter",
+        "fileType": "DOCX (to be uploaded)",
+        "content": {
+          "intro": "A structure for the client's cover letter — plain language, addresses what the officer needs to see.",
+          "sections": [
+            {
+              "heading": "Include",
+              "items": [
+                "Where, why, and how long the trip is",
+                "Who is funding it and proof",
+                "Ties showing intent to return"
+              ]
+            },
+            {
+              "heading": "Avoid",
+              "items": [
+                "Generic boilerplate",
+                "Contradictions with the forms",
+                "Anything implying work or long-term study"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "template": "TRV Submission Readiness Check",
+        "use": "Final pre-submit review",
+        "stage": "Submit",
+        "fileUrl": "#download-trv-readiness",
+        "fileType": "PDF (to be uploaded)",
+        "content": {
+          "intro": "Last review before submitting the online application through the IRCC Portal.",
+          "sections": [
+            {
+              "heading": "Forms & docs",
+              "items": [
+                "All 8 document components present",
+                "Forms signed; photos compliant",
+                "Fees paid; receipts attached"
+              ]
+            },
+            {
+              "heading": "Consistency",
+              "items": [
+                "Dates match across forms and itinerary",
+                "Funds explained",
+                "Cover letter aligns with documents"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "template": "TRV After-Submission Guide",
+        "use": "Post-submit client guide",
+        "stage": "After",
+        "fileUrl": "#download-trv-after-submission",
+        "fileType": "PDF (to be uploaded)",
+        "content": {
+          "intro": "What happens after submitting — biometrics, tracking, and decision.",
+          "sections": [
+            {
+              "heading": "Next steps",
+              "items": [
+                "Attend biometrics at the VAC promptly",
+                "Track status in the IRCC account",
+                "Wait for passport request on approval"
+              ]
+            },
+            {
+              "heading": "If refused",
+              "items": [
+                "Request officer notes via ATIP",
+                "Address each concern before reapplying",
+                "No permanent bar — reapply with a stronger file"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "template": "Free Guide (Client-facing)",
+        "use": "Share with enquiries — convert leads",
+        "stage": "Enquiry",
+        "audience": "Client / prospect",
+        "fileUrl": "#download-free-guide",
+        "fileType": "Branded HTML / PDF (shareable link)",
+        "standaloneFile": "canada-visitor-visa-free-guide.html",
+        "content": {
+          "intro": "A client-facing starter guide on the Canada TRV — basic but credible, branded with FLC header/footer, RCIC & AIRC credentials, offices (India/Canada/USA), phone numbers, and the 29-country strip. Share as a link (recommended) or downloadable PDF to convert enquiries.",
+          "sections": [
+            {
+              "heading": "Essentials at a glance",
+              "items": [
+                "TRV fee CAD $100/person (family of 5+ CAD $500)",
+                "Biometrics CAD $85/person (family max CAD $170)",
+                "Processing time varies by country — check IRCC tool",
+                "Stay up to 6 months per entry — no work or long-term study"
+              ]
+            },
+            {
+              "heading": "Who can apply",
+              "items": [
+                "Citizens of visa-required countries (TRV vs eTA check first)",
+                "Valid passport and proof of funds for the trip",
+                "Clear purpose: tourism, family visit, or business",
+                "Strong ties to home country"
+              ]
+            },
+            {
+              "heading": "Documents overview",
+              "items": [
+                "Identity · Purpose & itinerary · Financial · Ties to home · Invitation (if family visit) · Biometrics & fees"
+              ]
+            },
+            {
+              "heading": "The journey (5 steps)",
+              "items": [
+                "Confirm TRV vs eTA (IRCC tool)",
+                "Counselling & document preparation",
+                "Apply online (IRCC Portal)",
+                "Biometrics & fee payment",
+                "Decision & travel (border officer final say)"
+              ]
+            },
+            {
+              "heading": "Why Future Link / contact",
+              "items": [
+                "25+ years; RCIC & AIRC; 29 countries",
+                "Offices: India · Canada · USA",
+                "India +91 99982 24688 · Canada +1 416 294 2739",
+                "Book a free counselling session"
+              ]
+            }
+          ],
+          "sourceRefs": [
+            "S2",
+            "S6",
+            "S7",
+            "S8"
+          ],
+          "note": "Client-facing — verify figures on canada.ca before sharing; includes 'not affiliated with government' disclaimer."
+        }
       }
     ]
   },
-  "approvalFactors": [
+  "sampleDocs": {
+    "note": "Anonymised samples for counsellor reference only — not for client distribution.",
+    "items": [
+      {
+        "title": "Sample cover letter (mock)",
+        "description": "Purpose: explain the trip plainly. Best practice: state where, why, how long, and what you'll do; reaffirm intent to return. Mistake: vague or generic letters.",
+        "mimeType": "application/pdf",
+        "docKind": "letter"
+      },
+      {
+        "title": "Sample invitation letter (mock)",
+        "description": "Purpose: family-visit support. Best practice: host status in Canada, relationship, dates, and support offered. Mistake: missing host status proof.",
+        "mimeType": "application/pdf",
+        "docKind": "letter"
+      },
+      {
+        "title": "Sample bank statement layout (mock)",
+        "description": "Purpose: show stable funds. Best practice: 4–6 months, consistent balance, no unexplained spikes. Mistake: single recent large deposit.",
+        "mimeType": "image/jpeg",
+        "docKind": "financial"
+      }
+    ]
+  },
+  "quiz": [
     {
-      "label": "Our rate vs industry",
-      "ours": 78,
-      "benchmark": 65
+      "level": 1,
+      "question": "What does a Canada visitor visa (TRV) authorize?",
+      "options": [
+        "Temporary travel to Canada as a visitor, subject to a border officer's final decision",
+        "Automatic entry to Canada regardless of the border officer",
+        "The right to work in Canada",
+        "Permanent residence in Canada"
+      ],
+      "correctIndex": 0,
+      "explanation": "A TRV shows the holder meets requirements to travel as a visitor; entry is decided at the port of entry."
     },
     {
-      "label": "Ties documentation",
-      "ours": 74,
-      "benchmark": 58
+      "level": 1,
+      "question": "What is the IRCC TRV application fee per person?",
+      "options": [
+        "CAD $100",
+        "CAD $7",
+        "CAD $150",
+        "CAD $500"
+      ],
+      "correctIndex": 0,
+      "explanation": "The fee is CAD $100 per person; CAD $500 is the maximum for a family of five or more."
     },
     {
-      "label": "Financial credibility",
-      "ours": 76,
-      "benchmark": 62
+      "level": 2,
+      "question": "A visa-exempt client wants to fly to Canada for tourism. What do they usually need?",
+      "options": [
+        "An eTA, not a TRV",
+        "A TRV only",
+        "A work permit",
+        "Nothing at all unless they are American"
+      ],
+      "correctIndex": 0,
+      "explanation": "Visa-exempt air travellers use an eTA (CAD $7). U.S. citizens need neither."
     },
     {
-      "label": "Complete checklist first submit",
-      "ours": 88,
-      "benchmark": 68
-    }
-  ],
-  "timeline": [
-    {
-      "weeks": "1",
-      "title": "Counseling, purpose assessment, fee agreement"
+      "level": 2,
+      "question": "When does TRV processing time start?",
+      "options": [
+        "After biometrics are given",
+        "The day the client books a consultation",
+        "On passport request",
+        "At the port of entry"
+      ],
+      "correctIndex": 0,
+      "explanation": "Processing begins once biometrics are provided, not at online submission."
     },
     {
-      "weeks": "1–2",
-      "title": "Document collection, cover letter, financials"
-    },
-    {
-      "weeks": "2–3",
-      "title": "Quality review & IRCC submission"
-    },
-    {
-      "weeks": "3–4",
-      "title": "Biometrics (if applicable)"
-    },
-    {
-      "weeks": "2–8",
-      "title": "IRCC processing"
+      "level": 3,
+      "question": "A client on a TRV wants to take a 9-month diploma in Canada. What's correct?",
+      "options": [
+        "They need a study permit — courses of 6 months or more require one",
+        "They can study on the visitor visa with no permit",
+        "They can work to fund the diploma",
+        "A TRV converts to a study permit automatically"
+      ],
+      "correctIndex": 0,
+      "explanation": "Only courses under 6 months can be taken without a study permit; 9 months needs a study permit."
     }
   ],
   "relatedServices": [
     {
-      "label": "Canada – Student Visa (Study Permit)",
+      "label": "Canada – Visitor Record (In-Canada Extension)",
       "libraryId": ""
     },
     {
-      "label": "Canada – Super Visa",
+      "label": "Canada – Super Visa (Parents & Grandparents)",
       "libraryId": ""
     },
     {
-      "label": "Canada – Spouse Visa",
+      "label": "Canada – Spouse / Dependent Visitor Visa",
       "libraryId": ""
     }
   ],
   "changelog": [
     {
-      "version": "v2.0",
-      "date": "7 Jun 2026",
-      "author": "Service Library",
-      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
-    },
-    {
-      "version": "v2.0",
-      "date": "6 Jun 2026",
-      "author": "Service Library",
-      "summary": "Added 75 levelled quiz questions (Level 1–3, 25+ each) and expanded counselor content."
-    },
-    {
-      "version": "v1.0",
-      "date": "6 Jun 2026",
-      "author": "Service Library",
-      "summary": "Initial counselor content for Canada TRV with 2026 fee and processing notes."
+      "version": "v3.0",
+      "date": "29 Jun 2026",
+      "author": "Knowledge Team",
+      "summary": "Rebuilt to v1.0 ZIP schema (schemaRef flc-knowledge-guide-schema-v1.0) matching the locked Canada Student Visa reference. Official facts linked & verified on canada.ca: TRV fee CAD $100/family $500, biometrics CAD $85/family $170, stay up to 6 months, validity up to 10 yrs. Working Rights kept with flagStatus 'Not Allowed'. FLC base professional fee added (3 tiers: 1/2/3 persons), taxes excluded. Approval-rate KPI omitted; processing time set to the live IRCC tool."
     }
   ],
   "staffNotes": [
-    {
-      "author": "Documentation team",
-      "date": "6 Jun 2026",
-      "text": "Indian TRV refusals often cite ties—always collect employer leave letter and property/family evidence even for tourism."
-    },
-    {
-      "author": "Quality",
-      "date": "6 Jun 2026",
-      "text": "Second review required for all files with prior Canada refusal."
-    }
+    "Always confirm TRV vs eTA first — a wrong product is the most common avoidable error.",
+    "Processing times are dynamic; never promise a fixed number — link the IRCC tool."
   ],
   "resources": [
     {
-      "title": "IRCC — Visit Canada as a tourist",
-      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada.html",
-      "description": "Official visitor visa requirements and how to apply"
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa.html",
+      "title": "Visitor visa — canada.ca"
     },
     {
-      "title": "IRCC — Temporary resident visa",
-      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/apply-visitor-visa.html",
-      "description": "Application steps and document checklist"
+      "url": "https://ircc.canada.ca/english/visit/visas.asp",
+      "title": "Need a visa or eTA? (tool)"
     },
     {
-      "title": "IRCC — Biometrics",
-      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/campaigns/biometrics/facts.html",
-      "description": "When biometrics are required and how to book"
+      "url": "https://ircc.canada.ca/english/information/fees/fees.asp",
+      "title": "Fee list — IRCC"
     },
     {
-      "title": "IRCC processing times",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html",
+      "title": "Biometrics — canada.ca"
+    },
+    {
       "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html",
-      "description": "Current estimates by country and application type"
+      "title": "Check processing times — IRCC"
     },
     {
-      "title": "IRCC — Fee list",
-      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigration-citizenship-application-fees.html",
-      "description": "Current government fees for visitor visa and biometrics"
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/extend-stay.html",
+      "title": "Extend your stay (visitor record)"
     }
   ],
-  "quiz": [
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about the meaning of a TRV is correct?",
-      "options": [
-        "A TRV is a visa counterfoil that lets a visa-required foreign national travel to a Canadian port of entry.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "It supports travel to Canada but does not itself guarantee admission."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about the visitor visa fee is correct?",
-      "options": [
-        "The standard temporary resident visa application fee is CAD $100 per person, plus biometrics if required.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "The CAD $100 fee is separate from biometrics and other service charges."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about visitor status is correct?",
-      "options": [
-        "Visitor status allows a temporary stay for tourism, family visits, or other permitted non-work purposes.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "A visitor must respect the authorized period and conditions of stay."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about ties to home country is correct?",
-      "options": [
-        "Employment, family, property, studies, and financial obligations can help show the applicant will leave Canada.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "TRV decisions focus heavily on whether the visit is temporary."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about purpose of visit is correct?",
-      "options": [
-        "The purpose should be clear, credible, and supported by itinerary, invitation, or event evidence where relevant.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "A vague purpose makes it harder for an officer to assess temporary intent."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about financial support is correct?",
-      "options": [
-        "The applicant must show enough money for travel, living costs, and return transportation.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Funds can come from the applicant or a credible host, but evidence must be clear."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about entry versus visa validity is correct?",
-      "options": [
-        "A valid TRV permits travel to seek entry; the border officer decides admission and length of stay.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Visa validity is not the same as guaranteed status inside Canada."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about biometrics is correct?",
-      "options": [
-        "Most TRV applicants aged 14 to 79 must give biometrics unless exempt or still valid from a prior application.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Biometrics support identity and security screening."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about medical exam is correct?",
-      "options": [
-        "A medical exam may be required for longer stays, certain countries, or planned work in sensitive settings.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Medical requirements depend on risk factors and IRCC instructions."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about invitation letters is correct?",
-      "options": [
-        "An invitation letter can support the purpose of visit but does not guarantee approval.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "The visitor still must prove their own eligibility and temporary intent."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about host documents is correct?",
-      "options": [
-        "Host status, address, relationship, and financial documents may help explain the visit and support arrangements.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Host evidence is useful when the host is paying or providing accommodation."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about family visits is correct?",
-      "options": [
-        "Visiting family is a valid purpose if the timeline, relationship, and return plan are credible.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Family in Canada can support a visit but may also increase overstay concerns if not explained."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about tourism is correct?",
-      "options": [
-        "Tourism can be a valid purpose when the itinerary, funds, and travel history fit the applicant's circumstances.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Officers assess whether the trip is realistic and temporary."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about business visitors is correct?",
-      "options": [
-        "Business visitors may attend meetings or conferences but cannot enter the Canadian labour market without authorization.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Permitted business activities are narrower than working in Canada."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about super visa distinction is correct?",
-      "options": [
-        "A super visa is different from a regular TRV and is designed for parents and grandparents of citizens or permanent residents.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Super visa eligibility and insurance requirements are distinct from ordinary visitor visas."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about multiple-entry visas is correct?",
-      "options": [
-        "IRCC often issues multiple-entry TRVs, but each entry is still examined by CBSA.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Multiple-entry validity does not remove the need to comply with visitor conditions."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about passport validity is correct?",
-      "options": [
-        "The visa cannot normally be valid beyond the passport expiry date.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Passport expiry can limit the visa even when the applicant otherwise qualifies."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about previous refusals is correct?",
-      "options": [
-        "Prior refusals must be disclosed truthfully in the application.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Non-disclosure can create a misrepresentation problem worse than the refusal itself."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about criminality is correct?",
-      "options": [
-        "Criminal convictions or charges can make a visitor inadmissible.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "TRV applicants are screened for admissibility as well as purpose and funds."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about work prohibition is correct?",
-      "options": [
-        "A visitor cannot work in Canada unless specifically authorized under immigration rules.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Visitor status is not a substitute for a work permit."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about study limits is correct?",
-      "options": [
-        "Visitors can generally study only in short courses of six months or less unless exempt or authorized.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Longer programs usually require a study permit."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about dependants is correct?",
-      "options": [
-        "Each accompanying family member needs their own application and must satisfy the officer.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Approval of one visitor does not automatically approve every family member."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about travel history is correct?",
-      "options": [
-        "Lawful travel history can support credibility, but lack of travel history is not an automatic refusal.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "Travel history is one factor among funds, ties, and purpose."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about authorized stay is correct?",
-      "options": [
-        "If no specific date is stamped or documented, many visitors are authorized for up to six months from entry.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "CBSA can impose a shorter or different period at examination."
-    },
-    {
-      "level": 1,
-      "question": "In a temporary resident visa visitor application, which statement about leaving Canada is correct?",
-      "options": [
-        "The applicant must convince the officer they will leave Canada at the end of the authorized visit.",
-        "It is optional if the applicant writes a detailed cover letter.",
-        "It automatically guarantees entry to Canada once the form is submitted.",
-        "It is only reviewed after the applicant becomes a permanent resident."
-      ],
-      "correctIndex": 0,
-      "explanation": "This is the core temporary resident requirement for visitor visas."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about IMM 5257?",
-      "options": [
-        "IMM 5257 is the main application form for a temporary resident visa made outside Canada.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "It records identity, travel purpose, background, and admissibility information."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about family information?",
-      "options": [
-        "IMM 5707 or IMM 5645 may be required depending on the applicant's country and checklist.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Family information helps IRCC verify identity and relationships."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about document checklist?",
-      "options": [
-        "The applicant should follow both the IRCC portal checklist and any country-specific instructions.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Local visa office requirements can add important documents."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about fee payment?",
-      "options": [
-        "The applicant pays the CAD $100 TRV fee online, and biometrics fees if required.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Payment is part of completing submission and triggering processing steps."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about biometrics instruction letter?",
-      "options": [
-        "After submission and biometrics fee payment, IRCC issues a letter used to book biometrics at a VAC or ASC.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Applicants should not assume biometrics are complete until enrolled and reflected in the account."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about purpose evidence?",
-      "options": [
-        "Travel itinerary, invitation letters, event registrations, or hotel bookings should match the stated purpose.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Documents should tell the same story as the application forms."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about employment letters?",
-      "options": [
-        "A strong employment letter confirms role, salary, approved leave, and expected return date.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Employment evidence supports both funds and home-country ties."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about business ownership proof?",
-      "options": [
-        "Business registration, tax records, invoices, and bank statements can support self-employment ties.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Self-employed applicants need documents that explain ongoing obligations at home."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about bank documents?",
-      "options": [
-        "Recent statements should show stable balances, income deposits, and enough funds for the trip.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Officers often scrutinize sudden unexplained deposits."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about host support?",
-      "options": [
-        "If the host pays expenses, the file should include the host's invitation, status, income, and accommodation evidence.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Host support does not eliminate the need for the applicant's own credible plan."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about travel itinerary?",
-      "options": [
-        "An itinerary should be realistic for the length of stay and the applicant's budget.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Overly long or expensive plans can raise concerns if funds are limited."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about passport submission?",
-      "options": [
-        "A passport request is used to place the visa counterfoil for visa-required applicants.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "The passport must usually be valid and have space for the counterfoil."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about processing times?",
-      "options": [
-        "Published TRV times are estimates and vary by country, volume, biometrics, and background checks.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Applicants should not book non-refundable travel assuming a specific decision date."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about medical instructions?",
-      "options": [
-        "If IRCC requests a medical exam, the applicant must use a panel physician and follow the deadline.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Medical compliance is part of admissibility processing."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about police or court records?",
-      "options": [
-        "Police certificates or court records may be needed when criminal history is disclosed or requested.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Incomplete criminality evidence can delay or derail a TRV."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about translation?",
-      "options": [
-        "Non-English or non-French documents generally need certified translations with the original document.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Officers need readable and reliable evidence."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about proof of relationship?",
-      "options": [
-        "Birth certificates, marriage certificates, photos, and communication records can prove the host relationship.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Relationship evidence helps explain why the visit is happening."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about minor applicants?",
-      "options": [
-        "Minors may need consent letters, custody documents, and travel authorization from non-accompanying parents.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "IRCC and border officers assess child travel safety and consent."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about reapplying after refusal?",
-      "options": [
-        "A reapplication should respond directly to refusal reasons with better evidence or changed circumstances.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Repeating the same file usually produces the same concerns."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about address history?",
-      "options": [
-        "Address and travel histories should be complete and consistent with passports and employment records.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Inconsistencies can create credibility issues."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about biometrics validity?",
-      "options": [
-        "Visitor biometrics are often valid for 10 years and may be reused if still valid.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Applicants should check validity before paying or attending again."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about IRCC webform?",
-      "options": [
-        "A webform can update material changes, but it should not be used as a substitute for a complete initial package.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Important documents belong in the application whenever possible."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about group applications?",
-      "options": [
-        "Family members can be submitted together, but each person's forms, fees, and evidence must be complete.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "TRV eligibility is assessed individually."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about decision documents?",
-      "options": [
-        "Approval leads to passport submission or visa issuance, while refusal letters identify the main concerns.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "Applicants should read the decision carefully before taking next steps."
-    },
-    {
-      "level": 2,
-      "question": "For a temporary resident visa visitor application, what is the correct process point about arrival examination?",
-      "options": [
-        "At arrival, the visitor should be ready to explain purpose, funds, host, and return plans consistently.",
-        "It should be uploaded only after IRCC has already made the final decision.",
-        "It is replaced by buying a return ticket or submitting a travel itinerary.",
-        "It can be ignored if the applicant has previously held Canadian status."
-      ],
-      "correctIndex": 0,
-      "explanation": "CBSA can ask questions even after a TRV is issued."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with an overlong visit request?",
-      "options": [
-        "A visit that is unusually long for the stated purpose may make the officer doubt the applicant's real intent.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Trip length should match employment leave, funds, and reason for travel."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with weak employment evidence?",
-      "options": [
-        "Generic or unverifiable employment letters may fail to prove a strong reason to return home.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Officers rely on credible, verifiable ties."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with family all travelling together?",
-      "options": [
-        "If the whole household travels with few remaining ties, the officer may see higher overstay risk.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Applicants should explain remaining obligations and return plans."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with a host paying everything?",
-      "options": [
-        "Full host sponsorship can help costs but may not overcome weak personal funds or weak home ties.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Visitor decisions assess the applicant's situation, not only the host's generosity."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with prior overstays?",
-      "options": [
-        "Past non-compliance can strongly undermine confidence that the visitor will leave on time.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "A persuasive explanation and evidence of resolution are needed."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with undisclosed refusals?",
-      "options": [
-        "Not declaring prior refusals can trigger misrepresentation concerns.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "IRCC can compare immigration histories and application records."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with vague tourism plans?",
-      "options": [
-        "A generic sightseeing plan without dates, budget, or destinations may look manufactured.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Credible tourism files usually contain realistic details."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with insufficient funds for itinerary?",
-      "options": [
-        "If the trip costs exceed available funds, the officer may doubt both purpose and ability to leave.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Financial evidence must fit the proposed stay."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with recent job resignation?",
-      "options": [
-        "Leaving employment shortly before applying can weaken ties and raise migration concerns.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "The officer evaluates circumstances at the time of decision."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with inconsistent host relationship?",
-      "options": [
-        "Conflicting claims about the host relationship can damage credibility.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Relationship evidence should align with forms, invitation letters, and civil records."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with hidden work plans?",
-      "options": [
-        "Evidence suggesting the visitor will work without authorization can lead to refusal.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Visitors must not enter the Canadian labour market without proper authorization."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with medical inadmissibility?",
-      "options": [
-        "A required medical exam can reveal inadmissibility concerns or delay the application.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Visitor eligibility includes health screening where required."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with criminal history?",
-      "options": [
-        "Even old offences can require careful admissibility analysis before a TRV is approved.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Criminality is separate from whether the visit purpose is genuine."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with large unexplained deposits?",
-      "options": [
-        "Sudden deposits may be discounted unless the source is documented.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Officers look for stable, legitimate funds."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with conflicting travel dates?",
-      "options": [
-        "Different dates across forms, invitation letters, and bookings can make the file appear unreliable.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Consistency helps the officer understand the plan."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with previous long stays in Canada?",
-      "options": [
-        "Repeated long stays may make the officer question whether the person is living in Canada as a visitor.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Patterns of use matter even when each entry was lawful."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with lack of return ticket?",
-      "options": [
-        "A missing return ticket is not automatic refusal, but no return plan can contribute to temporary intent concerns.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "The officer needs confidence the stay is temporary."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with minor travelling with one parent?",
-      "options": [
-        "Missing consent from the other parent can raise child protection and custody concerns.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Consent and custody documents should be clear."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with purpose changing after submission?",
-      "options": [
-        "A materially changed purpose should be updated with evidence or the original file may become misleading.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Officers decide based on the record before them."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with invitation from a person without status?",
-      "options": [
-        "A host with no valid Canadian status may weaken the invitation and raise credibility questions.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Host circumstances are relevant when they support the visit."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with template refusal response?",
-      "options": [
-        "A reapplication that does not address the specific refusal grounds is unlikely to satisfy the officer.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "The new file should add material evidence or explanation."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with dual intent for visitors?",
-      "options": [
-        "A possible future PR plan is allowed only if the applicant still shows they will leave if required.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Dual intent does not cancel the temporary resident test."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with documents with authenticity concerns?",
-      "options": [
-        "Questionable bank, job, or civil documents can lead to refusal or a procedural fairness process.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Authenticity issues are treated seriously."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with weak economic establishment?",
-      "options": [
-        "No employment, assets, studies, or regular income can make it harder to prove return incentives.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "Economic establishment is a common TRV risk factor."
-    },
-    {
-      "level": 3,
-      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with airport questioning?",
-      "options": [
-        "Inconsistent answers at the port of entry can lead to refusal of entry despite having a visa.",
-        "It is harmless because officers approve cases when the applicant is polite.",
-        "It can be fixed after refusal by sending documents to the visa office informally.",
-        "It matters only at the airport and not during the paper or online review."
-      ],
-      "correctIndex": 0,
-      "explanation": "A TRV permits travel for examination; CBSA still decides admission."
-    }
-  ],
-  "donts": {
-    "dos": [
-      "Document strong ties—employment, property, family obligations",
-      "Align purpose, cover letter, and supporting documents",
-      "Explain funds source with 4–6 month bank history",
-      "Disclose all prior refusals with changed circumstances",
-      "Verify current IRCC fees before quoting client"
-    ],
-    "donts": [
-      "Do not guarantee approval regardless of profile strength",
-      "Do not submit without signed client checklist where policy requires",
-      "Do not use purpose-inconsistent documents (tourism file with business-only papers)",
-      "Do not hide previous refusals from Canada or other countries",
-      "Do not miss biometrics deadline after BIL"
-    ],
-    "mistakes": [
-      "Generic cover letter not explaining return intent",
-      "Large unexplained recent bank deposits",
-      "Missing employer leave letter for salaried applicants",
-      "Overstated trip duration without credible reason",
-      "Blurry scans or name mismatches across documents"
-    ]
+  "versionControl": {
+    "version": "v3.0",
+    "lastReviewed": "29 Jun 2026",
+    "nextReview": "31 Dec 2026",
+    "reviewedBy": "Future Link Knowledge Team",
+    "governmentSource": "canada.ca / IRCC (see Sources tab)",
+    "confidence": "High — official facts linked & verified current on 29 Jun 2026; approval-rate KPI omitted; processing time deferred to live IRCC tool."
   },
-  "sampleDocs": [
+  "sources": [
     {
-      "title": "Sample passport bio page (mock)",
-      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
-      "mimeType": "image/jpeg",
-      "docKind": "identity"
+      "id": "S1",
+      "authority": "IRCC",
+      "page": "Visitor visa (temporary resident visa)",
+      "category": "Immigration",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa.html",
+      "reason": "Core authority & scope for the TRV"
     },
     {
-      "title": "Sample bank statement (mock)",
-      "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
-      "mimeType": "application/pdf",
-      "docKind": "financial"
+      "id": "S2",
+      "authority": "IRCC",
+      "page": "Find out if you need a visa or eTA",
+      "category": "Immigration",
+      "url": "https://ircc.canada.ca/english/visit/visas.asp",
+      "reason": "Determines whether the client needs a TRV or an eTA"
     },
     {
-      "title": "Sample invitation / sponsor letter (mock)",
-      "description": "Host details, relationship, accommodation, and duration of stay.",
-      "mimeType": "application/pdf",
-      "docKind": "supporting"
+      "id": "S3",
+      "authority": "IRCC",
+      "page": "Visitor visa: Who can apply",
+      "category": "Immigration",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/eligibility.html",
+      "reason": "Eligibility requirements"
     },
     {
-      "title": "Sample travel itinerary (mock)",
-      "description": "Flights, hotels, and day-wise plan for visitor visa credibility.",
-      "mimeType": "application/pdf",
-      "docKind": "supporting"
+      "id": "S4",
+      "authority": "IRCC",
+      "page": "Visitor visa: How to apply",
+      "category": "Immigration",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html",
+      "reason": "Application process & document upload"
     },
     {
-      "title": "Sample employment / NOC letter (mock)",
-      "description": "Employer letter confirming leave, role, salary, and return to India.",
-      "mimeType": "application/pdf",
-      "docKind": "employment"
+      "id": "S5",
+      "authority": "IRCC",
+      "page": "Application for a Visitor Visa (TRV) — Guide [IMM 5256]",
+      "category": "Immigration",
+      "url": "https://ircc.canada.ca/english/information/applications/visa.asp",
+      "reason": "Official application guide and forms package"
     },
     {
-      "title": "Sample property / ties document (mock)",
-      "description": "Sale deed or tax receipt — explain home-country ties.",
-      "mimeType": "application/pdf",
-      "docKind": "financial"
+      "id": "S6",
+      "authority": "IRCC",
+      "page": "Citizenship and immigration application fees: Fee list",
+      "category": "Fees",
+      "url": "https://ircc.canada.ca/english/information/fees/fees.asp",
+      "reason": "Official TRV application fee (CAD 100 / family CAD 500)"
+    },
+    {
+      "id": "S7",
+      "authority": "IRCC",
+      "page": "Biometrics",
+      "category": "Fees",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/biometrics.html",
+      "reason": "Biometrics requirement & fee (CAD 85 / family CAD 170)"
+    },
+    {
+      "id": "S8",
+      "authority": "IRCC",
+      "page": "Check current processing times",
+      "category": "Processing",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html",
+      "reason": "Live, country-specific processing-time estimate"
+    },
+    {
+      "id": "S9",
+      "authority": "IRCC",
+      "page": "Proof of means of financial support",
+      "category": "Immigration",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/visitor-visa/apply.html",
+      "reason": "Funds & supporting documents expectations"
+    },
+    {
+      "id": "S10",
+      "authority": "IRCC",
+      "page": "Extend your stay as a visitor / Visitor record",
+      "category": "Immigration",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/extend-stay.html",
+      "reason": "In-Canada extension pathway (related service)"
+    },
+    {
+      "id": "S11",
+      "authority": "IRCC",
+      "page": "Dual citizens visiting Canada — travel document rules",
+      "category": "Immigration",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizens/dual-citizenship-document.html",
+      "reason": "Canadian dual-citizen travel-document rule"
+    },
+    {
+      "id": "S12",
+      "authority": "IRCC",
+      "page": "Work without a work permit / visitors",
+      "category": "Immigration",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/work-without-permit.html",
+      "reason": "Confirms a visitor may not work in Canada (working-rights flag)"
+    },
+    {
+      "id": "S13",
+      "authority": "IRCC",
+      "page": "Study without a study permit / visitors",
+      "category": "Immigration",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/study-without-permit.html",
+      "reason": "Visitor study limits (short courses <6 months)"
+    },
+    {
+      "id": "S14",
+      "authority": "IRCC",
+      "page": "Help Centre: Single vs multiple entry visa",
+      "category": "Immigration",
+      "url": "https://ircc.canada.ca/english/helpcentre/answer.asp?qnum=417&top=16",
+      "reason": "Single vs multiple entry, validity up to passport expiry / 10 yrs"
     }
   ],
-  "navBucket": "visa",
-  "workingRights": {
-    "applicant": {
-      "summary": "Visitor visa (TRV) / super visa generally does not authorize work in Canada. Super visa allows extended stays with parents/grandparents of citizens/PRs but still no employment.",
-      "details": [
-        "Business visitor activities are limited — distinguish from work requiring work permit.",
-        "Super visa requires medical insurance and sponsor income proof."
-      ],
-      "restrictions": [
-        "Employment without authorization is illegal",
-        "Study beyond short course may need study permit"
-      ],
-      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
-      "lastVerified": "Jun 2026"
-    },
-    "spouse": {
-      "summary": "Spouse accompanying on visitor status cannot work unless they separately obtain an eligible work permit or change status.",
-      "details": [
-        "If spouse intends to work, assess study permit + SOWP or work permit pathways instead of visitor."
-      ],
-      "restrictions": [
-        "Visitor record does not grant work rights"
-      ],
-      "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
-      "lastVerified": "Jun 2026"
-    }
+  "currencyConfig": {
+    "baseCurrency": "CAD",
+    "displayCurrency": "INR",
+    "source": "Currency Master",
+    "autoFetch": true,
+    "rateField": "effectiveRate",
+    "fallbackRate": 69.59,
+    "fallbackAsOf": "29 Jun 2026",
+    "note": "INR values are computed at render time from Currency Master (CAD effective rate). Do not hardcode INR; fetch the live rate so cost planning always matches the CRM."
   },
-  "fullCostBreakdown": {
-    "title": "Full cost breakdown — Canada – Visitor Visa (TRV)",
-    "currency": "CAD",
-    "lastVerified": "Jun 2026",
-    "disclaimer": "Indicative costs for counselor discussions only. Government fees, tuition, and living amounts change — verify on official websites before quoting clients. Exchange rates affect INR equivalents.",
-    "sourceUrl": "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+  "navigation": [
+    {
+      "key": "overview",
+      "label": "Overview",
+      "sectionType": "overview",
+      "dataKey": "about",
+      "applicable": true
+    },
+    {
+      "key": "eligibility",
+      "label": "Eligibility",
+      "sectionType": "criteria-list",
+      "dataKey": "eligibility",
+      "applicable": true
+    },
+    {
+      "key": "cost",
+      "label": "Cost Planning",
+      "sectionType": "cost-breakdown",
+      "dataKey": "fullCostBreakdown",
+      "applicable": true
+    },
+    {
+      "key": "checklist",
+      "label": "Checklist",
+      "sectionType": "checklist",
+      "dataKey": "checklistItems",
+      "applicable": true
+    },
+    {
+      "key": "binder",
+      "label": "Document Binder",
+      "sectionType": "document-binder",
+      "dataKey": "documentBinder",
+      "applicable": true
+    },
+    {
+      "key": "visaforms",
+      "label": "Visa Forms",
+      "sectionType": "forms-table",
+      "dataKey": "visaForms",
+      "applicable": true
+    },
+    {
+      "key": "process",
+      "label": "Process",
+      "sectionType": "timeline",
+      "dataKey": "timeline",
+      "applicable": true
+    },
+    {
+      "key": "working",
+      "label": "Working Rights",
+      "sectionType": "working-rights",
+      "dataKey": "workingRights",
+      "applicable": true
+    },
+    {
+      "key": "dos",
+      "label": "Do's & Don'ts",
+      "sectionType": "dos-donts",
+      "dataKey": "donts",
+      "applicable": true
+    },
+    {
+      "key": "redflags",
+      "label": "Red Flags",
+      "sectionType": "red-flags",
+      "dataKey": "redFlags",
+      "applicable": true
+    },
+    {
+      "key": "faqs",
+      "label": "FAQs",
+      "sectionType": "faqs",
+      "dataKey": "faqs",
+      "applicable": true
+    },
+    {
+      "key": "compliance",
+      "label": "Compliance",
+      "sectionType": "list",
+      "dataKey": "compliance",
+      "applicable": true
+    },
+    {
+      "key": "downloads",
+      "label": "Downloads",
+      "sectionType": "downloads",
+      "dataKey": "downloads",
+      "applicable": true
+    },
+    {
+      "key": "sampledocs",
+      "label": "Sample Docs",
+      "sectionType": "sample-docs",
+      "dataKey": "sampleDocs",
+      "applicable": true
+    },
+    {
+      "key": "quiz",
+      "label": "Quiz",
+      "sectionType": "quiz",
+      "dataKey": "quiz",
+      "applicable": true
+    },
+    {
+      "key": "related",
+      "label": "Related",
+      "sectionType": "related",
+      "dataKey": "relatedServices",
+      "applicable": true
+    },
+    {
+      "key": "sources",
+      "label": "Sources",
+      "sectionType": "sources",
+      "dataKey": "sources",
+      "applicable": true
+    }
+  ],
+  "navigationModel": {
+    "model": "data-driven",
+    "states": [
+      "applicable (render)",
+      "omitted (not present — leave the entry out of navigation)"
+    ],
+    "flagConvention": "Where a section's ABSENCE could mislead (legal/counselling risk), keep the section and set its body to a status flag — flagStatus: 'Not Allowed' | 'Not Eligible' | 'Not Applicable' with a reason. Otherwise omit the section entirely.",
+    "example": "Visitor Visa → Working Rights stays with flagStatus 'Not Allowed' (important); admission-style sections are omitted (irrelevant)."
+  },
+  "consultancyFee": {
+    "title": "Future Link professional fee — Canada Visitor Visa (TRV)",
+    "currency": "CAD (with INR guide)",
+    "lastVerified": "29 Jun 2026",
+    "disclaimer": "Base professional (consultancy) fee only. Government fees and taxes are separate; see Cost Planning for the full picture.",
+    "verifyTotalUrl": "",
+    "fxNote": "INR is auto-computed from Currency Master (CAD effective rate). No hardcoded FX.",
     "sections": [
       {
-        "id": "fees",
-        "label": "Government & visa fees",
+        "id": "flc-fee",
+        "label": "Professional fee by applicants",
+        "owner": "Future Link Consultants",
+        "sourceRefs": [],
         "items": [
           {
-            "label": "Visitor visa (TRV)",
-            "amount": 100,
-            "unit": "per applicant",
-            "currency": "CAD",
-            "applicable": true
+            "label": "TRV (1 person)",
+            "amount": "CAD $105",
+            "inr": "auto",
+            "unit": "base professional fee",
+            "official": false,
+            "cadAmount": 105.0
           },
           {
-            "label": "Biometrics",
-            "amount": 85,
-            "unit": "per applicant",
-            "currency": "CAD",
-            "applicable": true
+            "label": "TRV (2 persons)",
+            "amount": "CAD $150",
+            "inr": "auto",
+            "unit": "base professional fee",
+            "official": false,
+            "cadAmount": 150.0
           },
           {
-            "label": "Super visa (if applicable)",
-            "amount": 100,
-            "notes": "Plus medical insurance",
-            "currency": "CAD",
-            "applicable": true
+            "label": "TRV (3 persons)",
+            "amount": "CAD $250",
+            "inr": "auto",
+            "unit": "base professional fee",
+            "official": false,
+            "cadAmount": 250.0
           }
         ]
-      },
-      {
-        "id": "tuition",
-        "label": "Tuition & education costs",
-        "items": [
-          {
-            "label": "Tuition",
-            "applicable": false,
-            "notes": "Not applicable for visitor visa",
-            "currency": "CAD"
-          }
-        ]
-      },
-      {
-        "id": "living",
-        "label": "Living costs",
-        "items": [
-          {
-            "label": "Living funds (IRCC guideline, 1 person)",
-            "amount": 20635,
-            "unit": "per year",
-            "notes": "Outside Quebec",
-            "currency": "CAD"
-          },
-          {
-            "label": "Accommodation",
-            "range": "700–1,400",
-            "unit": "per month",
-            "currency": "CAD"
-          },
-          {
-            "label": "Food & personal",
-            "range": "300–550",
-            "unit": "per month",
-            "currency": "CAD"
-          }
-        ]
-      },
-      {
-        "id": "misc",
-        "label": "Miscellaneous",
-        "items": [
-          {
-            "label": "Future Link consultancy fee",
-            "range": "See Fees tab",
-            "notes": "Service package dependent"
-          },
-          {
-            "label": "Flight / travel",
-            "range": "₹40,000–1,20,000",
-            "notes": "Season and route"
-          },
-          {
-            "label": "Document translation / notary",
-            "range": "₹2,000–15,000"
-          },
-          {
-            "label": "Courier & VFS premium services",
-            "range": "Optional"
-          },
-          {
-            "label": "Forex / transfer charges",
-            "range": "Bank dependent",
-            "notes": "GIC, blocked account, tuition transfers"
-          }
-        ]
-      }
-    ],
-    "totals": [
-      {
-        "label": "Indicative first-year budget (excl. tuition band)",
-        "value": "Counselor to calculate from sections above",
-        "notes": "Always cross-check LOA/CAS/Offer of Place and official fee pages before client commitment."
       }
     ]
   }

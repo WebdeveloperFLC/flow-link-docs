@@ -12,11 +12,15 @@ type TemplateWithExtras = FlcDownloadTemplate & {
   };
 };
 
-function resolveTemplateGuideUrl(template: TemplateWithExtras): string | undefined {
+function resolveTemplateGuideUrl(
+  template: TemplateWithExtras,
+  guideSlug?: string | null,
+): string | undefined {
   const standalone = template.standaloneFile?.trim();
   if (standalone) {
     if (/^https?:\/\//i.test(standalone) || standalone.startsWith("/")) return standalone;
-    return `/content/service-library/canada-student-visa/downloads/${standalone}`;
+    const slug = guideSlug?.trim() || "canada-student-visa";
+    return `/content/service-library/${slug}/downloads/${standalone}`;
   }
   const fileUrl = template.fileUrl?.trim();
   if (fileUrl && !fileUrl.startsWith("#")) return fileUrl;
@@ -39,13 +43,15 @@ function normalizeSourceRefIds(
 type Props = {
   template: TemplateWithExtras;
   guideSources: FlcKnowledgeGuideSource[];
+  /** ZIP guide slug — resolves relative standaloneFile paths (e.g. canada-visitor-visa). */
+  guideSlug?: string | null;
 };
 
-export function ServiceDownloadTemplateCard({ template, guideSources }: Props) {
+export function ServiceDownloadTemplateCard({ template, guideSources, guideSlug }: Props) {
   const [open, setOpen] = useState(false);
   const isFreeGuide = /free guide/i.test(template.template);
   const subtitle = [template.use, template.stage].filter(Boolean).join(" · ");
-  const guideUrl = resolveTemplateGuideUrl(template);
+  const guideUrl = resolveTemplateGuideUrl(template, guideSlug);
   const sourceIds = normalizeSourceRefIds(template.content?.sourceRefs);
   const sourceById = new Map(guideSources.map((s) => [s.id, s]));
 
