@@ -90,16 +90,37 @@
     <script type="module" src="/src/entry.ts"></script>
     <script>
       (function () {
+        function hasSession() {
+          try {
+            return Object.keys(localStorage).some(function (k) {
+              return k.indexOf("sb-") === 0 && k.indexOf("-auth-token") > 0 && localStorage.getItem(k);
+            });
+          } catch (e) {
+            return false;
+          }
+        }
+        function isPreview() {
+          try {
+            if (/lovable\.(dev|app)/i.test(location.hostname)) return true;
+            if (window.self !== window.top) return true;
+          } catch (e) {
+            return true;
+          }
+          return false;
+        }
         setTimeout(function () {
           try {
-            var root = document.getElementById("root");
             var msg = document.getElementById("flc-boot-msg");
-            if (!root || !msg) return;
-            if (msg.textContent && msg.textContent.indexOf("Loading Future Link") >= 0) {
-              window.location.replace("/auth" + location.search + location.hash);
+            if (!msg || msg.textContent.indexOf("Loading Future Link") < 0) return;
+            if (hasSession()) {
+              msg.textContent = isPreview()
+                ? "Loading workspace — preview may take up to a minute…"
+                : "Loading workspace…";
+              return;
             }
+            window.location.replace("/auth" + location.search + location.hash);
           } catch (e) {}
-        }, 6000);
+        }, 8000);
       })();
     </script>
   </body>
