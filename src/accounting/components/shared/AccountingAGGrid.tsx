@@ -49,12 +49,17 @@ interface Props<T> extends AgGridReactProps<T> {
   height?: number | string;
 }
 
+const popupParent = typeof document !== "undefined" ? document.body : undefined;
+
 export default function AccountingAGGrid<T>({ height = 480, ...props }: Props<T>) {
   const dark = useDarkMode();
+  const theme = dark ? darkTheme : lightTheme;
   return (
     <div style={{ height, width: "100%" }}>
       <AgGridReact<T>
-        theme={dark ? darkTheme : lightTheme}
+        key={dark ? "ag-dark" : "ag-light"}
+        theme={theme}
+        popupParent={popupParent}
         defaultColDef={{
           sortable: true,
           resizable: true,
@@ -62,7 +67,7 @@ export default function AccountingAGGrid<T>({ height = 480, ...props }: Props<T>
           minWidth: 100,
           ...props.defaultColDef,
         }}
-        animateRows
+        animateRows={false}
         rowHeight={40}
         headerHeight={40}
         suppressCellFocus

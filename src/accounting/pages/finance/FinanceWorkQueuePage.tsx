@@ -44,20 +44,28 @@ export default function FinanceWorkQueuePage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    await hydratePlatformConfig();
-    await processPendingPipelineJobs(5);
-    const [list, c] = await Promise.all([loadFinanceWorkQueue(section), loadFinanceQueueCounts()]);
-    setItems(list);
-    setCounts(c);
-    const map: Record<string, boolean> = {};
-    for (const item of list) {
-      if (item.kind === "pending_journal_approval") continue;
-      const postedBy = item.metadata?.posted_by as string | undefined;
-      const method = item.metadata?.method as string | undefined;
-      map[item.id] = await canVerifyPaymentRow({ posted_by: postedBy, method });
+    try {
+      await hydratePlatformConfig();
+      await processPendingPipelineJobs(5);
+      const [list, c] = await Promise.all([loadFinanceWorkQueue(section), loadFinanceQueueCounts()]);
+      setItems(list);
+      setCounts(c);
+      const map: Record<string, boolean> = {};
+      for (const item of list) {
+        if (item.kind === "pending_journal_approval") continue;
+        const postedBy = item.metadata?.posted_by as string | undefined;
+        const method = item.metadata?.method as string | undefined;
+        map[item.id] = await canVerifyPaymentRow({ posted_by: postedBy, method });
+      }
+      setVerifyAllowed(map);
+    } catch (error) {
+      console.error("[FinanceWorkQueue] load failed", error);
+      toast.error("Could not load finance queue. Try refreshing.");
+      setItems([]);
+      setCounts({ cash: 0, verification: 0, journal: 0, total: 0 });
+    } finally {
+      setLoading(false);
     }
-    setVerifyAllowed(map);
-    setLoading(false);
   }, [section]);
 
   useEffect(() => {

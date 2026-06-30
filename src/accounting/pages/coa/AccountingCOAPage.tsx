@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -194,7 +195,7 @@ export default function AccountingCOAPage() {
     setDeleteTarget(null);
   };
 
-  const cols: ColDef<CoaAccount>[] = [
+  const cols: ColDef<CoaAccount>[] = useMemo(() => [
     { headerName: "Code", field: "code", minWidth: 100, maxWidth: 120, cellClass: "font-mono text-[12.5px]" },
     {
       headerName: "Account name",
@@ -245,7 +246,7 @@ export default function AccountingCOAPage() {
         const a = p.data;
         if (!a) return null;
         const label = groups.find((g) => g.code === a.groupCode)?.label ?? a.groupCode;
-        return <CoaConceptTooltip kind="group" code={a.groupCode} label={label} />;
+        return <CoaConceptTooltip kind="group" code={a.groupCode} label={label} inGrid />;
       },
     },
     { headerName: "Currency", field: "currency", minWidth: 90, maxWidth: 100 },
@@ -285,7 +286,7 @@ export default function AccountingCOAPage() {
         const a = p.data;
         const check = canDeleteAccount(a.id);
         return (
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="size-7" onClick={(e) => e.stopPropagation()}>
                 <MoreHorizontal className="size-4" />
@@ -327,7 +328,15 @@ export default function AccountingCOAPage() {
         );
       },
     },
-  ];
+  ], [
+    canEditCoa,
+    entities,
+    expandedIds,
+    groups,
+    navigate,
+    accountById,
+    accounts,
+  ]);
 
   const expandAll = () => setExpandedIds(new Set(accounts.map((a) => a.id)));
   const collapseAll = () => {
