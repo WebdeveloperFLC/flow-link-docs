@@ -29,10 +29,10 @@ function enoentGuardPlugin(): Plugin {
   };
 }
 
-/** Serve public/specimens/checklists/*.html without requiring .html in the URL (dev server). */
-function specimenChecklistsPlugin(): Plugin {
+/** Serve public HTML guides without SPA swallowing (dev server). */
+function publicHtmlGuidesPlugin(): Plugin {
   return {
-    name: "specimen-checklists-static",
+    name: "public-html-guides-static",
     configureServer(server) {
       server.middlewares.use((req, _res, next) => {
         const [pathname, search = ""] = (req.url ?? "").split("?");
@@ -51,6 +51,24 @@ function specimenChecklistsPlugin(): Plugin {
           }
         }
 
+        const rootGuide = pathname.match(/^\/([a-z0-9-]+-free-guide\.html)$/i);
+        if (rootGuide) {
+          const htmlPath = path.join(process.cwd(), "public", rootGuide[1]);
+          if (fs.existsSync(htmlPath)) {
+            req.url = `/${rootGuide[1]}${query}`;
+          }
+        }
+
+        const downloadMatch = pathname.match(
+          /^\/content\/service-library\/([a-z0-9-]+)\/downloads\/([a-z0-9.-]+\.html)$/i,
+        );
+        if (downloadMatch) {
+          const htmlPath = path.join(process.cwd(), "public", `${pathname}`);
+          if (fs.existsSync(htmlPath)) {
+            req.url = `${pathname}${query}`;
+          }
+        }
+
         next();
       });
     },
@@ -66,7 +84,7 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [enoentGuardPlugin(), react(), specimenChecklistsPlugin(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [enoentGuardPlugin(), react(), publicHtmlGuidesPlugin(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

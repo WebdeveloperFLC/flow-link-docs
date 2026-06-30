@@ -2,3 +2,7 @@
 /specimens/checklists           /specimens/checklists/index.html 200
 /specimens/checklists/          /specimens/checklists/index.html 200
 /specimens/checklists/:slug     /specimens/checklists/:slug.html 200
+
+# Knowledge Centre client-facing HTML guides (must not fall through to SPA 404)
+/canada-visitor-visa-free-guide.html                                              /canada-visitor-visa-free-guide.html 200
+/content/service-library/:slug/downloads/:file                                      /content/service-library/:slug/downloads/:file 200

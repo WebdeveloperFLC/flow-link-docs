@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { FlcDownloadTemplate, FlcKnowledgeGuideSource } from "@/lib/service-library/knowledgeGuide/types";
+import { resolveTemplateGuideUrl } from "@/lib/service-library/resolveTemplateGuideUrl";
 import { cn } from "@/lib/utils";
 
 type TemplateWithExtras = FlcDownloadTemplate & {
@@ -11,21 +12,6 @@ type TemplateWithExtras = FlcDownloadTemplate & {
     sourceRefs?: (string | { id: string; url?: string })[];
   };
 };
-
-function resolveTemplateGuideUrl(
-  template: TemplateWithExtras,
-  guideSlug?: string | null,
-): string | undefined {
-  const standalone = template.standaloneFile?.trim();
-  if (standalone) {
-    if (/^https?:\/\//i.test(standalone) || standalone.startsWith("/")) return standalone;
-    const slug = guideSlug?.trim() || "canada-student-visa";
-    return `/content/service-library/${slug}/downloads/${standalone}`;
-  }
-  const fileUrl = template.fileUrl?.trim();
-  if (fileUrl && !fileUrl.startsWith("#")) return fileUrl;
-  return undefined;
-}
 
 function normalizeSourceRefIds(
   refs: TemplateWithExtras["content"] extends infer C
