@@ -1,4 +1,9 @@
 import { convertWithSnapshot } from "@/lib/fxPolicy";
+import {
+  isConsultancyCostSection,
+  parseFeeItemAmount,
+  shouldConvertInrViaCurrencyMaster,
+} from "@/lib/feeMaster/crmPricingRules";
 import type { FullCostBreakdown, FullCostBreakdownItem } from "../countryInsights/types";
 import type { FlcCurrencyConfig, FlcFullCostBreakdown } from "../knowledgeGuide/types";
 
@@ -108,7 +113,22 @@ function resolveInrForItem(
   displayCurrency: string,
   fxSnapshot: Record<string, number>,
   currencyConfig?: FlcCurrencyConfig,
+  section?: { id?: string; label?: string },
 ): { inrAmount: number | null; inrRange: [number, number] | null } {
+  const sectionCtx = section ?? {};
+  const itemCtx = { label: item.label, official: item.official, inr: item.inr };
+
+  if (!shouldConvertInrViaCurrencyMaster(sectionCtx, itemCtx)) {
+    if (typeof item.inr === "number") {
+      return { inrAmount: item.inr, inrRange: null };
+    }
+    const parsed = parseFeeItemAmount(
+      typeof item.inr === "string" ? item.inr : null,
+    );
+    if (parsed != null) return { inrAmount: parsed, inrRange: null };
+    return { inrAmount: null, inrRange: null };
+  }
+
   if (item.inr === "auto" || item.inr == null) {
     const { foreignAmount, foreignRange } = resolveForeignAmount(item, baseCurrency);
     if (foreignRange) {
@@ -159,6 +179,7 @@ export function resolveCostBreakdownFx(
         displayCurrency,
         fxSnapshot,
         currencyConfig,
+        section,
       );
 
       let foreignDisplay: string | undefined;
@@ -200,13 +221,16 @@ export function resolveCostBreakdownFx(
 
   const totals = (breakdown.totals ?? []).map((t) => {
     const totalItem = t as FlcCostItem & { range?: string };
-    const { inrAmount, inrRange } = resolveInrForItem(
-      { label: t.label, inr: (t as { inr?: unknown }).inr ?? "auto", range: totalItem.range },
-      baseCurrency,
-      displayCurrency,
-      fxSnapshot,
-      currencyConfig,
-    );
+    const consultancyTotal = /consultancy|professional fee|future link/i.test(t.label ?? "");
+    const { inrAmount, inrRange } = consultancyTotal
+      ? { inrAmount: null as number | null, inrRange: null as [number, number] | null }
+      : resolveInrForItem(
+          { label: t.label, inr: (t as { inr?: unknown }).inr ?? "auto", range: totalItem.range },
+          baseCurrency,
+          displayCurrency,
+          fxSnapshot,
+          currencyConfig,
+        );
     let inrDisplay: string | undefined;
     if (inrRange) inrDisplay = formatRange(inrRange[0], inrRange[1], displayCurrency);
     else if (inrAmount != null) inrDisplay = formatAmount(inrAmount, displayCurrency);
@@ -242,13 +266,24 @@ export function needsFxResolution(
   if (!breakdown?.sections?.length) return false;
   if (!currencyConfig?.baseCurrency) return false;
   const hasAuto = (breakdown.sections ?? []).some((s) =>
-    (s.items ?? []).some((i) => i.inr === "auto"),
+    (s.items ?? []).some(
+      (i) =>
+        i.inr === "auto" &&
+        shouldConvertInrViaCurrencyMaster(
+          { id: s.id, label: s.label },
+          { label: i.label, official: (i as { official?: boolean }).official, inr: i.inr },
+        ),
+    ),
   );
   const totalsAuto = (breakdown.totals ?? []).some(
-    (t) => (t as { inr?: unknown }).inr === "auto",
+    (t) =>
+      (t as { inr?: unknown }).inr === "auto" &&
+      !/consultancy|professional fee|future link/i.test(t.label ?? ""),
   );
   return hasAuto || totalsAuto || currencyConfig.autoFetch === true;
 }
+
+export { isConsultancyCostSection };
 
 /** Pass-through for legacy FullCostBreakdown (no FX columns). */
 export function asLegacyBreakdown(resolved: ResolvedFullCostBreakdown): FullCostBreakdown {

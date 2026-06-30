@@ -1,28 +1,38 @@
-/** Snapshot FX for government-fee equivalents (how many TO per 1 FROM). */
-const TO_INR: Record<string, number> = {
-  INR: 1,
-  CAD: 61.3,
-  USD: 83.3,
-  GBP: 105,
-  EUR: 90,
-  AUD: 55,
-  NZD: 50,
-  RUB: 0.93,
-};
+import { convertOfficialFigureToInr } from "@/lib/feeMaster/officialFigureFx";
 
-const TO_CAD: Record<string, number> = {
-  CAD: 1,
-  INR: 0.0163,
-  USD: 1.36,
-  GBP: 1.72,
-  EUR: 1.47,
-  AUD: 0.9,
-  NZD: 0.82,
-};
+/**
+ * @deprecated Use convertOfficialFigureToInr with a Currency Master snapshot.
+ * Government fees: only INR equivalent is derived from CM; foreign amount is fixed.
+ * Consultancy fees must never pass through this module.
+ */
+export function convertGovtFeeToInr(
+  amount: number,
+  fromCurrency: string,
+  fxSnapshot: Record<string, number>,
+): number | null {
+  return convertOfficialFigureToInr(amount, fromCurrency, fxSnapshot);
+}
 
-export function convertGovtFee(amount: number, fromCurrency: string, to: "INR" | "CAD"): number {
+/**
+ * @deprecated CRM rule: government fee INR equivalents use Currency Master only.
+ * CAD equivalents for government fees are not auto-derived — use native govt_amount.
+ */
+export function convertGovtFee(
+  amount: number,
+  fromCurrency: string,
+  to: "INR" | "CAD",
+  fxSnapshot?: Record<string, number>,
+): number {
   const from = (fromCurrency || "INR").toUpperCase();
-  const rate = to === "INR" ? TO_INR[from] : TO_CAD[from];
-  if (rate == null) return Math.round(amount);
-  return Math.round(amount * rate);
+  if (to === "INR") {
+    if (fxSnapshot) {
+      const converted = convertOfficialFigureToInr(amount, from, fxSnapshot);
+      if (converted != null) return converted;
+    }
+    if (from === "INR") return Math.round(amount);
+    return Math.round(amount);
+  }
+  // CAD toggle: return stored/native only — no CM conversion for govt INR↔CAD cross-rate.
+  if (from === "CAD") return Math.round(amount);
+  return Math.round(amount);
 }

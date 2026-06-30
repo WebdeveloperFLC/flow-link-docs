@@ -13,12 +13,13 @@ import {
   scopeByCountry,
 } from "@/lib/serviceLibrary";
 import { buildAcademyViewModel } from "@/lib/service-library/buildAcademyViewModel";
-import { isFlcKnowledgeGuide } from "@/lib/service-library/knowledgeGuide/types";
+import { fetchFxSnapshot } from "@/lib/currencyMaster";
+import { applyConsultancyToCostBreakdown } from "@/lib/feeMaster/applyConsultancyToCostBreakdown";
 import {
   needsFxResolution,
   resolveCostBreakdownFx,
 } from "@/lib/service-library/knowledgeGuide/resolveCostBreakdownFx";
-import { fetchFxSnapshot } from "@/lib/currencyMaster";
+import { isFlcKnowledgeGuide } from "@/lib/service-library/knowledgeGuide/types";
 
 export function useServiceAcademyDetail(masterId: string | null, country: string | null) {
   const { user } = useAuth();
@@ -118,6 +119,25 @@ export function useServiceAcademyDetail(masterId: string | null, country: string
 
       const meta = (m.academy_metadata ?? {}) as Record<string, unknown>;
       let resolvedFullCostBreakdown = null;
+      const countryForVariants = detailCountry ?? countries[0] ?? null;
+      let pickerVariants: {
+        picker_label: string;
+        fee_inr: number;
+        fee_cad: number;
+        display_order: number;
+      }[] = [];
+
+      if (countryForVariants) {
+        const { data: variantRows } = await supabase
+          .from("service_library_picker_variants")
+          .select("picker_label, fee_inr, fee_cad, display_order")
+          .eq("library_id", m.id)
+          .eq("country", countryForVariants)
+          .eq("is_active", true)
+          .order("display_order");
+        pickerVariants = (variantRows ?? []) as typeof pickerVariants;
+      }
+
       if (
         isFlcKnowledgeGuide(meta) &&
         needsFxResolution(meta.fullCostBreakdown, meta.currencyConfig)
@@ -129,7 +149,26 @@ export function useServiceAcademyDetail(masterId: string | null, country: string
             meta.currencyConfig,
             fxSnapshot,
           );
+          if (pickerVariants.length > 0) {
+            resolvedFullCostBreakdown = applyConsultancyToCostBreakdown(
+              resolvedFullCostBreakdown,
+              pickerVariants,
+            );
+          }
         }
+      } else if (
+        isFlcKnowledgeGuide(meta) &&
+        meta.fullCostBreakdown &&
+        pickerVariants.length > 0
+      ) {
+        resolvedFullCostBreakdown = applyConsultancyToCostBreakdown(
+          resolveCostBreakdownFx(
+            meta.fullCostBreakdown,
+            meta.currencyConfig,
+            { INR: 1 },
+          ),
+          pickerVariants,
+        );
       }
 
       return { master: m, override, detailCountry, countries, view, resolvedFullCostBreakdown };

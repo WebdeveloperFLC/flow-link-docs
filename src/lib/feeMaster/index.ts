@@ -135,3 +135,22 @@ export type {
   UseResolvedInstitutionFeesArgs,
   UseResolvedInstitutionFeesResult,
 } from "./useResolvedInstitutionFees";
+
+/** Permanent CRM pricing rules — consultancy vs official figures. */
+export {
+  consultancyAmountsFromFeeItems,
+  consultancyAmountsFromPickerVariant,
+  formatConsultancyKpiFromStored,
+  formatStoredAmount,
+  isConsultancyCostItem,
+  isConsultancyCostSection,
+  isOfficialGovernmentSection,
+  parseFeeItemAmount,
+  shouldConvertInrViaCurrencyMaster,
+} from "./crmPricingRules";
+export type { ConsultancyFeeSource, StoredCurrencyAmounts } from "./crmPricingRules";
+export { convertOfficialFigureToInr } from "./officialFigureFx";
+export {
+  applyConsultancyToCostBreakdown,
+  type PickerVariantFeeRow,
+} from "./applyConsultancyToCostBreakdown";

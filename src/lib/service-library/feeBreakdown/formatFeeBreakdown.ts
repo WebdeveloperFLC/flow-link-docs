@@ -1,4 +1,4 @@
-import { convertGovtFee } from "@/lib/leads/govtFeeFx";
+import { convertOfficialFigureToInr } from "@/lib/feeMaster/officialFigureFx";
 import type {
   GovtFeeBreakdownItem,
   GovtFeeBreakdownSource,
@@ -23,7 +23,10 @@ function formatInr(amount: number): string {
   return `₹${amount.toLocaleString("en-IN")}`;
 }
 
-export function formatFeeBreakdownRow(item: GovtFeeBreakdownItem): {
+export function formatFeeBreakdownRow(
+  item: GovtFeeBreakdownItem,
+  fxSnapshot?: Record<string, number>,
+): {
   nativeDisplay: string;
   inrDisplay: string | null;
 } {
@@ -41,14 +44,19 @@ export function formatFeeBreakdownRow(item: GovtFeeBreakdownItem): {
   const inr =
     item.currency.toUpperCase() === "INR"
       ? item.amount
-      : convertGovtFee(item.amount, item.currency, "INR");
-  return { nativeDisplay, inrDisplay: formatInr(inr) };
+      : fxSnapshot
+        ? convertOfficialFigureToInr(item.amount, item.currency, fxSnapshot)
+        : null;
+  return { nativeDisplay, inrDisplay: inr != null ? formatInr(inr) : null };
 }
 
-export function buildFeeBreakdownView(source: GovtFeeBreakdownSource): GovtFeeBreakdownView {
+export function buildFeeBreakdownView(
+  source: GovtFeeBreakdownSource,
+  fxSnapshot?: Record<string, number>,
+): GovtFeeBreakdownView {
   const items = source.items.map((item) => ({
     ...item,
-    ...formatFeeBreakdownRow(item),
+    ...formatFeeBreakdownRow(item, fxSnapshot),
   }));
   return {
     title: source.title,

@@ -18,7 +18,8 @@ import {
   type FeeItemRow,
   type LibraryGovtFee,
 } from "@/lib/leads/serviceFeeItems";
-import { convertGovtFee } from "@/lib/leads/govtFeeFx";
+import { convertGovtFee, convertGovtFeeToInr } from "@/lib/leads/govtFeeFx";
+import { fetchFxSnapshot } from "@/lib/currencyMaster";
 import { formatServiceLibraryLabel } from "@/lib/service-library/resolveServiceLabel";
 
 export type LeadType = "warm" | "hot" | "cold";
@@ -248,7 +249,10 @@ function pickCanonicalVariantFees(
   );
 }
 
-function resolveVariantGovtOverride(v: PickerVariantRow): {
+function resolveVariantGovtOverride(
+  v: PickerVariantRow,
+  fxSnapshot: Record<string, number>,
+): {
   inr?: number | null;
   cad?: number | null;
   amount?: number | null;
@@ -263,11 +267,8 @@ function resolveVariantGovtOverride(v: PickerVariantRow): {
       inr:
         v.govt_fee_inr != null
           ? Number(v.govt_fee_inr)
-          : convertGovtFee(amount, currency, "INR"),
-      cad:
-        v.govt_fee_cad != null
-          ? Number(v.govt_fee_cad)
-          : convertGovtFee(amount, currency, "CAD"),
+          : convertGovtFeeToInr(amount, currency, fxSnapshot),
+      cad: v.govt_fee_cad != null ? Number(v.govt_fee_cad) : null,
     };
   }
   if (v.govt_fee_inr != null || v.govt_fee_cad != null) {
@@ -284,6 +285,7 @@ function withLibraryFees(
   libraryId: string,
   consultMap: Map<string, { inr: number | null; cad: number | null }>,
   govtMap: Map<string, LibraryGovtFee>,
+  fxSnapshot: Record<string, number>,
   variantGovt?: {
     inr?: number | null;
     cad?: number | null;
@@ -304,11 +306,9 @@ function withLibraryFees(
   let govtCad = govt.cad;
 
   if (govtAmount != null && govtCurrency && govtInr == null) {
-    govtInr = convertGovtFee(govtAmount, govtCurrency, "INR");
+    govtInr = convertGovtFeeToInr(govtAmount, govtCurrency, fxSnapshot);
   }
-  if (govtAmount != null && govtCurrency && govtCad == null) {
-    govtCad = convertGovtFee(govtAmount, govtCurrency, "CAD");
-  }
+  // Government CAD equivalent is not auto-derived from Currency Master (native amount is SSOT).
 
   return {
     ...item,
@@ -336,6 +336,8 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
     .order("service", { ascending: true });
   const { data, error } = libRes;
   if (error) throw error;
+
+  const fxSnapshot = await fetchFxSnapshot();
 
   const variantSelectFull =
     "library_id, country, variant_key, picker_label, group_label, fee_inr, fee_cad, govt_fee_inr, govt_fee_cad, govt_amount, govt_currency, display_order";
@@ -476,7 +478,8 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
             r.id,
             consultMap,
             govtMap,
-            feeVariant ? resolveVariantGovtOverride(feeVariant) : undefined,
+            fxSnapshot,
+            feeVariant ? resolveVariantGovtOverride(feeVariant, fxSnapshot) : undefined,
           ),
         );
       }
@@ -505,6 +508,7 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
             r.id,
             consultMap,
             govtMap,
+            fxSnapshot,
           ),
         );
       } else {
@@ -529,6 +533,7 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
             r.id,
             consultMap,
             govtMap,
+            fxSnapshot,
           ),
         );
       }

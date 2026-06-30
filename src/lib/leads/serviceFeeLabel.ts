@@ -1,5 +1,5 @@
 import type { ServiceCatalogueItem } from "@/lib/leads";
-import { convertGovtFee } from "@/lib/leads/govtFeeFx";
+import { convertGovtFeeToInr } from "@/lib/leads/govtFeeFx";
 
 export type FeeCurrency = "INR" | "CAD";
 export type FeeKind = "consultancy" | "government";
@@ -60,18 +60,23 @@ export function serviceFeeLabel(
 
 export type GovtFeeDisplay = { primary: string; equivalent: string | null };
 
-/** Government fee: native currency primary + INR/CAD equivalent sub-line. */
+/** Government fee: native currency primary + INR equivalent (Currency Master) only. */
 export function governmentFeeDisplay(
   s: ServiceCatalogueItem,
   toggleCurrency: FeeCurrency,
+  fxSnapshot?: Record<string, number>,
 ): GovtFeeDisplay {
   if (s.govt_amount != null && s.govt_amount > 0 && s.govt_currency) {
     const primary = formatFeeAmount(s.govt_amount, s.govt_currency);
-    const eqAmount =
-      toggleCurrency === "CAD"
-        ? s.govt_fee_cad ?? convertGovtFee(s.govt_amount, s.govt_currency, "CAD")
-        : s.govt_fee_inr ?? convertGovtFee(s.govt_amount, s.govt_currency, "INR");
-    const equivalent = eqAmount > 0 ? `≈ ${formatFeeAmount(eqAmount, toggleCurrency)}` : null;
+    const inrAmount =
+      s.govt_fee_inr ??
+      (fxSnapshot
+        ? convertGovtFeeToInr(s.govt_amount, s.govt_currency, fxSnapshot)
+        : null);
+    const equivalent =
+      toggleCurrency === "INR" && inrAmount != null && inrAmount > 0
+        ? `≈ ${formatFeeAmount(inrAmount, "INR")}`
+        : null;
     return { primary, equivalent };
   }
 

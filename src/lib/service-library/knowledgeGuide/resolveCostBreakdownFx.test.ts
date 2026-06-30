@@ -85,4 +85,31 @@ describe("resolveCostBreakdownFx", () => {
     expect(convertBaseToInr(100, "CAD", { INR: 1, CAD: 60 })).toBe(6000);
     expect(convertBaseToInr(100, "CAD", { INR: 1 }, 55)).toBe(5500);
   });
+
+  it("does not convert consultancy FLC section via Currency Master", () => {
+    const withFlc: FlcFullCostBreakdown = {
+      ...sampleBreakdown,
+      sections: [
+        ...sampleBreakdown.sections,
+        {
+          id: "flc",
+          label: "Future Link professional fee (consultancy)",
+          items: [
+            {
+              label: "FLC professional fee — TRV (1 person)",
+              cadAmount: 105,
+              inr: "auto",
+              official: false,
+            },
+          ],
+        },
+      ],
+    };
+    const fxSnapshot = { INR: 1, CAD: 68 };
+    const resolved = resolveCostBreakdownFx(withFlc, currencyConfig, fxSnapshot);
+    const flcItem = resolved.sections.find((s) => s.id === "flc")?.items[0];
+    expect(flcItem?.foreignDisplay).toContain("105");
+    expect(flcItem?.inrAmount).toBeNull();
+    expect(flcItem?.inrDisplay).toBeUndefined();
+  });
 });

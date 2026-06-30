@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import type { FullCostBreakdown } from "@/lib/service-library/countryInsights/types";
 import { formatFullCostAmount } from "@/lib/service-library/countryInsights/formatFullCostAmount";
 import type { ResolvedFullCostBreakdown } from "@/lib/service-library/knowledgeGuide/resolveCostBreakdownFx";
+import { isConsultancyCostSection } from "@/lib/feeMaster/crmPricingRules";
 
 type Props = {
   breakdown: FullCostBreakdown;
@@ -37,9 +38,11 @@ export function ServiceFullCostBreakdownCard({
           </p>
           {dualColumn && resolvedBreakdown?.fxRateUsed != null && (
             <p className="text-xs text-muted-foreground mt-1">
-              INR computed from Currency Master ({resolvedBreakdown.baseCurrency ?? "CAD"} → INR @{" "}
+              Official fees & estimates: INR guide from Currency Master (
+              {resolvedBreakdown.baseCurrency ?? "CAD"} → INR @{" "}
               {resolvedBreakdown.fxRateUsed.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
-              {resolvedBreakdown.fxRateSource === "fallback" ? " fallback" : ""})
+              {resolvedBreakdown.fxRateSource === "fallback" ? " fallback" : ""}). Consultancy fees
+              are fixed business prices from Fee Master — not converted.
             </p>
           )}
         </div>
@@ -50,6 +53,9 @@ export function ServiceFullCostBreakdownCard({
         <div key={section.id} className="mb-5 last:mb-0">
           <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
             {section.label}
+            {dualColumn && isConsultancyCostSection(section) && (
+              <span className="ml-2 normal-case font-normal text-xs">(Fee Master — fixed)</span>
+            )}
           </h4>
           <div className="overflow-x-auto -mx-1">
             <table className="w-full text-sm border-collapse min-w-[480px]">

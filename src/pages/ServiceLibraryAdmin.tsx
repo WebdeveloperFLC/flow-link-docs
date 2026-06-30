@@ -1500,7 +1500,8 @@ function PackagesTab({ master }: { master: Master }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Lead-form packages: consultancy (INR/CAD) + government (native amount/currency; INR/CAD equivalents optional).
+          Lead-form packages: consultancy (INR/CAD stored independently — never converted via Currency
+          Master) + government (native amount/currency; INR equivalent from Currency Master).
         </p>
         <Button size="sm" onClick={add}><Plus className="h-3.5 w-3.5 mr-1" />Add package</Button>
       </div>
