@@ -25,17 +25,36 @@
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script>
       (function () {
-        try {
-          var path = window.location.pathname;
-          if (path === "/" || path === "") {
-            var hasSession = Object.keys(localStorage).some(function (k) {
-              return k.indexOf("sb-") === 0 && k.indexOf("-auth-token") > 0 && localStorage.getItem(k);
-            });
-            if (!hasSession) {
-              window.location.replace("/auth" + window.location.search + window.location.hash);
-              return;
-            }
+        function isPreview() {
+          try {
+            if (/lovable\.(dev|app)/i.test(location.hostname)) return true;
+            if (window.self !== window.top) return true;
+          } catch (e) {
+            return true;
           }
+          return false;
+        }
+        function goAuth() {
+          window.location.replace("/auth" + location.search + location.hash);
+        }
+        try {
+          var path = location.pathname;
+          if (path !== "/" && path !== "") return;
+
+          if (isPreview()) {
+            try {
+              Object.keys(localStorage).forEach(function (k) {
+                if (k.indexOf("sb-") === 0 && k.indexOf("-auth-token") > 0) localStorage.removeItem(k);
+              });
+            } catch (e) {}
+            goAuth();
+            return;
+          }
+
+          var hasSession = Object.keys(localStorage).some(function (k) {
+            return k.indexOf("sb-") === 0 && k.indexOf("-auth-token") > 0 && localStorage.getItem(k);
+          });
+          if (!hasSession) goAuth();
         } catch (e) {}
       })();
     </script>
@@ -68,9 +87,24 @@
     <div id="root" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f5f8fa;color:#1a2332;font-family:system-ui,sans-serif">
       <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
         <div style="width:32px;height:32px;border-radius:50%;border:2px solid #005daa;border-top-color:transparent;animation:flc-spin 0.8s linear infinite"></div>
-        <p style="margin:0;font-size:14px;color:#5a6a7a">Loading Future Link…</p>
+        <p id="flc-boot-msg" style="margin:0;font-size:14px;color:#5a6a7a">Loading Future Link…</p>
+        <p style="margin:8px 0 0;font-size:12px;color:#8a96a3"><a href="/auth" style="color:#005daa">Go to sign in</a></p>
       </div>
     </div>
     <script type="module" src="/src/entry.ts"></script>
+    <script>
+      (function () {
+        setTimeout(function () {
+          try {
+            var root = document.getElementById("root");
+            var msg = document.getElementById("flc-boot-msg");
+            if (!root || !msg) return;
+            if (msg.textContent && msg.textContent.indexOf("Loading Future Link") >= 0) {
+              window.location.replace("/auth" + location.search + location.hash);
+            }
+          } catch (e) {}
+        }, 6000);
+      })();
+    </script>
   </body>
 </html>
