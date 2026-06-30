@@ -1,8 +1,9 @@
 import type { StaffGuideDef } from "./guideTypes";
 
 /**
- * Register staff guides here. Add a markdown file under `docs/guides/` and a
- * matching entry in this list — the sidebar and index page update automatically.
+ * Register staff guides here. Add a markdown file under `docs/guides/` and copy
+ * the same file to `src/guides/content/` (bundled for production — Lovable build).
+ * Add a matching entry in this list — the sidebar and index page update automatically.
  *
  * **Governance separation:** Administrative and infrastructure governance docs live
  * under `docs/governance/` and must never appear in STAFF_GUIDES or the CRM Guides
@@ -291,8 +292,8 @@ export const STAFF_GUIDES: StaffGuideDef[] = [
   },
 ];
 
-/** Staff guides only — intentionally excludes `docs/governance/`. */
-const contentModules = import.meta.glob("../../../docs/guides/*.md", {
+/** Staff guide bodies — only `src/guides/content/` (not all of `docs/guides/`). */
+const contentModules = import.meta.glob("../content/*.md", {
   query: "?raw",
   import: "default",
   eager: true,
@@ -309,7 +310,7 @@ function assertStaffGuidesPolicy(): void {
     }
     if (guide.contentFile.includes("/") || guide.contentFile.includes("..")) {
       throw new Error(
-        `[Guides] "${guide.slug}" contentFile must be a bare filename under docs/guides/.`,
+        `[Guides] "${guide.slug}" contentFile must be a bare filename under src/guides/content/.`,
       );
     }
   }

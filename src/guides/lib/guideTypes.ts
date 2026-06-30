@@ -19,7 +19,7 @@ export interface StaffGuideDef {
   description: string;
   /** Grouping label on the index page */
   category: string;
-  /** Markdown filename under `docs/guides/` (not docs/governance/) */
+  /** Markdown filename under `src/guides/content/` (source also in `docs/guides/`) */
   contentFile: string;
   /** When set, user needs view access on this module (admins always see it). */
   relatedModule?: GuideRelatedModule;
