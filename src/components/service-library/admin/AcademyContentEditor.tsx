@@ -35,6 +35,12 @@ import {
   parseAcademyMetadataJson,
   type ServiceAcademyMetadata,
 } from "@/lib/service-library/academyTypes";
+import {
+  formatValidationIssues,
+  finalizeKnowledgeCentreSave,
+  validateKnowledgeCentreJson,
+  type KnowledgeCentreMetadata,
+} from "@/lib/service-library/knowledgeCentre";
 import type { Master } from "@/lib/serviceLibrary";
 import { ContentSetupSummary } from "@/components/service-library/admin/ContentSetupSummary";
 import { QuizQuestionsEditor } from "@/components/service-library/admin/QuizQuestionsEditor";
@@ -91,17 +97,39 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
     return `/service-library?${p.toString()}`;
   }, [master.id, scope]);
 
-  const persist = async (payload: ServiceAcademyMetadata) => {
+  const persist = async (
+    payload: ServiceAcademyMetadata,
+    saveSummary = "Service content updated",
+  ) => {
+    const { data: auth } = await supabase.auth.getUser();
+    const author =
+      auth.user?.email?.split("@")[0] ?? auth.user?.user_metadata?.full_name ?? "Admin";
+
+    const finalized = finalizeKnowledgeCentreSave(payload as KnowledgeCentreMetadata, {
+      author,
+      summary: saveSummary,
+      strict: scope === "master" && (payload as KnowledgeCentreMetadata).schemaVersion === "1.0",
+    });
+
+    if (!finalized.ok) {
+      toast({
+        title: "Validation failed",
+        description: finalized.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       if (scope === "master") {
         const { error } = await supabase
           .from("service_library")
-          .update({ academy_metadata: payload as Record<string, unknown> })
+          .update({ academy_metadata: finalized.payload as Record<string, unknown> })
           .eq("id", master.id);
         if (error) throw error;
       } else {
-        const patchOnly = payload;
+        const patchOnly = finalized.payload;
         if (override.data?.id) {
           const { error } = await supabase
             .from("service_library_overrides")
@@ -117,6 +145,8 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
           if (error) throw error;
         }
       }
+      setMeta(finalized.payload);
+      setJsonText(finalized.json);
       toast({ title: "Service content saved" });
       qc.invalidateQueries({ queryKey: ["sl-masters"] });
       qc.invalidateQueries({ queryKey: ["sl-library-override", master.id] });
@@ -136,7 +166,16 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
 
   const applyJson = () => {
     try {
-      const parsed = parseAcademyMetadataJson(jsonText);
+      const parsed = parseAcademyMetadataJson(jsonText) as KnowledgeCentreMetadata;
+      const validation = validateKnowledgeCentreJson(parsed);
+      if (!validation.ok) {
+        toast({
+          title: "Validation failed",
+          description: formatValidationIssues(validation),
+          variant: "destructive",
+        });
+        return;
+      }
       setMeta(parsed);
       toast({ title: "JSON applied to editor — click Save to persist" });
     } catch (e) {
@@ -150,8 +189,17 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
 
   const saveJson = async () => {
     try {
-      const parsed = parseAcademyMetadataJson(jsonText);
-      await persist(parsed);
+      const parsed = parseAcademyMetadataJson(jsonText) as KnowledgeCentreMetadata;
+      const importCheck = validateKnowledgeCentreJson(parsed, { requireSchemaVersion: true });
+      if (!importCheck.ok) {
+        toast({
+          title: "Import rejected",
+          description: formatValidationIssues(importCheck),
+          variant: "destructive",
+        });
+        return;
+      }
+      await persist(parsed, "Bulk JSON import");
       setMeta(parsed);
     } catch (e) {
       toast({
@@ -229,7 +277,7 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
         </div>
       </div>
 
-      <Tabs defaultValue="bulk" className="w-full">
+      <Tabs defaultValue="header" className="w-full">
         <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="bulk">
             <FileJson className="h-3.5 w-3.5 mr-1" />
@@ -248,9 +296,11 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
 
         <TabsContent value="bulk" className="space-y-3 mt-4">
           <p className="text-sm text-muted-foreground">
-            Paste or upload a single JSON object with all service library content fields. Use{" "}
-            <strong>Load template</strong> for a full example, edit offline, then <strong>Apply JSON</strong> and{" "}
-            <strong>Save JSON</strong>. Fastest way to load large content in one go.
+            <strong>Import / export only</strong> — normal editing uses the section tabs above. The CRM rebuilds
+            JSON automatically on each save. Use this panel for Claude imports, GitHub sync, backups, and migrations.
+            Imports must conform to{" "}
+            <code className="text-xs">docs/KNOWLEDGE_CENTRE_JSON_SPECIFICATION.md</code> (schemaVersion{" "}
+            <strong>1.0</strong>).
           </p>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={loadTemplate}>
@@ -280,7 +330,20 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
               variant="outline"
               size="sm"
               onClick={() => {
-                const blob = new Blob([jsonText || exportAcademyMetadataJson(meta)], { type: "application/json" });
+                const exportPayload = exportAcademyMetadataJson(meta);
+                const parsed = parseAcademyMetadataJson(exportPayload) as KnowledgeCentreMetadata;
+                const check = validateKnowledgeCentreJson(parsed, {
+                  requireSchemaVersion: (parsed as KnowledgeCentreMetadata).schemaVersion === "1.0",
+                });
+                if (!check.ok) {
+                  toast({
+                    title: "Export blocked",
+                    description: formatValidationIssues(check),
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                const blob = new Blob([exportPayload], { type: "application/json" });
                 const a = document.createElement("a");
                 a.href = URL.createObjectURL(blob);
                 a.download = `service-library-${master.sub_service.replace(/\s+/g, "-").toLowerCase()}.json`;

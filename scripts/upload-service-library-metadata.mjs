@@ -13,6 +13,7 @@
  */
 import fs from "fs";
 import { createClient } from "@supabase/supabase-js";
+import { validateKnowledgeCentreJsonCore } from "../src/lib/service-library/knowledgeCentre/validateKnowledgeCentreJsonCore.mjs";
 
 const jsonPath = process.argv[2];
 if (!jsonPath) {
@@ -36,6 +37,18 @@ function stripInstructions(obj) {
   return rest;
 }
 
+function assertValidMetadata(meta, label) {
+  const result = validateKnowledgeCentreJsonCore(meta, { requireSchemaVersion: true });
+  if (!result.ok) {
+    console.error(`Import rejected — does not conform to docs/KNOWLEDGE_CENTRE_JSON_SPECIFICATION.md (${label}):`);
+    for (const issue of result.issues) {
+      console.error(`  ${issue.path}: ${issue.message}`);
+    }
+    process.exit(1);
+  }
+  console.log(`Validated Knowledge Centre schemaVersion 1.0 (${label})`);
+}
+
 async function updateOne(libraryId, meta) {
   const { error } = await sb
     .from("service_library")
@@ -54,6 +67,7 @@ async function main() {
         console.log(`SKIP missing library_id or academy_metadata: ${entry.service ?? "?"}`);
         continue;
       }
+      assertValidMetadata(meta, id);
       const err = await updateOne(id, meta);
       if (err) console.log(`FAIL ${id} ${entry.sub_service ?? ""}: ${err.message}`);
       else {
@@ -67,6 +81,7 @@ async function main() {
 
   const libraryId = process.env.SL_LIBRARY_ID;
   const meta = stripInstructions(raw);
+  assertValidMetadata(meta, jsonPath);
 
   if (libraryId) {
     const err = await updateOne(libraryId, meta);
