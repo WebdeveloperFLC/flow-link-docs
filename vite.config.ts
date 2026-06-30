@@ -91,4 +91,16 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("ag-grid-community") || id.includes("ag-grid-react")) return "ag-grid";
+          if (id.includes("recharts")) return "recharts";
+          if (id.includes("/src/accounting/")) return "accounting";
+          if (id.includes("/src/hr-payroll/")) return "hr-payroll";
+        },
+      },
+    },
+  },
 }));

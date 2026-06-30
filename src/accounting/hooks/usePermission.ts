@@ -92,6 +92,11 @@ function useStore() {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
+/** Shared permission store snapshot (for access gate without duplicate fetch). */
+export function useAccountingPermissionStore() {
+  return useStore();
+}
+
 /** Bootstraps permission load; safe to call from any top-level accounting screen. */
 export function useAccountingPermissionsBootstrap() {
   const { user } = useAuth();

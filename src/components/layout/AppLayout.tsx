@@ -67,7 +67,7 @@ import flcLogo from "@/assets/flc-logo.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { Topbar } from "@/components/layout/Topbar";
 import { useAccountingAccess } from "@/accounting/hooks/useAccountingAccess";
-import { useCan } from "@/accounting/hooks/usePermission";
+import { useAccountingPermissionsBootstrap, useCan } from "@/accounting/hooks/usePermission";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { ThemeCustomizer } from "@/components/theme/ThemeCustomizer";
 import { useTheme } from "@/components/theme/ThemeProvider";
@@ -266,6 +266,7 @@ const calendarNav: NavItem[] = [
 
 export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { user, roles, signOut, isAdmin, hasRole, isCommissionAdmin, viewAsRole, isPlatformOwner } = useAuth();
+  useAccountingPermissionsBootstrap();
   const navigate = useNavigate();
   const primaryRole = roles[0] ?? "viewer";
   const roleBadgeLabel = viewAsRole

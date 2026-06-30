@@ -53,21 +53,24 @@ function OverviewInner() {
   const [kpis, setKpis] = useState<Awaited<ReturnType<typeof import("@/platform/foe/financeKpiService").loadFinanceOverviewKpis>> | null>(null);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const { loadFinanceOverviewKpis } = await import("@/platform/foe/financeKpiService");
-        const { hydratePlatformConfig } = await import("@/platform/config/platformConfigService");
-        await hydratePlatformConfig();
-        const data = await loadFinanceOverviewKpis({
-          entityId: activeEntity.id,
-          currency: activeEntity.currency,
-        });
-        setKpis(data);
-      } catch (error) {
-        console.error("[AccountingOverview] KPI load failed", error);
-        setKpis(null);
-      }
-    })();
+    const id = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const { loadFinanceOverviewKpis } = await import("@/platform/foe/financeKpiService");
+          const { hydratePlatformConfig } = await import("@/platform/config/platformConfigService");
+          await hydratePlatformConfig();
+          const data = await loadFinanceOverviewKpis({
+            entityId: activeEntity.id,
+            currency: activeEntity.currency,
+          });
+          setKpis(data);
+        } catch (error) {
+          console.error("[AccountingOverview] KPI load failed", error);
+          setKpis(null);
+        }
+      })();
+    }, 0);
+    return () => window.clearTimeout(id);
   }, [activeEntity.id, activeEntity.currency]);
 
   const headerActions = (
