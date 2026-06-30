@@ -1,4 +1,77 @@
 {
+  "schemaVersion": "1.0",
+  "navigation": {
+    "sections": [
+      {
+        "id": "overview",
+        "sortOrder": 10
+      },
+      {
+        "id": "fees",
+        "sortOrder": 20
+      },
+      {
+        "id": "countryinsights",
+        "sortOrder": 30
+      },
+      {
+        "id": "eligibility",
+        "sortOrder": 40
+      },
+      {
+        "id": "checklist",
+        "sortOrder": 50
+      },
+      {
+        "id": "visaforms",
+        "sortOrder": 60
+      },
+      {
+        "id": "process",
+        "sortOrder": 70
+      },
+      {
+        "id": "dos",
+        "sortOrder": 80,
+        "label": "Do's & don'ts"
+      },
+      {
+        "id": "redflags",
+        "sortOrder": 90
+      },
+      {
+        "id": "faqs",
+        "sortOrder": 100
+      },
+      {
+        "id": "compliance",
+        "sortOrder": 110
+      },
+      {
+        "id": "downloads",
+        "sortOrder": 120,
+        "label": "Resources"
+      },
+      {
+        "id": "sampledocs",
+        "sortOrder": 130
+      },
+      {
+        "id": "quiz",
+        "sortOrder": 140
+      },
+      {
+        "id": "notes",
+        "sortOrder": 150,
+        "label": "Staff notes"
+      },
+      {
+        "id": "changelog",
+        "sortOrder": 160,
+        "label": "Change log"
+      }
+    ]
+  },
   "displayName": "Canada – Student Visa (Study Permit — Outside Canada)",
   "shortDescription": "IRCC study permit · Regular stream (SDS closed 8 Nov 2024) · DLI + PAL/CAQ required",
   "version": "v2.2",

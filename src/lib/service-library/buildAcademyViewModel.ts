@@ -34,6 +34,7 @@ import type { CountryInsightsView, FullCostBreakdown } from "./countryInsights/t
 import type { MbbsInstitutionMeta } from "./mbbs/types";
 import { isMbbsServiceRow } from "./mbbs/resolveMbbsInstitutions";
 import { resolveDocumentStructure, type ServiceDocumentStructure } from "./documentStructure";
+import type { KnowledgeCentreMetadata } from "./knowledgeCentre/types";
 
 export type AcademyViewModel = {
   masterId: string;
@@ -121,6 +122,8 @@ export type AcademyViewModel = {
     checklist: string[];
   } | null;
   documentStructure: ServiceDocumentStructure | null;
+  /** Merged academy_metadata for Knowledge Centre v1.0 navigation (schemaVersion + navigation). */
+  knowledgeCentreMeta: KnowledgeCentreMetadata | null;
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -520,5 +523,9 @@ export function buildAcademyViewModel(args: {
     coachingProfile,
     testDayGuide,
     documentStructure: resolveDocumentStructure(meta),
+    knowledgeCentreMeta:
+      meta.schemaVersion || meta.navigation
+        ? (meta as KnowledgeCentreMetadata)
+        : null,
   };
 }

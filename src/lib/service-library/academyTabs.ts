@@ -1,4 +1,6 @@
 import type { AcademyViewModel } from "./buildAcademyViewModel";
+import { resolveKnowledgeCentreNavigation } from "./knowledgeCentre/resolveKnowledgeCentreNavigation";
+import type { KnowledgeCentreMetadata } from "./knowledgeCentre/types";
 
 /** All tab ids used across visa + coaching profiles. */
 export const ACADEMY_TAB_IDS = [
@@ -116,12 +118,40 @@ export function coachingProfileFromSubService(subService: string): CoachingProfi
   return /test reference/i.test(subService) ? "test_reference" : "program";
 }
 
-export function resolveAcademyTabs(
-  view: Pick<
-    AcademyViewModel,
-    "isCoaching" | "isMbbs" | "coachingProfile" | "feeBreakdown" | "countryInsights" | "mbbsMeta"
-  >,
-): AcademyTabId[] {
+type AcademyTabResolveView = Pick<
+  AcademyViewModel,
+  | "isCoaching"
+  | "isMbbs"
+  | "coachingProfile"
+  | "feeBreakdown"
+  | "countryInsights"
+  | "mbbsMeta"
+  | "knowledgeCentreMeta"
+  | "checklist"
+  | "process"
+  | "visaForms"
+  | "downloads"
+  | "sampleDocs"
+  | "quiz"
+  | "internalNotes"
+  | "changelog"
+  | "faqs"
+  | "compliance"
+  | "redFlags"
+  | "redFlagsBanner"
+  | "dosDonts"
+  | "resources"
+  | "about"
+  | "eligibility"
+>;
+
+export function resolveAcademyTabs(view: AcademyTabResolveView): AcademyTabId[] {
+  const kcMeta = view.knowledgeCentreMeta;
+  if (kcMeta?.navigation?.sections?.length) {
+    const dynamic = resolveKnowledgeCentreNavigation(kcMeta, view);
+    if (dynamic?.length) return dynamic;
+  }
+
   if (view.isMbbs) {
     let tabs = MBBS_TABS;
     const hasInsights = view.countryInsights != null;
