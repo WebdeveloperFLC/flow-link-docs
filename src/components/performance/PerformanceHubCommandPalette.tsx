@@ -45,6 +45,39 @@ export function PerformanceHubCommandPalette() {
   }, [navCtx]);
 
   useEffect(() => {
+    // #region agent log
+    fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
+      body: JSON.stringify({
+        sessionId: "f92c68",
+        location: "PerformanceHubCommandPalette.tsx:mount",
+        message: "CommandPalette mounted",
+        data: { groupCount: groups.length },
+        hypothesisId: "H-C",
+        timestamp: Date.now(),
+        runId: "pre-fix",
+      }),
+    }).catch(() => {});
+    return () => {
+      fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
+        body: JSON.stringify({
+          sessionId: "f92c68",
+          location: "PerformanceHubCommandPalette.tsx:unmount",
+          message: "CommandPalette unmounted",
+          data: {},
+          hypothesisId: "H-C",
+          timestamp: Date.now(),
+          runId: "pre-fix",
+        }),
+      }).catch(() => {});
+    };
+    // #endregion
+  }, [groups.length]);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -74,25 +107,27 @@ export function PerformanceHubCommandPalette() {
         <span>Search routes</span>
         <kbd className="rounded border border-white/20 px-1 font-mono text-[10px]">⌘K</kbd>
       </button>
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Jump to a Performance Hub screen…" />
-        <CommandList>
-          <CommandEmpty>No matching route.</CommandEmpty>
-          {groups.map((group, idx) => (
-            <div key={group.workspace}>
-              {idx > 0 && <CommandSeparator />}
-              <CommandGroup heading={group.workspace}>
-                {group.items.map((item) => (
-                  <CommandItem key={item.to} value={`${group.workspace} ${item.label} ${item.to}`} onSelect={() => go(item.to)}>
-                    <item.icon className="mr-2 size-4 opacity-60" />
-                    {item.label}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </div>
-          ))}
-        </CommandList>
-      </CommandDialog>
+      {open ? (
+        <CommandDialog open={open} onOpenChange={setOpen}>
+          <CommandInput placeholder="Jump to a Performance Hub screen…" />
+          <CommandList>
+            <CommandEmpty>No matching route.</CommandEmpty>
+            {groups.map((group, idx) => (
+              <div key={group.workspace}>
+                {idx > 0 && <CommandSeparator />}
+                <CommandGroup heading={group.workspace}>
+                  {group.items.map((item) => (
+                    <CommandItem key={item.to} value={`${group.workspace} ${item.label} ${item.to}`} onSelect={() => go(item.to)}>
+                      <item.icon className="mr-2 size-4 opacity-60" />
+                      {item.label}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </div>
+            ))}
+          </CommandList>
+        </CommandDialog>
+      ) : null}
     </>
   );
 }

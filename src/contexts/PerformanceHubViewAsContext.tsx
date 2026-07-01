@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -66,6 +67,7 @@ export function PerformanceHubViewAsProvider({ children }: { children: ReactNode
     setViewAsRole,
     viewAsRole,
     isPlatformOwner,
+    loading: authLoading,
   } = useAuth();
 
   const canUse = canUsePerformanceHubViewAs(actualRoles, isPlatformOwner ? "SUPER_ADMIN" : null);
@@ -86,18 +88,34 @@ export function PerformanceHubViewAsProvider({ children }: { children: ReactNode
   const restoredViewAsRef = useRef<AppRole | null | undefined>(undefined);
   const hubSyncActiveRef = useRef(false);
   const hydratedRef = useRef(false);
+  const rolesReady = !authLoading && actualRoles.length > 0;
 
-  // Hydrate hub preview from session once per mount (deferred to avoid mount-time portal race)
+  // Hydrate hub preview from session once roles are loaded (no rAF — state batching only)
   useEffect(() => {
-    if (!user?.id || !canUse || hydratedRef.current) return;
+    if (!user?.id || !canUse || !rolesReady || hydratedRef.current) return;
     if (roleOptions.length === 0) return;
     hydratedRef.current = true;
     const stored = readPerformanceHubViewAs(user.id);
     if (!stored.role || !roleOptions.includes(stored.role)) return;
 
-    const frame = window.requestAnimationFrame(() => setState(stored));
-    return () => window.cancelAnimationFrame(frame);
-  }, [user?.id, canUse, roleOptions]);
+    // #region agent log
+    fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
+      body: JSON.stringify({
+        sessionId: "f92c68",
+        location: "PerformanceHubViewAsContext.tsx:hydrate",
+        message: "hydrating stored preview",
+        data: { storedRole: stored.role, branchId: stored.branchId, userId: stored.userId ? "set" : null },
+        hypothesisId: "H-E",
+        timestamp: Date.now(),
+        runId: "post-fix",
+      }),
+    }).catch(() => {});
+    // #endregion
+
+    setState(stored);
+  }, [user?.id, canUse, rolesReady, roleOptions]);
 
   const persist = useCallback(
     (next: PerformanceHubViewAsState | ((prev: PerformanceHubViewAsState) => PerformanceHubViewAsState)) => {
@@ -230,9 +248,9 @@ export function PerformanceHubViewAsProvider({ children }: { children: ReactNode
     };
   }, [canUse, state.role, state.branchId]);
 
-  // Sync preview role to AuthContext only while on Performance Hub paths (deferred — avoids FIN-R-001 portal crash)
-  useEffect(() => {
-    if (!canUse) return;
+  // Sync preview role to AuthContext only while on Performance Hub paths (layout effect — FIN-R-001)
+  useLayoutEffect(() => {
+    if (!canUse || !rolesReady) return;
 
     if (!onHub) {
       if (hubSyncActiveRef.current) {
@@ -243,26 +261,38 @@ export function PerformanceHubViewAsProvider({ children }: { children: ReactNode
       return;
     }
 
-    const frame = window.requestAnimationFrame(() => {
-      if (restoredViewAsRef.current === undefined) {
-        restoredViewAsRef.current = viewAsRole;
+    // #region agent log
+    fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
+      body: JSON.stringify({
+        sessionId: "f92c68",
+        location: "PerformanceHubViewAsContext.tsx:sync",
+        message: "auth sync layoutEffect",
+        data: { onHub, previewRole: state.role, hubSyncActive: hubSyncActiveRef.current, restored: restoredViewAsRef.current ?? null, rolesReady },
+        hypothesisId: "H-A",
+        timestamp: Date.now(),
+        runId: "post-fix",
+      }),
+    }).catch(() => {});
+    // #endregion
+
+    if (restoredViewAsRef.current === undefined) {
+      restoredViewAsRef.current = viewAsRole;
+    }
+
+    if (!state.role) {
+      if (hubSyncActiveRef.current) {
+        setViewAsRole(restoredViewAsRef.current ?? null);
+        hubSyncActiveRef.current = false;
       }
+      return;
+    }
 
-      if (!state.role) {
-        if (hubSyncActiveRef.current) {
-          setViewAsRole(restoredViewAsRef.current ?? null);
-          hubSyncActiveRef.current = false;
-        }
-        return;
-      }
-
-      hubSyncActiveRef.current = true;
-      setViewAsRole(state.role);
-    });
-
-    return () => window.cancelAnimationFrame(frame);
+    hubSyncActiveRef.current = true;
+    setViewAsRole(state.role);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- never depend on viewAsRole (prevents sync loop)
-  }, [canUse, onHub, state.role, setViewAsRole]);
+  }, [canUse, onHub, state.role, setViewAsRole, rolesReady]);
 
   // Clear user if no longer in filtered list
   useEffect(() => {
@@ -319,6 +349,22 @@ export function PerformanceHubPeriodPreviewBridge({ children }: { children: Reac
   const preview = usePerformanceHubViewAsOptional();
 
   const value = useMemo(() => {
+    const overridden = Boolean(preview?.previewBranchId);
+    // #region agent log
+    fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
+      body: JSON.stringify({
+        sessionId: "f92c68",
+        location: "PerformanceHubViewAsContext.tsx:periodBridge",
+        message: "period bridge recompute",
+        data: { overridden, branchId: preview?.previewBranchId ?? null, branchCount: base.branches.length },
+        hypothesisId: "H-B",
+        timestamp: Date.now(),
+        runId: "pre-fix",
+      }),
+    }).catch(() => {});
+    // #endregion
     if (!preview?.previewBranchId) return base;
     const label =
       base.branches.find((b) => b.id === preview.previewBranchId)?.name ??
