@@ -29,8 +29,9 @@ function debugLog(location: string, message: string, data: Record<string, unknow
   fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
-    body: JSON.stringify({ sessionId: "f92c68", location, message, data, hypothesisId, timestamp: Date.now(), runId: "pre-fix" }),
+    body: JSON.stringify({ sessionId: "f92c68", location, message, data, hypothesisId, timestamp: Date.now(), runId: "post-fix-2" }),
   }).catch(() => {});
+  console.error(`[ph-debug ${hypothesisId}]`, location, message, data);
 }
 // #endregion
 

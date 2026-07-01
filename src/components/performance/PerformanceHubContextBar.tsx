@@ -3,12 +3,12 @@ import { PerformanceHubCommandPalette } from "@/components/performance/Performan
 import { PerformanceHubQueueBadge } from "@/components/performance/PerformanceHubQueueBadge";
 import { PerformanceHubViewAsPanel } from "@/components/performance/PerformanceHubViewAsPanel";
 import { ThemeModeToggle } from "@/components/theme/ThemeModeToggle";
-import { useAuth } from "@/contexts/AuthContext";
+import { usePerformanceHubViewAsOptional } from "@/contexts/PerformanceHubViewAsContext";
 
 /** Sticky Performance Hub context bar (prototype topbar + period X8). */
 export function PerformanceHubContextBar() {
-  const { actualRoles, loading: authLoading } = useAuth();
-  const rolesReady = !authLoading && actualRoles.length > 0;
+  const preview = usePerformanceHubViewAsOptional();
+  const hubChromeReady = preview?.hubChromeReady ?? true;
 
   return (
     <div className="ph-context-bar sticky top-0 z-30 px-4 py-2.5 flex flex-wrap items-center gap-3 border-b border-white/10">
@@ -16,7 +16,7 @@ export function PerformanceHubContextBar() {
         Future Link · <span className="ph-context-accent">Performance Hub</span>
       </div>
       <div className="ml-auto flex flex-wrap items-center gap-2 min-w-0 pr-14 sm:pr-16">
-        {rolesReady ? (
+        {hubChromeReady ? (
           <>
             <PerformanceHubQueueBadge />
             <PerformanceHubCommandPalette />

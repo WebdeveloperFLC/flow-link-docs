@@ -37,6 +37,8 @@ export type PerformanceHubPreviewUser = {
 type PerformanceHubViewAsContextValue = {
   canUse: boolean;
   isActive: boolean;
+  /** False until stored preview is hydrated and auth sync applied — gate Radix portals (FIN-R-001). */
+  hubChromeReady: boolean;
   previewRole: AppRole | null;
   previewBranchId: string | null;
   previewUserId: string | null;
@@ -85,18 +87,59 @@ export function PerformanceHubViewAsProvider({ children }: { children: ReactNode
   const [userOptions, setUserOptions] = useState<PerformanceHubPreviewUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [adminBranchIds, setAdminBranchIds] = useState<string[] | "all">("all");
+  const [hubChromeReady, setHubChromeReady] = useState(false);
   const restoredViewAsRef = useRef<AppRole | null | undefined>(undefined);
   const hubSyncActiveRef = useRef(false);
   const hydratedRef = useRef(false);
   const rolesReady = !authLoading && actualRoles.length > 0;
 
-  // Hydrate hub preview from session once roles are loaded (no rAF — state batching only)
-  useEffect(() => {
-    if (!user?.id || !canUse || !rolesReady || hydratedRef.current) return;
-    if (roleOptions.length === 0) return;
-    hydratedRef.current = true;
-    const stored = readPerformanceHubViewAs(user.id);
-    if (!stored.role || !roleOptions.includes(stored.role)) return;
+  // Hydrate + auth sync in one layout effect BEFORE hub chrome mounts Radix portals (FIN-R-001).
+  useLayoutEffect(() => {
+    if (!rolesReady) {
+      setHubChromeReady(false);
+      return;
+    }
+
+    if (!onHub) {
+      if (canUse && hubSyncActiveRef.current) {
+        setViewAsRole(restoredViewAsRef.current ?? null);
+        hubSyncActiveRef.current = false;
+      }
+      restoredViewAsRef.current = undefined;
+      setHubChromeReady(false);
+      return;
+    }
+
+    if (!canUse) {
+      setHubChromeReady(true);
+      return;
+    }
+
+    let previewRole = state.role;
+    if (!hydratedRef.current && user?.id && roleOptions.length > 0) {
+      hydratedRef.current = true;
+      const stored = readPerformanceHubViewAs(user.id);
+      if (stored.role && roleOptions.includes(stored.role)) {
+        previewRole = stored.role;
+        setState(stored);
+        // #region agent log
+        fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
+          body: JSON.stringify({
+            sessionId: "f92c68",
+            location: "PerformanceHubViewAsContext.tsx:hydrate",
+            message: "hydrating stored preview (layout)",
+            data: { storedRole: stored.role, branchId: stored.branchId },
+            hypothesisId: "H-E",
+            timestamp: Date.now(),
+            runId: "post-fix-2",
+          }),
+        }).catch(() => {});
+        console.error("[ph-debug H-E] hydrate layout", stored.role);
+        // #endregion
+      }
+    }
 
     // #region agent log
     fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
@@ -104,18 +147,35 @@ export function PerformanceHubViewAsProvider({ children }: { children: ReactNode
       headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
       body: JSON.stringify({
         sessionId: "f92c68",
-        location: "PerformanceHubViewAsContext.tsx:hydrate",
-        message: "hydrating stored preview",
-        data: { storedRole: stored.role, branchId: stored.branchId, userId: stored.userId ? "set" : null },
-        hypothesisId: "H-E",
+        location: "PerformanceHubViewAsContext.tsx:sync",
+        message: "auth sync before chrome",
+        data: { previewRole, hubSyncActive: hubSyncActiveRef.current, restored: restoredViewAsRef.current ?? null },
+        hypothesisId: "H-A",
         timestamp: Date.now(),
-        runId: "post-fix",
+        runId: "post-fix-2",
       }),
     }).catch(() => {});
+    console.error("[ph-debug H-A] auth sync before chrome", previewRole);
     // #endregion
 
-    setState(stored);
-  }, [user?.id, canUse, rolesReady, roleOptions]);
+    if (restoredViewAsRef.current === undefined) {
+      restoredViewAsRef.current = viewAsRole;
+    }
+
+    if (!previewRole) {
+      if (hubSyncActiveRef.current) {
+        setViewAsRole(restoredViewAsRef.current ?? null);
+        hubSyncActiveRef.current = false;
+      }
+      setHubChromeReady(true);
+      return;
+    }
+
+    hubSyncActiveRef.current = true;
+    setViewAsRole(previewRole);
+    setHubChromeReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- never depend on viewAsRole (prevents sync loop)
+  }, [canUse, onHub, state.role, setViewAsRole, rolesReady, user?.id, roleOptions]);
 
   const persist = useCallback(
     (next: PerformanceHubViewAsState | ((prev: PerformanceHubViewAsState) => PerformanceHubViewAsState)) => {
@@ -248,52 +308,6 @@ export function PerformanceHubViewAsProvider({ children }: { children: ReactNode
     };
   }, [canUse, state.role, state.branchId]);
 
-  // Sync preview role to AuthContext only while on Performance Hub paths (layout effect — FIN-R-001)
-  useLayoutEffect(() => {
-    if (!canUse || !rolesReady) return;
-
-    if (!onHub) {
-      if (hubSyncActiveRef.current) {
-        setViewAsRole(restoredViewAsRef.current ?? null);
-        hubSyncActiveRef.current = false;
-      }
-      restoredViewAsRef.current = undefined;
-      return;
-    }
-
-    // #region agent log
-    fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
-      body: JSON.stringify({
-        sessionId: "f92c68",
-        location: "PerformanceHubViewAsContext.tsx:sync",
-        message: "auth sync layoutEffect",
-        data: { onHub, previewRole: state.role, hubSyncActive: hubSyncActiveRef.current, restored: restoredViewAsRef.current ?? null, rolesReady },
-        hypothesisId: "H-A",
-        timestamp: Date.now(),
-        runId: "post-fix",
-      }),
-    }).catch(() => {});
-    // #endregion
-
-    if (restoredViewAsRef.current === undefined) {
-      restoredViewAsRef.current = viewAsRole;
-    }
-
-    if (!state.role) {
-      if (hubSyncActiveRef.current) {
-        setViewAsRole(restoredViewAsRef.current ?? null);
-        hubSyncActiveRef.current = false;
-      }
-      return;
-    }
-
-    hubSyncActiveRef.current = true;
-    setViewAsRole(state.role);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- never depend on viewAsRole (prevents sync loop)
-  }, [canUse, onHub, state.role, setViewAsRole, rolesReady]);
-
   // Clear user if no longer in filtered list
   useEffect(() => {
     if (!state.userId) return;
@@ -308,6 +322,7 @@ export function PerformanceHubViewAsProvider({ children }: { children: ReactNode
     (): PerformanceHubViewAsContextValue => ({
       canUse,
       isActive,
+      hubChromeReady,
       previewRole: state.role,
       previewBranchId: state.branchId,
       previewUserId: state.userId,
@@ -325,6 +340,7 @@ export function PerformanceHubViewAsProvider({ children }: { children: ReactNode
     [
       canUse,
       isActive,
+      hubChromeReady,
       state,
       roleOptions,
       branchOptions,
