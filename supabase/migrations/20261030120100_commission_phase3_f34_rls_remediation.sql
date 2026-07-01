@@ -1,6 +1,7 @@
 -- Phase 3 F3.4: RLS remediation on commission financial tables
 -- EXTEND two-tier RLS with institution scope + accounting entity/country scope.
 -- Split SELECT vs mutate; remove FOR ALL policies that granted write to view-only users.
+-- Policies apply only to tables that exist (Phase 2B aggregator tables may be unpublished).
 
 -- ---------------------------------------------------------------------------
 -- Scope helpers
@@ -127,7 +128,7 @@ GRANT EXECUTE ON FUNCTION public.can_manage_commission_financial(uuid, uuid) TO 
 GRANT EXECUTE ON FUNCTION public.commission_receipt_scope_institution_id(uuid) TO authenticated;
 
 -- ---------------------------------------------------------------------------
--- Drop all policies on financial tables (clean re-apply)
+-- Drop existing policies on financial tables that exist (clean re-apply)
 -- ---------------------------------------------------------------------------
 
 DO $$
@@ -147,6 +148,9 @@ DECLARE
   ];
 BEGIN
   FOREACH t IN ARRAY financial_tables LOOP
+    IF to_regclass(format('public.%I', t)) IS NULL THEN
+      CONTINUE;
+    END IF;
     FOR r IN
       SELECT pol.polname
       FROM pg_policy pol
@@ -160,7 +164,7 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
--- Direct institution_id tables — standard 4-policy pattern
+-- Direct institution_id tables — standard 4-policy pattern (existing tables only)
 -- ---------------------------------------------------------------------------
 
 DO $$
@@ -173,6 +177,14 @@ DECLARE
   ];
 BEGIN
   FOREACH t IN ARRAY inst_tables LOOP
+    IF to_regclass(format('public.%I', t)) IS NULL THEN
+      RAISE NOTICE 'F3.4 skip (table missing): %', t;
+      CONTINUE;
+    END IF;
+    EXECUTE format('DROP POLICY IF EXISTS uc_fin_%s_select ON public.%I', t, t);
+    EXECUTE format('DROP POLICY IF EXISTS uc_fin_%s_insert ON public.%I', t, t);
+    EXECUTE format('DROP POLICY IF EXISTS uc_fin_%s_update ON public.%I', t, t);
+    EXECUTE format('DROP POLICY IF EXISTS uc_fin_%s_delete ON public.%I', t, t);
     EXECUTE format(
       'CREATE POLICY uc_fin_%s_select ON public.%I FOR SELECT TO authenticated USING (public.can_view_commission_financial(auth.uid(), institution_id))',
       t, t
@@ -192,353 +204,359 @@ BEGIN
   END LOOP;
 END $$;
 
--- Snapshots: immutable — no update/delete policies (trigger blocks mutations)
-CREATE POLICY uc_fin_upi_commission_snapshots_select ON public.upi_commission_snapshots
-  FOR SELECT TO authenticated
-  USING (public.can_view_commission_financial(auth.uid(), institution_id));
+-- ---------------------------------------------------------------------------
+-- Table-specific policies (existing tables only)
+-- ---------------------------------------------------------------------------
 
-CREATE POLICY uc_fin_upi_commission_snapshots_insert ON public.upi_commission_snapshots
-  FOR INSERT TO authenticated
-  WITH CHECK (public.can_manage_commission_financial(auth.uid(), institution_id));
+DO $$
+BEGIN
+  IF to_regclass('public.upi_commission_snapshots') IS NOT NULL THEN
+    CREATE POLICY uc_fin_upi_commission_snapshots_select ON public.upi_commission_snapshots
+      FOR SELECT TO authenticated
+      USING (public.can_view_commission_financial(auth.uid(), institution_id));
+    CREATE POLICY uc_fin_upi_commission_snapshots_insert ON public.upi_commission_snapshots
+      FOR INSERT TO authenticated
+      WITH CHECK (public.can_manage_commission_financial(auth.uid(), institution_id));
+  END IF;
 
--- Receipts: scoped by context or institution
-CREATE POLICY uc_fin_upi_commission_receipts_select ON public.upi_commission_receipts
-  FOR SELECT TO authenticated
-  USING (
-    public.can_view_commission_financial(
-      auth.uid(),
-      COALESCE(context_institution_id, institution_id)
-    )
-  );
+  IF to_regclass('public.upi_commission_receipts') IS NOT NULL THEN
+    CREATE POLICY uc_fin_upi_commission_receipts_select ON public.upi_commission_receipts
+      FOR SELECT TO authenticated
+      USING (
+        public.can_view_commission_financial(
+          auth.uid(),
+          COALESCE(context_institution_id, institution_id)
+        )
+      );
+    CREATE POLICY uc_fin_upi_commission_receipts_insert ON public.upi_commission_receipts
+      FOR INSERT TO authenticated
+      WITH CHECK (
+        public.can_manage_commission_financial(
+          auth.uid(),
+          COALESCE(context_institution_id, institution_id)
+        )
+      );
+    CREATE POLICY uc_fin_upi_commission_receipts_update ON public.upi_commission_receipts
+      FOR UPDATE TO authenticated
+      USING (
+        public.can_manage_commission_financial(
+          auth.uid(),
+          COALESCE(context_institution_id, institution_id)
+        )
+      )
+      WITH CHECK (
+        public.can_manage_commission_financial(
+          auth.uid(),
+          COALESCE(context_institution_id, institution_id)
+        )
+      );
+    CREATE POLICY uc_fin_upi_commission_receipts_delete ON public.upi_commission_receipts
+      FOR DELETE TO authenticated
+      USING (
+        public.can_manage_commission_financial(
+          auth.uid(),
+          COALESCE(context_institution_id, institution_id)
+        )
+      );
+  END IF;
 
-CREATE POLICY uc_fin_upi_commission_receipts_insert ON public.upi_commission_receipts
-  FOR INSERT TO authenticated
-  WITH CHECK (
-    public.can_manage_commission_financial(
-      auth.uid(),
-      COALESCE(context_institution_id, institution_id)
-    )
-  );
+  IF to_regclass('public.upi_invoice_line_items') IS NOT NULL THEN
+    CREATE POLICY uc_fin_upi_invoice_line_items_select ON public.upi_invoice_line_items
+      FOR SELECT TO authenticated
+      USING (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_invoices inv
+          WHERE inv.id = upi_invoice_line_items.invoice_id
+            AND public.can_view_commission_financial(auth.uid(), inv.institution_id)
+        )
+      );
+    CREATE POLICY uc_fin_upi_invoice_line_items_insert ON public.upi_invoice_line_items
+      FOR INSERT TO authenticated
+      WITH CHECK (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_invoices inv
+          WHERE inv.id = upi_invoice_line_items.invoice_id
+            AND public.can_manage_commission_financial(auth.uid(), inv.institution_id)
+        )
+      );
+    CREATE POLICY uc_fin_upi_invoice_line_items_update ON public.upi_invoice_line_items
+      FOR UPDATE TO authenticated
+      USING (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_invoices inv
+          WHERE inv.id = upi_invoice_line_items.invoice_id
+            AND public.can_manage_commission_financial(auth.uid(), inv.institution_id)
+        )
+      )
+      WITH CHECK (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_invoices inv
+          WHERE inv.id = upi_invoice_line_items.invoice_id
+            AND public.can_manage_commission_financial(auth.uid(), inv.institution_id)
+        )
+      );
+    CREATE POLICY uc_fin_upi_invoice_line_items_delete ON public.upi_invoice_line_items
+      FOR DELETE TO authenticated
+      USING (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_invoices inv
+          WHERE inv.id = upi_invoice_line_items.invoice_id
+            AND public.can_manage_commission_financial(auth.uid(), inv.institution_id)
+        )
+      );
+  END IF;
 
-CREATE POLICY uc_fin_upi_commission_receipts_update ON public.upi_commission_receipts
-  FOR UPDATE TO authenticated
-  USING (
-    public.can_manage_commission_financial(
-      auth.uid(),
-      COALESCE(context_institution_id, institution_id)
-    )
-  )
-  WITH CHECK (
-    public.can_manage_commission_financial(
-      auth.uid(),
-      COALESCE(context_institution_id, institution_id)
-    )
-  );
+  IF to_regclass('public.upi_commission_transfer_events') IS NOT NULL THEN
+    CREATE POLICY uc_fin_upi_commission_transfer_events_select ON public.upi_commission_transfer_events
+      FOR SELECT TO authenticated
+      USING (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_students s
+          WHERE s.id = upi_commission_transfer_events.source_student_commission_id
+            AND public.can_view_commission_financial(auth.uid(), s.institution_id)
+        )
+      );
+    CREATE POLICY uc_fin_upi_commission_transfer_events_insert ON public.upi_commission_transfer_events
+      FOR INSERT TO authenticated
+      WITH CHECK (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_students s
+          WHERE s.id = upi_commission_transfer_events.source_student_commission_id
+            AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
+        )
+      );
+    CREATE POLICY uc_fin_upi_commission_transfer_events_update ON public.upi_commission_transfer_events
+      FOR UPDATE TO authenticated
+      USING (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_students s
+          WHERE s.id = upi_commission_transfer_events.source_student_commission_id
+            AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
+        )
+      )
+      WITH CHECK (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_students s
+          WHERE s.id = upi_commission_transfer_events.source_student_commission_id
+            AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
+        )
+      );
+    CREATE POLICY uc_fin_upi_commission_transfer_events_delete ON public.upi_commission_transfer_events
+      FOR DELETE TO authenticated
+      USING (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_students s
+          WHERE s.id = upi_commission_transfer_events.source_student_commission_id
+            AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
+        )
+      );
+  END IF;
 
-CREATE POLICY uc_fin_upi_commission_receipts_delete ON public.upi_commission_receipts
-  FOR DELETE TO authenticated
-  USING (
-    public.can_manage_commission_financial(
-      auth.uid(),
-      COALESCE(context_institution_id, institution_id)
-    )
-  );
+  IF to_regclass('public.upi_commission_receipt_invoice_allocations') IS NOT NULL THEN
+    CREATE POLICY uc_fin_ucria_select ON public.upi_commission_receipt_invoice_allocations
+      FOR SELECT TO authenticated
+      USING (
+        public.can_view_commission_financial(
+          auth.uid(),
+          public.commission_receipt_scope_institution_id(receipt_id)
+        )
+        OR EXISTS (
+          SELECT 1 FROM public.upi_commission_invoices inv
+          WHERE inv.id = upi_commission_receipt_invoice_allocations.invoice_id
+            AND public.can_view_commission_financial(auth.uid(), inv.institution_id)
+        )
+      );
+    CREATE POLICY uc_fin_ucria_insert ON public.upi_commission_receipt_invoice_allocations
+      FOR INSERT TO authenticated
+      WITH CHECK (
+        public.can_manage_commission_financial(
+          auth.uid(),
+          public.commission_receipt_scope_institution_id(receipt_id)
+        )
+      );
+    CREATE POLICY uc_fin_ucria_update ON public.upi_commission_receipt_invoice_allocations
+      FOR UPDATE TO authenticated
+      USING (
+        public.can_manage_commission_financial(
+          auth.uid(),
+          public.commission_receipt_scope_institution_id(receipt_id)
+        )
+      )
+      WITH CHECK (
+        public.can_manage_commission_financial(
+          auth.uid(),
+          public.commission_receipt_scope_institution_id(receipt_id)
+        )
+      );
+    CREATE POLICY uc_fin_ucria_delete ON public.upi_commission_receipt_invoice_allocations
+      FOR DELETE TO authenticated
+      USING (
+        public.can_manage_commission_financial(
+          auth.uid(),
+          public.commission_receipt_scope_institution_id(receipt_id)
+        )
+      );
+  END IF;
 
--- Invoice line items: scope via parent commission invoice
-CREATE POLICY uc_fin_upi_invoice_line_items_select ON public.upi_invoice_line_items
-  FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_invoices inv
-      WHERE inv.id = upi_invoice_line_items.invoice_id
-        AND public.can_view_commission_financial(auth.uid(), inv.institution_id)
-    )
-  );
+  IF to_regclass('public.upi_commission_receipt_student_allocations') IS NOT NULL THEN
+    CREATE POLICY uc_fin_ucrsa_select ON public.upi_commission_receipt_student_allocations
+      FOR SELECT TO authenticated
+      USING (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_students s
+          WHERE s.id = upi_commission_receipt_student_allocations.student_commission_id
+            AND public.can_view_commission_financial(auth.uid(), s.institution_id)
+        )
+      );
+    CREATE POLICY uc_fin_ucrsa_insert ON public.upi_commission_receipt_student_allocations
+      FOR INSERT TO authenticated
+      WITH CHECK (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_students s
+          WHERE s.id = upi_commission_receipt_student_allocations.student_commission_id
+            AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
+        )
+      );
+    CREATE POLICY uc_fin_ucrsa_update ON public.upi_commission_receipt_student_allocations
+      FOR UPDATE TO authenticated
+      USING (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_students s
+          WHERE s.id = upi_commission_receipt_student_allocations.student_commission_id
+            AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
+        )
+      )
+      WITH CHECK (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_students s
+          WHERE s.id = upi_commission_receipt_student_allocations.student_commission_id
+            AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
+        )
+      );
+    CREATE POLICY uc_fin_ucrsa_delete ON public.upi_commission_receipt_student_allocations
+      FOR DELETE TO authenticated
+      USING (
+        EXISTS (
+          SELECT 1
+          FROM public.upi_commission_students s
+          WHERE s.id = upi_commission_receipt_student_allocations.student_commission_id
+            AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
+        )
+      );
+  END IF;
 
-CREATE POLICY uc_fin_upi_invoice_line_items_insert ON public.upi_invoice_line_items
-  FOR INSERT TO authenticated
-  WITH CHECK (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_invoices inv
-      WHERE inv.id = upi_invoice_line_items.invoice_id
-        AND public.can_manage_commission_financial(auth.uid(), inv.institution_id)
-    )
-  );
+  IF to_regclass('public.upi_commission_receipt_attachments') IS NOT NULL THEN
+    CREATE POLICY uc_fin_ucra_select ON public.upi_commission_receipt_attachments
+      FOR SELECT TO authenticated
+      USING (
+        public.can_view_commission_financial(
+          auth.uid(),
+          public.commission_receipt_scope_institution_id(receipt_id)
+        )
+      );
+    CREATE POLICY uc_fin_ucra_insert ON public.upi_commission_receipt_attachments
+      FOR INSERT TO authenticated
+      WITH CHECK (
+        public.can_manage_commission_financial(
+          auth.uid(),
+          public.commission_receipt_scope_institution_id(receipt_id)
+        )
+      );
+    CREATE POLICY uc_fin_ucra_update ON public.upi_commission_receipt_attachments
+      FOR UPDATE TO authenticated
+      USING (
+        public.can_manage_commission_financial(
+          auth.uid(),
+          public.commission_receipt_scope_institution_id(receipt_id)
+        )
+      )
+      WITH CHECK (
+        public.can_manage_commission_financial(
+          auth.uid(),
+          public.commission_receipt_scope_institution_id(receipt_id)
+        )
+      );
+    CREATE POLICY uc_fin_ucra_delete ON public.upi_commission_receipt_attachments
+      FOR DELETE TO authenticated
+      USING (
+        public.can_manage_commission_financial(
+          auth.uid(),
+          public.commission_receipt_scope_institution_id(receipt_id)
+        )
+      );
+  END IF;
 
-CREATE POLICY uc_fin_upi_invoice_line_items_update ON public.upi_invoice_line_items
-  FOR UPDATE TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_invoices inv
-      WHERE inv.id = upi_invoice_line_items.invoice_id
-        AND public.can_manage_commission_financial(auth.uid(), inv.institution_id)
-    )
-  )
-  WITH CHECK (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_invoices inv
-      WHERE inv.id = upi_invoice_line_items.invoice_id
-        AND public.can_manage_commission_financial(auth.uid(), inv.institution_id)
-    )
-  );
+  IF to_regclass('public.upi_commission_aggregator_invoices') IS NOT NULL THEN
+    IF to_regclass('public.upi_commission_aggregator_invoice_lines') IS NOT NULL THEN
+      CREATE POLICY uc_fin_ucai_select ON public.upi_commission_aggregator_invoices
+        FOR SELECT TO authenticated
+        USING (
+          public.has_role(auth.uid(), 'admin'::app_role)
+          OR public.is_commission_admin(auth.uid())
+          OR public.is_accounting_admin(auth.uid())
+          OR EXISTS (
+            SELECT 1
+            FROM public.upi_commission_aggregator_invoice_lines l
+            WHERE l.aggregator_invoice_id = upi_commission_aggregator_invoices.id
+              AND public.can_view_commission_financial(auth.uid(), l.institution_id)
+          )
+        );
+    ELSE
+      CREATE POLICY uc_fin_ucai_select ON public.upi_commission_aggregator_invoices
+        FOR SELECT TO authenticated
+        USING (
+          public.has_role(auth.uid(), 'admin'::app_role)
+          OR public.is_commission_admin(auth.uid())
+          OR public.is_accounting_admin(auth.uid())
+          OR public.user_has_module(auth.uid(), 'commissions', 'view')
+          OR public.user_has_module(auth.uid(), 'commissions', 'edit')
+        );
+    END IF;
 
-CREATE POLICY uc_fin_upi_invoice_line_items_delete ON public.upi_invoice_line_items
-  FOR DELETE TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_invoices inv
-      WHERE inv.id = upi_invoice_line_items.invoice_id
-        AND public.can_manage_commission_financial(auth.uid(), inv.institution_id)
-    )
-  );
-
--- Transfer events: scope via source student institution
-CREATE POLICY uc_fin_upi_commission_transfer_events_select ON public.upi_commission_transfer_events
-  FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_students s
-      WHERE s.id = upi_commission_transfer_events.source_student_commission_id
-        AND public.can_view_commission_financial(auth.uid(), s.institution_id)
-    )
-  );
-
-CREATE POLICY uc_fin_upi_commission_transfer_events_insert ON public.upi_commission_transfer_events
-  FOR INSERT TO authenticated
-  WITH CHECK (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_students s
-      WHERE s.id = upi_commission_transfer_events.source_student_commission_id
-        AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
-    )
-  );
-
-CREATE POLICY uc_fin_upi_commission_transfer_events_update ON public.upi_commission_transfer_events
-  FOR UPDATE TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_students s
-      WHERE s.id = upi_commission_transfer_events.source_student_commission_id
-        AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
-    )
-  )
-  WITH CHECK (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_students s
-      WHERE s.id = upi_commission_transfer_events.source_student_commission_id
-        AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
-    )
-  );
-
-CREATE POLICY uc_fin_upi_commission_transfer_events_delete ON public.upi_commission_transfer_events
-  FOR DELETE TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_students s
-      WHERE s.id = upi_commission_transfer_events.source_student_commission_id
-        AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
-    )
-  );
-
--- Receipt invoice allocations: scope via receipt or invoice institution
-CREATE POLICY uc_fin_ucria_select ON public.upi_commission_receipt_invoice_allocations
-  FOR SELECT TO authenticated
-  USING (
-    public.can_view_commission_financial(
-      auth.uid(),
-      public.commission_receipt_scope_institution_id(receipt_id)
-    )
-    OR EXISTS (
-      SELECT 1 FROM public.upi_commission_invoices inv
-      WHERE inv.id = upi_commission_receipt_invoice_allocations.invoice_id
-        AND public.can_view_commission_financial(auth.uid(), inv.institution_id)
-    )
-  );
-
-CREATE POLICY uc_fin_ucria_insert ON public.upi_commission_receipt_invoice_allocations
-  FOR INSERT TO authenticated
-  WITH CHECK (
-    public.can_manage_commission_financial(
-      auth.uid(),
-      public.commission_receipt_scope_institution_id(receipt_id)
-    )
-  );
-
-CREATE POLICY uc_fin_ucria_update ON public.upi_commission_receipt_invoice_allocations
-  FOR UPDATE TO authenticated
-  USING (
-    public.can_manage_commission_financial(
-      auth.uid(),
-      public.commission_receipt_scope_institution_id(receipt_id)
-    )
-  )
-  WITH CHECK (
-    public.can_manage_commission_financial(
-      auth.uid(),
-      public.commission_receipt_scope_institution_id(receipt_id)
-    )
-  );
-
-CREATE POLICY uc_fin_ucria_delete ON public.upi_commission_receipt_invoice_allocations
-  FOR DELETE TO authenticated
-  USING (
-    public.can_manage_commission_financial(
-      auth.uid(),
-      public.commission_receipt_scope_institution_id(receipt_id)
-    )
-  );
-
--- Receipt student allocations: scope via student institution
-CREATE POLICY uc_fin_ucrsa_select ON public.upi_commission_receipt_student_allocations
-  FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_students s
-      WHERE s.id = upi_commission_receipt_student_allocations.student_commission_id
-        AND public.can_view_commission_financial(auth.uid(), s.institution_id)
-    )
-  );
-
-CREATE POLICY uc_fin_ucrsa_insert ON public.upi_commission_receipt_student_allocations
-  FOR INSERT TO authenticated
-  WITH CHECK (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_students s
-      WHERE s.id = upi_commission_receipt_student_allocations.student_commission_id
-        AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
-    )
-  );
-
-CREATE POLICY uc_fin_ucrsa_update ON public.upi_commission_receipt_student_allocations
-  FOR UPDATE TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_students s
-      WHERE s.id = upi_commission_receipt_student_allocations.student_commission_id
-        AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
-    )
-  )
-  WITH CHECK (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_students s
-      WHERE s.id = upi_commission_receipt_student_allocations.student_commission_id
-        AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
-    )
-  );
-
-CREATE POLICY uc_fin_ucrsa_delete ON public.upi_commission_receipt_student_allocations
-  FOR DELETE TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1
-      FROM public.upi_commission_students s
-      WHERE s.id = upi_commission_receipt_student_allocations.student_commission_id
-        AND public.can_manage_commission_financial(auth.uid(), s.institution_id)
-    )
-  );
-
--- Receipt attachments: scope via parent receipt
-CREATE POLICY uc_fin_ucra_select ON public.upi_commission_receipt_attachments
-  FOR SELECT TO authenticated
-  USING (
-    public.can_view_commission_financial(
-      auth.uid(),
-      public.commission_receipt_scope_institution_id(receipt_id)
-    )
-  );
-
-CREATE POLICY uc_fin_ucra_insert ON public.upi_commission_receipt_attachments
-  FOR INSERT TO authenticated
-  WITH CHECK (
-    public.can_manage_commission_financial(
-      auth.uid(),
-      public.commission_receipt_scope_institution_id(receipt_id)
-    )
-  );
-
-CREATE POLICY uc_fin_ucra_update ON public.upi_commission_receipt_attachments
-  FOR UPDATE TO authenticated
-  USING (
-    public.can_manage_commission_financial(
-      auth.uid(),
-      public.commission_receipt_scope_institution_id(receipt_id)
-    )
-  )
-  WITH CHECK (
-    public.can_manage_commission_financial(
-      auth.uid(),
-      public.commission_receipt_scope_institution_id(receipt_id)
-    )
-  );
-
-CREATE POLICY uc_fin_ucra_delete ON public.upi_commission_receipt_attachments
-  FOR DELETE TO authenticated
-  USING (
-    public.can_manage_commission_financial(
-      auth.uid(),
-      public.commission_receipt_scope_institution_id(receipt_id)
-    )
-  );
-
--- Aggregator invoices: scope if user can view any linked institution line
-CREATE POLICY uc_fin_ucai_select ON public.upi_commission_aggregator_invoices
-  FOR SELECT TO authenticated
-  USING (
-    public.has_role(auth.uid(), 'admin'::app_role)
-    OR public.is_commission_admin(auth.uid())
-    OR public.is_accounting_admin(auth.uid())
-    OR EXISTS (
-      SELECT 1
-      FROM public.upi_commission_aggregator_invoice_lines l
-      WHERE l.aggregator_invoice_id = upi_commission_aggregator_invoices.id
-        AND public.can_view_commission_financial(auth.uid(), l.institution_id)
-    )
-  );
-
-CREATE POLICY uc_fin_ucai_insert ON public.upi_commission_aggregator_invoices
-  FOR INSERT TO authenticated
-  WITH CHECK (
-    public.has_role(auth.uid(), 'admin'::app_role)
-    OR public.is_commission_admin(auth.uid())
-    OR public.is_accounting_admin(auth.uid())
-    OR public.user_has_module(auth.uid(), 'commissions', 'edit')
-  );
-
-CREATE POLICY uc_fin_ucai_update ON public.upi_commission_aggregator_invoices
-  FOR UPDATE TO authenticated
-  USING (
-    public.has_role(auth.uid(), 'admin'::app_role)
-    OR public.is_commission_admin(auth.uid())
-    OR public.is_accounting_admin(auth.uid())
-    OR public.user_has_module(auth.uid(), 'commissions', 'edit')
-  )
-  WITH CHECK (
-    public.has_role(auth.uid(), 'admin'::app_role)
-    OR public.is_commission_admin(auth.uid())
-    OR public.is_accounting_admin(auth.uid())
-    OR public.user_has_module(auth.uid(), 'commissions', 'edit')
-  );
-
-CREATE POLICY uc_fin_ucai_delete ON public.upi_commission_aggregator_invoices
-  FOR DELETE TO authenticated
-  USING (
-    public.has_role(auth.uid(), 'admin'::app_role)
-    OR public.is_commission_admin(auth.uid())
-  );
+    CREATE POLICY uc_fin_ucai_insert ON public.upi_commission_aggregator_invoices
+      FOR INSERT TO authenticated
+      WITH CHECK (
+        public.has_role(auth.uid(), 'admin'::app_role)
+        OR public.is_commission_admin(auth.uid())
+        OR public.is_accounting_admin(auth.uid())
+        OR public.user_has_module(auth.uid(), 'commissions', 'edit')
+      );
+    CREATE POLICY uc_fin_ucai_update ON public.upi_commission_aggregator_invoices
+      FOR UPDATE TO authenticated
+      USING (
+        public.has_role(auth.uid(), 'admin'::app_role)
+        OR public.is_commission_admin(auth.uid())
+        OR public.is_accounting_admin(auth.uid())
+        OR public.user_has_module(auth.uid(), 'commissions', 'edit')
+      )
+      WITH CHECK (
+        public.has_role(auth.uid(), 'admin'::app_role)
+        OR public.is_commission_admin(auth.uid())
+        OR public.is_accounting_admin(auth.uid())
+        OR public.user_has_module(auth.uid(), 'commissions', 'edit')
+      );
+    CREATE POLICY uc_fin_ucai_delete ON public.upi_commission_aggregator_invoices
+      FOR DELETE TO authenticated
+      USING (
+        public.has_role(auth.uid(), 'admin'::app_role)
+        OR public.is_commission_admin(auth.uid())
+      );
+  END IF;
+END $$;
 
 COMMENT ON FUNCTION public.can_view_commission_financial(uuid, uuid) IS
   'Phase 3 F3.4: institution-scoped read for commission financial tables.';

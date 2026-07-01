@@ -93,12 +93,13 @@ END $$;
 -- ---------------------------------------------------------------------------
 -- V5 — Policy inventory count (expect split policies on financial tables)
 -- ---------------------------------------------------------------------------
+-- V5 — Policy inventory count (existing financial tables only)
 SELECT c.relname AS table_name, count(*) AS policy_count
 FROM pg_policy pol
 JOIN pg_class c ON c.oid = pol.polrelid
 JOIN pg_namespace n ON n.oid = c.relnamespace
-WHERE n.nspname = 'public'
-  AND c.relname IN (
+CROSS JOIN LATERAL (
+  SELECT unnest(ARRAY[
     'upi_commission_students', 'upi_commission_invoices', 'upi_claim_cycles',
     'upi_invoice_line_items', 'upi_billing_profiles', 'upi_commission_eligibility_configs',
     'upi_commission_snapshots', 'upi_commission_transfer_events',
@@ -107,6 +108,10 @@ WHERE n.nspname = 'public'
     'upi_commission_receipt_student_allocations',
     'upi_commission_receipt_attachments',
     'upi_commission_aggregator_invoices', 'upi_commission_aggregator_invoice_lines'
-  )
+  ]) AS tname
+) names
+WHERE n.nspname = 'public'
+  AND c.relname = names.tname
+  AND to_regclass(format('public.%s', names.tname)) IS NOT NULL
 GROUP BY c.relname
 ORDER BY c.relname;

@@ -135,5 +135,5 @@
 
 | Date | Author | Change |
 |------|--------|--------|
-| 2026-06-30 | Cursor Agent | F3.4 validation blocked (ENV-001); unit tests pass; discrepancy report + verify script added |
+| 2026-06-30 | Cursor Agent | F3.4 migration guarded for missing Phase 2B tables; catch-up `20261030120200` |
 | 2026-06-30 | Cursor Agent | Initial matrix; Step 0 artifacts complete; F3.4 migration written (UAT pending) |
