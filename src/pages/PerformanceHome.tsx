@@ -15,6 +15,7 @@ import { PerformanceExceptionQueue } from "@/components/performance/PerformanceE
 import { NextActionsCard } from "@/components/performance/NextActionsCard";
 import { PendingListCard } from "@/components/performance/PendingListCard";
 import { MilestoneCard } from "@/components/performance/MilestoneCard";
+import { TraceGraph } from "@/components/performance/TraceGraph";
 import { PerformanceWalletAllocationCard } from "@/components/performance/PerformanceWalletAllocationCard";
 import { PerformanceIncentiveProgressCard } from "@/components/performance/PerformanceIncentiveProgressCard";
 import { PerformanceTelecallerHome } from "@/components/performance/PerformanceTelecallerHome";
@@ -221,6 +222,33 @@ export default function PerformanceHome() {
     [data.recentDiscounts],
   );
 
+  const homeTraceNodes = useMemo(() => {
+    const earned = data.hasLockedRun ? data.earnedLocked : data.earnedProjected;
+    return [
+      {
+        id: "revenue",
+        label: "Verified qualifying revenue",
+        sublabel: formatInr(data.revenueAchieved, data.revenueCurrency),
+        rule: "Period-bound events from verified payments",
+        to: "/performance/analytics",
+      },
+      {
+        id: "target",
+        label: "Achievement target",
+        sublabel: target != null ? formatInr(target, data.revenueCurrency) : "No target assigned",
+        rule: "Band drives wallet unlock and incentive eligibility",
+        to: "/performance/wallets",
+      },
+      {
+        id: "incentive",
+        label: data.hasLockedRun ? "Locked incentive earnings" : "Projected incentive",
+        sublabel: formatInr(earned, data.revenueCurrency),
+        rule: "Active plans · subject to run lock",
+        to: "/performance/incentives",
+      },
+    ];
+  }, [data, target]);
+
   if (isTelecallerOnly && user) {
     return (
       <AppLayout>
@@ -307,6 +335,12 @@ export default function PerformanceHome() {
           assignedTarget={target ?? null}
           achievedAmount={data.revenueAchieved}
           currency={data.revenueCurrency}
+        />
+
+        <TraceGraph
+          entryLabel={`My performance · ${data.period}`}
+          nodes={homeTraceNodes}
+          className={PERFORMANCE_MOBILE_DESKTOP_ONLY}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

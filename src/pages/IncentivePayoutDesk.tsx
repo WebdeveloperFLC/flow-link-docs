@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Banknote, CheckCircle, Download } from "lucide-react";
 import { downloadCsv, payoutsToCsv } from "@/incentives/lib/incentiveFinanceExport";
 import { filterPayoutCandidates } from "@/incentives/lib/incentivePayoutThresholdLogic";
+import { BulkActionBar, PayoutCohortBar, type PayoutCohort } from "@/components/performance/PayoutBulkActionBar";
 
 interface PayoutRow {
   id: string;
@@ -43,6 +44,23 @@ export default function IncentivePayoutDesk() {
   const [exportBusy, setExportBusy] = useState(false);
   const [payrollBatchRef, setPayrollBatchRef] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [cohort, setCohort] = useState<PayoutCohort>("all");
+
+  const cohortCounts = useMemo(() => {
+    const counts: Partial<Record<PayoutCohort, number>> = { all: rows.length };
+    for (const r of rows) {
+      const key = r.status as PayoutCohort;
+      if (key === "pending" || key === "approved" || key === "paid") {
+        counts[key] = (counts[key] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }, [rows]);
+
+  const visibleRows = useMemo(() => {
+    if (cohort === "all") return rows;
+    return rows.filter((r) => r.status === cohort);
+  }, [rows, cohort]);
 
   async function load() {
     const [po, prof] = await Promise.all([
@@ -262,6 +280,50 @@ export default function IncentivePayoutDesk() {
     });
   }
 
+  function selectAllInView() {
+    setSelectedIds(new Set(visibleRows.map((r) => r.id)));
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
+
+  async function bulkUpdateStatus(status: "approved" | "paid") {
+    const eligibleIds = [...selectedIds].filter((id) => {
+      const row = rows.find((r) => r.id === id);
+      if (!row) return false;
+      if (status === "approved") return row.status === "pending";
+      if (status === "paid") return row.status === "approved";
+      return false;
+    });
+    if (!eligibleIds.length) {
+      toast({ title: "No eligible rows in selection", variant: "destructive" });
+      return;
+    }
+    setBusy(true);
+    try {
+      const patch: Record<string, unknown> = { status };
+      if (status === "approved") {
+        patch.approved_at = new Date().toISOString();
+        patch.approved_by = user?.id ?? null;
+      }
+      if (status === "paid") patch.paid_at = new Date().toISOString();
+      const { error } = await supabase.from("incentive_payouts").update(patch).in("id", eligibleIds);
+      if (error) throw error;
+      toast({ title: `Updated ${eligibleIds.length} payout(s)` });
+      setSelectedIds(new Set());
+      await load();
+    } catch (e: unknown) {
+      toast({
+        title: "Error",
+        description: e instanceof Error ? e.message : String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
@@ -329,9 +391,23 @@ export default function IncentivePayoutDesk() {
         </Card>
 
         <Card className="p-5">
-          <h2 className="text-lg font-semibold mb-4">Payout queue</h2>
-          {rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No payouts yet.</p>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 className="text-lg font-semibold">Payout queue</h2>
+            <PayoutCohortBar cohort={cohort} counts={cohortCounts} onChange={setCohort} />
+          </div>
+          {visibleRows.length > 0 && (
+            <BulkActionBar
+              className="mb-4"
+              selectedCount={selectedIds.size}
+              disabled={busy}
+              onApproveSelected={() => bulkUpdateStatus("approved")}
+              onMarkPaidSelected={() => bulkUpdateStatus("paid")}
+              onSelectAllInView={selectAllInView}
+              onClearSelection={clearSelection}
+            />
+          )}
+          {visibleRows.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No payouts in this cohort.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -349,7 +425,7 @@ export default function IncentivePayoutDesk() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((r) => (
+                  {visibleRows.map((r) => (
                     <tr key={r.id} className="border-b last:border-0">
                       <td className="py-2 pr-2">
                         <input

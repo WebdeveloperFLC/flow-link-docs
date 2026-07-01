@@ -1,4 +1,5 @@
 import { Link, Navigate } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -8,13 +9,15 @@ import { PerformanceExecutiveKpiStrip } from "@/components/performance/Performan
 import { PerformanceIncentivePlansTable } from "@/components/performance/PerformanceIncentivePlansTable";
 import { PerformanceIncentiveStructurePanel } from "@/components/performance/PerformanceIncentiveStructurePanel";
 import { PerformanceIncentiveBaseRulesPanel } from "@/components/performance/PerformanceIncentiveBaseRulesPanel";
+import { PerformanceSetupWizard } from "@/components/performance/PerformanceSetupWizard";
 import { useIncentivePlansCmsData } from "@/hooks/useIncentivePlansCmsData";
 import { formatInr } from "@/lib/performanceHubTheme";
-import { Layers, Plus } from "lucide-react";
+import { Layers, Plus, Sparkles } from "lucide-react";
 
 export default function PerformanceIncentivePlans() {
   const { isAdmin, loading: authLoading } = useAuth();
   const { rows, kpis, loading } = useIncentivePlansCmsData();
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   if (authLoading) return null;
   if (!isAdmin) return <Navigate to="/performance" replace />;
@@ -28,12 +31,19 @@ export default function PerformanceIncentivePlans() {
             subtitle="Revenue, enrollment, margin, service, team, referral and hybrid structures running simultaneously"
             showModuleLegend={false}
           />
-          <Button asChild size="sm" className="gap-1">
-            <Link to="/incentives/plans">
-              <Plus className="size-4" /> New plan
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" className="gap-1" onClick={() => setWizardOpen(true)}>
+              <Sparkles className="size-4" /> Setup wizard
+            </Button>
+            <Button asChild size="sm" className="gap-1">
+              <Link to="/incentives/plans">
+                <Plus className="size-4" /> New plan
+              </Link>
+            </Button>
+          </div>
         </div>
+
+        <PerformanceSetupWizard open={wizardOpen} onOpenChange={setWizardOpen} />
 
         <PerformancePeriodBar />
 

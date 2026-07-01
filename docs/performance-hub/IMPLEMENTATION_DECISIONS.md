@@ -6,6 +6,58 @@
 
 ---
 
+## 2026-07-01 — Enterprise component classification (CREATE)
+
+**File:** `docs/performance-hub/ENTERPRISE_COMPONENT_CLASSIFICATION.md`
+
+**Decision:** CREATE living classification doc — Universal / Commercial / Performance Only.
+
+**Reason:** Owner directive — categorize reusable assets for ERP modernization, not just list them. Full props catalog deferred to `PERFORMANCE_COMPONENT_LIBRARY.md` at v1 freeze.
+
+---
+
+## 2026-07-01 — SetupWizard shell (CREATE)
+
+**Component:** `PerformanceSetupWizard.tsx`
+
+**Decision:** CREATE 5-step wizard shell; final step links to existing `/incentives/plans` editor (REUSE).
+
+**Reason:** Bible §12 — configuration easier than operation; no new engine logic or plan persistence in wizard.
+
+**Wired on:** `PerformanceIncentivePlans`, `PerformanceConfiguration`.
+
+---
+
+## 2026-07-01 — Payout cohort + bulk bar (CREATE)
+
+**Component:** `PayoutBulkActionBar.tsx` (`PayoutCohortBar`, `BulkActionBar`)
+
+**Decision:** CREATE; wire on `IncentivePayoutDesk.tsx` with batch Supabase update.
+
+**Reason:** Bible §6.5 — bulk payout desk processing by cohort.
+
+---
+
+## 2026-07-01 — PH-R-006 / PH-R-007 role gates (EXTEND)
+
+**Pages:** `PerformanceApprovals`, `PerformanceApprovalsCms`, `PerformancePromotionRequests`, `PerformancePromotionRequestCard`
+
+**Decision:** EXTEND read-only access for `viewer` role on approvals; split `canReview` (manager/admin) from `canPublish` (MarCom offers edit).
+
+**Reason:** Director/viewer read-only queue visibility; MarCom publishes approved promotions without approve/decline rights.
+
+---
+
+## 2026-07-01 — TraceGraph dashboard entry (EXTEND)
+
+**Page:** `PerformanceHome.tsx`
+
+**Decision:** EXTEND TraceGraph on counselor home — revenue → target → incentive spine.
+
+**Reason:** Bible §3.4 — more entry points from dashboard KPI drill-through.
+
+---
+
 ## 2026-07-01 — Command palette (CREATE)
 
 **Component:** `PerformanceHubCommandPalette.tsx`

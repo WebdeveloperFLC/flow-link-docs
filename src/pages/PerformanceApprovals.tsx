@@ -23,9 +23,11 @@ export default function PerformanceApprovals() {
   const { period } = usePerformancePeriod();
   const isDirectorOnly =
     hasRole("director") && !isAdmin && !hasRole(["manager", "administrator"]);
-  const readOnly = isDirectorOnly;
+  const isViewerOnly =
+    hasRole("viewer") && !isAdmin && !hasRole(["manager", "administrator", "director"]);
+  const readOnly = isDirectorOnly || isViewerOnly;
   const canReview = hasRole(["admin", "administrator"]) || hasRole("manager");
-  const canView = canReview || isDirectorOnly;
+  const canView = canReview || isDirectorOnly || isViewerOnly;
   const [floorPct, setFloorPct] = useState("80");
   const [floorSaving, setFloorSaving] = useState(false);
   const [floorPolicies, setFloorPolicies] = useState<
@@ -130,7 +132,11 @@ export default function PerformanceApprovals() {
         {readOnly && (
           <div className="flex items-center gap-2 text-sm ph-muted">
             <Badge variant="secondary">Read-only</Badge>
-            <span>Director view — approve and decline actions require admin or branch manager.</span>
+            <span>
+              {isDirectorOnly
+                ? "Director view — approve and decline actions require admin or branch manager."
+                : "Viewer access — queue visible; actions require admin or branch manager."}
+            </span>
           </div>
         )}
 

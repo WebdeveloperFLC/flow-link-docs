@@ -52,7 +52,8 @@ export default function PerformancePromotionRequests() {
   const [proposedDiscount, setProposedDiscount] = useState("");
   const [targetAudience, setTargetAudience] = useState("");
 
-  const canReview = hasRole(["admin", "administrator", "manager"]) || canEditOffers;
+  const canReview = hasRole(["admin", "administrator", "manager"]);
+  const canPublish = canEditOffers || canReview;
 
   async function load() {
     setLoading(true);
@@ -263,6 +264,7 @@ export default function PerformancePromotionRequests() {
                 key={card.id}
                 card={card}
                 canReview={canReview}
+                canPublish={canPublish}
                 busy={busy}
                 onApprove={(id) => updateStatus(id, "approved")}
                 onDecline={(id) => updateStatus(id, "declined")}

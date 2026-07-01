@@ -9,7 +9,10 @@ import { CheckCircle2, XCircle } from "lucide-react";
 
 interface PerformancePromotionRequestCardProps {
   card: PromotionCardModel;
+  /** Approve / decline / in-review — manager or admin */
   canReview: boolean;
+  /** Publish approved draft — MarCom (offers edit) or manager/admin */
+  canPublish?: boolean;
   busy: boolean;
   onApprove: (id: string) => void;
   onDecline: (id: string) => void;
@@ -26,13 +29,15 @@ function statusBadgeClass(status: PromotionCardModel["displayStatus"]) {
 export function PerformancePromotionRequestCard({
   card,
   canReview,
+  canPublish = false,
   busy,
   onApprove,
   onDecline,
   onInReview,
   onPublish,
 }: PerformancePromotionRequestCardProps) {
-  const showActions = canReview && ["pending", "in_review", "approved"].includes(card.status);
+  const showActions =
+    (canReview || canPublish) && ["pending", "in_review", "approved"].includes(card.status);
 
   return (
     <Card className="p-5 ph-surface-card border-l-4 ph-module-offers">
@@ -88,12 +93,12 @@ export function PerformancePromotionRequestCard({
 
       {showActions && (
         <div className="flex flex-wrap gap-2 pt-3 border-t">
-          {card.status === "pending" && (
+          {canReview && card.status === "pending" && (
             <Button size="sm" variant="secondary" disabled={busy} onClick={() => onInReview(card.id)}>
               Mark in review
             </Button>
           )}
-          {["pending", "in_review"].includes(card.status) && (
+          {canReview && ["pending", "in_review"].includes(card.status) && (
             <>
               <Button size="sm" disabled={busy} onClick={() => onApprove(card.id)}>
                 <CheckCircle2 className="size-4 mr-1" />
@@ -105,7 +110,7 @@ export function PerformancePromotionRequestCard({
               </Button>
             </>
           )}
-          {card.status === "approved" && (
+          {canPublish && card.status === "approved" && (
             <Button size="sm" disabled={busy} onClick={() => onPublish(card.id)}>
               Publish draft offer
             </Button>

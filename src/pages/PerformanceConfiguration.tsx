@@ -1,9 +1,12 @@
 import { Link, Navigate } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { Button } from "@/components/ui/button";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { PerformanceExecutiveKpiStrip } from "@/components/performance/PerformanceExecutiveKpiStrip";
 import { PerformanceConfigurationTileGrid } from "@/components/performance/PerformanceConfigurationTileGrid";
+import { PerformanceSetupWizard } from "@/components/performance/PerformanceSetupWizard";
 import {
   PerformanceConfigurationAiRoadmapPanel,
   PerformanceConfigurationDepartmentsPanel,
@@ -12,12 +15,13 @@ import {
   PerformanceConfigurationServiceCatalogPanel,
 } from "@/components/performance/PerformanceConfigurationPanels";
 import { configurationCmsKpis } from "@/incentives/lib/configurationCmsLogic";
-import { Settings2 } from "lucide-react";
+import { Settings2, Sparkles } from "lucide-react";
 
 export default function PerformanceConfiguration() {
   const { isAdmin, hasRole, loading: authLoading } = useAuth();
   const canView = isAdmin || hasRole(["administrator", "manager"]);
   const kpis = configurationCmsKpis();
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   if (authLoading) return null;
   if (!canView) return <Navigate to="/performance" replace />;
@@ -30,6 +34,14 @@ export default function PerformanceConfiguration() {
           subtitle="Commercial rules hub — approvals, wallets, FX, incentives, eligibility and invoice controls"
           showModuleLegend={false}
         />
+
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" className="gap-1" onClick={() => setWizardOpen(true)}>
+            <Sparkles className="size-4" /> Incentive setup wizard
+          </Button>
+        </div>
+
+        <PerformanceSetupWizard open={wizardOpen} onOpenChange={setWizardOpen} />
 
         <div className="rounded-lg border ph-surface-card p-4 flex gap-3 text-sm">
           <Settings2 className="size-5 shrink-0 mt-0.5" style={{ color: "var(--blue)" }} />
