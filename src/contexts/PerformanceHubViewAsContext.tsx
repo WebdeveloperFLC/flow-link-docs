@@ -122,41 +122,8 @@ export function PerformanceHubViewAsProvider({ children }: { children: ReactNode
       if (stored.role && roleOptions.includes(stored.role)) {
         previewRole = stored.role;
         setState(stored);
-        // #region agent log
-        fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
-          body: JSON.stringify({
-            sessionId: "f92c68",
-            location: "PerformanceHubViewAsContext.tsx:hydrate",
-            message: "hydrating stored preview (layout)",
-            data: { storedRole: stored.role, branchId: stored.branchId },
-            hypothesisId: "H-E",
-            timestamp: Date.now(),
-            runId: "post-fix-2",
-          }),
-        }).catch(() => {});
-        console.error("[ph-debug H-E] hydrate layout", stored.role);
-        // #endregion
       }
     }
-
-    // #region agent log
-    fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
-      body: JSON.stringify({
-        sessionId: "f92c68",
-        location: "PerformanceHubViewAsContext.tsx:sync",
-        message: "auth sync before chrome",
-        data: { previewRole, hubSyncActive: hubSyncActiveRef.current, restored: restoredViewAsRef.current ?? null },
-        hypothesisId: "H-A",
-        timestamp: Date.now(),
-        runId: "post-fix-2",
-      }),
-    }).catch(() => {});
-    console.error("[ph-debug H-A] auth sync before chrome", previewRole);
-    // #endregion
 
     if (restoredViewAsRef.current === undefined) {
       restoredViewAsRef.current = viewAsRole;
@@ -365,22 +332,6 @@ export function PerformanceHubPeriodPreviewBridge({ children }: { children: Reac
   const preview = usePerformanceHubViewAsOptional();
 
   const value = useMemo(() => {
-    const overridden = Boolean(preview?.previewBranchId);
-    // #region agent log
-    fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
-      body: JSON.stringify({
-        sessionId: "f92c68",
-        location: "PerformanceHubViewAsContext.tsx:periodBridge",
-        message: "period bridge recompute",
-        data: { overridden, branchId: preview?.previewBranchId ?? null, branchCount: base.branches.length },
-        hypothesisId: "H-B",
-        timestamp: Date.now(),
-        runId: "pre-fix",
-      }),
-    }).catch(() => {});
-    // #endregion
     if (!preview?.previewBranchId) return base;
     const label =
       base.branches.find((b) => b.id === preview.previewBranchId)?.name ??

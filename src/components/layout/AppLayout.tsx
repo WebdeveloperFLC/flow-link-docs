@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -290,24 +290,6 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const [hiddenOpen, setHiddenOpen] = useState(false);
   const location = useLocation();
   const isPerformanceHub = isPerformanceHubPath(location.pathname);
-
-  // #region agent log
-  useEffect(() => {
-    fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
-      body: JSON.stringify({
-        sessionId: "f92c68",
-        location: "AppLayout.tsx:hub",
-        message: "AppLayout hub mount",
-        data: { isPerformanceHub, pathname: location.pathname, roleCount: roles.length, viewAsRole: viewAsRole ?? null },
-        hypothesisId: "H-D",
-        timestamp: Date.now(),
-        runId: "post-fix",
-      }),
-    }).catch(() => {});
-  }, [isPerformanceHub, location.pathname, roles.length, viewAsRole]);
-  // #endregion
 
   const sidebarMode = theme.sidebarMode;
   const iconsOnly = sidebarMode === "icons-only";

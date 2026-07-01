@@ -45,39 +45,6 @@ export function PerformanceHubCommandPalette() {
   }, [navCtx]);
 
   useEffect(() => {
-    // #region agent log
-    fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
-      body: JSON.stringify({
-        sessionId: "f92c68",
-        location: "PerformanceHubCommandPalette.tsx:mount",
-        message: "CommandPalette mounted",
-        data: { groupCount: groups.length },
-        hypothesisId: "H-C",
-        timestamp: Date.now(),
-        runId: "pre-fix",
-      }),
-    }).catch(() => {});
-    return () => {
-      fetch("http://127.0.0.1:7932/ingest/ad076abe-09dd-4c51-8767-b401ca5b20d4", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "f92c68" },
-        body: JSON.stringify({
-          sessionId: "f92c68",
-          location: "PerformanceHubCommandPalette.tsx:unmount",
-          message: "CommandPalette unmounted",
-          data: {},
-          hypothesisId: "H-C",
-          timestamp: Date.now(),
-          runId: "pre-fix",
-        }),
-      }).catch(() => {});
-    };
-    // #endregion
-  }, [groups.length]);
-
-  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
