@@ -12,7 +12,7 @@
 
 | ID | Bible / Plan item | Migrations | RPCs / Functions | UI | Tests | UAT / Regression | Status | Notes |
 |----|-------------------|------------|------------------|-----|-------|------------------|--------|-------|
-| S0.1 | Config / feature flags (`approval_required`, event publishing flags) | `20261030120000_commission_phase3_step0_config.sql` | `commission_config_bool()`, `commission_config_text()` | — | — | — | DN | Seeds `approval_required=false` |
+| S0.1 | Config / feature flags (`approval_required`, event publishing flags) | `20261030120000_commission_phase3_step0_config.sql` | `commission_config_bool()`, `commission_config_text()` | — | V0 in SQL suite | — | **BLK** | SQL written; not published (ENV-001) |
 | S0.2 | RLS policy baseline snapshot | — (doc) | — | — | — | — | DN | `docs/commission/PHASE3_RLS_BASELINE.md` |
 | S0.3 | Supabase types regeneration plan | — | — | — | — | — | NS | Run after each migration batch |
 | S0.4 | RFC resolution log (D-01…D-06) | — | — | — | — | — | DN | Decisions captured in readiness report |
@@ -24,11 +24,11 @@
 
 | ID | Acceptance criterion | Migrations | RPCs / Functions | UI | Tests | UAT / Regression | Status | Notes |
 |----|---------------------|------------|------------------|-----|-------|------------------|--------|-------|
-| F3.4.1 | Replace permissive `FOR ALL` / legacy `auth_all` on financial tables | `20261030120100_commission_phase3_f34_rls_remediation.sql` | `commission_institution_country_iso()`, `accounting_user_scoped_institution()`, `can_view_commission_financial()`, `can_manage_commission_financial()`, `commission_receipt_scope_institution_id()` | — | Manual SQL in baseline doc §Verification | Phase 1–2B UAT | IP | Migration written; UAT pending |
-| F3.4.2 | Entity / country scope for accounting users | same | same | — | same | 2A-12 counselor view | IP | Entity scope via `accounting_entities.country` until F5.2 |
-| F3.4.3 | Split SELECT vs INSERT/UPDATE/DELETE (view ≠ mutate) | same | — | — | same | Claims workflows | IP | Fixes receipt `FOR ALL` gap |
-| F3.4.4 | Counselor view unchanged (`v_client_commission_status`) | — | — | `ClientCommissionStatusPanel.tsx` | — | PF-2, 2A-12 | NS | Verify post-migration |
-| F3.4.5 | Non-privileged user cannot read/write financial rows directly | same | — | — | Security matrix queries | — | IP | Plain `authenticated` denied |
+| F3.4.1 | Replace permissive `FOR ALL` / legacy `auth_all` on financial tables | `20261030120100_commission_phase3_f34_rls_remediation.sql` | `commission_institution_country_iso()`, `accounting_user_scoped_institution()`, `can_view_commission_financial()`, `can_manage_commission_financial()`, `commission_receipt_scope_institution_id()` | — | `supabase/tests/commission_phase3_f34_verification.sql` | Phase 1–2B UAT | **BLK** | Migration not applied — ENV-001 |
+| F3.4.2 | Entity / country scope for accounting users | same | same | — | same | 2A-12 counselor view | **BLK** | Pending publish + SQL verify |
+| F3.4.3 | Split SELECT vs INSERT/UPDATE/DELETE (view ≠ mutate) | same | — | — | same | Claims workflows | **BLK** | Pending publish + SQL verify |
+| F3.4.4 | Counselor view unchanged (`v_client_commission_status`) | — | — | `ClientCommissionStatusPanel.tsx` | V4 in SQL suite | PF-2, 2A-12 | **BLK** | Pending publish + manual UAT |
+| F3.4.5 | Non-privileged user cannot read/write financial rows directly | same | — | — | V1–V3 in SQL suite | — | **BLK** | Pending publish + SQL verify |
 
 **Tables in scope (F3.4):**
 
@@ -106,9 +106,28 @@
 | UAT-3A Post receipt → pending event | After F3.1 | NS | Commission |
 | UAT-3B Block posted receipt edit | After F3.1 (existing trigger) | NS | Commission |
 | UAT-3C Credit note | After F3.2 | NS | Commission |
-| Unit: `commissionRuleResolver.test.ts` | Each PR | DN (baseline) | CI |
-| Unit: `commissionEligibilityEvaluator.test.ts` | Each PR | DN (baseline) | CI |
-| Unit: `commissionReceiptRules.test.ts` | Each PR | DN (baseline) | CI |
+| Unit: `commissionRuleResolver.test.ts` | Each PR | **DN** (14/14 pass 2026-06-30) | CI |
+| Unit: `commissionEligibilityEvaluator.test.ts` | Each PR | **DN** (included above) | CI |
+| Unit: `commissionReceiptRules.test.ts` | Each PR | **DN** (included above) | CI |
+| F3.4 SQL verification suite | After migration publish | **BLK** | `scripts/commission-phase3-f34-verify.mjs` |
+| Phase 1 / 2A / 2B manual UAT | After F3.4 SQL green | **BLK** | Requires Lovable Publish |
+
+---
+
+## 9. F3.4 Validation Run (2026-06-30)
+
+| Check | Result | Evidence |
+|-------|--------|----------|
+| Apply Step 0 migration | **FAIL (blocked)** | ENV-001 — no Docker / psql / DATABASE_URL |
+| Apply F3.4 migration | **FAIL (blocked)** | Same |
+| SQL V1–V4 (baseline doc) | **NOT RUN** | Requires Postgres |
+| Automated SQL suite | **NOT RUN** | `supabase/tests/commission_phase3_f34_verification.sql` |
+| Unit regression (3 files) | **PASS** | 14/14 via `node scripts/commission-phase3-f34-verify.mjs --unit-only` |
+| Phase 1 UAT manual | **NOT RUN** | Migrations not live |
+| Phase 2A UAT manual | **NOT RUN** | Migrations not live |
+| Phase 2B UAT manual | **NOT RUN** | Migrations not live |
+| **F3.4 closed?** | **NO** | See `docs/commission/PHASE3_F34_DISCREPANCY_REPORT.md` |
+| **F3.3 started?** | **NO** | Per approved gate |
 
 ---
 
@@ -116,4 +135,5 @@
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-06-30 | Cursor Agent | F3.4 validation blocked (ENV-001); unit tests pass; discrepancy report + verify script added |
 | 2026-06-30 | Cursor Agent | Initial matrix; Step 0 artifacts complete; F3.4 migration written (UAT pending) |
