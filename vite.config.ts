@@ -32,7 +32,7 @@ function enoentGuardPlugin(): Plugin {
 /** Strip eager vendor preload from the tiny boot entry chunk (Lovable preview hang). */
 function stripBootVendorPreloadPlugin(): Plugin {
   const patchEntry = (code: string) => {
-    if (!code.includes("entry evaluated")) return code;
+    if (!code.includes("main-auth") || !code.includes('"/auth"')) return code;
     return code
       .replace(/import"\.\/vendor-[^"]+\.js";/g, "")
       .replace(/import"\.\/ui-vendor-[^"]+\.js";/g, "")

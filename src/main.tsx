@@ -1,6 +1,5 @@
 import { createRoot } from "react-dom/client";
 import { resetAppRootLayout } from "@/lib/resetAppRootLayout";
-import { bootDebugLog } from "@/lib/bootDebugLog";
 
 function showBootstrapError(message: string, stack?: string) {
   console.error("[bootstrap]", message, stack ?? "");
@@ -35,15 +34,9 @@ if (!mount) {
 }
 
 resetAppRootLayout();
-bootDebugLog("main.tsx:boot", "main module started — deferring heavy imports", {
-  path: window.location.pathname,
-}, "H1");
 
 void Promise.all([import("@/AppBootstrap"), import("@/components/RootErrorBoundary")])
   .then(([{ default: AppBootstrap }, { RootErrorBoundary }]) => {
-    bootDebugLog("main.tsx:render", "createRoot starting", {
-      path: window.location.pathname,
-    }, "H1");
     createRoot(mount).render(
       <RootErrorBoundary>
         <AppBootstrap />
@@ -52,7 +45,4 @@ void Promise.all([import("@/AppBootstrap"), import("@/components/RootErrorBounda
   })
   .catch((error: unknown) => {
     showBootstrapError(error instanceof Error ? error.message : String(error));
-    bootDebugLog("main.tsx:boot", "deferred import failed", {
-      error: error instanceof Error ? error.message : String(error),
-    }, "H2");
   });

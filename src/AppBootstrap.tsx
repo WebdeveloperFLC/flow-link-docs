@@ -4,7 +4,6 @@ import { BootstrapLoading } from "@/components/BootstrapLoading";
 import { BootstrapProviders } from "@/BootstrapProviders";
 import { useAuth } from "@/contexts/AuthContext";
 import { isLovablePreview } from "@/lib/previewEnv";
-import { bootDebugLog } from "@/lib/bootDebugLog";
 import { deferModuleStyles } from "@/lib/deferModuleStyles";
 
 const Auth = lazy(() => import("@/pages/Auth"));
@@ -18,41 +17,14 @@ function DeferredAppRoutes() {
   const [AppRoutes, setAppRoutes] = useState<ComponentType | null>(null);
 
   useEffect(() => {
-    bootDebugLog("AppBootstrap.tsx:DeferredAppRoutes", "auth gate state", {
-      loading,
-      hasUser: !!user,
-      pathname,
-      preview,
-      chunkError,
-      routesReady: !!AppRoutes,
-    }, "H4");
-  }, [loading, user, pathname, preview, chunkError, AppRoutes]);
-
-  useEffect(() => {
     if (loading) return;
-    const started = performance.now();
-    bootDebugLog("AppBootstrap.tsx:routes", "AppRoutes import started after auth", {
-      pathname,
-      preview,
-    }, "H1");
     import("@/AppRoutes")
       .then((mod) => {
         setAppRoutes(() => mod.default);
-        bootDebugLog("AppBootstrap.tsx:routes", "AppRoutes import resolved", {
-          pathname,
-          preview,
-          ms: Math.round(performance.now() - started),
-        }, "H1");
       })
       .catch((error: unknown) => {
         const message = error instanceof Error ? error.message : "Could not load application modules";
         setChunkError(message);
-        bootDebugLog("AppBootstrap.tsx:routes", "AppRoutes import failed", {
-          pathname,
-          preview,
-          error: message,
-          ms: Math.round(performance.now() - started),
-        }, "H2");
       });
   }, [loading, pathname, preview]);
 
