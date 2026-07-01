@@ -6,7 +6,7 @@
 
 ## UX / product (deferred from v1)
 
-- Command palette (⌘K) global search across 40+ routes
+- **Global ERP command palette** — extend v1 hub ⌘K to CRM, Finance, HR, Admissions (hub palette shipped v1)
 - AI next-best-action in "What should I do today" card (Bible §18)
 - Real-time earning ticker / WebSocket live accrual (Bible §18)
 - Payroll API handoff beyond CSV export

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
@@ -11,6 +11,7 @@ import { PerformanceIncentiveLedgerTable } from "@/components/performance/Perfor
 import { PerformanceIncentivePayoutConfigPanel } from "@/components/performance/PerformanceIncentivePayoutConfigPanel";
 import { PerformanceIncentiveLiabilityForecast } from "@/components/performance/PerformanceIncentiveLiabilityForecast";
 import { PerformanceRunPayoutDialog } from "@/components/performance/PerformanceRunPayoutDialog";
+import { TraceGraph } from "@/components/performance/TraceGraph";
 import { useIncentiveLedgerCmsData } from "@/hooks/useIncentiveLedgerCmsData";
 import { formatInr } from "@/lib/performanceHubTheme";
 import { Banknote, Coins, Download } from "lucide-react";
@@ -20,6 +21,33 @@ export default function PerformanceIncentiveLedger() {
   const { period, branchId, branchLabel } = usePerformancePeriod();
   const { rows, kpis, forecast, payoutConfig, loading } = useIncentiveLedgerCmsData(period, branchId);
   const [runPayoutOpen, setRunPayoutOpen] = useState(false);
+
+  const ledgerTraceNodes = useMemo(
+    () => [
+      {
+        id: "qualifying",
+        label: "Qualifying revenue events",
+        sublabel: formatInr(kpis.earned),
+        rule: "Verified payments mapped to active plans",
+        to: "/performance/analytics",
+      },
+      {
+        id: "approved",
+        label: "Approved for payout",
+        sublabel: formatInr(kpis.approved),
+        rule: "Run locked · line items calculated by engine",
+        to: "/incentives/admin",
+      },
+      {
+        id: "paid",
+        label: "Paid / settled",
+        sublabel: formatInr(kpis.paid),
+        rule: "Payout desk approval → payroll export",
+        to: "/incentives/payouts",
+      },
+    ],
+    [kpis],
+  );
 
   if (authLoading) return null;
   if (!isAdmin) return <Navigate to="/performance" replace />;
@@ -96,6 +124,8 @@ export default function PerformanceIncentiveLedger() {
         />
 
         <PerformanceIncentiveLedgerTable rows={rows} loading={loading} />
+
+        <TraceGraph entryLabel={`Incentive ledger · ${period}`} nodes={ledgerTraceNodes} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <PerformanceIncentivePayoutConfigPanel config={payoutConfig} />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
@@ -10,6 +10,7 @@ import { PerformancePeriodBar } from "@/components/performance/PerformancePeriod
 import { PerformanceWalletSummaryStrip } from "@/components/performance/PerformanceWalletSummaryStrip";
 import { PerformanceWalletTable } from "@/components/performance/PerformanceWalletTable";
 import { PerformanceWalletTypeBreakdown } from "@/components/performance/PerformanceWalletTypeBreakdown";
+import { TraceGraph } from "@/components/performance/TraceGraph";
 import { usePerformanceWalletsList } from "@/hooks/usePerformanceWalletsList";
 import { PerformanceMobileQuickBar } from "@/components/performance/PerformanceMobileQuickBar";
 import {
@@ -18,6 +19,7 @@ import {
 } from "@/components/performance/PerformanceWalletDialogs";
 import type { WalletListRow } from "@/incentives/lib/walletListLogic";
 import { PERFORMANCE_MOBILE_DESKTOP_ONLY, PERFORMANCE_MOBILE_PAGE } from "@/lib/performanceMobileLayout";
+import { formatInr } from "@/lib/performanceHubTheme";
 import { cn } from "@/lib/utils";
 import { ArrowRight, Plus, Settings2, Wallet } from "lucide-react";
 
@@ -41,6 +43,32 @@ export default function PerformanceWallets() {
     setSelectedWallet(row);
     setDetailOpen(true);
   }
+
+  const walletTraceNodes = useMemo(
+    () => [
+      {
+        id: "potential",
+        label: "Potential wallet allocation",
+        sublabel: formatInr(summary.totalAllocated),
+        rule: "Policy + achievement bands at period open",
+        to: "/performance/wallet/policy",
+      },
+      {
+        id: "unlocked",
+        label: "Active wallets this period",
+        sublabel: `${summary.activeCount} wallet(s) · ${summary.expiringSoon} expiring soon`,
+        rule: "Unlock threshold met — spend caps apply per client",
+      },
+      {
+        id: "consumed",
+        label: "Consumed via discounts",
+        sublabel: formatInr(summary.totalConsumed),
+        rule: "Pro-rata on verified invoice base after approval",
+        to: "/performance/give-discount",
+      },
+    ],
+    [summary],
+  );
 
   return (
     <AppLayout>
@@ -128,6 +156,12 @@ export default function PerformanceWallets() {
 
           <PerformanceWalletTypeBreakdown slices={typeBreakdown} loading={loading} />
         </div>
+
+        <TraceGraph
+          entryLabel={`Wallet utilization · ${period}`}
+          nodes={walletTraceNodes}
+          className={PERFORMANCE_MOBILE_DESKTOP_ONLY}
+        />
 
         <div className={cn("flex justify-end", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
           <Link

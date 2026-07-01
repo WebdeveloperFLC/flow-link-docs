@@ -1,6 +1,6 @@
 # Enterprise Component Classification — Performance Hub
 
-**Status:** Living document (Agent 2)  
+**Status:** Frozen at v1 (2026-07-01)  
 **Purpose:** Categorize reusable assets for ERP modernization — not just list them.  
 **Final form:** `PERFORMANCE_COMPONENT_LIBRARY.md` at build completion (props, states, dependencies).
 
@@ -93,4 +93,4 @@ Specific to **achievement**, **milestones**, **rankings**, **incentive/wallet** 
 
 ---
 
-*Updated each implementation session. Full props/states in `PERFORMANCE_COMPONENT_LIBRARY.md` at v1 freeze.*
+*Frozen at v1. Full props/states in `PERFORMANCE_COMPONENT_LIBRARY.md`.*
