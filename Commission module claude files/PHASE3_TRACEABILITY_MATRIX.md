@@ -134,8 +134,8 @@
 | Phase 1 UAT manual | **PENDING** | Owner sign-off |
 | Phase 2A UAT manual | **PENDING** | Owner sign-off |
 | Phase 2B UAT manual | **PENDING** | Phase 2B tables not published (expected skip) |
-| **F3.4 closed?** | **CONDITIONAL** | SQL gate green; manual UAT before F3.3 |
-| **F3.3 started?** | **NO** | Awaiting UAT confirmation |
+| **F3.4 closed?** | **NO — IN PROGRESS** | SQL approved; UI + manual UAT pending (§10) |
+| **F3.3 started?** | **NO** | Blocked until F3.4 certificate COMPLETE |
 
 **V5 policy inventory (owner run):**
 
@@ -157,9 +157,30 @@
 
 ---
 
+## 10. F3.4 UI smoke & manual UAT (pending owner)
+
+**Checklist:** `docs/commission/PHASE3_F34_UI_SMOKE_CHECKLIST.md`  
+**Certificate:** `docs/commission/PHASE_COMPLETION_CERTIFICATES/F3.4_COMPLETION.md` (status: IN PROGRESS)  
+**SQL security regression:** `supabase/tests/commission_phase3_f34_security_uat.sql` (run before UI sign-off)
+
+| ID | Test | Executor | Result | Date |
+|----|------|----------|--------|------|
+| SQL-V | `commission_phase3_f34_verification.sql` | Owner | **PASS** | 2026-06-30 |
+| SQL-S | `commission_phase3_f34_security_uat.sql` | Owner | **PENDING** | |
+| A1 | Admin Claims — recalc, submit | Owner | **PENDING** | |
+| A2 | Admin Receipts — open, post, void | Owner | **PENDING** | |
+| A3 | Counselor — lifecycle, no amounts | Owner | **PENDING** | |
+| P1-sec | Phase 1 subset (PF-1, PF-2, Scn1, G-3) | Owner | **PENDING** | |
+| P2A-sec | Phase 2A subset (2A-1,3,11,12,15,16,20) | Owner | **PENDING** | |
+
+**Agent note:** Local dev (`localhost:8083`) requires auth — UI smoke cannot be completed without Commission admin + Counselor credentials. Do not mark F3.4 COMPLETE until owner checklist is signed.
+
+---
+
 ## 8. Change Log
 
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-06-30 | Cursor Agent | Completion certificates + UI UAT checklist; F3.4 remains IN PROGRESS |
 | 2026-06-30 | Owner + Cursor | F3.4 SQL verification PASS on Lovable DB (13 tables; snapshots=2 policies) |
 | 2026-06-30 | Cursor Agent | Initial matrix; Step 0 artifacts complete; F3.4 migration written (UAT pending) |
