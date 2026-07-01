@@ -92,13 +92,32 @@ export default defineConfig(({ mode }) => ({
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
   },
   build: {
+    modulePreload: {
+      polyfill: false,
+      resolveDependencies() {
+        return [];
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
           if (id.includes("ag-grid-community") || id.includes("ag-grid-react")) return "ag-grid";
           if (id.includes("recharts")) return "recharts";
-          if (id.includes("/src/accounting/")) return "accounting";
-          if (id.includes("/src/hr-payroll/")) return "hr-payroll";
+          if (id.includes("@supabase")) return "supabase";
+          if (
+            id.includes("react-dom") ||
+            id.includes("react-router") ||
+            id.includes("/react/") ||
+            id.includes("scheduler/")
+          ) {
+            return "react-vendor";
+          }
+          if (id.includes("@radix-ui") || id.includes("@tanstack")) return "ui-vendor";
+          if (id.includes("pdfjs") || id.includes("jspdf") || id.includes("xlsx") || id.includes("exceljs")) {
+            return "docs-vendor";
+          }
+          return "vendor";
         },
       },
     },

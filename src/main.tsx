@@ -2,10 +2,8 @@ import { createRoot } from "react-dom/client";
 import { RootErrorBoundary } from "@/components/RootErrorBoundary";
 import AppBootstrap from "@/AppBootstrap";
 import { resetAppRootLayout } from "@/lib/resetAppRootLayout";
-import { bootDebugLog } from "@/lib/bootDebugLog";
+import { deferModuleStyles } from "@/lib/deferModuleStyles";
 import "./index.css";
-import "./styles/performance-hub-theme.css";
-import "./hr-payroll/styles/hr-payroll-theme.css";
 
 function showBootstrapError(message: string, stack?: string) {
   // Never set root.innerHTML while React is mounted — that races portal teardown and
@@ -42,10 +40,7 @@ if (!mount) {
 }
 
 resetAppRootLayout();
-
-bootDebugLog("main.tsx:render", "main.tsx reached createRoot", {
-  path: window.location.pathname,
-}, "H1");
+deferModuleStyles();
 
 try {
   createRoot(mount).render(

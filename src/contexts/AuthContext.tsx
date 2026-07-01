@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase, supabaseEnvOk } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import {
   canShowViewAsSwitcher,
   canUseFullPreviewCatalog,
@@ -176,7 +175,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const onAuthPage = window.location.pathname.startsWith("/auth");
             const onPortalPage = window.location.pathname.startsWith("/portal");
             if (event === "SIGNED_OUT" && !onAuthPage && !onPortalPage) {
-              toast.error("Session expired — please sign in again.");
+              void import("sonner").then(({ toast }) => {
+                toast.error("Session expired — please sign in again.");
+              });
               window.location.replace(`/auth?redirect=${encodeURIComponent(path)}`);
             }
           } catch {

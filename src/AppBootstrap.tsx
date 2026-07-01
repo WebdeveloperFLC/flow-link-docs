@@ -1,43 +1,20 @@
 import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { BootstrapLoading } from "@/components/BootstrapLoading";
-import { AppProviders } from "@/AppProviders";
+import { BootstrapProviders } from "@/BootstrapProviders";
 import { useAuth } from "@/contexts/AuthContext";
 import { isLovablePreview } from "@/lib/previewEnv";
 import { bootDebugLog } from "@/lib/bootDebugLog";
-import Auth from "@/pages/Auth";
-import ResetPassword from "@/pages/ResetPassword";
 
-/** Warm the ~9MB routes chunk as soon as bootstrap mounts (does not block render). */
-const appRoutesImport = import("@/AppRoutes");
-
-function lazyWithRetry<T extends ComponentType<unknown>>(
-  factory: () => Promise<{ default: T }>,
-  retries = 2,
-) {
-  return lazy(async () => {
-    let lastError: unknown;
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      try {
-        return await factory();
-      } catch (error) {
-        lastError = error;
-        if (attempt < retries) {
-          await new Promise((resolve) => window.setTimeout(resolve, 1500 * (attempt + 1)));
-        }
-      }
-    }
-    throw lastError;
-  });
-}
-
-const AppRoutes = lazyWithRetry(() => appRoutesImport);
+const Auth = lazy(() => import("@/pages/Auth"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 
 function DeferredAppRoutes() {
   const { user, loading } = useAuth();
   const { pathname } = useLocation();
   const preview = isLovablePreview();
   const [chunkError, setChunkError] = useState<string | null>(null);
+  const [AppRoutes, setAppRoutes] = useState<ComponentType | null>(null);
 
   useEffect(() => {
     bootDebugLog("AppBootstrap.tsx:DeferredAppRoutes", "auth gate state", {
@@ -46,15 +23,37 @@ function DeferredAppRoutes() {
       pathname,
       preview,
       chunkError,
+      routesReady: !!AppRoutes,
     }, "H4");
-  }, [loading, user, pathname, preview, chunkError]);
+  }, [loading, user, pathname, preview, chunkError, AppRoutes]);
 
   useEffect(() => {
-    appRoutesImport.catch((error: unknown) => {
-      const message = error instanceof Error ? error.message : "Could not load application modules";
-      setChunkError(message);
-    });
-  }, []);
+    if (loading) return;
+    const started = performance.now();
+    bootDebugLog("AppBootstrap.tsx:routes", "AppRoutes import started after auth", {
+      pathname,
+      preview,
+    }, "H1");
+    import("@/AppRoutes")
+      .then((mod) => {
+        setAppRoutes(() => mod.default);
+        bootDebugLog("AppBootstrap.tsx:routes", "AppRoutes import resolved", {
+          pathname,
+          preview,
+          ms: Math.round(performance.now() - started),
+        }, "H1");
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : "Could not load application modules";
+        setChunkError(message);
+        bootDebugLog("AppBootstrap.tsx:routes", "AppRoutes import failed", {
+          pathname,
+          preview,
+          error: message,
+          ms: Math.round(performance.now() - started),
+        }, "H2");
+      });
+  }, [loading, pathname, preview]);
 
   if (loading) {
     return (
@@ -106,14 +105,26 @@ function DeferredAppRoutes() {
     );
   }
 
+  if (!AppRoutes) {
+    return (
+      <BootstrapLoading
+        message={
+          preview
+            ? "Loading route map — first preview load is much faster now…"
+            : "Loading app…"
+        }
+      />
+    );
+  }
+
   return (
     <Suspense
       fallback={
         <BootstrapLoading
           message={
             preview
-              ? "Loading app modules — first load can take a minute…"
-              : "Loading app…"
+              ? "Loading page — only the route you open is fetched…"
+              : "Loading page…"
           }
         />
       }
@@ -123,14 +134,30 @@ function DeferredAppRoutes() {
   );
 }
 
+const AuthFallback = () => <BootstrapLoading message="Loading sign-in…" />;
+
 export default function AppBootstrap() {
   return (
-    <AppProviders>
+    <BootstrapProviders>
       <Routes>
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route
+          path="/auth"
+          element={
+            <Suspense fallback={<AuthFallback />}>
+              <Auth />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <Suspense fallback={<AuthFallback />}>
+              <ResetPassword />
+            </Suspense>
+          }
+        />
         <Route path="*" element={<DeferredAppRoutes />} />
       </Routes>
-    </AppProviders>
+    </BootstrapProviders>
   );
 }
