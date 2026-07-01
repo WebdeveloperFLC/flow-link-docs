@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -9,15 +9,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
-import { PerformanceHomeKpiStrip } from "@/components/performance/PerformanceHomeKpiStrip";
+import { PerformanceDashboardHero } from "@/components/performance/PerformanceDashboardHero";
+import { RankSummaryCard } from "@/components/performance/RankSummaryCard";
+import { PerformanceExceptionQueue } from "@/components/performance/PerformanceExceptionQueue";
+import { NextActionsCard } from "@/components/performance/NextActionsCard";
+import { PendingListCard } from "@/components/performance/PendingListCard";
+import { MilestoneCard } from "@/components/performance/MilestoneCard";
 import { PerformanceWalletAllocationCard } from "@/components/performance/PerformanceWalletAllocationCard";
 import { PerformanceIncentiveProgressCard } from "@/components/performance/PerformanceIncentiveProgressCard";
-import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
 import { PerformanceTelecallerHome } from "@/components/performance/PerformanceTelecallerHome";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformanceHomeData } from "@/hooks/usePerformanceHomeData";
 import { formatInr } from "@/lib/performanceHubTheme";
-import { noTargetAchievementDetail } from "@/lib/performanceNoTargetCopy";
 import { PerformanceMobileQuickBar } from "@/components/performance/PerformanceMobileQuickBar";
 import {
   PERFORMANCE_MOBILE_DESKTOP_ONLY,
@@ -25,7 +28,7 @@ import {
 } from "@/lib/performanceMobileLayout";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { Trophy, TrendingUp, Wallet, Megaphone } from "lucide-react";
+import { Megaphone, TrendingUp, Wallet } from "lucide-react";
 
 const HIGHER_THAN_TELECALLER = [
   "admin",
@@ -125,6 +128,99 @@ export default function PerformanceHome() {
   const isTelecallerOnly =
     hasRole("telecaller") && !roles.some((r) => HIGHER_THAN_TELECALLER.includes(r as (typeof HIGHER_THAN_TELECALLER)[number]));
 
+  const achPct = data.wallet?.achievementPct;
+  const target = data.wallet?.assignedTarget;
+
+  const yourRankEntry = data.branchLeaderboard.find((r) => r.isYou);
+  const totalRanked = data.branchLeaderboard.length;
+
+  const exceptionItems = useMemo(() => {
+    const items: Parameters<typeof PerformanceExceptionQueue>[0]["items"] = [];
+    const pendingCount = data.recentDiscounts.filter((d) => d.status === "pending").length;
+    if (pendingCount > 0) {
+      items.push({
+        id: "pending-approvals",
+        type: "Approval",
+        label: `${pendingCount} discount approval${pendingCount > 1 ? "s" : ""} pending`,
+        detail: "Manager review required before wallet debit",
+        to: "/performance/approvals",
+        priority: 1,
+      });
+    }
+    if (hotClients.length > 0) {
+      items.push({
+        id: "hot-clients",
+        type: "Offer",
+        label: `${hotClients.length} hot client${hotClients.length > 1 ? "s" : ""} for offers`,
+        detail: "High propensity — open client record to act",
+        to: `/clients/${hotClients[0].client_id}`,
+        priority: 2,
+      });
+    }
+    if (data.wallet && data.wallet.spendable <= 0 && data.wallet.unlocked > 0) {
+      items.push({
+        id: "wallet-spent",
+        type: "Wallet",
+        label: "Wallet unlocked but fully spent",
+        detail: "Request exception or wait for period unlock",
+        to: "/performance/wallets",
+        priority: 3,
+      });
+    }
+    if (!data.hasLockedRun && data.earnedProjected > 0) {
+      items.push({
+        id: "run-open",
+        type: "Incentive",
+        label: "Incentive run not locked yet",
+        detail: "Projected earnings may change until admin locks the period",
+        to: "/performance/how-it-works",
+        priority: 4,
+      });
+    }
+    return items;
+  }, [data, hotClients]);
+
+  const nextActions = useMemo(() => {
+    const actions: Parameters<typeof NextActionsCard>[0]["actions"] = [];
+    if (hotClients[0]) {
+      actions.push({
+        id: "offer-hot",
+        label: `Follow up · ${hotClients[0].full_name}`,
+        detail: `Propensity ${hotClients[0].propensity_band} (${hotClients[0].propensity_score})`,
+        to: `/clients/${hotClients[0].client_id}`,
+        primary: true,
+      });
+    }
+    if (data.wallet && data.wallet.spendable > 0) {
+      actions.push({
+        id: "give-discount",
+        label: "Apply wallet discount",
+        detail: `${formatInr(data.wallet.spendable, data.wallet.currency)} spendable this period`,
+        to: "/performance/give-discount",
+      });
+    }
+    actions.push({
+      id: "promotion-request",
+      label: "Submit promotion request",
+      detail: "Field → MarCom queue for campaign support",
+      to: "/performance/offers/requests",
+    });
+    return actions;
+  }, [data, hotClients]);
+
+  const pendingItems = useMemo(
+    () =>
+      data.recentDiscounts.map((d) => ({
+        id: d.id,
+        label: d.label,
+        status: d.status,
+        amount: d.amount,
+        currency: d.currency,
+        to: d.status === "pending" ? "/performance/approvals" : undefined,
+      })),
+    [data.recentDiscounts],
+  );
+
   if (isTelecallerOnly && user) {
     return (
       <AppLayout>
@@ -136,15 +232,6 @@ export default function PerformanceHome() {
       </AppLayout>
     );
   }
-
-  const achPct = data.wallet?.achievementPct;
-  const target = data.wallet?.assignedTarget;
-  const hasNoTarget = !data.loading && target == null;
-  const targetLabel = hasNoTarget
-    ? noTargetAchievementDetail(data.period)
-    : target != null
-      ? `${formatInr(data.revenueAchieved, data.revenueCurrency)} of ${formatInr(target, data.wallet?.currency ?? "INR")} · net revenue`
-      : null;
 
   async function submitWalletException() {
     const amount = Number(exceptionAmount);
@@ -186,41 +273,40 @@ export default function PerformanceHome() {
           primaryAction={{ label: "Give discount", to: "/performance/give-discount" }}
         />
 
-        <PerformancePeriodBar compact className="md:hidden" />
-        <PerformancePeriodBar className="hidden md:flex" />
-
-        <PerformanceHomeKpiStrip
+        <PerformanceDashboardHero
           loading={data.loading}
-          items={[
-            {
-              module: "cash",
-              label: "Revenue booked",
-              value: formatInr(data.revenueAchieved, data.revenueCurrency),
-              hint: data.breakdown
-                ? `${data.breakdown.eventCount} qualifying events this period`
-                : "Net qualifying revenue",
-              testId: "kpi-revenue",
-            },
-            {
-              module: "offers",
-              label: "Qualifying events",
-              value: data.breakdown ? String(data.breakdown.eventCount) : "—",
-              hint: "Coaching · visa · admissions · allied",
-            },
-            {
-              module: "wallet",
-              label: "Target achievement",
-              value: hasNoTarget ? "—" : achPct != null ? `${achPct}%` : "—",
-              hint: hasNoTarget ? noTargetAchievementDetail(data.period) : targetLabel,
-            },
-            {
-              module: "cash",
-              label: data.hasLockedRun ? "Incentive earned" : "Incentive projected",
-              value: formatInr(data.hasLockedRun ? data.earnedLocked : data.earnedProjected, "INR"),
-              hint: data.hasLockedRun ? "Locked run total" : "Month-end projection",
-              testId: "kpi-incentive-earned",
-            },
-          ]}
+          period={data.period}
+          achievementPct={achPct ?? null}
+          assignedTarget={target ?? null}
+          revenueAchieved={data.revenueAchieved}
+          revenueCurrency={data.revenueCurrency}
+          eventCount={data.breakdown?.eventCount}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <RankSummaryCard
+            loading={data.loading}
+            entries={data.branchLeaderboard}
+            currency={data.revenueCurrency}
+            period={data.period}
+            yourRank={yourRankEntry?.rank ?? null}
+            totalRanked={totalRanked > 0 ? totalRanked : null}
+          />
+          <PerformanceExceptionQueue loading={data.loading} items={exceptionItems} />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <NextActionsCard loading={data.loading} actions={nextActions} />
+          <PendingListCard loading={data.loading} items={pendingItems} />
+        </div>
+
+        <MilestoneCard
+          loading={data.loading}
+          period={data.period}
+          achievementPct={achPct ?? null}
+          assignedTarget={target ?? null}
+          achievedAmount={data.revenueAchieved}
+          currency={data.revenueCurrency}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -308,40 +394,15 @@ export default function PerformanceHome() {
           </Card>
         )}
 
-        {data.planStack.length > 0 && data.planStack.length > 4 && (
-          <Card className={cn("p-5 ph-surface-card", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
-            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-              <Trophy className="size-5 text-primary" />
-              Stacked plans (I7)
-            </h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Combined earnings across your assigned base + overlay plans this period.
-            </p>
-            <div className="space-y-2 text-sm">
-              {data.planStack.map((row) => (
-                <div key={`${row.plan_name}-${row.plan_stack_role}`} className="flex justify-between border-b pb-2 last:border-0">
-                  <span>
-                    {row.plan_name}
-                    <span className="text-muted-foreground ml-2 capitalize">({row.plan_stack_role})</span>
-                    {row.run_locked ? " · locked" : ""}
-                  </span>
-                  <span className="font-medium">{formatInr(row.earned_amount, row.settlement_currency)}</span>
-                </div>
-              ))}
-              <div className="flex justify-between pt-2 font-semibold">
-                <span>Stack total</span>
-                <span>{formatInr(data.planStackTotal, "INR")}</span>
-              </div>
-            </div>
-          </Card>
-        )}
-
+        {/* Supplemental mobile context — detail lives in Reports */}
         {data.walletDiscountTotal > 0 && (
           <Card className={cn("p-4 border-l-4 border-l-violet-500 bg-violet-500/5", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
             <p className="text-sm">
               <span className="font-medium">Discounts reduced your incentive base</span> by{" "}
-              {formatInr(data.walletDiscountTotal, data.wallet?.currency ?? "INR")} this period (wallet allocations
-              subtract pro-rata from net revenue).
+              {formatInr(data.walletDiscountTotal, data.wallet?.currency ?? "INR")} this period.
+              <Link to="/performance/analytics" className="text-primary ml-1 hover:underline">
+                Revenue analytics →
+              </Link>
             </p>
           </Card>
         )}
@@ -380,81 +441,6 @@ export default function PerformanceHome() {
             </Button>
           </Card>
         )}
-
-        {data.breakdown && (
-          <Card className={cn("p-5", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <TrendingUp className="size-5 text-emerald-600" />
-              Revenue mix · qualifying events
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground text-xs uppercase">Core (coaching · visa · admissions)</p>
-                <p className="text-xl font-semibold mt-1">{formatInr(data.breakdown.core, data.revenueCurrency)}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs uppercase">Allied (docs · SIM · loan assist)</p>
-                <p className="text-xl font-semibold mt-1">{formatInr(data.breakdown.allied, data.revenueCurrency)}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs uppercase">Travel &amp; financial</p>
-                <p className="text-xl font-semibold mt-1">{formatInr(data.breakdown.travel, data.revenueCurrency)}</p>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground mt-3">{data.breakdown.eventCount} qualifying events</p>
-          </Card>
-        )}
-
-        <Card className={cn("p-5", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Trophy className="size-5 text-amber-500" />
-            Leaderboard · revenue · {data.period}
-          </h2>
-          {data.branchLeaderboard.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No qualifying revenue yet this period.</p>
-          ) : (
-            <ul className="space-y-2">
-              {data.branchLeaderboard.map((r) => (
-                <li
-                  key={r.rank}
-                  className={`flex items-center justify-between text-sm py-1.5 px-2 rounded-md ${r.isYou ? "bg-emerald-500/10 font-medium" : ""}`}
-                >
-                  <span>
-                    {r.rank}. {r.label}
-                    {r.isYou ? " (you)" : ""}
-                  </span>
-                  <span className="tabular-nums">{formatInr(r.amount, data.revenueCurrency)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          <p className="text-xs text-muted-foreground mt-3">
-            Branch contests use the same qualifying-event stream — see Competitions (admin).
-          </p>
-        </Card>
-
-        {data.payouts.length > 0 && (
-          <Card className={cn("p-5", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
-            <h2 className="text-lg font-semibold mb-3">Recent payouts</h2>
-            <ul className="text-sm space-y-2">
-              {data.payouts.map((p, i) => (
-                <li key={i} className="flex justify-between border-b last:border-0 pb-2">
-                  <span className="capitalize">{p.status}</span>
-                  <span>{formatInr(p.net, p.currency)}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        )}
-
-        <div className={cn("flex flex-wrap gap-2", PERFORMANCE_MOBILE_DESKTOP_ONLY)}>
-          <Button variant="outline" asChild>
-            <Link to="/guides/incentives-module">Incentives guide</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/guides/offers-wallet-staff">Offers &amp; wallet guide</Link>
-          </Button>
-        </div>
 
         <PerformanceMobileQuickBar />
       </div>

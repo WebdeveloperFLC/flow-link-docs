@@ -1,14 +1,28 @@
 import { Input } from "@/components/ui/input";
+import { useLocation } from "react-router-dom";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
+import { isPerformanceHubPath } from "@/lib/performanceHubTokens";
 import { cn } from "@/lib/utils";
 
 interface Props {
   className?: string;
   showBranch?: boolean;
   compact?: boolean;
+  /** Context bar only — page-level bars are suppressed on hub paths (Bible §5). */
+  inContextBar?: boolean;
 }
 
-export function PerformancePeriodBar({ className, showBranch = true, compact = false }: Props) {
+export function PerformancePeriodBar({
+  className,
+  showBranch = true,
+  compact = false,
+  inContextBar = false,
+}: Props) {
+  const location = useLocation();
+  if (!inContextBar && isPerformanceHubPath(location.pathname)) {
+    return null;
+  }
+
   const { period, setPeriod, branchId, setBranchId, branchLabel, branches, branchesLoading } =
     usePerformancePeriod();
 

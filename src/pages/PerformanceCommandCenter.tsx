@@ -4,7 +4,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
 import { PerformanceKpiGrid, PerformanceMoneyRail } from "@/components/performance/PerformanceMoneyRail";
-import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
+import { PerformanceRunLifecycleStrip } from "@/components/performance/PerformanceRunLifecycleStrip";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePerformancePeriodMetrics } from "@/hooks/usePerformancePeriodMetrics";
@@ -128,8 +128,8 @@ export default function PerformanceCommandCenter() {
   }, [period, branchLabel]);
 
   const workflow = [
-    { step: 1, label: "Period close (wallets)", to: "/incentives/period-close", icon: CalendarClock, blocked: false },
-    { step: 2, label: "Preview & calculate run", to: "/incentives/admin", icon: Calculator, blocked: false },
+    { step: 1, label: "Period close (wallets)", to: "/incentives/period-close", icon: CalendarClock, blocked: false, complete: snapshot?.period_fully_closed },
+    { step: 2, label: "Preview & calculate run", to: "/incentives/admin", icon: Calculator, blocked: false, complete: metrics.cashIncentiveDue > 0 && !metrics.runLocked },
     {
       step: 3,
       label: metrics.runLocked ? "Run locked" : "Lock run & audit lines",
@@ -137,8 +137,9 @@ export default function PerformanceCommandCenter() {
       icon: Lock,
       blocked: !lockReadiness.canLock && !metrics.runLocked,
       hint: lockReadiness.canLock ? undefined : lockReadiness.blockers.join(" · "),
+      complete: metrics.runLocked,
     },
-    { step: 4, label: "Generate payouts & export", to: "/incentives/payouts", icon: Banknote, blocked: !metrics.runLocked },
+    { step: 4, label: "Generate payouts & export", to: "/incentives/payouts", icon: Banknote, blocked: !metrics.runLocked, complete: metrics.payoutCount > 0 },
   ] as const;
 
   if (authLoading) return null;
@@ -153,8 +154,6 @@ export default function PerformanceCommandCenter() {
           period={period}
           showModuleLegend={false}
         />
-
-        <PerformancePeriodBar />
 
         {hubReadiness && (
           <Card
@@ -343,34 +342,10 @@ export default function PerformanceCommandCenter() {
           />
         </Card>
 
-        <Card className="p-5">
-          <h2 className="text-lg font-semibold mb-4">Monthly workflow · {period}</h2>
-          <ol className="space-y-2">
-            {workflow.map((w) => (
-              <li key={w.step}>
-                <Link
-                  to={w.to}
-                  className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
-                    w.blocked ? "opacity-60 hover:bg-muted/30" : "hover:bg-muted/50"
-                  }`}
-                >
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold">
-                    {w.step}
-                  </span>
-                  <w.icon className="size-4 text-muted-foreground" />
-                  <span className="flex-1 font-medium">{w.label}</span>
-                  {w.blocked && w.hint && (
-                    <span className="text-xs text-amber-700 dark:text-amber-400 max-w-[12rem] truncate">{w.hint}</span>
-                  )}
-                  <ChevronRight className="size-4 text-muted-foreground" />
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </Card>
+        <PerformanceRunLifecycleStrip period={period} steps={[...workflow]} />
 
         <Card className="p-5">
-          <h2 className="text-lg font-semibold mb-4">Admin tools</h2>
+          <h2 className="text-lg font-semibold mb-4">Admin shortcuts</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {ADMIN_LINKS.map((item) => (
               <Link

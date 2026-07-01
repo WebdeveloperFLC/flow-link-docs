@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
-import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
+import { ReportIndex } from "@/components/performance/ReportIndex";
 import { PerformanceExecutiveKpiStrip } from "@/components/performance/PerformanceExecutiveKpiStrip";
 import { PerformanceReportBuilderConfig } from "@/components/performance/PerformanceReportBuilderConfig";
 import { PerformanceReportPreviewTable } from "@/components/performance/PerformanceReportPreviewTable";
@@ -57,7 +57,9 @@ export default function PerformanceReportBuilder() {
           showModuleLegend={false}
         />
 
-        <PerformancePeriodBar />
+        <ReportIndex />
+
+        <h2 className="text-lg font-semibold ph-heading pt-2">Custom report builder</h2>
 
         <div className="flex flex-wrap gap-3 text-sm">
           <Link to="/performance/analytics" className="hover:underline" style={{ color: "var(--blue)" }}>

@@ -28,6 +28,23 @@
   --topbar: #101a2e;
   --topbarChip: #1c2a45;
 
+  /* Achievement scale — Bible §4 (separate from instrument tokens) */
+  --ach-red: #c0392b;
+  --ach-redBg: #fbedea;
+  --ach-redTxt: #7a2a20;
+  --ach-purple: #6d4ac9;
+  --ach-purpleBg: #f0ebfb;
+  --ach-purpleTxt: #4a2f9e;
+  --ach-blue: #1257d6;
+  --ach-blueBg: #edf2fd;
+  --ach-blueTxt: #0c3d99;
+  --ach-green: #0e8f62;
+  --ach-greenBg: #e9f6f0;
+  --ach-greenTxt: #0b5f42;
+  --ach-gold: #c98a06;
+  --ach-goldBg: #fcf3e3;
+  --ach-goldTxt: #7a5104;
+
   background-color: var(--paper);
   color: var(--text);
 }
@@ -57,6 +74,22 @@
   --offerTxt: #f2a092;
   --topbar: #0a0f1b;
   --topbarChip: #1c2a45;
+
+  --ach-red: #e2604f;
+  --ach-redBg: #2c1512;
+  --ach-redTxt: #f2a092;
+  --ach-purple: #9c7df0;
+  --ach-purpleBg: #221a3a;
+  --ach-purpleTxt: #c4b0f5;
+  --ach-blue: #5b8def;
+  --ach-blueBg: #16243f;
+  --ach-blueTxt: #9db8f0;
+  --ach-green: #2bbe8a;
+  --ach-greenBg: #10271e;
+  --ach-greenTxt: #7fd9b4;
+  --ach-gold: #e0a92d;
+  --ach-goldBg: #2a2110;
+  --ach-goldTxt: #e8c07a;
 }
 
 [data-performance-hub] .ph-heading {
@@ -170,4 +203,25 @@
   background: linear-gradient(90deg, var(--cash), var(--blue));
   border-radius: 9999px;
   transition: width 0.3s ease;
+}
+
+[data-performance-hub] .ph-status-bar {
+  height: 8px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: var(--muteBg);
+}
+
+[data-performance-hub] .ph-status-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-performance-hub] .ph-tier-fill,
+  [data-performance-hub] .ph-status-bar-fill {
+    transition: none;
+  }
 }

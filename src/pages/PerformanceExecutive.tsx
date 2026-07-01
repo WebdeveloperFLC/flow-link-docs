@@ -10,7 +10,6 @@ import { PerformanceExecutiveBranchChart } from "@/components/performance/Perfor
 import { PerformanceExecutiveServiceMix } from "@/components/performance/PerformanceExecutiveServiceMix";
 import { PerformanceExecutiveLeaderboards } from "@/components/performance/PerformanceExecutiveLeaderboards";
 import { PerformanceExecutiveApprovalsPanel } from "@/components/performance/PerformanceExecutiveApprovalsPanel";
-import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformancePeriodMetrics } from "@/hooks/usePerformancePeriodMetrics";
 import { usePerformanceTeamRows } from "@/hooks/usePerformanceTeamRows";
@@ -113,8 +112,6 @@ export default function PerformanceExecutive() {
           </div>
         )}
 
-        <PerformancePeriodBar />
-
         {!readOnly && (
           <Link
             to="/performance/admin"
@@ -123,6 +120,35 @@ export default function PerformanceExecutive() {
           >
             Open command center →
           </Link>
+        )}
+
+        {(isDirectorOnly || !readOnly) && alerts.length > 0 && (
+          <Card className="p-4 ph-surface-card border-l-4 border-l-amber-500">
+            <div className="flex items-center gap-2 text-sm font-medium mb-2 ph-heading">
+              <AlertTriangle className="size-4 text-amber-600" /> Exceptions &amp; alerts
+            </div>
+            <ul className="space-y-2 text-sm">
+              {alerts.map((a) => (
+                <li key={a.msg} className="flex items-center justify-between gap-2">
+                  <span>{a.msg}</span>
+                  {isDirectorOnly ? (
+                    <button
+                      type="button"
+                      className="font-medium shrink-0 hover:underline"
+                      style={{ color: "var(--blue)" }}
+                      onClick={() => toast.info(DIRECTOR_READ_ONLY_TOAST)}
+                    >
+                      Open in Finance workflow
+                    </button>
+                  ) : (
+                    <Link to={a.to} className="font-medium shrink-0" style={{ color: "var(--blue)" }}>
+                      Open →
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </Card>
         )}
 
         <PerformanceExecutiveKpiStrip
@@ -156,35 +182,6 @@ export default function PerformanceExecutive() {
             },
           ]}
         />
-
-        {(isDirectorOnly || !readOnly) && alerts.length > 0 && (
-          <Card className="p-4 ph-surface-card border-l-4 border-l-amber-500">
-            <div className="flex items-center gap-2 text-sm font-medium mb-2 ph-heading">
-              <AlertTriangle className="size-4 text-amber-600" /> Alerts
-            </div>
-            <ul className="space-y-2 text-sm">
-              {alerts.map((a) => (
-                <li key={a.msg} className="flex items-center justify-between gap-2">
-                  <span>{a.msg}</span>
-                  {isDirectorOnly ? (
-                    <button
-                      type="button"
-                      className="font-medium shrink-0 hover:underline"
-                      style={{ color: "var(--blue)" }}
-                      onClick={() => toast.info(DIRECTOR_READ_ONLY_TOAST)}
-                    >
-                      Open in Finance workflow
-                    </button>
-                  ) : (
-                    <Link to={a.to} className="font-medium shrink-0" style={{ color: "var(--blue)" }}>
-                      Open →
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </Card>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <PerformanceExecutiveBranchChart rows={branchRows} loading={teamLoading} />

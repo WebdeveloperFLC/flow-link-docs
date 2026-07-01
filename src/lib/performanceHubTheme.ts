@@ -50,3 +50,38 @@ export function formatInr(n: number, ccy = "INR") {
   if (ccy === "INR") return `₹${v.toLocaleString("en-IN")}`;
   return `${v.toLocaleString()} ${ccy}`;
 }
+
+/** Frozen achievement scale — Bible §4.3. Instrument colors (§2.4) are separate. */
+export type AchievementBandId = "red" | "purple" | "blue" | "green" | "gold";
+
+export type AchievementBand = {
+  id: AchievementBandId;
+  label: string;
+  /** CSS custom property for fill / dot (e.g. `--ach-red`) */
+  colorVar: string;
+  bgVar: string;
+  textVar: string;
+};
+
+export const ACHIEVEMENT_BANDS: Record<AchievementBandId, AchievementBand> = {
+  red: { id: "red", label: "Danger", colorVar: "--ach-red", bgVar: "--ach-redBg", textVar: "--ach-redTxt" },
+  purple: { id: "purple", label: "Progressing", colorVar: "--ach-purple", bgVar: "--ach-purpleBg", textVar: "--ach-purpleTxt" },
+  blue: { id: "blue", label: "Close", colorVar: "--ach-blue", bgVar: "--ach-blueBg", textVar: "--ach-blueTxt" },
+  green: { id: "green", label: "Achieved", colorVar: "--ach-green", bgVar: "--ach-greenBg", textVar: "--ach-greenTxt" },
+  gold: { id: "gold", label: "Over-achieved", colorVar: "--ach-gold", bgVar: "--ach-goldBg", textVar: "--ach-goldTxt" },
+};
+
+/** Single source for achievement status color — import everywhere; never reimplement thresholds. */
+export function band(pct: number | null | undefined): AchievementBand {
+  const p = pct ?? 0;
+  if (p < 50) return ACHIEVEMENT_BANDS.red;
+  if (p < 75) return ACHIEVEMENT_BANDS.purple;
+  if (p < 100) return ACHIEVEMENT_BANDS.blue;
+  if (p < 120) return ACHIEVEMENT_BANDS.green;
+  return ACHIEVEMENT_BANDS.gold;
+}
+
+export function formatAchievementPct(pct: number | null | undefined): string {
+  if (pct == null || Number.isNaN(pct)) return "—";
+  return `${Math.round(pct)}%`;
+}
