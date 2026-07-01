@@ -23700,6 +23700,8 @@ export type Database = {
           completion_requested_by_id: string | null
           completion_requested_by_label: string | null
           created_at: string
+          created_by_id: string | null
+          created_by_label: string | null
           duration: string | null
           employee_id: string
           end_date: string | null
@@ -23719,6 +23721,7 @@ export type Database = {
           remarks: string | null
           start_date: string | null
           status: Database["public"]["Enums"]["training_status"]
+          training_ref: string | null
           type: string
           unpaid_days: number
         }
@@ -23729,6 +23732,8 @@ export type Database = {
           completion_requested_by_id?: string | null
           completion_requested_by_label?: string | null
           created_at?: string
+          created_by_id?: string | null
+          created_by_label?: string | null
           duration?: string | null
           employee_id: string
           end_date?: string | null
@@ -23748,6 +23753,7 @@ export type Database = {
           remarks?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["training_status"]
+          training_ref?: string | null
           type: string
           unpaid_days?: number
         }
@@ -23758,6 +23764,8 @@ export type Database = {
           completion_requested_by_id?: string | null
           completion_requested_by_label?: string | null
           created_at?: string
+          created_by_id?: string | null
+          created_by_label?: string | null
           duration?: string | null
           employee_id?: string
           end_date?: string | null
@@ -23777,6 +23785,7 @@ export type Database = {
           remarks?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["training_status"]
+          training_ref?: string | null
           type?: string
           unpaid_days?: number
         }
@@ -32937,6 +32946,51 @@ export type Database = {
         Args: { p_request: string }
         Returns: undefined
       }
+      fn_complete_training_direct: {
+        Args: {
+          p_completion_date: string
+          p_reason: string
+          p_training_id: string
+        }
+        Returns: {
+          completion_date: string | null
+          completion_reason: string | null
+          completion_requested_at: string | null
+          completion_requested_by_id: string | null
+          completion_requested_by_label: string | null
+          created_at: string
+          created_by_id: string | null
+          created_by_label: string | null
+          duration: string | null
+          employee_id: string
+          end_date: string | null
+          extended_at: string | null
+          extended_by_id: string | null
+          extended_by_label: string | null
+          extended_end_date: string | null
+          extension_reason: string | null
+          extension_remarks: string | null
+          hr_approved_at: string | null
+          hr_approved_by_label: string | null
+          id: string
+          manager_approved_at: string | null
+          manager_approved_by_label: string | null
+          org_id: string
+          original_end_date: string | null
+          remarks: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["training_status"]
+          training_ref: string | null
+          type: string
+          unpaid_days: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "training_records"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fn_compute_payroll:
         | {
             Args: {
@@ -33514,50 +33568,99 @@ export type Database = {
         Args: { p_branch?: string; p_cycle: string }
         Returns: Json
       }
-      fn_extend_training: {
-        Args: {
-          p_extended_until: string
-          p_reason: string
-          p_remarks?: string
-          p_training_id: string
-          p_type_override?: string
-        }
-        Returns: {
-          completion_date: string | null
-          completion_reason: string | null
-          completion_requested_at: string | null
-          completion_requested_by_id: string | null
-          completion_requested_by_label: string | null
-          created_at: string
-          duration: string | null
-          employee_id: string
-          end_date: string | null
-          extended_at: string | null
-          extended_by_id: string | null
-          extended_by_label: string | null
-          extended_end_date: string | null
-          extension_reason: string | null
-          extension_remarks: string | null
-          hr_approved_at: string | null
-          hr_approved_by_label: string | null
-          id: string
-          manager_approved_at: string | null
-          manager_approved_by_label: string | null
-          org_id: string
-          original_end_date: string | null
-          remarks: string | null
-          start_date: string | null
-          status: Database["public"]["Enums"]["training_status"]
-          type: string
-          unpaid_days: number
-        }
-        SetofOptions: {
-          from: "*"
-          to: "training_records"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      fn_extend_training:
+        | {
+            Args: {
+              p_extended_until: string
+              p_reason: string
+              p_training_id: string
+            }
+            Returns: {
+              completion_date: string | null
+              completion_reason: string | null
+              completion_requested_at: string | null
+              completion_requested_by_id: string | null
+              completion_requested_by_label: string | null
+              created_at: string
+              created_by_id: string | null
+              created_by_label: string | null
+              duration: string | null
+              employee_id: string
+              end_date: string | null
+              extended_at: string | null
+              extended_by_id: string | null
+              extended_by_label: string | null
+              extended_end_date: string | null
+              extension_reason: string | null
+              extension_remarks: string | null
+              hr_approved_at: string | null
+              hr_approved_by_label: string | null
+              id: string
+              manager_approved_at: string | null
+              manager_approved_by_label: string | null
+              org_id: string
+              original_end_date: string | null
+              remarks: string | null
+              start_date: string | null
+              status: Database["public"]["Enums"]["training_status"]
+              training_ref: string | null
+              type: string
+              unpaid_days: number
+            }
+            SetofOptions: {
+              from: "*"
+              to: "training_records"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              p_extended_until: string
+              p_reason: string
+              p_remarks?: string
+              p_training_id: string
+              p_type_override?: string
+            }
+            Returns: {
+              completion_date: string | null
+              completion_reason: string | null
+              completion_requested_at: string | null
+              completion_requested_by_id: string | null
+              completion_requested_by_label: string | null
+              created_at: string
+              created_by_id: string | null
+              created_by_label: string | null
+              duration: string | null
+              employee_id: string
+              end_date: string | null
+              extended_at: string | null
+              extended_by_id: string | null
+              extended_by_label: string | null
+              extended_end_date: string | null
+              extension_reason: string | null
+              extension_remarks: string | null
+              hr_approved_at: string | null
+              hr_approved_by_label: string | null
+              id: string
+              manager_approved_at: string | null
+              manager_approved_by_label: string | null
+              org_id: string
+              original_end_date: string | null
+              remarks: string | null
+              start_date: string | null
+              status: Database["public"]["Enums"]["training_status"]
+              training_ref: string | null
+              type: string
+              unpaid_days: number
+            }
+            SetofOptions: {
+              from: "*"
+              to: "training_records"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       fn_finalize_leave_on_approve: {
         Args: { p_request: string }
         Returns: {
@@ -33595,6 +33698,8 @@ export type Database = {
           completion_requested_by_id: string | null
           completion_requested_by_label: string | null
           created_at: string
+          created_by_id: string | null
+          created_by_label: string | null
           duration: string | null
           employee_id: string
           end_date: string | null
@@ -33614,6 +33719,7 @@ export type Database = {
           remarks: string | null
           start_date: string | null
           status: Database["public"]["Enums"]["training_status"]
+          training_ref: string | null
           type: string
           unpaid_days: number
         }
@@ -34458,6 +34564,51 @@ export type Database = {
       fn_request_clarification: {
         Args: { p_comment: string; p_entity_id: string; p_entity_type: string }
         Returns: Json
+      }
+      fn_request_training_completion: {
+        Args: {
+          p_completion_date: string
+          p_reason: string
+          p_training_id: string
+        }
+        Returns: {
+          completion_date: string | null
+          completion_reason: string | null
+          completion_requested_at: string | null
+          completion_requested_by_id: string | null
+          completion_requested_by_label: string | null
+          created_at: string
+          created_by_id: string | null
+          created_by_label: string | null
+          duration: string | null
+          employee_id: string
+          end_date: string | null
+          extended_at: string | null
+          extended_by_id: string | null
+          extended_by_label: string | null
+          extended_end_date: string | null
+          extension_reason: string | null
+          extension_remarks: string | null
+          hr_approved_at: string | null
+          hr_approved_by_label: string | null
+          id: string
+          manager_approved_at: string | null
+          manager_approved_by_label: string | null
+          org_id: string
+          original_end_date: string | null
+          remarks: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["training_status"]
+          training_ref: string | null
+          type: string
+          unpaid_days: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "training_records"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       fn_reset_hr_role_permissions: { Args: { p_org: string }; Returns: number }
       fn_reset_payroll_cycle_uat: {
@@ -36305,7 +36456,14 @@ export type Database = {
         | "documentation"
         | "viewer"
         | "client"
-      training_status: "In Progress" | "Completed" | "Extended" | "Cancelled"
+      training_status:
+        | "In Progress"
+        | "Completed"
+        | "Extended"
+        | "Cancelled"
+        | "Pending Manager Approval"
+        | "Pending HR Approval"
+        | "Rejected"
       wallet_alloc_status: "reserved" | "applied" | "reversed"
       wallet_budget_kind:
         | "month_to_month"
@@ -36755,7 +36913,15 @@ export const Constants = {
         "viewer",
         "client",
       ],
-      training_status: ["In Progress", "Completed", "Extended", "Cancelled"],
+      training_status: [
+        "In Progress",
+        "Completed",
+        "Extended",
+        "Cancelled",
+        "Pending Manager Approval",
+        "Pending HR Approval",
+        "Rejected",
+      ],
       wallet_alloc_status: ["reserved", "applied", "reversed"],
       wallet_budget_kind: [
         "month_to_month",
