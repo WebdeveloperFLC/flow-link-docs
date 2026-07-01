@@ -20,7 +20,7 @@ import { PerformanceWalletAllocationCard } from "@/components/performance/Perfor
 import { PerformanceIncentiveProgressCard } from "@/components/performance/PerformanceIncentiveProgressCard";
 import { PerformanceTelecallerHome } from "@/components/performance/PerformanceTelecallerHome";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
-import { usePerformanceHomeData } from "@/hooks/usePerformanceHomeData";
+import { usePerformanceEffectiveUserId } from "@/contexts/PerformanceHubViewAsContext";
 import { formatInr } from "@/lib/performanceHubTheme";
 import { PerformanceMobileQuickBar } from "@/components/performance/PerformanceMobileQuickBar";
 import {
@@ -43,7 +43,8 @@ const HIGHER_THAN_TELECALLER = [
 export default function PerformanceHome() {
   const { user, roles, hasRole } = useAuth();
   const { period } = usePerformancePeriod();
-  const data = usePerformanceHomeData(user?.id, period);
+  const effectiveUserId = usePerformanceEffectiveUserId();
+  const data = usePerformanceHomeData(effectiveUserId, period);
   const [exceptionAmount, setExceptionAmount] = useState("");
   const [exceptionReason, setExceptionReason] = useState("");
   const [submittingException, setSubmittingException] = useState(false);
@@ -66,7 +67,7 @@ export default function PerformanceHome() {
   } | null>(null);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!effectiveUserId) return;
     supabase.rpc("fn_counselor_offer_propensity_queue", { _limit: 5 }).then(({ data }) => {
       setHotClients(
         ((data ?? []) as {
@@ -124,7 +125,7 @@ export default function PerformanceHome() {
         setOfferInfluence(null);
       }
     });
-  }, [user?.id, period]);
+  }, [effectiveUserId, period]);
 
   const isTelecallerOnly =
     hasRole("telecaller") && !roles.some((r) => HIGHER_THAN_TELECALLER.includes(r as (typeof HIGHER_THAN_TELECALLER)[number]));

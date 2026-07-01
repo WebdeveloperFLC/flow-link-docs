@@ -75,6 +75,11 @@ import { resolveThemeModeDark } from "@/lib/themeStore";
 import { isPerformanceHubPath } from "@/lib/performanceHubTokens";
 import { PerformanceHubContextBar } from "@/components/performance/PerformanceHubContextBar";
 import {
+  PerformanceHubPeriodPreviewBridge,
+  PerformanceHubViewAsProvider,
+} from "@/contexts/PerformanceHubViewAsContext";
+import { PerformanceHubViewAsBanner } from "@/components/performance/PerformanceHubViewAsPanel";
+import {
   isPathInWorkspace,
   offersWorkspaceDefaultRoute,
   visiblePerformanceWorkspaceSidebar,
@@ -625,8 +630,13 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
               data-theme={resolveThemeModeDark(theme.mode) ? "dark" : "light"}
               className="min-h-full flex flex-col"
             >
-              <PerformanceHubContextBar />
-              <div className="flex-1">{children}</div>
+              <PerformanceHubViewAsProvider>
+                <PerformanceHubPeriodPreviewBridge>
+                  <PerformanceHubContextBar />
+                  <PerformanceHubViewAsBanner />
+                  <div className="flex-1">{children}</div>
+                </PerformanceHubPeriodPreviewBridge>
+              </PerformanceHubViewAsProvider>
             </div>
           ) : (
             children

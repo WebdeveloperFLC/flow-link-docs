@@ -6,7 +6,19 @@
 
 ---
 
-## 2026-07-01 — v1 build complete (FINAL)
+## 2026-07-01 — Performance Hub View As preview (CREATE)
+
+**Components:** `PerformanceHubViewAsPanel.tsx`, `PerformanceHubViewAsContext.tsx`, `performanceHubViewAs.ts`
+
+**Existing asset:** HR Payroll `RoleViewSwitcher` + `roleViewAs.ts` (REUSE)
+
+**Decision:** CREATE hub-scoped View As with Role + Branch + User; EXTEND AuthContext `setViewAsRole` only while on hub paths; EXTEND period context via preview bridge for branch.
+
+**Reason:** UAT/QA preview without logout. Preview layer only — no auth/DB/audit changes. Replaces icon-only hub RoleViewSwitcher.
+
+**Visibility:** `canUsePerformanceHubViewAs` — platform owner + administrators only.
+
+---
 
 **Deliverables:** `PERFORMANCE_HUB_BUILD_REPORT.md`, completed `PERFORMANCE_COMPONENT_LIBRARY.md`, frozen `PERFORMANCE_HUB_BUILD_STATUS.md`.
 

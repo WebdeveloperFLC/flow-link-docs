@@ -30,7 +30,7 @@ export function Topbar({ searchSlot, quickActionsSlot, className }: TopbarProps)
 
   return (
     <>
-      <RoleViewBanner />
+      {!isPerformanceHub && <RoleViewBanner />}
       <div
         ref={ref}
         style={

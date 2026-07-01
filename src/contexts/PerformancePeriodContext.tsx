@@ -26,6 +26,8 @@ interface PerformancePeriodContextValue {
 
 const PerformancePeriodContext = createContext<PerformancePeriodContextValue | null>(null);
 
+export { PerformancePeriodContext };
+
 function readStored(): { period: string; branchId: string } {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);

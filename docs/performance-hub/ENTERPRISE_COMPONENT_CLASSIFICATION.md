@@ -22,8 +22,9 @@ Can be used in **any** FLEOS module (CRM, Finance, HR, Admissions, Compliance, P
 | `PerformanceSetupWizard` | `PerformanceSetupWizard.tsx` | Multi-step admin wizard shell |
 | `PayoutCohortBar` | `PayoutBulkActionBar.tsx` | Filter desk rows by status cohort |
 | `BulkActionBar` | `PayoutBulkActionBar.tsx` | Bulk approve / mark paid on selected rows |
+| `PerformanceHubViewAsPanel` | `PerformanceHubViewAsPanel.tsx` | Admin preview: role + branch + user (hub only) |
 
-**Migration note:** Command palette route source should eventually move to a shared `erpNavigation.ts`; achievement scale may apply to HR targets and Admissions conversion KPIs.
+**Migration note:** Command palette route source should eventually move to a shared `erpNavigation.ts`; achievement scale may apply to HR targets and Admissions conversion KPIs. View As pattern promotable platform-wide.
 
 ---
 
