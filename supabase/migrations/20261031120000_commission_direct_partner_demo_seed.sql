@@ -420,15 +420,15 @@ BEGIN
     id, upi_institution_id, fee_type, amount, currency, fee_accuracy, verification_method,
     effective_from, status, notes
   ) VALUES
-    ('d1e0c01-0001-4000-8000-000000000001', v_seneca, 'APPLICATION', 90, 'CAD', 'EXACT', 'WEBSITE', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Seneca international application fee'),
-    ('d1e0c02-0001-4000-8000-000000000002', v_seneca, 'TUITION', 18000, 'CAD', 'APPROXIMATE', 'AGREEMENT', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Business PG Diploma — annual tuition guide'),
-    ('d1e0c03-0001-4000-8000-000000000003', v_seneca, 'DEPOSIT', 5000, 'CAD', 'EXACT', 'LOA', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Seneca deposit to secure seat'),
-    ('d1e0c04-0002-4000-8000-000000000004', v_conestoga, 'APPLICATION', 100, 'CAD', 'EXACT', 'WEBSITE', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Conestoga application fee'),
-    ('d1e0c05-0002-4000-8000-000000000005', v_conestoga, 'TUITION', 16800, 'CAD', 'APPROXIMATE', 'AGREEMENT', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Business diploma tuition guide'),
-    ('d1e0c06-0003-4000-8000-000000000006', v_humber, 'APPLICATION', 100, 'CAD', 'EXACT', 'WEBSITE', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Humber application fee'),
-    ('d1e0c07-0003-4000-8000-000000000007', v_humber, 'TUITION', 17500, 'CAD', 'APPROXIMATE', 'WEBSITE', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Hospitality Management tuition guide'),
-    ('d1e0c08-0004-4000-8000-000000000008', v_sheridan, 'APPLICATION', 95, 'CAD', 'EXACT', 'WEBSITE', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Sheridan application fee'),
-    ('d1e0c09-0004-4000-8000-000000000009', v_sheridan, 'TUITION', 19200, 'CAD', 'APPROXIMATE', 'AGREEMENT', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Animation Advanced Diploma tuition guide');
+    ('d1e0c001-0001-4000-8000-000000000001', v_seneca, 'APPLICATION', 90, 'CAD', 'EXACT', 'WEBSITE', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Seneca international application fee'),
+    ('d1e0c002-0001-4000-8000-000000000002', v_seneca, 'TUITION', 18000, 'CAD', 'APPROXIMATE', 'AGREEMENT', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Business PG Diploma — annual tuition guide'),
+    ('d1e0c003-0001-4000-8000-000000000003', v_seneca, 'DEPOSIT', 5000, 'CAD', 'EXACT', 'LOA', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Seneca deposit to secure seat'),
+    ('d1e0c004-0002-4000-8000-000000000004', v_conestoga, 'APPLICATION', 100, 'CAD', 'EXACT', 'WEBSITE', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Conestoga application fee'),
+    ('d1e0c005-0002-4000-8000-000000000005', v_conestoga, 'TUITION', 16800, 'CAD', 'APPROXIMATE', 'AGREEMENT', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Business diploma tuition guide'),
+    ('d1e0c006-0003-4000-8000-000000000006', v_humber, 'APPLICATION', 100, 'CAD', 'EXACT', 'WEBSITE', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Humber application fee'),
+    ('d1e0c007-0003-4000-8000-000000000007', v_humber, 'TUITION', 17500, 'CAD', 'APPROXIMATE', 'WEBSITE', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Hospitality Management tuition guide'),
+    ('d1e0c008-0004-4000-8000-000000000008', v_sheridan, 'APPLICATION', 95, 'CAD', 'EXACT', 'WEBSITE', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Sheridan application fee'),
+    ('d1e0c009-0004-4000-8000-000000000009', v_sheridan, 'TUITION', 19200, 'CAD', 'APPROXIMATE', 'AGREEMENT', DATE '2026-01-01', 'ACTIVE', '[crm-direct-uat-v1] Animation Advanced Diploma tuition guide');
 
   -- ── Claim cycles Fall 2026 ────────────────────────────────────────────────
   INSERT INTO public.upi_claim_cycles (
