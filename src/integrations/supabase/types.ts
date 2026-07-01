@@ -10702,6 +10702,7 @@ export type Database = {
           current_version_id: string | null
           id: string
           priority: number
+          relationship_id: string | null
           status: string
           template_id: string | null
           updated_at: string
@@ -10724,6 +10725,7 @@ export type Database = {
           current_version_id?: string | null
           id?: string
           priority?: number
+          relationship_id?: string | null
           status?: string
           template_id?: string | null
           updated_at?: string
@@ -10746,6 +10748,7 @@ export type Database = {
           current_version_id?: string | null
           id?: string
           priority?: number
+          relationship_id?: string | null
           status?: string
           template_id?: string | null
           updated_at?: string
@@ -10783,11 +10786,512 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "commercial_agreements_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_agreements_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "v_cae_effective_commercial_position"
+            referencedColumns: ["relationship_id"]
+          },
+          {
             foreignKeyName: "commercial_agreements_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "commercial_agreement_templates"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      commercial_offer_overlays: {
+        Row: {
+          adapter_source_module: string | null
+          adapter_source_record_id: string | null
+          applies_to_json: Json
+          approval_reference: string | null
+          budget_amount: number | null
+          budget_currency: string | null
+          business_event_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          financial_impact: Json
+          id: string
+          master_agreement_id: string
+          name: string
+          offer_type: string
+          precedence_rank: number
+          relationship_id: string | null
+          stack_layer: string
+          status: string
+          supersedes_overlay_id: string | null
+          supporting_document_paths: Json
+          target_json: Json
+          updated_at: string
+          valid_from: string
+          valid_until: string
+        }
+        Insert: {
+          adapter_source_module?: string | null
+          adapter_source_record_id?: string | null
+          applies_to_json?: Json
+          approval_reference?: string | null
+          budget_amount?: number | null
+          budget_currency?: string | null
+          business_event_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          financial_impact?: Json
+          id?: string
+          master_agreement_id: string
+          name: string
+          offer_type: string
+          precedence_rank?: number
+          relationship_id?: string | null
+          stack_layer?: string
+          status?: string
+          supersedes_overlay_id?: string | null
+          supporting_document_paths?: Json
+          target_json?: Json
+          updated_at?: string
+          valid_from: string
+          valid_until: string
+        }
+        Update: {
+          adapter_source_module?: string | null
+          adapter_source_record_id?: string | null
+          applies_to_json?: Json
+          approval_reference?: string | null
+          budget_amount?: number | null
+          budget_currency?: string | null
+          business_event_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          financial_impact?: Json
+          id?: string
+          master_agreement_id?: string
+          name?: string
+          offer_type?: string
+          precedence_rank?: number
+          relationship_id?: string | null
+          stack_layer?: string
+          status?: string
+          supersedes_overlay_id?: string | null
+          supporting_document_paths?: Json
+          target_json?: Json
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_offer_overlays_business_event_id_fkey"
+            columns: ["business_event_id"]
+            isOneToOne: false
+            referencedRelation: "foe_business_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_offer_overlays_master_agreement_id_fkey"
+            columns: ["master_agreement_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_offer_overlays_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_offer_overlays_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "v_cae_effective_commercial_position"
+            referencedColumns: ["relationship_id"]
+          },
+          {
+            foreignKeyName: "commercial_offer_overlays_supersedes_overlay_id_fkey"
+            columns: ["supersedes_overlay_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_offer_overlays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commercial_relationship_classifications: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          default_notice_period_days: number | null
+          description: string | null
+          label: string
+          metadata: Json
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          default_notice_period_days?: number | null
+          description?: string | null
+          label: string
+          metadata?: Json
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          default_notice_period_days?: number | null
+          description?: string | null
+          label?: string
+          metadata?: Json
+        }
+        Relationships: []
+      }
+      commercial_relationship_contacts: {
+        Row: {
+          active: boolean
+          contact_type: string
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          is_primary: boolean
+          job_title: string | null
+          metadata: Json
+          notes: string | null
+          phone: string | null
+          profile_id: string | null
+          relationship_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          contact_type?: string
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          is_primary?: boolean
+          job_title?: string | null
+          metadata?: Json
+          notes?: string | null
+          phone?: string | null
+          profile_id?: string | null
+          relationship_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          contact_type?: string
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_primary?: boolean
+          job_title?: string | null
+          metadata?: Json
+          notes?: string | null
+          phone?: string | null
+          profile_id?: string | null
+          relationship_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_relationship_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_contacts_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_contacts_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "v_cae_effective_commercial_position"
+            referencedColumns: ["relationship_id"]
+          },
+        ]
+      }
+      commercial_relationship_ownership: {
+        Row: {
+          business_event_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          ownership_rule_code: string | null
+          ownership_status: string
+          protection_level: string
+          relationship_id: string
+          status: string
+          subject_financial_party_id: string
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          business_event_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          ownership_rule_code?: string | null
+          ownership_status?: string
+          protection_level?: string
+          relationship_id: string
+          status?: string
+          subject_financial_party_id: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          business_event_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          ownership_rule_code?: string | null
+          ownership_status?: string
+          protection_level?: string
+          relationship_id?: string
+          status?: string
+          subject_financial_party_id?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_relationship_ownersh_subject_financial_party_id_fkey"
+            columns: ["subject_financial_party_id"]
+            isOneToOne: false
+            referencedRelation: "financial_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_ownership_business_event_id_fkey"
+            columns: ["business_event_id"]
+            isOneToOne: false
+            referencedRelation: "foe_business_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_ownership_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_ownership_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "v_cae_effective_commercial_position"
+            referencedColumns: ["relationship_id"]
+          },
+        ]
+      }
+      commercial_relationship_party_roles: {
+        Row: {
+          created_at: string
+          financial_party_id: string
+          id: string
+          is_primary: boolean
+          metadata: Json
+          relationship_id: string
+          role_code: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          created_at?: string
+          financial_party_id: string
+          id?: string
+          is_primary?: boolean
+          metadata?: Json
+          relationship_id: string
+          role_code: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          created_at?: string
+          financial_party_id?: string
+          id?: string
+          is_primary?: boolean
+          metadata?: Json
+          relationship_id?: string
+          role_code?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_relationship_party_roles_financial_party_id_fkey"
+            columns: ["financial_party_id"]
+            isOneToOne: false
+            referencedRelation: "financial_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_party_roles_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationship_party_roles_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "v_cae_effective_commercial_position"
+            referencedColumns: ["relationship_id"]
+          },
+        ]
+      }
+      commercial_relationships: {
+        Row: {
+          adapter_source_module: string | null
+          adapter_source_record_id: string | null
+          branch_id: string | null
+          company_entity_id: string | null
+          country_code: string | null
+          created_at: string
+          external_reference: string | null
+          health_score: number | null
+          id: string
+          metadata: Json
+          notice_period_days: number | null
+          party_a_id: string
+          party_b_id: string
+          relationship_classification_code: string
+          relationship_manager_id: string | null
+          relationship_type: string
+          renewal_date: string | null
+          status: string
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          adapter_source_module?: string | null
+          adapter_source_record_id?: string | null
+          branch_id?: string | null
+          company_entity_id?: string | null
+          country_code?: string | null
+          created_at?: string
+          external_reference?: string | null
+          health_score?: number | null
+          id?: string
+          metadata?: Json
+          notice_period_days?: number | null
+          party_a_id: string
+          party_b_id: string
+          relationship_classification_code?: string
+          relationship_manager_id?: string | null
+          relationship_type: string
+          renewal_date?: string | null
+          status?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          adapter_source_module?: string | null
+          adapter_source_record_id?: string | null
+          branch_id?: string | null
+          company_entity_id?: string | null
+          country_code?: string | null
+          created_at?: string
+          external_reference?: string | null
+          health_score?: number | null
+          id?: string
+          metadata?: Json
+          notice_period_days?: number | null
+          party_a_id?: string
+          party_b_id?: string
+          relationship_classification_code?: string
+          relationship_manager_id?: string | null
+          relationship_type?: string
+          renewal_date?: string | null
+          status?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_relationships_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationships_company_entity_id_fkey"
+            columns: ["company_entity_id"]
+            isOneToOne: false
+            referencedRelation: "firm_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationships_party_a_id_fkey"
+            columns: ["party_a_id"]
+            isOneToOne: false
+            referencedRelation: "financial_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationships_party_b_id_fkey"
+            columns: ["party_b_id"]
+            isOneToOne: false
+            referencedRelation: "financial_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationships_relationship_classification_code_fkey"
+            columns: ["relationship_classification_code"]
+            isOneToOne: false
+            referencedRelation: "commercial_relationship_classifications"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "commercial_relationships_relationship_manager_id_fkey"
+            columns: ["relationship_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_relationships_relationship_manager_id_fkey"
+            columns: ["relationship_manager_id"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -22149,6 +22653,30 @@ export type Database = {
           },
         ]
       }
+      upi_commission_config: {
+        Row: {
+          description: string | null
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       upi_commission_eligibility_configs: {
         Row: {
           aggregator_id: string | null
@@ -28118,6 +28646,69 @@ export type Database = {
         }
         Relationships: []
       }
+      v_cae_effective_commercial_position: {
+        Row: {
+          agreement_id: string | null
+          agreement_version_id: string | null
+          as_of_date: string | null
+          block_reasons: Json | null
+          contacts: Json | null
+          overlays: Json | null
+          ownership: Json | null
+          party_roles: Json | null
+          relationship_id: string | null
+          settlement_allowed: boolean | null
+        }
+        Relationships: []
+      }
+      v_cae_institution_application_fee_waiver: {
+        Row: {
+          amount: number | null
+          currency: string | null
+          fee_schedule_id: string | null
+          institution_id: string | null
+          institution_name: string | null
+          is_waiver: boolean | null
+          master_status: string | null
+          master_updated_at: string | null
+          notes: string | null
+          partnership_route_id: string | null
+          program_id: string | null
+          valid_from: string | null
+          valid_until: string | null
+          validity_status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "institution_fee_schedule_partnership_route_id_fkey"
+            columns: ["partnership_route_id"]
+            isOneToOne: false
+            referencedRelation: "upi_partnership_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_fee_schedule_upi_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_fee_schedule_upi_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_country_unmapped"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institution_fee_schedule_upi_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "v_upi_institution_profile_readiness"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_calendar_activity_feed: {
         Row: {
           actor_id: string | null
@@ -28966,6 +29557,10 @@ export type Database = {
         Args: { _service_category: string }
         Returns: string
       }
+      accounting_user_scoped_institution: {
+        Args: { _institution_id: string; _require_edit: boolean; _uid: string }
+        Returns: boolean
+      }
       acct_user_has_module: {
         Args: { _level: string; _module: string; _uid: string }
         Returns: boolean
@@ -29168,6 +29763,10 @@ export type Database = {
         Args: { _cid: string; _uid: string }
         Returns: boolean
       }
+      can_manage_commission_financial: {
+        Args: { _institution_id: string; _uid: string }
+        Returns: boolean
+      }
       can_manage_knowledge_centre: { Args: { _uid: string }; Returns: boolean }
       can_manage_service_library: {
         Args: { _user_id: string }
@@ -29185,6 +29784,10 @@ export type Database = {
       }
       can_view_client: {
         Args: { _cid: string; _uid: string }
+        Returns: boolean
+      }
+      can_view_commission_financial: {
+        Args: { _institution_id: string; _uid: string }
         Returns: boolean
       }
       can_view_knowledge_centre: { Args: { _uid: string }; Returns: boolean }
@@ -29230,6 +29833,22 @@ export type Database = {
           _policy: string
         }
         Returns: boolean
+      }
+      commission_config_bool: {
+        Args: { _default?: boolean; _key: string }
+        Returns: boolean
+      }
+      commission_config_text: {
+        Args: { _default?: string; _key: string }
+        Returns: string
+      }
+      commission_institution_country_iso: {
+        Args: { _institution_id: string }
+        Returns: string
+      }
+      commission_receipt_scope_institution_id: {
+        Args: { _receipt_id: string }
+        Returns: string
       }
       complete_lead_followup: {
         Args: { _completion_note?: string; _lead_id: string }
@@ -29579,6 +30198,7 @@ export type Database = {
         Returns: Json
       }
       dsh_can: { Args: { _level: string; _uid: string }; Returns: boolean }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
@@ -30118,6 +30738,15 @@ export type Database = {
         }
       }
       fn_bypass_branch_scope: { Args: { _uid: string }; Returns: boolean }
+      fn_cae_commercial_item_validity_status: {
+        Args: {
+          p_as_of?: string
+          p_expiring_soon_days?: number
+          p_valid_from: string
+          p_valid_until: string
+        }
+        Returns: string
+      }
       fn_cae_evaluate_settlement_eligibility: {
         Args: {
           p_as_of?: string
@@ -30131,6 +30760,14 @@ export type Database = {
       fn_cae_resolve_agreement_version: {
         Args: { p_agreement_id: string; p_as_of?: string }
         Returns: string
+      }
+      fn_cae_resolve_effective_commercial_position: {
+        Args: {
+          p_agreement_id?: string
+          p_as_of?: string
+          p_relationship_id: string
+        }
+        Returns: Json
       }
       fn_calc_day_ot_minutes: {
         Args: {
@@ -31987,6 +32624,10 @@ export type Database = {
         }
         Returns: string
       }
+      fn_seed_commission_direct_partner_demo: {
+        Args: never
+        Returns: undefined
+      }
       fn_seed_foe_cash_registers: { Args: never; Returns: number }
       fn_seed_performance_hub_demo: { Args: never; Returns: undefined }
       fn_set_case_milestone_completed: {
@@ -32191,6 +32832,10 @@ export type Database = {
       }
       fn_student_commission_expected: {
         Args: { p_student_id: string }
+        Returns: number
+      }
+      fn_student_commission_open_balance: {
+        Args: { p_exclude_receipt_id?: string; p_student_id: string }
         Returns: number
       }
       fn_student_financial_summary: {
