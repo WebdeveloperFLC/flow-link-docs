@@ -772,6 +772,58 @@ export type Database = {
           },
         ]
       }
+      accounting_category_audit_log: {
+        Row: {
+          action: string
+          category_id: string
+          changed_at: string
+          changed_by: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+        }
+        Insert: {
+          action: string
+          category_id: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+        }
+        Update: {
+          action?: string
+          category_id?: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_category_audit_log_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_category_audit_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_category_audit_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       accounting_clients: {
         Row: {
           account_manager: string | null
@@ -992,6 +1044,249 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "accounting_coa"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_collection_categories: {
+        Row: {
+          accounting_treatment: string
+          code: string
+          commission_eligible: boolean
+          created_at: string
+          created_by: string | null
+          default_aggregator_id: string | null
+          default_collection_currency: string | null
+          default_institution_id: string | null
+          default_payee_type: string | null
+          default_payment_currency: string | null
+          default_recoverable_role_key: string | null
+          default_reimbursement_role_key: string | null
+          default_revenue_role_key: string | null
+          default_tax_code: string | null
+          default_tax_mode: string
+          default_trust_role_key: string | null
+          default_vendor_id: string | null
+          depth: number
+          description: string | null
+          display_order: number
+          entity_id: string | null
+          expected_payee_name: string | null
+          id: string
+          is_posting_group: boolean
+          is_system: boolean
+          lifecycle_status: string
+          name: string
+          parent_id: string | null
+          path: string
+          requires_disbursement: boolean
+          requires_trust: boolean
+          updated_at: string
+        }
+        Insert: {
+          accounting_treatment?: string
+          code: string
+          commission_eligible?: boolean
+          created_at?: string
+          created_by?: string | null
+          default_aggregator_id?: string | null
+          default_collection_currency?: string | null
+          default_institution_id?: string | null
+          default_payee_type?: string | null
+          default_payment_currency?: string | null
+          default_recoverable_role_key?: string | null
+          default_reimbursement_role_key?: string | null
+          default_revenue_role_key?: string | null
+          default_tax_code?: string | null
+          default_tax_mode?: string
+          default_trust_role_key?: string | null
+          default_vendor_id?: string | null
+          depth?: number
+          description?: string | null
+          display_order?: number
+          entity_id?: string | null
+          expected_payee_name?: string | null
+          id?: string
+          is_posting_group?: boolean
+          is_system?: boolean
+          lifecycle_status?: string
+          name: string
+          parent_id?: string | null
+          path?: string
+          requires_disbursement?: boolean
+          requires_trust?: boolean
+          updated_at?: string
+        }
+        Update: {
+          accounting_treatment?: string
+          code?: string
+          commission_eligible?: boolean
+          created_at?: string
+          created_by?: string | null
+          default_aggregator_id?: string | null
+          default_collection_currency?: string | null
+          default_institution_id?: string | null
+          default_payee_type?: string | null
+          default_payment_currency?: string | null
+          default_recoverable_role_key?: string | null
+          default_reimbursement_role_key?: string | null
+          default_revenue_role_key?: string | null
+          default_tax_code?: string | null
+          default_tax_mode?: string
+          default_trust_role_key?: string | null
+          default_vendor_id?: string | null
+          depth?: number
+          description?: string | null
+          display_order?: number
+          entity_id?: string | null
+          expected_payee_name?: string | null
+          id?: string
+          is_posting_group?: boolean
+          is_system?: boolean
+          lifecycle_status?: string
+          name?: string
+          parent_id?: string | null
+          path?: string
+          requires_disbursement?: boolean
+          requires_trust?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_collection_categories_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_categories_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_categories_default_vendor_id_fkey"
+            columns: ["default_vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_categories_default_vendor_id_fkey"
+            columns: ["default_vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_collection_category_coa: {
+        Row: {
+          category_id: string
+          created_at: string
+          entity_id: string | null
+          id: string
+          institution_clearing_account_code: string | null
+          liability_account_code: string | null
+          recoverable_account_code: string | null
+          reimbursement_payable_account_code: string | null
+          revenue_account_code: string | null
+          role_key: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          institution_clearing_account_code?: string | null
+          liability_account_code?: string | null
+          recoverable_account_code?: string | null
+          reimbursement_payable_account_code?: string | null
+          revenue_account_code?: string | null
+          role_key: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          institution_clearing_account_code?: string | null
+          liability_account_code?: string | null
+          recoverable_account_code?: string | null
+          reimbursement_payable_account_code?: string | null
+          revenue_account_code?: string | null
+          role_key?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_collection_category_coa_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_collection_category_vendors: {
+        Row: {
+          category_id: string
+          country: string | null
+          created_at: string
+          id: string
+          is_default: boolean
+          notes: string | null
+          vendor_id: string
+        }
+        Insert: {
+          category_id: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          notes?: string | null
+          vendor_id: string
+        }
+        Update: {
+          category_id?: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          notes?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_collection_category_vendors_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_category_vendors_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_category_vendors_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1474,6 +1769,7 @@ export type Database = {
         Row: {
           bridge_id: string
           classification: string
+          collection_category_id: string | null
           created_at: string
           gross_amount: number
           id: string
@@ -1487,6 +1783,7 @@ export type Database = {
         Insert: {
           bridge_id: string
           classification?: string
+          collection_category_id?: string | null
           created_at?: string
           gross_amount?: number
           id?: string
@@ -1500,6 +1797,7 @@ export type Database = {
         Update: {
           bridge_id?: string
           classification?: string
+          collection_category_id?: string | null
           created_at?: string
           gross_amount?: number
           id?: string
@@ -1511,6 +1809,13 @@ export type Database = {
           tax_code?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "accounting_invoice_line_classificat_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "accounting_invoice_line_classifications_bridge_id_fkey"
             columns: ["bridge_id"]
@@ -2877,10 +3182,13 @@ export type Database = {
           balance: number
           branch_id: string
           client_id: string
+          collection_category_id: string | null
+          collection_currency: string | null
           created_at: string
           currency: string
           entity_id: string
           id: string
+          payment_currency: string | null
           role_key: string
           student_id: string | null
           updated_at: string
@@ -2889,10 +3197,13 @@ export type Database = {
           balance?: number
           branch_id: string
           client_id: string
+          collection_category_id?: string | null
+          collection_currency?: string | null
           created_at?: string
           currency?: string
           entity_id: string
           id?: string
+          payment_currency?: string | null
           role_key: string
           student_id?: string | null
           updated_at?: string
@@ -2901,15 +3212,26 @@ export type Database = {
           balance?: number
           branch_id?: string
           client_id?: string
+          collection_category_id?: string | null
+          collection_currency?: string | null
           created_at?: string
           currency?: string
           entity_id?: string
           id?: string
+          payment_currency?: string | null
           role_key?: string
           student_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "accounting_trust_accounts_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       accounting_trust_disbursements: {
         Row: {
@@ -2919,10 +3241,15 @@ export type Database = {
           attachment_path: string | null
           branch_id: string
           client_id: string
+          collection_bank_account_id: string | null
+          collection_category_id: string | null
+          collection_currency: string | null
           created_at: string
           created_by: string | null
           currency: string
+          disbursement_bank_account_id: string | null
           entity_id: string
+          fx_rate: number | null
           id: string
           institution_id: string | null
           is_refund: boolean
@@ -2930,6 +3257,7 @@ export type Database = {
           memo: string | null
           payee_name: string
           payee_type: string
+          payment_currency: string | null
           payment_method: string | null
           posted_at: string | null
           posted_by: string | null
@@ -2940,6 +3268,7 @@ export type Database = {
           student_id: string | null
           trust_entry_id: string | null
           updated_at: string
+          vendor_id: string | null
         }
         Insert: {
           aggregator_id?: string | null
@@ -2948,10 +3277,15 @@ export type Database = {
           attachment_path?: string | null
           branch_id: string
           client_id: string
+          collection_bank_account_id?: string | null
+          collection_category_id?: string | null
+          collection_currency?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
+          disbursement_bank_account_id?: string | null
           entity_id: string
+          fx_rate?: number | null
           id?: string
           institution_id?: string | null
           is_refund?: boolean
@@ -2959,6 +3293,7 @@ export type Database = {
           memo?: string | null
           payee_name: string
           payee_type: string
+          payment_currency?: string | null
           payment_method?: string | null
           posted_at?: string | null
           posted_by?: string | null
@@ -2969,6 +3304,7 @@ export type Database = {
           student_id?: string | null
           trust_entry_id?: string | null
           updated_at?: string
+          vendor_id?: string | null
         }
         Update: {
           aggregator_id?: string | null
@@ -2977,10 +3313,15 @@ export type Database = {
           attachment_path?: string | null
           branch_id?: string
           client_id?: string
+          collection_bank_account_id?: string | null
+          collection_category_id?: string | null
+          collection_currency?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
+          disbursement_bank_account_id?: string | null
           entity_id?: string
+          fx_rate?: number | null
           id?: string
           institution_id?: string | null
           is_refund?: boolean
@@ -2988,6 +3329,7 @@ export type Database = {
           memo?: string | null
           payee_name?: string
           payee_type?: string
+          payment_currency?: string | null
           payment_method?: string | null
           posted_at?: string | null
           posted_by?: string | null
@@ -2998,8 +3340,16 @@ export type Database = {
           student_id?: string | null
           trust_entry_id?: string | null
           updated_at?: string
+          vendor_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "accounting_trust_disbursements_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "accounting_trust_disbursements_created_by_fkey"
             columns: ["created_by"]
@@ -3042,49 +3392,82 @@ export type Database = {
             referencedRelation: "accounting_trust_entries"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "accounting_trust_disbursements_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       accounting_trust_entries: {
         Row: {
           amount: number
+          collection_category_id: string | null
+          collection_currency: string | null
           created_at: string
           created_by: string | null
           currency: string
           entry_type: string
+          fx_rate: number | null
           id: string
           journal_id: string | null
           memo: string | null
+          payment_currency: string | null
           source_module: string
           source_record_id: string | null
           trust_account_id: string
         }
         Insert: {
           amount: number
+          collection_category_id?: string | null
+          collection_currency?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
           entry_type: string
+          fx_rate?: number | null
           id?: string
           journal_id?: string | null
           memo?: string | null
+          payment_currency?: string | null
           source_module: string
           source_record_id?: string | null
           trust_account_id: string
         }
         Update: {
           amount?: number
+          collection_category_id?: string | null
+          collection_currency?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
           entry_type?: string
+          fx_rate?: number | null
           id?: string
           journal_id?: string | null
           memo?: string | null
+          payment_currency?: string | null
           source_module?: string
           source_record_id?: string | null
           trust_account_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "accounting_trust_entries_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "accounting_trust_entries_created_by_fkey"
             columns: ["created_by"]
@@ -8940,6 +9323,7 @@ export type Database = {
           amount_in_cad: number | null
           amount_in_inr: number | null
           amount_in_usd: number | null
+          collection_category_id: string | null
           id: string
           installment_id: string | null
           invoice_id: string
@@ -8954,6 +9338,7 @@ export type Database = {
           amount_in_cad?: number | null
           amount_in_inr?: number | null
           amount_in_usd?: number | null
+          collection_category_id?: string | null
           id?: string
           installment_id?: string | null
           invoice_id: string
@@ -8968,6 +9353,7 @@ export type Database = {
           amount_in_cad?: number | null
           amount_in_inr?: number | null
           amount_in_usd?: number | null
+          collection_category_id?: string | null
           id?: string
           installment_id?: string | null
           invoice_id?: string
@@ -8976,6 +9362,13 @@ export type Database = {
           service_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "client_invoice_payment_allocations_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "client_invoice_payment_allocations_invoice_id_fkey"
             columns: ["invoice_id"]
@@ -9016,6 +9409,8 @@ export type Database = {
           business_status: string | null
           cash_register_id: string | null
           client_id: string
+          collection_bank_account_id: string | null
+          collection_category_id: string | null
           created_at: string
           currency: string
           fx_rate: number | null
@@ -9061,6 +9456,8 @@ export type Database = {
           business_status?: string | null
           cash_register_id?: string | null
           client_id: string
+          collection_bank_account_id?: string | null
+          collection_category_id?: string | null
           created_at?: string
           currency?: string
           fx_rate?: number | null
@@ -9106,6 +9503,8 @@ export type Database = {
           business_status?: string | null
           cash_register_id?: string | null
           client_id?: string
+          collection_bank_account_id?: string | null
+          collection_category_id?: string | null
           created_at?: string
           currency?: string
           fx_rate?: number | null
@@ -9177,6 +9576,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_client_current_stage"
             referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "client_invoice_payments_invoice_id_fkey"
