@@ -18,8 +18,9 @@ Future Link declares the **Commission & Revenue Management** business architectu
 
 From this date forward:
 
-- **No further business discussions during coding** for this module.  
-- **All new business requirements** → **ERP Change Request (RFC)** only.  
+- **Business requirements are frozen** — changes require **ERP Change Request (RFC)**.  
+- **Engineering improvements are not frozen** — UI/UX, performance, bugs, refactor, tests, and security fixes proceed without RFC. See [ERP Delivery Standards](../erp-governance/DELIVERY_STANDARDS.md).  
+- **No further business discussions during coding** for behaviours already specified.  
 - **Implementation authorized** — delivery phase per Implementation Bible V2 §12.
 
 ---

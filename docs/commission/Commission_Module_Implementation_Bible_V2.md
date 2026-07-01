@@ -331,7 +331,7 @@ Changes to Addendum content after freeze require **ERP RFC** and Bible version b
 
 - **No further business requirement changes** without ERP RFC.  
 - **Delivery phase:** implement against frozen docs; shift from architecture to UAT-driven delivery.  
-- **Internal naming:** Commission & Revenue Management; **UI label unchanged:** *Commission*.
+- **Delivery discipline:** [ERP Delivery Standards](../erp-governance/DELIVERY_STANDARDS.md) — DoD, feature loop, RFC vs engineering improvements
 
 ```
 V2 APPROVED: [x] Yes  Date: 2026-06-30
