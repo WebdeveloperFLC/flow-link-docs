@@ -809,6 +809,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "accounting_category_audit_log_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+          {
             foreignKeyName: "accounting_category_audit_log_changed_by_fkey"
             columns: ["changed_by"]
             isOneToOne: false
@@ -1187,6 +1194,13 @@ export type Database = {
             referencedRelation: "accounting_collection_categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "accounting_collection_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
         ]
       }
       accounting_collection_category_coa: {
@@ -1237,6 +1251,13 @@ export type Database = {
             referencedRelation: "accounting_collection_categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "accounting_collection_category_coa_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
         ]
       }
       accounting_collection_category_vendors: {
@@ -1274,6 +1295,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "accounting_collection_categories"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_collection_category_vendors_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
           },
           {
             foreignKeyName: "accounting_collection_category_vendors_vendor_id_fkey"
@@ -1815,6 +1843,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "accounting_collection_categories"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_invoice_line_classificat_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
           },
           {
             foreignKeyName: "accounting_invoice_line_classifications_bridge_id_fkey"
@@ -3231,6 +3266,13 @@ export type Database = {
             referencedRelation: "accounting_collection_categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "accounting_trust_accounts_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
         ]
       }
       accounting_trust_disbursements: {
@@ -3351,6 +3393,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "accounting_trust_disbursements_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+          {
             foreignKeyName: "accounting_trust_disbursements_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -3467,6 +3516,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "accounting_collection_categories"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_entries_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
           },
           {
             foreignKeyName: "accounting_trust_entries_created_by_fkey"
@@ -9370,6 +9426,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "client_invoice_payment_allocations_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+          {
             foreignKeyName: "client_invoice_payment_allocations_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
@@ -9389,6 +9452,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "client_invoice_payments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payment_allocations_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_payment_purpose"
+            referencedColumns: ["payment_id"]
           },
         ]
       }
@@ -9585,6 +9655,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "client_invoice_payments_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+          {
             foreignKeyName: "client_invoice_payments_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
@@ -9712,6 +9789,13 @@ export type Database = {
             referencedRelation: "client_invoice_payments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "client_invoice_receipts_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_payment_purpose"
+            referencedColumns: ["payment_id"]
+          },
         ]
       }
       client_invoice_refund_requests: {
@@ -9824,6 +9908,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "client_invoice_payments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_refund_requests_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_payment_purpose"
+            referencedColumns: ["payment_id"]
           },
         ]
       }
@@ -10021,6 +10112,7 @@ export type Database = {
           immutable_after_paid: boolean | null
           invoice_branch_code: string | null
           invoice_category: string | null
+          invoice_context_json: Json | null
           invoice_entity_code: string | null
           invoice_locked: boolean | null
           invoice_locked_at: string | null
@@ -10111,6 +10203,7 @@ export type Database = {
           immutable_after_paid?: boolean | null
           invoice_branch_code?: string | null
           invoice_category?: string | null
+          invoice_context_json?: Json | null
           invoice_entity_code?: string | null
           invoice_locked?: boolean | null
           invoice_locked_at?: string | null
@@ -10201,6 +10294,7 @@ export type Database = {
           immutable_after_paid?: boolean | null
           invoice_branch_code?: string | null
           invoice_category?: string | null
+          invoice_context_json?: Json | null
           invoice_entity_code?: string | null
           invoice_locked?: boolean | null
           invoice_locked_at?: string | null
@@ -20550,6 +20644,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "client_invoice_payments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_foe_pipeline_jobs_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_payment_purpose"
+            referencedColumns: ["payment_id"]
           },
         ]
       }
@@ -31044,6 +31145,154 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_accounting_collections_by_category: {
+        Row: {
+          accounting_treatment: string | null
+          category_id: string | null
+          code: string | null
+          lifecycle_status: string | null
+          name: string | null
+          parent_name: string | null
+          path: string | null
+          students_with_balance: number | null
+          trust_held: number | null
+        }
+        Relationships: []
+      }
+      vw_accounting_payment_purpose: {
+        Row: {
+          accounting_treatment: string | null
+          allocated_amount: number | null
+          branch_id: string | null
+          category_code: string | null
+          category_name: string | null
+          category_path: string | null
+          classification: string | null
+          client_id: string | null
+          collection_category_id: string | null
+          entity_id: string | null
+          expected_payee_name: string | null
+          invoice_id: string | null
+          line_gross: number | null
+          line_net: number | null
+          paid_at: string | null
+          parent_category_code: string | null
+          parent_category_name: string | null
+          payment_amount: number | null
+          payment_currency: string | null
+          payment_id: string | null
+          payment_method: string | null
+          payment_purpose: string | null
+          payment_status: string | null
+          role_key: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_invoice_line_classificat_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_invoice_line_classificat_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_needing_pipeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_aging"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoices_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoices_firm_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "firm_profile"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_accounting_trust_by_category: {
+        Row: {
+          accounting_treatment: string | null
+          branch_id: string | null
+          category_code: string | null
+          category_name: string | null
+          category_path: string | null
+          client_id: string | null
+          collection_category_id: string | null
+          currency: string | null
+          entity_id: string | null
+          expected_payee_name: string | null
+          parent_category_name: string | null
+          role_key: string | null
+          trust_held: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_trust_accounts_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_collection_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_accounts_collection_category_id_fkey"
+            columns: ["collection_category_id"]
+            isOneToOne: false
+            referencedRelation: "vw_accounting_collections_by_category"
+            referencedColumns: ["category_id"]
+          },
+        ]
+      }
       vw_call_stats_daily: {
         Row: {
           agent_id: string | null
@@ -31201,6 +31450,10 @@ export type Database = {
         Returns: string
       }
       _first_pipeline_stage: { Args: { _pipeline_id: string }; Returns: string }
+      _fn_stamp_weekly_off: {
+        Args: { p_date: string; p_employee: string; p_org: string }
+        Returns: boolean
+      }
       _lead_json_text_array: {
         Args: { _data: Json; _key: string }
         Returns: string[]
@@ -32283,6 +32536,24 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_apply_weekly_offs_for_cycle: {
+        Args: { p_cycle: string; p_org: string }
+        Returns: number
+      }
+      fn_apply_weekly_offs_for_date: {
+        Args: { p_date: string; p_internal?: boolean; p_org: string }
+        Returns: number
+      }
+      fn_apply_weekly_offs_for_range: {
+        Args: {
+          p_employee?: string
+          p_from: string
+          p_internal?: boolean
+          p_org: string
+          p_to: string
+        }
+        Returns: number
+      }
       fn_approve_payroll_cycle: {
         Args: { p_cycle: string }
         Returns: {
@@ -33008,6 +33279,21 @@ export type Database = {
       fn_derive_status:
         | {
             Args: {
+              p_actual_break_min?: number
+              p_break_end?: string
+              p_break_start?: string
+              p_in: string
+              p_is_mispunch?: boolean
+              p_login?: string
+              p_logout?: string
+              p_out: string
+              p_shift_break_min?: number
+              p_status: Database["public"]["Enums"]["att_status"]
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
               p_half_after: number
               p_in: string
               p_is_mispunch: boolean
@@ -33082,7 +33368,15 @@ export type Database = {
             Args: { _currency: string; _period_key?: string; _purpose?: string }
             Returns: number
           }
+      fn_employee_attendance_eligible: {
+        Args: { p_date: string; p_employee: string }
+        Returns: boolean
+      }
       fn_employee_shift_at: {
+        Args: { p_date: string; p_employee: string }
+        Returns: string
+      }
+      fn_employee_work_week_at: {
         Args: { p_date: string; p_employee: string }
         Returns: string
       }
@@ -33519,6 +33813,10 @@ export type Database = {
         Returns: boolean
       }
       fn_is_leave_eligible: { Args: { p_employee: string }; Returns: boolean }
+      fn_is_weekly_off_day: {
+        Args: { p_date: string; p_employee: string; p_org: string }
+        Returns: boolean
+      }
       fn_jsonb_line_is_billable: { Args: { p_line: Json }; Returns: boolean }
       fn_jsonb_line_matches_service_keys: {
         Args: { p_keys: string[]; p_line: Json }
@@ -34379,6 +34677,10 @@ export type Database = {
         Args: { p_login: number; p_logout: number }
         Returns: number
       }
+      fn_shift_scheduled_work_minutes: {
+        Args: { p_login: string; p_logout: string; p_shift_break_min?: number }
+        Returns: number
+      }
       fn_size_wallet: {
         Args: { _wallet_id: string }
         Returns: {
@@ -34648,6 +34950,15 @@ export type Database = {
           p_currency?: string
           p_entity_id: string
           p_role_key: string
+        }
+        Returns: number
+      }
+      fn_trust_available_balance_by_category: {
+        Args: {
+          p_category_id: string
+          p_client_id: string
+          p_currency: string
+          p_entity_id: string
         }
         Returns: number
       }
@@ -34959,6 +35270,11 @@ export type Database = {
         Args: { _achievement_pct: number; _potential: number }
         Returns: number
       }
+      fn_weekly_off_dow_for_work_week: {
+        Args: { p_org: string; p_work_week: string }
+        Returns: number[]
+      }
+      fn_weekly_off_policy_config: { Args: { p_org: string }; Returns: Json }
       fn_workflow_config: {
         Args: { p_as_of?: string; p_org: string }
         Returns: Json
