@@ -18,6 +18,12 @@ import {
   canMarkReady,
   type AttachmentType,
 } from "../lib/commissionReceiptRules";
+import {
+  buildStudentAllocSavePayload,
+  remapStudentAllocsAfterInvoiceSave,
+  studentOpenBalance,
+  validateStudentAllocOpenBalances,
+} from "../lib/commissionReceiptAllocation";
 import { ChevronLeft, ChevronRight, Upload, CheckCircle2, AlertTriangle } from "lucide-react";
 
 const STEPS = ["Header", "Invoices", "Students", "Review"] as const;
@@ -42,6 +48,7 @@ interface InvoiceStudent {
   amended_expected_amount: number | null;
   commission_snapshot_id: string | null;
   amount_outstanding: number | null;
+  amount_received: number | null;
 }
 
 interface InvoiceAllocRow {
@@ -66,10 +73,6 @@ interface AttachmentRow {
 
 function fmt(amount: number, currency: string) {
   return new Intl.NumberFormat(undefined, { style: "currency", currency: currency || "CAD" }).format(amount);
-}
-
-function studentExpected(s: InvoiceStudent): number {
-  return Number(s.amended_expected_amount ?? s.expected_amount ?? s.commission_amount ?? 0);
 }
 
 export function CommissionReceiptWizard({
@@ -203,7 +206,7 @@ export function CommissionReceiptWizard({
     const { data, error } = await supabase
       .from("upi_commission_students" as any)
       .select(
-        "id, student_name, invoice_id, commission_amount, expected_amount, amended_expected_amount, commission_snapshot_id, amount_outstanding",
+        "id, student_name, invoice_id, commission_amount, expected_amount, amended_expected_amount, commission_snapshot_id, amount_outstanding, amount_received",
       )
       .in("invoice_id", invoiceIds);
     if (error) toast.error(error.message);
@@ -358,6 +361,7 @@ export function CommissionReceiptWizard({
 
   const saveInvoiceAllocs = async () => {
     if (!receiptId) return;
+    const prevInvoiceAllocs = invoiceAllocs;
     const payload = invoiceAllocs
       .filter((a) => a.amount_allocated > 0)
       .map((a) => ({ invoice_id: a.invoice_id, amount_allocated: a.amount_allocated }));
@@ -382,30 +386,24 @@ export function CommissionReceiptWizard({
         .from("upi_commission_receipt_invoice_allocations" as any)
         .select("id, invoice_id, amount_allocated")
         .eq("receipt_id", receiptId);
-      setInvoiceAllocs(
-        (iaRows ?? []).map((row: any) => ({
-          invoice_id: row.invoice_id,
-          amount_allocated: Number(row.amount_allocated),
-          allocation_id: row.id,
-        })),
+      const nextInvoiceAllocs = (iaRows ?? []).map((row: any) => ({
+        invoice_id: row.invoice_id,
+        amount_allocated: Number(row.amount_allocated),
+        allocation_id: row.id,
+      }));
+      setInvoiceAllocs(nextInvoiceAllocs);
+      setStudentAllocs((prev) =>
+        remapStudentAllocsAfterInvoiceSave(prev, prevInvoiceAllocs, nextInvoiceAllocs, students),
       );
     }
   };
 
   const saveStudentAllocs = async () => {
     if (!receiptId) return;
-    const payload = studentAllocs
-      .filter((a) => a.amount_allocated > 0)
-      .map((a) => {
-        const st = students.find((s) => s.id === a.student_commission_id);
-        return {
-          invoice_allocation_id: a.invoice_allocation_id,
-          student_commission_id: a.student_commission_id,
-          amount_allocated: a.amount_allocated,
-          snapshot_id: st?.commission_snapshot_id ?? null,
-          allocation_method: "manual",
-        };
-      });
+    const validation = validateStudentAllocOpenBalances(studentAllocs, invoiceAllocs, students);
+    if (!validation.ok) throw new Error(validation.message);
+
+    const payload = buildStudentAllocSavePayload(studentAllocs, invoiceAllocs, students);
     const { error } = await supabase.rpc("fn_upsert_receipt_student_allocations" as any, {
       p_receipt_id: receiptId,
       p_allocations: payload,
@@ -426,7 +424,7 @@ export function CommissionReceiptWizard({
     let remaining = invoiceAmount;
     const next = studentAllocs.filter((a) => a.invoice_allocation_id !== iaId);
     eligible.forEach((s, idx) => {
-      const open = Number(s.amount_outstanding ?? studentExpected(s));
+      const open = studentOpenBalance(s);
       const share = idx === eligible.length - 1 ? remaining : Math.min(open, remaining / (eligible.length - idx));
       remaining -= share;
       next.push({
@@ -492,7 +490,7 @@ export function CommissionReceiptWizard({
     setBusy(true);
     try {
       await persistStep(stepIdx);
-      if (stepIdx >= 1 && receiptId) await saveInvoiceAllocs();
+      if (stepIdx === 1 && receiptId) await saveInvoiceAllocs();
       if (stepIdx >= 2 && receiptId) await saveStudentAllocs();
       toast.success("Draft saved — resume anytime from Receipts");
       onSaved?.();
@@ -766,7 +764,7 @@ export function CommissionReceiptWizard({
                       <div key={s.id} className="flex items-center gap-2 text-sm">
                         <span className="flex-1 truncate">{s.student_name}</span>
                         <span className="text-xs text-muted-foreground w-24">
-                          Open {fmt(Number(s.amount_outstanding ?? studentExpected(s)), receiptCurrency)}
+                          Open {fmt(studentOpenBalance(s), receiptCurrency)}
                         </span>
                         <Input
                           type="number"
