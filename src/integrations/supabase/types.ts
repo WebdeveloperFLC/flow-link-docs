@@ -47,13 +47,68 @@ export type Database = {
         }
         Relationships: []
       }
+      accounting_account_roles: {
+        Row: {
+          account_code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          entity_id: string | null
+          id: string
+          is_system: boolean
+          role_key: string
+          updated_at: string
+        }
+        Insert: {
+          account_code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entity_id?: string | null
+          id?: string
+          is_system?: boolean
+          role_key: string
+          updated_at?: string
+        }
+        Update: {
+          account_code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entity_id?: string | null
+          id?: string
+          is_system?: boolean
+          role_key?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_account_roles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_account_roles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       accounting_ap_bills: {
         Row: {
+          approval_status: string
+          approved_at: string | null
           approved_by: string | null
+          attachment_path: string | null
           bill_date: string
           bill_number: string
           branch: string | null
           branch_country: string | null
+          branch_id: string | null
           created_at: string
           created_by: string | null
           currency: string | null
@@ -61,6 +116,8 @@ export type Database = {
           description: string | null
           due_date: string | null
           entity: string | null
+          entity_id: string | null
+          expense_role_key: string | null
           id: string
           journal_id: string | null
           linked_bank_account_id: string | null
@@ -79,6 +136,7 @@ export type Database = {
           tags: string[] | null
           tax_amount: number | null
           tax_code: string | null
+          tds_code: string | null
           total_amount: number | null
           updated_at: string
           vendor_category: string | null
@@ -88,11 +146,15 @@ export type Database = {
           vendor_phone: string | null
         }
         Insert: {
+          approval_status?: string
+          approved_at?: string | null
           approved_by?: string | null
+          attachment_path?: string | null
           bill_date: string
           bill_number: string
           branch?: string | null
           branch_country?: string | null
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string | null
@@ -100,6 +162,8 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           entity?: string | null
+          entity_id?: string | null
+          expense_role_key?: string | null
           id?: string
           journal_id?: string | null
           linked_bank_account_id?: string | null
@@ -118,6 +182,7 @@ export type Database = {
           tags?: string[] | null
           tax_amount?: number | null
           tax_code?: string | null
+          tds_code?: string | null
           total_amount?: number | null
           updated_at?: string
           vendor_category?: string | null
@@ -127,11 +192,15 @@ export type Database = {
           vendor_phone?: string | null
         }
         Update: {
+          approval_status?: string
+          approved_at?: string | null
           approved_by?: string | null
+          attachment_path?: string | null
           bill_date?: string
           bill_number?: string
           branch?: string | null
           branch_country?: string | null
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string | null
@@ -139,6 +208,8 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           entity?: string | null
+          entity_id?: string | null
+          expense_role_key?: string | null
           id?: string
           journal_id?: string | null
           linked_bank_account_id?: string | null
@@ -157,6 +228,7 @@ export type Database = {
           tags?: string[] | null
           tax_amount?: number | null
           tax_code?: string | null
+          tds_code?: string | null
           total_amount?: number | null
           updated_at?: string
           vendor_category?: string | null
@@ -196,6 +268,170 @@ export type Database = {
           },
           {
             foreignKeyName: "accounting_ap_bills_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_ap_payment_allocations: {
+        Row: {
+          amount: number
+          bill_id: string
+          created_at: string
+          id: string
+          payment_id: string
+        }
+        Insert: {
+          amount: number
+          bill_id: string
+          created_at?: string
+          id?: string
+          payment_id: string
+        }
+        Update: {
+          amount?: number
+          bill_id?: string
+          created_at?: string
+          id?: string
+          payment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_ap_payment_allocations_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_ap_bills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payment_allocations_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_ap_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_ap_payments: {
+        Row: {
+          amount: number
+          attachment_path: string | null
+          bank_role_key: string
+          branch_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          entity_id: string
+          id: string
+          journal_id: string | null
+          payment_method: string | null
+          payment_number: string | null
+          posted_at: string | null
+          posted_by: string | null
+          posting_date: string
+          reference: string | null
+          status: string
+          tds_amount: number
+          tds_role_key: string | null
+          updated_at: string
+          vendor_id: string | null
+          vendor_name: string
+        }
+        Insert: {
+          amount: number
+          attachment_path?: string | null
+          bank_role_key?: string
+          branch_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entity_id: string
+          id?: string
+          journal_id?: string | null
+          payment_method?: string | null
+          payment_number?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string
+          reference?: string | null
+          status?: string
+          tds_amount?: number
+          tds_role_key?: string | null
+          updated_at?: string
+          vendor_id?: string | null
+          vendor_name: string
+        }
+        Update: {
+          amount?: number
+          attachment_path?: string | null
+          bank_role_key?: string
+          branch_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entity_id?: string
+          id?: string
+          journal_id?: string | null
+          payment_method?: string | null
+          payment_number?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string
+          reference?: string | null
+          status?: string
+          tds_amount?: number
+          tds_role_key?: string | null
+          updated_at?: string
+          vendor_id?: string | null
+          vendor_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_ap_payments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payments_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payments_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payments_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payments_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_ap_payments_vendor_id_fkey"
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "accounting_vendors_safe"
@@ -981,6 +1217,137 @@ export type Database = {
           },
         ]
       }
+      accounting_entity_tax_config: {
+        Row: {
+          commission_tax_code: string | null
+          commission_tax_mode: string | null
+          country: string
+          created_at: string
+          default_input_tax_code: string | null
+          default_output_tax_code: string | null
+          default_tds_code: string | null
+          entity_id: string
+          id: string
+          is_tax_registered: boolean
+          registration_number: string | null
+          settings: Json
+          updated_at: string
+        }
+        Insert: {
+          commission_tax_code?: string | null
+          commission_tax_mode?: string | null
+          country: string
+          created_at?: string
+          default_input_tax_code?: string | null
+          default_output_tax_code?: string | null
+          default_tds_code?: string | null
+          entity_id: string
+          id?: string
+          is_tax_registered?: boolean
+          registration_number?: string | null
+          settings?: Json
+          updated_at?: string
+        }
+        Update: {
+          commission_tax_code?: string | null
+          commission_tax_mode?: string | null
+          country?: string
+          created_at?: string
+          default_input_tax_code?: string | null
+          default_output_tax_code?: string | null
+          default_tds_code?: string | null
+          entity_id?: string
+          id?: string
+          is_tax_registered?: boolean
+          registration_number?: string | null
+          settings?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      accounting_fiscal_periods: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          entity_id: string
+          id: string
+          notes: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          reopened_at: string | null
+          reopened_by: string | null
+          status: string
+          total_credit: number
+          total_debit: number
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          entity_id: string
+          id?: string
+          notes?: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          reopened_at?: string | null
+          reopened_by?: string | null
+          status?: string
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          entity_id?: string
+          id?: string
+          notes?: string | null
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          reopened_at?: string | null
+          reopened_by?: string | null
+          status?: string
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_fiscal_periods_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_fiscal_periods_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_fiscal_periods_reopened_by_fkey"
+            columns: ["reopened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_fiscal_periods_reopened_by_fkey"
+            columns: ["reopened_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       accounting_intercompany: {
         Row: {
           amount: number
@@ -1537,6 +1904,215 @@ export type Database = {
           },
         ]
       }
+      accounting_payroll_batches: {
+        Row: {
+          accrual_journal_id: string | null
+          attachment_path: string | null
+          bank_role_key: string
+          branch_id: string
+          country: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          deductions_total: number
+          employer_cost_total: number
+          entity_id: string
+          gross_total: number
+          id: string
+          net_total: number
+          payment_journal_id: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          posted_by: string | null
+          posting_date: string
+          source_payout_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accrual_journal_id?: string | null
+          attachment_path?: string | null
+          bank_role_key?: string
+          branch_id: string
+          country: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deductions_total?: number
+          employer_cost_total?: number
+          entity_id: string
+          gross_total?: number
+          id?: string
+          net_total?: number
+          payment_journal_id?: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          posted_by?: string | null
+          posting_date?: string
+          source_payout_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accrual_journal_id?: string | null
+          attachment_path?: string | null
+          bank_role_key?: string
+          branch_id?: string
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deductions_total?: number
+          employer_cost_total?: number
+          entity_id?: string
+          gross_total?: number
+          id?: string
+          net_total?: number
+          payment_journal_id?: string | null
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          posted_by?: string | null
+          posting_date?: string
+          source_payout_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_payroll_batches_accrual_journal_id_fkey"
+            columns: ["accrual_journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_payroll_batches_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_payroll_batches_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_payroll_batches_payment_journal_id_fkey"
+            columns: ["payment_journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_payroll_batches_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_payroll_batches_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      accounting_payroll_components: {
+        Row: {
+          amount: number
+          batch_id: string
+          created_at: string
+          dr_cr: string
+          id: string
+          label: string | null
+          leg_order: number
+          role_key: string
+        }
+        Insert: {
+          amount?: number
+          batch_id: string
+          created_at?: string
+          dr_cr: string
+          id?: string
+          label?: string | null
+          leg_order?: number
+          role_key: string
+        }
+        Update: {
+          amount?: number
+          batch_id?: string
+          created_at?: string
+          dr_cr?: string
+          id?: string
+          label?: string | null
+          leg_order?: number
+          role_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_payroll_components_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_payroll_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_payroll_lines: {
+        Row: {
+          batch_id: string
+          components: Json
+          created_at: string
+          deductions_total: number
+          employee_id: string | null
+          employee_name: string
+          employer_cost: number
+          gross: number
+          id: string
+          net: number
+        }
+        Insert: {
+          batch_id: string
+          components?: Json
+          created_at?: string
+          deductions_total?: number
+          employee_id?: string | null
+          employee_name: string
+          employer_cost?: number
+          gross?: number
+          id?: string
+          net?: number
+        }
+        Update: {
+          batch_id?: string
+          components?: Json
+          created_at?: string
+          deductions_total?: number
+          employee_id?: string | null
+          employee_name?: string
+          employer_cost?: number
+          gross?: number
+          id?: string
+          net?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_payroll_lines_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_payroll_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_petty_cash: {
         Row: {
           amount: number
@@ -1612,6 +2188,260 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_counselor_productivity"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      accounting_posting_rules: {
+        Row: {
+          amount_expr: string
+          country: string | null
+          created_at: string
+          dr_cr: string
+          event_key: string
+          id: string
+          is_optional: boolean
+          leg_order: number
+          notes: string | null
+          role_key: string
+          source_module: string
+        }
+        Insert: {
+          amount_expr: string
+          country?: string | null
+          created_at?: string
+          dr_cr: string
+          event_key: string
+          id?: string
+          is_optional?: boolean
+          leg_order?: number
+          notes?: string | null
+          role_key: string
+          source_module: string
+        }
+        Update: {
+          amount_expr?: string
+          country?: string | null
+          created_at?: string
+          dr_cr?: string
+          event_key?: string
+          id?: string
+          is_optional?: boolean
+          leg_order?: number
+          notes?: string | null
+          role_key?: string
+          source_module?: string
+        }
+        Relationships: []
+      }
+      accounting_recon_matches: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          journal_id: string | null
+          journal_line_id: string | null
+          matched_by: string | null
+          session_id: string
+          statement_line_id: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          journal_id?: string | null
+          journal_line_id?: string | null
+          matched_by?: string | null
+          session_id: string
+          statement_line_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          journal_id?: string | null
+          journal_line_id?: string | null
+          matched_by?: string | null
+          session_id?: string
+          statement_line_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_recon_matches_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_matches_journal_line_id_fkey"
+            columns: ["journal_line_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journal_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_matches_matched_by_fkey"
+            columns: ["matched_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_matches_matched_by_fkey"
+            columns: ["matched_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_matches_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_recon_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_matches_statement_line_id_fkey"
+            columns: ["statement_line_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_recon_statement_lines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_recon_sessions: {
+        Row: {
+          bank_account_code: string
+          bank_role_key: string | null
+          branch_id: string
+          closing_balance: number
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          difference: number
+          entity_id: string
+          id: string
+          matched_count: number
+          opening_balance: number
+          statement_end: string
+          statement_start: string
+          status: string
+          unmatched_count: number
+          updated_at: string
+        }
+        Insert: {
+          bank_account_code: string
+          bank_role_key?: string | null
+          branch_id: string
+          closing_balance?: number
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          difference?: number
+          entity_id: string
+          id?: string
+          matched_count?: number
+          opening_balance?: number
+          statement_end: string
+          statement_start: string
+          status?: string
+          unmatched_count?: number
+          updated_at?: string
+        }
+        Update: {
+          bank_account_code?: string
+          bank_role_key?: string | null
+          branch_id?: string
+          closing_balance?: number
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          difference?: number
+          entity_id?: string
+          id?: string
+          matched_count?: number
+          opening_balance?: number
+          statement_end?: string
+          statement_start?: string
+          status?: string
+          unmatched_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_recon_sessions_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_sessions_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_recon_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      accounting_recon_statement_lines: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          is_matched: boolean
+          reference: string | null
+          session_id: string
+          txn_date: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_matched?: boolean
+          reference?: string | null
+          session_id: string
+          txn_date: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_matched?: boolean
+          reference?: string | null
+          session_id?: string
+          txn_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_recon_statement_lines_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_recon_sessions"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1743,6 +2573,305 @@ export type Database = {
           },
         ]
       }
+      accounting_tax_codes: {
+        Row: {
+          code: string
+          country: string
+          created_at: string
+          entity_id: string | null
+          id: string
+          is_active: boolean
+          is_recoverable: boolean
+          is_withholding: boolean
+          name: string
+          tax_type: string
+          total_rate: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          country: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          is_active?: boolean
+          is_recoverable?: boolean
+          is_withholding?: boolean
+          name: string
+          tax_type: string
+          total_rate?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          country?: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          is_active?: boolean
+          is_recoverable?: boolean
+          is_withholding?: boolean
+          name?: string
+          tax_type?: string
+          total_rate?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      accounting_tax_components: {
+        Row: {
+          component: string
+          created_at: string
+          id: string
+          input_role_key: string | null
+          leg_order: number
+          output_role_key: string | null
+          rate: number
+          tax_code_id: string
+        }
+        Insert: {
+          component: string
+          created_at?: string
+          id?: string
+          input_role_key?: string | null
+          leg_order?: number
+          output_role_key?: string | null
+          rate?: number
+          tax_code_id: string
+        }
+        Update: {
+          component?: string
+          created_at?: string
+          id?: string
+          input_role_key?: string | null
+          leg_order?: number
+          output_role_key?: string | null
+          rate?: number
+          tax_code_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_tax_components_tax_code_id_fkey"
+            columns: ["tax_code_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_tax_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_tax_filings: {
+        Row: {
+          attachment_path: string | null
+          branch_id: string
+          country: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          due_date: string | null
+          entity_id: string
+          filed_by: string | null
+          filed_date: string | null
+          id: string
+          input_tax: number
+          net_payable: number
+          notes: string | null
+          output_tax: number
+          period_end: string
+          period_label: string
+          period_start: string
+          reference_number: string | null
+          status: string
+          tax_code: string | null
+          tax_type: string
+          updated_at: string
+        }
+        Insert: {
+          attachment_path?: string | null
+          branch_id: string
+          country: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          entity_id: string
+          filed_by?: string | null
+          filed_date?: string | null
+          id?: string
+          input_tax?: number
+          net_payable?: number
+          notes?: string | null
+          output_tax?: number
+          period_end: string
+          period_label: string
+          period_start: string
+          reference_number?: string | null
+          status?: string
+          tax_code?: string | null
+          tax_type: string
+          updated_at?: string
+        }
+        Update: {
+          attachment_path?: string | null
+          branch_id?: string
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          entity_id?: string
+          filed_by?: string | null
+          filed_date?: string | null
+          id?: string
+          input_tax?: number
+          net_payable?: number
+          notes?: string | null
+          output_tax?: number
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          reference_number?: string | null
+          status?: string
+          tax_code?: string | null
+          tax_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_tax_filings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_filings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_filings_filed_by_fkey"
+            columns: ["filed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_filings_filed_by_fkey"
+            columns: ["filed_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      accounting_tax_remittances: {
+        Row: {
+          amount: number
+          attachment_path: string | null
+          bank_role_key: string
+          branch_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          entity_id: string
+          filing_id: string | null
+          id: string
+          journal_id: string | null
+          payment_method: string | null
+          posted_at: string | null
+          posted_by: string | null
+          posting_date: string
+          reference: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          attachment_path?: string | null
+          bank_role_key?: string
+          branch_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entity_id: string
+          filing_id?: string | null
+          id?: string
+          journal_id?: string | null
+          payment_method?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string
+          reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          attachment_path?: string | null
+          bank_role_key?: string
+          branch_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entity_id?: string
+          filing_id?: string | null
+          id?: string
+          journal_id?: string | null
+          payment_method?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string
+          reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_tax_remittances_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_remittances_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_remittances_filing_id_fkey"
+            columns: ["filing_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_tax_filings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_remittances_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_remittances_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_tax_remittances_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       accounting_trust_accounts: {
         Row: {
           balance: number
@@ -1781,6 +2910,139 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      accounting_trust_disbursements: {
+        Row: {
+          aggregator_id: string | null
+          amount: number
+          application_id: string | null
+          attachment_path: string | null
+          branch_id: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          entity_id: string
+          id: string
+          institution_id: string | null
+          is_refund: boolean
+          journal_id: string | null
+          memo: string | null
+          payee_name: string
+          payee_type: string
+          payment_method: string | null
+          posted_at: string | null
+          posted_by: string | null
+          posting_date: string
+          reference: string | null
+          role_key: string
+          status: string
+          student_id: string | null
+          trust_entry_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          aggregator_id?: string | null
+          amount: number
+          application_id?: string | null
+          attachment_path?: string | null
+          branch_id: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entity_id: string
+          id?: string
+          institution_id?: string | null
+          is_refund?: boolean
+          journal_id?: string | null
+          memo?: string | null
+          payee_name: string
+          payee_type: string
+          payment_method?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string
+          reference?: string | null
+          role_key: string
+          status?: string
+          student_id?: string | null
+          trust_entry_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          aggregator_id?: string | null
+          amount?: number
+          application_id?: string | null
+          attachment_path?: string | null
+          branch_id?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          entity_id?: string
+          id?: string
+          institution_id?: string | null
+          is_refund?: boolean
+          journal_id?: string | null
+          memo?: string | null
+          payee_name?: string
+          payee_type?: string
+          payment_method?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          posting_date?: string
+          reference?: string | null
+          role_key?: string
+          status?: string
+          student_id?: string | null
+          trust_entry_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_trust_disbursements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_trust_disbursements_trust_entry_id_fkey"
+            columns: ["trust_entry_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_trust_entries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       accounting_trust_entries: {
         Row: {
@@ -32973,6 +34235,15 @@ export type Database = {
           p_transfer_target_institution_id?: string
         }
         Returns: string
+      }
+      fn_trust_available_balance: {
+        Args: {
+          p_client_id: string
+          p_currency?: string
+          p_entity_id: string
+          p_role_key: string
+        }
+        Returns: number
       }
       fn_unclassified_payment_count: {
         Args: { _period_key: string }
