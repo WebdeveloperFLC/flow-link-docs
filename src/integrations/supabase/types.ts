@@ -25318,6 +25318,7 @@ export type Database = {
         Row: {
           accounting_journal_id: string | null
           aggregator_id: string | null
+          aggregator_reference_number: string | null
           amount_allocated: number
           bank_reference: string | null
           base_amount: number | null
@@ -25359,6 +25360,7 @@ export type Database = {
         Insert: {
           accounting_journal_id?: string | null
           aggregator_id?: string | null
+          aggregator_reference_number?: string | null
           amount_allocated?: number
           bank_reference?: string | null
           base_amount?: number | null
@@ -25400,6 +25402,7 @@ export type Database = {
         Update: {
           accounting_journal_id?: string | null
           aggregator_id?: string | null
+          aggregator_reference_number?: string | null
           amount_allocated?: number
           bank_reference?: string | null
           base_amount?: number | null
@@ -25497,45 +25500,125 @@ export type Database = {
           },
         ]
       }
+      upi_commission_remittance_batch_statements: {
+        Row: {
+          batch_id: string
+          created_at: string
+          file_name: string
+          file_size_bytes: number | null
+          id: string
+          mime_type: string | null
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          file_name: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          file_name?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_remittance_batch_statements_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_remittance_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upi_commission_remittance_batches: {
         Row: {
           aggregator_id: string | null
+          aggregator_reference_number: string | null
+          amount_expected: number | null
+          amount_outstanding: number | null
+          amount_received: number
           batch_reference: string
+          commission_period_code: string | null
           created_at: string
+          created_by: string | null
           currency: string
+          dispute_notes: string | null
+          dispute_opened_date: string | null
+          dispute_reason: string | null
+          dispute_resolved_date: string | null
           id: string
           institution_id: string | null
           notes: string | null
           payer_type: string
+          receipt_count: number
           received_date: string | null
+          reconciled_at: string | null
+          reconciled_by: string | null
           status: string
           total_amount: number | null
           updated_at: string
         }
         Insert: {
           aggregator_id?: string | null
+          aggregator_reference_number?: string | null
+          amount_expected?: number | null
+          amount_outstanding?: number | null
+          amount_received?: number
           batch_reference: string
+          commission_period_code?: string | null
           created_at?: string
+          created_by?: string | null
           currency?: string
+          dispute_notes?: string | null
+          dispute_opened_date?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_date?: string | null
           id?: string
           institution_id?: string | null
           notes?: string | null
           payer_type: string
+          receipt_count?: number
           received_date?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
           status?: string
           total_amount?: number | null
           updated_at?: string
         }
         Update: {
           aggregator_id?: string | null
+          aggregator_reference_number?: string | null
+          amount_expected?: number | null
+          amount_outstanding?: number | null
+          amount_received?: number
           batch_reference?: string
+          commission_period_code?: string | null
           created_at?: string
+          created_by?: string | null
           currency?: string
+          dispute_notes?: string | null
+          dispute_opened_date?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_date?: string | null
           id?: string
           institution_id?: string | null
           notes?: string | null
           payer_type?: string
+          receipt_count?: number
           received_date?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
           status?: string
           total_amount?: number | null
           updated_at?: string
@@ -25547,6 +25630,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "upi_aggregators"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_remittance_batches_commission_period_code_fkey"
+            columns: ["commission_period_code"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_periods"
+            referencedColumns: ["code"]
           },
           {
             foreignKeyName: "upi_commission_remittance_batches_institution_id_fkey"
@@ -34892,12 +34982,20 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      fn_refresh_aggregator_invoice_totals: {
+        Args: { p_agg_invoice_id: string }
+        Returns: undefined
+      }
       fn_refresh_receipt_allocation_totals: {
         Args: { p_receipt_id: string }
         Returns: undefined
       }
       fn_refresh_receipt_fx_review: {
         Args: { p_receipt_id: string }
+        Returns: undefined
+      }
+      fn_refresh_remittance_batch_totals: {
+        Args: { p_batch_id: string }
         Returns: undefined
       }
       fn_register_batch_statement: {
