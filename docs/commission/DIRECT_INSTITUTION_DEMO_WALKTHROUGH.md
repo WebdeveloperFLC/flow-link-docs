@@ -13,8 +13,10 @@
 |-------------|--------|------|-------|
 | Seneca Polytechnic | `11111111-1111-1111-1111-111111110001` | `seneca-polytechnic` | Seneca Direct Partnership |
 | Conestoga College | `11111111-1111-1111-1111-111111110002` | `conestoga-college` | Conestoga Direct Partnership |
-| Humber Polytechnic | `44444444-1111-1111-1111-111111110001` | `humber-polytechnic` | Humber Direct Partnership |
-| Sheridan College | `44444444-1111-1111-1111-111111110002` | `sheridan-college` | Sheridan Direct Partnership |
+| Humber Polytechnic | *resolved at seed* (existing Institution Master row) | `humber-polytechnic` | Humber Direct Partnership |
+| Sheridan College | *resolved at seed* (existing Institution Master row) | `sheridan-college` | Sheridan Direct Partnership |
+
+Humber and Sheridan IDs are looked up by normalized name + country (`upi_institution_dedup_key`) so the seed never violates `idx_upi_institutions_dedup_unique`. Find the live ID: Institutions list → search **Humber Polytechnic** or **Sheridan College**.
 
 **Navigation:** Institutions → select institution → tabs **Overview · Agreements · Commissions · Billing · Eligibility · Fee Schedule · Claims · Receipts**.
 

@@ -14,8 +14,10 @@ DECLARE
 
   v_seneca constant uuid := '11111111-1111-1111-1111-111111110001';
   v_conestoga constant uuid := '11111111-1111-1111-1111-111111110002';
-  v_humber constant uuid := '44444444-1111-1111-1111-111111110001';
-  v_sheridan constant uuid := '44444444-1111-1111-1111-111111110002';
+  v_humber_fallback constant uuid := '44444444-1111-1111-1111-111111110001';
+  v_sheridan_fallback constant uuid := '44444444-1111-1111-1111-111111110002';
+  v_humber uuid;
+  v_sheridan uuid;
 
   v_route_seneca uuid;
   v_route_conestoga uuid;
@@ -181,45 +183,76 @@ BEGIN
     metadata = metadata || v_meta || jsonb_build_object('demo_institution', 'conestoga')
   WHERE id = v_conestoga;
 
-  INSERT INTO public.upi_institutions (
-    id, name, slug, country_id, country_name, city, state_province, institution_type,
-    website_url, is_active, is_partner, partner_since, institution_status, metadata
-  ) VALUES (
-    v_humber, 'Humber Polytechnic', 'humber-polytechnic', v_ca_country, 'Canada',
-    'Toronto', 'Ontario', 'Polytechnic', 'https://www.humber.ca',
-    true, true, DATE '2024-01-15', 'Active', v_meta || jsonb_build_object('demo_institution', 'humber')
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    name = EXCLUDED.name,
-    slug = EXCLUDED.slug,
-    country_name = EXCLUDED.country_name,
-    city = EXCLUDED.city,
-    state_province = EXCLUDED.state_province,
-    institution_type = EXCLUDED.institution_type,
-    website_url = EXCLUDED.website_url,
-    is_partner = true,
-    institution_status = 'Active',
-    metadata = public.upi_institutions.metadata || EXCLUDED.metadata;
+  -- Humber / Sheridan may already exist (Institution Master dedup) — resolve by name+country, never duplicate insert
+  SELECT i.id INTO v_humber
+  FROM public.upi_institutions i
+  WHERE public.upi_institution_dedup_key(i.name, i.country_name)
+      = public.upi_institution_dedup_key('Humber Polytechnic', 'Canada')
+  ORDER BY i.is_partner DESC NULLS LAST, i.created_at ASC
+  LIMIT 1;
 
-  INSERT INTO public.upi_institutions (
-    id, name, slug, country_id, country_name, city, state_province, institution_type,
-    website_url, is_active, is_partner, partner_since, institution_status, metadata
-  ) VALUES (
-    v_sheridan, 'Sheridan College', 'sheridan-college', v_ca_country, 'Canada',
-    'Oakville', 'Ontario', 'Public College', 'https://www.sheridancollege.ca',
-    true, true, DATE '2024-03-01', 'Active', v_meta || jsonb_build_object('demo_institution', 'sheridan')
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    name = EXCLUDED.name,
-    slug = EXCLUDED.slug,
-    country_name = EXCLUDED.country_name,
-    city = EXCLUDED.city,
-    state_province = EXCLUDED.state_province,
-    institution_type = EXCLUDED.institution_type,
-    website_url = EXCLUDED.website_url,
-    is_partner = true,
-    institution_status = 'Active',
-    metadata = public.upi_institutions.metadata || EXCLUDED.metadata;
+  IF v_humber IS NULL THEN
+    v_humber := v_humber_fallback;
+    INSERT INTO public.upi_institutions (
+      id, name, slug, country_id, country_name, city, state_province, institution_type,
+      website_url, is_active, is_partner, partner_since, institution_status, metadata
+    ) VALUES (
+      v_humber, 'Humber Polytechnic', 'humber-polytechnic', v_ca_country, 'Canada',
+      'Toronto', 'Ontario', 'Polytechnic', 'https://www.humber.ca',
+      true, true, DATE '2024-01-15', 'Active', v_meta || jsonb_build_object('demo_institution', 'humber')
+    );
+  ELSE
+    UPDATE public.upi_institutions SET
+      name = 'Humber Polytechnic',
+      slug = COALESCE(NULLIF(trim(slug), ''), 'humber-polytechnic'),
+      country_name = 'Canada',
+      country_id = COALESCE(country_id, v_ca_country),
+      city = COALESCE(NULLIF(trim(city), ''), 'Toronto'),
+      state_province = 'Ontario',
+      institution_type = COALESCE(institution_type, 'Polytechnic'),
+      website_url = COALESCE(NULLIF(trim(website_url), ''), 'https://www.humber.ca'),
+      is_partner = true,
+      partner_since = COALESCE(partner_since, DATE '2024-01-15'),
+      institution_status = 'Active',
+      is_active = true,
+      metadata = metadata || v_meta || jsonb_build_object('demo_institution', 'humber')
+    WHERE id = v_humber;
+  END IF;
+
+  SELECT i.id INTO v_sheridan
+  FROM public.upi_institutions i
+  WHERE public.upi_institution_dedup_key(i.name, i.country_name)
+      = public.upi_institution_dedup_key('Sheridan College', 'Canada')
+  ORDER BY i.is_partner DESC NULLS LAST, i.created_at ASC
+  LIMIT 1;
+
+  IF v_sheridan IS NULL THEN
+    v_sheridan := v_sheridan_fallback;
+    INSERT INTO public.upi_institutions (
+      id, name, slug, country_id, country_name, city, state_province, institution_type,
+      website_url, is_active, is_partner, partner_since, institution_status, metadata
+    ) VALUES (
+      v_sheridan, 'Sheridan College', 'sheridan-college', v_ca_country, 'Canada',
+      'Oakville', 'Ontario', 'Public College', 'https://www.sheridancollege.ca',
+      true, true, DATE '2024-03-01', 'Active', v_meta || jsonb_build_object('demo_institution', 'sheridan')
+    );
+  ELSE
+    UPDATE public.upi_institutions SET
+      name = 'Sheridan College',
+      slug = COALESCE(NULLIF(trim(slug), ''), 'sheridan-college'),
+      country_name = 'Canada',
+      country_id = COALESCE(country_id, v_ca_country),
+      city = COALESCE(NULLIF(trim(city), ''), 'Oakville'),
+      state_province = 'Ontario',
+      institution_type = COALESCE(institution_type, 'Public College'),
+      website_url = COALESCE(NULLIF(trim(website_url), ''), 'https://www.sheridancollege.ca'),
+      is_partner = true,
+      partner_since = COALESCE(partner_since, DATE '2024-03-01'),
+      institution_status = 'Active',
+      is_active = true,
+      metadata = metadata || v_meta || jsonb_build_object('demo_institution', 'sheridan')
+    WHERE id = v_sheridan;
+  END IF;
 
   -- Campuses (upsert by institution + name)
   INSERT INTO public.upi_campuses (id, institution_id, name, city, state_province, country_name, is_main_campus)
@@ -703,7 +736,7 @@ BEGIN
     v_snap_priya, 2000, 'CAD', 'full_line'
   );
 
-  RAISE NOTICE 'Commission Direct Partner demo seed applied (pack=%)', v_pack;
+  RAISE NOTICE 'Commission Direct Partner demo seed applied (pack=%). Humber=% Sheridan=%', v_pack, v_humber, v_sheridan;
 END;
 $$;
 
