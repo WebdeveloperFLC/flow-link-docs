@@ -304,6 +304,19 @@ export function CommissionReceiptWizard({
     [status, receiptAmount, amountAllocated, unallocatedAmount, fxReviewStatus],
   );
 
+  const parseReceiptAmount = () => {
+    const n = Number(receiptAmount);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const headerValidationError = (): string | null => {
+    if (parseReceiptAmount() <= 0) return "Receipt amount required";
+    if (isAggregator && !remittanceBatchId) {
+      return "Select a remittance batch before recording receipt";
+    }
+    return null;
+  };
+
   const persistStep = async (nextStep: number) => {
     const metadata = { wizard_step: nextStep };
     if (receiptId) {
@@ -321,10 +334,12 @@ export function CommissionReceiptWizard({
       });
       if (error) throw new Error(error.message);
     } else {
+      const amount = parseReceiptAmount();
+      if (amount <= 0) throw new Error("Receipt amount required");
       const { data, error } = await supabase.rpc("fn_create_commission_receipt" as any, {
         p_payer_type: isAggregator ? "aggregator" : "institution",
         p_payer_id: payerId,
-        p_receipt_amount: Number(receiptAmount),
+        p_receipt_amount: amount,
         p_receipt_currency: receiptCurrency,
         p_exchange_rate: Number(exchangeRate) || 1,
         p_receipt_date: receiptDate,
@@ -425,8 +440,8 @@ export function CommissionReceiptWizard({
 
   const goNext = async () => {
     if (step === "Header") {
-      if (!receiptAmount || Number(receiptAmount) <= 0) return toast.error("Receipt amount required");
-      if (isAggregator && !remittanceBatchId) return toast.error("Select a remittance batch before recording receipt");
+      const headerErr = headerValidationError();
+      if (headerErr) return toast.error(headerErr);
       setBusy(true);
       try {
         await persistStep(1);
@@ -470,6 +485,10 @@ export function CommissionReceiptWizard({
   };
 
   const saveDraftAndClose = async () => {
+    if (stepIdx === 0 && !receiptId) {
+      const headerErr = headerValidationError();
+      if (headerErr) return toast.error(headerErr);
+    }
     setBusy(true);
     try {
       await persistStep(stepIdx);

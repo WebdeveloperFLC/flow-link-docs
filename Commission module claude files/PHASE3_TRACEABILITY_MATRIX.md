@@ -168,7 +168,7 @@
 | SQL-V | `commission_phase3_f34_verification.sql` | Owner | **PASS** | 2026-06-30 |
 | SQL-S | `commission_phase3_f34_security_uat.sql` | Owner | **PENDING** | |
 | A1 | Admin Claims — recalc, submit | Owner | **PENDING** | |
-| A2 | Admin Receipts — open, post, void | Owner | **PENDING** | |
+| A2 | Admin Receipts — open, post, void | Owner | **FAIL → FIX** | 2026-06-30 — empty amount on Save draft; fixed `CommissionReceiptWizard` validation |
 | A3 | Counselor — lifecycle, no amounts | Owner | **PENDING** | |
 | P1-sec | Phase 1 subset (PF-1, PF-2, Scn1, G-3) | Owner | **PENDING** | |
 | P2A-sec | Phase 2A subset (2A-1,3,11,12,15,16,20) | Owner | **PENDING** | |
