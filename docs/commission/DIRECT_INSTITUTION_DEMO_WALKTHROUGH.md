@@ -1,9 +1,11 @@
 # Direct Institution Partner — Demo Data & UAT Walkthrough
 
 **Demo pack:** `crm-direct-uat-v1`  
-**Migration:** `supabase/migrations/20261031120000_commission_direct_partner_demo_seed.sql`  
-**Re-apply locally:** `SELECT public.fn_seed_commission_direct_partner_demo();`  
-**Prerequisite:** Log in as a user with **commission confidential** access (`can_view_upi_confidential`).
+**Migrations:**
+- `20261031120000_commission_direct_partner_demo_seed.sql` — creates `fn_seed_commission_direct_partner_demo()`
+- `20261031120001_commission_direct_partner_demo_run.sql` — runs the seed (approve **both** in Lovable Publish)
+
+**Re-apply after Publish:** `SELECT public.fn_seed_commission_direct_partner_demo();` (only works once the function migration has succeeded)
 
 ---
 

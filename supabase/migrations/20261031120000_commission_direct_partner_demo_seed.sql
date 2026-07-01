@@ -743,4 +743,5 @@ $$;
 COMMENT ON FUNCTION public.fn_seed_commission_direct_partner_demo IS
   'Idempotent UAT demo: Seneca, Conestoga, Humber, Sheridan direct institution commission workflows.';
 
-SELECT public.fn_seed_commission_direct_partner_demo();
+GRANT EXECUTE ON FUNCTION public.fn_seed_commission_direct_partner_demo() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.fn_seed_commission_direct_partner_demo() TO service_role;
