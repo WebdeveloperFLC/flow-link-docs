@@ -1,9 +1,12 @@
 # Direct Institution Partner — Demo Data & UAT Walkthrough
 
 **Demo pack:** `crm-direct-uat-v1`  
+**UAT guide:** [Business UAT Round 1](./DIRECT_INSTITUTION_BUSINESS_UAT_ROUND1.md)
+
 **Migrations:**
-- `20261031120000_commission_direct_partner_demo_seed.sql` — creates `fn_seed_commission_direct_partner_demo()`
-- `20261031120001_commission_direct_partner_demo_run.sql` — runs the seed (approve **both** in Lovable Publish)
+- `20261031120000` … `20261031120003` — base demo seed
+- `20261031120004` — UAT Round 1 templates + extra students (`fn_apply_commission_demo_uat_templates`)
+- `20261031120005` — seed hook (calls template apply after base seed)
 
 **Re-apply after Publish:** `SELECT public.fn_seed_commission_direct_partner_demo();` (only works once the function migration has succeeded)
 
@@ -20,7 +23,7 @@
 
 Humber and Sheridan IDs are looked up by normalized name + country (`upi_institution_dedup_key`) so the seed never violates `idx_upi_institutions_dedup_unique`. Find the live ID: Institutions list → search **Humber Polytechnic** or **Sheridan College**.
 
-**Navigation:** Institutions → select institution → tabs **Overview · Agreements · Commissions · Billing · Eligibility · Fee Schedule · Claims · Receipts**.
+**Navigation:** Institutions → select institution → tabs **Overview · Agreements · Commissions · Billing · Eligibility · Fee Schedule · Claims · Commission payments**.
 
 ---
 

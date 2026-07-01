@@ -1,6 +1,6 @@
 # Direct Institution Claim Workflow — UX Redesign (Business-First)
 
-**Status:** Implemented (UX only — no RFC)  
+**Status:** UAT Round 1 ready (UX only — no RFC)  
 **Frozen:** Business Architecture V2.0, Implementation Bible, entity model, calculations, SSOT  
 **Governance:** [ERP Delivery Standards](../erp-governance/DELIVERY_STANDARDS.md)
 

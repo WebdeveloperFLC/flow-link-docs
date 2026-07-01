@@ -26,9 +26,11 @@ import { ClaimWorkflowStrip } from "./claims/ClaimWorkflowStrip";
 import { ClaimStudentVerificationTable } from "./claims/ClaimStudentVerificationTable";
 import { ClaimValidationDialog } from "./claims/ClaimValidationDialog";
 import { ClaimSubmissionPackageDialog } from "./claims/ClaimSubmissionPackageDialog";
+import { CommissionAmountExplainDialog } from "./claims/CommissionAmountExplainDialog";
 import {
+  buildCommissionExplanation,
   computeClaimSummary,
-  submissionTemplate,
+  parseInstitutionTemplate,
   validateClaimForSubmission,
   type ClaimStudentRow,
 } from "../lib/claimBusinessView";
@@ -187,6 +189,11 @@ export function ClaimsPanel({
   const [validatedAtByCycle, setValidatedAtByCycle] = useState<Record<string, string>>({});
   const [validationFor, setValidationFor] = useState<{ cycleId: string; periodLabel: string; issues: ReturnType<typeof validateClaimForSubmission> } | null>(null);
   const [packageFor, setPackageFor] = useState<{ cycleId: string; periodLabel: string } | null>(null);
+  const [packageApprovedByCycle, setPackageApprovedByCycle] = useState<Record<string, string>>({});
+  const [explainFor, setExplainFor] = useState<{
+    student: ClaimStudentRow;
+    type: "expected" | "approved" | "received" | "outstanding" | "commissionable";
+  } | null>(null);
 
   const loadAll = async () => {
     setLoading(true);
@@ -394,7 +401,17 @@ export function ClaimsPanel({
 
   const confirmValidation = (cycleId: string) => {
     setValidatedAtByCycle((prev) => ({ ...prev, [cycleId]: new Date().toISOString() }));
-    toast.success("Claim validated — you may preview and submit");
+    setPackageApprovedByCycle((prev) => {
+      const next = { ...prev };
+      delete next[cycleId];
+      return next;
+    });
+    toast.success("Claim validated — preview submission package next");
+  };
+
+  const approvePackage = (cycleId: string) => {
+    setPackageApprovedByCycle((prev) => ({ ...prev, [cycleId]: new Date().toISOString() }));
+    toast.success("Submission package approved — you may submit the claim");
   };
 
   const trySubmitClaim = (cycleId: string, cycleLabel: string) => {
@@ -403,9 +420,29 @@ export function ClaimsPanel({
       runValidate(cycleId, cycleLabel);
       return;
     }
+    if (!packageApprovedByCycle[cycleId]) {
+      toast.error("Approve submission package before submitting");
+      setPackageFor({ cycleId, periodLabel: cycleLabel });
+      return;
+    }
     const rows = byCycle.get(cycleId) ?? [];
     const inv = invByCycle.get(cycleId);
-    const summary = computeClaimSummary(rows as ClaimStudentRow[], inv ?? null, { validated: true });
+    const cycle = cycles.find((c: any) => c.id === cycleId);
+    const summary = computeClaimSummary(
+      rows as ClaimStudentRow[],
+      inv
+        ? {
+            id: inv.id,
+            invoice_number: inv.invoice_number,
+            status: inv.status,
+            total_amount: inv.total_amount,
+            currency: inv.currency,
+            due_date: inv.due_date,
+          }
+        : null,
+      cycle ? { period_label: cycle.period_label, claim_due_date: cycle.claim_due_date, invoice_due_date: cycle.invoice_due_date } : null,
+      { validated: true },
+    );
     if (!summary.canSubmitToday) {
       toast.error("Submission blocked — resolve issues in the claim summary");
       return;
@@ -532,7 +569,7 @@ export function ClaimsPanel({
             const inv = invByCycle.get(c.id);
             const validated = !!validatedAtByCycle[c.id];
             const validatedAt = validatedAtByCycle[c.id] ?? null;
-            const tmpl = submissionTemplate(
+            const tmplParsed = parseInstitutionTemplate(
               institutionMeta,
               defaultBillingProfile
                 ? { profile_name: defaultBillingProfile.profile_name, metadata: defaultBillingProfile.metadata }
@@ -547,8 +584,17 @@ export function ClaimsPanel({
                     status: inv.status,
                     total_amount: inv.total_amount,
                     currency: inv.currency,
+                    due_date: inv.due_date,
+                    amount_received: (inv as any).amount_received,
+                    amount_outstanding: (inv as any).amount_outstanding,
                   }
                 : null,
+              {
+                period_label: c.period_label,
+                claim_due_date: c.claim_due_date,
+                invoice_due_date: c.invoice_due_date,
+                id: c.id,
+              },
               { validated },
             );
             const readyCount = rows.filter((s) => isReadyForClaim(s as Student) && s.claim_status !== "submitted").length;
@@ -559,8 +605,8 @@ export function ClaimsPanel({
                   institutionName={institutionName}
                   periodLabel={c.period_label}
                   cycleStatus={c.status}
-                  submissionMethod={tmpl.method}
-                  submissionTemplate={tmpl.label}
+                  submissionMethod={tmplParsed.method}
+                  submissionTemplate={tmplParsed.label}
                   billingProfileName={defaultBillingProfile?.profile_name}
                   claimDueDate={c.claim_due_date}
                   validated={validated}
@@ -573,7 +619,7 @@ export function ClaimsPanel({
                   canSubmit={summary.canSubmitToday && readyCount > 0}
                   onRecalculate={() => recalcCycle(c.id)}
                   onValidate={() => runValidate(c.id, c.period_label)}
-                  onPreview={() => printCycleNow(c)}
+                  onPreview={() => setPackageFor({ cycleId: c.id, periodLabel: c.period_label })}
                   onPackage={() => setPackageFor({ cycleId: c.id, periodLabel: c.period_label })}
                   onSubmit={() => trySubmitClaim(c.id, c.period_label)}
                   onInvoice={() => (inv ? setViewInvoice(inv) : generateInvoice(c.id))}
@@ -588,6 +634,7 @@ export function ClaimsPanel({
                     onLifecycle={(s, mode, tid) => openLifecycle(s as Student, mode, tid)}
                     onRecalc={(s) => recalcStudent(s as Student)}
                     onMoveCarryForward={(s) => moveToNextCycle(s as Student)}
+                    onExplainAmount={(s, type) => setExplainFor({ student: s, type })}
                     transferByStudent={transferByStudent}
                     recalcBusyId={recalcBusy}
                     onUpdated={loadAll}
@@ -626,10 +673,14 @@ export function ClaimsPanel({
                         )}
                       </div>
                     </div>
-                  ) : readyCount > 0 ? (
+                  ) : readyCount > 0 && tmplParsed.requiresInvoice ? (
                     <Button size="sm" variant="outline" onClick={() => generateInvoice(c.id)}>
                       <FilePlus2 className="size-4 mr-1" /> Generate invoice ({readyCount} ready)
                     </Button>
+                  ) : tmplParsed.directPaymentOnly ? (
+                    <div className="text-xs text-muted-foreground">
+                      Direct commission payment — no invoice required for this institution.
+                    </div>
                   ) : (
                     <div className="text-xs text-muted-foreground">No invoice yet — validate claim and mark students ready first.</div>
                   )}
@@ -725,28 +776,42 @@ export function ClaimsPanel({
 
         {packageFor && (() => {
           const cycle = cycles.find((c: any) => c.id === packageFor.cycleId);
-          const rows = byCycle.get(packageFor.cycleId) ?? [];
+          const rows = (byCycle.get(packageFor.cycleId) ?? []) as ClaimStudentRow[];
           const inv = invByCycle.get(packageFor.cycleId);
-          const tmpl = submissionTemplate(institutionMeta, defaultBillingProfile ? { profile_name: defaultBillingProfile.profile_name, metadata: defaultBillingProfile.metadata } : null);
+          const tmpl = parseInstitutionTemplate(
+            institutionMeta,
+            defaultBillingProfile ? { profile_name: defaultBillingProfile.profile_name, metadata: defaultBillingProfile.metadata } : null,
+          );
           const expectedTotal = rows.reduce((sum, s) => sum + Number(s.expected_amount ?? s.commission_amount ?? 0), 0);
+          const snapshotCount = rows.filter((s) => s.commission_snapshot_id).length;
           return (
             <ClaimSubmissionPackageDialog
               open
               onClose={() => setPackageFor(null)}
+              onApprove={() => approvePackage(packageFor.cycleId)}
+              approved={!!packageApprovedByCycle[packageFor.cycleId]}
               periodLabel={packageFor.periodLabel}
               institutionName={institutionName}
-              templateLabel={tmpl.label}
-              submissionMethod={tmpl.method}
-              studentCount={rows.length}
+              template={tmpl}
+              students={rows}
               expectedTotal={fmt(expectedTotal)}
               hasInvoice={!!inv}
               invoiceNumber={inv?.invoice_number}
+              validatedAt={validatedAtByCycle[packageFor.cycleId]}
+              validationIssues={validateClaimForSubmission(rows)}
+              snapshotCount={snapshotCount}
               onExportCsv={() => cycle && exportCycleCsv(cycle)}
               onPrint={() => cycle && printCycleNow(cycle)}
               onDownloadInvoice={inv ? () => downloadInvoicePdf(inv) : undefined}
             />
           );
         })()}
+
+        <CommissionAmountExplainDialog
+          open={!!explainFor}
+          onClose={() => setExplainFor(null)}
+          explanation={explainFor ? buildCommissionExplanation(explainFor.student, explainFor.type) : null}
+        />
 
         {/* Hidden print roots — visible only via @media print when fl-print-active */}
         {printCycle && (
