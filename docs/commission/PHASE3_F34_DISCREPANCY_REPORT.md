@@ -58,12 +58,7 @@ Until migrations are applied on a real Postgres instance:
 1. Ensure `main` includes commits `20261030120000` + `20261030120100` (already on GitHub).
 2. **Lovable → Sync from GitHub → Publish** — approve both pending migrations.
 3. Hard refresh the app.
-4. Run verification (Supabase SQL Editor):
-
-```bash
-# Paste/run file contents:
-supabase/tests/commission_phase3_f34_verification.sql
-```
+4. Run verification in **Supabase SQL Editor** — paste entire file `supabase/tests/commission_phase3_f34_verification.sql` (plain SQL; no psql `\set` commands).
 
 5. Execute manual UAT: `docs/guides/PHASE1_COMMISSION_UAT.md`, `PHASE2A_COMMISSION_UAT.md`, `PHASE2B_COMMISSION_UAT.md`.
 6. Update `Commission module claude files/PHASE3_TRACEABILITY_MATRIX.md` — mark F3.4 **DN** only if all gates pass.
