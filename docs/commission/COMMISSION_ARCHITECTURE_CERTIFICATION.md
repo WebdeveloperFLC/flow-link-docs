@@ -275,7 +275,7 @@ These are **documentation only** — not architecture changes.
 
 | Certification | Result |
 |---------------|--------|
-| Ecosystem lifecycles captured in frozen requirements | **Mostly — 2 thin areas noted** |
+| Ecosystem lifecycles captured in frozen requirements | **Yes** — student business lifecycle + referral partner lifecycle added (V1.1 final) |
 | Ecosystem lifecycles implemented today | **No** |
 | Every financial number explainable today | **No** |
 | Every financial number explainable after V2 build | **Yes** (Direct after P0; full ecosystem after P0+P1+Phase 5) |
@@ -283,7 +283,7 @@ These are **documentation only** — not architecture changes.
 
 **Certified by:** Cursor Agent (Architecture Validation)  
 **Date:** 2026-06-30  
-**Valid for:** Business sign-off of frozen Business Architecture V2.0  
+**Superseded by freeze:** [COMMISSION_BUSINESS_ARCHITECTURE_V2_FROZEN.md](./COMMISSION_BUSINESS_ARCHITECTURE_V2_FROZEN.md)  
 
 ---
 

@@ -1,9 +1,10 @@
 # Commission Business Requirements Addendum V1.1
 
 **Document type:** Frozen business requirements (Business SSOT)  
-**Version:** 1.1  
+**Version:** 1.1 (final)  
 **Date:** 30 June 2026  
-**Status:** **FROZEN** — approved; changes require ERP RFC  
+**Status:** **FROZEN** — Business Architecture V2.0; changes require ERP RFC  
+**Internal module name:** **Commission & Revenue Management** (user-facing UI label remains *Commission*)  
 **Supersedes:** [V1.0](./COMMISSION_BUSINESS_REQUIREMENTS_ADDENDUM_V1.md)
 **Parent validation:** [Commission Business Domain Validation Report](./COMMISSION_BUSINESS_DOMAIN_VALIDATION_REPORT.md) (approved)  
 **Governance:** Upon approval, these requirements are frozen. Changes require ERP Change Request (RFC).  
@@ -14,7 +15,7 @@
 
 ## Document Purpose
 
-This addendum stabilizes business requirements discovered during the Business Domain Validation (June 2026). It captures operational workflows, business rules, and configuration needs that the current Commission Module must support — reflecting **Future Link's actual operations**, not a generic commission system.
+This addendum stabilizes business requirements discovered during the Business Domain Validation (June 2026). It captures operational workflows, business rules, and configuration needs that **Commission & Revenue Management** (internally; UI: *Commission*) must support — reflecting **Future Link's actual operations**, not a generic commission system.
 
 **This document does not:**
 
@@ -22,7 +23,7 @@ This addendum stabilizes business requirements discovered during the Business Do
 - Specify database schema, migrations, or UI implementation (see Implementation Bible V2)  
 - Modify the frozen ERP Bible archive (ERP Part 6 update follows V2 approval)
 
-**Status:** Merged into [Implementation Bible V2](./Commission_Module_Implementation_Bible_V2.md). Phase 3 resumes only after Bible V2 is approved.
+**Status:** Merged into [Implementation Bible V2](./Commission_Module_Implementation_Bible_V2.md). **Business Architecture V2.0 frozen** — implementation may continue.
 
 ---
 
@@ -103,13 +104,70 @@ Business rules are binding constraints. They apply regardless of implementation 
 | ID | Rule | Priority |
 |----|------|----------|
 | BR-S01 | Every commission-relevant lifecycle event must be preserved as an immutable event. Events must not overwrite prior state without an audit record. | P0 |
-| BR-S02 | Supported lifecycle events (minimum set): Eligible, Submitted, Approved, Rejected, Withdrawn, Deferred, Outstanding Tuition, Visa Refused, Program Changed, Campus Changed, Internal Transfer, Transfer to Another Institution, Transfer Through Future Link, Transfer Outside Future Link, Commission Cancelled, Commission Clawback, Commission Reassigned. | P0 |
+| BR-S02 | Supported **commission** lifecycle events (minimum set): Eligible, Submitted, Approved, Rejected, Withdrawn, Deferred, Outstanding Tuition, Visa Refused, Program Changed, Campus Changed, Internal Transfer, Transfer to Another Institution, Transfer Through Future Link, Transfer Outside Future Link, Commission Cancelled, Commission Clawback, Commission Reassigned. | P0 |
+| BR-S02a | Supported **student business lifecycle** stages (minimum set — see §1.6a): Lead, Application Submitted, Offer Issued, Admission Accepted, Enrollment, Study Started, Completed, Graduated. Each stage transition must be preserved as an immutable lifecycle event when commission-relevant. | P0 |
 | BR-S03 | Eligibility, claim status, and payment status remain logically separate (three-axis model). A student may be eligible but not yet on a claim; claimed but not yet paid; paid but subject to clawback. | P0 |
 | BR-S04 | Visa Refused and Withdrawn must trigger configurable outcomes: hold, cancel commission, or defer — per institution rules. | P1 |
 | BR-S05 | Program Changed and Campus Changed must generate preserved events; commission impact (recalc, cancel, defer) follows institution matrix rules. | P1 |
 | BR-S06 | Transfer events must record source and destination context (institution, program, campus, cycle) and link to any commission impact. | P0 |
 | BR-S07 | Clawback must reduce or recover commission with full audit trail; clawback may occur after payment (recovery via debit note or offset). | P1 |
 | BR-S08 | Commission Reassigned must record prior and new assignee (counselor, branch, route, or future payee) without losing original earning history. | P1 |
+
+### 1.6a Student Business Lifecycle (Documentation SSOT)
+
+The **student business lifecycle** spans CRM/admission through program completion. It is distinct from — but feeds — the **commission lifecycle** (BR-S02). Commission eligibility and claims attach to stages in this chain; every transition must be explainable years later (BR-S01).
+
+**Canonical stage order:**
+
+```
+Lead
+  ↓
+Application Submitted
+  ↓
+Offer Issued
+  ↓
+Admission Accepted
+  ↓
+Enrollment
+  ↓
+Study Started
+  ↓
+Completed
+  ↓
+Graduated
+```
+
+| Stage | Business meaning | Commission relevance |
+|-------|------------------|----------------------|
+| **Lead** | Prospective student identified/referred; not yet applied. | Referral attribution may attach; no commission earning yet. |
+| **Application Submitted** | Application lodged with institution (via Future Link or direct). | May trigger CRM → commission pending record creation (future auto-bridge). |
+| **Offer Issued** | Institution issued offer of admission. | Pre-enrollment; commission not claimable. |
+| **Admission Accepted** | Student accepted offer; place confirmed. | Eligibility triggers may begin per institution config (deposit, visa, etc.). |
+| **Enrollment** | Institution confirmed enrollment registration. | Core eligibility gate for many institutions. |
+| **Study Started** | Student commenced classes / term start. | Commission period triggers (semester/term payouts). |
+| **Completed** | Student completed program requirements (short of graduation ceremony). | Final commission period may apply; clawback rules may activate on early exit. |
+| **Graduated** | Student graduated / credential conferred. | Terminal positive state; commission lifecycle may close. |
+
+| ID | Rule | Priority |
+|----|------|----------|
+| BR-SL01 | Every student business lifecycle stage transition listed above must be recordable as an immutable **Lifecycle Event** when commission tracking is active for that student. | P0 |
+| BR-SL02 | Stages are **ordered** in the canonical chain; skipping a stage requires a documented override (OV-C08) or institution-configured fast-path — never silent skip. | P1 |
+| BR-SL03 | **Withdrawal**, **Transfer**, **Visa Refused**, and **Deferred** (BR-S02) may occur **after any post-Lead stage**; they append commission lifecycle events without erasing prior business lifecycle history. | P0 |
+| BR-SL04 | CRM/Admissions owns Lead through Application Submitted data entry; Commission & Revenue Management **consumes** stage transitions via events — it does not duplicate CRM as SSOT for contact data. | P0 |
+| BR-SL05 | A student may have multiple commission records across intakes or institutions; each record carries the business lifecycle stage at time of eligibility evaluation. | P1 |
+
+### 1.11 Referral Partner Rules
+
+| ID | Rule | Priority |
+|----|------|----------|
+| BR-R01 | Referral Partner lifecycle follows: **Referral → Approval → Settlement → Payment → Reconciliation**. Each stage must be preserved as an immutable event. | P3 |
+| BR-R02 | A **Referral** must link to a referral source (partner), referred student or client, partnership route, and referral agreement terms. | P3 |
+| BR-R03 | **Referral Approval** confirms the referral is valid and commissionable per agreement (may require manager approval). | P3 |
+| BR-R04 | **Referral Settlement** groups approved referrals into a payable batch; settlement amount derives from earning/allocation rules — not from institution receipt alone. | P3 |
+| BR-R05 | **Referral Payment** records amount paid to referral partner; must allocate back to each referred student/earning line. | P3 |
+| BR-R06 | **Referral Reconciliation** triangulates: ERP calculated referral fee, approved amount, paid amount, outstanding — parallel to institution reconciliation (BR-FR01). | P3 |
+| BR-R07 | Referral payout is independent of institution claim submission timing unless institution config explicitly ties them. | P3 |
+| BR-R08 | Referral clawback follows the same additive correction model as institution commission clawback (BR-S07, BR-FR04). | P3 |
 
 ### 1.7 Submission Lifecycle Rules
 
@@ -314,6 +372,54 @@ Operational scenarios describe end-to-end workflows Future Link staff perform. E
 | 2 | Create adjustment (credit note, debit note, resubmission version, or override) | Additive correction with reason |
 | 3 | Approval if threshold exceeded | Segregation of duties |
 | 4 | Audit trail shows original → correction chain | BR-U03 satisfied |
+
+---
+
+### 2.10 Student Business Lifecycle (End-to-End)
+
+**Actors:** Counselor, admissions, commission coordinator  
+**Scope:** Canonical business stages §1.6a — documentation SSOT; CRM consumes/produces stage events.
+
+```
+Lead → Application Submitted → Offer Issued → Admission Accepted
+  → Enrollment → Study Started → Completed → Graduated
+```
+
+| Stage | Expected system behavior |
+|-------|-------------------------|
+| Lead | Referral attribution captured if applicable; no commission earning |
+| Application Submitted | Lifecycle event recorded; may create pending commission record (future CRM bridge) |
+| Offer Issued | Event recorded; not claimable |
+| Admission Accepted | Eligibility evaluation may begin per institution config |
+| Enrollment | Eligibility trigger; student may enter claim draft |
+| Study Started | Academic period / commission period triggers apply |
+| Completed | Final-period commission rules; exit handling per matrix |
+| Graduated | Terminal positive state; commission lifecycle may close |
+
+**Branching:** Withdrawal, Transfer, Visa Refused, Deferred (§1.6) may occur after any post-Lead stage without erasing prior stage history (BR-SL03).
+
+**Postcondition:** Five years later, full business lifecycle chain is queryable alongside commission events.
+
+---
+
+### 2.11 Referral Partner Lifecycle
+
+**Actor:** Partner operations / finance  
+**Precondition:** Referral Partner agreement active; payee/earning model available (Phase 5). *Future Extension — P3.*
+
+```
+Referral → Approval → Settlement → Payment → Reconciliation
+```
+
+| Stage | Action | Expected outcome |
+|-------|--------|------------------|
+| **Referral** | Register referral source, referred student/client, route, agreement terms | Referral record created; linked to student business lifecycle (Lead/Application) where applicable |
+| **Approval** | Validate referral against agreement rules; manager approval if configured | Referral status → approved; ineligible referrals rejected with reason |
+| **Settlement** | Batch approved referrals into settlement period | Settlement total = sum of allocated referral fees per earning rules |
+| **Payment** | Pay referral partner; record payment reference | Payment allocated to each referral line |
+| **Reconciliation** | Match ERP calculated vs approved vs paid vs outstanding | Variances flagged; clawback via additive correction if required |
+
+**Postcondition:** Each referral fee explainable: why calculated, approved, paid, and any variance (BR-R01–R08).
 
 ---
 
@@ -850,7 +956,36 @@ erDiagram
 | **Direct Institution Partner** | Institution, Claim Cycle, Claim Draft, Submission, Invoice, Receipt | Operational scope |
 | **Aggregator** | Aggregator, multi-institution Claim Cycle, consolidated Invoice/Receipt | P1 — entities defined; partial implementation |
 | **B2B Partner** | Partnership Route, Earning, Payee, Settlement, Partner Payout | P3 — entities defined; not implemented |
-| **Referral Partner** | Earning, Payee (referral type), Settlement | P3 — future |
+| **Referral Partner** | Earning, Payee (referral type), Settlement, Referral Reconciliation | P3 — lifecycle §1.11, scenario §2.11 |
+
+### 9.6a Student Business Lifecycle (Entity Chain)
+
+Canonical business stages for every student in commission context (see §1.6a):
+
+| Order | Stage | Entity touchpoint |
+|-------|-------|-------------------|
+| 1 | Lead | CRM + optional Referral link |
+| 2 | Application Submitted | Lifecycle Event → Student Commission Record (pending) |
+| 3 | Offer Issued | Lifecycle Event |
+| 4 | Admission Accepted | Lifecycle Event; eligibility may begin |
+| 5 | Enrollment | Lifecycle Event; eligibility / claim axis |
+| 6 | Study Started | Lifecycle Event; commission period |
+| 7 | Completed | Lifecycle Event |
+| 8 | Graduated | Lifecycle Event; terminal |
+
+Commission lifecycle events (Withdrawal, Transfer, etc.) attach as **Lifecycle Events** without replacing business stage history.
+
+### 9.6b Referral Partner Lifecycle (Entity Chain)
+
+Canonical referral partner flow (see §1.11, scenario §2.11):
+
+| Order | Stage | Entity touchpoint |
+|-------|-------|-------------------|
+| 1 | Referral | Referral record → Student (Lead/Application) + Partnership Route |
+| 2 | Approval | Referral approval event; may use Override/approval fabric |
+| 3 | Settlement | Settlement batch → Earning allocations (referral payee) |
+| 4 | Payment | Partner Payout → allocation to referral lines |
+| 5 | Reconciliation | Referral Reconciliation Record (calculated / approved / paid / outstanding) |
 
 ### 9.7 SSOT Hierarchy
 
@@ -866,14 +1001,16 @@ Implementation must not invent business entities not defined here without RFC.
 
 ## 10. ERP Commission Glossary
 
-Alphabetical definitions of business terms used in the Commission Module and this addendum. Terms marked *(future)* are defined for platform alignment but not yet operational.
+Alphabetical definitions of business terms used in **Commission & Revenue Management** (internal module name; UI: *Commission*) and this addendum. Terms marked *(future)* are defined for platform alignment but not yet operational.
 
 | Term | Definition |
 |------|------------|
 | **Academic Period** | An institution-defined division of the academic calendar (semester, term, trimester, quarter, or custom). Used to scope commission claims and display labels. |
+| **Admission Accepted** | Student business lifecycle stage: offer accepted and place confirmed; eligibility triggers may begin. |
 | **Aggregator** | A partner organization that represents multiple institutions; Future Link may submit consolidated claims and receive consolidated payments. *(future P1)* |
 | **Agreement Version** | An effective-dated snapshot of commercial terms under an institution agreement. |
 | **Allocation** | Assignment of a receipt amount to an invoice line and/or student commission line for traceability. |
+| **Application Submitted** | Student business lifecycle stage: application lodged with institution; recorded as lifecycle event. |
 | **Approved Commission** | Commission amount accepted for payment — may equal Calculated or reflect institution-approved adjustment. |
 | **B2B Partner** | External business partner receiving contracted revenue share via partnership route. *(future P3)* |
 | **Billing Profile** | Configuration storing billing contact, address, currency, tax registration, and remittance — **not** claim content. |
@@ -887,7 +1024,9 @@ Alphabetical definitions of business terms used in the Commission Module and thi
 | **Commission Base** | See **Commissionable Tuition** and **Institution Approved Commission Base**. |
 | **Commission Plan** | Named, versioned collection of commission rules for an institution or route. |
 | **Commission Rule** | A scoped rate or bonus matching student/program attributes and effective dates. |
+| **Commission & Revenue Management** | Internal ERP module encompassing institution commission, revenue verification, settlement, partner payout, and future revenue sources. User-facing nav label remains *Commission*. |
 | **Commissionable Tuition** | The portion of tuition on which commission is calculated — excludes non-commissionable fees unless overridden. |
+| **Completed** | Student business lifecycle stage: program requirements completed (may precede graduation ceremony). |
 | **Consent Form** | Student authorization required by some institutions before commission is claimable. |
 | **Credit Note** | Additive financial document reducing outstanding amount without editing original invoice. |
 | **Debit Note** | Additive financial document increasing amount owed without editing original invoice. |
@@ -901,6 +1040,7 @@ Alphabetical definitions of business terms used in the Commission Module and thi
 | **Eligibility** | Whether a student meets configured triggers to be included on a claim. |
 | **Eligibility Configuration** | Versioned institution rules defining eligibility triggers. |
 | **Enrollment Status** | Student's enrollment state at institution (pending, enrolled, withdrawn, deferred, etc.). |
+| **Enrollment** | Student business lifecycle stage: institution confirmed registration; core eligibility gate for many partners. |
 | **ERP Calculated Amount** | System-computed commission before submission adjustments. |
 | **Fee & Commission Matrix** | Multi-dimensional lookup of fees and commission rates by scope dimensions. |
 | **Financial Event** | Published money-moving event from Commission to Finance for journal posting. |
@@ -908,6 +1048,7 @@ Alphabetical definitions of business terms used in the Commission Module and thi
 | **Financial Verification Checkpoint** | Mandatory pre-submit review chain confirming student through final claim. |
 | **Future Link Legal Entity** | The invoicing Future Link entity (name, address, tax ID) — must be configurable. |
 | **Gross Tuition** | Total tuition before scholarships and discounts. |
+| **Graduated** | Student business lifecycle terminal stage: credential conferred. |
 | **Hold** | Temporary deferral of a student from claim submission pending resolution. |
 | **Institution** | Partner school or training provider paying commission to Future Link. |
 | **Institution Approved Amount** | Commission or base amount confirmed by institution after review — may differ from submitted. |
@@ -916,10 +1057,12 @@ Alphabetical definitions of business terms used in the Commission Module and thi
 | **Institution Agreement** | Master commercial contract governing commission terms. |
 | **Intake** | Student's start period (season, month, year) at institution. |
 | **Invoice Specimen** | Reusable template for commission invoice layout. |
-| **Lifecycle Event** | Immutable recorded commission-relevant occurrence (transfer, visa refused, clawback, etc.). |
+| **Lead** | Student business lifecycle stage: prospective student identified; referral attribution may attach. |
+| **Lifecycle Event** | Immutable recorded commission-relevant occurrence (transfer, visa refused, clawback, business stage transition, etc.). |
 | **Net Revenue** | Future Link revenue after clawbacks, partner shares, and adjustments. |
 | **Net Tuition Paid** | Tuition actually paid by student after aid — distinct from commissionable base. |
 | **Non-Commissionable Fees** | Fees excluded from commission base (application, insurance, materials, etc.). |
+| **Offer Issued** | Student business lifecycle stage: institution issued admission offer. |
 | **One-Click Claim Generation** | Automated production of claim package from specimens after students finalized. |
 | **Other / Override** | Mandatory catch-all choice when no predefined option applies; requires explanation. |
 | **Outstanding Amount** | Amount still owed after receipts and credit/debit notes applied. |
@@ -935,6 +1078,10 @@ Alphabetical definitions of business terms used in the Commission Module and thi
 | **Published Tuition** | Institution-published list tuition before student-specific adjustments. |
 | **Receipt** | Record of payment received from institution or aggregator. |
 | **Referral Partner** | Source referring business generating referral fee from revenue. *(future P3)* |
+| **Referral** | Referral partner lifecycle stage: registered referral linking partner, referred party, and agreement. |
+| **Referral Approval** | Referral partner lifecycle stage: referral validated and approved for settlement. |
+| **Referral Payment** | Referral partner lifecycle stage: payment to partner with line-level allocation. |
+| **Referral Reconciliation** | Matching ERP calculated, approved, paid, and outstanding referral fees. |
 | **Remittance Information** | Payment instructions on billing profile for institution to pay Future Link. |
 | **Revenue Flow** | Path of money from institution through Future Link to optional partners. |
 | **Scholarship** | Institutional aid reducing tuition; commission impact per institution rules. |
@@ -946,6 +1093,8 @@ Alphabetical definitions of business terms used in the Commission Module and thi
 | **Submission Snapshot** | Immutable financial record frozen at submission time. |
 | **Submission Template** | Institution-specific definition of claim output format and validation. |
 | **Submission Version** | Numbered submission attempt including resubmissions. |
+| **Student Business Lifecycle** | Canonical stages from Lead through Graduated (§1.6a); distinct from commission lifecycle events. |
+| **Study Started** | Student business lifecycle stage: classes/term commenced; commission period triggers apply. |
 | **Submitted Amount** | Amount Future Link formally submitted to institution on snapshot. |
 | **Supporting Document** | Evidence file required for claim submission. |
 | **Three-Axis Status** | Separate eligibility, claim, and payment statuses on student commission record. |
@@ -961,31 +1110,34 @@ Alphabetical definitions of business terms used in the Commission Module and thi
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 1.0 | 2026-06-30 | Cursor Agent | Initial addendum from approved Business Domain Validation Report |
-| 1.1 | 2026-06-30 | Cursor Agent | Added §9 Business Domain Model, §10 Glossary; **FROZEN**; merged to Implementation Bible V2 |
+| 1.1 | 2026-06-30 | Cursor Agent | Added §9 Business Domain Model, §10 Glossary; merged to Bible V2 |
+| 1.1 final | 2026-06-30 | Cursor Agent | Student business lifecycle (§1.6a, §2.10); Referral partner lifecycle (§1.11, §2.11); **Business Architecture V2.0 FROZEN** |
 
 ### Approval
 
 | Role | Name | Signature | Date |
 |------|------|-----------|------|
-| Business owner / Commission sponsor | Approved | | 2026-06-30 |
+| Business owner / Commission sponsor | **Approved** | Architecture Certification accepted | 2026-06-30 |
 | Finance stakeholder | | | |
 | Operations stakeholder | | | |
 
-### Governance (frozen)
+### Governance (frozen — Business Architecture V2.0)
 
-1. Business requirements in this document are **frozen** as of V1.1.  
-2. Changes require **ERP Change Request (RFC)**.  
-3. Merged into **[Implementation Bible V2](./Commission_Module_Implementation_Bible_V2.md)**.  
-4. **Phase 3 resumes only after Implementation Bible V2 is approved** by business owner.
+1. Business requirements in this document are **frozen** as of Addendum V1.1 final.  
+2. **No further business requirement changes** without **ERP Change Request (RFC)**.  
+3. Incorporated in **[Implementation Bible V2](./Commission_Module_Implementation_Bible_V2.md)** — **approved and frozen**.  
+4. **Implementation may continue** per Bible V2 §12; user-facing UI remains *Commission*; internal name: **Commission & Revenue Management**.
 
 ### Related documents
 
 | Document | Relationship |
 |----------|--------------|
 | [COMMISSION_BUSINESS_DOMAIN_VALIDATION_REPORT.md](./COMMISSION_BUSINESS_DOMAIN_VALIDATION_REPORT.md) | Source validation (approved) |
-| [Commission_Module_Implementation_Bible_V2.md](./Commission_Module_Implementation_Bible_V2.md) | Implementation merge target (V2) |
-| Commission_Module_Implementation_Bible v1.0 (frozen archive) | `Commission module claude files/Commission_Module_Implementation_Bible.txt` |
-| ERP Bible Part 6 / P-04 (frozen) | Updated after Implementation Bible V2 approval |
+| [Commission_Module_Implementation_Bible_V2.md](./Commission_Module_Implementation_Bible_V2.md) | Implementation spec — **FROZEN** |
+| [COMMISSION_ARCHITECTURE_CERTIFICATION.md](./COMMISSION_ARCHITECTURE_CERTIFICATION.md) | Architecture certification (accepted) |
+| [COMMISSION_BUSINESS_ARCHITECTURE_V2_FROZEN.md](./COMMISSION_BUSINESS_ARCHITECTURE_V2_FROZEN.md) | Freeze declaration |
+| Commission_Module_Implementation_Bible v1.0 (archive) | `Commission module claude files/Commission_Module_Implementation_Bible.txt` |
+| ERP Bible Part 6 / P-04 (archive) | Update follows platform governance |
 
 ---
 

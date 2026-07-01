@@ -1,15 +1,16 @@
-# Future Link ERP — Commission Module Implementation Bible V2
+# Commission & Revenue Management — Implementation Bible V2
 
 | Field | Detail |
 |-------|--------|
 | **Document type** | Implementation specification (build-from) |
+| **Internal module name** | **Commission & Revenue Management** (UI label: *Commission*) |
 | **Version** | **v2.0 — 30 June 2026** |
 | **Supersedes** | Implementation Bible v1.0 (`Commission module claude files/Commission_Module_Implementation_Bible.txt`) |
 | **Primary consumer** | Cursor / AI-assisted implementation; secondary: human engineers |
-| **Governs** | Commission Module build Phases 3–6 (post AS-IS Phases 1–2B) |
-| **Business SSOT** | [Commission Business Requirements Addendum V1.1](./COMMISSION_BUSINESS_REQUIREMENTS_ADDENDUM_V1.1.md) — **frozen** |
+| **Governs** | Commission & Revenue Management build Phases 3–6 (post AS-IS Phases 1–2B) |
+| **Business SSOT** | [Commission Business Requirements Addendum V1.1](./COMMISSION_BUSINESS_REQUIREMENTS_ADDENDUM_V1.1.md) — **FROZEN** |
 | **Guiding principle** | REUSE → EXTEND → CREATE |
-| **Status** | **Pending business approval** — Phase 3 must not resume until V2 is approved |
+| **Status** | **APPROVED & FROZEN** — Business Architecture V2.0; implementation may continue |
 
 ---
 
@@ -23,7 +24,9 @@
 | **Extended** | §2 | Crosswalk: Addendum business rules (BR-*) align with non-negotiable rules (NN-*) |
 | **Added** | §8.5 | Phase 3B / Phase 4 business capability extensions (P0/P1 from Addendum) |
 | **Updated** | §12 | Phase 3 resume gate; business capability track sequencing |
-| **Added** | §17 | Phase 3 resume gate & approval |
+| **Added** | §1.6–§1.7 | Student business lifecycle + Referral partner lifecycle (Addendum §1.6a, §1.11) |
+| **Added** | §17 | Phase 3 resume gate — **APPROVED 2026-06-30** |
+| **Renamed** | — | Internal module: **Commission & Revenue Management** (UI unchanged) |
 
 **Unchanged from v1.0:** §0, §3–§7, §8.1–§8.4 (feature specs F3.1–F6.2), §9–§16 — canonical text remains in v1.0 archive unless marked **[V2]** below.
 
@@ -34,7 +37,7 @@
 1. **Business meaning** → Addendum V1.1 (§9 entities, §10 glossary, §1 business rules) is SSOT.  
 2. **Build order & technical specs** → This Bible (§8, §12).  
 3. **AS-IS baseline** → Technical Inventory + Enterprise Review (unchanged).  
-4. **Do not resume Phase 3** until §17 approval is recorded.
+4. **Implementation may continue** per §12 — Business Architecture V2.0 frozen 2026-06-30.
 
 ---
 
@@ -106,6 +109,35 @@ Implementers must use glossary terms consistently in UI labels, RPC names, docum
 | Business Override | Silent field edit or recalc without audit |
 
 Full glossary: **Addendum V1.1 §10**.
+
+---
+
+## §1.6 Student Business Lifecycle [V2 NEW]
+
+**Canonical source:** Addendum V1.1 §1.6a, §2.10 (frozen).
+
+```
+Lead → Application Submitted → Offer Issued → Admission Accepted
+  → Enrollment → Study Started → Completed → Graduated
+```
+
+- Distinct from **commission lifecycle** events (Eligible, Submitted, Clawback, etc.) but feeds eligibility and explainability.  
+- CRM/Admissions owns contact data; Commission & Revenue Management **consumes** stage transitions as **Lifecycle Events** (BR-SL01–SL05).  
+- Withdrawal, Transfer, Visa Refused may branch from any post-Lead stage without erasing history.
+
+---
+
+## §1.7 Referral Partner Lifecycle [V2 NEW]
+
+**Canonical source:** Addendum V1.1 §1.11, §2.11 (frozen). *Future Extension — P3.*
+
+```
+Referral → Approval → Settlement → Payment → Reconciliation
+```
+
+- Rules: BR-R01–R08.  
+- Requires Phase 5 payee/earning EXTEND — no core redesign.  
+- Referral fee explainability parallel to institution reconciliation (BR-FR01).
 
 ---
 
@@ -274,36 +306,37 @@ Changes to Addendum content after freeze require **ERP RFC** and Bible version b
 
 ---
 
-## §17. Phase 3 Resume Gate & Approval [V2 NEW]
+## §17. Phase 3 Resume Gate & Approval [V2 — APPROVED]
 
-### Conditions to resume Phase 3
+### Approval record
 
-All must be true:
+| Field | Value |
+|-------|-------|
+| **Business Architecture** | V2.0 **FROZEN** |
+| **Addendum V1.1** | **FROZEN** |
+| **Implementation Bible V2** | **APPROVED & FROZEN** |
+| **Architecture Certification** | Accepted 2026-06-30 |
+| **Approved by** | Business owner / Commission sponsor |
+| **Approval date** | 2026-06-30 |
+| **Phase 3** | **May continue** per §12 |
 
-1. **Business Requirements Addendum V1.1** — frozen (complete).  
-2. **Implementation Bible V2** — approved by business owner (this document).  
-3. **F3.4** — formal completion certificate issued after UI smoke + security UAT.  
-4. **P0 business capabilities** (F3B.1–F3B.5) — scheduled in sprint plan (may run parallel to F3.3–F3.2).
+### Conditions met
 
-### Explicitly not resumed until V2 approval
+1. ✅ Business Requirements Addendum V1.1 — frozen (final: student + referral lifecycles).  
+2. ✅ Implementation Bible V2 — approved.  
+3. ⏳ F3.4 — formal completion certificate (UI smoke + security UAT) — complete before F3.3.  
+4. ✅ P0 business capabilities (F3B.1–F3B.5) — scheduled in Bible V2 §8.5 / §12.
 
-- F3.3 Financial events / audit log (beyond F3.4 close prep)  
-- F3.1 Financial-event publishing  
-- F3.2 Adjustments / ClaimsPanel RPC migration  
-- Any P0 business capability implementation without V2 approval  
+### Governance
 
-### Approval
-
-| Role | Name | Signature | Date |
-|------|------|-----------|------|
-| Business owner / Commission sponsor | | | |
-| Technical lead | | | |
-
-**Upon V2 approval:** Record approval date below; resume Phase 3 per §12 updated sequence.
+- **No further business requirement changes** without ERP RFC.  
+- **Delivery phase:** implement against frozen docs; shift from architecture to UAT-driven delivery.  
+- **Internal naming:** Commission & Revenue Management; **UI label unchanged:** *Commission*.
 
 ```
-V2 APPROVED: [ ] Yes  Date: __________  Commit/tag: __________
-PHASE 3 RESUMED: [ ] Yes  Date: __________
+V2 APPROVED: [x] Yes  Date: 2026-06-30
+BUSINESS ARCHITECTURE V2.0 FROZEN: [x] Yes  Date: 2026-06-30
+PHASE 3 IMPLEMENTATION: [x] Authorized  Date: 2026-06-30
 ```
 
 ---
@@ -318,7 +351,7 @@ V2 does not invalidate v1.0 technical content — it **extends** it with busines
 
 ---
 
-**End of Implementation Bible v2.0.**  
-Build package = AS-IS Technical Inventory + Enterprise Review + **Addendum V1.1 (frozen)** + **this document**.  
+**End of Implementation Bible v2.0 (FROZEN).**  
+Build package = AS-IS Technical Inventory + Enterprise Review + **Addendum V1.1 (frozen)** + **this document (frozen)**.  
 Implement per §12; never violate §2 + Addendum BR-*; treat Finance as SSOT per §5.  
-**Phase 3 resumes only after §17 approval.**
+**Business Architecture V2.0 frozen 2026-06-30 — delivery phase authorized.**
