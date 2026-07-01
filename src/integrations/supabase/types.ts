@@ -14848,6 +14848,7 @@ export type Database = {
           basic: number
           blood_group: string | null
           bonus: number
+          bonus_percentage: number | null
           branch_id: string | null
           company_email: string | null
           company_emergency_contact_email: string | null
@@ -14869,6 +14870,12 @@ export type Database = {
           emergency_contacts: Json
           emp_code: string
           employee_category_id: string | null
+          employee_esic_pct: number
+          employee_pf_pct: number
+          employer_esic_applicable: boolean
+          employer_esic_pct: number
+          employer_pf_applicable: boolean
+          employer_pf_pct: number
           employment_type: string
           employment_type_id: string | null
           esic_applicable: boolean
@@ -14895,6 +14902,7 @@ export type Database = {
           notice_period: string | null
           official_communication_email: string | null
           org_id: string
+          other_allowances: number
           other_deductions: number
           pay_basis: string
           payroll_country: string
@@ -14904,10 +14912,13 @@ export type Database = {
           preferred_contact_method: string | null
           probation_end_date: string | null
           probation_start_date: string | null
+          professional_tax_amount: number | null
           pt_applicable: boolean
           rehire_eligible: boolean | null
           reporting_mgr_id: string | null
           salary_currency: string
+          salary_package: number | null
+          salary_structure_enabled: boolean
           security_cheque_file_name: string | null
           security_cheque_reason: string | null
           security_cheque_status: string
@@ -14942,6 +14953,7 @@ export type Database = {
           basic?: number
           blood_group?: string | null
           bonus?: number
+          bonus_percentage?: number | null
           branch_id?: string | null
           company_email?: string | null
           company_emergency_contact_email?: string | null
@@ -14963,6 +14975,12 @@ export type Database = {
           emergency_contacts?: Json
           emp_code: string
           employee_category_id?: string | null
+          employee_esic_pct?: number
+          employee_pf_pct?: number
+          employer_esic_applicable?: boolean
+          employer_esic_pct?: number
+          employer_pf_applicable?: boolean
+          employer_pf_pct?: number
           employment_type?: string
           employment_type_id?: string | null
           esic_applicable?: boolean
@@ -14989,6 +15007,7 @@ export type Database = {
           notice_period?: string | null
           official_communication_email?: string | null
           org_id: string
+          other_allowances?: number
           other_deductions?: number
           pay_basis?: string
           payroll_country?: string
@@ -14998,10 +15017,13 @@ export type Database = {
           preferred_contact_method?: string | null
           probation_end_date?: string | null
           probation_start_date?: string | null
+          professional_tax_amount?: number | null
           pt_applicable?: boolean
           rehire_eligible?: boolean | null
           reporting_mgr_id?: string | null
           salary_currency?: string
+          salary_package?: number | null
+          salary_structure_enabled?: boolean
           security_cheque_file_name?: string | null
           security_cheque_reason?: string | null
           security_cheque_status?: string
@@ -15036,6 +15058,7 @@ export type Database = {
           basic?: number
           blood_group?: string | null
           bonus?: number
+          bonus_percentage?: number | null
           branch_id?: string | null
           company_email?: string | null
           company_emergency_contact_email?: string | null
@@ -15057,6 +15080,12 @@ export type Database = {
           emergency_contacts?: Json
           emp_code?: string
           employee_category_id?: string | null
+          employee_esic_pct?: number
+          employee_pf_pct?: number
+          employer_esic_applicable?: boolean
+          employer_esic_pct?: number
+          employer_pf_applicable?: boolean
+          employer_pf_pct?: number
           employment_type?: string
           employment_type_id?: string | null
           esic_applicable?: boolean
@@ -15083,6 +15112,7 @@ export type Database = {
           notice_period?: string | null
           official_communication_email?: string | null
           org_id?: string
+          other_allowances?: number
           other_deductions?: number
           pay_basis?: string
           payroll_country?: string
@@ -15092,10 +15122,13 @@ export type Database = {
           preferred_contact_method?: string | null
           probation_end_date?: string | null
           probation_start_date?: string | null
+          professional_tax_amount?: number | null
           pt_applicable?: boolean
           rehire_eligible?: boolean | null
           reporting_mgr_id?: string | null
           salary_currency?: string
+          salary_package?: number | null
+          salary_structure_enabled?: boolean
           security_cheque_file_name?: string | null
           security_cheque_reason?: string | null
           security_cheque_status?: string
@@ -20352,14 +20385,20 @@ export type Database = {
       }
       payroll_lines: {
         Row: {
+          attendance_earned: number | null
           basic: number
           bonus: number
+          calc_snapshot: Json | null
           comp_off: number
           created_at: string
           cycle_id: string
           daily_rate: number
+          earned_breakdown: Json | null
           employee_id: string
+          employer_esic: number
+          employer_pf: number
           esic_employee: number
+          formula_mode: string
           gross_earned: number
           id: string
           incentive: number
@@ -20380,22 +20419,40 @@ export type Database = {
           override_json: Json | null
           paid_leaves: number
           payable_days: number
+          payable_days_breakdown: Json | null
           payroll_days: number
+          payroll_days_effective: number | null
           pf_employee: number
           pt_employee: number
+          salary_package: number | null
+          salary_structure_mode: boolean
           sandwich_count: number
+          structure_basic: number
+          structure_bonus: number
+          structure_conveyance: number
+          structure_difference: number
+          structure_hra: number
+          structure_other_allowances: number
+          total_earnings_a: number
+          total_employer_cost_b: number
           ul_count: number
           unpaid_training: number
         }
         Insert: {
+          attendance_earned?: number | null
           basic: number
           bonus?: number
+          calc_snapshot?: Json | null
           comp_off?: number
           created_at?: string
           cycle_id: string
           daily_rate: number
+          earned_breakdown?: Json | null
           employee_id: string
+          employer_esic?: number
+          employer_pf?: number
           esic_employee?: number
+          formula_mode?: string
           gross_earned: number
           id?: string
           incentive?: number
@@ -20416,22 +20473,40 @@ export type Database = {
           override_json?: Json | null
           paid_leaves?: number
           payable_days: number
+          payable_days_breakdown?: Json | null
           payroll_days: number
+          payroll_days_effective?: number | null
           pf_employee?: number
           pt_employee?: number
+          salary_package?: number | null
+          salary_structure_mode?: boolean
           sandwich_count?: number
+          structure_basic?: number
+          structure_bonus?: number
+          structure_conveyance?: number
+          structure_difference?: number
+          structure_hra?: number
+          structure_other_allowances?: number
+          total_earnings_a?: number
+          total_employer_cost_b?: number
           ul_count?: number
           unpaid_training?: number
         }
         Update: {
+          attendance_earned?: number | null
           basic?: number
           bonus?: number
+          calc_snapshot?: Json | null
           comp_off?: number
           created_at?: string
           cycle_id?: string
           daily_rate?: number
+          earned_breakdown?: Json | null
           employee_id?: string
+          employer_esic?: number
+          employer_pf?: number
           esic_employee?: number
+          formula_mode?: string
           gross_earned?: number
           id?: string
           incentive?: number
@@ -20452,10 +20527,22 @@ export type Database = {
           override_json?: Json | null
           paid_leaves?: number
           payable_days?: number
+          payable_days_breakdown?: Json | null
           payroll_days?: number
+          payroll_days_effective?: number | null
           pf_employee?: number
           pt_employee?: number
+          salary_package?: number | null
+          salary_structure_mode?: boolean
           sandwich_count?: number
+          structure_basic?: number
+          structure_bonus?: number
+          structure_conveyance?: number
+          structure_difference?: number
+          structure_hra?: number
+          structure_other_allowances?: number
+          total_earnings_a?: number
+          total_employer_cost_b?: number
           ul_count?: number
           unpaid_training?: number
         }
@@ -32503,14 +32590,20 @@ export type Database = {
       fn_apply_payroll_override: {
         Args: { p_cycle: string; p_employee: string; p_override: Json }
         Returns: {
+          attendance_earned: number | null
           basic: number
           bonus: number
+          calc_snapshot: Json | null
           comp_off: number
           created_at: string
           cycle_id: string
           daily_rate: number
+          earned_breakdown: Json | null
           employee_id: string
+          employer_esic: number
+          employer_pf: number
           esic_employee: number
+          formula_mode: string
           gross_earned: number
           id: string
           incentive: number
@@ -32531,10 +32624,22 @@ export type Database = {
           override_json: Json | null
           paid_leaves: number
           payable_days: number
+          payable_days_breakdown: Json | null
           payroll_days: number
+          payroll_days_effective: number | null
           pf_employee: number
           pt_employee: number
+          salary_package: number | null
+          salary_structure_mode: boolean
           sandwich_count: number
+          structure_basic: number
+          structure_bonus: number
+          structure_conveyance: number
+          structure_difference: number
+          structure_hra: number
+          structure_other_allowances: number
+          total_earnings_a: number
+          total_employer_cost_b: number
           ul_count: number
           unpaid_training: number
         }
@@ -32544,6 +32649,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      fn_apply_priority_matrix_c17: {
+        Args: { p_date: string; p_employee: string; p_org: string }
+        Returns: Json
       }
       fn_apply_weekly_offs_for_cycle: {
         Args: { p_cycle: string; p_org: string }
@@ -32643,14 +32752,20 @@ export type Database = {
       fn_build_payroll_line: {
         Args: { p_cycle: string; p_employee: string }
         Returns: {
+          attendance_earned: number | null
           basic: number
           bonus: number
+          calc_snapshot: Json | null
           comp_off: number
           created_at: string
           cycle_id: string
           daily_rate: number
+          earned_breakdown: Json | null
           employee_id: string
+          employer_esic: number
+          employer_pf: number
           esic_employee: number
+          formula_mode: string
           gross_earned: number
           id: string
           incentive: number
@@ -32671,10 +32786,22 @@ export type Database = {
           override_json: Json | null
           paid_leaves: number
           payable_days: number
+          payable_days_breakdown: Json | null
           payroll_days: number
+          payroll_days_effective: number | null
           pf_employee: number
           pt_employee: number
+          salary_package: number | null
+          salary_structure_mode: boolean
           sandwich_count: number
+          structure_basic: number
+          structure_bonus: number
+          structure_conveyance: number
+          structure_difference: number
+          structure_hra: number
+          structure_other_allowances: number
+          total_earnings_a: number
+          total_employer_cost_b: number
           ul_count: number
           unpaid_training: number
         }
@@ -32880,14 +33007,20 @@ export type Database = {
       fn_clear_payroll_override: {
         Args: { p_cycle: string; p_employee: string }
         Returns: {
+          attendance_earned: number | null
           basic: number
           bonus: number
+          calc_snapshot: Json | null
           comp_off: number
           created_at: string
           cycle_id: string
           daily_rate: number
+          earned_breakdown: Json | null
           employee_id: string
+          employer_esic: number
+          employer_pf: number
           esic_employee: number
+          formula_mode: string
           gross_earned: number
           id: string
           incentive: number
@@ -32908,10 +33041,22 @@ export type Database = {
           override_json: Json | null
           paid_leaves: number
           payable_days: number
+          payable_days_breakdown: Json | null
           payroll_days: number
+          payroll_days_effective: number | null
           pf_employee: number
           pt_employee: number
+          salary_package: number | null
+          salary_structure_mode: boolean
           sandwich_count: number
+          structure_basic: number
+          structure_bonus: number
+          structure_conveyance: number
+          structure_difference: number
+          structure_hra: number
+          structure_other_allowances: number
+          total_earnings_a: number
+          total_employer_cost_b: number
           ul_count: number
           unpaid_training: number
         }
@@ -32946,6 +33091,7 @@ export type Database = {
         Args: { p_request: string }
         Returns: undefined
       }
+      fn_compare_payroll_formulas: { Args: { p_cycle: string }; Returns: Json }
       fn_complete_training_direct: {
         Args: {
           p_completion_date: string
@@ -33093,6 +33239,42 @@ export type Database = {
           }
         | {
             Args: {
+              p_attendance_earned?: number
+              p_basic: number
+              p_bonus?: number
+              p_canada_policy?: Json
+              p_compoff?: number
+              p_esic_applicable?: boolean
+              p_formula_mode?: string
+              p_incentive?: number
+              p_late?: number
+              p_late_policy?: Json
+              p_leaves?: number
+              p_mispunch?: number
+              p_mispunch_policy?: Json
+              p_monthly: number
+              p_ot_minutes?: number
+              p_ot_policy?: Json
+              p_other_deductions?: number
+              p_paid_leaves?: number
+              p_payroll_country?: string
+              p_payroll_days: number
+              p_payroll_days_effective?: number
+              p_pf_applicable?: boolean
+              p_pt_amount?: number
+              p_pt_applicable?: boolean
+              p_sandwich?: number
+              p_structure?: Json
+              p_structure_enabled?: boolean
+              p_tds_applicable?: boolean
+              p_ul?: number
+              p_ul_mult?: number
+              p_unpaid_training?: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
               p_basic: number
               p_bonus?: number
               p_compoff?: number
@@ -33139,6 +33321,26 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      fn_compute_salary_payable_days: {
+        Args: {
+          p_attendance_earned?: number
+          p_compoff?: number
+          p_formula_mode?: string
+          p_late?: number
+          p_late_policy?: Json
+          p_leaves?: number
+          p_mispunch?: number
+          p_mispunch_policy?: Json
+          p_paid_leaves?: number
+          p_payroll_days: number
+          p_payroll_days_effective?: number
+          p_sandwich?: number
+          p_ul?: number
+          p_ul_mult?: number
+          p_unpaid_training?: number
+        }
+        Returns: Json
       }
       fn_compute_upi_institution_completeness_score: {
         Args: { _row: Database["public"]["Tables"]["upi_institutions"]["Row"] }
@@ -33426,6 +33628,10 @@ export type Database = {
         Args: { p_date: string; p_employee: string }
         Returns: boolean
       }
+      fn_employee_salary_structure_enabled: {
+        Args: { p_employee: string }
+        Returns: boolean
+      }
       fn_employee_shift_at: {
         Args: { p_date: string; p_employee: string }
         Returns: string
@@ -33457,6 +33663,7 @@ export type Database = {
           basic: number
           blood_group: string | null
           bonus: number
+          bonus_percentage: number | null
           branch_id: string | null
           company_email: string | null
           company_emergency_contact_email: string | null
@@ -33478,6 +33685,12 @@ export type Database = {
           emergency_contacts: Json
           emp_code: string
           employee_category_id: string | null
+          employee_esic_pct: number
+          employee_pf_pct: number
+          employer_esic_applicable: boolean
+          employer_esic_pct: number
+          employer_pf_applicable: boolean
+          employer_pf_pct: number
           employment_type: string
           employment_type_id: string | null
           esic_applicable: boolean
@@ -33504,6 +33717,7 @@ export type Database = {
           notice_period: string | null
           official_communication_email: string | null
           org_id: string
+          other_allowances: number
           other_deductions: number
           pay_basis: string
           payroll_country: string
@@ -33513,10 +33727,13 @@ export type Database = {
           preferred_contact_method: string | null
           probation_end_date: string | null
           probation_start_date: string | null
+          professional_tax_amount: number | null
           pt_applicable: boolean
           rehire_eligible: boolean | null
           reporting_mgr_id: string | null
           salary_currency: string
+          salary_package: number | null
+          salary_structure_enabled: boolean
           security_cheque_file_name: string | null
           security_cheque_reason: string | null
           security_cheque_status: string
@@ -34192,6 +34409,14 @@ export type Database = {
             }
             Returns: boolean
           }
+      fn_payroll_days_effective: {
+        Args: { p_cycle: string; p_employee: string }
+        Returns: number
+      }
+      fn_payroll_formula_mode: {
+        Args: { p_as_of?: string; p_org: string }
+        Returns: string
+      }
       fn_performance_hub_readiness_check: {
         Args: { _period_key: string }
         Returns: Json
@@ -34693,9 +34918,17 @@ export type Database = {
         Args: { p_label: string }
         Returns: string
       }
+      fn_resolve_employee_salary_structure: {
+        Args: { p_employee: string; p_pt_default?: number }
+        Returns: Json
+      }
       fn_resolve_institution_country_iso: {
         Args: { _country_name: string }
         Returns: string
+      }
+      fn_resolve_payroll_policy: {
+        Args: { p_as_of?: string; p_org: string }
+        Returns: Json
       }
       fn_resolve_policy: {
         Args: { p_as_of?: string; p_domain: string; p_org: string }
@@ -34726,6 +34959,14 @@ export type Database = {
         Returns: Json
       }
       fn_rollup_inputs: {
+        Args: { p_cycle: string; p_employee: string }
+        Returns: Json
+      }
+      fn_rollup_inputs_earned: {
+        Args: { p_cycle: string; p_employee: string }
+        Returns: Json
+      }
+      fn_rollup_inputs_legacy: {
         Args: { p_cycle: string; p_employee: string }
         Returns: Json
       }
@@ -35191,6 +35432,7 @@ export type Database = {
           basic: number
           blood_group: string | null
           bonus: number
+          bonus_percentage: number | null
           branch_id: string | null
           company_email: string | null
           company_emergency_contact_email: string | null
@@ -35212,6 +35454,12 @@ export type Database = {
           emergency_contacts: Json
           emp_code: string
           employee_category_id: string | null
+          employee_esic_pct: number
+          employee_pf_pct: number
+          employer_esic_applicable: boolean
+          employer_esic_pct: number
+          employer_pf_applicable: boolean
+          employer_pf_pct: number
           employment_type: string
           employment_type_id: string | null
           esic_applicable: boolean
@@ -35238,6 +35486,7 @@ export type Database = {
           notice_period: string | null
           official_communication_email: string | null
           org_id: string
+          other_allowances: number
           other_deductions: number
           pay_basis: string
           payroll_country: string
@@ -35247,10 +35496,13 @@ export type Database = {
           preferred_contact_method: string | null
           probation_end_date: string | null
           probation_start_date: string | null
+          professional_tax_amount: number | null
           pt_applicable: boolean
           rehire_eligible: boolean | null
           reporting_mgr_id: string | null
           salary_currency: string
+          salary_package: number | null
+          salary_structure_enabled: boolean
           security_cheque_file_name: string | null
           security_cheque_reason: string | null
           security_cheque_status: string
