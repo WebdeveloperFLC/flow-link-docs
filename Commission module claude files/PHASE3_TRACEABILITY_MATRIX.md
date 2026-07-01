@@ -12,7 +12,7 @@
 
 | ID | Bible / Plan item | Migrations | RPCs / Functions | UI | Tests | UAT / Regression | Status | Notes |
 |----|-------------------|------------|------------------|-----|-------|------------------|--------|-------|
-| S0.1 | Config / feature flags (`approval_required`, event publishing flags) | `20261030120000_commission_phase3_step0_config.sql` | `commission_config_bool()`, `commission_config_text()` | — | V0 in SQL suite | — | **BLK** | SQL written; not published (ENV-001) |
+| S0.1 | Config / feature flags (`approval_required`, event publishing flags) | `20261030120000_commission_phase3_step0_config.sql` | `commission_config_bool()`, `commission_config_text()` | — | V0 in SQL suite | — | **DN** | Published; V0 passed |
 | S0.2 | RLS policy baseline snapshot | — (doc) | — | — | — | — | DN | `docs/commission/PHASE3_RLS_BASELINE.md` |
 | S0.3 | Supabase types regeneration plan | — | — | — | — | — | NS | Run after each migration batch |
 | S0.4 | RFC resolution log (D-01…D-06) | — | — | — | — | — | DN | Decisions captured in readiness report |
@@ -24,11 +24,11 @@
 
 | ID | Acceptance criterion | Migrations | RPCs / Functions | UI | Tests | UAT / Regression | Status | Notes |
 |----|---------------------|------------|------------------|-----|-------|------------------|--------|-------|
-| F3.4.1 | Replace permissive `FOR ALL` / legacy `auth_all` on financial tables | `20261030120100_commission_phase3_f34_rls_remediation.sql` | `commission_institution_country_iso()`, `accounting_user_scoped_institution()`, `can_view_commission_financial()`, `can_manage_commission_financial()`, `commission_receipt_scope_institution_id()` | — | `supabase/tests/commission_phase3_f34_verification.sql` | Phase 1–2B UAT | **BLK** | Migration not applied — ENV-001 |
-| F3.4.2 | Entity / country scope for accounting users | same | same | — | same | 2A-12 counselor view | **BLK** | Pending publish + SQL verify |
-| F3.4.3 | Split SELECT vs INSERT/UPDATE/DELETE (view ≠ mutate) | same | — | — | same | Claims workflows | **BLK** | Pending publish + SQL verify |
-| F3.4.4 | Counselor view unchanged (`v_client_commission_status`) | — | — | `ClientCommissionStatusPanel.tsx` | V4 in SQL suite | PF-2, 2A-12 | **BLK** | Pending publish + manual UAT |
-| F3.4.5 | Non-privileged user cannot read/write financial rows directly | same | — | — | V1–V3 in SQL suite | — | **BLK** | Pending publish + SQL verify |
+| F3.4.1 | Replace permissive `FOR ALL` / legacy `auth_all` on financial tables | `20261030120100_commission_phase3_f34_rls_remediation.sql` | scope helpers (see matrix) | — | SQL suite V1–V3 | Phase 1–2B UAT | **IP** | SQL verified; manual UAT pending |
+| F3.4.2 | Entity / country scope for accounting users | same | same | — | same | 2A-12 counselor view | **IP** | SQL helpers live |
+| F3.4.3 | Split SELECT vs INSERT/UPDATE/DELETE (view ≠ mutate) | same | — | — | V2 + 4 policies/table | Claims workflows | **DN** | 13 tables @ 4 policies (snapshots @ 2) |
+| F3.4.4 | Counselor view unchanged (`v_client_commission_status`) | — | — | `ClientCommissionStatusPanel.tsx` | V4 passed | PF-2, 2A-12 | **IP** | View exists; manual counselor UAT pending |
+| F3.4.5 | Non-privileged user cannot read/write financial rows directly | same | — | — | V1–V3 passed | — | **IP** | Role-matrix manual check recommended |
 
 **Tables in scope (F3.4):**
 
@@ -114,20 +114,46 @@
 
 ---
 
-## 9. F3.4 Validation Run (2026-06-30)
+## 9. F3.4 Validation Run
+
+### 2026-06-30 (agent environment)
 
 | Check | Result | Evidence |
 |-------|--------|----------|
-| Apply Step 0 migration | **FAIL (blocked)** | ENV-001 — no Docker / psql / DATABASE_URL |
-| Apply F3.4 migration | **FAIL (blocked)** | Same |
-| SQL V1–V4 (baseline doc) | **NOT RUN** | Requires Postgres |
-| Automated SQL suite | **NOT RUN** | `supabase/tests/commission_phase3_f34_verification.sql` |
-| Unit regression (3 files) | **PASS** | 14/14 via `node scripts/commission-phase3-f34-verify.mjs --unit-only` |
-| Phase 1 UAT manual | **NOT RUN** | Migrations not live |
-| Phase 2A UAT manual | **NOT RUN** | Migrations not live |
-| Phase 2B UAT manual | **NOT RUN** | Migrations not live |
-| **F3.4 closed?** | **NO** | See `docs/commission/PHASE3_F34_DISCREPANCY_REPORT.md` |
-| **F3.3 started?** | **NO** | Per approved gate |
+| Apply Step 0 / F3.4 | **FAIL (blocked)** | ENV-001 — no local DB |
+| Unit regression | **PASS** | 14/14 |
+
+### 2026-06-30 (Lovable / Supabase — owner run)
+
+| Check | Result | Evidence |
+|-------|--------|----------|
+| Apply Step 0 migration | **PASS** | V0 — `upi_commission_config`, `approval_required=false` |
+| Apply F3.4 migration | **PASS** | V1–V4 + policy inventory |
+| SQL automated suite | **PASS** | No exception; V5 inventory below |
+| Unit regression | **PASS** | 14/14 (unchanged) |
+| Phase 1 UAT manual | **PENDING** | Owner sign-off |
+| Phase 2A UAT manual | **PENDING** | Owner sign-off |
+| Phase 2B UAT manual | **PENDING** | Phase 2B tables not published (expected skip) |
+| **F3.4 closed?** | **CONDITIONAL** | SQL gate green; manual UAT before F3.3 |
+| **F3.3 started?** | **NO** | Awaiting UAT confirmation |
+
+**V5 policy inventory (owner run):**
+
+| table_name | policy_count | Expected |
+|------------|--------------|----------|
+| upi_billing_profiles | 4 | select/insert/update/delete |
+| upi_claim_cycles | 4 | ✓ |
+| upi_commission_eligibility_configs | 4 | ✓ |
+| upi_commission_invoices | 4 | ✓ |
+| upi_commission_receipt_* | 4 each | ✓ |
+| upi_commission_receipts | 4 | ✓ |
+| upi_commission_remittance_batches | 4 | ✓ |
+| upi_commission_snapshots | **2** | ✓ immutable (select + insert only) |
+| upi_commission_students | 4 | ✓ |
+| upi_commission_transfer_events | 4 | ✓ |
+| upi_invoice_line_items | 4 | ✓ |
+| upi_commission_aggregator_* | absent | Phase 2B not published — OK |
+| upi_invoices | absent | legacy table not on DB — OK |
 
 ---
 
@@ -135,5 +161,5 @@
 
 | Date | Author | Change |
 |------|--------|--------|
-| 2026-06-30 | Cursor Agent | F3.4 migration guarded for missing Phase 2B tables; catch-up `20261030120200` |
+| 2026-06-30 | Owner + Cursor | F3.4 SQL verification PASS on Lovable DB (13 tables; snapshots=2 policies) |
 | 2026-06-30 | Cursor Agent | Initial matrix; Step 0 artifacts complete; F3.4 migration written (UAT pending) |
