@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { RootErrorBoundary } from "@/components/RootErrorBoundary";
 import AppBootstrap from "@/AppBootstrap";
 import { resetAppRootLayout } from "@/lib/resetAppRootLayout";
+import { bootDebugLog } from "@/lib/bootDebugLog";
 import "./index.css";
 import "./styles/performance-hub-theme.css";
 import "./hr-payroll/styles/hr-payroll-theme.css";
@@ -41,6 +42,10 @@ if (!mount) {
 }
 
 resetAppRootLayout();
+
+bootDebugLog("main.tsx:render", "main.tsx reached createRoot", {
+  path: window.location.pathname,
+}, "H1");
 
 try {
   createRoot(mount).render(

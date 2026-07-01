@@ -116,6 +116,32 @@
         setTimeout(function () {
           try {
             var msg = document.getElementById("flc-boot-msg");
+            var splashStillVisible = !!document.getElementById("flc-boot-splash");
+            var bootPayload = {
+              sessionId: "c5260a",
+              location: "index.html:boot8s",
+              message: "8s boot timer fired",
+              data: {
+                splashStillVisible: splashStillVisible,
+                hasSession: hasSession(),
+                isPreview: isPreview(),
+                bootMsg: msg ? msg.textContent : null,
+                path: location.pathname,
+              },
+              hypothesisId: "H1",
+              timestamp: Date.now(),
+              runId: "pre-fix",
+            };
+            try {
+              var prev = JSON.parse(sessionStorage.getItem("flc-debug-c5260a") || "[]");
+              prev.push(bootPayload);
+              sessionStorage.setItem("flc-debug-c5260a", JSON.stringify(prev.slice(-80)));
+            } catch (e) {}
+            fetch("http://127.0.0.1:7861/ingest/bda2c8c0-2fff-4fe0-b6f7-be98b8c0ed66", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "c5260a" },
+              body: JSON.stringify(bootPayload),
+            }).catch(function () {});
             if (!msg || msg.textContent.indexOf("Loading Future Link") < 0) return;
             if (hasSession()) {
               msg.textContent = isPreview()

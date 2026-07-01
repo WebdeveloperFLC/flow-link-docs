@@ -4,6 +4,7 @@ import { BootstrapLoading } from "@/components/BootstrapLoading";
 import { AppProviders } from "@/AppProviders";
 import { useAuth } from "@/contexts/AuthContext";
 import { isLovablePreview } from "@/lib/previewEnv";
+import { bootDebugLog } from "@/lib/bootDebugLog";
 import Auth from "@/pages/Auth";
 import ResetPassword from "@/pages/ResetPassword";
 
@@ -37,6 +38,16 @@ function DeferredAppRoutes() {
   const { pathname } = useLocation();
   const preview = isLovablePreview();
   const [chunkError, setChunkError] = useState<string | null>(null);
+
+  useEffect(() => {
+    bootDebugLog("AppBootstrap.tsx:DeferredAppRoutes", "auth gate state", {
+      loading,
+      hasUser: !!user,
+      pathname,
+      preview,
+      chunkError,
+    }, "H4");
+  }, [loading, user, pathname, preview, chunkError]);
 
   useEffect(() => {
     appRoutesImport.catch((error: unknown) => {
