@@ -7,6 +7,7 @@ import { PerformanceExecutiveKpiStrip } from "@/components/performance/Performan
 import { PerformanceExecutiveServiceMix } from "@/components/performance/PerformanceExecutiveServiceMix";
 import { PerformanceRevenueTrendChart } from "@/components/performance/PerformanceRevenueTrendChart";
 import { PerformanceRevenueServiceTable } from "@/components/performance/PerformanceRevenueServiceTable";
+import { TraceGraph } from "@/components/performance/TraceGraph";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { useRevenueAnalyticsData } from "@/hooks/useRevenueAnalyticsData";
 import { effectiveDiscountPct } from "@/incentives/lib/financeDashboardLogic";
@@ -93,6 +94,31 @@ export default function PerformanceRevenueAnalytics() {
         </div>
 
         <PerformanceExecutiveServiceMix slices={countryMix} loading={loading} title="Country revenue mix" />
+
+        <TraceGraph
+          entryLabel={`Net revenue · ${period}`}
+          nodes={[
+            {
+              id: "verified",
+              label: "Verified revenue",
+              sublabel: formatInr(metrics.verifiedRevenue),
+              rule: "Qualifying events from verified payments",
+              to: "/performance/analytics",
+            },
+            {
+              id: "discounts",
+              label: "Wallet discounts applied",
+              sublabel: formatInr(metrics.discountTotal),
+              rule: "Pro-rata wallet allocations on invoices",
+            },
+            {
+              id: "net",
+              label: "Net recognized revenue",
+              sublabel: formatInr(metrics.netRevenue),
+              rule: "Tax excluded · period-bound · auto-fetched",
+            },
+          ]}
+        />
       </div>
     </AppLayout>
   );

@@ -8,7 +8,6 @@ import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHea
 import { PerformanceExecutiveKpiStrip } from "@/components/performance/PerformanceExecutiveKpiStrip";
 import { PerformanceExecutiveBranchChart } from "@/components/performance/PerformanceExecutiveBranchChart";
 import { PerformanceExecutiveServiceMix } from "@/components/performance/PerformanceExecutiveServiceMix";
-import { PerformanceExecutiveLeaderboards } from "@/components/performance/PerformanceExecutiveLeaderboards";
 import { PerformanceExecutiveApprovalsPanel } from "@/components/performance/PerformanceExecutiveApprovalsPanel";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformancePeriodMetrics } from "@/hooks/usePerformancePeriodMetrics";
@@ -58,19 +57,6 @@ export default function PerformanceExecutive() {
       }))
       .sort((a, b) => b.revenue - a.revenue);
   }, [teamRows]);
-
-  const counselorRows = useMemo(
-    () =>
-      [...teamRows]
-        .sort((a, b) => b.netRevenue - a.netRevenue)
-        .map((r) => ({
-          name: r.name,
-          branchName: r.branchName,
-          netRevenue: r.netRevenue,
-          targetPct: r.targetPct,
-        })),
-    [teamRows],
-  );
 
   const margin = netMarginPct(metrics.netRevenue, metrics.verifiedRevenue);
   const walletUtil = walletUtilizationPct(metrics.walletUnlocked, metrics.walletPotential);
@@ -188,11 +174,23 @@ export default function PerformanceExecutive() {
           <PerformanceExecutiveServiceMix slices={extras.serviceMix} loading={extras.loading} />
         </div>
 
-        <PerformanceExecutiveLeaderboards
-          branchRows={branchRows}
-          counselorRows={counselorRows}
-          loading={teamLoading}
-        />
+        <Card className="p-5 ph-surface-card">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold ph-heading">Branch &amp; counsellor rankings</h2>
+              <p className="text-sm ph-muted mt-1">
+                Full leaderboards and cross-comparison belong in Reports — not on the executive dashboard.
+              </p>
+            </div>
+            <Link
+              to="/performance/compare"
+              className="text-sm font-medium hover:underline shrink-0"
+              style={{ color: "var(--blue)" }}
+            >
+              Open comparison reports →
+            </Link>
+          </div>
+        </Card>
 
         <PerformanceExecutiveApprovalsPanel
           items={extras.approvalPreview}

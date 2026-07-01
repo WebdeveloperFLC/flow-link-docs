@@ -22,8 +22,10 @@ import { directorReadOnlyMessage, isDirectorReadOnlyError } from "@/lib/performa
 import { useAuth } from "@/contexts/AuthContext";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
+import { PerformanceRunLifecycleStrip } from "@/components/performance/PerformanceRunLifecycleStrip";
 import { usePerformanceLockReadiness } from "@/hooks/usePerformanceLockReadiness";
-import { Calculator, Lock, Unlock, Trash2 } from "lucide-react";
+import { usePerformancePeriodMetrics } from "@/hooks/usePerformancePeriodMetrics";
+import { Calculator, Lock, Unlock, Trash2, CalendarClock, Banknote } from "lucide-react";
 
 interface Plan {
   id: string;
@@ -59,6 +61,7 @@ export default function IncentivesAdmin() {
     hasRole("director") && !isAdmin && !hasRole(["manager", "administrator"]);
   const { period, branchId, branches } = usePerformancePeriod();
   const lockReadiness = usePerformanceLockReadiness(period);
+  const periodMetrics = usePerformancePeriodMetrics(period, null);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [runs, setRuns] = useState<RunRow[]>([]);
   const [planId, setPlanId] = useState<string>("");
@@ -195,6 +198,31 @@ export default function IncentivesAdmin() {
             Director accounts are read-only here — use admin/finance workflow to calculate, lock, or pay out.
           </p>
         )}
+
+        <PerformanceRunLifecycleStrip
+          period={period}
+          steps={[
+            { step: 1, label: "Period close (wallets)", to: "/incentives/period-close", icon: CalendarClock },
+            { step: 2, label: "Preview & calculate run", to: "/incentives/admin", icon: Calculator },
+            {
+              step: 3,
+              label: periodMetrics.runLocked ? "Run locked" : "Lock run & audit lines",
+              to: "/incentives/admin",
+              icon: Lock,
+              blocked: !lockReadiness.canLock && !periodMetrics.runLocked,
+              hint: lockReadiness.canLock ? undefined : lockReadiness.blockers.join(" · "),
+              complete: periodMetrics.runLocked,
+            },
+            {
+              step: 4,
+              label: "Generate payouts & export",
+              to: "/incentives/payouts",
+              icon: Banknote,
+              blocked: !periodMetrics.runLocked,
+              complete: periodMetrics.payoutCount > 0,
+            },
+          ]}
+        />
 
         {/* Run controls */}
         <Card className="p-5 space-y-4">

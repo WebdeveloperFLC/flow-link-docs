@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHeader";
+import { StatusBar } from "@/components/performance/PerformanceAchievementStatus";
 import { PerformanceMetricCard } from "@/components/performance/PerformanceMetricCard";
 import { cn } from "@/lib/utils";
 import { Gift, RotateCcw, Target } from "lucide-react";
@@ -548,12 +549,22 @@ export default function GiveDiscount() {
         )}
 
         {wallet && sizingActive && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <PerformanceMetricCard module="wallet" label="Spendable" value={fmt(remainingUnlocked, ccy)} />
-            <PerformanceMetricCard module="wallet" label="Unlocked" value={fmt(wallet.unlocked_amount, ccy)} />
-            <PerformanceMetricCard module="wallet" label="Potential" value={fmt(wallet.potential_wallet, ccy)} />
-            <PerformanceMetricCard module="wallet" label="Spent" value={fmt(spent, ccy)} />
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <PerformanceMetricCard module="wallet" label="Spendable" value={fmt(remainingUnlocked, ccy)} />
+              <PerformanceMetricCard module="wallet" label="Unlocked" value={fmt(wallet.unlocked_amount, ccy)} />
+              <PerformanceMetricCard module="wallet" label="Potential" value={fmt(wallet.potential_wallet, ccy)} />
+              <PerformanceMetricCard module="wallet" label="Spent" value={fmt(spent, ccy)} />
+            </div>
+            {wallet.achievement_pct != null && (
+              <Card className="p-4 ph-surface-card">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+                  {fmt(wallet.unlocked_amount, ccy)} unlocked of {fmt(wallet.potential_wallet, ccy)} potential
+                </p>
+                <StatusBar pct={wallet.achievement_pct} maxPct={120} />
+              </Card>
+            )}
+          </>
         )}
 
         <Card className="p-5 space-y-4">

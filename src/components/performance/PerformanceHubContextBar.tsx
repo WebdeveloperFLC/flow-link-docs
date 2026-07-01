@@ -1,4 +1,6 @@
 import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
+import { PerformanceHubCommandPalette } from "@/components/performance/PerformanceHubCommandPalette";
+import { PerformanceHubQueueBadge } from "@/components/performance/PerformanceHubQueueBadge";
 import { ThemeModeToggle } from "@/components/theme/ThemeModeToggle";
 import { RoleViewSwitcher } from "@/components/layout/RoleViewSwitcher";
 
@@ -10,6 +12,8 @@ export function PerformanceHubContextBar() {
         Future Link · <span className="ph-context-accent">Performance Hub</span>
       </div>
       <div className="ml-auto flex flex-wrap items-center gap-2 min-w-0 pr-14 sm:pr-16">
+        <PerformanceHubQueueBadge />
+        <PerformanceHubCommandPalette />
         <RoleViewSwitcher variant="hub" />
         <div className="ph-context-chip rounded-lg px-2.5 py-1 shrink-0">
           <PerformancePeriodBar compact showBranch inContextBar className="border-0 bg-transparent p-0 gap-2 [&_label]:text-[10px] [&_label]:text-[#8FA0C2] [&_input]:h-8 [&_input]:w-28 [&_input]:text-xs [&_input]:bg-transparent [&_input]:border-white/20 [&_input]:text-white [&_select]:h-8 [&_select]:text-xs [&_select]:bg-transparent [&_select]:border-white/20 [&_select]:text-white" />

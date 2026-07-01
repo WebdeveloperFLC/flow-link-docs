@@ -9,10 +9,10 @@ import { PerformanceHubHeader } from "@/components/performance/PerformanceHubHea
 import { PerformancePeriodBar } from "@/components/performance/PerformancePeriodBar";
 import { PerformanceComparisonModeStrip } from "@/components/performance/PerformanceComparisonModeStrip";
 import { PerformanceComparisonVsGrid } from "@/components/performance/PerformanceComparisonVsGrid";
-import {
-  PerformanceComparisonTrendOverlay,
+import { PerformanceComparisonTrendOverlay,
   type DualTrendPoint,
 } from "@/components/performance/PerformanceComparisonTrendOverlay";
+import { PerformanceExecutiveLeaderboards } from "@/components/performance/PerformanceExecutiveLeaderboards";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformanceTeamRows } from "@/hooks/usePerformanceTeamRows";
 import { usePerformancePeriodMetrics } from "@/hooks/usePerformancePeriodMetrics";
@@ -50,6 +50,40 @@ export default function PerformanceComparison() {
 
   const counselors = useMemo(() => counselorOptions(teamRows), [teamRows]);
   const branches = useMemo(() => branchOptions(teamRows), [teamRows]);
+
+  const branchLeaderRows = useMemo(() => {
+    const map = new Map<string, { revenue: number; achSum: number; achCount: number }>();
+    for (const r of teamRows) {
+      const key = r.branchName ?? "Unassigned";
+      const cur = map.get(key) ?? { revenue: 0, achSum: 0, achCount: 0 };
+      cur.revenue += r.netRevenue;
+      if (r.targetPct != null) {
+        cur.achSum += r.targetPct;
+        cur.achCount += 1;
+      }
+      map.set(key, cur);
+    }
+    return [...map.entries()]
+      .map(([name, v]) => ({
+        name,
+        revenue: v.revenue,
+        achievementPct: v.achCount ? Math.round(v.achSum / v.achCount) : null,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
+  }, [teamRows]);
+
+  const counselorLeaderRows = useMemo(
+    () =>
+      [...teamRows]
+        .sort((a, b) => b.netRevenue - a.netRevenue)
+        .map((r) => ({
+          name: r.name,
+          branchName: r.branchName,
+          netRevenue: r.netRevenue,
+          targetPct: r.targetPct,
+        })),
+    [teamRows],
+  );
 
   useEffect(() => {
     if (counselors.length >= 2 && !entityA) {
@@ -255,6 +289,12 @@ export default function PerformanceComparison() {
         ) : (
           <Card className="p-4 ph-surface-card text-sm ph-muted">Select two entities to compare.</Card>
         )}
+
+        <PerformanceExecutiveLeaderboards
+          branchRows={branchLeaderRows}
+          counselorRows={counselorLeaderRows}
+          loading={teamLoading}
+        />
       </div>
     </AppLayout>
   );
