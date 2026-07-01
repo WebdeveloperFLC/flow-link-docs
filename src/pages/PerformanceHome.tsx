@@ -21,6 +21,7 @@ import { PerformanceIncentiveProgressCard } from "@/components/performance/Perfo
 import { PerformanceTelecallerHome } from "@/components/performance/PerformanceTelecallerHome";
 import { usePerformancePeriod } from "@/contexts/PerformancePeriodContext";
 import { usePerformanceEffectiveUserId } from "@/contexts/PerformanceHubViewAsContext";
+import { usePerformanceHomeData } from "@/hooks/usePerformanceHomeData";
 import { formatInr } from "@/lib/performanceHubTheme";
 import { PerformanceMobileQuickBar } from "@/components/performance/PerformanceMobileQuickBar";
 import {
